@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "Node",
+    "target": "es6",
+  }
+}
