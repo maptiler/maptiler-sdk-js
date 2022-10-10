@@ -1,9 +1,11 @@
 interface ConfigInterface {
-  accessToken: string,
+  apiToken: string,
+  verbose: boolean,
 }
 
 const config: ConfigInterface = {
-  accessToken: 'Not defined yet.',
+  apiToken: 'Not defined yet.',
+  verbose: false,
 }
 
 export { config };

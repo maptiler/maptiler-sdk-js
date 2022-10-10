@@ -6,12 +6,19 @@ declare class LngLat extends maplibre.LngLat {
     setToNull(): void;
 }
 
+declare type MapOptions = Omit<maplibre.MapOptions, "style"> & {
+    style?: string;
+};
+/**
+ * Map constructor
+ */
 declare class Map extends maplibre.Map {
-    constructor(options: maplibre.MapOptions);
+    constructor(options: MapOptions);
 }
 
 interface ConfigInterface {
-    accessToken: string;
+    apiToken: string;
+    verbose: boolean;
 }
 declare const config: ConfigInterface;
 

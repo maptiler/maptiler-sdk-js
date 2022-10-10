@@ -64,8 +64,31 @@
 	}
 
 	const config = {
-	  accessToken: "Not defined yet."
+	  apiToken: "Not defined yet.",
+	  verbose: false
 	};
+
+	const defaults = {
+	  mapStyle: "streets"
+	};
+
+	function vlog(...args) {
+	  if (config.verbose) {
+	    console.log(...arguments);
+	  }
+	}
+	function expandMapStyle(style) {
+	  const trimmed = style.trim();
+	  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+	    return trimmed;
+	  }
+	  const maptilerDomainRegex = /^maptiler:\/\/(.*)/;
+	  const match = maptilerDomainRegex.exec(trimmed);
+	  if (match) {
+	    return `https://api.maptiler.com/maps/${match[1]}/style.json`;
+	  }
+	  return `https://api.maptiler.com/maps/${trimmed}/style.json`;
+	}
 
 	var __defProp = Object.defineProperty;
 	var __defProps = Object.defineProperties;
@@ -86,29 +109,16 @@
 	  return a;
 	};
 	var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
-	const maptilerStyles = {
-	  "basic": "https://api.maptiler.com/maps/basic-v2/style.json",
-	  "bright": "https://api.maptiler.com/maps/bright/style.json",
-	  "openstreetmap": "https://api.maptiler.com/maps/openstreetmap/style.json",
-	  "outdoor": "https://api.maptiler.com/maps/outdoor/style.json",
-	  "pastel": "https://api.maptiler.com/maps/pastel/style.json",
-	  "satellite Hybrid": "https://api.maptiler.com/maps/hybrid/style.json",
-	  "streets": "https://api.maptiler.com/maps/streets/style.json",
-	  "toner": "https://api.maptiler.com/maps/toner/style.json",
-	  "topo": "https://api.maptiler.com/maps/topo/style.json",
-	  "topographique": "https://api.maptiler.com/maps/topographique/style.json",
-	  "voyager": "https://api.maptiler.com/maps/voyager/style.json",
-	  "winter": "https://api.maptiler.com/maps/winter/style.json"
-	};
 	class Map extends maplibreGl.exports.Map {
 	  constructor(options) {
-	    console.log("hello");
-	    let style = options.style.trim().toLowerCase();
-	    if (style in maptilerStyles) {
-	      style = maptilerStyles[style];
+	    let style = expandMapStyle(defaults.mapStyle);
+	    if ("style" in options) {
+	      style = expandMapStyle(options.style);
+	    } else {
+	      vlog(`Map style not provided, backing up to ${defaults.mapStyle}`);
 	    }
 	    if (!style.includes("key=")) {
-	      style = `${style}?key=${config.accessToken}`;
+	      style = `${style}?key=${config.apiToken}`;
 	    }
 	    super(__spreadProps(__spreadValues({}, options), { style }));
 	  }
