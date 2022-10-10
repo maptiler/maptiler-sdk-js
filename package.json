@@ -6,7 +6,7 @@
   "types": "dist/maptiler.d.ts",
   "type": "module",
   "scripts": {
-    "build": "NODE_ENV=production rollup -c", 
+    "build": "NODE_ENV=production rollup -c",
     "dev": "NODE_ENV=development rollup -c -w"
   },
   "author": "",
@@ -14,6 +14,7 @@
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^14.1.0",
     "rollup": "^2.79.0",
+    "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-dts": "^4.2.2",
     "rollup-plugin-esbuild": "^4.10.1",
     "rollup-plugin-swc": "^0.2.1",
