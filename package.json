@@ -2,7 +2,7 @@
   "name": "maptiler",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/maptiler.mjs",
+  "module": "dist/maptiler.mjs",
   "types": "dist/maptiler.d.ts",
   "type": "module",
   "scripts": {
