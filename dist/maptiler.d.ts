@@ -6,13 +6,16 @@ declare class LngLat extends maplibre.LngLat {
     setToNull(): void;
 }
 
-declare type MapOptions = Omit<maplibre.MapOptions, "style"> & {
+declare type MapOptions = Omit<maplibre.MapOptions, "style"> & Omit<maplibre.MapOptions, "maplibreLogo"> & {
     style?: string;
+    maptilerLogo?: boolean;
 };
 /**
  * Map constructor
  */
 declare class Map extends maplibre.Map {
+    private attributionMustDisplay;
+    private attibutionLogoUrl;
     constructor(options: MapOptions);
 }
 

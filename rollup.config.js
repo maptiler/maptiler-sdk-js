@@ -1,20 +1,23 @@
-import dts from 'rollup-plugin-dts'
-import esbuild from 'rollup-plugin-esbuild'
+import dts from 'rollup-plugin-dts';
+import esbuild from 'rollup-plugin-esbuild';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
-import globals from 'rollup-plugin-node-globals'
-import commonjs from '@rollup/plugin-commonjs'
-import copy from 'rollup-plugin-copy'
-import pkg from './package.json'
+import globals from 'rollup-plugin-node-globals';
+import commonjs from '@rollup/plugin-commonjs';
+import copy from 'rollup-plugin-copy';
+import pkg from './package.json';
+
+const copyCssPlugin = copy({
+  targets: [
+    { src: 'node_modules/maplibre-gl/dist/maplibre-gl.css', dest: 'dist', rename: 'maptiler.css' },
+  ]
+})
+
 
 const bundles = [
   // ES module, not minified + sourcemap
   {
     plugins: [
-      copy({
-        targets: [
-          { src: 'node_modules/maplibre-gl/dist/maplibre-gl.css', dest: 'dist', rename: 'maptiler.css' },
-        ]
-      }),
+      copyCssPlugin,
       esbuild()
     ],
     output: [
@@ -34,11 +37,7 @@ const bundles = [
   // UMD module, not minified
   {
     plugins: [
-      copy({
-        targets: [
-          { src: 'node_modules/maplibre-gl/dist/maplibre-gl.css', dest: 'dist', rename: 'maptiler.css' },
-        ]
-      }),
+      copyCssPlugin,
       nodeResolve(), // for the standalone UMD, we want to resolve so that the bundle contains all the dep.
       commonjs({ include: 'node_modules/**' }),
       globals(),
@@ -76,11 +75,7 @@ if (process.env.NODE_ENV === 'production') {
   // ES module, minified
   {
     plugins: [
-      copy({
-        targets: [
-          { src: 'node_modules/maplibre-gl/dist/maplibre-gl.css', dest: 'dist', rename: 'maptiler.css' },
-        ]
-      }),
+      copyCssPlugin,
       esbuild({
         sourceMap: false,
         minify: true,
