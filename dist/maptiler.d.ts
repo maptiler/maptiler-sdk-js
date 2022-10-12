@@ -28,16 +28,31 @@ declare type geocoderOptionsType = {
     proximity?: lngLatType;
     language?: string | Array<string>;
 };
-declare function forward(query: any, options?: geocoderOptionsType): Promise<void>;
-declare function reverse(): Promise<void>;
+/**
+ * Performs a forward geocoding query to MapTiler API
+ * @param query
+ * @param options
+ * @returns
+ */
+declare function forward(query: any, options?: geocoderOptionsType): Promise<any>;
+/**
+ * Perform a reverse geocoding query to MapTiler API
+ * @param lngLat
+ * @param options
+ * @returns
+ */
+declare function reverse(lngLat: lngLatType, options?: geocoderOptionsType): Promise<any>;
 declare const geocoder: {
     forward: typeof forward;
     reverse: typeof reverse;
 };
 
+/**
+ * A ServiceError is an Error that includes the HTTP response details
+ */
 declare class ServiceError extends Error {
-    private res;
-    constructor(res: Response);
+    res: Response;
+    constructor(res: Response, customMessage?: string);
 }
 
 interface ConfigInterface {

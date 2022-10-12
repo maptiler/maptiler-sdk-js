@@ -4,6 +4,6 @@ export type lngLatType = {
 }
 
 export type bboxType  = {
-  southWest:lngLatType,
+  southWest: lngLatType,
   northEast: lngLatType,
 }

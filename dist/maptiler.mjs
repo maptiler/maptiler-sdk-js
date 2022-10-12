@@ -148,8 +148,8 @@ class Map extends maplibre.Map {
 }
 
 class ServiceError extends Error {
-  constructor(res) {
-    super(`Call to enpoint ${res.url} failed with the status code ${res.status}`);
+  constructor(res, customMessage = "") {
+    super(`Call to enpoint ${res.url} failed with the status code ${res.status}. ${customMessage}`);
     this.res = res;
   }
 }
@@ -174,6 +174,10 @@ var __async = (__this, __arguments, generator) => {
     step((generator = generator.apply(__this, __arguments)).next());
   });
 };
+const customMessages = {
+  400: "Query too long / Invalid parameters",
+  403: "Key is missing, invalid or restricted"
+};
 function forward(_0) {
   return __async(this, arguments, function* (query, options = {}) {
     const endpoint = new URL(`geocoding/${encodeURIComponent(query)}.json`, defaults.maptilerApiURL);
@@ -197,18 +201,43 @@ function forward(_0) {
       endpoint.searchParams.set("language", languages);
     }
     const urlWithParams = endpoint.toString();
-    console.log(urlWithParams);
     const res = yield fetch(urlWithParams);
     if (!res.ok) {
-      throw new ServiceError(res);
+      throw new ServiceError(res, customMessages[res.status]);
     }
     const obj = yield res.json();
-    console.log(obj);
+    return obj;
   });
 }
-function reverse() {
-  return __async(this, null, function* () {
-    console.log("to implement...");
+function reverse(_0) {
+  return __async(this, arguments, function* (lngLat, options = {}) {
+    const endpoint = new URL(`geocoding/${lngLat.lng},${lngLat.lat}.json`, defaults.maptilerApiURL);
+    endpoint.searchParams.set("key", config.apiToken);
+    if ("bbox" in options) {
+      endpoint.searchParams.set("bbox", [
+        options.bbox.southWest.lng,
+        options.bbox.southWest.lat,
+        options.bbox.northEast.lng,
+        options.bbox.northEast.lat
+      ].join(","));
+    }
+    if ("proximity" in options) {
+      endpoint.searchParams.set("proximity", [
+        options.proximity.lng,
+        options.proximity.lat
+      ].join(","));
+    }
+    if ("language" in options) {
+      const languages = (Array.isArray(options.language) ? options.language : [options.language]).join(",");
+      endpoint.searchParams.set("language", languages);
+    }
+    const urlWithParams = endpoint.toString();
+    const res = yield fetch(urlWithParams);
+    if (!res.ok) {
+      throw new ServiceError(res, customMessages[res.status]);
+    }
+    const obj = yield res.json();
+    return obj;
   });
 }
 const geocoder = {

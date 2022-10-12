@@ -10,7 +10,18 @@ export type geocoderOptionsType = {
   language?: string | Array<string>, 
 }
 
+const customMessages = {
+  400: 'Query too long / Invalid parameters',
+  403: 'Key is missing, invalid or restricted',
+}
 
+
+/**
+ * Performs a forward geocoding query to MapTiler API
+ * @param query 
+ * @param options 
+ * @returns 
+ */
 async function forward(query, options: geocoderOptionsType = {}) {
   const endpoint = new URL(`geocoding/${encodeURIComponent(query)}.json`, defaults.maptilerApiURL);
   endpoint.searchParams.set('key', config.apiToken);
@@ -37,25 +48,57 @@ async function forward(query, options: geocoderOptionsType = {}) {
   }
 
   const urlWithParams = endpoint.toString()
-  console.log(urlWithParams);
-  
   const res = await fetch(urlWithParams)
 
   if (!res.ok) {
-    throw new ServiceError(res);
+    throw new ServiceError(res, customMessages[res.status]);
   }
 
   const obj = await res.json()
-
-  console.log(obj);
-  
-
+  return obj;
 }
 
 
-async function reverse() {
-  console.log('to implement...');
-  
+/**
+ * Perform a reverse geocoding query to MapTiler API
+ * @param lngLat 
+ * @param options 
+ * @returns 
+ */
+async function reverse(lngLat: lngLatType, options: geocoderOptionsType = {}) {
+  const endpoint = new URL(`geocoding/${lngLat.lng},${lngLat.lat}.json`, defaults.maptilerApiURL);
+  endpoint.searchParams.set('key', config.apiToken);
+
+  if ('bbox' in options) {
+    endpoint.searchParams.set('bbox', [
+      options.bbox.southWest.lng,
+      options.bbox.southWest.lat,
+      options.bbox.northEast.lng,
+      options.bbox.northEast.lat,
+    ].join(','));
+  }
+
+  if ('proximity' in options) {
+    endpoint.searchParams.set('proximity', [
+      options.proximity.lng, 
+      options.proximity.lat,
+    ].join(','));
+  }
+
+  if ('language' in options) {
+    const languages = (Array.isArray(options.language) ? options.language : [options.language]).join(',');
+    endpoint.searchParams.set('language', languages);
+  }
+
+  const urlWithParams = endpoint.toString()
+  const res = await fetch(urlWithParams)
+
+  if (!res.ok) {
+    throw new ServiceError(res, customMessages[res.status]);
+  }
+
+  const obj = await res.json()
+  return obj;
 }
 
 const geocoder = {
