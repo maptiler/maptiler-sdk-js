@@ -1,16 +1,30 @@
 // Exporting Maplibre as is
 export * from 'maplibre-gl'
 
-// Custom extension is adding some methods to the original LngLat
-import LngLat from './LngLat';
+import type { bboxType, lngLatType } from './generalTypes';
+
 import Map from './Map';
+import type { MapOptions } from './Map'
+
+import geocoder from './services/geocoder'
+import type { geocoderOptionsType } from './services/geocoder'
+
+import ServiceError from './services/ServiceError';
 
 import { config } from './config';
 
+// Exporting types
+export type {
+  lngLatType,
+  MapOptions,
+  geocoderOptionsType,
+  bboxType
+};
 
-// Exporting custom LngLat, will supersede the one from Maplibre (because exported after)
+// Exporting classes, objects, functions, etc.
 export {
   Map,
-  LngLat,
   config,
+  geocoder,
+  ServiceError,
 };

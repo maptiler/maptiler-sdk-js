@@ -5,16 +5,15 @@ import LogoControl from './LogoControl';
 import { expandMapStyle, vlog } from './tools';
 
 
-type MapOptions = Omit<maplibre.MapOptions, "style"> & Omit<maplibre.MapOptions, "maplibreLogo"> & {
+export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo" > & {
   style?: string,
   maptilerLogo?: boolean,
 }
 
-
 /**
  * Map constructor
  */
-export default class  Map extends maplibre.Map {
+export default class Map extends maplibre.Map {
   private attributionMustDisplay: boolean = false;
   private attibutionLogoUrl: string = '';
 

@@ -53,16 +53,6 @@
 		
 	} (maplibreGl));
 
-	class LngLat extends maplibreGl.exports.LngLat {
-	  constructor(lng, lat) {
-	    super(lng, lat);
-	  }
-	  setToNull() {
-	    this.lng = 0;
-	    this.lat = 0;
-	  }
-	}
-
 	const config = {
 	  apiToken: "Not defined yet.",
 	  verbose: false
@@ -71,7 +61,8 @@
 	const defaults = {
 	  mapStyle: "streets",
 	  maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
-	  maptilerURL: "https://www.maptiler.com/"
+	  maptilerURL: "https://www.maptiler.com/",
+	  maptilerApiURL: "https://api.maptiler.com/"
 	};
 
 	class LogoControl extends maplibreGl.exports.LogoControl {
@@ -150,7 +141,7 @@
 	  return a;
 	};
 	var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
-	var __async = (__this, __arguments, generator) => {
+	var __async$1 = (__this, __arguments, generator) => {
 	  return new Promise((resolve, reject) => {
 	    var fulfilled = (value) => {
 	      try {
@@ -184,7 +175,7 @@
 	    super(__spreadProps(__spreadValues({}, options), { style, maplibreLogo: false }));
 	    this.attributionMustDisplay = false;
 	    this.attibutionLogoUrl = "";
-	    this.once("load", () => __async(this, null, function* () {
+	    this.once("load", () => __async$1(this, null, function* () {
 	      let tileJsonURL = null;
 	      try {
 	        tileJsonURL = this.getSource("openmaptiles").url;
@@ -208,9 +199,79 @@
 	  }
 	}
 
-	exports.LngLat = LngLat;
+	class ServiceError extends Error {
+	  constructor(res) {
+	    super(`Call to enpoint ${res.url} failed with the status code ${res.status}`);
+	    this.res = res;
+	  }
+	}
+
+	var __async = (__this, __arguments, generator) => {
+	  return new Promise((resolve, reject) => {
+	    var fulfilled = (value) => {
+	      try {
+	        step(generator.next(value));
+	      } catch (e) {
+	        reject(e);
+	      }
+	    };
+	    var rejected = (value) => {
+	      try {
+	        step(generator.throw(value));
+	      } catch (e) {
+	        reject(e);
+	      }
+	    };
+	    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+	    step((generator = generator.apply(__this, __arguments)).next());
+	  });
+	};
+	function forward(_0) {
+	  return __async(this, arguments, function* (query, options = {}) {
+	    const endpoint = new URL(`geocoding/${encodeURIComponent(query)}.json`, defaults.maptilerApiURL);
+	    endpoint.searchParams.set("key", config.apiToken);
+	    if ("bbox" in options) {
+	      endpoint.searchParams.set("bbox", [
+	        options.bbox.southWest.lng,
+	        options.bbox.southWest.lat,
+	        options.bbox.northEast.lng,
+	        options.bbox.northEast.lat
+	      ].join(","));
+	    }
+	    if ("proximity" in options) {
+	      endpoint.searchParams.set("proximity", [
+	        options.proximity.lng,
+	        options.proximity.lat
+	      ].join(","));
+	    }
+	    if ("language" in options) {
+	      const languages = (Array.isArray(options.language) ? options.language : [options.language]).join(",");
+	      endpoint.searchParams.set("language", languages);
+	    }
+	    const urlWithParams = endpoint.toString();
+	    console.log(urlWithParams);
+	    const res = yield fetch(urlWithParams);
+	    if (!res.ok) {
+	      throw new ServiceError(res);
+	    }
+	    const obj = yield res.json();
+	    console.log(obj);
+	  });
+	}
+	function reverse() {
+	  return __async(this, null, function* () {
+	    console.log("to implement...");
+	  });
+	}
+	const geocoder = {
+	  forward,
+	  reverse
+	};
+
 	exports.Map = Map;
+	exports.ServiceError = ServiceError;
 	exports.config = config;
+	exports.geocoder = geocoder;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

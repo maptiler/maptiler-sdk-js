@@ -87,7 +87,8 @@ if (process.env.NODE_ENV === 'production') {
         format: "es",
       }
     ],
-    input: "src/index.ts"
+    input: "src/index.ts",
+    external: ['maplibre-gl'],
   })
 }
 

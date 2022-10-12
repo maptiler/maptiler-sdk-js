@@ -7,6 +7,7 @@ const defaults = {
   mapStyle: 'streets',
   maptilerLogoURL: 'https://api.maptiler.com/resources/logo.svg',
   maptilerURL: 'https://www.maptiler.com/',
+  maptilerApiURL: 'https://api.maptiler.com/',
 };
 
 export default defaults;
