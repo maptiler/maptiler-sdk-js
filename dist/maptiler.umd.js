@@ -141,7 +141,7 @@
 	  return a;
 	};
 	var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
-	var __async$1 = (__this, __arguments, generator) => {
+	var __async$4 = (__this, __arguments, generator) => {
 	  return new Promise((resolve, reject) => {
 	    var fulfilled = (value) => {
 	      try {
@@ -175,7 +175,7 @@
 	    super(__spreadProps(__spreadValues({}, options), { style, maplibreLogo: false }));
 	    this.attributionMustDisplay = false;
 	    this.attibutionLogoUrl = "";
-	    this.once("load", () => __async$1(this, null, function* () {
+	    this.once("load", () => __async$4(this, null, function* () {
 	      let tileJsonURL = null;
 	      try {
 	        tileJsonURL = this.getSource("openmaptiles").url;
@@ -206,7 +206,7 @@
 	  }
 	}
 
-	var __async = (__this, __arguments, generator) => {
+	var __async$3 = (__this, __arguments, generator) => {
 	  return new Promise((resolve, reject) => {
 	    var fulfilled = (value) => {
 	      try {
@@ -226,12 +226,12 @@
 	    step((generator = generator.apply(__this, __arguments)).next());
 	  });
 	};
-	const customMessages = {
+	const customMessages$3 = {
 	  400: "Query too long / Invalid parameters",
 	  403: "Key is missing, invalid or restricted"
 	};
 	function forward(_0) {
-	  return __async(this, arguments, function* (query, options = {}) {
+	  return __async$3(this, arguments, function* (query, options = {}) {
 	    const endpoint = new URL(`geocoding/${encodeURIComponent(query)}.json`, defaults.maptilerApiURL);
 	    endpoint.searchParams.set("key", config.apiToken);
 	    if ("bbox" in options) {
@@ -255,14 +255,14 @@
 	    const urlWithParams = endpoint.toString();
 	    const res = yield fetch(urlWithParams);
 	    if (!res.ok) {
-	      throw new ServiceError(res, customMessages[res.status]);
+	      throw new ServiceError(res, res.status in customMessages$3 ? customMessages$3[res.status] : "");
 	    }
 	    const obj = yield res.json();
 	    return obj;
 	  });
 	}
 	function reverse(_0) {
-	  return __async(this, arguments, function* (lngLat, options = {}) {
+	  return __async$3(this, arguments, function* (lngLat, options = {}) {
 	    const endpoint = new URL(`geocoding/${lngLat.lng},${lngLat.lat}.json`, defaults.maptilerApiURL);
 	    endpoint.searchParams.set("key", config.apiToken);
 	    if ("bbox" in options) {
@@ -286,7 +286,7 @@
 	    const urlWithParams = endpoint.toString();
 	    const res = yield fetch(urlWithParams);
 	    if (!res.ok) {
-	      throw new ServiceError(res, customMessages[res.status]);
+	      throw new ServiceError(res, res.status in customMessages$3 ? customMessages$3[res.status] : "");
 	    }
 	    const obj = yield res.json();
 	    return obj;
@@ -297,10 +297,166 @@
 	  reverse
 	};
 
+	var __async$2 = (__this, __arguments, generator) => {
+	  return new Promise((resolve, reject) => {
+	    var fulfilled = (value) => {
+	      try {
+	        step(generator.next(value));
+	      } catch (e) {
+	        reject(e);
+	      }
+	    };
+	    var rejected = (value) => {
+	      try {
+	        step(generator.throw(value));
+	      } catch (e) {
+	        reject(e);
+	      }
+	    };
+	    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+	    step((generator = generator.apply(__this, __arguments)).next());
+	  });
+	};
+	const customMessages$2 = {
+	  403: "Key is missing, invalid or restricted"
+	};
+	function info() {
+	  return __async$2(this, null, function* () {
+	    const endpoint = new URL(`geolocation/ip.json`, defaults.maptilerApiURL);
+	    endpoint.searchParams.set("key", config.apiToken);
+	    const urlWithParams = endpoint.toString();
+	    const res = yield fetch(urlWithParams);
+	    if (!res.ok) {
+	      throw new ServiceError(res, res.status in customMessages$2 ? customMessages$2[res.status] : "");
+	    }
+	    const obj = yield res.json();
+	    return obj;
+	  });
+	}
+	const geolocation = {
+	  info
+	};
+
+	var __async$1 = (__this, __arguments, generator) => {
+	  return new Promise((resolve, reject) => {
+	    var fulfilled = (value) => {
+	      try {
+	        step(generator.next(value));
+	      } catch (e) {
+	        reject(e);
+	      }
+	    };
+	    var rejected = (value) => {
+	      try {
+	        step(generator.throw(value));
+	      } catch (e) {
+	        reject(e);
+	      }
+	    };
+	    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+	    step((generator = generator.apply(__this, __arguments)).next());
+	  });
+	};
+	const customMessages$1 = {
+	  403: "Key is missing, invalid or restricted"
+	};
+	function search(_0) {
+	  return __async$1(this, arguments, function* (query, options = {}) {
+	    const endpoint = new URL(`coordinates/search/${query}.json`, defaults.maptilerApiURL);
+	    endpoint.searchParams.set("key", config.apiToken);
+	    if ("limit" in options) {
+	      endpoint.searchParams.set("limit", options.limit.toString());
+	    }
+	    if ("transformations" in options) {
+	      endpoint.searchParams.set("transformations", options.transformations.toString());
+	    }
+	    if ("exports" in options) {
+	      endpoint.searchParams.set("exports", options.exports.toString());
+	    }
+	    const urlWithParams = endpoint.toString();
+	    const res = yield fetch(urlWithParams);
+	    if (!res.ok) {
+	      throw new ServiceError(res, res.status in customMessages$1 ? customMessages$1[res.status] : "");
+	    }
+	    const obj = yield res.json();
+	    return obj;
+	  });
+	}
+	function transform(_0) {
+	  return __async$1(this, arguments, function* (coordinates2, options = {}) {
+	    const coordinatesStr = (Array.isArray(coordinates2) ? coordinates2 : [coordinates2]).map((coord) => `${coord.lng},${coord.lat}`).join(";");
+	    const endpoint = new URL(`coordinates/transform/${coordinatesStr}.json`, defaults.maptilerApiURL);
+	    endpoint.searchParams.set("key", config.apiToken);
+	    if ("sourceCrs" in options) {
+	      endpoint.searchParams.set("s_srs", options.sourceCrs.toString());
+	    }
+	    if ("targetCrs" in options) {
+	      endpoint.searchParams.set("t_srs", options.targetCrs.toString());
+	    }
+	    if ("operations" in options) {
+	      endpoint.searchParams.set("ops", (Array.isArray(options.operations) ? options.operations : [options.operations]).join("|"));
+	    }
+	    const urlWithParams = endpoint.toString();
+	    const res = yield fetch(urlWithParams);
+	    if (!res.ok) {
+	      throw new ServiceError(res, res.status in customMessages$1 ? customMessages$1[res.status] : "");
+	    }
+	    const obj = yield res.json();
+	    return obj;
+	  });
+	}
+	const coordinates = {
+	  search,
+	  transform
+	};
+
+	var __async = (__this, __arguments, generator) => {
+	  return new Promise((resolve, reject) => {
+	    var fulfilled = (value) => {
+	      try {
+	        step(generator.next(value));
+	      } catch (e) {
+	        reject(e);
+	      }
+	    };
+	    var rejected = (value) => {
+	      try {
+	        step(generator.throw(value));
+	      } catch (e) {
+	        reject(e);
+	      }
+	    };
+	    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+	    step((generator = generator.apply(__this, __arguments)).next());
+	  });
+	};
+	const customMessages = {
+	  403: "Key is missing, invalid or restricted"
+	};
+	function get(dataId) {
+	  return __async(this, null, function* () {
+	    const endpoint = new URL(`data/${encodeURIComponent(dataId)}/features.json`, defaults.maptilerApiURL);
+	    endpoint.searchParams.set("key", config.apiToken);
+	    const urlWithParams = endpoint.toString();
+	    const res = yield fetch(urlWithParams);
+	    if (!res.ok) {
+	      throw new ServiceError(res, res.status in customMessages ? customMessages[res.status] : "");
+	    }
+	    const obj = yield res.json();
+	    return obj;
+	  });
+	}
+	const data = {
+	  get
+	};
+
 	exports.Map = Map;
 	exports.ServiceError = ServiceError;
 	exports.config = config;
+	exports.coordinates = coordinates;
+	exports.data = data;
 	exports.geocoder = geocoder;
+	exports.geolocation = geolocation;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

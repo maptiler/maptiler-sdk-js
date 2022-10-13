@@ -5,10 +5,22 @@ import ServiceError from "./ServiceError";
 
 
 export type geocoderOptionsType = {
+  /**
+   * Only search for results in the specified area.
+   */
   bbox?: bboxType,
+
+  /**
+   * Prefer results close to a specific location.
+   */
   proximity?: lngLatType,
+
+  /**
+   * Prefer results in specific language. It’s possible to specify multiple values.
+   */
   language?: string | Array<string>, 
 }
+
 
 const customMessages = {
   400: 'Query too long / Invalid parameters',
@@ -51,7 +63,7 @@ async function forward(query, options: geocoderOptionsType = {}) {
   const res = await fetch(urlWithParams)
 
   if (!res.ok) {
-    throw new ServiceError(res, customMessages[res.status]);
+    throw new ServiceError(res, res.status in customMessages ? customMessages[res.status] : '');
   }
 
   const obj = await res.json()
@@ -94,7 +106,7 @@ async function reverse(lngLat: lngLatType, options: geocoderOptionsType = {}) {
   const res = await fetch(urlWithParams)
 
   if (!res.ok) {
-    throw new ServiceError(res, customMessages[res.status]);
+    throw new ServiceError(res, res.status in customMessages ? customMessages[res.status] : '');
   }
 
   const obj = await res.json()
