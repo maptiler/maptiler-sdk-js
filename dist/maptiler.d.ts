@@ -5,6 +5,7 @@ declare type lngLatType = {
     lng: number;
     lat: number;
 };
+declare type lngLatArrayType = [number, number];
 declare type bboxType = {
     southWest: lngLatType;
     northEast: lngLatType;
@@ -122,6 +123,68 @@ declare const data: {
     get: typeof get;
 };
 
+declare type centeredStaticMapOptionsType = {
+    style?: string;
+    hiDPI?: boolean;
+    format?: 'png' | 'jpg' | 'webp';
+    width?: number;
+    height?: number;
+    attribution?: 'bottomright' | 'bottomleft' | 'topleft' | 'topright' | false;
+    marker?: staticMapMarkerType | Array<staticMapMarkerType>;
+    markerIcon?: string;
+    markerAnchor?: 'top' | 'left' | 'bottom' | 'right' | 'center' | 'topleft' | 'bottomleft' | 'topright' | 'bottomright';
+    markerScale?: number;
+    path?: Array<lngLatArrayType>;
+    pathStrokeColor?: string;
+    pathFillColor?: string;
+    pathWidth?: number;
+};
+declare type boundedStaticMapOptionsType = {
+    style?: string;
+    hiDPI?: boolean;
+    format?: 'png' | 'jpg' | 'webp';
+    width?: number;
+    height?: number;
+    attribution?: 'bottomright' | 'bottomleft' | 'topleft' | 'topright' | false;
+    marker?: staticMapMarkerType | Array<staticMapMarkerType>;
+    markerIcon?: string;
+    markerAnchor?: 'top' | 'left' | 'bottom' | 'right' | 'center' | 'topleft' | 'bottomleft' | 'topright' | 'bottomright';
+    markerScale?: number;
+    path?: Array<lngLatArrayType>;
+    pathStrokeColor?: string;
+    pathFillColor?: string;
+    pathWidth?: number;
+    padding?: number;
+};
+declare type staticMapMarkerType = {
+    lng: number;
+    lat: number;
+    color?: string;
+};
+/**
+ * Construct the URL for a static map centered on one point.
+ * Note: this function does not fetch the binary content of the image since
+ * the purpose of a static map is generally to have its URL as a `src` property of a <img/> element.
+ * @param center
+ * @param zoom
+ * @param options
+ * @returns
+ */
+declare function centered(center: lngLatType, zoom: number, options?: centeredStaticMapOptionsType): string;
+/**
+ * Construct the URL for a static map using a bounding box
+ * Note: this function does not fetch the binary content of the image since
+ * the purpose of a static map is generally to have its URL as a `src` property of a <img/> element.
+ * @param boundingBox
+ * @param options
+ * @returns
+ */
+declare function bounded(boundingBox: bboxType, options?: boundedStaticMapOptionsType): string;
+declare const staticMaps: {
+    centered: typeof centered;
+    bounded: typeof bounded;
+};
+
 /**
  * A ServiceError is an Error that includes the HTTP response details
  */
@@ -136,4 +199,4 @@ interface ConfigInterface {
 }
 declare const config: ConfigInterface;
 
-export { Map, MapOptions, ServiceError, bboxType, config, coordinates, coordinatesSearchOptionsType, data, geocoder, geocoderOptionsType, geolocation, lngLatType };
+export { Map, MapOptions, ServiceError, bboxType, centeredStaticMapOptionsType, config, coordinates, coordinatesSearchOptionsType, data, geocoder, geocoderOptionsType, geolocation, lngLatType, staticMaps };

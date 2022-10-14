@@ -450,6 +450,167 @@
 	  get
 	};
 
+	function getSqSegDist(p, p1, p2) {
+	  let x = p1[0], y = p1[1], dx = p2[0] - x, dy = p2[1] - y;
+	  if (dx !== 0 || dy !== 0) {
+	    let t = ((p[0] - x) * dx + (p[1] - y) * dy) / (dx * dx + dy * dy);
+	    if (t > 1) {
+	      x = p2[0];
+	      y = p2[1];
+	    } else if (t > 0) {
+	      x += dx * t;
+	      y += dy * t;
+	    }
+	  }
+	  dx = p[0] - x;
+	  dy = p[1] - y;
+	  return dx * dx + dy * dy;
+	}
+	function simplifyDPStep(points, first, last, sqTolerance, simplified) {
+	  let maxSqDist = sqTolerance, index;
+	  for (let i = first + 1; i < last; i++) {
+	    const sqDist = getSqSegDist(points[i], points[first], points[last]);
+	    if (sqDist > maxSqDist) {
+	      index = i;
+	      maxSqDist = sqDist;
+	    }
+	  }
+	  if (maxSqDist > sqTolerance) {
+	    if (index - first > 1) {
+	      simplifyDPStep(points, first, index, sqTolerance, simplified);
+	    }
+	    simplified.push(points[index]);
+	    if (last - index > 1) {
+	      simplifyDPStep(points, index, last, sqTolerance, simplified);
+	    }
+	  }
+	}
+	function simplifyDouglasPeucker(points, sqTolerance) {
+	  const last = points.length - 1;
+	  const simplified = [points[0]];
+	  simplifyDPStep(points, 0, last, sqTolerance, simplified);
+	  simplified.push(points[last]);
+	  return simplified;
+	}
+	function simplify(points, tolerance) {
+	  if (points.length <= 2) {
+	    return points;
+	  }
+	  const sqTolerance = tolerance !== void 0 ? tolerance * tolerance : 1;
+	  const simplePoints = simplifyDouglasPeucker(points, sqTolerance);
+	  return simplePoints;
+	}
+
+	function staticMapMarkerToString(marker, includeColor = true) {
+	  let str = `${marker.lng},${marker.lat}`;
+	  if (marker.color && includeColor) {
+	    str += `,${marker.color}`;
+	  }
+	  return str;
+	}
+	function simplifyAndStringify(path, maxNbChar = 3e3) {
+	  let str = path.map((point) => point.join(",")).join("|");
+	  let tolerance = 5e-6;
+	  const toleranceStep = 1e-5;
+	  while (str.length > maxNbChar) {
+	    const simplerPath = simplify(path, tolerance);
+	    str = simplerPath.map((point) => `${point[0]},${point[1]}`).join("|");
+	    tolerance += toleranceStep;
+	  }
+	  return str;
+	}
+	function centered(center, zoom, options = {}) {
+	  var _a, _b, _c, _d, _e;
+	  const style = (_a = options.style) != null ? _a : defaults.mapStyle;
+	  const scale = options.hiDPI ? "@2x" : "";
+	  const format = (_b = options.format) != null ? _b : "png";
+	  const width = ~~((_c = options.width) != null ? _c : 800);
+	  const height = ~~((_d = options.height) != null ? _d : 600);
+	  const endpoint = new URL(`maps/${encodeURIComponent(style)}/static/${center.lng},${center.lat},${zoom}/${width}x${height}${scale}.${format}`, defaults.maptilerApiURL);
+	  if ("attribution" in options) {
+	    endpoint.searchParams.set("attribution", options.attribution.toString());
+	  }
+	  if ("marker" in options) {
+	    let markerStr = "";
+	    const hasIcon = "markerIcon" in options;
+	    if (hasIcon) {
+	      markerStr += `icon:${options.markerIcon}|`;
+	    }
+	    if (hasIcon && "markerAnchor" in options) {
+	      markerStr += `anchor:${options.markerAnchor}|`;
+	    }
+	    if (hasIcon && "markerScale" in options) {
+	      markerStr += `scale:${Math.round(1 / options.markerScale)}|`;
+	    }
+	    const markerList = Array.isArray(options.marker) ? options.marker : [options.marker];
+	    markerStr += markerList.map((m) => staticMapMarkerToString(m, !hasIcon)).join("|");
+	    endpoint.searchParams.set("markers", markerStr);
+	  }
+	  if ("path" in options) {
+	    let pathStr = "";
+	    pathStr += `fill:${(_e = options.pathFillColor) != null ? _e : "none"}|`;
+	    if ("pathStrokeColor" in options) {
+	      pathStr += `stroke:${options.pathStrokeColor}|`;
+	    }
+	    if ("pathWidth" in options) {
+	      pathStr += `width:${options.pathWidth.toString()}|`;
+	    }
+	    pathStr += simplifyAndStringify(options.path);
+	    endpoint.searchParams.set("path", pathStr);
+	  }
+	  endpoint.searchParams.set("key", config.apiToken);
+	  return endpoint.toString();
+	}
+	function bounded(boundingBox, options = {}) {
+	  var _a, _b, _c, _d, _e;
+	  const style = (_a = options.style) != null ? _a : defaults.mapStyle;
+	  const scale = options.hiDPI ? "@2x" : "";
+	  const format = (_b = options.format) != null ? _b : "png";
+	  const width = ~~((_c = options.width) != null ? _c : 800);
+	  const height = ~~((_d = options.height) != null ? _d : 600);
+	  const endpoint = new URL(`maps/${encodeURIComponent(style)}/static/${boundingBox.southWest.lng},${boundingBox.southWest.lat},${boundingBox.northEast.lng},${boundingBox.northEast.lat}/${width}x${height}${scale}.${format}`, defaults.maptilerApiURL);
+	  if ("attribution" in options) {
+	    endpoint.searchParams.set("attribution", options.attribution.toString());
+	  }
+	  if ("padding" in options) {
+	    endpoint.searchParams.set("padding", options.padding.toString());
+	  }
+	  if ("marker" in options) {
+	    let markerStr = "";
+	    const hasIcon = "markerIcon" in options;
+	    if (hasIcon) {
+	      markerStr += `icon:${options.markerIcon}|`;
+	    }
+	    if (hasIcon && "markerAnchor" in options) {
+	      markerStr += `anchor:${options.markerAnchor}|`;
+	    }
+	    if (hasIcon && "markerScale" in options) {
+	      markerStr += `scale:${Math.round(1 / options.markerScale)}|`;
+	    }
+	    const markerList = Array.isArray(options.marker) ? options.marker : [options.marker];
+	    markerStr += markerList.map((m) => staticMapMarkerToString(m, !hasIcon)).join("|");
+	    endpoint.searchParams.set("markers", markerStr);
+	  }
+	  if ("path" in options) {
+	    let pathStr = "";
+	    pathStr += `fill:${(_e = options.pathFillColor) != null ? _e : "none"}|`;
+	    if ("pathStrokeColor" in options) {
+	      pathStr += `stroke:${options.pathStrokeColor}|`;
+	    }
+	    if ("pathWidth" in options) {
+	      pathStr += `width:${options.pathWidth.toString()}|`;
+	    }
+	    pathStr += simplifyAndStringify(options.path);
+	    endpoint.searchParams.set("path", pathStr);
+	  }
+	  endpoint.searchParams.set("key", config.apiToken);
+	  return endpoint.toString();
+	}
+	const staticMaps = {
+	  centered,
+	  bounded
+	};
+
 	exports.Map = Map;
 	exports.ServiceError = ServiceError;
 	exports.config = config;
@@ -457,6 +618,7 @@
 	exports.data = data;
 	exports.geocoder = geocoder;
 	exports.geolocation = geolocation;
+	exports.staticMaps = staticMaps;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

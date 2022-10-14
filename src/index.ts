@@ -7,12 +7,14 @@ import Map from './Map';
 import type { MapOptions } from './Map'
 
 // Importing services
-import geocoder from './services/geocoder'
-import type { geocoderOptionsType } from './services/geocoder'
-import geolocation from './services/geolocation'
-import coordinates from './services/coordinates'
-import type { coordinatesSearchOptionsType } from './services/coordinates'
-import data from './services/data'
+import geocoder from './services/geocoder';
+import type { geocoderOptionsType } from './services/geocoder';
+import geolocation from './services/geolocation';
+import coordinates from './services/coordinates';
+import type { coordinatesSearchOptionsType } from './services/coordinates';
+import data from './services/data';
+import staticMaps from './services/staticMaps';
+import type { centeredStaticMapOptionsType } from './services/staticMaps';
 
 import ServiceError from './services/ServiceError';
 
@@ -25,6 +27,7 @@ export type {
   geocoderOptionsType,
   bboxType,
   coordinatesSearchOptionsType,
+  centeredStaticMapOptionsType,
 };
 
 // Exporting classes, objects, functions, etc.
@@ -36,4 +39,5 @@ export {
   geolocation,
   coordinates,
   data,
+  staticMaps,
 };
