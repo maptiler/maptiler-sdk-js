@@ -156,6 +156,7 @@ declare type boundedStaticMapOptionsType = {
     pathWidth?: number;
     padding?: number;
 };
+declare type automaticStaticMapOptionsType = boundedStaticMapOptionsType;
 declare type staticMapMarkerType = {
     lng: number;
     lat: number;
@@ -180,9 +181,18 @@ declare function centered(center: lngLatType, zoom: number, options?: centeredSt
  * @returns
  */
 declare function bounded(boundingBox: bboxType, options?: boundedStaticMapOptionsType): string;
+/**
+ * Construct the URL for a static map automatically fitted around the provided path or markers.
+ * Note: this function does not fetch the binary content of the image since
+ * the purpose of a static map is generally to have its URL as a `src` property of a <img/> element.
+ * @param options
+ * @returns
+ */
+declare function automatic(options?: automaticStaticMapOptionsType): string;
 declare const staticMaps: {
     centered: typeof centered;
     bounded: typeof bounded;
+    automatic: typeof automatic;
 };
 
 /**
@@ -199,4 +209,4 @@ interface ConfigInterface {
 }
 declare const config: ConfigInterface;
 
-export { Map, MapOptions, ServiceError, bboxType, centeredStaticMapOptionsType, config, coordinates, coordinatesSearchOptionsType, data, geocoder, geocoderOptionsType, geolocation, lngLatType, staticMaps };
+export { Map, MapOptions, ServiceError, automaticStaticMapOptionsType, bboxType, boundedStaticMapOptionsType, centeredStaticMapOptionsType, config, coordinates, coordinatesSearchOptionsType, data, geocoder, geocoderOptionsType, geolocation, lngLatType, staticMaps };

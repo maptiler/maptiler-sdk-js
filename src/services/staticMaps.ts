@@ -4,13 +4,6 @@ import { bboxType, lngLatArrayType, lngLatType } from "../generalTypes";
 import simplify from "../simplify";
 
 
-const customMessages = {
-  400: 'Out of bounds, Invalid format',
-  403: 'Key is missing, invalid or restricted',
-  404: 'The item does not exist',
-  414: 'URI Too Long. Maximum allowed length is 8192 bytes.',
-}
-
 export type centeredStaticMapOptionsType = {
   style?: string,
   hiDPI?: boolean,
@@ -45,6 +38,8 @@ export type boundedStaticMapOptionsType = {
   pathWidth?: number,
   padding?: number,
 }
+
+export type automaticStaticMapOptionsType = boundedStaticMapOptionsType;
 
 
 export type staticMapMarkerType = {
@@ -220,9 +215,83 @@ function bounded(boundingBox: bboxType, options: boundedStaticMapOptionsType = {
 }
 
 
+/**
+ * Construct the URL for a static map automatically fitted around the provided path or markers.
+ * Note: this function does not fetch the binary content of the image since
+ * the purpose of a static map is generally to have its URL as a `src` property of a <img/> element.
+ * @param options 
+ * @returns 
+ */
+function automatic(options: automaticStaticMapOptionsType = {}) {
+  if (!('marker' in options) && !('path' in options)) {
+    throw new Error('Automatic static maps require markers and/or path to be created.');
+  }
+
+  const style = options.style ?? defaults.mapStyle;
+  const scale = options.hiDPI ? '@2x' : '';
+  const format = options.format ?? 'png';
+  const width = ~~(options.width ?? 800);
+  const height = ~~(options.height ?? 600);
+  const endpoint = new URL(`maps/${encodeURIComponent(style)}/static/auto/${width}x${height}${scale}.${format}`, defaults.maptilerApiURL);
+  
+  if ('attribution' in options) {
+    endpoint.searchParams.set('attribution', options.attribution.toString());
+  }
+
+  if ('padding' in options) {
+    endpoint.searchParams.set('padding', options.padding.toString());
+  }
+
+  if ('marker' in options) {
+    let markerStr = '';
+
+    const hasIcon = 'markerIcon' in options;
+
+    if (hasIcon) {
+      markerStr += `icon:${options.markerIcon}|`;
+    }
+
+    if (hasIcon && 'markerAnchor' in options) {
+      markerStr += `anchor:${options.markerAnchor}|`;
+    }
+
+    if (hasIcon && 'markerScale' in options) {
+      markerStr += `scale:${Math.round(1/options.markerScale)}|`;
+    }
+
+    const markerList = Array.isArray(options.marker) ? options.marker : [options.marker];
+    markerStr += markerList.map(m => staticMapMarkerToString(m, !hasIcon)).join('|');
+    endpoint.searchParams.set('markers', markerStr);
+  }
+
+  if ('path' in options) {
+    let pathStr = '';
+
+    pathStr += `fill:${options.pathFillColor ?? 'none'}|`;
+
+    if ('pathStrokeColor' in options) {
+      pathStr += `stroke:${options.pathStrokeColor}|`;
+    }
+
+
+    if ('pathWidth' in options) {
+      pathStr += `width:${options.pathWidth.toString()}|`;
+    }
+
+    pathStr += simplifyAndStringify(options.path);
+    endpoint.searchParams.set('path', pathStr);
+  }
+  
+  endpoint.searchParams.set('key', config.apiToken);
+
+  return endpoint.toString()
+}
+
+
 const staticMaps = {
   centered,
   bounded,
+  automatic,
 }
 
 export default staticMaps;

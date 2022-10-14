@@ -606,9 +606,58 @@
 	  endpoint.searchParams.set("key", config.apiToken);
 	  return endpoint.toString();
 	}
+	function automatic(options = {}) {
+	  var _a, _b, _c, _d, _e;
+	  if (!("marker" in options) && !("path" in options)) {
+	    throw new Error("Automatic static maps require markers and/or path to be created.");
+	  }
+	  const style = (_a = options.style) != null ? _a : defaults.mapStyle;
+	  const scale = options.hiDPI ? "@2x" : "";
+	  const format = (_b = options.format) != null ? _b : "png";
+	  const width = ~~((_c = options.width) != null ? _c : 800);
+	  const height = ~~((_d = options.height) != null ? _d : 600);
+	  const endpoint = new URL(`maps/${encodeURIComponent(style)}/static/auto/${width}x${height}${scale}.${format}`, defaults.maptilerApiURL);
+	  if ("attribution" in options) {
+	    endpoint.searchParams.set("attribution", options.attribution.toString());
+	  }
+	  if ("padding" in options) {
+	    endpoint.searchParams.set("padding", options.padding.toString());
+	  }
+	  if ("marker" in options) {
+	    let markerStr = "";
+	    const hasIcon = "markerIcon" in options;
+	    if (hasIcon) {
+	      markerStr += `icon:${options.markerIcon}|`;
+	    }
+	    if (hasIcon && "markerAnchor" in options) {
+	      markerStr += `anchor:${options.markerAnchor}|`;
+	    }
+	    if (hasIcon && "markerScale" in options) {
+	      markerStr += `scale:${Math.round(1 / options.markerScale)}|`;
+	    }
+	    const markerList = Array.isArray(options.marker) ? options.marker : [options.marker];
+	    markerStr += markerList.map((m) => staticMapMarkerToString(m, !hasIcon)).join("|");
+	    endpoint.searchParams.set("markers", markerStr);
+	  }
+	  if ("path" in options) {
+	    let pathStr = "";
+	    pathStr += `fill:${(_e = options.pathFillColor) != null ? _e : "none"}|`;
+	    if ("pathStrokeColor" in options) {
+	      pathStr += `stroke:${options.pathStrokeColor}|`;
+	    }
+	    if ("pathWidth" in options) {
+	      pathStr += `width:${options.pathWidth.toString()}|`;
+	    }
+	    pathStr += simplifyAndStringify(options.path);
+	    endpoint.searchParams.set("path", pathStr);
+	  }
+	  endpoint.searchParams.set("key", config.apiToken);
+	  return endpoint.toString();
+	}
 	const staticMaps = {
 	  centered,
-	  bounded
+	  bounded,
+	  automatic
 	};
 
 	exports.Map = Map;

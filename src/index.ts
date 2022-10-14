@@ -14,7 +14,7 @@ import coordinates from './services/coordinates';
 import type { coordinatesSearchOptionsType } from './services/coordinates';
 import data from './services/data';
 import staticMaps from './services/staticMaps';
-import type { centeredStaticMapOptionsType } from './services/staticMaps';
+import type { centeredStaticMapOptionsType, automaticStaticMapOptionsType, boundedStaticMapOptionsType } from './services/staticMaps';
 
 import ServiceError from './services/ServiceError';
 
@@ -28,6 +28,8 @@ export type {
   bboxType,
   coordinatesSearchOptionsType,
   centeredStaticMapOptionsType,
+  boundedStaticMapOptionsType,
+  automaticStaticMapOptionsType,
 };
 
 // Exporting classes, objects, functions, etc.
