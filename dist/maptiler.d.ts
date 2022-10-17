@@ -1,5 +1,6 @@
 import * as maplibre from 'maplibre-gl';
 export * from 'maplibre-gl';
+import StyleSwapOptions from 'maplibre-gl/src/style/style';
 
 declare type lngLatType = {
     lng: number;
@@ -21,7 +22,11 @@ declare type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & 
 declare class Map extends maplibre.Map {
     private attributionMustDisplay;
     private attibutionLogoUrl;
+    private super_setStyle;
     constructor(options: MapOptions);
+    setStyle(style: maplibre.StyleSpecification | string | null, options?: StyleSwapOptions & maplibre.StyleOptions): this;
+    setPrimaryLanguage(language?: string): void;
+    setSecondaryLanguage(language?: string): void;
 }
 
 declare type geocoderOptionsType = {
@@ -206,6 +211,8 @@ declare class ServiceError extends Error {
 interface ConfigInterface {
     apiToken: string;
     verbose: boolean;
+    primaryLanguage: string | null;
+    secondaryLanguage: string | null;
 }
 declare const config: ConfigInterface;
 

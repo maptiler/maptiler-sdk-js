@@ -55,17 +55,22 @@
 
 	const config = {
 	  apiToken: "Not defined yet.",
-	  verbose: false
+	  verbose: false,
+	  primaryLanguage: null,
+	  secondaryLanguage: null
 	};
 
 	const defaults = {
 	  mapStyle: "streets",
 	  maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
 	  maptilerURL: "https://www.maptiler.com/",
-	  maptilerApiURL: "https://api.maptiler.com/"
+	  maptilerApiURL: "https://api.maptiler.com/",
+	  primaryLanguage: "latin",
+	  secondaryLanguage: "nonlatin"
 	};
+	Object.freeze(defaults);
 
-	class LogoControl extends maplibreGl.exports.LogoControl {
+	class CustomLogoControl extends maplibreGl.exports.LogoControl {
 	  constructor(options = {}) {
 	    var _a, _b;
 	    super(options);
@@ -119,7 +124,11 @@
 	  if (match) {
 	    return `https://api.maptiler.com/maps/${match[1]}/style.json`;
 	  }
-	  return `https://api.maptiler.com/maps/${trimmed}/style.json`;
+	  let expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
+	  if (!expandedStyle.includes("key=")) {
+	    expandedStyle = `${expandedStyle}?key=${config.apiToken}`;
+	  }
+	  return expandedStyle;
 	}
 
 	var __defProp = Object.defineProperty;
@@ -169,12 +178,17 @@
 	    } else {
 	      vlog(`Map style not provided, backing up to ${defaults.mapStyle}`);
 	    }
-	    if (!style.includes("key=")) {
-	      style = `${style}?key=${config.apiToken}`;
-	    }
 	    super(__spreadProps(__spreadValues({}, options), { style, maplibreLogo: false }));
 	    this.attributionMustDisplay = false;
 	    this.attibutionLogoUrl = "";
+	    this.on("styledata", () => {
+	      if (config.primaryLanguage) {
+	        this.setPrimaryLanguage(config.primaryLanguage);
+	      }
+	      if (config.secondaryLanguage) {
+	        this.setSecondaryLanguage(config.secondaryLanguage);
+	      }
+	    });
 	    this.once("load", () => __async$4(this, null, function* () {
 	      let tileJsonURL = null;
 	      try {
@@ -188,14 +202,94 @@
 	        this.attributionMustDisplay = true;
 	        this.attibutionLogoUrl = tileJsonContent.logo;
 	        const logoURL = tileJsonContent.logo;
-	        this.addControl(new LogoControl({ logoURL }), options.logoPosition);
+	        this.addControl(new CustomLogoControl({ logoURL }), options.logoPosition);
 	        if (!options.attributionControl) {
 	          this.addControl(new maplibreGl.exports.AttributionControl());
 	        }
 	      } else if (options.maptilerLogo) {
-	        this.addControl(new LogoControl(), options.logoPosition);
+	        this.addControl(new CustomLogoControl(), options.logoPosition);
 	      }
 	    }));
+	  }
+	  setStyle(style, options) {
+	    const expandedStyle = style ? expandMapStyle(style) : null;
+	    return super.setStyle(expandedStyle, options);
+	  }
+	  setPrimaryLanguage(language = defaults.primaryLanguage) {
+	    config.primaryLanguage = language;
+	    const layers = this.getStyle().layers;
+	    const strLanguageRegex = /^\s*{\s*name\s*:\s*(\S*)\s*}\s*$/;
+	    const strLanguageInArrayRegex = /^\s*name\s*:\s*(\S*)\s*$/;
+	    for (let i = 0; i < layers.length; i += 1) {
+	      const layer = layers[i];
+	      const layout = layer.layout;
+	      if (!layout) {
+	        continue;
+	      }
+	      if (!layout["text-field"]) {
+	        continue;
+	      }
+	      const textFieldLayoutProp = this.getLayoutProperty(layer.id, "text-field");
+	      if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "concat") {
+	        const newProp = textFieldLayoutProp.slice();
+	        for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
+	          const elem = textFieldLayoutProp[j];
+	          if ((typeof elem === "string" || elem instanceof String) && strLanguageRegex.exec(elem.toString())) {
+	            newProp[j] = `{name:${language}}`;
+	            break;
+	          } else if (Array.isArray(elem) && elem.length >= 2 && elem[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(elem[1].toString())) {
+	            newProp[j][1] = `name:${language}`;
+	            break;
+	          }
+	        }
+	        this.setLayoutProperty(layer.id, "text-field", newProp);
+	      } else if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(textFieldLayoutProp[1].toString())) {
+	        const newProp = textFieldLayoutProp.slice();
+	        newProp[1] = `name:${language}`;
+	        this.setLayoutProperty(layer.id, "text-field", newProp);
+	      } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && strLanguageRegex.exec(textFieldLayoutProp.toString())) {
+	        const newProp = `{name:${language}}`;
+	        this.setLayoutProperty(layer.id, "text-field", newProp);
+	      }
+	    }
+	  }
+	  setSecondaryLanguage(language = defaults.secondaryLanguage) {
+	    config.secondaryLanguage = language;
+	    const layers = this.getStyle().layers;
+	    const strLanguageRegex = /^\s*{\s*name\s*:\s*(\S*)\s*}\s*$/;
+	    const strLanguageInArrayRegex = /^\s*name\s*:\s*(\S*)\s*$/;
+	    for (let i = 0; i < layers.length; i += 1) {
+	      const layer = layers[i];
+	      const layout = layer.layout;
+	      if (!layout) {
+	        continue;
+	      }
+	      if (!layout["text-field"]) {
+	        continue;
+	      }
+	      const textFieldLayoutProp = this.getLayoutProperty(layer.id, "text-field");
+	      if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "concat") {
+	        const newProp = textFieldLayoutProp.slice();
+	        let languagesAlreadyFound = 0;
+	        for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
+	          const elem = textFieldLayoutProp[j];
+	          if ((typeof elem === "string" || elem instanceof String) && strLanguageRegex.exec(elem.toString())) {
+	            if (languagesAlreadyFound === 1) {
+	              newProp[j] = `{name:${language}}`;
+	              break;
+	            }
+	            languagesAlreadyFound += 1;
+	          } else if (Array.isArray(elem) && elem.length >= 2 && elem[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(elem[1].toString())) {
+	            if (languagesAlreadyFound === 1) {
+	              newProp[j][1] = `name:${language}`;
+	              break;
+	            }
+	            languagesAlreadyFound += 1;
+	          }
+	        }
+	        this.setLayoutProperty(layer.id, "text-field", newProp);
+	      }
+	    }
 	  }
 	}
 

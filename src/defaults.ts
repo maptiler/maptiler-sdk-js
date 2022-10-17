@@ -8,6 +8,10 @@ const defaults = {
   maptilerLogoURL: 'https://api.maptiler.com/resources/logo.svg',
   maptilerURL: 'https://www.maptiler.com/',
   maptilerApiURL: 'https://api.maptiler.com/',
+  primaryLanguage: 'latin',
+  secondaryLanguage: 'nonlatin',
 };
+
+Object.freeze(defaults);
 
 export default defaults;
