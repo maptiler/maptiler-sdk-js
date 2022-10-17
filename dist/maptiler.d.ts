@@ -1,6 +1,5 @@
 import * as maplibre from 'maplibre-gl';
 export * from 'maplibre-gl';
-import StyleSwapOptions from 'maplibre-gl/src/style/style';
 
 declare type lngLatType = {
     lng: number;
@@ -12,6 +11,11 @@ declare type bboxType = {
     northEast: lngLatType;
 };
 
+declare type TransformStyleFunction = (previous: maplibre.StyleSpecification, next: maplibre.StyleSpecification) => maplibre.StyleSpecification;
+declare type StyleSwapOptions = {
+    diff?: boolean;
+    transformStyle?: TransformStyleFunction;
+};
 declare type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
     style?: string;
     maptilerLogo?: boolean;
