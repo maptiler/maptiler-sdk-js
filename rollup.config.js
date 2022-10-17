@@ -35,30 +35,30 @@ const bundles = [
   },
 
   // CJS module, not minified + sourcemap
-  {
-    plugins: [
-      copyCssPlugin,
-      nodeResolve(), // for the standalone UMD, we want to resolve so that the bundle contains all the dep.
-      commonjs({ include: 'node_modules/**' }),
-      globals(),
-      esbuild({
-        // include: ['src/services/*.ts'],
-        // exclude: ['*'], 
-      })
-    ],
-    output: [
-      {
-        file: `dist/${pkg.name}.cjs`,
-        format: "cjs",
-        sourcemap: true
-      }
-    ],
-    input: "src/index.ts",
-    watch: {
-      include: 'src/**'
-    },
-    external: ['maplibre-gl']
-  },
+  // {
+  //   plugins: [
+  //     copyCssPlugin,
+  //     nodeResolve(), // for the standalone UMD, we want to resolve so that the bundle contains all the dep.
+  //     commonjs({ include: 'node_modules/**' }),
+  //     globals(),
+  //     esbuild({
+  //       // include: ['src/services/*.ts'],
+  //       // exclude: ['*'], 
+  //     })
+  //   ],
+  //   output: [
+  //     {
+  //       file: `dist/${pkg.name}.cjs`,
+  //       format: "cjs",
+  //       sourcemap: true
+  //     }
+  //   ],
+  //   input: "src/index.ts",
+  //   watch: {
+  //     include: 'src/**'
+  //   },
+  //   external: ['maplibre-gl']
+  // },
 
   // UMD module, not minified
   {

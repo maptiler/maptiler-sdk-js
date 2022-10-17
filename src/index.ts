@@ -19,6 +19,7 @@ import type { centeredStaticMapOptionsType, automaticStaticMapOptionsType, bound
 import ServiceError from './services/ServiceError';
 
 import { config } from './config';
+import languages from './languages';
 
 // Exporting types
 export type {
@@ -42,4 +43,5 @@ export {
   coordinates,
   data,
   staticMaps,
+  languages,
 };
