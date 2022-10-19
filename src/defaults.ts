@@ -1,3 +1,4 @@
+import languages from "./languages";
 
 /**
  * Some default settings for the SDK
@@ -8,8 +9,8 @@ const defaults = {
   maptilerLogoURL: 'https://api.maptiler.com/resources/logo.svg',
   maptilerURL: 'https://www.maptiler.com/',
   maptilerApiURL: 'https://api.maptiler.com/',
-  primaryLanguage: 'latin',
-  secondaryLanguage: 'nonlatin',
+  primaryLanguage: languages.LATIN,
+  secondaryLanguage: languages.NON_LATIN,
 };
 
 Object.freeze(defaults);

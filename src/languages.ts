@@ -1,4 +1,4 @@
-const languages = {
+const languages: { [key: string]: string; } = {
   "AFAR": "aa",
   "ABKHAZIAN": "ab",
   "AVESTAN": "ae",

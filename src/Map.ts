@@ -5,8 +5,7 @@ import defaults from './defaults';
 import CustomLogoControl from './CustomLogoControl';
 import { expandMapStyle, vlog } from './tools';
 
-
-// Workaround: StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
+// StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (previous: maplibre.StyleSpecification, next: maplibre.StyleSpecification) => maplibre.StyleSpecification;
 export type StyleSwapOptions = {
   diff?: boolean;
