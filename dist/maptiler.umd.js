@@ -368,13 +368,18 @@
 	    super(__spreadProps(__spreadValues({}, options), { style, maplibreLogo: false }));
 	    this.attributionMustDisplay = false;
 	    this.attibutionLogoUrl = "";
-	    this.on("styledata", () => {
-	      if (config.primaryLanguage) {
+	    this.languageShouldUpdate = false;
+	    this.on("styledataloading", (data) => {
+	      this.languageShouldUpdate = !!config.primaryLanguage || !!config.secondaryLanguage;
+	    });
+	    this.on("styledata", (data) => {
+	      if (config.primaryLanguage && this.languageShouldUpdate) {
 	        this.setPrimaryLanguage(config.primaryLanguage);
 	      }
-	      if (config.secondaryLanguage) {
+	      if (config.secondaryLanguage && this.languageShouldUpdate) {
 	        this.setSecondaryLanguage(config.secondaryLanguage);
 	      }
+	      this.languageShouldUpdate = false;
 	    });
 	    this.once("load", () => __async$4(this, null, function* () {
 	      let tileJsonURL = null;
@@ -407,6 +412,7 @@
 	    const layers = this.getStyle().layers;
 	    const strLanguageRegex = /^\s*{\s*name\s*:\s*(\S*)\s*}\s*$/;
 	    const strLanguageInArrayRegex = /^\s*name\s*:\s*(\S*)\s*$/;
+	    const replacer = ["case", ["has", `name:${language}`], ["get", `name:${language}`], ["get", "name"]];
 	    for (let i = 0; i < layers.length; i += 1) {
 	      const layer = layers[i];
 	      const layout = layer.layout;
@@ -422,20 +428,26 @@
 	        for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
 	          const elem = textFieldLayoutProp[j];
 	          if ((typeof elem === "string" || elem instanceof String) && strLanguageRegex.exec(elem.toString())) {
-	            newProp[j] = `{name:${language}}`;
+	            newProp[j] = replacer;
 	            break;
 	          } else if (Array.isArray(elem) && elem.length >= 2 && elem[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(elem[1].toString())) {
-	            newProp[j][1] = `name:${language}`;
+	            newProp[j] = replacer;
+	            break;
+	          } else if (Array.isArray(elem) && elem.length === 4 && elem[0].trim().toLowerCase() === "case") {
+	            newProp[j] = replacer;
 	            break;
 	          }
 	        }
 	        this.setLayoutProperty(layer.id, "text-field", newProp);
 	      } else if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(textFieldLayoutProp[1].toString())) {
-	        const newProp = textFieldLayoutProp.slice();
-	        newProp[1] = `name:${language}`;
+	        const newProp = replacer;
 	        this.setLayoutProperty(layer.id, "text-field", newProp);
 	      } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && strLanguageRegex.exec(textFieldLayoutProp.toString())) {
-	        const newProp = `{name:${language}}`;
+	        const newProp = replacer;
+	        this.setLayoutProperty(layer.id, "text-field", newProp);
+	      } else if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length === 4 && textFieldLayoutProp[0].trim().toLowerCase() === "case") {
+	        console.log("DEBUG000");
+	        const newProp = replacer;
 	        this.setLayoutProperty(layer.id, "text-field", newProp);
 	      }
 	    }
@@ -472,10 +484,33 @@
 	              break;
 	            }
 	            languagesAlreadyFound += 1;
+	          } else if (Array.isArray(elem) && elem.length === 4 && elem[0].trim().toLowerCase() === "case") {
+	            if (languagesAlreadyFound === 1) {
+	              newProp[j] = ["get", `name:${language}`];
+	              break;
+	            }
+	            languagesAlreadyFound += 1;
 	          }
 	        }
 	        this.setLayoutProperty(layer.id, "text-field", newProp);
 	      }
+	    }
+	  }
+	  getLanguages() {
+	    const layers = this.getStyle().layers;
+	    for (let i = 0; i < layers.length; i += 1) {
+	      const layer = layers[i];
+	      const layout = layer.layout;
+	      if (!layout) {
+	        continue;
+	      }
+	      if (!layout["text-field"]) {
+	        continue;
+	      }
+	      const textFieldLayoutProp = this.getLayoutProperty(layer.id, "text-field");
+	      console.log(layer);
+	      console.log(textFieldLayoutProp);
+	      console.log("----------------------------------------");
 	    }
 	  }
 	}

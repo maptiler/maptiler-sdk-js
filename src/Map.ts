@@ -24,6 +24,7 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo" > & 
 export default class Map extends maplibre.Map {
   private attributionMustDisplay: boolean = false;
   private attibutionLogoUrl: string = '';
+  private languageShouldUpdate: boolean = false;
   private super_setStyle: Function;
 
   constructor(options: MapOptions) { 
@@ -40,15 +41,21 @@ export default class Map extends maplibre.Map {
 
     // this.super_setStyle = super.setStyle;
 
-    this.on('styledata', () => {
+    this.on('styledataloading', (data: maplibre.MapDataEvent) => {
+      this.languageShouldUpdate = !!config.primaryLanguage || !!config.secondaryLanguage;
+    })
+
+    this.on('styledata', (data: maplibre.MapDataEvent) => {      
       // If the config includes language changing, we must update the map language
-      if (config.primaryLanguage) {
+      if (config.primaryLanguage && this.languageShouldUpdate) {
         this.setPrimaryLanguage(config.primaryLanguage)
       }
 
-      if (config.secondaryLanguage) {
+      if (config.secondaryLanguage && this.languageShouldUpdate) {
         this.setSecondaryLanguage(config.secondaryLanguage)
       }
+
+      this.languageShouldUpdate = false;
     })
 
     this.once("load", async () => {
@@ -98,6 +105,8 @@ export default class Map extends maplibre.Map {
     // detects pattern like "name:somelanguage" with loose spacing
     const strLanguageInArrayRegex = /^\s*name\s*:\s*(\S*)\s*$/;
 
+    const replacer = ['case', ['has', `name:${language}`], ['get', `name:${language}`], ['get', 'name']];
+
     for (let i = 0; i < layers.length; i += 1) {
       const layer = layers[i];
       const layout = layer.layout;
@@ -135,13 +144,20 @@ export default class Map extends maplibre.Map {
 
           // the entry of of shape '{name:somelangage}', possibly with loose spacing
           if ((typeof elem === 'string' || elem instanceof String ) && strLanguageRegex.exec(elem.toString()) ) {
-            newProp[j] = `{name:${language}}`;
+            // newProp[j] = `{name:${language}}`;
+            newProp[j] = replacer;
             break; // we just want to update the primary language
 
           } else 
           // the entry is of an array of shape `["get", "name:somelanguage"]`
           if (Array.isArray(elem) && elem.length >= 2 && elem[0].trim().toLowerCase() === 'get' && strLanguageInArrayRegex.exec(elem[1].toString())) {
-            newProp[j][1] = `name:${language}`;
+            // newProp[j][1] = `name:${language}`;
+            newProp[j] = replacer;
+            break; // we just want to update the primary language
+          } else
+
+          if (Array.isArray(elem) && elem.length === 4 && elem[0].trim().toLowerCase() === 'case') {
+            newProp[j] = replacer;
             break; // we just want to update the primary language
           }
         }
@@ -151,14 +167,23 @@ export default class Map extends maplibre.Map {
       
       // This is case 2
       if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === 'get' && strLanguageInArrayRegex.exec(textFieldLayoutProp[1].toString())) {
-        const newProp = textFieldLayoutProp.slice();
-        newProp[1] = `name:${language}`;
+        // const newProp = textFieldLayoutProp.slice();
+        // newProp[1] = `name:${language}`;
+        const newProp = replacer;
         this.setLayoutProperty(layer.id, 'text-field', newProp);
       } else 
 
       // This is case 3
       if ((typeof textFieldLayoutProp === 'string' || textFieldLayoutProp instanceof String ) && strLanguageRegex.exec(textFieldLayoutProp.toString()) ) {
-        const newProp = `{name:${language}}`;
+        // const newProp = `{name:${language}}`;
+        const newProp = replacer;
+        this.setLayoutProperty(layer.id, 'text-field', newProp);
+      } else 
+
+      if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length === 4 && textFieldLayoutProp[0].trim().toLowerCase() === 'case') {
+        console.log('DEBUG000');
+        
+        const newProp = replacer;
         this.setLayoutProperty(layer.id, 'text-field', newProp);
       }
     }
@@ -230,11 +255,44 @@ export default class Map extends maplibre.Map {
             }
 
             languagesAlreadyFound += 1;
+          } else
+
+          if (Array.isArray(elem) && elem.length === 4 && elem[0].trim().toLowerCase() === 'case') {
+            if (languagesAlreadyFound === 1) {
+              newProp[j] = ['get', `name:${language}`]; // the situation with 'case' is supposed to only happen with the primary lang
+              break; // but in case a styling also does that for secondary...
+            }
+
+            languagesAlreadyFound += 1;
           }
         }
 
         this.setLayoutProperty(layer.id, 'text-field', newProp);
       }
+    }
+  }
+
+
+  getLanguages() {
+    const layers = this.getStyle().layers;
+
+    for (let i = 0; i < layers.length; i += 1) {
+      const layer = layers[i];
+      const layout = layer.layout;
+
+      if (!layout) {
+        continue;
+      }
+
+      if (!layout['text-field']) {
+        continue;
+      }
+
+      const textFieldLayoutProp = this.getLayoutProperty(layer.id, 'text-field');
+      console.log(layer);
+      console.log(textFieldLayoutProp);
+      console.log('----------------------------------------');
+      
     }
   }
 

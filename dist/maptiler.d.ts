@@ -26,11 +26,13 @@ declare type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & 
 declare class Map extends maplibre.Map {
     private attributionMustDisplay;
     private attibutionLogoUrl;
+    private languageShouldUpdate;
     private super_setStyle;
     constructor(options: MapOptions);
     setStyle(style: maplibre.StyleSpecification | string | null, options?: StyleSwapOptions & maplibre.StyleOptions): this;
     setPrimaryLanguage(language?: string): void;
     setSecondaryLanguage(language?: string): void;
+    getLanguages(): void;
 }
 
 declare type geocoderOptionsType = {
