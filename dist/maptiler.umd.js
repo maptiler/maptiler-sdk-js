@@ -243,7 +243,8 @@
 	  "CHINESE": "zh",
 	  "ZULU": "zu",
 	  "LATIN": "latin",
-	  "NON_LATIN": "nonlatin"
+	  "NON_LATIN": "nonlatin",
+	  "LOCAL": ""
 	};
 	Object.freeze(languages);
 
@@ -412,6 +413,7 @@
 	    const layers = this.getStyle().layers;
 	    const strLanguageRegex = /^\s*{\s*name\s*:\s*(\S*)\s*}\s*$/;
 	    const strLanguageInArrayRegex = /^\s*name\s*:\s*(\S*)\s*$/;
+	    const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
 	    const replacer = ["case", ["has", `name:${language}`], ["get", `name:${language}`], ["get", "name"]];
 	    for (let i = 0; i < layers.length; i += 1) {
 	      const layer = layers[i];
@@ -423,6 +425,7 @@
 	        continue;
 	      }
 	      const textFieldLayoutProp = this.getLayoutProperty(layer.id, "text-field");
+	      let regexMatch;
 	      if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "concat") {
 	        const newProp = textFieldLayoutProp.slice();
 	        for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
@@ -446,8 +449,10 @@
 	        const newProp = replacer;
 	        this.setLayoutProperty(layer.id, "text-field", newProp);
 	      } else if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length === 4 && textFieldLayoutProp[0].trim().toLowerCase() === "case") {
-	        console.log("DEBUG000");
 	        const newProp = replacer;
+	        this.setLayoutProperty(layer.id, "text-field", newProp);
+	      } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strBilingualRegex.exec(textFieldLayoutProp.toString())) !== null) {
+	        const newProp = `{name:${language || ""}}${regexMatch[3]}{name${regexMatch[4] || ""}}`;
 	        this.setLayoutProperty(layer.id, "text-field", newProp);
 	      }
 	    }
@@ -457,6 +462,8 @@
 	    const layers = this.getStyle().layers;
 	    const strLanguageRegex = /^\s*{\s*name\s*:\s*(\S*)\s*}\s*$/;
 	    const strLanguageInArrayRegex = /^\s*name\s*:\s*(\S*)\s*$/;
+	    const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
+	    let regexMatch;
 	    for (let i = 0; i < layers.length; i += 1) {
 	      const layer = layers[i];
 	      const layout = layer.layout;
@@ -467,8 +474,9 @@
 	        continue;
 	      }
 	      const textFieldLayoutProp = this.getLayoutProperty(layer.id, "text-field");
+	      let newProp;
 	      if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "concat") {
-	        const newProp = textFieldLayoutProp.slice();
+	        newProp = textFieldLayoutProp.slice();
 	        let languagesAlreadyFound = 0;
 	        for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
 	          const elem = textFieldLayoutProp[j];
@@ -492,6 +500,11 @@
 	            languagesAlreadyFound += 1;
 	          }
 	        }
+	        this.setLayoutProperty(layer.id, "text-field", newProp);
+	      } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strBilingualRegex.exec(textFieldLayoutProp.toString())) !== null) {
+	        console.log("regexMatch", regexMatch);
+	        newProp = `{name${regexMatch[1] || ""}}${regexMatch[3]}{name:${language || ""}}`;
+	        console.log(newProp);
 	        this.setLayoutProperty(layer.id, "text-field", newProp);
 	      }
 	    }

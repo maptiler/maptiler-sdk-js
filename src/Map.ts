@@ -105,6 +105,9 @@ export default class Map extends maplibre.Map {
     // detects pattern like "name:somelanguage" with loose spacing
     const strLanguageInArrayRegex = /^\s*name\s*:\s*(\S*)\s*$/;
 
+    // for string based bilingual lang such as "{name:latin}  {name:nonlatin}" or "{name:latin}  {name}" 
+    const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
+
     const replacer = ['case', ['has', `name:${language}`], ['get', `name:${language}`], ['get', 'name']];
 
     for (let i = 0; i < layers.length; i += 1) {
@@ -131,6 +134,8 @@ export default class Map extends maplibre.Map {
       // The case 1, 2 and 3 will be updated while maintaining their original type and shape.
       // The case 3 will not be updated
 
+      let regexMatch;
+      
       // This is case 1
       if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === 'concat') {
         const newProp = textFieldLayoutProp.slice(); // newProp is Array
@@ -144,14 +149,12 @@ export default class Map extends maplibre.Map {
 
           // the entry of of shape '{name:somelangage}', possibly with loose spacing
           if ((typeof elem === 'string' || elem instanceof String ) && strLanguageRegex.exec(elem.toString()) ) {
-            // newProp[j] = `{name:${language}}`;
             newProp[j] = replacer;
             break; // we just want to update the primary language
 
           } else 
           // the entry is of an array of shape `["get", "name:somelanguage"]`
           if (Array.isArray(elem) && elem.length >= 2 && elem[0].trim().toLowerCase() === 'get' && strLanguageInArrayRegex.exec(elem[1].toString())) {
-            // newProp[j][1] = `name:${language}`;
             newProp[j] = replacer;
             break; // we just want to update the primary language
           } else
@@ -159,7 +162,7 @@ export default class Map extends maplibre.Map {
           if (Array.isArray(elem) && elem.length === 4 && elem[0].trim().toLowerCase() === 'case') {
             newProp[j] = replacer;
             break; // we just want to update the primary language
-          }
+          } 
         }
 
         this.setLayoutProperty(layer.id, 'text-field', newProp);
@@ -181,14 +184,16 @@ export default class Map extends maplibre.Map {
       } else 
 
       if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length === 4 && textFieldLayoutProp[0].trim().toLowerCase() === 'case') {
-        console.log('DEBUG000');
-        
         const newProp = replacer;
+        this.setLayoutProperty(layer.id, 'text-field', newProp);
+      } else 
+
+      if ((typeof textFieldLayoutProp === 'string' || textFieldLayoutProp instanceof String ) && (regexMatch = strBilingualRegex.exec(textFieldLayoutProp.toString())) !== null) {
+        const newProp = `{name:${language||''}}${regexMatch[3]}{name${regexMatch[4]||''}}`;
         this.setLayoutProperty(layer.id, 'text-field', newProp);
       }
     }
   }
-
 
   setSecondaryLanguage(language: string = defaults.secondaryLanguage) {
     // We want to keep track of it to apply the language again when changing the style
@@ -201,6 +206,11 @@ export default class Map extends maplibre.Map {
 
     // detects pattern like "name:somelanguage" with loose spacing
     const strLanguageInArrayRegex = /^\s*name\s*:\s*(\S*)\s*$/;
+
+    // for string based bilingual lang such as "{name:latin}  {name:nonlatin}" or "{name:latin}  {name}" 
+    const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
+
+    let regexMatch;
 
     for (let i = 0; i < layers.length; i += 1) {
       const layer = layers[i];
@@ -216,6 +226,8 @@ export default class Map extends maplibre.Map {
 
       const textFieldLayoutProp = this.getLayoutProperty(layer.id, 'text-field');
 
+      let newProp;
+
       // Note:
       // The value of the 'text-field' property can take multiple shape;
       // 1. can be an array with 'concat' on its first element (most likely means bilingual)
@@ -227,7 +239,7 @@ export default class Map extends maplibre.Map {
 
       // This is case 1
       if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === 'concat') {
-        const newProp = textFieldLayoutProp.slice(); // newProp is Array
+        newProp = textFieldLayoutProp.slice(); // newProp is Array
         // The style could possibly have defined more than 2 concatenated language strings but we only want to edit the first
         // The style could also define that there are more things being concatenated and not only languages
 
@@ -268,7 +280,24 @@ export default class Map extends maplibre.Map {
         }
 
         this.setLayoutProperty(layer.id, 'text-field', newProp);
+      } 
+      else 
+
+      // the language (both first and second) are defined into a single string model
+      if ((typeof textFieldLayoutProp === 'string' || textFieldLayoutProp instanceof String ) && (regexMatch = strBilingualRegex.exec(textFieldLayoutProp.toString())) !== null) {
+        console.log('regexMatch', regexMatch);
+        newProp = `{name${regexMatch[1]||''}}${regexMatch[3]}{name:${language||''}}`;
+
+        console.log(newProp);
+
+        this.setLayoutProperty(layer.id, 'text-field', newProp);
+        
       }
+
+
+      
+
+      
     }
   }
 

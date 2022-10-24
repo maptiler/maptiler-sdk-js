@@ -182,6 +182,7 @@ const languages: { [key: string]: string; } = {
   "ZULU": "zu",
   "LATIN": "latin",
   "NON_LATIN": "nonlatin",
+  "LOCAL": '',
 }
 
 Object.freeze(languages);
