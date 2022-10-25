@@ -93,6 +93,11 @@ export default class Map extends maplibre.Map {
   }
 
 
+  setlanguage(language: string = defaults.primaryLanguage) {
+    this.setPrimaryLanguage(language);
+  }
+
+
   setPrimaryLanguage(language: string = defaults.primaryLanguage) {
     // We want to keep track of it to apply the language again when changing the style
     config.primaryLanguage = language;
@@ -100,15 +105,19 @@ export default class Map extends maplibre.Map {
     const layers = this.getStyle().layers;
 
     // detects pattern like "{name:somelanguage}" with loose spacing
-    const strLanguageRegex = /^\s*{\s*name\s*:\s*(\S*)\s*}\s*$/;
+    const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
     
     // detects pattern like "name:somelanguage" with loose spacing
-    const strLanguageInArrayRegex = /^\s*name\s*:\s*(\S*)\s*$/;
+    const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
 
     // for string based bilingual lang such as "{name:latin}  {name:nonlatin}" or "{name:latin}  {name}" 
     const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
 
-    const replacer = ['case', ['has', `name:${language}`], ['get', `name:${language}`], ['get', 'name']];
+    // Regex to capture when there are more info, such as mountains elevation with unit m/ft
+    const strMoreInfoRegex = /^(.*)({\s*name\s*(:\s*(\S*))?\s*})(.*)$/
+
+    const langStr = language ? `name:${language}` : 'name'; // to handle local lang
+    const replacer = ['case', ['has', langStr], ['get', langStr], ['get', 'name:latin']];
 
     for (let i = 0; i < layers.length; i += 1) {
       const layer = layers[i];
@@ -162,7 +171,7 @@ export default class Map extends maplibre.Map {
           if (Array.isArray(elem) && elem.length === 4 && elem[0].trim().toLowerCase() === 'case') {
             newProp[j] = replacer;
             break; // we just want to update the primary language
-          } 
+          }
         }
 
         this.setLayoutProperty(layer.id, 'text-field', newProp);
@@ -170,15 +179,12 @@ export default class Map extends maplibre.Map {
       
       // This is case 2
       if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === 'get' && strLanguageInArrayRegex.exec(textFieldLayoutProp[1].toString())) {
-        // const newProp = textFieldLayoutProp.slice();
-        // newProp[1] = `name:${language}`;
         const newProp = replacer;
         this.setLayoutProperty(layer.id, 'text-field', newProp);
       } else 
 
       // This is case 3
       if ((typeof textFieldLayoutProp === 'string' || textFieldLayoutProp instanceof String ) && strLanguageRegex.exec(textFieldLayoutProp.toString()) ) {
-        // const newProp = `{name:${language}}`;
         const newProp = replacer;
         this.setLayoutProperty(layer.id, 'text-field', newProp);
       } else 
@@ -189,12 +195,19 @@ export default class Map extends maplibre.Map {
       } else 
 
       if ((typeof textFieldLayoutProp === 'string' || textFieldLayoutProp instanceof String ) && (regexMatch = strBilingualRegex.exec(textFieldLayoutProp.toString())) !== null) {
-        const newProp = `{name:${language||''}}${regexMatch[3]}{name${regexMatch[4]||''}}`;
+        const newProp = `{${langStr}}${regexMatch[3]}{name${regexMatch[4]||''}}`;
         this.setLayoutProperty(layer.id, 'text-field', newProp);
+      } else
+
+      if ((typeof textFieldLayoutProp === 'string' || textFieldLayoutProp instanceof String ) && (regexMatch = strMoreInfoRegex.exec(textFieldLayoutProp.toString())) !== null) {
+        const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
+        this.setLayoutProperty(layer.id, 'text-field', newProp);         
       }
+
     }
   }
 
+  
   setSecondaryLanguage(language: string = defaults.secondaryLanguage) {
     // We want to keep track of it to apply the language again when changing the style
     config.secondaryLanguage = language;
@@ -202,10 +215,10 @@ export default class Map extends maplibre.Map {
     const layers = this.getStyle().layers;
 
     // detects pattern like "{name:somelanguage}" with loose spacing
-    const strLanguageRegex = /^\s*{\s*name\s*:\s*(\S*)\s*}\s*$/;
-
+    const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
+    
     // detects pattern like "name:somelanguage" with loose spacing
-    const strLanguageInArrayRegex = /^\s*name\s*:\s*(\S*)\s*$/;
+    const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
 
     // for string based bilingual lang such as "{name:latin}  {name:nonlatin}" or "{name:latin}  {name}" 
     const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
@@ -285,19 +298,10 @@ export default class Map extends maplibre.Map {
 
       // the language (both first and second) are defined into a single string model
       if ((typeof textFieldLayoutProp === 'string' || textFieldLayoutProp instanceof String ) && (regexMatch = strBilingualRegex.exec(textFieldLayoutProp.toString())) !== null) {
-        console.log('regexMatch', regexMatch);
-        newProp = `{name${regexMatch[1]||''}}${regexMatch[3]}{name:${language||''}}`;
-
-        console.log(newProp);
-
-        this.setLayoutProperty(layer.id, 'text-field', newProp);
-        
+        const langStr = language ? `name:${language}` : 'name'; // to handle local lang
+        newProp = `{name${regexMatch[1]||''}}${regexMatch[3]}{${langStr}}`;
+        this.setLayoutProperty(layer.id, 'text-field', newProp); 
       }
-
-
-      
-
-      
     }
   }
 

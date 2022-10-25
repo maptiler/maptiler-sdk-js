@@ -20,6 +20,7 @@ import ServiceError from './services/ServiceError';
 
 import { config } from './config';
 import languages from './languages';
+import units from './units';
 
 // Exporting types
 export type {
@@ -44,4 +45,5 @@ export {
   data,
   staticMaps,
   languages,
+  units,
 };

@@ -8,193 +8,193 @@ const config = {
   secondaryLanguage: null
 };
 
-const languages = {
-  "AFAR": "aa",
-  "ABKHAZIAN": "ab",
-  "AVESTAN": "ae",
-  "AFRIKAANS": "af",
-  "AKAN": "ak",
-  "AMHARIC": "am",
-  "ARAGONESE": "an",
-  "ARABIC": "ar",
-  "ASSAMESE": "as",
-  "AVARIC": "av",
-  "AYMARA": "ay",
-  "AZERBAIJANI": "az",
-  "BASHKIR": "ba",
-  "BELARUSIAN": "be",
-  "BULGARIAN": "bg",
-  "BIHARI": "bh",
-  "BISLAMA": "bi",
-  "BAMBARA": "bm",
-  "BENGALI": "bn",
-  "TIBETAN": "bo",
-  "BRETON": "br",
-  "BOSNIAN": "bs",
-  "CATALAN": "ca",
-  "CHECHEN": "ce",
-  "CHAMORRO": "ch",
-  "CORSICAN": "co",
-  "CREE": "cr",
-  "CZECH": "cs",
-  "CHURCH_SLAVIC": "cu",
-  "CHUVASH": "cv",
-  "WELSH": "cy",
-  "DANISH": "da",
-  "GERMAN": "de",
-  "MALDIVIAN": "dv",
-  "DZONGKHA": "dz",
-  "EWE": "ee",
-  "GREEK": "el",
-  "ENGLISH": "en",
-  "ESPERANTO": "eo",
-  "SPANISH": "es",
-  "ESTONIAN": "et",
-  "BASQUE": "eu",
-  "PERSIAN": "fa",
-  "FULAH": "ff",
-  "FINNISH": "fi",
-  "FIJIAN": "fj",
-  "FAROESE": "fo",
-  "FRENCH": "fr",
-  "WESTERN_FRISIAN": "fy",
-  "IRISH": "ga",
-  "GAELIC": "gd",
-  "GALICIAN": "gl",
-  "GUARANI": "gn",
-  "GUJARATI": "gu",
-  "MANX": "gv",
-  "HAUSA": "ha",
-  "HEBREW": "he",
-  "HINDI": "hi",
-  "HIRI_MOTU": "ho",
-  "CROATIAN": "hr",
-  "HAITIAN": "ht",
-  "HUNGARIAN": "hu",
-  "ARMENIAN": "hy",
-  "HERERO": "hz",
-  "INTERLINGUA": "ia",
-  "INDONESIAN": "id",
-  "INTERLINGUE": "ie",
-  "IGBO": "ig",
-  "SICHUAN YI": "ii",
-  "INUPIAQ": "ik",
-  "IDO": "io",
-  "ICELANDIC": "is",
-  "ITALIAN": "it",
-  "INUKTITUT": "iu",
-  "JAPANESE": "ja",
-  "JAVANESE": "jv",
-  "GEORGIAN": "ka",
-  "KONGO": "kg",
-  "KIKUYU": "ki",
-  "KUANYAMA": "kj",
-  "KAZAKH": "kk",
-  "KALAALLISUT": "kl",
-  "CENTRAL KHMER": "km",
-  "KANNADA": "kn",
-  "KOREAN": "ko",
-  "KANURI": "kr",
-  "KASHMIRI": "ks",
-  "KURDISH": "ku",
-  "KOMI": "kv",
-  "CORNISH": "kw",
-  "KIRGHIZ": "ky",
-  "LUXEMBOURGISH": "lb",
-  "GANDA": "lg",
-  "LIMBURGAN": "li",
-  "LINGALA": "ln",
-  "LAO": "lo",
-  "LITHUANIAN": "lt",
-  "LUBA-KATANGA": "lu",
-  "LATVIAN": "lv",
-  "MALAGASY": "mg",
-  "MARSHALLESE": "mh",
-  "MAORI": "mi",
-  "MACEDONIAN": "mk",
-  "MALAYALAM": "ml",
-  "MONGOLIAN": "mn",
-  "MARATHI": "mr",
-  "MALAY": "ms",
-  "MALTESE": "mt",
-  "BURMESE": "my",
-  "NAURU": "na",
-  "NORWEGIAN": "no",
-  "NORTH NDEBELE": "nd",
-  "NEPALI": "ne",
-  "NDONGA": "ng",
-  "DUTCH": "nl",
-  "SOUTH_NDEBELE": "nr",
-  "NAVAJO": "nv",
-  "CHICHEWA": "ny",
-  "OCCITAN": "oc",
-  "OJIBWA": "oj",
-  "OROMO": "om",
-  "ORIYA": "or",
-  "OSSETIC": "os",
-  "PANJABI": "pa",
-  "PALI": "pi",
-  "POLISH": "pl",
-  "PUSHTO": "ps",
-  "PORTUGUESE": "pt",
-  "QUECHUA": "qu",
-  "ROMANSH": "rm",
-  "RUNDI": "rn",
-  "ROMANIAN": "ro",
-  "RUSSIAN": "ru",
-  "KINYARWANDA": "rw",
-  "SANSKRIT": "sa",
-  "SARDINIAN": "sc",
-  "SINDHI": "sd",
-  "NORTHERN SAMI": "se",
-  "SANGO": "sg",
-  "SINHALA": "si",
-  "SLOVAK": "sk",
-  "SLOVENIAN": "sl",
-  "SAMOAN": "sm",
-  "SHONA": "sn",
-  "SOMALI": "so",
-  "ALBANIAN": "sq",
-  "SERBIAN": "sr",
-  "SWATI": "ss",
-  "SOTHO_SOUTHERN": "st",
-  "SUNDANESE": "su",
-  "SWEDISH": "sv",
-  "SWAHILI": "sw",
-  "TAMIL": "ta",
-  "TELUGU": "te",
-  "TAJIK": "tg",
-  "THAI": "th",
-  "TIGRINYA": "ti",
-  "TURKMEN": "tk",
-  "TAGALOG": "tl",
-  "TSWANA": "tn",
-  "TONGA": "to",
-  "TURKISH": "tr",
-  "TSONGA": "ts",
-  "TATAR": "tt",
-  "TWI": "tw",
-  "TAHITIAN": "ty",
-  "UIGHUR": "ug",
-  "UKRAINIAN": "uk",
-  "URDU": "ur",
-  "UZBEK": "uz",
-  "VENDA": "ve",
-  "VIETNAMESE": "vi",
-  "VOLAPUK": "vo",
-  "WALLOON": "wa",
-  "WOLOF": "wo",
-  "XHOSA": "xh",
-  "YIDDISH": "yi",
-  "YORUBA": "yo",
-  "ZHUANG": "za",
-  "CHINESE": "zh",
-  "ZULU": "zu",
-  "LATIN": "latin",
-  "NON_LATIN": "nonlatin",
-  "LOCAL": ""
-};
-Object.freeze(languages);
+var languages = /* @__PURE__ */ ((languages2) => {
+  languages2["LATIN"] = "latin";
+  languages2["NON_LATIN"] = "nonlatin";
+  languages2["LOCAL"] = "";
+  languages2["AFAR"] = "aa";
+  languages2["ABKHAZIAN"] = "ab";
+  languages2["AVESTAN"] = "ae";
+  languages2["AFRIKAANS"] = "af";
+  languages2["AKAN"] = "ak";
+  languages2["AMHARIC"] = "am";
+  languages2["ARAGONESE"] = "an";
+  languages2["ARABIC"] = "ar";
+  languages2["ASSAMESE"] = "as";
+  languages2["AVARIC"] = "av";
+  languages2["AYMARA"] = "ay";
+  languages2["AZERBAIJANI"] = "az";
+  languages2["BASHKIR"] = "ba";
+  languages2["BELARUSIAN"] = "be";
+  languages2["BULGARIAN"] = "bg";
+  languages2["BIHARI"] = "bh";
+  languages2["BISLAMA"] = "bi";
+  languages2["BAMBARA"] = "bm";
+  languages2["BENGALI"] = "bn";
+  languages2["TIBETAN"] = "bo";
+  languages2["BRETON"] = "br";
+  languages2["BOSNIAN"] = "bs";
+  languages2["CATALAN"] = "ca";
+  languages2["CHECHEN"] = "ce";
+  languages2["CHAMORRO"] = "ch";
+  languages2["CORSICAN"] = "co";
+  languages2["CREE"] = "cr";
+  languages2["CZECH"] = "cs";
+  languages2["CHURCH_SLAVIC"] = "cu";
+  languages2["CHUVASH"] = "cv";
+  languages2["WELSH"] = "cy";
+  languages2["DANISH"] = "da";
+  languages2["GERMAN"] = "de";
+  languages2["MALDIVIAN"] = "dv";
+  languages2["DZONGKHA"] = "dz";
+  languages2["EWE"] = "ee";
+  languages2["GREEK"] = "el";
+  languages2["ENGLISH"] = "en";
+  languages2["ESPERANTO"] = "eo";
+  languages2["SPANISH"] = "es";
+  languages2["ESTONIAN"] = "et";
+  languages2["BASQUE"] = "eu";
+  languages2["PERSIAN"] = "fa";
+  languages2["FULAH"] = "ff";
+  languages2["FINNISH"] = "fi";
+  languages2["FIJIAN"] = "fj";
+  languages2["FAROESE"] = "fo";
+  languages2["FRENCH"] = "fr";
+  languages2["WESTERN_FRISIAN"] = "fy";
+  languages2["IRISH"] = "ga";
+  languages2["GAELIC"] = "gd";
+  languages2["GALICIAN"] = "gl";
+  languages2["GUARANI"] = "gn";
+  languages2["GUJARATI"] = "gu";
+  languages2["MANX"] = "gv";
+  languages2["HAUSA"] = "ha";
+  languages2["HEBREW"] = "he";
+  languages2["HINDI"] = "hi";
+  languages2["HIRI_MOTU"] = "ho";
+  languages2["CROATIAN"] = "hr";
+  languages2["HAITIAN"] = "ht";
+  languages2["HUNGARIAN"] = "hu";
+  languages2["ARMENIAN"] = "hy";
+  languages2["HERERO"] = "hz";
+  languages2["INTERLINGUA"] = "ia";
+  languages2["INDONESIAN"] = "id";
+  languages2["INTERLINGUE"] = "ie";
+  languages2["IGBO"] = "ig";
+  languages2["SICHUAN_YI"] = "ii";
+  languages2["INUPIAQ"] = "ik";
+  languages2["IDO"] = "io";
+  languages2["ICELANDIC"] = "is";
+  languages2["ITALIAN"] = "it";
+  languages2["INUKTITUT"] = "iu";
+  languages2["JAPANESE"] = "ja";
+  languages2["JAVANESE"] = "jv";
+  languages2["GEORGIAN"] = "ka";
+  languages2["KONGO"] = "kg";
+  languages2["KIKUYU"] = "ki";
+  languages2["KUANYAMA"] = "kj";
+  languages2["KAZAKH"] = "kk";
+  languages2["KALAALLISUT"] = "kl";
+  languages2["CENTRAL_KHMER"] = "km";
+  languages2["KANNADA"] = "kn";
+  languages2["KOREAN"] = "ko";
+  languages2["KANURI"] = "kr";
+  languages2["KASHMIRI"] = "ks";
+  languages2["KURDISH"] = "ku";
+  languages2["KOMI"] = "kv";
+  languages2["CORNISH"] = "kw";
+  languages2["KIRGHIZ"] = "ky";
+  languages2["LUXEMBOURGISH"] = "lb";
+  languages2["GANDA"] = "lg";
+  languages2["LIMBURGAN"] = "li";
+  languages2["LINGALA"] = "ln";
+  languages2["LAO"] = "lo";
+  languages2["LITHUANIAN"] = "lt";
+  languages2["LUBA_KATANGA"] = "lu";
+  languages2["LATVIAN"] = "lv";
+  languages2["MALAGASY"] = "mg";
+  languages2["MARSHALLESE"] = "mh";
+  languages2["MAORI"] = "mi";
+  languages2["MACEDONIAN"] = "mk";
+  languages2["MALAYALAM"] = "ml";
+  languages2["MONGOLIAN"] = "mn";
+  languages2["MARATHI"] = "mr";
+  languages2["MALAY"] = "ms";
+  languages2["MALTESE"] = "mt";
+  languages2["BURMESE"] = "my";
+  languages2["NAURU"] = "na";
+  languages2["NORWEGIAN"] = "no";
+  languages2["NORTH_NDEBELE"] = "nd";
+  languages2["NEPALI"] = "ne";
+  languages2["NDONGA"] = "ng";
+  languages2["DUTCH"] = "nl";
+  languages2["SOUTH_NDEBELE"] = "nr";
+  languages2["NAVAJO"] = "nv";
+  languages2["CHICHEWA"] = "ny";
+  languages2["OCCITAN"] = "oc";
+  languages2["OJIBWA"] = "oj";
+  languages2["OROMO"] = "om";
+  languages2["ORIYA"] = "or";
+  languages2["OSSETIC"] = "os";
+  languages2["PANJABI"] = "pa";
+  languages2["PALI"] = "pi";
+  languages2["POLISH"] = "pl";
+  languages2["PUSHTO"] = "ps";
+  languages2["PORTUGUESE"] = "pt";
+  languages2["QUECHUA"] = "qu";
+  languages2["ROMANSH"] = "rm";
+  languages2["RUNDI"] = "rn";
+  languages2["ROMANIAN"] = "ro";
+  languages2["RUSSIAN"] = "ru";
+  languages2["KINYARWANDA"] = "rw";
+  languages2["SANSKRIT"] = "sa";
+  languages2["SARDINIAN"] = "sc";
+  languages2["SINDHI"] = "sd";
+  languages2["NORTHERN_SAMI"] = "se";
+  languages2["SANGO"] = "sg";
+  languages2["SINHALA"] = "si";
+  languages2["SLOVAK"] = "sk";
+  languages2["SLOVENIAN"] = "sl";
+  languages2["SAMOAN"] = "sm";
+  languages2["SHONA"] = "sn";
+  languages2["SOMALI"] = "so";
+  languages2["ALBANIAN"] = "sq";
+  languages2["SERBIAN"] = "sr";
+  languages2["SWATI"] = "ss";
+  languages2["SOTHO_SOUTHERN"] = "st";
+  languages2["SUNDANESE"] = "su";
+  languages2["SWEDISH"] = "sv";
+  languages2["SWAHILI"] = "sw";
+  languages2["TAMIL"] = "ta";
+  languages2["TELUGU"] = "te";
+  languages2["TAJIK"] = "tg";
+  languages2["THAI"] = "th";
+  languages2["TIGRINYA"] = "ti";
+  languages2["TURKMEN"] = "tk";
+  languages2["TAGALOG"] = "tl";
+  languages2["TSWANA"] = "tn";
+  languages2["TONGA"] = "to";
+  languages2["TURKISH"] = "tr";
+  languages2["TSONGA"] = "ts";
+  languages2["TATAR"] = "tt";
+  languages2["TWI"] = "tw";
+  languages2["TAHITIAN"] = "ty";
+  languages2["UIGHUR"] = "ug";
+  languages2["UKRAINIAN"] = "uk";
+  languages2["URDU"] = "ur";
+  languages2["UZBEK"] = "uz";
+  languages2["VENDA"] = "ve";
+  languages2["VIETNAMESE"] = "vi";
+  languages2["VOLAPUK"] = "vo";
+  languages2["WALLOON"] = "wa";
+  languages2["WOLOF"] = "wo";
+  languages2["XHOSA"] = "xh";
+  languages2["YIDDISH"] = "yi";
+  languages2["YORUBA"] = "yo";
+  languages2["ZHUANG"] = "za";
+  languages2["CHINESE"] = "zh";
+  languages2["ZULU"] = "zu";
+  return languages2;
+})(languages || {});
 
 const defaults = {
   mapStyle: "streets",
@@ -356,13 +356,18 @@ class Map extends maplibre.Map {
     const expandedStyle = style ? expandMapStyle(style) : null;
     return super.setStyle(expandedStyle, options);
   }
+  setlanguage(language = defaults.primaryLanguage) {
+    this.setPrimaryLanguage(language);
+  }
   setPrimaryLanguage(language = defaults.primaryLanguage) {
     config.primaryLanguage = language;
     const layers = this.getStyle().layers;
-    const strLanguageRegex = /^\s*{\s*name\s*:\s*(\S*)\s*}\s*$/;
-    const strLanguageInArrayRegex = /^\s*name\s*:\s*(\S*)\s*$/;
+    const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
+    const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
     const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
-    const replacer = ["case", ["has", `name:${language}`], ["get", `name:${language}`], ["get", "name"]];
+    const strMoreInfoRegex = /^(.*)({\s*name\s*(:\s*(\S*))?\s*})(.*)$/;
+    const langStr = language ? `name:${language}` : "name";
+    const replacer = ["case", ["has", langStr], ["get", langStr], ["get", "name:latin"]];
     for (let i = 0; i < layers.length; i += 1) {
       const layer = layers[i];
       const layout = layer.layout;
@@ -400,7 +405,10 @@ class Map extends maplibre.Map {
         const newProp = replacer;
         this.setLayoutProperty(layer.id, "text-field", newProp);
       } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strBilingualRegex.exec(textFieldLayoutProp.toString())) !== null) {
-        const newProp = `{name:${language || ""}}${regexMatch[3]}{name${regexMatch[4] || ""}}`;
+        const newProp = `{${langStr}}${regexMatch[3]}{name${regexMatch[4] || ""}}`;
+        this.setLayoutProperty(layer.id, "text-field", newProp);
+      } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strMoreInfoRegex.exec(textFieldLayoutProp.toString())) !== null) {
+        const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
         this.setLayoutProperty(layer.id, "text-field", newProp);
       }
     }
@@ -408,8 +416,8 @@ class Map extends maplibre.Map {
   setSecondaryLanguage(language = defaults.secondaryLanguage) {
     config.secondaryLanguage = language;
     const layers = this.getStyle().layers;
-    const strLanguageRegex = /^\s*{\s*name\s*:\s*(\S*)\s*}\s*$/;
-    const strLanguageInArrayRegex = /^\s*name\s*:\s*(\S*)\s*$/;
+    const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
+    const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
     const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
     let regexMatch;
     for (let i = 0; i < layers.length; i += 1) {
@@ -450,9 +458,8 @@ class Map extends maplibre.Map {
         }
         this.setLayoutProperty(layer.id, "text-field", newProp);
       } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strBilingualRegex.exec(textFieldLayoutProp.toString())) !== null) {
-        console.log("regexMatch", regexMatch);
-        newProp = `{name${regexMatch[1] || ""}}${regexMatch[3]}{name:${language || ""}}`;
-        console.log(newProp);
+        const langStr = language ? `name:${language}` : "name";
+        newProp = `{name${regexMatch[1] || ""}}${regexMatch[3]}{${langStr}}`;
         this.setLayoutProperty(layer.id, "text-field", newProp);
       }
     }
@@ -937,5 +944,11 @@ const staticMaps = {
   automatic
 };
 
-export { Map, ServiceError, config, coordinates, data, geocoder, geolocation, languages, staticMaps };
+var units = /* @__PURE__ */ ((units2) => {
+  units2[units2["METRIC"] = 0] = "METRIC";
+  units2[units2["IMPERIAL"] = 1] = "IMPERIAL";
+  return units2;
+})(units || {});
+
+export { Map, ServiceError, config, coordinates, data, geocoder, geolocation, languages, staticMaps, units };
 //# sourceMappingURL=maptiler.mjs.map
