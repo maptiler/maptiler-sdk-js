@@ -1,54 +1,57 @@
-import * as maplibre from 'maplibre-gl'
-import defaults from './defaults';
-import Map from './Map'
+import * as maplibre from "maplibre-gl";
+import defaults from "./defaults";
+import Map from "./Map";
 
 type LogoOptions = maplibre.LogoOptions & {
-  logoURL?: string,
-  linkURL?: string,
-}
+  logoURL?: string;
+  linkURL?: string;
+};
 
 /**
  * This LogoControl extends the MapLibre LogoControl but instead can use any image URL and
  * any link URL. By default this is using MapTiler logo and URL.
  */
 export default class CustomLogoControl extends maplibre.LogoControl {
-  private logoURL:string = '';
-  private linkURL:string = '';
-  
+  private logoURL = "";
+  private linkURL = "";
+
   constructor(options: LogoOptions = {}) {
     super(options);
 
     this.logoURL = options.logoURL ?? defaults.maptilerLogoURL;
-    this.linkURL = options.linkURL ?? defaults.maptilerURL;    
+    this.linkURL = options.linkURL ?? defaults.maptilerURL;
   }
 
   onAdd(map: Map): HTMLElement {
     this._map = map;
     this._compact = this.options && this.options.compact;
-    this._container = window.document.createElement('div');
-    this._container.className = 'maplibregl-ctrl';
-    const anchor = window.document.createElement('a');
-    anchor.style.backgroundRepeat = 'no-repeat';
-    anchor.style.cursor = 'pointer';
-    anchor.style.display = 'block';
-    anchor.style.height = '23px';
-    anchor.style.margin = '0 0 -4px -4px';
-    anchor.style.overflow = 'hidden';
-    anchor.style.width = '88px';
+    this._container = window.document.createElement("div");
+    this._container.className = "maplibregl-ctrl";
+    const anchor = window.document.createElement("a");
+    anchor.style.backgroundRepeat = "no-repeat";
+    anchor.style.cursor = "pointer";
+    anchor.style.display = "block";
+    anchor.style.height = "23px";
+    anchor.style.margin = "0 0 -4px -4px";
+    anchor.style.overflow = "hidden";
+    anchor.style.width = "88px";
     anchor.style.backgroundImage = `url(${this.logoURL})`;
-    anchor.style.backgroundSize = '100px 30px';
-    anchor.style.width = '100px';
-    anchor.style.height = '30px';
+    anchor.style.backgroundSize = "100px 30px";
+    anchor.style.width = "100px";
+    anchor.style.height = "30px";
 
-    anchor.target = '_blank';
-    anchor.rel = 'noopener nofollow';
+    anchor.target = "_blank";
+    anchor.rel = "noopener nofollow";
     anchor.href = this.linkURL;
-    anchor.setAttribute('aria-label', this._map._getUIString('LogoControl.Title'));
-    anchor.setAttribute('rel', 'noopener nofollow');
+    anchor.setAttribute(
+      "aria-label",
+      this._map._getUIString("LogoControl.Title")
+    );
+    anchor.setAttribute("rel", "noopener nofollow");
     this._container.appendChild(anchor);
-    this._container.style.display = 'block';
+    this._container.style.display = "block";
 
-    this._map.on('resize', this._updateCompact);
+    this._map.on("resize", this._updateCompact);
     this._updateCompact();
 
     return this._container;

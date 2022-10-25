@@ -1,7 +1,7 @@
 enum languages {
   LATIN = "latin",
   NON_LATIN = "nonlatin",
-  LOCAL = '',
+  LOCAL = "",
   AFAR = "aa",
   ABKHAZIAN = "ab",
   AVESTAN = "ae",
@@ -185,4 +185,4 @@ enum languages {
   ZULU = "zu",
 }
 
-export default languages; 
+export default languages;

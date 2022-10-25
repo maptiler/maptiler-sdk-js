@@ -5,21 +5,22 @@
 import { lngLatArrayType } from "./generalTypes";
 
 // square distance from a point to a segment
-function getSqSegDist(p: lngLatArrayType, p1: lngLatArrayType, p2: lngLatArrayType): number {
-
+function getSqSegDist(
+  p: lngLatArrayType,
+  p1: lngLatArrayType,
+  p2: lngLatArrayType
+): number {
   let x = p1[0],
-      y = p1[1],
-      dx = p2[0] - x,
-      dy = p2[1] - y;
+    y = p1[1],
+    dx = p2[0] - x,
+    dy = p2[1] - y;
 
   if (dx !== 0 || dy !== 0) {
-
-    let t = ((p[0] - x) * dx + (p[1] - y) * dy) / (dx * dx + dy * dy);
+    const t = ((p[0] - x) * dx + (p[1] - y) * dy) / (dx * dx + dy * dy);
 
     if (t > 1) {
       x = p2[0];
       y = p2[1];
-
     } else if (t > 0) {
       x += dx * t;
       y += dy * t;
@@ -32,9 +33,15 @@ function getSqSegDist(p: lngLatArrayType, p1: lngLatArrayType, p2: lngLatArrayTy
   return dx * dx + dy * dy;
 }
 
-
-function simplifyDPStep(points: Array<lngLatArrayType>, first: number, last: number, sqTolerance: number, simplified: Array<lngLatArrayType>) {
-  let maxSqDist = sqTolerance, index;
+function simplifyDPStep(
+  points: Array<lngLatArrayType>,
+  first: number,
+  last: number,
+  sqTolerance: number,
+  simplified: Array<lngLatArrayType>
+) {
+  let maxSqDist = sqTolerance,
+    index;
 
   for (let i = first + 1; i < last; i++) {
     const sqDist = getSqSegDist(points[i], points[first], points[last]);
@@ -50,16 +57,18 @@ function simplifyDPStep(points: Array<lngLatArrayType>, first: number, last: num
       simplifyDPStep(points, first, index, sqTolerance, simplified);
     }
     simplified.push(points[index]);
-    
+
     if (last - index > 1) {
       simplifyDPStep(points, index, last, sqTolerance, simplified);
     }
   }
 }
 
-
 // simplification using Ramer-Douglas-Peucker algorithm
-function simplifyDouglasPeucker(points: Array<lngLatArrayType>, sqTolerance: number): Array<lngLatArrayType> {
+function simplifyDouglasPeucker(
+  points: Array<lngLatArrayType>,
+  sqTolerance: number
+): Array<lngLatArrayType> {
   const last = points.length - 1;
   const simplified = [points[0]];
   simplifyDPStep(points, 0, last, sqTolerance, simplified);
@@ -67,9 +76,11 @@ function simplifyDouglasPeucker(points: Array<lngLatArrayType>, sqTolerance: num
   return simplified;
 }
 
-
 // both algorithms combined for awesome performance
-export default function simplify(points: Array<lngLatArrayType>, tolerance: number): Array<lngLatArrayType> {
+export default function simplify(
+  points: Array<lngLatArrayType>,
+  tolerance: number
+): Array<lngLatArrayType> {
   if (points.length <= 2) {
     return points;
   }

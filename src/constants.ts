@@ -1,6 +1,6 @@
 const constants = {
-  NON_BREAKING_SPACE: ' ',
-}
+  NON_BREAKING_SPACE: " ",
+};
 
 Object.freeze(constants);
 

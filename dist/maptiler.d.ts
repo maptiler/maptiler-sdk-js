@@ -144,13 +144,13 @@ declare const data: {
 declare type centeredStaticMapOptionsType = {
     style?: string;
     hiDPI?: boolean;
-    format?: 'png' | 'jpg' | 'webp';
+    format?: "png" | "jpg" | "webp";
     width?: number;
     height?: number;
-    attribution?: 'bottomright' | 'bottomleft' | 'topleft' | 'topright' | false;
+    attribution?: "bottomright" | "bottomleft" | "topleft" | "topright" | false;
     marker?: staticMapMarkerType | Array<staticMapMarkerType>;
     markerIcon?: string;
-    markerAnchor?: 'top' | 'left' | 'bottom' | 'right' | 'center' | 'topleft' | 'bottomleft' | 'topright' | 'bottomright';
+    markerAnchor?: "top" | "left" | "bottom" | "right" | "center" | "topleft" | "bottomleft" | "topright" | "bottomright";
     markerScale?: number;
     path?: Array<lngLatArrayType>;
     pathStrokeColor?: string;
@@ -160,13 +160,13 @@ declare type centeredStaticMapOptionsType = {
 declare type boundedStaticMapOptionsType = {
     style?: string;
     hiDPI?: boolean;
-    format?: 'png' | 'jpg' | 'webp';
+    format?: "png" | "jpg" | "webp";
     width?: number;
     height?: number;
-    attribution?: 'bottomright' | 'bottomleft' | 'topleft' | 'topright' | false;
+    attribution?: "bottomright" | "bottomleft" | "topleft" | "topright" | false;
     marker?: staticMapMarkerType | Array<staticMapMarkerType>;
     markerIcon?: string;
-    markerAnchor?: 'top' | 'left' | 'bottom' | 'right' | 'center' | 'topleft' | 'bottomleft' | 'topright' | 'bottomright';
+    markerAnchor?: "top" | "left" | "bottom" | "right" | "center" | "topleft" | "bottomleft" | "topright" | "bottomright";
     markerScale?: number;
     path?: Array<lngLatArrayType>;
     pathStrokeColor?: string;
