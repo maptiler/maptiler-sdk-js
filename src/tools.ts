@@ -1,4 +1,6 @@
+import * as maplibre from 'maplibre-gl';
 import { config } from "./config";
+import defaults from './defaults';
 
 /**
  * Prints on console only if 'verbose' mode from the config is set to true
@@ -41,4 +43,17 @@ export function expandMapStyle(style): string {
   }
 
   return expandedStyle;
+}
+
+
+
+export function enableRTL() {
+  const maplibrePackage = maplibre as any;
+  if (maplibrePackage.getRTLTextPluginStatus() === 'unavailable') {
+    maplibrePackage.setRTLTextPlugin(
+      defaults.rtlPluginURL,
+      null,
+      true // Lazy load the plugin
+    );
+  }
 }

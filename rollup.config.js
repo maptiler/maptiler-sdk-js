@@ -86,7 +86,7 @@ const bundles = [
   // types
   {
     "plugins": [
-      dts()
+      dts(),
     ],
     output: {
       file: `dist/${pkg.name}.d.ts`,

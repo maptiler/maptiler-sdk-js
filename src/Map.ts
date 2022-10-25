@@ -1,9 +1,9 @@
 import * as maplibre from 'maplibre-gl';
 import { config } from './config';
-import constants from './constants';
 import defaults from './defaults';
 import CustomLogoControl from './CustomLogoControl';
-import { expandMapStyle, vlog } from './tools';
+import { enableRTL, expandMapStyle, vlog } from './tools';
+
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (previous: maplibre.StyleSpecification, next: maplibre.StyleSpecification) => maplibre.StyleSpecification;
@@ -27,7 +27,7 @@ export default class Map extends maplibre.Map {
   private languageShouldUpdate: boolean = false;
   private super_setStyle: Function;
 
-  constructor(options: MapOptions) { 
+  constructor(options: MapOptions) {
     let style = expandMapStyle(defaults.mapStyle);
 
     if ("style" in options) {
@@ -39,14 +39,13 @@ export default class Map extends maplibre.Map {
     // calling the map constructor with full length style
     super({...options, style, maplibreLogo: false });
 
-    // this.super_setStyle = super.setStyle;
-
+    // Check if language has been modified and. If so, it will be updated during the next lifecycle step
     this.on('styledataloading', (data: maplibre.MapDataEvent) => {
       this.languageShouldUpdate = !!config.primaryLanguage || !!config.secondaryLanguage;
     })
 
+    // If the config includes language changing, we must update the map language
     this.on('styledata', (data: maplibre.MapDataEvent) => {      
-      // If the config includes language changing, we must update the map language
       if (config.primaryLanguage && this.languageShouldUpdate) {
         this.setPrimaryLanguage(config.primaryLanguage)
       }
@@ -58,6 +57,12 @@ export default class Map extends maplibre.Map {
       this.languageShouldUpdate = false;
     })
 
+    // load the Right-to-Left text plugin (will happen only once)
+    this.once("load", async () => {
+      enableRTL();
+    })
+
+    // Update logo and attibution
     this.once("load", async () => {
       let tileJsonURL = null;
       try {
@@ -87,6 +92,12 @@ export default class Map extends maplibre.Map {
   }
 
 
+  /**
+   * 
+   * @param style 
+   * @param options 
+   * @returns 
+   */
   setStyle(style: maplibre.StyleSpecification | string | null, options?: StyleSwapOptions & maplibre.StyleOptions) {
     const expandedStyle = style ? expandMapStyle(style) : null;
     return super.setStyle(expandedStyle, options);
@@ -207,7 +218,7 @@ export default class Map extends maplibre.Map {
     }
   }
 
-  
+
   setSecondaryLanguage(language: string = defaults.secondaryLanguage) {
     // We want to keep track of it to apply the language again when changing the style
     config.secondaryLanguage = language;
@@ -328,7 +339,5 @@ export default class Map extends maplibre.Map {
       
     }
   }
-
-
-
 }
+

@@ -201,6 +201,7 @@ const defaults = {
   maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
   maptilerURL: "https://www.maptiler.com/",
   maptilerApiURL: "https://api.maptiler.com/",
+  rtlPluginURL: "https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.min.js",
   primaryLanguage: languages.LATIN,
   secondaryLanguage: languages.NON_LATIN
 };
@@ -266,6 +267,16 @@ function expandMapStyle(style) {
   }
   return expandedStyle;
 }
+function enableRTL() {
+  const maplibrePackage = maplibre;
+  if (maplibrePackage.getRTLTextPluginStatus() === "unavailable") {
+    maplibrePackage.setRTLTextPlugin(
+      defaults.rtlPluginURL,
+      null,
+      true
+    );
+  }
+}
 
 var __defProp = Object.defineProperty;
 var __defProps = Object.defineProperties;
@@ -330,6 +341,9 @@ class Map extends maplibre.Map {
       }
       this.languageShouldUpdate = false;
     });
+    this.once("load", () => __async$4(this, null, function* () {
+      enableRTL();
+    }));
     this.once("load", () => __async$4(this, null, function* () {
       let tileJsonURL = null;
       try {

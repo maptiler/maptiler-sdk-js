@@ -29,6 +29,12 @@ declare class Map extends maplibre.Map {
     private languageShouldUpdate;
     private super_setStyle;
     constructor(options: MapOptions);
+    /**
+     *
+     * @param style
+     * @param options
+     * @returns
+     */
     setStyle(style: maplibre.StyleSpecification | string | null, options?: StyleSwapOptions & maplibre.StyleOptions): this;
     setlanguage(language?: string): void;
     setPrimaryLanguage(language?: string): void;

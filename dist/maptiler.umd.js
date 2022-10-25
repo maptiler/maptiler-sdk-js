@@ -4,9 +4,24 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.maptiler = {}));
 })(this, (function (exports) { 'use strict';
 
+	function _mergeNamespaces(n, m) {
+		m.forEach(function (e) {
+			e && typeof e !== 'string' && !Array.isArray(e) && Object.keys(e).forEach(function (k) {
+				if (k !== 'default' && !(k in n)) {
+					var d = Object.getOwnPropertyDescriptor(e, k);
+					Object.defineProperty(n, k, d.get ? d : {
+						enumerable: true,
+						get: function () { return e[k]; }
+					});
+				}
+			});
+		});
+		return Object.freeze(n);
+	}
+
 	var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-	var maplibreGl = {exports: {}};
+	var maplibreGl$1 = {exports: {}};
 
 	/* MapLibre GL JS is licensed under the 3-Clause BSD License. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v2.4.0/LICENSE.txt */
 
@@ -51,7 +66,14 @@
 
 		}));
 		
-	} (maplibreGl));
+	} (maplibreGl$1));
+
+	var maplibreGl = maplibreGl$1.exports;
+
+	var maplibre = /*#__PURE__*/_mergeNamespaces({
+		__proto__: null,
+		'default': maplibreGl
+	}, [maplibreGl$1.exports]);
 
 	const config = {
 	  apiToken: "Not defined yet.",
@@ -253,12 +275,13 @@
 	  maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
 	  maptilerURL: "https://www.maptiler.com/",
 	  maptilerApiURL: "https://api.maptiler.com/",
+	  rtlPluginURL: "https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.min.js",
 	  primaryLanguage: languages.LATIN,
 	  secondaryLanguage: languages.NON_LATIN
 	};
 	Object.freeze(defaults);
 
-	class CustomLogoControl extends maplibreGl.exports.LogoControl {
+	class CustomLogoControl extends maplibreGl$1.exports.LogoControl {
 	  constructor(options = {}) {
 	    var _a, _b;
 	    super(options);
@@ -318,6 +341,16 @@
 	  }
 	  return expandedStyle;
 	}
+	function enableRTL() {
+	  const maplibrePackage = maplibre;
+	  if (maplibrePackage.getRTLTextPluginStatus() === "unavailable") {
+	    maplibrePackage.setRTLTextPlugin(
+	      defaults.rtlPluginURL,
+	      null,
+	      true
+	    );
+	  }
+	}
 
 	var __defProp = Object.defineProperty;
 	var __defProps = Object.defineProperties;
@@ -358,7 +391,7 @@
 	    step((generator = generator.apply(__this, __arguments)).next());
 	  });
 	};
-	class Map extends maplibreGl.exports.Map {
+	class Map extends maplibreGl$1.exports.Map {
 	  constructor(options) {
 	    let style = expandMapStyle(defaults.mapStyle);
 	    if ("style" in options) {
@@ -383,6 +416,9 @@
 	      this.languageShouldUpdate = false;
 	    });
 	    this.once("load", () => __async$4(this, null, function* () {
+	      enableRTL();
+	    }));
+	    this.once("load", () => __async$4(this, null, function* () {
 	      let tileJsonURL = null;
 	      try {
 	        tileJsonURL = this.getSource("openmaptiles").url;
@@ -397,7 +433,7 @@
 	        const logoURL = tileJsonContent.logo;
 	        this.addControl(new CustomLogoControl({ logoURL }), options.logoPosition);
 	        if (!options.attributionControl) {
-	          this.addControl(new maplibreGl.exports.AttributionControl());
+	          this.addControl(new maplibreGl$1.exports.AttributionControl());
 	        }
 	      } else if (options.maptilerLogo) {
 	        this.addControl(new CustomLogoControl(), options.logoPosition);
