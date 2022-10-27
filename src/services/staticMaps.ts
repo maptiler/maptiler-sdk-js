@@ -3,6 +3,7 @@ import defaults from "../defaults";
 import { bboxType, lngLatArrayType, lngLatType } from "../generalTypes";
 import simplify from "../simplify";
 
+
 export type centeredStaticMapOptionsType = {
   style?: string;
   hiDPI?: boolean;
@@ -337,10 +338,16 @@ function automatic(options: automaticStaticMapOptionsType = {}) {
   return endpoint.toString();
 }
 
+
+/**
+ * The **staticMaps** namespace contains an synchronous function build image URL of static map, as specified by the [MapTiler Static Map API](https://docs.maptiler.com/cloud/api/static-maps/).
+ * The URL of static maps can then be used within a `<img />` markup element, as the `src` property value.
+ */
 const staticMaps = {
   centered,
   bounded,
   automatic,
 };
+
 
 export default staticMaps;

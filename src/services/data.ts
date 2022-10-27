@@ -7,7 +7,8 @@ const customMessages = {
 };
 
 /**
- * Get user data and returns it as GeoJSON using the MapTiler API
+ * Get user data and returns it as GeoJSON using the MapTiler API.
+ * Learn more on the MapTiler API reference page: https://docs.maptiler.com/cloud/api/data/#geojson
  * @param dataId
  * @returns
  */
@@ -32,6 +33,11 @@ async function get(dataId: string) {
   return obj;
 }
 
+
+/**
+ * The **data** namespace contains an asynchronous function to call the [MapTiler Data API](https://docs.maptiler.com/cloud/api/data/).
+ * The **Data API** provides a way to retrieve user data in GeoJSON format.
+ */
 const data = {
   get,
 };

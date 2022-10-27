@@ -25,8 +25,9 @@ const customMessages = {
 };
 
 /**
- * Search information about coordinate systems using MapTiler API
- * @param query
+ * Search information about coordinate systems using MapTiler API.
+ * Learn more on the MapTiler API reference page: https://docs.maptiler.com/cloud/api/coordinates/#search-coordinate-systems
+ * @param query Can be any kind of CRS by name or code
  * @param options
  * @returns
  */
@@ -87,7 +88,8 @@ export type coordinatesTransformOptionsType = {
 };
 
 /**
- * Transforms coordinates from a source reference system to a target reference system using MapTiler API
+ * Transforms coordinates from a source reference system to a target reference system using MapTiler API.
+ * Learn more on the MapTiler API reference page: https://docs.maptiler.com/cloud/api/coordinates/#transform-coordinates
  * @param coordinates
  * @param options
  * @returns
@@ -140,9 +142,15 @@ async function transform(
   return obj;
 }
 
+
+/**
+ * The **coordinate** namespace contains asynchronous functions to call the [MapTiler Coordinate API](https://docs.maptiler.com/cloud/api/coordinates/).  
+ * The goal of the **Coordinate API* is query information about spatial coordinate reference system (CRS) as well as to transform coordinates from one CRS to another.
+ */
 const coordinates = {
   search,
   transform,
 };
+
 
 export default coordinates;

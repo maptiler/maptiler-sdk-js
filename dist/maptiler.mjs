@@ -197,7 +197,7 @@ var languages = /* @__PURE__ */ ((languages2) => {
 })(languages || {});
 
 const defaults = {
-  mapStyle: "streets",
+  mapStyle: "streets-v2",
   maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
   maptilerURL: "https://www.maptiler.com/",
   maptilerApiURL: "https://api.maptiler.com/",
@@ -355,8 +355,6 @@ class Map extends maplibre.Map {
       const tileJsonRes = yield fetch(tileJsonURL);
       const tileJsonContent = yield tileJsonRes.json();
       if ("logo" in tileJsonContent && tileJsonContent.logo) {
-        this.attributionMustDisplay = true;
-        this.attibutionLogoUrl = tileJsonContent.logo;
         const logoURL = tileJsonContent.logo;
         this.addControl(
           new CustomLogoControl({ logoURL }),

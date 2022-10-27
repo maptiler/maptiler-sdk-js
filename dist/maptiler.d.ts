@@ -21,13 +21,10 @@ declare type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & 
     maptilerLogo?: boolean;
 };
 /**
- * Map constructor
+ * The Map
  */
 declare class Map extends maplibre.Map {
-    private attributionMustDisplay;
-    private attibutionLogoUrl;
     private languageShouldUpdate;
-    private super_setStyle;
     constructor(options: MapOptions);
     /**
      *
@@ -57,29 +54,44 @@ declare type geocoderOptionsType = {
     language?: string | Array<string>;
 };
 /**
- * Performs a forward geocoding query to MapTiler API
+ * Performs a forward geocoding query to MapTiler API.
+ * Providing a human readable place name (of a city, country, street, etc.), the function returns
+ * a list of candidate locations including longitude and latitude.
+ * Learn more on the MapTiler API reference page: https://docs.maptiler.com/cloud/api/geocoding/#search-by-name-forward
  * @param query
  * @param options
  * @returns
  */
 declare function forward(query: any, options?: geocoderOptionsType): Promise<any>;
 /**
- * Perform a reverse geocoding query to MapTiler API
+ * Perform a reverse geocoding query to MapTiler API.
+ * Providing a longitude and latitude, this function returns a set of human readable information abou this place (country, city, street, etc.)
+ * Learn more on the MapTiler API reference page: https://docs.maptiler.com/cloud/api/geocoding/#search-by-coordinates-reverse
  * @param lngLat
  * @param options
  * @returns
  */
 declare function reverse(lngLat: lngLatType, options?: geocoderOptionsType): Promise<any>;
+/**
+ * The **geocoder** namespace contains asynchronous functions to call the [MapTiler Geocoding API](https://docs.maptiler.com/cloud/api/geocoding/).
+ * The **Geocoder API** provides ways to get geographic coordinates from a human-readable search query of a place (forward geocoding)
+ * and to get the location details (country, city, street, etc.) from a geographic coordinate (reverse geocoding);
+ */
 declare const geocoder: {
     forward: typeof forward;
     reverse: typeof reverse;
 };
 
 /**
- * Looks up geolocation details from IP address using MapTiler API
+ * Looks up geolocation details from IP address using MapTiler API.
+ * Learn more on the MapTiler API reference page: https://docs.maptiler.com/cloud/api/geolocation/#ip-geolocation
  * @returns
  */
 declare function info(): Promise<any>;
+/**
+ * The **geolocation** namespace contains an asynchronous function to call the [MapTiler Geolocation API](https://docs.maptiler.com/cloud/api/geolocation/).
+ * The **Geolocation API** provides a way to retrieve the IP address as well as geographic informations of a machine performing the query (most likely: a user)
+ */
 declare const geolocation: {
     info: typeof info;
 };
@@ -99,8 +111,9 @@ declare type coordinatesSearchOptionsType = {
     exports?: boolean;
 };
 /**
- * Search information about coordinate systems using MapTiler API
- * @param query
+ * Search information about coordinate systems using MapTiler API.
+ * Learn more on the MapTiler API reference page: https://docs.maptiler.com/cloud/api/coordinates/#search-coordinate-systems
+ * @param query Can be any kind of CRS by name or code
  * @param options
  * @returns
  */
@@ -120,23 +133,33 @@ declare type coordinatesTransformOptionsType = {
     operations?: number | Array<number>;
 };
 /**
- * Transforms coordinates from a source reference system to a target reference system using MapTiler API
+ * Transforms coordinates from a source reference system to a target reference system using MapTiler API.
+ * Learn more on the MapTiler API reference page: https://docs.maptiler.com/cloud/api/coordinates/#transform-coordinates
  * @param coordinates
  * @param options
  * @returns
  */
 declare function transform(coordinates: lngLatType | Array<lngLatType>, options?: coordinatesTransformOptionsType): Promise<any>;
+/**
+ * The **coordinate** namespace contains asynchronous functions to call the [MapTiler Coordinate API](https://docs.maptiler.com/cloud/api/coordinates/).
+ * The goal of the **Coordinate API* is query information about spatial coordinate reference system (CRS) as well as to transform coordinates from one CRS to another.
+ */
 declare const coordinates: {
     search: typeof search;
     transform: typeof transform;
 };
 
 /**
- * Get user data and returns it as GeoJSON using the MapTiler API
+ * Get user data and returns it as GeoJSON using the MapTiler API.
+ * Learn more on the MapTiler API reference page: https://docs.maptiler.com/cloud/api/data/#geojson
  * @param dataId
  * @returns
  */
 declare function get(dataId: string): Promise<any>;
+/**
+ * The **data** namespace contains an asynchronous function to call the [MapTiler Data API](https://docs.maptiler.com/cloud/api/data/).
+ * The **Data API** provides a way to retrieve user data in GeoJSON format.
+ */
 declare const data: {
     get: typeof get;
 };
@@ -207,6 +230,10 @@ declare function bounded(boundingBox: bboxType, options?: boundedStaticMapOption
  * @returns
  */
 declare function automatic(options?: automaticStaticMapOptionsType): string;
+/**
+ * The **staticMaps** namespace contains an synchronous function build image URL of static map, as specified by the [MapTiler Static Map API](https://docs.maptiler.com/cloud/api/static-maps/).
+ * The URL of static maps can then be used within a `<img />` markup element, as the `src` property value.
+ */
 declare const staticMaps: {
     centered: typeof centered;
     bounded: typeof bounded;

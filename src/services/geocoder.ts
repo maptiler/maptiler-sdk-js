@@ -26,7 +26,10 @@ const customMessages = {
 };
 
 /**
- * Performs a forward geocoding query to MapTiler API
+ * Performs a forward geocoding query to MapTiler API.
+ * Providing a human readable place name (of a city, country, street, etc.), the function returns
+ * a list of candidate locations including longitude and latitude.
+ * Learn more on the MapTiler API reference page: https://docs.maptiler.com/cloud/api/geocoding/#search-by-name-forward
  * @param query
  * @param options
  * @returns
@@ -79,7 +82,9 @@ async function forward(query, options: geocoderOptionsType = {}) {
 }
 
 /**
- * Perform a reverse geocoding query to MapTiler API
+ * Perform a reverse geocoding query to MapTiler API.
+ * Providing a longitude and latitude, this function returns a set of human readable information abou this place (country, city, street, etc.)
+ * Learn more on the MapTiler API reference page: https://docs.maptiler.com/cloud/api/geocoding/#search-by-coordinates-reverse
  * @param lngLat
  * @param options
  * @returns
@@ -131,6 +136,12 @@ async function reverse(lngLat: lngLatType, options: geocoderOptionsType = {}) {
   return obj;
 }
 
+
+/**
+ * The **geocoder** namespace contains asynchronous functions to call the [MapTiler Geocoding API](https://docs.maptiler.com/cloud/api/geocoding/).
+ * The **Geocoder API** provides ways to get geographic coordinates from a human-readable search query of a place (forward geocoding) 
+ * and to get the location details (country, city, street, etc.) from a geographic coordinate (reverse geocoding);
+ */
 const geocoder = {
   forward,
   reverse,

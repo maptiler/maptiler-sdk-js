@@ -1,5 +1,8 @@
-// Exporting Maplibre as is
+/**
+ * Maplibre export
+ */
 export * from "maplibre-gl";
+
 
 import type { bboxType, lngLatType } from "./generalTypes";
 
@@ -37,6 +40,8 @@ export type {
   boundedStaticMapOptionsType,
   automaticStaticMapOptionsType,
 };
+
+
 
 // Exporting classes, objects, functions, etc.
 export {

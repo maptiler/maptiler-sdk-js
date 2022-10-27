@@ -5,7 +5,7 @@ import languages from "./languages";
  */
 const defaults = {
   // When a Map is instanciated without a 'style', then this one is the default
-  mapStyle: "streets",
+  mapStyle: "streets-v2",
   maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
   maptilerURL: "https://www.maptiler.com/",
   maptilerApiURL: "https://api.maptiler.com/",

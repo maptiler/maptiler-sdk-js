@@ -20,10 +20,10 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
 };
 
 /**
- * Map constructor
+ * The Map 
  */
 export default class Map extends maplibre.Map {
-  private languageShouldUpdate = false;
+  private languageShouldUpdate = false; 
 
   constructor(options: MapOptions) {
     let style = expandMapStyle(defaults.mapStyle);
@@ -77,8 +77,6 @@ export default class Map extends maplibre.Map {
 
       // The attribution and logo must show when required
       if ("logo" in tileJsonContent && tileJsonContent.logo) {
-        this.attributionMustDisplay = true;
-        this.attibutionLogoUrl = tileJsonContent.logo;
         const logoURL: string = tileJsonContent.logo;
 
         this.addControl(

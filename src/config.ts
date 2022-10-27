@@ -1,4 +1,4 @@
-interface ConfigInterface {
+export interface ConfigInterface {
   apiToken: string;
   verbose: boolean;
   primaryLanguage: string | null;

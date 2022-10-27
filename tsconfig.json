@@ -2,6 +2,8 @@
   "compilerOptions": {
     "moduleResolution": "Node",
     "target": "es6",
-    "declaration": true
+    "declaration": true,
+    "allowSyntheticDefaultImports": true
   }
+  
 }
