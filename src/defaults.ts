@@ -1,4 +1,4 @@
-import languages from "./languages";
+import { languages } from "./languages";
 
 /**
  * Some default settings for the SDK
@@ -17,4 +17,4 @@ const defaults = {
 
 Object.freeze(defaults);
 
-export default defaults;
+export { defaults };

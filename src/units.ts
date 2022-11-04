@@ -3,4 +3,4 @@ enum units {
   IMPERIAL,
 }
 
-export default units;
+export { units };

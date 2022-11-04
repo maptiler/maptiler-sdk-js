@@ -580,13 +580,10 @@
 	      if (!layout["text-field"]) {
 	        continue;
 	      }
-	      const textFieldLayoutProp = this.getLayoutProperty(
+	      this.getLayoutProperty(
 	        layer.id,
 	        "text-field"
 	      );
-	      console.log(layer);
-	      console.log(textFieldLayoutProp);
-	      console.log("----------------------------------------");
 	    }
 	  }
 	}

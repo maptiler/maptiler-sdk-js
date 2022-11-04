@@ -1,7 +1,7 @@
 import * as maplibre from "maplibre-gl";
 import { config } from "./config";
-import defaults from "./defaults";
-import CustomLogoControl from "./CustomLogoControl";
+import { defaults } from "./defaults";
+import { CustomLogoControl } from "./CustomLogoControl";
 import { enableRTL, expandMapStyle, vlog } from "./tools";
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
@@ -22,7 +22,7 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
 /**
  * The Map 
  */
-export default class Map extends maplibre.Map {
+export class Map extends maplibre.Map {
   private languageShouldUpdate = false; 
 
   constructor(options: MapOptions) {
@@ -400,9 +400,6 @@ export default class Map extends maplibre.Map {
         layer.id,
         "text-field"
       );
-      console.log(layer);
-      console.log(textFieldLayoutProp);
-      console.log("----------------------------------------");
     }
   }
 }

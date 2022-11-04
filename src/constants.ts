@@ -4,4 +4,4 @@ const constants = {
 
 Object.freeze(constants);
 
-export default constants;
+export { constants };

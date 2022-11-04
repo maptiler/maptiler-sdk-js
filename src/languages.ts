@@ -185,4 +185,4 @@ enum languages {
   ZULU = "zu",
 }
 
-export default languages;
+export { languages };

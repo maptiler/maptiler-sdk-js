@@ -1,5 +1,5 @@
 import * as maplibre from "maplibre-gl";
-import defaults from "./defaults";
+import { defaults } from "./defaults";
 import Map from "./Map";
 
 type LogoOptions = maplibre.LogoOptions & {
@@ -11,7 +11,7 @@ type LogoOptions = maplibre.LogoOptions & {
  * This LogoControl extends the MapLibre LogoControl but instead can use any image URL and
  * any link URL. By default this is using MapTiler logo and URL.
  */
-export default class CustomLogoControl extends maplibre.LogoControl {
+export class CustomLogoControl extends maplibre.LogoControl {
   private logoURL = "";
   private linkURL = "";
 

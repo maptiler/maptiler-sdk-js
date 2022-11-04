@@ -1,6 +1,6 @@
 import { config } from "../config";
-import defaults from "../defaults";
-import ServiceError from "./ServiceError";
+import { defaults } from "../defaults";
+import { ServiceError } from "./ServiceError";
 
 const customMessages = {
   403: "Key is missing, invalid or restricted",
@@ -42,4 +42,4 @@ const data = {
   get,
 };
 
-export default data;
+export { data };

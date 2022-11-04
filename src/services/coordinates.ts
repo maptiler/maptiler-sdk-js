@@ -1,7 +1,7 @@
 import { config } from "../config";
-import defaults from "../defaults";
+import { defaults } from "../defaults";
 import { lngLatType } from "../generalTypes";
-import ServiceError from "./ServiceError";
+import { ServiceError } from "./ServiceError";
 
 export type coordinatesSearchOptionsType = {
   /**
@@ -153,4 +153,4 @@ const coordinates = {
 };
 
 
-export default coordinates;
+export { coordinates };

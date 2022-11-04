@@ -6,28 +6,28 @@ export * from "maplibre-gl";
 
 import type { bboxType, lngLatType } from "./generalTypes";
 
-import Map from "./Map";
+import { Map } from "./Map";
 import type { MapOptions } from "./Map";
 
 // Importing services
-import geocoder from "./services/geocoder";
+import { geocoder } from "./services/geocoder";
 import type { geocoderOptionsType } from "./services/geocoder";
-import geolocation from "./services/geolocation";
-import coordinates from "./services/coordinates";
+import { geolocation } from "./services/geolocation";
+import { coordinates } from "./services/coordinates";
 import type { coordinatesSearchOptionsType } from "./services/coordinates";
-import data from "./services/data";
-import staticMaps from "./services/staticMaps";
+import { data } from "./services/data";
+import { staticMaps } from "./services/staticMaps";
 import type {
   centeredStaticMapOptionsType,
   automaticStaticMapOptionsType,
   boundedStaticMapOptionsType,
 } from "./services/staticMaps";
 
-import ServiceError from "./services/ServiceError";
+import { ServiceError } from "./services/ServiceError";
 
 import { config } from "./config";
-import languages from "./languages";
-import units from "./units";
+import { languages } from "./languages";
+import { units } from "./units";
 
 // Exporting types
 export type {

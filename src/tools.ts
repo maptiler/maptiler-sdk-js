@@ -1,6 +1,6 @@
 import * as maplibre from "maplibre-gl";
 import { config } from "./config";
-import defaults from "./defaults";
+import { defaults } from "./defaults";
 
 /**
  * Prints on console only if 'verbose' mode from the config is set to true

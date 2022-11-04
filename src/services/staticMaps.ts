@@ -1,5 +1,5 @@
 import { config } from "../config";
-import defaults from "../defaults";
+import { defaults } from "../defaults";
 import { bboxType, lngLatArrayType, lngLatType } from "../generalTypes";
 import simplify from "../simplify";
 
@@ -350,4 +350,4 @@ const staticMaps = {
 };
 
 
-export default staticMaps;
+export { staticMaps };

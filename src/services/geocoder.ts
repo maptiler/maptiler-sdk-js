@@ -1,7 +1,7 @@
 import { config } from "../config";
-import defaults from "../defaults";
+import { defaults } from "../defaults";
 import { bboxType, lngLatType } from "../generalTypes";
-import ServiceError from "./ServiceError";
+import { ServiceError } from "./ServiceError";
 
 export type geocoderOptionsType = {
   /**
@@ -147,4 +147,4 @@ const geocoder = {
   reverse,
 };
 
-export default geocoder;
+export { geocoder };
