@@ -3,6 +3,7 @@ import { defaults } from "../defaults";
 import { LngLat } from "../generalTypes";
 import { ServiceError } from "./ServiceError";
 
+
 export type CoordinatesSearchOptions = {
   /**
    * Maximum number of results returned (default: 10)

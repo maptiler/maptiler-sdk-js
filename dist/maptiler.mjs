@@ -886,8 +886,12 @@ function centered(center, zoom, options = {}) {
   const style = (_a = options.style) != null ? _a : defaults.mapStyle;
   const scale = options.hiDPI ? "@2x" : "";
   const format = (_b = options.format) != null ? _b : "png";
-  const width = ~~((_c = options.width) != null ? _c : 800);
-  const height = ~~((_d = options.height) != null ? _d : 600);
+  let width = ~~((_c = options.width) != null ? _c : 1024);
+  let height = ~~((_d = options.height) != null ? _d : 1024);
+  if (options.hiDPI) {
+    width = ~~(width / 2);
+    height = ~~(height / 2);
+  }
   const endpoint = new URL(
     `maps/${encodeURIComponent(style)}/static/${center.lng},${center.lat},${zoom}/${width}x${height}${scale}.${format}`,
     defaults.maptilerApiURL
@@ -904,8 +908,8 @@ function centered(center, zoom, options = {}) {
     if (hasIcon && "markerAnchor" in options) {
       markerStr += `anchor:${options.markerAnchor}|`;
     }
-    if (hasIcon && "markerScale" in options) {
-      markerStr += `scale:${Math.round(1 / options.markerScale)}|`;
+    if (hasIcon && options.hiDPI) {
+      markerStr += `scale:2|`;
     }
     const markerList = Array.isArray(options.marker) ? options.marker : [options.marker];
     markerStr += markerList.map((m) => staticMapMarkerToString(m, !hasIcon)).join("|");
@@ -918,7 +922,8 @@ function centered(center, zoom, options = {}) {
       pathStr += `stroke:${options.pathStrokeColor}|`;
     }
     if ("pathWidth" in options) {
-      pathStr += `width:${options.pathWidth.toString()}|`;
+      const pathWidth = options.pathWidth / (options.hiDPI ? 2 : 1);
+      pathStr += `width:${pathWidth.toString()}|`;
     }
     pathStr += simplifyAndStringify(options.path);
     endpoint.searchParams.set("path", pathStr);
@@ -931,8 +936,12 @@ function bounded(boundingBox, options = {}) {
   const style = (_a = options.style) != null ? _a : defaults.mapStyle;
   const scale = options.hiDPI ? "@2x" : "";
   const format = (_b = options.format) != null ? _b : "png";
-  const width = ~~((_c = options.width) != null ? _c : 800);
-  const height = ~~((_d = options.height) != null ? _d : 600);
+  let width = ~~((_c = options.width) != null ? _c : 1024);
+  let height = ~~((_d = options.height) != null ? _d : 1024);
+  if (options.hiDPI) {
+    width = ~~(width / 2);
+    height = ~~(height / 2);
+  }
   const endpoint = new URL(
     `maps/${encodeURIComponent(style)}/static/${boundingBox.southWest.lng},${boundingBox.southWest.lat},${boundingBox.northEast.lng},${boundingBox.northEast.lat}/${width}x${height}${scale}.${format}`,
     defaults.maptilerApiURL
@@ -952,8 +961,8 @@ function bounded(boundingBox, options = {}) {
     if (hasIcon && "markerAnchor" in options) {
       markerStr += `anchor:${options.markerAnchor}|`;
     }
-    if (hasIcon && "markerScale" in options) {
-      markerStr += `scale:${Math.round(1 / options.markerScale)}|`;
+    if (hasIcon && options.hiDPI) {
+      markerStr += `scale:2|`;
     }
     const markerList = Array.isArray(options.marker) ? options.marker : [options.marker];
     markerStr += markerList.map((m) => staticMapMarkerToString(m, !hasIcon)).join("|");
@@ -966,7 +975,8 @@ function bounded(boundingBox, options = {}) {
       pathStr += `stroke:${options.pathStrokeColor}|`;
     }
     if ("pathWidth" in options) {
-      pathStr += `width:${options.pathWidth.toString()}|`;
+      const pathWidth = options.pathWidth / (options.hiDPI ? 2 : 1);
+      pathStr += `width:${pathWidth.toString()}|`;
     }
     pathStr += simplifyAndStringify(options.path);
     endpoint.searchParams.set("path", pathStr);
@@ -984,8 +994,12 @@ function automatic(options = {}) {
   const style = (_a = options.style) != null ? _a : defaults.mapStyle;
   const scale = options.hiDPI ? "@2x" : "";
   const format = (_b = options.format) != null ? _b : "png";
-  const width = ~~((_c = options.width) != null ? _c : 800);
-  const height = ~~((_d = options.height) != null ? _d : 600);
+  let width = ~~((_c = options.width) != null ? _c : 1024);
+  let height = ~~((_d = options.height) != null ? _d : 1024);
+  if (options.hiDPI) {
+    width = ~~(width / 2);
+    height = ~~(height / 2);
+  }
   const endpoint = new URL(
     `maps/${encodeURIComponent(
       style
@@ -1008,7 +1022,7 @@ function automatic(options = {}) {
       markerStr += `anchor:${options.markerAnchor}|`;
     }
     if (hasIcon && "markerScale" in options) {
-      markerStr += `scale:${Math.round(1 / options.markerScale)}|`;
+      markerStr += `scale:2}|`;
     }
     const markerList = Array.isArray(options.marker) ? options.marker : [options.marker];
     markerStr += markerList.map((m) => staticMapMarkerToString(m, !hasIcon)).join("|");
@@ -1021,7 +1035,8 @@ function automatic(options = {}) {
       pathStr += `stroke:${options.pathStrokeColor}|`;
     }
     if ("pathWidth" in options) {
-      pathStr += `width:${options.pathWidth.toString()}|`;
+      const pathWidth = options.pathWidth / (options.hiDPI ? 2 : 1);
+      pathStr += `width:${pathWidth.toString()}|`;
     }
     pathStr += simplifyAndStringify(options.path);
     endpoint.searchParams.set("path", pathStr);

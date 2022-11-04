@@ -164,41 +164,104 @@ declare const data: {
     get: typeof get;
 };
 
-declare type CenteredStaticMapOptions = {
+declare type StaticMapBaseOptions = {
+    /**
+     * Style of the map (not full style URL). Example: "winter", "streets-v2".
+     * Default: `"streets-v2"`
+     */
     style?: string;
+    /**
+     * Double the size of the static map image to support hiDPI/Retina monitors.
+     * Default: `false`
+     */
     hiDPI?: boolean;
+    /**
+     * Image format.
+     * Default: `"png"`
+     */
     format?: "png" | "jpg" | "webp";
+    /**
+     * Width of the output image. Maximum value: `2048`.
+     * Default: `1024`
+     */
     width?: number;
+    /**
+     * Height of the output image. Maximum value: `2048`.
+     * Default: `1024`
+     */
     height?: number;
+    /**
+     * Placement of the attribution. Can also be set to `false` to not show attribution.
+     * Default: `"bottomright"`
+     */
     attribution?: "bottomright" | "bottomleft" | "topleft" | "topright" | false;
+    /**
+     * A marker or list of markers to show on the map
+     * Default: none provided
+     */
     marker?: StaticMapMarker | Array<StaticMapMarker>;
+    /**
+     * URL of the marker image. Applies only if one or multiple markers positions are provided.
+     * Default: none provided
+     */
     markerIcon?: string;
+    /**
+     * Position of the marker regarding its coordinates. Applies only:
+     * - with a custom icon provided with `markerIcon`
+     * - if one or multiple markers positions are provided.
+     * Default: `"bottom"`
+     */
     markerAnchor?: "top" | "left" | "bottom" | "right" | "center" | "topleft" | "bottomleft" | "topright" | "bottomright";
-    markerScale?: number;
+    /**
+     * Draw a path or polygon on top of the map. If the path is too long it will be simplified, yet remaining accurate.
+     * Default: none provided
+     */
     path?: Array<LngLatArray>;
+    /**
+     * Color of the path line. The color must be CSS compatible.
+     * Examples:
+     * - long form hex without transparency `"#FF0000"` (red)
+     * - short form hex without transparency `"#F00"` (red)
+     * - long form hex with transparency `"#FF000008"` (red, half opacity)
+     * - short form hex with transparency `"#F008"` (red, half opacity)
+     * - CSS color shorthands: `"red"`, `"chartreuse"`, etc.
+     * - decimal RGB values without transparency: `"rgb(128, 100, 255)"`
+     * - decimal RGB values with transparency: `"rgb(128, 100, 255, 0.5)"`
+     * Default: `"blue"`
+     */
     pathStrokeColor?: string;
+    /**
+     * Color of the filling, also works if the polygon is not closed. The color must be CSS compatible.
+     * Examples:
+     * - long form hex without transparency `"#FF0000"` (red)
+     * - short form hex without transparency `"#F00"` (red)
+     * - long form hex with transparency `"#FF000008"` (red, half opacity)
+     * - short form hex with transparency `"#F008"` (red, half opacity)
+     * - CSS color shorthands: `"red"`, `"chartreuse"`, etc.
+     * - decimal RGB values without transparency: `"rgb(128, 100, 255)"`
+     * - decimal RGB values with transparency: `"rgb(128, 100, 255, 0.5)"`
+     * Default: none (transparent filling)
+     */
     pathFillColor?: string;
+    /**
+     * Width of the path line in pixel. It can be floating point precision (ex: `0.5`)
+     * Default: `1` if `hiDPI` is `false` and `2` if `hiDPI` is `true`.
+     */
     pathWidth?: number;
 };
-declare type BoundedStaticMapOptions = {
-    style?: string;
-    hiDPI?: boolean;
-    format?: "png" | "jpg" | "webp";
-    width?: number;
-    height?: number;
-    attribution?: "bottomright" | "bottomleft" | "topleft" | "topright" | false;
-    marker?: StaticMapMarker | Array<StaticMapMarker>;
-    markerIcon?: string;
-    markerAnchor?: "top" | "left" | "bottom" | "right" | "center" | "topleft" | "bottomleft" | "topright" | "bottomright";
-    markerScale?: number;
-    path?: Array<LngLatArray>;
-    pathStrokeColor?: string;
-    pathFillColor?: string;
-    pathWidth?: number;
+declare type CenteredStaticMapOptions = StaticMapBaseOptions;
+declare type BoundedStaticMapOptions = StaticMapBaseOptions & {
+    /**
+     * Extra space added around the regio of interest, in percentage.
+     * Default: `0.1` (for 10%)
+     */
     padding?: number;
 };
 declare type AutomaticStaticMapOptions = BoundedStaticMapOptions;
 declare type StaticMapMarker = {
+    /**
+     *
+     */
     lng: number;
     lat: number;
     color?: string;
