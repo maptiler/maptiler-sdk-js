@@ -2,13 +2,13 @@
  * This code is borrowed from https://github.com/mourner/simplify-js and reworked a little.
  */
 
-import { lngLatArrayType } from "./generalTypes";
+import { LngLatArray } from "./generalTypes";
 
 // square distance from a point to a segment
 function getSqSegDist(
-  p: lngLatArrayType,
-  p1: lngLatArrayType,
-  p2: lngLatArrayType
+  p: LngLatArray,
+  p1: LngLatArray,
+  p2: LngLatArray
 ): number {
   let x = p1[0],
     y = p1[1],
@@ -34,11 +34,11 @@ function getSqSegDist(
 }
 
 function simplifyDPStep(
-  points: Array<lngLatArrayType>,
+  points: Array<LngLatArray>,
   first: number,
   last: number,
   sqTolerance: number,
-  simplified: Array<lngLatArrayType>
+  simplified: Array<LngLatArray>
 ) {
   let maxSqDist = sqTolerance,
     index;
@@ -66,9 +66,9 @@ function simplifyDPStep(
 
 // simplification using Ramer-Douglas-Peucker algorithm
 function simplifyDouglasPeucker(
-  points: Array<lngLatArrayType>,
+  points: Array<LngLatArray>,
   sqTolerance: number
-): Array<lngLatArrayType> {
+): Array<LngLatArray> {
   const last = points.length - 1;
   const simplified = [points[0]];
   simplifyDPStep(points, 0, last, sqTolerance, simplified);
@@ -78,9 +78,9 @@ function simplifyDouglasPeucker(
 
 // both algorithms combined for awesome performance
 export default function simplify(
-  points: Array<lngLatArrayType>,
+  points: Array<LngLatArray>,
   tolerance: number
-): Array<lngLatArrayType> {
+): Array<LngLatArray> {
   if (points.length <= 2) {
     return points;
   }

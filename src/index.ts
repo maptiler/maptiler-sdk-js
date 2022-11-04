@@ -4,23 +4,23 @@
 export * from "maplibre-gl";
 
 
-import type { bboxType, lngLatType } from "./generalTypes";
+import type { Bbox, LngLat } from "./generalTypes";
 
 import { Map } from "./Map";
 import type { MapOptions } from "./Map";
 
 // Importing services
 import { geocoder } from "./services/geocoder";
-import type { geocoderOptionsType } from "./services/geocoder";
+import type { GeocoderOptions } from "./services/geocoder";
 import { geolocation } from "./services/geolocation";
 import { coordinates } from "./services/coordinates";
-import type { coordinatesSearchOptionsType } from "./services/coordinates";
+import type { CoordinatesSearchOptions } from "./services/coordinates";
 import { data } from "./services/data";
 import { staticMaps } from "./services/staticMaps";
 import type {
-  centeredStaticMapOptionsType,
-  automaticStaticMapOptionsType,
-  boundedStaticMapOptionsType,
+  CenteredStaticMapOptions,
+  AutomaticStaticMapOptions,
+  BoundedStaticMapOptions,
 } from "./services/staticMaps";
 
 import { ServiceError } from "./services/ServiceError";
@@ -31,14 +31,14 @@ import { units } from "./units";
 
 // Exporting types
 export type {
-  lngLatType,
+  LngLat,
   MapOptions,
-  geocoderOptionsType,
-  bboxType,
-  coordinatesSearchOptionsType,
-  centeredStaticMapOptionsType,
-  boundedStaticMapOptionsType,
-  automaticStaticMapOptionsType,
+  GeocoderOptions,
+  Bbox,
+  CoordinatesSearchOptions,
+  CenteredStaticMapOptions,
+  BoundedStaticMapOptions,
+  AutomaticStaticMapOptions,
 };
 
 

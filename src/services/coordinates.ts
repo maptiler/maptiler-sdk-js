@@ -1,9 +1,9 @@
 import { config } from "../config";
 import { defaults } from "../defaults";
-import { lngLatType } from "../generalTypes";
+import { LngLat } from "../generalTypes";
 import { ServiceError } from "./ServiceError";
 
-export type coordinatesSearchOptionsType = {
+export type CoordinatesSearchOptions = {
   /**
    * Maximum number of results returned (default: 10)
    */
@@ -33,7 +33,7 @@ const customMessages = {
  */
 async function search(
   query: string,
-  options: coordinatesSearchOptionsType = {}
+  options: CoordinatesSearchOptions = {}
 ) {
   const endpoint = new URL(
     `coordinates/search/${query}.json`,
@@ -70,7 +70,7 @@ async function search(
   return obj;
 }
 
-export type coordinatesTransformOptionsType = {
+export type CoordinatesTransformOptions = {
   /**
    * Source coordinate reference system (default: 4326)
    */
@@ -95,8 +95,8 @@ export type coordinatesTransformOptionsType = {
  * @returns
  */
 async function transform(
-  coordinates: lngLatType | Array<lngLatType>,
-  options: coordinatesTransformOptionsType = {}
+  coordinates: LngLat | Array<LngLat>,
+  options: CoordinatesTransformOptions = {}
 ) {
   const coordinatesStr = (
     Array.isArray(coordinates) ? coordinates : [coordinates]

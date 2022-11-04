@@ -1,17 +1,17 @@
 import { config } from "../config";
 import { defaults } from "../defaults";
-import { bboxType, lngLatArrayType, lngLatType } from "../generalTypes";
+import { Bbox, LngLatArray, LngLat } from "../generalTypes";
 import simplify from "../simplify";
 
 
-export type centeredStaticMapOptionsType = {
+export type CenteredStaticMapOptions = {
   style?: string;
   hiDPI?: boolean;
   format?: "png" | "jpg" | "webp";
   width?: number;
   height?: number;
   attribution?: "bottomright" | "bottomleft" | "topleft" | "topright" | false;
-  marker?: staticMapMarkerType | Array<staticMapMarkerType>;
+  marker?: StaticMapMarker | Array<StaticMapMarker>;
   markerIcon?: string;
   markerAnchor?:
     | "top"
@@ -24,20 +24,20 @@ export type centeredStaticMapOptionsType = {
     | "topright"
     | "bottomright";
   markerScale?: number;
-  path?: Array<lngLatArrayType>;
+  path?: Array<LngLatArray>;
   pathStrokeColor?: string;
   pathFillColor?: string;
   pathWidth?: number;
 };
 
-export type boundedStaticMapOptionsType = {
+export type BoundedStaticMapOptions = {
   style?: string;
   hiDPI?: boolean;
   format?: "png" | "jpg" | "webp";
   width?: number;
   height?: number;
   attribution?: "bottomright" | "bottomleft" | "topleft" | "topright" | false;
-  marker?: staticMapMarkerType | Array<staticMapMarkerType>;
+  marker?: StaticMapMarker | Array<StaticMapMarker>;
   markerIcon?: string;
   markerAnchor?:
     | "top"
@@ -50,23 +50,23 @@ export type boundedStaticMapOptionsType = {
     | "topright"
     | "bottomright";
   markerScale?: number;
-  path?: Array<lngLatArrayType>;
+  path?: Array<LngLatArray>;
   pathStrokeColor?: string;
   pathFillColor?: string;
   pathWidth?: number;
   padding?: number;
 };
 
-export type automaticStaticMapOptionsType = boundedStaticMapOptionsType;
+export type AutomaticStaticMapOptions = BoundedStaticMapOptions;
 
-export type staticMapMarkerType = {
+export type StaticMapMarker = {
   lng: number;
   lat: number;
   color?: string;
 };
 
 function staticMapMarkerToString(
-  marker: staticMapMarkerType,
+  marker: StaticMapMarker,
   includeColor = true
 ) {
   let str = `${marker.lng},${marker.lat}`;
@@ -79,7 +79,7 @@ function staticMapMarkerToString(
 }
 
 function simplifyAndStringify(
-  path: Array<lngLatArrayType>,
+  path: Array<LngLatArray>,
   maxNbChar = 3000
 ): string {
   let str = path.map((point) => point.join(",")).join("|");
@@ -106,9 +106,9 @@ function simplifyAndStringify(
  * @returns
  */
 function centered(
-  center: lngLatType,
+  center: LngLat,
   zoom: number,
-  options: centeredStaticMapOptionsType = {}
+  options: CenteredStaticMapOptions = {}
 ): string {
   const style = options.style ?? defaults.mapStyle;
   const scale = options.hiDPI ? "@2x" : "";
@@ -183,8 +183,8 @@ function centered(
  * @returns
  */
 function bounded(
-  boundingBox: bboxType,
-  options: boundedStaticMapOptionsType = {}
+  boundingBox: Bbox,
+  options: BoundedStaticMapOptions = {}
 ) {
   const style = options.style ?? defaults.mapStyle;
   const scale = options.hiDPI ? "@2x" : "";
@@ -263,7 +263,7 @@ function bounded(
  * @param options
  * @returns
  */
-function automatic(options: automaticStaticMapOptionsType = {}) {
+function automatic(options: AutomaticStaticMapOptions = {}) {
   if (!("marker" in options) && !("path" in options)) {
     throw new Error(
       "Automatic static maps require markers and/or path to be created."

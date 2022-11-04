@@ -1,14 +1,14 @@
 import * as maplibre from 'maplibre-gl';
 export * from 'maplibre-gl';
 
-declare type lngLatType = {
+declare type LngLat = {
     lng: number;
     lat: number;
 };
-declare type lngLatArrayType = [number, number];
-declare type bboxType = {
-    southWest: lngLatType;
-    northEast: lngLatType;
+declare type LngLatArray = [number, number];
+declare type Bbox = {
+    southWest: LngLat;
+    northEast: LngLat;
 };
 
 declare type TransformStyleFunction = (previous: maplibre.StyleSpecification, next: maplibre.StyleSpecification) => maplibre.StyleSpecification;
@@ -39,15 +39,15 @@ declare class Map extends maplibre.Map {
     getLanguages(): void;
 }
 
-declare type geocoderOptionsType = {
+declare type GeocoderOptions = {
     /**
      * Only search for results in the specified area.
      */
-    bbox?: bboxType;
+    bbox?: Bbox;
     /**
      * Prefer results close to a specific location.
      */
-    proximity?: lngLatType;
+    proximity?: LngLat;
     /**
      * Prefer results in specific language. It’s possible to specify multiple values.
      */
@@ -62,7 +62,7 @@ declare type geocoderOptionsType = {
  * @param options
  * @returns
  */
-declare function forward(query: any, options?: geocoderOptionsType): Promise<any>;
+declare function forward(query: any, options?: GeocoderOptions): Promise<any>;
 /**
  * Perform a reverse geocoding query to MapTiler API.
  * Providing a longitude and latitude, this function returns a set of human readable information abou this place (country, city, street, etc.)
@@ -71,7 +71,7 @@ declare function forward(query: any, options?: geocoderOptionsType): Promise<any
  * @param options
  * @returns
  */
-declare function reverse(lngLat: lngLatType, options?: geocoderOptionsType): Promise<any>;
+declare function reverse(lngLat: LngLat, options?: GeocoderOptions): Promise<any>;
 /**
  * The **geocoder** namespace contains asynchronous functions to call the [MapTiler Geocoding API](https://docs.maptiler.com/cloud/api/geocoding/).
  * The **Geocoder API** provides ways to get geographic coordinates from a human-readable search query of a place (forward geocoding)
@@ -96,7 +96,7 @@ declare const geolocation: {
     info: typeof info;
 };
 
-declare type coordinatesSearchOptionsType = {
+declare type CoordinatesSearchOptions = {
     /**
      * Maximum number of results returned (default: 10)
      */
@@ -117,8 +117,8 @@ declare type coordinatesSearchOptionsType = {
  * @param options
  * @returns
  */
-declare function search(query: string, options?: coordinatesSearchOptionsType): Promise<any>;
-declare type coordinatesTransformOptionsType = {
+declare function search(query: string, options?: CoordinatesSearchOptions): Promise<any>;
+declare type CoordinatesTransformOptions = {
     /**
      * Source coordinate reference system (default: 4326)
      */
@@ -139,7 +139,7 @@ declare type coordinatesTransformOptionsType = {
  * @param options
  * @returns
  */
-declare function transform(coordinates: lngLatType | Array<lngLatType>, options?: coordinatesTransformOptionsType): Promise<any>;
+declare function transform(coordinates: LngLat | Array<LngLat>, options?: CoordinatesTransformOptions): Promise<any>;
 /**
  * The **coordinate** namespace contains asynchronous functions to call the [MapTiler Coordinate API](https://docs.maptiler.com/cloud/api/coordinates/).
  * The goal of the **Coordinate API* is query information about spatial coordinate reference system (CRS) as well as to transform coordinates from one CRS to another.
@@ -164,41 +164,41 @@ declare const data: {
     get: typeof get;
 };
 
-declare type centeredStaticMapOptionsType = {
+declare type CenteredStaticMapOptions = {
     style?: string;
     hiDPI?: boolean;
     format?: "png" | "jpg" | "webp";
     width?: number;
     height?: number;
     attribution?: "bottomright" | "bottomleft" | "topleft" | "topright" | false;
-    marker?: staticMapMarkerType | Array<staticMapMarkerType>;
+    marker?: StaticMapMarker | Array<StaticMapMarker>;
     markerIcon?: string;
     markerAnchor?: "top" | "left" | "bottom" | "right" | "center" | "topleft" | "bottomleft" | "topright" | "bottomright";
     markerScale?: number;
-    path?: Array<lngLatArrayType>;
+    path?: Array<LngLatArray>;
     pathStrokeColor?: string;
     pathFillColor?: string;
     pathWidth?: number;
 };
-declare type boundedStaticMapOptionsType = {
+declare type BoundedStaticMapOptions = {
     style?: string;
     hiDPI?: boolean;
     format?: "png" | "jpg" | "webp";
     width?: number;
     height?: number;
     attribution?: "bottomright" | "bottomleft" | "topleft" | "topright" | false;
-    marker?: staticMapMarkerType | Array<staticMapMarkerType>;
+    marker?: StaticMapMarker | Array<StaticMapMarker>;
     markerIcon?: string;
     markerAnchor?: "top" | "left" | "bottom" | "right" | "center" | "topleft" | "bottomleft" | "topright" | "bottomright";
     markerScale?: number;
-    path?: Array<lngLatArrayType>;
+    path?: Array<LngLatArray>;
     pathStrokeColor?: string;
     pathFillColor?: string;
     pathWidth?: number;
     padding?: number;
 };
-declare type automaticStaticMapOptionsType = boundedStaticMapOptionsType;
-declare type staticMapMarkerType = {
+declare type AutomaticStaticMapOptions = BoundedStaticMapOptions;
+declare type StaticMapMarker = {
     lng: number;
     lat: number;
     color?: string;
@@ -212,7 +212,7 @@ declare type staticMapMarkerType = {
  * @param options
  * @returns
  */
-declare function centered(center: lngLatType, zoom: number, options?: centeredStaticMapOptionsType): string;
+declare function centered(center: LngLat, zoom: number, options?: CenteredStaticMapOptions): string;
 /**
  * Construct the URL for a static map using a bounding box
  * Note: this function does not fetch the binary content of the image since
@@ -221,7 +221,7 @@ declare function centered(center: lngLatType, zoom: number, options?: centeredSt
  * @param options
  * @returns
  */
-declare function bounded(boundingBox: bboxType, options?: boundedStaticMapOptionsType): string;
+declare function bounded(boundingBox: Bbox, options?: BoundedStaticMapOptions): string;
 /**
  * Construct the URL for a static map automatically fitted around the provided path or markers.
  * Note: this function does not fetch the binary content of the image since
@@ -229,7 +229,7 @@ declare function bounded(boundingBox: bboxType, options?: boundedStaticMapOption
  * @param options
  * @returns
  */
-declare function automatic(options?: automaticStaticMapOptionsType): string;
+declare function automatic(options?: AutomaticStaticMapOptions): string;
 /**
  * The **staticMaps** namespace contains an synchronous function build image URL of static map, as specified by the [MapTiler Static Map API](https://docs.maptiler.com/cloud/api/static-maps/).
  * The URL of static maps can then be used within a `<img />` markup element, as the `src` property value.
@@ -248,13 +248,13 @@ declare class ServiceError extends Error {
     constructor(res: Response, customMessage?: string);
 }
 
-interface ConfigInterface {
+interface Config {
     apiToken: string;
     verbose: boolean;
     primaryLanguage: string | null;
     secondaryLanguage: string | null;
 }
-declare const config: ConfigInterface;
+declare const config: Config;
 
 declare enum languages {
     LATIN = "latin",
@@ -448,4 +448,4 @@ declare enum units {
     IMPERIAL = 1
 }
 
-export { Map, MapOptions, ServiceError, automaticStaticMapOptionsType, bboxType, boundedStaticMapOptionsType, centeredStaticMapOptionsType, config, coordinates, coordinatesSearchOptionsType, data, geocoder, geocoderOptionsType, geolocation, languages, lngLatType, staticMaps, units };
+export { AutomaticStaticMapOptions, Bbox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocoderOptions, LngLat, Map, MapOptions, ServiceError, config, coordinates, data, geocoder, geolocation, languages, staticMaps, units };

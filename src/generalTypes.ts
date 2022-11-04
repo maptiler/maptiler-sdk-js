@@ -1,11 +1,11 @@
-export type lngLatType = {
+export type LngLat = {
   lng: number;
   lat: number;
 };
 
-export type lngLatArrayType = [number, number];
+export type LngLatArray = [number, number];
 
-export type bboxType = {
-  southWest: lngLatType;
-  northEast: lngLatType;
+export type Bbox = {
+  southWest: LngLat;
+  northEast: LngLat;
 };

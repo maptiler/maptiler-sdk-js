@@ -1,11 +1,11 @@
-export interface ConfigInterface {
+export interface Config {
   apiToken: string;
   verbose: boolean;
   primaryLanguage: string | null;
   secondaryLanguage: string | null;
 }
 
-const config: ConfigInterface = {
+const config: Config = {
   apiToken: "Not defined yet.",
   verbose: false,
   primaryLanguage: null,

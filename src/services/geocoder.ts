@@ -1,18 +1,18 @@
 import { config } from "../config";
 import { defaults } from "../defaults";
-import { bboxType, lngLatType } from "../generalTypes";
+import { Bbox, LngLat } from "../generalTypes";
 import { ServiceError } from "./ServiceError";
 
-export type geocoderOptionsType = {
+export type GeocoderOptions = {
   /**
    * Only search for results in the specified area.
    */
-  bbox?: bboxType;
+  bbox?: Bbox;
 
   /**
    * Prefer results close to a specific location.
    */
-  proximity?: lngLatType;
+  proximity?: LngLat;
 
   /**
    * Prefer results in specific language. It’s possible to specify multiple values.
@@ -34,7 +34,7 @@ const customMessages = {
  * @param options
  * @returns
  */
-async function forward(query, options: geocoderOptionsType = {}) {
+async function forward(query, options: GeocoderOptions = {}) {
   const endpoint = new URL(
     `geocoding/${encodeURIComponent(query)}.json`,
     defaults.maptilerApiURL
@@ -89,7 +89,7 @@ async function forward(query, options: geocoderOptionsType = {}) {
  * @param options
  * @returns
  */
-async function reverse(lngLat: lngLatType, options: geocoderOptionsType = {}) {
+async function reverse(lngLat: LngLat, options: GeocoderOptions = {}) {
   const endpoint = new URL(
     `geocoding/${lngLat.lng},${lngLat.lat}.json`,
     defaults.maptilerApiURL
