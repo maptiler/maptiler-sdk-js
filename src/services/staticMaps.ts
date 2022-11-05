@@ -125,12 +125,19 @@ export type AutomaticStaticMapOptions = BoundedStaticMapOptions;
 
 export type StaticMapMarker = {
   /**
-   * 
+   * Longitude of the marker
    */
   lng: number;
+  /**
+   * latitude of the marker
+   */
   lat: number;
+  /**
+   * Color of the marker with CSS syntax. Applies only if a custom `markerIcon` is not provided.
+   */
   color?: string;
 };
+
 
 function staticMapMarkerToString(
   marker: StaticMapMarker,
@@ -167,6 +174,7 @@ function simplifyAndStringify(
  * Construct the URL for a static map centered on one point.
  * Note: this function does not fetch the binary content of the image since
  * the purpose of a static map is generally to have its URL as a `src` property of a <img/> element.
+ * If a path is provided and is too long, it will be simplified in an accurate way.
  * @param center
  * @param zoom
  * @param options
@@ -252,6 +260,7 @@ function centered(
  * Construct the URL for a static map using a bounding box
  * Note: this function does not fetch the binary content of the image since
  * the purpose of a static map is generally to have its URL as a `src` property of a <img/> element.
+ * If a path is provided and is too long, it will be simplified in an accurate way.
  * @param boundingBox
  * @param options
  * @returns
@@ -341,6 +350,7 @@ function bounded(
  * Construct the URL for a static map automatically fitted around the provided path or markers.
  * Note: this function does not fetch the binary content of the image since
  * the purpose of a static map is generally to have its URL as a `src` property of a <img/> element.
+ * If a path is provided and is too long, it will be simplified in an accurate way.
  * @param options
  * @returns
  */

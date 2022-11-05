@@ -330,17 +330,19 @@ class Map extends maplibre.Map {
     }
     super(__spreadProps(__spreadValues({}, options), { style, maplibreLogo: false }));
     this.languageShouldUpdate = false;
+    this.isStyleInitialized = false;
     this.on("styledataloading", () => {
       this.languageShouldUpdate = !!config.primaryLanguage || !!config.secondaryLanguage;
     });
     this.on("styledata", () => {
-      if (config.primaryLanguage && this.languageShouldUpdate) {
+      if (config.primaryLanguage && (this.languageShouldUpdate || !this.isStyleInitialized)) {
         this.setPrimaryLanguage(config.primaryLanguage);
       }
-      if (config.secondaryLanguage && this.languageShouldUpdate) {
+      if (config.secondaryLanguage && (this.languageShouldUpdate || !this.isStyleInitialized)) {
         this.setSecondaryLanguage(config.secondaryLanguage);
       }
       this.languageShouldUpdate = false;
+      this.isStyleInitialized = true;
     });
     this.once("load", () => __async$4(this, null, function* () {
       enableRTL();
@@ -493,23 +495,6 @@ class Map extends maplibre.Map {
         newProp = `{name${regexMatch[1] || ""}}${regexMatch[3]}{${langStr}}`;
         this.setLayoutProperty(layer.id, "text-field", newProp);
       }
-    }
-  }
-  getLanguages() {
-    const layers = this.getStyle().layers;
-    for (let i = 0; i < layers.length; i += 1) {
-      const layer = layers[i];
-      const layout = layer.layout;
-      if (!layout) {
-        continue;
-      }
-      if (!layout["text-field"]) {
-        continue;
-      }
-      this.getLayoutProperty(
-        layer.id,
-        "text-field"
-      );
     }
   }
 }

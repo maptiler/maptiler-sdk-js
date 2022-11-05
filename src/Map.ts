@@ -3,6 +3,7 @@ import { config } from "./config";
 import { defaults } from "./defaults";
 import { CustomLogoControl } from "./CustomLogoControl";
 import { enableRTL, expandMapStyle, vlog } from "./tools";
+import { languages } from "./languages";
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (
@@ -14,16 +15,31 @@ export type StyleSwapOptions = {
   transformStyle?: TransformStyleFunction;
 };
 
+/**
+ * Options to provide to the `Map` constructor
+ */
 export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
+  /**
+   * Style of the map. Can be: 
+   * - a full style URL (possibly with API key)
+   * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
+   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
+   */
   style?: string;
+
+  /**
+   * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.
+   */
   maptilerLogo?: boolean;
 };
 
+
 /**
- * The Map 
+ * The Map
  */
 export class Map extends maplibre.Map {
   private languageShouldUpdate = false; 
+  private isStyleInitialized = false;
 
   constructor(options: MapOptions) {
     let style = expandMapStyle(defaults.mapStyle);
@@ -45,15 +61,16 @@ export class Map extends maplibre.Map {
 
     // If the config includes language changing, we must update the map language
     this.on("styledata", () => {
-      if (config.primaryLanguage && this.languageShouldUpdate) {
+      if (config.primaryLanguage && (this.languageShouldUpdate || !this.isStyleInitialized)) {
         this.setPrimaryLanguage(config.primaryLanguage);
       }
 
-      if (config.secondaryLanguage && this.languageShouldUpdate) {
+      if (config.secondaryLanguage && (this.languageShouldUpdate || !this.isStyleInitialized)) {
         this.setSecondaryLanguage(config.secondaryLanguage);
       }
 
       this.languageShouldUpdate = false;
+      this.isStyleInitialized = true;
     });
 
     // load the Right-to-Left text plugin (will happen only once)
@@ -94,7 +111,11 @@ export class Map extends maplibre.Map {
   }
 
   /**
-   *
+   * Update the style of the map.
+   * Can be: 
+   * - a full style URL (possibly with API key)
+   * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
+   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
    * @param style
    * @param options
    * @returns
@@ -107,11 +128,21 @@ export class Map extends maplibre.Map {
     return super.setStyle(expandedStyle, options);
   }
 
-  setlanguage(language: string = defaults.primaryLanguage) {
+
+  /**
+   * Define the primary language of the map. Note that not all the languages shorthands provided are available.
+   * This function is a short for `.setPrimaryLanguage()`
+   * @param language 
+   */
+  setlanguage(language: languages = defaults.primaryLanguage) {
     this.setPrimaryLanguage(language);
   }
 
-  setPrimaryLanguage(language: string = defaults.primaryLanguage) {
+  /**
+   * Define the primary language of the map. Note that not all the languages shorthands provided are available.
+   * @param language 
+   */
+  setPrimaryLanguage(language: languages = defaults.primaryLanguage) {
     // We want to keep track of it to apply the language again when changing the style
     config.primaryLanguage = language;
 
@@ -261,7 +292,12 @@ export class Map extends maplibre.Map {
     }
   }
 
-  setSecondaryLanguage(language: string = defaults.secondaryLanguage) {
+  /**
+   * Define the secondary language of the map.
+   * Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)
+   * @param language 
+   */
+  setSecondaryLanguage(language: languages = defaults.secondaryLanguage) {
     // We want to keep track of it to apply the language again when changing the style
     config.secondaryLanguage = language;
 
@@ -381,25 +417,26 @@ export class Map extends maplibre.Map {
     }
   }
 
-  getLanguages() {
-    const layers = this.getStyle().layers;
 
-    for (let i = 0; i < layers.length; i += 1) {
-      const layer = layers[i];
-      const layout = layer.layout;
+  // getLanguages() {
+  //   const layers = this.getStyle().layers;
 
-      if (!layout) {
-        continue;
-      }
+  //   for (let i = 0; i < layers.length; i += 1) {
+  //     const layer = layers[i];
+  //     const layout = layer.layout;
 
-      if (!layout["text-field"]) {
-        continue;
-      }
+  //     if (!layout) {
+  //       continue;
+  //     }
 
-      const textFieldLayoutProp = this.getLayoutProperty(
-        layer.id,
-        "text-field"
-      );
-    }
-  }
+  //     if (!layout["text-field"]) {
+  //       continue;
+  //     }
+
+  //     const textFieldLayoutProp = this.getLayoutProperty(
+  //       layer.id,
+  //       "text-field"
+  //     );
+  //   }
+  // }
 }

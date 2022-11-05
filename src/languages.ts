@@ -1,3 +1,6 @@
+/**
+ * Languages. Note that not all the languages of this list are available but the compatibility list may be expanded in the future.
+ */
 enum languages {
   LATIN = "latin",
   NON_LATIN = "nonlatin",

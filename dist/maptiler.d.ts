@@ -1,23 +1,246 @@
 import * as maplibre from 'maplibre-gl';
 export * from 'maplibre-gl';
 
+/**
+ * WGS84 longitude and latitude as object
+ */
 declare type LngLat = {
+    /**
+     * Longitude
+     */
     lng: number;
+    /**
+     * Latitude
+     */
     lat: number;
 };
+/**
+ * WGS84 longitude and latitude as array of the form [lng, lat]
+ */
 declare type LngLatArray = [number, number];
+/**
+ * Bounding box (lng/lat axis aligned)
+ */
 declare type Bbox = {
+    /**
+     * South-west corner WGS84 coordinates
+     */
     southWest: LngLat;
+    /**
+     * North-east corner WGS84 coordinates
+     */
     northEast: LngLat;
 };
+
+/**
+ * Languages. Note that not all the languages of this list are available but the compatibility list may be expanded in the future.
+ */
+declare enum languages {
+    LATIN = "latin",
+    NON_LATIN = "nonlatin",
+    LOCAL = "",
+    AFAR = "aa",
+    ABKHAZIAN = "ab",
+    AVESTAN = "ae",
+    AFRIKAANS = "af",
+    AKAN = "ak",
+    AMHARIC = "am",
+    ARAGONESE = "an",
+    ARABIC = "ar",
+    ASSAMESE = "as",
+    AVARIC = "av",
+    AYMARA = "ay",
+    AZERBAIJANI = "az",
+    BASHKIR = "ba",
+    BELARUSIAN = "be",
+    BULGARIAN = "bg",
+    BIHARI = "bh",
+    BISLAMA = "bi",
+    BAMBARA = "bm",
+    BENGALI = "bn",
+    TIBETAN = "bo",
+    BRETON = "br",
+    BOSNIAN = "bs",
+    CATALAN = "ca",
+    CHECHEN = "ce",
+    CHAMORRO = "ch",
+    CORSICAN = "co",
+    CREE = "cr",
+    CZECH = "cs",
+    CHURCH_SLAVIC = "cu",
+    CHUVASH = "cv",
+    WELSH = "cy",
+    DANISH = "da",
+    GERMAN = "de",
+    MALDIVIAN = "dv",
+    DZONGKHA = "dz",
+    EWE = "ee",
+    GREEK = "el",
+    ENGLISH = "en",
+    ESPERANTO = "eo",
+    SPANISH = "es",
+    ESTONIAN = "et",
+    BASQUE = "eu",
+    PERSIAN = "fa",
+    FULAH = "ff",
+    FINNISH = "fi",
+    FIJIAN = "fj",
+    FAROESE = "fo",
+    FRENCH = "fr",
+    WESTERN_FRISIAN = "fy",
+    IRISH = "ga",
+    GAELIC = "gd",
+    GALICIAN = "gl",
+    GUARANI = "gn",
+    GUJARATI = "gu",
+    MANX = "gv",
+    HAUSA = "ha",
+    HEBREW = "he",
+    HINDI = "hi",
+    HIRI_MOTU = "ho",
+    CROATIAN = "hr",
+    HAITIAN = "ht",
+    HUNGARIAN = "hu",
+    ARMENIAN = "hy",
+    HERERO = "hz",
+    INTERLINGUA = "ia",
+    INDONESIAN = "id",
+    INTERLINGUE = "ie",
+    IGBO = "ig",
+    SICHUAN_YI = "ii",
+    INUPIAQ = "ik",
+    IDO = "io",
+    ICELANDIC = "is",
+    ITALIAN = "it",
+    INUKTITUT = "iu",
+    JAPANESE = "ja",
+    JAVANESE = "jv",
+    GEORGIAN = "ka",
+    KONGO = "kg",
+    KIKUYU = "ki",
+    KUANYAMA = "kj",
+    KAZAKH = "kk",
+    KALAALLISUT = "kl",
+    CENTRAL_KHMER = "km",
+    KANNADA = "kn",
+    KOREAN = "ko",
+    KANURI = "kr",
+    KASHMIRI = "ks",
+    KURDISH = "ku",
+    KOMI = "kv",
+    CORNISH = "kw",
+    KIRGHIZ = "ky",
+    LUXEMBOURGISH = "lb",
+    GANDA = "lg",
+    LIMBURGAN = "li",
+    LINGALA = "ln",
+    LAO = "lo",
+    LITHUANIAN = "lt",
+    LUBA_KATANGA = "lu",
+    LATVIAN = "lv",
+    MALAGASY = "mg",
+    MARSHALLESE = "mh",
+    MAORI = "mi",
+    MACEDONIAN = "mk",
+    MALAYALAM = "ml",
+    MONGOLIAN = "mn",
+    MARATHI = "mr",
+    MALAY = "ms",
+    MALTESE = "mt",
+    BURMESE = "my",
+    NAURU = "na",
+    NORWEGIAN = "no",
+    NORTH_NDEBELE = "nd",
+    NEPALI = "ne",
+    NDONGA = "ng",
+    DUTCH = "nl",
+    SOUTH_NDEBELE = "nr",
+    NAVAJO = "nv",
+    CHICHEWA = "ny",
+    OCCITAN = "oc",
+    OJIBWA = "oj",
+    OROMO = "om",
+    ORIYA = "or",
+    OSSETIC = "os",
+    PANJABI = "pa",
+    PALI = "pi",
+    POLISH = "pl",
+    PUSHTO = "ps",
+    PORTUGUESE = "pt",
+    QUECHUA = "qu",
+    ROMANSH = "rm",
+    RUNDI = "rn",
+    ROMANIAN = "ro",
+    RUSSIAN = "ru",
+    KINYARWANDA = "rw",
+    SANSKRIT = "sa",
+    SARDINIAN = "sc",
+    SINDHI = "sd",
+    NORTHERN_SAMI = "se",
+    SANGO = "sg",
+    SINHALA = "si",
+    SLOVAK = "sk",
+    SLOVENIAN = "sl",
+    SAMOAN = "sm",
+    SHONA = "sn",
+    SOMALI = "so",
+    ALBANIAN = "sq",
+    SERBIAN = "sr",
+    SWATI = "ss",
+    SOTHO_SOUTHERN = "st",
+    SUNDANESE = "su",
+    SWEDISH = "sv",
+    SWAHILI = "sw",
+    TAMIL = "ta",
+    TELUGU = "te",
+    TAJIK = "tg",
+    THAI = "th",
+    TIGRINYA = "ti",
+    TURKMEN = "tk",
+    TAGALOG = "tl",
+    TSWANA = "tn",
+    TONGA = "to",
+    TURKISH = "tr",
+    TSONGA = "ts",
+    TATAR = "tt",
+    TWI = "tw",
+    TAHITIAN = "ty",
+    UIGHUR = "ug",
+    UKRAINIAN = "uk",
+    URDU = "ur",
+    UZBEK = "uz",
+    VENDA = "ve",
+    VIETNAMESE = "vi",
+    VOLAPUK = "vo",
+    WALLOON = "wa",
+    WOLOF = "wo",
+    XHOSA = "xh",
+    YIDDISH = "yi",
+    YORUBA = "yo",
+    ZHUANG = "za",
+    CHINESE = "zh",
+    ZULU = "zu"
+}
 
 declare type TransformStyleFunction = (previous: maplibre.StyleSpecification, next: maplibre.StyleSpecification) => maplibre.StyleSpecification;
 declare type StyleSwapOptions = {
     diff?: boolean;
     transformStyle?: TransformStyleFunction;
 };
+/**
+ * Options to provide to the `Map` constructor
+ */
 declare type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
+    /**
+     * Style of the map. Can be:
+     * - a full style URL (possibly with API key)
+     * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
+     * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
+     */
     style?: string;
+    /**
+     * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.
+     */
     maptilerLogo?: boolean;
 };
 /**
@@ -25,18 +248,36 @@ declare type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & 
  */
 declare class Map extends maplibre.Map {
     private languageShouldUpdate;
+    private isStyleInitialized;
     constructor(options: MapOptions);
     /**
-     *
+     * Update the style of the map.
+     * Can be:
+     * - a full style URL (possibly with API key)
+     * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
+     * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
      * @param style
      * @param options
      * @returns
      */
     setStyle(style: maplibre.StyleSpecification | string | null, options?: StyleSwapOptions & maplibre.StyleOptions): this;
-    setlanguage(language?: string): void;
-    setPrimaryLanguage(language?: string): void;
-    setSecondaryLanguage(language?: string): void;
-    getLanguages(): void;
+    /**
+     * Define the primary language of the map. Note that not all the languages shorthands provided are available.
+     * This function is a short for `.setPrimaryLanguage()`
+     * @param language
+     */
+    setlanguage(language?: languages): void;
+    /**
+     * Define the primary language of the map. Note that not all the languages shorthands provided are available.
+     * @param language
+     */
+    setPrimaryLanguage(language?: languages): void;
+    /**
+     * Define the secondary language of the map.
+     * Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)
+     * @param language
+     */
+    setSecondaryLanguage(language?: languages): void;
 }
 
 declare type GeocoderOptions = {
@@ -260,16 +501,23 @@ declare type BoundedStaticMapOptions = StaticMapBaseOptions & {
 declare type AutomaticStaticMapOptions = BoundedStaticMapOptions;
 declare type StaticMapMarker = {
     /**
-     *
+     * Longitude of the marker
      */
     lng: number;
+    /**
+     * latitude of the marker
+     */
     lat: number;
+    /**
+     * Color of the marker with CSS syntax. Applies only if a custom `markerIcon` is not provided.
+     */
     color?: string;
 };
 /**
  * Construct the URL for a static map centered on one point.
  * Note: this function does not fetch the binary content of the image since
  * the purpose of a static map is generally to have its URL as a `src` property of a <img/> element.
+ * If a path is provided and is too long, it will be simplified in an accurate way.
  * @param center
  * @param zoom
  * @param options
@@ -280,6 +528,7 @@ declare function centered(center: LngLat, zoom: number, options?: CenteredStatic
  * Construct the URL for a static map using a bounding box
  * Note: this function does not fetch the binary content of the image since
  * the purpose of a static map is generally to have its URL as a `src` property of a <img/> element.
+ * If a path is provided and is too long, it will be simplified in an accurate way.
  * @param boundingBox
  * @param options
  * @returns
@@ -289,6 +538,7 @@ declare function bounded(boundingBox: Bbox, options?: BoundedStaticMapOptions): 
  * Construct the URL for a static map automatically fitted around the provided path or markers.
  * Note: this function does not fetch the binary content of the image since
  * the purpose of a static map is generally to have its URL as a `src` property of a <img/> element.
+ * If a path is provided and is too long, it will be simplified in an accurate way.
  * @param options
  * @returns
  */
@@ -311,200 +561,29 @@ declare class ServiceError extends Error {
     constructor(res: Response, customMessage?: string);
 }
 
+/**
+ * The config object old some values related to the user settings
+ */
 interface Config {
+    /**
+     * Maptiler API token (sometimes calles "API key"). Default: empty.
+     */
     apiToken: string;
+    /**
+     * If `true`, some more debuf text will show. Default: `false`
+     */
     verbose: boolean;
-    primaryLanguage: string | null;
-    secondaryLanguage: string | null;
+    /**
+     * The primary language, to overwrite the default language defined in the map style.
+     */
+    primaryLanguage: languages | null;
+    /**
+     * The secondary language, to overwrite the default language defined in the map style.
+     * This settings is highly dependant on the style compatibility and may not work in most cases.
+     */
+    secondaryLanguage: languages | null;
 }
 declare const config: Config;
-
-declare enum languages {
-    LATIN = "latin",
-    NON_LATIN = "nonlatin",
-    LOCAL = "",
-    AFAR = "aa",
-    ABKHAZIAN = "ab",
-    AVESTAN = "ae",
-    AFRIKAANS = "af",
-    AKAN = "ak",
-    AMHARIC = "am",
-    ARAGONESE = "an",
-    ARABIC = "ar",
-    ASSAMESE = "as",
-    AVARIC = "av",
-    AYMARA = "ay",
-    AZERBAIJANI = "az",
-    BASHKIR = "ba",
-    BELARUSIAN = "be",
-    BULGARIAN = "bg",
-    BIHARI = "bh",
-    BISLAMA = "bi",
-    BAMBARA = "bm",
-    BENGALI = "bn",
-    TIBETAN = "bo",
-    BRETON = "br",
-    BOSNIAN = "bs",
-    CATALAN = "ca",
-    CHECHEN = "ce",
-    CHAMORRO = "ch",
-    CORSICAN = "co",
-    CREE = "cr",
-    CZECH = "cs",
-    CHURCH_SLAVIC = "cu",
-    CHUVASH = "cv",
-    WELSH = "cy",
-    DANISH = "da",
-    GERMAN = "de",
-    MALDIVIAN = "dv",
-    DZONGKHA = "dz",
-    EWE = "ee",
-    GREEK = "el",
-    ENGLISH = "en",
-    ESPERANTO = "eo",
-    SPANISH = "es",
-    ESTONIAN = "et",
-    BASQUE = "eu",
-    PERSIAN = "fa",
-    FULAH = "ff",
-    FINNISH = "fi",
-    FIJIAN = "fj",
-    FAROESE = "fo",
-    FRENCH = "fr",
-    WESTERN_FRISIAN = "fy",
-    IRISH = "ga",
-    GAELIC = "gd",
-    GALICIAN = "gl",
-    GUARANI = "gn",
-    GUJARATI = "gu",
-    MANX = "gv",
-    HAUSA = "ha",
-    HEBREW = "he",
-    HINDI = "hi",
-    HIRI_MOTU = "ho",
-    CROATIAN = "hr",
-    HAITIAN = "ht",
-    HUNGARIAN = "hu",
-    ARMENIAN = "hy",
-    HERERO = "hz",
-    INTERLINGUA = "ia",
-    INDONESIAN = "id",
-    INTERLINGUE = "ie",
-    IGBO = "ig",
-    SICHUAN_YI = "ii",
-    INUPIAQ = "ik",
-    IDO = "io",
-    ICELANDIC = "is",
-    ITALIAN = "it",
-    INUKTITUT = "iu",
-    JAPANESE = "ja",
-    JAVANESE = "jv",
-    GEORGIAN = "ka",
-    KONGO = "kg",
-    KIKUYU = "ki",
-    KUANYAMA = "kj",
-    KAZAKH = "kk",
-    KALAALLISUT = "kl",
-    CENTRAL_KHMER = "km",
-    KANNADA = "kn",
-    KOREAN = "ko",
-    KANURI = "kr",
-    KASHMIRI = "ks",
-    KURDISH = "ku",
-    KOMI = "kv",
-    CORNISH = "kw",
-    KIRGHIZ = "ky",
-    LUXEMBOURGISH = "lb",
-    GANDA = "lg",
-    LIMBURGAN = "li",
-    LINGALA = "ln",
-    LAO = "lo",
-    LITHUANIAN = "lt",
-    LUBA_KATANGA = "lu",
-    LATVIAN = "lv",
-    MALAGASY = "mg",
-    MARSHALLESE = "mh",
-    MAORI = "mi",
-    MACEDONIAN = "mk",
-    MALAYALAM = "ml",
-    MONGOLIAN = "mn",
-    MARATHI = "mr",
-    MALAY = "ms",
-    MALTESE = "mt",
-    BURMESE = "my",
-    NAURU = "na",
-    NORWEGIAN = "no",
-    NORTH_NDEBELE = "nd",
-    NEPALI = "ne",
-    NDONGA = "ng",
-    DUTCH = "nl",
-    SOUTH_NDEBELE = "nr",
-    NAVAJO = "nv",
-    CHICHEWA = "ny",
-    OCCITAN = "oc",
-    OJIBWA = "oj",
-    OROMO = "om",
-    ORIYA = "or",
-    OSSETIC = "os",
-    PANJABI = "pa",
-    PALI = "pi",
-    POLISH = "pl",
-    PUSHTO = "ps",
-    PORTUGUESE = "pt",
-    QUECHUA = "qu",
-    ROMANSH = "rm",
-    RUNDI = "rn",
-    ROMANIAN = "ro",
-    RUSSIAN = "ru",
-    KINYARWANDA = "rw",
-    SANSKRIT = "sa",
-    SARDINIAN = "sc",
-    SINDHI = "sd",
-    NORTHERN_SAMI = "se",
-    SANGO = "sg",
-    SINHALA = "si",
-    SLOVAK = "sk",
-    SLOVENIAN = "sl",
-    SAMOAN = "sm",
-    SHONA = "sn",
-    SOMALI = "so",
-    ALBANIAN = "sq",
-    SERBIAN = "sr",
-    SWATI = "ss",
-    SOTHO_SOUTHERN = "st",
-    SUNDANESE = "su",
-    SWEDISH = "sv",
-    SWAHILI = "sw",
-    TAMIL = "ta",
-    TELUGU = "te",
-    TAJIK = "tg",
-    THAI = "th",
-    TIGRINYA = "ti",
-    TURKMEN = "tk",
-    TAGALOG = "tl",
-    TSWANA = "tn",
-    TONGA = "to",
-    TURKISH = "tr",
-    TSONGA = "ts",
-    TATAR = "tt",
-    TWI = "tw",
-    TAHITIAN = "ty",
-    UIGHUR = "ug",
-    UKRAINIAN = "uk",
-    URDU = "ur",
-    UZBEK = "uz",
-    VENDA = "ve",
-    VIETNAMESE = "vi",
-    VOLAPUK = "vo",
-    WALLOON = "wa",
-    WOLOF = "wo",
-    XHOSA = "xh",
-    YIDDISH = "yi",
-    YORUBA = "yo",
-    ZHUANG = "za",
-    CHINESE = "zh",
-    ZULU = "zu"
-}
 
 declare enum units {
     METRIC = 0,
