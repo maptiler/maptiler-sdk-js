@@ -4,7 +4,8 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 import globals from "rollup-plugin-node-globals";
 import commonjs from "@rollup/plugin-commonjs";
 import copy from "rollup-plugin-copy";
-import pkg from "./package.json";
+
+const outputName = "maptiler"
 
 const copyCssPlugin = copy({
   targets: [
@@ -22,7 +23,7 @@ const bundles = [
     plugins: [copyCssPlugin, esbuild()],
     output: [
       {
-        file: `dist/${pkg.name}.mjs`,
+        file: `dist/${outputName}.mjs`,
         format: "es",
         sourcemap: true,
       },
@@ -48,7 +49,7 @@ const bundles = [
   //   ],
   //   output: [
   //     {
-  //       file: `dist/${pkg.name}.cjs`,
+  //       file: `dist/${outputName}.cjs`,
   //       format: "cjs",
   //       sourcemap: true
   //     }
@@ -71,8 +72,8 @@ const bundles = [
     ],
     output: [
       {
-        name: pkg.name,
-        file: `dist/${pkg.name}.umd.js`,
+        name: outputName,
+        file: `dist/${outputName}.umd.js`,
         format: "umd",
         sourcemap: true,
       },
@@ -87,7 +88,7 @@ const bundles = [
   {
     plugins: [dts()],
     output: {
-      file: `dist/${pkg.name}.d.ts`,
+      file: `dist/${outputName}.d.ts`,
       format: "es",
     },
     input: "src/index.ts",
@@ -107,7 +108,7 @@ if (process.env.NODE_ENV === "production") {
       ],
       output: [
         {
-          file: `dist/${pkg.name}.min.mjs`,
+          file: `dist/${outputName}.min.mjs`,
           format: "es",
         },
       ],

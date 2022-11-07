@@ -246,7 +246,7 @@ function centered(
     endpoint.searchParams.set("path", pathStr);
   }
 
-  endpoint.searchParams.set("key", config.apiToken);
+  endpoint.searchParams.set("key", config.apiKey);
 
   return endpoint.toString();
 }
@@ -333,7 +333,7 @@ function bounded(boundingBox: Bbox, options: BoundedStaticMapOptions = {}) {
     endpoint.searchParams.set("path", pathStr);
   }
 
-  endpoint.searchParams.set("key", config.apiToken);
+  endpoint.searchParams.set("key", config.apiKey);
 
   return endpoint.toString();
 }
@@ -423,7 +423,7 @@ function automatic(options: AutomaticStaticMapOptions = {}) {
     endpoint.searchParams.set("path", pathStr);
   }
 
-  endpoint.searchParams.set("key", config.apiToken);
+  endpoint.searchParams.set("key", config.apiKey);
 
   return endpoint.toString();
 }

@@ -36,7 +36,7 @@ async function search(query: string, options: CoordinatesSearchOptions = {}) {
     `coordinates/search/${query}.json`,
     defaults.maptilerApiURL
   );
-  endpoint.searchParams.set("key", config.apiToken);
+  endpoint.searchParams.set("key", config.apiKey);
 
   if ("limit" in options) {
     endpoint.searchParams.set("limit", options.limit.toString());
@@ -105,7 +105,7 @@ async function transform(
     `coordinates/transform/${coordinatesStr}.json`,
     defaults.maptilerApiURL
   );
-  endpoint.searchParams.set("key", config.apiToken);
+  endpoint.searchParams.set("key", config.apiKey);
 
   if ("sourceCrs" in options) {
     endpoint.searchParams.set("s_srs", options.sourceCrs.toString());

@@ -7,7 +7,7 @@ export interface Config {
   /**
    * Maptiler API token (sometimes calles "API key"). Default: empty.
    */
-  apiToken: string;
+  apiKey: string;
   /**
    * If `true`, some more debuf text will show. Default: `false`
    */
@@ -26,7 +26,7 @@ export interface Config {
 }
 
 const config: Config = {
-  apiToken: "Not defined yet.",
+  apiKey: "Not defined yet.",
   verbose: false,
   primaryLanguage: null,
   secondaryLanguage: null,

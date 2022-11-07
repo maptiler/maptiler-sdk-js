@@ -1,7 +1,7 @@
 {
-  "name": "maptiler",
+  "name": "@maptiler/sdk",
   "version": "1.0.0",
-  "description": "",
+  "description": "The frontend map SDK tailored for MapTiler Cloud",
   "module": "dist/maptiler.mjs",
   "types": "dist/maptiler.d.ts",
   "type": "module",

@@ -13,7 +13,7 @@ const customMessages = {
  */
 async function info() {
   const endpoint = new URL(`geolocation/ip.json`, defaults.maptilerApiURL);
-  endpoint.searchParams.set("key", config.apiToken);
+  endpoint.searchParams.set("key", config.apiKey);
   const urlWithParams = endpoint.toString();
 
   const res = await fetch(urlWithParams);

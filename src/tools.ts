@@ -39,7 +39,7 @@ export function expandMapStyle(style): string {
 
   // appending the token if necessary
   if (!expandedStyle.includes("key=")) {
-    expandedStyle = `${expandedStyle}?key=${config.apiToken}`;
+    expandedStyle = `${expandedStyle}?key=${config.apiKey}`;
   }
 
   return expandedStyle;

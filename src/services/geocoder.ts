@@ -39,7 +39,7 @@ async function forward(query, options: GeocoderOptions = {}) {
     `geocoding/${encodeURIComponent(query)}.json`,
     defaults.maptilerApiURL
   );
-  endpoint.searchParams.set("key", config.apiToken);
+  endpoint.searchParams.set("key", config.apiKey);
 
   if ("bbox" in options) {
     endpoint.searchParams.set(
@@ -94,7 +94,7 @@ async function reverse(lngLat: LngLat, options: GeocoderOptions = {}) {
     `geocoding/${lngLat.lng},${lngLat.lat}.json`,
     defaults.maptilerApiURL
   );
-  endpoint.searchParams.set("key", config.apiToken);
+  endpoint.searchParams.set("key", config.apiKey);
 
   if ("bbox" in options) {
     endpoint.searchParams.set(

@@ -17,7 +17,7 @@ async function get(dataId: string) {
     `data/${encodeURIComponent(dataId)}/features.json`,
     defaults.maptilerApiURL
   );
-  endpoint.searchParams.set("key", config.apiToken);
+  endpoint.searchParams.set("key", config.apiKey);
   const urlWithParams = endpoint.toString();
 
   const res = await fetch(urlWithParams);

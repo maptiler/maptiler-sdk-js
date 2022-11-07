@@ -2,7 +2,7 @@ import * as maplibre from 'maplibre-gl';
 export * from 'maplibre-gl';
 
 const config = {
-  apiToken: "Not defined yet.",
+  apiKey: "Not defined yet.",
   verbose: false,
   primaryLanguage: null,
   secondaryLanguage: null
@@ -266,7 +266,7 @@ function expandMapStyle(style) {
   }
   let expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
   if (!expandedStyle.includes("key=")) {
-    expandedStyle = `${expandedStyle}?key=${config.apiToken}`;
+    expandedStyle = `${expandedStyle}?key=${config.apiKey}`;
   }
   return expandedStyle;
 }
@@ -538,7 +538,7 @@ function forward(_0) {
       `geocoding/${encodeURIComponent(query)}.json`,
       defaults.maptilerApiURL
     );
-    endpoint.searchParams.set("key", config.apiToken);
+    endpoint.searchParams.set("key", config.apiKey);
     if ("bbox" in options) {
       endpoint.searchParams.set(
         "bbox",
@@ -578,7 +578,7 @@ function reverse(_0) {
       `geocoding/${lngLat.lng},${lngLat.lat}.json`,
       defaults.maptilerApiURL
     );
-    endpoint.searchParams.set("key", config.apiToken);
+    endpoint.searchParams.set("key", config.apiKey);
     if ("bbox" in options) {
       endpoint.searchParams.set(
         "bbox",
@@ -643,7 +643,7 @@ const customMessages$2 = {
 function info() {
   return __async$2(this, null, function* () {
     const endpoint = new URL(`geolocation/ip.json`, defaults.maptilerApiURL);
-    endpoint.searchParams.set("key", config.apiToken);
+    endpoint.searchParams.set("key", config.apiKey);
     const urlWithParams = endpoint.toString();
     const res = yield fetch(urlWithParams);
     if (!res.ok) {
@@ -689,7 +689,7 @@ function search(_0) {
       `coordinates/search/${query}.json`,
       defaults.maptilerApiURL
     );
-    endpoint.searchParams.set("key", config.apiToken);
+    endpoint.searchParams.set("key", config.apiKey);
     if ("limit" in options) {
       endpoint.searchParams.set("limit", options.limit.toString());
     }
@@ -721,7 +721,7 @@ function transform(_0) {
       `coordinates/transform/${coordinatesStr}.json`,
       defaults.maptilerApiURL
     );
-    endpoint.searchParams.set("key", config.apiToken);
+    endpoint.searchParams.set("key", config.apiKey);
     if ("sourceCrs" in options) {
       endpoint.searchParams.set("s_srs", options.sourceCrs.toString());
     }
@@ -780,7 +780,7 @@ function get(dataId) {
       `data/${encodeURIComponent(dataId)}/features.json`,
       defaults.maptilerApiURL
     );
-    endpoint.searchParams.set("key", config.apiToken);
+    endpoint.searchParams.set("key", config.apiKey);
     const urlWithParams = endpoint.toString();
     const res = yield fetch(urlWithParams);
     if (!res.ok) {
@@ -913,7 +913,7 @@ function centered(center, zoom, options = {}) {
     pathStr += simplifyAndStringify(options.path);
     endpoint.searchParams.set("path", pathStr);
   }
-  endpoint.searchParams.set("key", config.apiToken);
+  endpoint.searchParams.set("key", config.apiKey);
   return endpoint.toString();
 }
 function bounded(boundingBox, options = {}) {
@@ -966,7 +966,7 @@ function bounded(boundingBox, options = {}) {
     pathStr += simplifyAndStringify(options.path);
     endpoint.searchParams.set("path", pathStr);
   }
-  endpoint.searchParams.set("key", config.apiToken);
+  endpoint.searchParams.set("key", config.apiKey);
   return endpoint.toString();
 }
 function automatic(options = {}) {
@@ -1026,7 +1026,7 @@ function automatic(options = {}) {
     pathStr += simplifyAndStringify(options.path);
     endpoint.searchParams.set("path", pathStr);
   }
-  endpoint.searchParams.set("key", config.apiToken);
+  endpoint.searchParams.set("key", config.apiKey);
   return endpoint.toString();
 }
 const staticMaps = {
