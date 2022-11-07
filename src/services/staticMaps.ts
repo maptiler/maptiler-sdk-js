@@ -3,7 +3,6 @@ import { defaults } from "../defaults";
 import { Bbox, LngLatArray, LngLat } from "../generalTypes";
 import simplify from "../simplify";
 
-
 type StaticMapBaseOptions = {
   /**
    * Style of the map (not full style URL). Example: "winter", "streets-v2".
@@ -119,7 +118,7 @@ export type BoundedStaticMapOptions = StaticMapBaseOptions & {
    * Default: `0.1` (for 10%)
    */
   padding?: number;
-}
+};
 
 export type AutomaticStaticMapOptions = BoundedStaticMapOptions;
 
@@ -138,11 +137,7 @@ export type StaticMapMarker = {
   color?: string;
 };
 
-
-function staticMapMarkerToString(
-  marker: StaticMapMarker,
-  includeColor = true
-) {
+function staticMapMarkerToString(marker: StaticMapMarker, includeColor = true) {
   let str = `${marker.lng},${marker.lat}`;
 
   if (marker.color && includeColor) {
@@ -265,10 +260,7 @@ function centered(
  * @param options
  * @returns
  */
-function bounded(
-  boundingBox: Bbox,
-  options: BoundedStaticMapOptions = {}
-) {
+function bounded(boundingBox: Bbox, options: BoundedStaticMapOptions = {}) {
   const style = options.style ?? defaults.mapStyle;
   const scale = options.hiDPI ? "@2x" : "";
   const format = options.format ?? "png";
@@ -436,7 +428,6 @@ function automatic(options: AutomaticStaticMapOptions = {}) {
   return endpoint.toString();
 }
 
-
 /**
  * The **staticMaps** namespace contains an synchronous function build image URL of static map, as specified by the [MapTiler Static Map API](https://docs.maptiler.com/cloud/api/static-maps/).
  * The URL of static maps can then be used within a `<img />` markup element, as the `src` property value.
@@ -446,6 +437,5 @@ const staticMaps = {
   bounded,
   automatic,
 };
-
 
 export { staticMaps };

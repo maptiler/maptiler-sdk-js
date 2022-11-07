@@ -3,8 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Map | MapTiler SDK</title>
-	<meta name="description" content="Documentation for MapTiler SDK">
+	<title>Map | MapTiler SDK &lt;img src&#x3D;&#x27;images/maptiler-logo.svg&#x27;/&gt;</title>
+	<meta name="description" content="Documentation for MapTiler SDK &lt;img src&#x3D;&#x27;images/maptiler-logo.svg&#x27;/&gt;">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">:root {
   --color-background: #fdfdfd;
@@ -514,7 +514,7 @@ ul.tsd-descriptions > li > :last-child > :last-child > :last-child,
 }
 
 .container {
-  max-width: 1200px;
+  /*max-width: 1200px;*/
   margin: 0 auto;
   padding: 0 40px;
 }
@@ -2169,8 +2169,8 @@ footer .tsd-legend {
   transition: 0.3s;
 }
 .tsd-navigation.secondary.tsd-navigation--toolbar-hide {
-  max-height: calc(100vh - 1rem);
-  top: 0.5rem;
+  /*max-height: calc(100vh - 1rem);
+  top: 0.5rem;*/
 }
 .tsd-navigation.secondary ul {
   transition: opacity 0.2s;
@@ -2219,7 +2219,7 @@ footer .tsd-legend {
   margin: 20px 0;
   padding: 20px;
   background-color: var(--color-panel);
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 22px rgb(0 0 0 / 11%);
 }
 .tsd-panel:empty {
   display: none;
@@ -2532,8 +2532,9 @@ ul.tsd-type-parameters .tsd-comment {
   width: 100%;
 }
 
+
 .tsd-page-toolbar--hide {
-  transform: translateY(-100%);
+  /*transform: translateY(-100%);*/
 }
 
 .tsd-select .tsd-select-list li:before, .tsd-select .tsd-select-label:before, .tsd-widget:before {
@@ -2674,7 +2675,12 @@ img {
 		<div class="container">
 			<div class="table-wrap">
 				<div class="table-cell">
-					<strong><a href="../index.html">MapTiler SDK</a></strong>
+					<a class="header-logo" href="../index.html">
+						<img
+						src="/assets/images/maptiler-sdk-logo.svg"
+						style="height: 80%; position: absolute; top: 10%; left: 0;"
+						></img>
+					</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -3088,9 +3094,6 @@ img {
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
 					<a href="map.html#getfilter" class="tsd-kind-icon">get<wbr>Filter</a>
 				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-class">
-					<a href="map.html#getlanguages" class="tsd-kind-icon">get<wbr>Languages</a>
-				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
 					<a href="map.html#getlayer" class="tsd-kind-icon">get<wbr>Layer</a>
 				</li>
@@ -3343,7 +3346,7 @@ img {
 		<section class="tsd-panel tsd-comment">
 			<div class="tsd-comment tsd-typography">
 				<div class="lead">
-					<p>The Map</p>
+					<p>The Map class can be instanciated to display a map in a <code>&lt;div&gt;</code></p>
 				</div>
 			</div>
 		</section>
@@ -3509,7 +3512,6 @@ img {
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#getcontainer" class="tsd-kind-icon">get<wbr>Container</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#getfeaturestate" class="tsd-kind-icon">get<wbr>Feature<wbr>State</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#getfilter" class="tsd-kind-icon">get<wbr>Filter</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class"><a href="map.html#getlanguages" class="tsd-kind-icon">get<wbr>Languages</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#getlayer" class="tsd-kind-icon">get<wbr>Layer</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#getlayoutproperty" class="tsd-kind-icon">get<wbr>Layout<wbr>Property</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#getlight" class="tsd-kind-icon">get<wbr>Light</a></li>
@@ -3609,7 +3611,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides maplibre.Map.constructor</p>
 							<ul>
-								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/Map.ts#L26">src/Map.ts:26</a></li>
+								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/Map.ts#L41">src/Map.ts:41</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -6316,7 +6318,7 @@ img {
 				<a name="_normalizecenter" class="tsd-anchor"></a>
 				<h3>_normalize<wbr>Center</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">_normalize<wbr>Center<span class="tsd-signature-symbol">(</span>center<span class="tsd-signature-symbol">: </span><a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					<li class="tsd-signature tsd-kind-icon">_normalize<wbr>Center<span class="tsd-signature-symbol">(</span>center<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">LngLat</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
@@ -6329,7 +6331,7 @@ img {
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>center: <a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a></h5>
+								<h5>center: <span class="tsd-signature-type">LngLat</span></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -7003,7 +7005,7 @@ img {
 				<a name="calculatecameraoptionsfromto" class="tsd-anchor"></a>
 				<h3>calculate<wbr>Camera<wbr>Options<wbr>From<wbr>To</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">calculate<wbr>Camera<wbr>Options<wbr>From<wbr>To<span class="tsd-signature-symbol">(</span>from<span class="tsd-signature-symbol">: </span><a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a>, altitudeFrom<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, to<span class="tsd-signature-symbol">: </span><a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a>, altitudeTo<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules.html#cameraoptions" class="tsd-signature-type" data-tsd-kind="Type alias">CameraOptions</a></li>
+					<li class="tsd-signature tsd-kind-icon">calculate<wbr>Camera<wbr>Options<wbr>From<wbr>To<span class="tsd-signature-symbol">(</span>from<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">LngLat</span>, altitudeFrom<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, to<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">LngLat</span>, altitudeTo<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules.html#cameraoptions" class="tsd-signature-type" data-tsd-kind="Type alias">CameraOptions</a></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
@@ -7016,13 +7018,13 @@ img {
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>from: <a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a></h5>
+								<h5>from: <span class="tsd-signature-type">LngLat</span></h5>
 							</li>
 							<li>
 								<h5>altitudeFrom: <span class="tsd-signature-type">number</span></h5>
 							</li>
 							<li>
-								<h5>to: <a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a></h5>
+								<h5>to: <span class="tsd-signature-type">LngLat</span></h5>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> altitudeTo: <span class="tsd-signature-type">number</span></h5>
@@ -7572,7 +7574,7 @@ img {
 				<a name="getcenter" class="tsd-anchor"></a>
 				<h3>get<wbr>Center</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Center<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a></li>
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Center<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">LngLat</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
@@ -7598,7 +7600,7 @@ img {
 								</dd>
 							</dl>
 						</div>
-						<h4 class="tsd-returns-title">Returns <a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">LngLat</span></h4>
 						<p>The map&#39;s geographical centerpoint.</p>
 					</li>
 				</ul>
@@ -7709,23 +7711,6 @@ img {
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol"> | </span><a href="../modules.html#filterspecification" class="tsd-signature-type" data-tsd-kind="Type alias">FilterSpecification</a></h4>
 						<p>The layer&#39;s filter.</p>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-				<a name="getlanguages" class="tsd-anchor"></a>
-				<h3>get<wbr>Languages</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Languages<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/Map.ts#L384">src/Map.ts:384</a></li>
-							</ul>
-						</aside>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -11068,19 +11053,26 @@ img {
 				<a name="setprimarylanguage" class="tsd-anchor"></a>
 				<h3>set<wbr>Primary<wbr>Language</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">set<wbr>Primary<wbr>Language<span class="tsd-signature-symbol">(</span>language<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					<li class="tsd-signature tsd-kind-icon">set<wbr>Primary<wbr>Language<span class="tsd-signature-symbol">(</span>language<span class="tsd-signature-symbol">?: </span><a href="../enums/languages.html" class="tsd-signature-type" data-tsd-kind="Enumeration">languages</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/Map.ts#L114">src/Map.ts:114</a></li>
+								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/Map.ts#L149">src/Map.ts:149</a></li>
 							</ul>
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Define the primary language of the map. Note that not all the languages shorthands provided are available.</p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>language: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = ...</span></h5>
+								<h5>language: <a href="../enums/languages.html" class="tsd-signature-type" data-tsd-kind="Enumeration">languages</a><span class="tsd-signature-symbol"> = ...</span></h5>
+								<div class="tsd-comment tsd-typography">
+								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -11139,19 +11131,27 @@ img {
 				<a name="setsecondarylanguage" class="tsd-anchor"></a>
 				<h3>set<wbr>Secondary<wbr>Language</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">set<wbr>Secondary<wbr>Language<span class="tsd-signature-symbol">(</span>language<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					<li class="tsd-signature tsd-kind-icon">set<wbr>Secondary<wbr>Language<span class="tsd-signature-symbol">(</span>language<span class="tsd-signature-symbol">?: </span><a href="../enums/languages.html" class="tsd-signature-type" data-tsd-kind="Enumeration">languages</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/Map.ts#L264">src/Map.ts:264</a></li>
+								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/Map.ts#L304">src/Map.ts:304</a></li>
 							</ul>
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Define the secondary language of the map.
+								Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)</p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>language: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = ...</span></h5>
+								<h5>language: <a href="../enums/languages.html" class="tsd-signature-type" data-tsd-kind="Enumeration">languages</a><span class="tsd-signature-symbol"> = ...</span></h5>
+								<div class="tsd-comment tsd-typography">
+								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -11169,9 +11169,20 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides maplibre.Map.setStyle</p>
 							<ul>
-								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/Map.ts#L102">src/Map.ts:102</a></li>
+								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/Map.ts#L128">src/Map.ts:128</a></li>
 							</ul>
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Update the style of the map.
+								Can be:</p>
+								<ul>
+									<li>a full style URL (possibly with API key)</li>
+									<li>a shorthand with only the MapTIler style name (eg. <code>&quot;streets-v2&quot;</code>)</li>
+									<li>a longer form with the prefix <code>&quot;maptiler://&quot;</code> (eg. <code>&quot;maptiler://streets-v2&quot;</code>)</li>
+								</ul>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
@@ -11329,19 +11340,27 @@ img {
 				<a name="setlanguage" class="tsd-anchor"></a>
 				<h3>setlanguage</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">setlanguage<span class="tsd-signature-symbol">(</span>language<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					<li class="tsd-signature tsd-kind-icon">setlanguage<span class="tsd-signature-symbol">(</span>language<span class="tsd-signature-symbol">?: </span><a href="../enums/languages.html" class="tsd-signature-type" data-tsd-kind="Enumeration">languages</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/Map.ts#L110">src/Map.ts:110</a></li>
+								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/Map.ts#L141">src/Map.ts:141</a></li>
 							</ul>
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Define the primary language of the map. Note that not all the languages shorthands provided are available.
+								This function is a short for <code>.setPrimaryLanguage()</code></p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>language: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = ...</span></h5>
+								<h5>language: <a href="../enums/languages.html" class="tsd-signature-type" data-tsd-kind="Enumeration">languages</a><span class="tsd-signature-symbol"> = ...</span></h5>
+								<div class="tsd-comment tsd-typography">
+								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -11468,7 +11487,7 @@ img {
 				<a name="unproject" class="tsd-anchor"></a>
 				<h3>unproject</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">unproject<span class="tsd-signature-symbol">(</span>point<span class="tsd-signature-symbol">: </span><a href="../modules.html#pointlike" class="tsd-signature-type" data-tsd-kind="Type alias">PointLike</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a></li>
+					<li class="tsd-signature tsd-kind-icon">unproject<span class="tsd-signature-symbol">(</span>point<span class="tsd-signature-symbol">: </span><a href="../modules.html#pointlike" class="tsd-signature-type" data-tsd-kind="Type alias">PointLike</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">LngLat</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
@@ -11480,7 +11499,7 @@ img {
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Returns a <a href="lnglat.html">LngLat</a> representing geographical coordinates that correspond
+								<p>Returns a <a href="../modules.html#lnglat">LngLat</a> representing geographical coordinates that correspond
 								to the specified pixel coordinates.</p>
 							</div>
 							<dl class="tsd-comment-tags">
@@ -11501,8 +11520,8 @@ img {
 								</div>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a></h4>
-						<p>The <a href="lnglat.html">LngLat</a> corresponding to <code>point</code>.</p>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">LngLat</span></h4>
+						<p>The <a href="../modules.html#lnglat">LngLat</a> corresponding to <code>point</code>.</p>
 					</li>
 				</ul>
 			</section>
@@ -11780,7 +11799,7 @@ img {
 			</div>
 		</footer>
 		<div class="container tsd-generator">
-			<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+			<p>Learn more at <a href="https://www.maptiler.com/" target="_blank">maptiler.com</a></p>
 		</div>
 	</div>
 </div>

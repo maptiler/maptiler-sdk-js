@@ -3,7 +3,6 @@
  */
 export * from "maplibre-gl";
 
-
 import type { Bbox, LngLat } from "./generalTypes";
 
 import { Map } from "./Map";
@@ -40,8 +39,6 @@ export type {
   BoundedStaticMapOptions,
   AutomaticStaticMapOptions,
 };
-
-
 
 // Exporting classes, objects, functions, etc.
 export {

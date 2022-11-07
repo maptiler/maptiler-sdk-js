@@ -3,7 +3,6 @@ import { defaults } from "../defaults";
 import { LngLat } from "../generalTypes";
 import { ServiceError } from "./ServiceError";
 
-
 export type CoordinatesSearchOptions = {
   /**
    * Maximum number of results returned (default: 10)
@@ -32,10 +31,7 @@ const customMessages = {
  * @param options
  * @returns
  */
-async function search(
-  query: string,
-  options: CoordinatesSearchOptions = {}
-) {
+async function search(query: string, options: CoordinatesSearchOptions = {}) {
   const endpoint = new URL(
     `coordinates/search/${query}.json`,
     defaults.maptilerApiURL
@@ -143,15 +139,13 @@ async function transform(
   return obj;
 }
 
-
 /**
- * The **coordinate** namespace contains asynchronous functions to call the [MapTiler Coordinate API](https://docs.maptiler.com/cloud/api/coordinates/).  
+ * The **coordinate** namespace contains asynchronous functions to call the [MapTiler Coordinate API](https://docs.maptiler.com/cloud/api/coordinates/).
  * The goal of the **Coordinate API* is query information about spatial coordinate reference system (CRS) as well as to transform coordinates from one CRS to another.
  */
 const coordinates = {
   search,
   transform,
 };
-
 
 export { coordinates };

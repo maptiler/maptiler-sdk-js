@@ -1,12 +1,12 @@
 <!doctype html>
 <html class="minimal no-js">
 <head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>LngLat | MapTiler SDK</title>
-	<meta name="description" content="Documentation for MapTiler SDK">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<style type="text/css">:root {
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{{model.name}} | {{project.name}}</title>
+    <meta name="description" content="Documentation for {{project.name}}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type="text/css">:root {
   --color-background: #fdfdfd;
   --color-text: #222;
   --color-text-aside: #707070;
@@ -514,7 +514,7 @@ ul.tsd-descriptions > li > :last-child > :last-child > :last-child,
 }
 
 .container {
-  max-width: 1200px;
+  /*max-width: 1200px;*/
   margin: 0 auto;
   padding: 0 40px;
 }
@@ -2169,8 +2169,8 @@ footer .tsd-legend {
   transition: 0.3s;
 }
 .tsd-navigation.secondary.tsd-navigation--toolbar-hide {
-  max-height: calc(100vh - 1rem);
-  top: 0.5rem;
+  /*max-height: calc(100vh - 1rem);
+  top: 0.5rem;*/
 }
 .tsd-navigation.secondary ul {
   transition: opacity 0.2s;
@@ -2219,7 +2219,7 @@ footer .tsd-legend {
   margin: 20px 0;
   padding: 20px;
   background-color: var(--color-panel);
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 22px rgb(0 0 0 / 11%);
 }
 .tsd-panel:empty {
   display: none;
@@ -2532,8 +2532,9 @@ ul.tsd-type-parameters .tsd-comment {
   width: 100%;
 }
 
+
 .tsd-page-toolbar--hide {
-  transform: translateY(-100%);
+  /*transform: translateY(-100%);*/
 }
 
 .tsd-select .tsd-select-list li:before, .tsd-select .tsd-select-label:before, .tsd-widget:before {
@@ -2669,392 +2670,30 @@ img {
 </style>
 </head>
 <body>
-<header>
-	<div class="tsd-page-toolbar">
-		<div class="container">
-			<div class="table-wrap">
-				<div class="table-cell">
-					<strong><a href="../index.html">MapTiler SDK</a></strong>
-				</div>
-				<div class="table-cell" id="tsd-widgets">
-					<div id="tsd-filter">
-						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
-						<div class="tsd-filter-group">
-							<div class="tsd-select" id="tsd-filter-visibility">
-								<span class="tsd-select-label">All</span>
-								<ul class="tsd-select-list">
-									<li data-value="public">Public</li>
-									<li data-value="protected">Public/Protected</li>
-									<li data-value="private" class="selected">All</li>
-								</ul>
-							</div>
-							<input type="checkbox" id="tsd-filter-inherited" checked />
-							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
-							<input type="checkbox" id="tsd-filter-externals" checked />
-							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
-							<input type="checkbox" id="tsd-filter-only-exported" />
-							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
-						</div>
-					</div>
-					<a href="#typedoc-main-index" class="tsd-widget menu no-caption">Menu</a>
-				</div>
-			</div>
-		</div>
-	</div>
-</header>
+
+{{> header}}
+
 <nav class="tsd-navigation secondary">
-	<ul>
-		<li class="current tsd-kind-class tsd-is-external">
-			<a href="lnglat.html" class="tsd-kind-icon">Lng<wbr>Lat</a>
-			<ul>
-				<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
-					<a href="lnglat.html#constructor" class="tsd-kind-icon">constructor</a>
-				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
-					<a href="lnglat.html#lat" class="tsd-kind-icon">lat</a>
-				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
-					<a href="lnglat.html#lng" class="tsd-kind-icon">lng</a>
-				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
-					<a href="lnglat.html#distanceto" class="tsd-kind-icon">distance<wbr>To</a>
-				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
-					<a href="lnglat.html#toarray" class="tsd-kind-icon">to<wbr>Array</a>
-				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
-					<a href="lnglat.html#tobounds" class="tsd-kind-icon">to<wbr>Bounds</a>
-				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
-					<a href="lnglat.html#tostring" class="tsd-kind-icon">to<wbr>String</a>
-				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
-					<a href="lnglat.html#wrap" class="tsd-kind-icon">wrap</a>
-				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
-					<a href="lnglat.html#convert" class="tsd-kind-icon">convert</a>
-				</li>
-			</ul>
-		</li>
-	</ul>
+    <ul>
+        {{#each toc.children}}
+            {{> toc}}
+        {{/each}}
+    </ul>
 </nav>
+
 <div class="container container-main">
-	<div class="content-wrap">
-		<section class="tsd-panel tsd-hierarchy">
-			<h3>Hierarchy</h3>
-			<ul class="tsd-hierarchy">
-				<li>
-					<span class="target">LngLat</span>
-				</li>
-			</ul>
-		</section>
-		<section class="tsd-panel-group tsd-index-group">
-			<h2>Index</h2>
-			<section class="tsd-panel tsd-index-panel">
-				<div class="tsd-index-content">
-					<section class="tsd-index-section tsd-is-external">
-						<h3>Constructors</h3>
-						<ul class="tsd-index-list">
-							<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-external"><a href="lnglat.html#constructor" class="tsd-kind-icon">constructor</a></li>
-						</ul>
-					</section>
-					<section class="tsd-index-section tsd-is-external">
-						<h3>Properties</h3>
-						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="lnglat.html#lat" class="tsd-kind-icon">lat</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="lnglat.html#lng" class="tsd-kind-icon">lng</a></li>
-						</ul>
-					</section>
-					<section class="tsd-index-section tsd-is-external">
-						<h3>Methods</h3>
-						<ul class="tsd-index-list">
-							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="lnglat.html#distanceto" class="tsd-kind-icon">distance<wbr>To</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="lnglat.html#toarray" class="tsd-kind-icon">to<wbr>Array</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="lnglat.html#tobounds" class="tsd-kind-icon">to<wbr>Bounds</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="lnglat.html#tostring" class="tsd-kind-icon">to<wbr>String</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="lnglat.html#wrap" class="tsd-kind-icon">wrap</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external"><a href="lnglat.html#convert" class="tsd-kind-icon">convert</a></li>
-						</ul>
-					</section>
-				</div>
-			</section>
-		</section>
-		<section class="tsd-panel-group tsd-member-group tsd-is-external">
-			<h2>Constructors</h2>
-			<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
-				<a name="constructor" class="tsd-anchor"></a>
-				<h3>constructor</h3>
-				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">new <wbr>Lng<wbr>Lat<span class="tsd-signature-symbol">(</span>lng<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, lat<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in node_modules/maplibre-gl/dist/maplibre-gl.d.ts:1271</li>
-							</ul>
-						</aside>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>lng: <span class="tsd-signature-type">number</span></h5>
-							</li>
-							<li>
-								<h5>lat: <span class="tsd-signature-type">number</span></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a></h4>
-					</li>
-				</ul>
-			</section>
-		</section>
-		<section class="tsd-panel-group tsd-member-group tsd-is-external">
-			<h2>Properties</h2>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
-				<a name="lat" class="tsd-anchor"></a>
-				<h3>lat</h3>
-				<div class="tsd-signature tsd-kind-icon">lat<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in node_modules/maplibre-gl/dist/maplibre-gl.d.ts:1271</li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
-				<a name="lng" class="tsd-anchor"></a>
-				<h3>lng</h3>
-				<div class="tsd-signature tsd-kind-icon">lng<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in node_modules/maplibre-gl/dist/maplibre-gl.d.ts:1270</li>
-					</ul>
-				</aside>
-			</section>
-		</section>
-		<section class="tsd-panel-group tsd-member-group tsd-is-external">
-			<h2>Methods</h2>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-external">
-				<a name="distanceto" class="tsd-anchor"></a>
-				<h3>distance<wbr>To</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">distance<wbr>To<span class="tsd-signature-symbol">(</span>lngLat<span class="tsd-signature-symbol">: </span><a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in node_modules/maplibre-gl/dist/maplibre-gl.d.ts:1312</li>
-							</ul>
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Returns the approximate distance between a pair of coordinates in meters
-								Uses the Haversine Formula (from R.W. Sinnott, &quot;Virtues of the Haversine&quot;, Sky and Telescope, vol. 68, no. 2, 1984, p. 159)</p>
-							</div>
-							<dl class="tsd-comment-tags">
-								<dt>example</dt>
-								<dd><p>var new_york = new maplibregl.LngLat(-74.0060, 40.7128);
-										var los_angeles = new maplibregl.LngLat(-118.2437, 34.0522);
-									new_york.distanceTo(los_angeles); // = 3935751.690893987, &quot;true distance&quot; using a non-spherical approximation is ~3966km</p>
-								</dd>
-							</dl>
-						</div>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>lngLat: <a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>coordinates to compute the distance to</p>
-								</div>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
-						<p>Distance in meters between the two coordinates.</p>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-external">
-				<a name="toarray" class="tsd-anchor"></a>
-				<h3>to<wbr>Array</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">to<wbr>Array<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in node_modules/maplibre-gl/dist/maplibre-gl.d.ts:1291</li>
-							</ul>
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Returns the coordinates represented as an array of two numbers.</p>
-							</div>
-							<dl class="tsd-comment-tags">
-								<dt>example</dt>
-								<dd><p>var ll = new maplibregl.LngLat(-73.9749, 40.7736);
-									ll.toArray(); // = [-73.9749, 40.7736]</p>
-								</dd>
-							</dl>
-						</div>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span></h4>
-						<p>The coordinates represeted as an array of longitude and latitude.</p>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-external">
-				<a name="tobounds" class="tsd-anchor"></a>
-				<h3>to<wbr>Bounds</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">to<wbr>Bounds<span class="tsd-signature-symbol">(</span>radius<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="lnglatbounds.html" class="tsd-signature-type" data-tsd-kind="Class">LngLatBounds</a></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in node_modules/maplibre-gl/dist/maplibre-gl.d.ts:1322</li>
-							</ul>
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Returns a <code>LngLatBounds</code> from the coordinates extended by a given <code>radius</code>. The returned <code>LngLatBounds</code> completely contains the <code>radius</code>.</p>
-							</div>
-							<dl class="tsd-comment-tags">
-								<dt>example</dt>
-								<dd><p>var ll = new maplibregl.LngLat(-73.9749, 40.7736);
-									ll.toBounds(100).toArray(); // = [[-73.97501862141328, 40.77351016847229], [-73.97478137858673, 40.77368983152771]]</p>
-								</dd>
-							</dl>
-						</div>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> radius: <span class="tsd-signature-type">number</span></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <a href="lnglatbounds.html" class="tsd-signature-type" data-tsd-kind="Class">LngLatBounds</a></h4>
-						<p>A new <code>LngLatBounds</code> object representing the coordinates extended by the <code>radius</code>.</p>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-external">
-				<a name="tostring" class="tsd-anchor"></a>
-				<h3>to<wbr>String</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">to<wbr>String<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in node_modules/maplibre-gl/dist/maplibre-gl.d.ts:1300</li>
-							</ul>
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Returns the coordinates represent as a string.</p>
-							</div>
-							<dl class="tsd-comment-tags">
-								<dt>example</dt>
-								<dd><p>var ll = new maplibregl.LngLat(-73.9749, 40.7736);
-									ll.toString(); // = &quot;LngLat(-73.9749, 40.7736)&quot;</p>
-								</dd>
-							</dl>
-						</div>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
-						<p>The coordinates represented as a string of the format <code>&#39;LngLat(lng, lat)&#39;</code>.</p>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-external">
-				<a name="wrap" class="tsd-anchor"></a>
-				<h3>wrap</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">wrap<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in node_modules/maplibre-gl/dist/maplibre-gl.d.ts:1282</li>
-							</ul>
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Returns a new <code>LngLat</code> object whose longitude is wrapped to the range (-180, 180).</p>
-							</div>
-							<dl class="tsd-comment-tags">
-								<dt>example</dt>
-								<dd><p>var ll = new maplibregl.LngLat(286.0251, 40.7736);
-										var wrapped = ll.wrap();
-									wrapped.lng; // = -73.9749</p>
-								</dd>
-							</dl>
-						</div>
-						<h4 class="tsd-returns-title">Returns <a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a></h4>
-						<p>The wrapped <code>LngLat</code> object.</p>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
-				<a name="convert" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagStatic">Static</span> convert</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">convert<span class="tsd-signature-symbol">(</span>input<span class="tsd-signature-symbol">: </span><a href="../modules.html#lnglatlike" class="tsd-signature-type" data-tsd-kind="Type alias">LngLatLike</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in node_modules/maplibre-gl/dist/maplibre-gl.d.ts:1336</li>
-							</ul>
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Converts an array of two numbers or an object with <code>lng</code> and <code>lat</code> or <code>lon</code> and <code>lat</code> properties
-								to a <code>LngLat</code> object.</p>
-							</div>
-							<p>If a <code>LngLat</code> object is passed in, the function returns it unchanged.</p>
-							<dl class="tsd-comment-tags">
-								<dt>example</dt>
-								<dd><p>var arr = [-73.9749, 40.7736];
-										var ll = maplibregl.LngLat.convert(arr);
-									ll;   // = LngLat {lng: -73.9749, lat: 40.7736}</p>
-								</dd>
-							</dl>
-						</div>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>input: <a href="../modules.html#lnglatlike" class="tsd-signature-type" data-tsd-kind="Type alias">LngLatLike</a></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>An array of two numbers or object to convert, or a <code>LngLat</code> object to return.</p>
-								</div>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <a href="lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a></h4>
-						<p>A new <code>LngLat</code> object, if a conversion occurred, or the original <code>LngLat</code> object.</p>
-					</li>
-				</ul>
-			</section>
-		</section>
-		<footer class="with-border-bottom">
-			<div class="container">
-				<h2>Legend</h2>
-				<div class="tsd-legend-group">
-					<ul class="tsd-legend">
-						<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
-						<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-						<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
-					</ul>
-				</div>
-			</div>
-		</footer>
-		<div class="container tsd-generator">
-			<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
-		</div>
-	</div>
+    <div class="content-wrap">
+        {{#if model.readme}}
+                <div class="tsd-panel tsd-typography">
+                        {{#markdown}}{{{model.readme}}}{{/markdown}}
+                </div>
+        {{/if}}
+
+        {{{contents}}}
+        {{> footer}}
+    </div>
 </div>
+
 <script type="text/javascript">
 /*
  * ATTENTION: The "eval" devtool has been used (maybe by default in mode: "development").
@@ -3305,5 +2944,8 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /******/ })()
 ;
 </script>
+
+{{> analytics}}
+
 </body>
 </html>

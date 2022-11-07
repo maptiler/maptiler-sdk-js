@@ -20,7 +20,7 @@ export type StyleSwapOptions = {
  */
 export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
   /**
-   * Style of the map. Can be: 
+   * Style of the map. Can be:
    * - a full style URL (possibly with API key)
    * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
    * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
@@ -33,12 +33,11 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
   maptilerLogo?: boolean;
 };
 
-
 /**
- * The Map
+ * The Map class can be instanciated to display a map in a `<div>`
  */
 export class Map extends maplibre.Map {
-  private languageShouldUpdate = false; 
+  private languageShouldUpdate = false;
   private isStyleInitialized = false;
 
   constructor(options: MapOptions) {
@@ -61,11 +60,17 @@ export class Map extends maplibre.Map {
 
     // If the config includes language changing, we must update the map language
     this.on("styledata", () => {
-      if (config.primaryLanguage && (this.languageShouldUpdate || !this.isStyleInitialized)) {
+      if (
+        config.primaryLanguage &&
+        (this.languageShouldUpdate || !this.isStyleInitialized)
+      ) {
         this.setPrimaryLanguage(config.primaryLanguage);
       }
 
-      if (config.secondaryLanguage && (this.languageShouldUpdate || !this.isStyleInitialized)) {
+      if (
+        config.secondaryLanguage &&
+        (this.languageShouldUpdate || !this.isStyleInitialized)
+      ) {
         this.setSecondaryLanguage(config.secondaryLanguage);
       }
 
@@ -112,7 +117,7 @@ export class Map extends maplibre.Map {
 
   /**
    * Update the style of the map.
-   * Can be: 
+   * Can be:
    * - a full style URL (possibly with API key)
    * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
    * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
@@ -128,11 +133,10 @@ export class Map extends maplibre.Map {
     return super.setStyle(expandedStyle, options);
   }
 
-
   /**
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
    * This function is a short for `.setPrimaryLanguage()`
-   * @param language 
+   * @param language
    */
   setlanguage(language: languages = defaults.primaryLanguage) {
     this.setPrimaryLanguage(language);
@@ -140,7 +144,7 @@ export class Map extends maplibre.Map {
 
   /**
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
-   * @param language 
+   * @param language
    */
   setPrimaryLanguage(language: languages = defaults.primaryLanguage) {
     // We want to keep track of it to apply the language again when changing the style
@@ -295,7 +299,7 @@ export class Map extends maplibre.Map {
   /**
    * Define the secondary language of the map.
    * Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)
-   * @param language 
+   * @param language
    */
   setSecondaryLanguage(language: languages = defaults.secondaryLanguage) {
     // We want to keep track of it to apply the language again when changing the style
@@ -416,7 +420,6 @@ export class Map extends maplibre.Map {
       }
     }
   }
-
 
   // getLanguages() {
   //   const layers = this.getStyle().layers;

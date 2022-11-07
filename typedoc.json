@@ -1,11 +1,12 @@
 {
   "entryPoints": ["./src/index.ts", "node_modules/maplibre-gl/src/"],
-  "name": "MapTiler SDK",
+  "name": "MapTiler SDK <img src='images/maptiler-logo.svg'/>",
   "out": "docs",
-  "theme": "minimal",
+
   "excludePrivate": true,
   "excludeProtected": true,
   "excludeExternals": false,
   "excludeNotDocumented": false,
-  "excludeInternal": true
+  "excludeInternal": true,
+  "theme": "sdk-doc-theme"
 }

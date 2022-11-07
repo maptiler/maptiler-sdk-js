@@ -3,8 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>MapTiler SDK | MapTiler SDK</title>
-	<meta name="description" content="Documentation for MapTiler SDK">
+	<title>MapTiler SDK &lt;img src&#x3D;&#x27;images/maptiler-logo.svg&#x27;/&gt; | MapTiler SDK &lt;img src&#x3D;&#x27;images/maptiler-logo.svg&#x27;/&gt;</title>
+	<meta name="description" content="Documentation for MapTiler SDK &lt;img src&#x3D;&#x27;images/maptiler-logo.svg&#x27;/&gt;">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">:root {
   --color-background: #fdfdfd;
@@ -514,7 +514,7 @@ ul.tsd-descriptions > li > :last-child > :last-child > :last-child,
 }
 
 .container {
-  max-width: 1200px;
+  /*max-width: 1200px;*/
   margin: 0 auto;
   padding: 0 40px;
 }
@@ -2169,8 +2169,8 @@ footer .tsd-legend {
   transition: 0.3s;
 }
 .tsd-navigation.secondary.tsd-navigation--toolbar-hide {
-  max-height: calc(100vh - 1rem);
-  top: 0.5rem;
+  /*max-height: calc(100vh - 1rem);
+  top: 0.5rem;*/
 }
 .tsd-navigation.secondary ul {
   transition: opacity 0.2s;
@@ -2219,7 +2219,7 @@ footer .tsd-legend {
   margin: 20px 0;
   padding: 20px;
   background-color: var(--color-panel);
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 22px rgb(0 0 0 / 11%);
 }
 .tsd-panel:empty {
   display: none;
@@ -2532,8 +2532,9 @@ ul.tsd-type-parameters .tsd-comment {
   width: 100%;
 }
 
+
 .tsd-page-toolbar--hide {
-  transform: translateY(-100%);
+  /*transform: translateY(-100%);*/
 }
 
 .tsd-select .tsd-select-list li:before, .tsd-select .tsd-select-label:before, .tsd-widget:before {
@@ -2674,7 +2675,12 @@ img {
 		<div class="container">
 			<div class="table-wrap">
 				<div class="table-cell">
-					<strong><a href="index.html">MapTiler SDK</a></strong>
+					<a class="header-logo" href="index.html">
+						<img
+						src="/assets/images/maptiler-sdk-logo.svg"
+						style="height: 80%; position: absolute; top: 10%; left: 0;"
+						></img>
+					</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -3054,9 +3060,6 @@ img {
 		</li>
 		<li class=" tsd-kind-class tsd-is-external">
 			<a href="classes/linestylelayer.html" class="tsd-kind-icon">Line<wbr>Style<wbr>Layer</a>
-		</li>
-		<li class=" tsd-kind-class tsd-is-external">
-			<a href="classes/lnglat.html" class="tsd-kind-icon">Lng<wbr>Lat</a>
 		</li>
 		<li class=" tsd-kind-class tsd-is-external">
 			<a href="classes/lnglatbounds.html" class="tsd-kind-icon">Lng<wbr>Lat<wbr>Bounds</a>
@@ -3469,8 +3472,14 @@ img {
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="modules.html#attributionoptions" class="tsd-kind-icon">Attribution<wbr>Options</a>
 		</li>
+		<li class=" tsd-kind-type-alias">
+			<a href="modules.html#automaticstaticmapoptions" class="tsd-kind-icon">Automatic<wbr>Static<wbr>Map<wbr>Options</a>
+		</li>
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="modules.html#backgroundlayerspecification" class="tsd-kind-icon">Background<wbr>Layer<wbr>Specification</a>
+		</li>
+		<li class=" tsd-kind-type-alias">
+			<a href="modules.html#bbox" class="tsd-kind-icon">Bbox</a>
 		</li>
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="modules.html#binderuniform" class="tsd-kind-icon">Binder<wbr>Uniform</a>
@@ -3483,6 +3492,9 @@ img {
 		</li>
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="modules.html#blendfunctype" class="tsd-kind-icon">Blend<wbr>Func<wbr>Type</a>
+		</li>
+		<li class=" tsd-kind-type-alias">
+			<a href="modules.html#boundedstaticmapoptions" class="tsd-kind-icon">Bounded<wbr>Static<wbr>Map<wbr>Options</a>
 		</li>
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="modules.html#bucketfeature" class="tsd-kind-icon">Bucket<wbr>Feature</a>
@@ -3516,6 +3528,9 @@ img {
 		</li>
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="modules.html#centerzoombearing" class="tsd-kind-icon">Center<wbr>Zoom<wbr>Bearing</a>
+		</li>
+		<li class=" tsd-kind-type-alias">
+			<a href="modules.html#centeredstaticmapoptions" class="tsd-kind-icon">Centered<wbr>Static<wbr>Map<wbr>Options</a>
 		</li>
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="modules.html#circlelayerspecification" class="tsd-kind-icon">Circle<wbr>Layer<wbr>Specification</a>
@@ -3576,6 +3591,9 @@ img {
 		</li>
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="modules.html#coordinates" class="tsd-kind-icon">Coordinates</a>
+		</li>
+		<li class=" tsd-kind-type-alias">
+			<a href="modules.html#coordinatessearchoptions" class="tsd-kind-icon">Coordinates<wbr>Search<wbr>Options</a>
 		</li>
 		<li class=" tsd-kind-type-alias tsd-has-type-parameter tsd-is-external">
 			<a href="modules.html#crossfaded" class="tsd-kind-icon">Cross<wbr>Faded</a>
@@ -3715,6 +3733,9 @@ img {
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="modules.html#geojsonsourcespecification" class="tsd-kind-icon">GeoJSONSource<wbr>Specification</a>
 		</li>
+		<li class=" tsd-kind-type-alias">
+			<a href="modules.html#geocoderoptions" class="tsd-kind-icon">Geocoder<wbr>Options</a>
+		</li>
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="modules.html#geolocateoptions" class="tsd-kind-icon">Geolocate<wbr>Options</a>
 		</li>
@@ -3819,6 +3840,9 @@ img {
 		</li>
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="modules.html#listeners" class="tsd-kind-icon">Listeners</a>
+		</li>
+		<li class=" tsd-kind-type-alias">
+			<a href="modules.html#lnglat" class="tsd-kind-icon">Lng<wbr>Lat</a>
 		</li>
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="modules.html#lnglatboundslike" class="tsd-kind-icon">Lng<wbr>Lat<wbr>Bounds<wbr>Like</a>
@@ -4168,27 +4192,6 @@ img {
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="modules.html#workertileresult" class="tsd-kind-icon">Worker<wbr>Tile<wbr>Result</a>
 		</li>
-		<li class=" tsd-kind-type-alias">
-			<a href="modules.html#automaticstaticmapoptionstype" class="tsd-kind-icon">automatic<wbr>Static<wbr>Map<wbr>Options<wbr>Type</a>
-		</li>
-		<li class=" tsd-kind-type-alias">
-			<a href="modules.html#bboxtype" class="tsd-kind-icon">bbox<wbr>Type</a>
-		</li>
-		<li class=" tsd-kind-type-alias">
-			<a href="modules.html#boundedstaticmapoptionstype" class="tsd-kind-icon">bounded<wbr>Static<wbr>Map<wbr>Options<wbr>Type</a>
-		</li>
-		<li class=" tsd-kind-type-alias">
-			<a href="modules.html#centeredstaticmapoptionstype" class="tsd-kind-icon">centered<wbr>Static<wbr>Map<wbr>Options<wbr>Type</a>
-		</li>
-		<li class=" tsd-kind-type-alias">
-			<a href="modules.html#coordinatessearchoptionstype" class="tsd-kind-icon">coordinates<wbr>Search<wbr>Options<wbr>Type</a>
-		</li>
-		<li class=" tsd-kind-type-alias">
-			<a href="modules.html#geocoderoptionstype" class="tsd-kind-icon">geocoder<wbr>Options<wbr>Type</a>
-		</li>
-		<li class=" tsd-kind-type-alias">
-			<a href="modules.html#lnglattype" class="tsd-kind-icon">lng<wbr>Lat<wbr>Type</a>
-		</li>
 		<li class=" tsd-kind-variable">
 			<a href="modules.html#config" class="tsd-kind-icon">config</a>
 		</li>
@@ -4354,7 +4357,6 @@ img {
 							<li class="tsd-kind-class tsd-is-external"><a href="classes/linelayoutarray.html" class="tsd-kind-icon">Line<wbr>Layout<wbr>Array</a></li>
 							<li class="tsd-kind-class tsd-is-external"><a href="classes/linestripindexarray.html" class="tsd-kind-icon">Line<wbr>Strip<wbr>Index<wbr>Array</a></li>
 							<li class="tsd-kind-class tsd-is-external"><a href="classes/linestylelayer.html" class="tsd-kind-icon">Line<wbr>Style<wbr>Layer</a></li>
-							<li class="tsd-kind-class tsd-is-external"><a href="classes/lnglat.html" class="tsd-kind-icon">Lng<wbr>Lat</a></li>
 							<li class="tsd-kind-class tsd-is-external"><a href="classes/lnglatbounds.html" class="tsd-kind-icon">Lng<wbr>Lat<wbr>Bounds</a></li>
 							<li class="tsd-kind-class tsd-is-external"><a href="classes/logocontrol.html" class="tsd-kind-icon">Logo<wbr>Control</a></li>
 							<li class="tsd-kind-class"><a href="classes/map.html" class="tsd-kind-icon">Map</a></li>
@@ -4502,11 +4504,14 @@ img {
 							<li class="tsd-kind-type-alias tsd-has-type-parameter tsd-is-external"><a href="modules.html#_objmap" class="tsd-kind-icon">$<wbr>Obj<wbr>Map</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#animationoptions" class="tsd-kind-icon">Animation<wbr>Options</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#attributionoptions" class="tsd-kind-icon">Attribution<wbr>Options</a></li>
+							<li class="tsd-kind-type-alias"><a href="modules.html#automaticstaticmapoptions" class="tsd-kind-icon">Automatic<wbr>Static<wbr>Map<wbr>Options</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#backgroundlayerspecification" class="tsd-kind-icon">Background<wbr>Layer<wbr>Specification</a></li>
+							<li class="tsd-kind-type-alias"><a href="modules.html#bbox" class="tsd-kind-icon">Bbox</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#binderuniform" class="tsd-kind-icon">Binder<wbr>Uniform</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#blendequationtype" class="tsd-kind-icon">Blend<wbr>Equation<wbr>Type</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#blendfuncconstant" class="tsd-kind-icon">Blend<wbr>Func<wbr>Constant</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#blendfunctype" class="tsd-kind-icon">Blend<wbr>Func<wbr>Type</a></li>
+							<li class="tsd-kind-type-alias"><a href="modules.html#boundedstaticmapoptions" class="tsd-kind-icon">Bounded<wbr>Static<wbr>Map<wbr>Options</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#bucketfeature" class="tsd-kind-icon">Bucket<wbr>Feature</a></li>
 							<li class="tsd-kind-type-alias tsd-has-type-parameter tsd-is-external"><a href="modules.html#bucketparameters" class="tsd-kind-icon">Bucket<wbr>Parameters</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#bucketpart" class="tsd-kind-icon">Bucket<wbr>Part</a></li>
@@ -4518,6 +4523,7 @@ img {
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#cancelable" class="tsd-kind-icon">Cancelable</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#canvassourcespecification" class="tsd-kind-icon">Canvas<wbr>Source<wbr>Specification</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#centerzoombearing" class="tsd-kind-icon">Center<wbr>Zoom<wbr>Bearing</a></li>
+							<li class="tsd-kind-type-alias"><a href="modules.html#centeredstaticmapoptions" class="tsd-kind-icon">Centered<wbr>Static<wbr>Map<wbr>Options</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#circlelayerspecification" class="tsd-kind-icon">Circle<wbr>Layer<wbr>Specification</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#circlelayoutprops" class="tsd-kind-icon">Circle<wbr>Layout<wbr>Props</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#circlelayoutpropspossiblyevaluated" class="tsd-kind-icon">Circle<wbr>Layout<wbr>Props<wbr>Possibly<wbr>Evaluated</a></li>
@@ -4538,6 +4544,7 @@ img {
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#constantexpression" class="tsd-kind-icon">Constant<wbr>Expression</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#controlposition" class="tsd-kind-icon">Control<wbr>Position</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#coordinates" class="tsd-kind-icon">Coordinates</a></li>
+							<li class="tsd-kind-type-alias"><a href="modules.html#coordinatessearchoptions" class="tsd-kind-icon">Coordinates<wbr>Search<wbr>Options</a></li>
 							<li class="tsd-kind-type-alias tsd-has-type-parameter tsd-is-external"><a href="modules.html#crossfaded" class="tsd-kind-icon">Cross<wbr>Faded</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#crosstileid" class="tsd-kind-icon">Cross<wbr>TileID</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#crossfadeparameters" class="tsd-kind-icon">Crossfade<wbr>Parameters</a></li>
@@ -4584,6 +4591,7 @@ img {
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#fullscreenoptions" class="tsd-kind-icon">Fullscreen<wbr>Options</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#geojsonsourceoptions" class="tsd-kind-icon">GeoJSONSource<wbr>Options</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#geojsonsourcespecification" class="tsd-kind-icon">GeoJSONSource<wbr>Specification</a></li>
+							<li class="tsd-kind-type-alias"><a href="modules.html#geocoderoptions" class="tsd-kind-icon">Geocoder<wbr>Options</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#geolocateoptions" class="tsd-kind-icon">Geolocate<wbr>Options</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#gestureoptions" class="tsd-kind-icon">Gesture<wbr>Options</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#getimagecallback" class="tsd-kind-icon">Get<wbr>Image<wbr>Callback</a></li>
@@ -4619,6 +4627,7 @@ img {
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#linepaintpropspossiblyevaluated" class="tsd-kind-icon">Line<wbr>Paint<wbr>Props<wbr>Possibly<wbr>Evaluated</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#listener" class="tsd-kind-icon">Listener</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#listeners" class="tsd-kind-icon">Listeners</a></li>
+							<li class="tsd-kind-type-alias"><a href="modules.html#lnglat" class="tsd-kind-icon">Lng<wbr>Lat</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#lnglatboundslike" class="tsd-kind-icon">Lng<wbr>Lat<wbr>Bounds<wbr>Like</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#lnglatlike" class="tsd-kind-icon">Lng<wbr>Lat<wbr>Like</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#logooptions" class="tsd-kind-icon">Logo<wbr>Options</a></li>
@@ -4735,13 +4744,6 @@ img {
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#viewtype" class="tsd-kind-icon">View<wbr>Type</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#viewporttype" class="tsd-kind-icon">Viewport<wbr>Type</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#workertileresult" class="tsd-kind-icon">Worker<wbr>Tile<wbr>Result</a></li>
-							<li class="tsd-kind-type-alias"><a href="modules.html#automaticstaticmapoptionstype" class="tsd-kind-icon">automatic<wbr>Static<wbr>Map<wbr>Options<wbr>Type</a></li>
-							<li class="tsd-kind-type-alias"><a href="modules.html#bboxtype" class="tsd-kind-icon">bbox<wbr>Type</a></li>
-							<li class="tsd-kind-type-alias"><a href="modules.html#boundedstaticmapoptionstype" class="tsd-kind-icon">bounded<wbr>Static<wbr>Map<wbr>Options<wbr>Type</a></li>
-							<li class="tsd-kind-type-alias"><a href="modules.html#centeredstaticmapoptionstype" class="tsd-kind-icon">centered<wbr>Static<wbr>Map<wbr>Options<wbr>Type</a></li>
-							<li class="tsd-kind-type-alias"><a href="modules.html#coordinatessearchoptionstype" class="tsd-kind-icon">coordinates<wbr>Search<wbr>Options<wbr>Type</a></li>
-							<li class="tsd-kind-type-alias"><a href="modules.html#geocoderoptionstype" class="tsd-kind-icon">geocoder<wbr>Options<wbr>Type</a></li>
-							<li class="tsd-kind-type-alias"><a href="modules.html#lnglattype" class="tsd-kind-icon">lng<wbr>Lat<wbr>Type</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
@@ -4874,6 +4876,16 @@ img {
 					</ul>
 				</div>
 			</section>
+			<section class="tsd-panel tsd-member tsd-kind-type-alias">
+				<a name="automaticstaticmapoptions" class="tsd-anchor"></a>
+				<h3>Automatic<wbr>Static<wbr>Map<wbr>Options</h3>
+				<div class="tsd-signature tsd-kind-icon">Automatic<wbr>Static<wbr>Map<wbr>Options<span class="tsd-signature-symbol">:</span> <a href="modules.html#boundedstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">BoundedStaticMapOptions</a></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/services/staticMaps.ts#L123">src/services/staticMaps.ts:123</a></li>
+					</ul>
+				</aside>
+			</section>
 			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
 				<a name="backgroundlayerspecification" class="tsd-anchor"></a>
 				<h3>Background<wbr>Layer<wbr>Specification</h3>
@@ -4922,6 +4934,42 @@ img {
 						</li>
 						<li class="tsd-parameter">
 							<h5>type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;background&quot;</span></h5>
+						</li>
+					</ul>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-type-alias">
+				<a name="bbox" class="tsd-anchor"></a>
+				<h3>Bbox</h3>
+				<div class="tsd-signature tsd-kind-icon">Bbox<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>northEast<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol">; </span>southWest<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol"> }</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/generalTypes.ts#L23">src/generalTypes.ts:23</a></li>
+					</ul>
+				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Bounding box (lng/lat axis aligned)</p>
+					</div>
+				</div>
+				<div class="tsd-type-declaration">
+					<h4>Type declaration</h4>
+					<ul class="tsd-parameters">
+						<li class="tsd-parameter">
+							<h5>north<wbr>East<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a></h5>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>North-east corner WGS84 coordinates</p>
+								</div>
+							</div>
+						</li>
+						<li class="tsd-parameter">
+							<h5>south<wbr>West<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a></h5>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>South-west corner WGS84 coordinates</p>
+								</div>
+							</div>
 						</li>
 					</ul>
 				</div>
@@ -4977,6 +5025,16 @@ img {
 				<aside class="tsd-sources">
 					<ul>
 						<li>Defined in node_modules/maplibre-gl/dist/maplibre-gl.d.ts:2258</li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-type-alias">
+				<a name="boundedstaticmapoptions" class="tsd-anchor"></a>
+				<h3>Bounded<wbr>Static<wbr>Map<wbr>Options</h3>
+				<div class="tsd-signature tsd-kind-icon">Bounded<wbr>Static<wbr>Map<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">StaticMapBaseOptions</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>padding<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/services/staticMaps.ts#L115">src/services/staticMaps.ts:115</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -5401,6 +5459,16 @@ img {
 						</li>
 					</ul>
 				</div>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-type-alias">
+				<a name="centeredstaticmapoptions" class="tsd-anchor"></a>
+				<h3>Centered<wbr>Static<wbr>Map<wbr>Options</h3>
+				<div class="tsd-signature tsd-kind-icon">Centered<wbr>Static<wbr>Map<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">StaticMapBaseOptions</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/services/staticMaps.ts#L113">src/services/staticMaps.ts:113</a></li>
+					</ul>
+				</aside>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
 				<a name="circlelayerspecification" class="tsd-anchor"></a>
@@ -5999,6 +6067,45 @@ img {
 						<li>Defined in node_modules/maplibre-gl/dist/maplibre-gl.d.ts:4837</li>
 					</ul>
 				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-type-alias">
+				<a name="coordinatessearchoptions" class="tsd-anchor"></a>
+				<h3>Coordinates<wbr>Search<wbr>Options</h3>
+				<div class="tsd-signature tsd-kind-icon">Coordinates<wbr>Search<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>exports<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>limit<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>transformations<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> }</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/services/coordinates.ts#L6">src/services/coordinates.ts:6</a></li>
+					</ul>
+				</aside>
+				<div class="tsd-type-declaration">
+					<h4>Type declaration</h4>
+					<ul class="tsd-parameters">
+						<li class="tsd-parameter">
+							<h5><span class="tsd-flag ts-flagOptional">Optional</span> exports<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Show exports in WKT and Proj4 notations (default: false)</p>
+								</div>
+							</div>
+						</li>
+						<li class="tsd-parameter">
+							<h5><span class="tsd-flag ts-flagOptional">Optional</span> limit<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Maximum number of results returned (default: 10)</p>
+								</div>
+							</div>
+						</li>
+						<li class="tsd-parameter">
+							<h5><span class="tsd-flag ts-flagOptional">Optional</span> transformations<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p> Show detailed transformations for each CRS (default: false)</p>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-has-type-parameter tsd-is-external">
 				<a name="crossfaded" class="tsd-anchor"></a>
@@ -7080,6 +7187,45 @@ img {
 					</ul>
 				</div>
 			</section>
+			<section class="tsd-panel tsd-member tsd-kind-type-alias">
+				<a name="geocoderoptions" class="tsd-anchor"></a>
+				<h3>Geocoder<wbr>Options</h3>
+				<div class="tsd-signature tsd-kind-icon">Geocoder<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>bbox<span class="tsd-signature-symbol">?: </span><a href="modules.html#bbox" class="tsd-signature-type" data-tsd-kind="Type alias">Bbox</a><span class="tsd-signature-symbol">; </span>language<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>proximity<span class="tsd-signature-symbol">?: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol"> }</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/services/geocoder.ts#L6">src/services/geocoder.ts:6</a></li>
+					</ul>
+				</aside>
+				<div class="tsd-type-declaration">
+					<h4>Type declaration</h4>
+					<ul class="tsd-parameters">
+						<li class="tsd-parameter">
+							<h5><span class="tsd-flag ts-flagOptional">Optional</span> bbox<span class="tsd-signature-symbol">?: </span><a href="modules.html#bbox" class="tsd-signature-type" data-tsd-kind="Type alias">Bbox</a></h5>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Only search for results in the specified area.</p>
+								</div>
+							</div>
+						</li>
+						<li class="tsd-parameter">
+							<h5><span class="tsd-flag ts-flagOptional">Optional</span> language<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Prefer results in specific language. It’s possible to specify multiple values.</p>
+								</div>
+							</div>
+						</li>
+						<li class="tsd-parameter">
+							<h5><span class="tsd-flag ts-flagOptional">Optional</span> proximity<span class="tsd-signature-symbol">?: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a></h5>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Prefer results close to a specific location.</p>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
 				<a name="geolocateoptions" class="tsd-anchor"></a>
 				<h3>Geolocate<wbr>Options</h3>
@@ -8129,6 +8275,42 @@ img {
 					</ul>
 				</div>
 			</section>
+			<section class="tsd-panel tsd-member tsd-kind-type-alias">
+				<a name="lnglat" class="tsd-anchor"></a>
+				<h3>Lng<wbr>Lat</h3>
+				<div class="tsd-signature tsd-kind-icon">Lng<wbr>Lat<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>lat<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>lng<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/generalTypes.ts#L4">src/generalTypes.ts:4</a></li>
+					</ul>
+				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>WGS84 longitude and latitude as object</p>
+					</div>
+				</div>
+				<div class="tsd-type-declaration">
+					<h4>Type declaration</h4>
+					<ul class="tsd-parameters">
+						<li class="tsd-parameter">
+							<h5>lat<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></h5>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Latitude</p>
+								</div>
+							</div>
+						</li>
+						<li class="tsd-parameter">
+							<h5>lng<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></h5>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Longitude</p>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
 				<a name="lnglatboundslike" class="tsd-anchor"></a>
 				<h3>Lng<wbr>Lat<wbr>Bounds<wbr>Like</h3>
@@ -8158,7 +8340,7 @@ img {
 			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
 				<a name="lnglatlike" class="tsd-anchor"></a>
 				<h3>Lng<wbr>Lat<wbr>Like</h3>
-				<div class="tsd-signature tsd-kind-icon">Lng<wbr>Lat<wbr>Like<span class="tsd-signature-symbol">:</span> <a href="classes/lnglat.html" class="tsd-signature-type" data-tsd-kind="Class">LngLat</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span>lat<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>lng<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span>lat<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>lon<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">]</span></div>
+				<div class="tsd-signature tsd-kind-icon">Lng<wbr>Lat<wbr>Like<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">LngLat</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span>lat<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>lng<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span>lat<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>lon<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">]</span></div>
 				<aside class="tsd-sources">
 					<ul>
 						<li>Defined in node_modules/maplibre-gl/dist/maplibre-gl.d.ts:1348</li>
@@ -8166,7 +8348,7 @@ img {
 				</aside>
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>A <a href="classes/lnglat.html">LngLat</a> object, an array of two numbers representing longitude and latitude,
+						<p>A <a href="modules.html#lnglat">LngLat</a> object, an array of two numbers representing longitude and latitude,
 						or an object with <code>lng</code> and <code>lat</code> or <code>lon</code> and <code>lat</code> properties.</p>
 					</div>
 					<dl class="tsd-comment-tags">
@@ -8597,9 +8779,14 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Map<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Omit</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">maplibre.MapOptions</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;style&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;maplibreLogo&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>maptilerLogo<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>style<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/Map.ts#L17">src/Map.ts:17</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/Map.ts#L21">src/Map.ts:21</a></li>
 					</ul>
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Options to provide to the <code>Map</code> constructor</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
 				<a name="mapsourcedatatype" class="tsd-anchor"></a>
@@ -11630,273 +11817,26 @@ img {
 					</ul>
 				</div>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-type-alias">
-				<a name="automaticstaticmapoptionstype" class="tsd-anchor"></a>
-				<h3>automatic<wbr>Static<wbr>Map<wbr>Options<wbr>Type</h3>
-				<div class="tsd-signature tsd-kind-icon">automatic<wbr>Static<wbr>Map<wbr>Options<wbr>Type<span class="tsd-signature-symbol">:</span> <a href="modules.html#boundedstaticmapoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">boundedStaticMapOptionsType</a></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/services/staticMaps.ts#L60">src/services/staticMaps.ts:60</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-type-alias">
-				<a name="bboxtype" class="tsd-anchor"></a>
-				<h3>bbox<wbr>Type</h3>
-				<div class="tsd-signature tsd-kind-icon">bbox<wbr>Type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>northEast<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a><span class="tsd-signature-symbol">; </span>southWest<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a><span class="tsd-signature-symbol"> }</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/generalTypes.ts#L8">src/generalTypes.ts:8</a></li>
-					</ul>
-				</aside>
-				<div class="tsd-type-declaration">
-					<h4>Type declaration</h4>
-					<ul class="tsd-parameters">
-						<li class="tsd-parameter">
-							<h5>north<wbr>East<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5>south<wbr>West<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a></h5>
-						</li>
-					</ul>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-type-alias">
-				<a name="boundedstaticmapoptionstype" class="tsd-anchor"></a>
-				<h3>bounded<wbr>Static<wbr>Map<wbr>Options<wbr>Type</h3>
-				<div class="tsd-signature tsd-kind-icon">bounded<wbr>Static<wbr>Map<wbr>Options<wbr>Type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>attribution<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">&quot;bottomright&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottomleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topright&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol">; </span>format<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">&quot;png&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;jpg&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;webp&quot;</span><span class="tsd-signature-symbol">; </span>height<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>hiDPI<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>marker<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">staticMapMarkerType</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">staticMapMarkerType</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>markerAnchor<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">&quot;top&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;left&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottom&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;right&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;center&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottomleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topright&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottomright&quot;</span><span class="tsd-signature-symbol">; </span>markerIcon<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>markerScale<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>padding<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>path<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">lngLatArrayType</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>pathFillColor<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>pathStrokeColor<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>pathWidth<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>style<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>width<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/services/staticMaps.ts#L33">src/services/staticMaps.ts:33</a></li>
-					</ul>
-				</aside>
-				<div class="tsd-type-declaration">
-					<h4>Type declaration</h4>
-					<ul class="tsd-parameters">
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> attribution<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">&quot;bottomright&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottomleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topright&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> format<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">&quot;png&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;jpg&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;webp&quot;</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> height<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> hiDPI<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> marker<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">staticMapMarkerType</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">staticMapMarkerType</span><span class="tsd-signature-symbol">[]</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> marker<wbr>Anchor<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">&quot;top&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;left&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottom&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;right&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;center&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottomleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topright&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottomright&quot;</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> marker<wbr>Icon<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> marker<wbr>Scale<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> padding<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> path<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">lngLatArrayType</span><span class="tsd-signature-symbol">[]</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> path<wbr>Fill<wbr>Color<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> path<wbr>Stroke<wbr>Color<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> path<wbr>Width<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> style<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> width<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5>
-						</li>
-					</ul>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-type-alias">
-				<a name="centeredstaticmapoptionstype" class="tsd-anchor"></a>
-				<h3>centered<wbr>Static<wbr>Map<wbr>Options<wbr>Type</h3>
-				<div class="tsd-signature tsd-kind-icon">centered<wbr>Static<wbr>Map<wbr>Options<wbr>Type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>attribution<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">&quot;bottomright&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottomleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topright&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol">; </span>format<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">&quot;png&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;jpg&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;webp&quot;</span><span class="tsd-signature-symbol">; </span>height<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>hiDPI<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>marker<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">staticMapMarkerType</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">staticMapMarkerType</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>markerAnchor<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">&quot;top&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;left&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottom&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;right&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;center&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottomleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topright&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottomright&quot;</span><span class="tsd-signature-symbol">; </span>markerIcon<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>markerScale<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>path<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">lngLatArrayType</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>pathFillColor<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>pathStrokeColor<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>pathWidth<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>style<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>width<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/services/staticMaps.ts#L7">src/services/staticMaps.ts:7</a></li>
-					</ul>
-				</aside>
-				<div class="tsd-type-declaration">
-					<h4>Type declaration</h4>
-					<ul class="tsd-parameters">
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> attribution<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">&quot;bottomright&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottomleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topright&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> format<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">&quot;png&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;jpg&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;webp&quot;</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> height<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> hiDPI<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> marker<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">staticMapMarkerType</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">staticMapMarkerType</span><span class="tsd-signature-symbol">[]</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> marker<wbr>Anchor<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">&quot;top&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;left&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottom&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;right&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;center&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottomleft&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;topright&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bottomright&quot;</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> marker<wbr>Icon<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> marker<wbr>Scale<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> path<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">lngLatArrayType</span><span class="tsd-signature-symbol">[]</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> path<wbr>Fill<wbr>Color<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> path<wbr>Stroke<wbr>Color<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> path<wbr>Width<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> style<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> width<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5>
-						</li>
-					</ul>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-type-alias">
-				<a name="coordinatessearchoptionstype" class="tsd-anchor"></a>
-				<h3>coordinates<wbr>Search<wbr>Options<wbr>Type</h3>
-				<div class="tsd-signature tsd-kind-icon">coordinates<wbr>Search<wbr>Options<wbr>Type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>exports<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>limit<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>transformations<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> }</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/services/coordinates.ts#L6">src/services/coordinates.ts:6</a></li>
-					</ul>
-				</aside>
-				<div class="tsd-type-declaration">
-					<h4>Type declaration</h4>
-					<ul class="tsd-parameters">
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> exports<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Show exports in WKT and Proj4 notations (default: false)</p>
-								</div>
-							</div>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> limit<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Maximum number of results returned (default: 10)</p>
-								</div>
-							</div>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> transformations<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p> Show detailed transformations for each CRS (default: false)</p>
-								</div>
-							</div>
-						</li>
-					</ul>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-type-alias">
-				<a name="geocoderoptionstype" class="tsd-anchor"></a>
-				<h3>geocoder<wbr>Options<wbr>Type</h3>
-				<div class="tsd-signature tsd-kind-icon">geocoder<wbr>Options<wbr>Type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>bbox<span class="tsd-signature-symbol">?: </span><a href="modules.html#bboxtype" class="tsd-signature-type" data-tsd-kind="Type alias">bboxType</a><span class="tsd-signature-symbol">; </span>language<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>proximity<span class="tsd-signature-symbol">?: </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a><span class="tsd-signature-symbol"> }</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/services/geocoder.ts#L6">src/services/geocoder.ts:6</a></li>
-					</ul>
-				</aside>
-				<div class="tsd-type-declaration">
-					<h4>Type declaration</h4>
-					<ul class="tsd-parameters">
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> bbox<span class="tsd-signature-symbol">?: </span><a href="modules.html#bboxtype" class="tsd-signature-type" data-tsd-kind="Type alias">bboxType</a></h5>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Only search for results in the specified area.</p>
-								</div>
-							</div>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> language<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Prefer results in specific language. It’s possible to specify multiple values.</p>
-								</div>
-							</div>
-						</li>
-						<li class="tsd-parameter">
-							<h5><span class="tsd-flag ts-flagOptional">Optional</span> proximity<span class="tsd-signature-symbol">?: </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a></h5>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Prefer results close to a specific location.</p>
-								</div>
-							</div>
-						</li>
-					</ul>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-type-alias">
-				<a name="lnglattype" class="tsd-anchor"></a>
-				<h3>lng<wbr>Lat<wbr>Type</h3>
-				<div class="tsd-signature tsd-kind-icon">lng<wbr>Lat<wbr>Type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>lat<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>lng<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/generalTypes.ts#L1">src/generalTypes.ts:1</a></li>
-					</ul>
-				</aside>
-				<div class="tsd-type-declaration">
-					<h4>Type declaration</h4>
-					<ul class="tsd-parameters">
-						<li class="tsd-parameter">
-							<h5>lat<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5>lng<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></h5>
-						</li>
-					</ul>
-				</div>
-			</section>
 		</section>
 		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Variables</h2>
 			<section class="tsd-panel tsd-member tsd-kind-variable">
 				<a name="config" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagConst">Const</span> config</h3>
-				<div class="tsd-signature tsd-kind-icon">config<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ConfigInterface</span><span class="tsd-signature-symbol"> = ...</span></div>
+				<div class="tsd-signature tsd-kind-icon">config<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Config</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/config.ts#L8">src/config.ts:8</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/config.ts#L28">src/config.ts:28</a></li>
 					</ul>
 				</aside>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-variable">
 				<a name="coordinates" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagConst">Const</span> coordinates</h3>
-				<div class="tsd-signature tsd-kind-icon">coordinates<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>search<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#coordinatessearchoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">coordinatesSearchOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>transform<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>coordinates<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a><span class="tsd-signature-symbol">[]</span>, options<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">coordinatesTransformOptionsType</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
+				<div class="tsd-signature tsd-kind-icon">coordinates<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>search<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#coordinatessearchoptions" class="tsd-signature-type" data-tsd-kind="Type alias">CoordinatesSearchOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>transform<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>coordinates<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol">[]</span>, options<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">CoordinatesTransformOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/services/coordinates.ts#L150">src/services/coordinates.ts:150</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/services/coordinates.ts#L146">src/services/coordinates.ts:146</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -11909,11 +11849,11 @@ img {
 					<h4>Type declaration</h4>
 					<ul class="tsd-parameters">
 						<li class="tsd-parameter">
-							<h5>search<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#coordinatessearchoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">coordinatesSearchOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
+							<h5>search<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#coordinatessearchoptions" class="tsd-signature-type" data-tsd-kind="Type alias">CoordinatesSearchOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
 							<ul class="tsd-parameters">
 								<li class="tsd-parameter-signature">
 									<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-literal">
-										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#coordinatessearchoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">coordinatesSearchOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
+										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#coordinatessearchoptions" class="tsd-signature-type" data-tsd-kind="Type alias">CoordinatesSearchOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
 									</ul>
 									<ul class="tsd-descriptions">
 										<li class="tsd-description">
@@ -11932,7 +11872,7 @@ img {
 													</div>
 												</li>
 												<li>
-													<h5>options: <a href="modules.html#coordinatessearchoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">coordinatesSearchOptionsType</a><span class="tsd-signature-symbol"> = {}</span></h5>
+													<h5>options: <a href="modules.html#coordinatessearchoptions" class="tsd-signature-type" data-tsd-kind="Type alias">CoordinatesSearchOptions</a><span class="tsd-signature-symbol"> = {}</span></h5>
 												</li>
 											</ul>
 											<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -11942,11 +11882,11 @@ img {
 							</ul>
 						</li>
 						<li class="tsd-parameter">
-							<h5>transform<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>coordinates<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a><span class="tsd-signature-symbol">[]</span>, options<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">coordinatesTransformOptionsType</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
+							<h5>transform<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>coordinates<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol">[]</span>, options<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">CoordinatesTransformOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
 							<ul class="tsd-parameters">
 								<li class="tsd-parameter-signature">
 									<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-literal">
-										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>coordinates<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a><span class="tsd-signature-symbol">[]</span>, options<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">coordinatesTransformOptionsType</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
+										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>coordinates<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol">[]</span>, options<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">CoordinatesTransformOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
 									</ul>
 									<ul class="tsd-descriptions">
 										<li class="tsd-description">
@@ -11959,10 +11899,10 @@ img {
 											<h4 class="tsd-parameters-title">Parameters</h4>
 											<ul class="tsd-parameters">
 												<li>
-													<h5>coordinates: <a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a><span class="tsd-signature-symbol">[]</span></h5>
+													<h5>coordinates: <a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol">[]</span></h5>
 												</li>
 												<li>
-													<h5>options: <span class="tsd-signature-type">coordinatesTransformOptionsType</span><span class="tsd-signature-symbol"> = {}</span></h5>
+													<h5>options: <span class="tsd-signature-type">CoordinatesTransformOptions</span><span class="tsd-signature-symbol"> = {}</span></h5>
 												</li>
 											</ul>
 											<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -11980,7 +11920,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">data<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>get<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>dataId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/services/data.ts#L41">src/services/data.ts:41</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/services/data.ts#L40">src/services/data.ts:40</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -12025,10 +11965,10 @@ img {
 			<section class="tsd-panel tsd-member tsd-kind-variable">
 				<a name="geocoder" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagConst">Const</span> geocoder</h3>
-				<div class="tsd-signature tsd-kind-icon">geocoder<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>forward<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">geocoderOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>reverse<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>lngLat<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">geocoderOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
+				<div class="tsd-signature tsd-kind-icon">geocoder<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>forward<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>reverse<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>lngLat<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/services/geocoder.ts#L145">src/services/geocoder.ts:145</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/services/geocoder.ts#L144">src/services/geocoder.ts:144</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -12042,11 +11982,11 @@ img {
 					<h4>Type declaration</h4>
 					<ul class="tsd-parameters">
 						<li class="tsd-parameter">
-							<h5>forward<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">geocoderOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
+							<h5>forward<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
 							<ul class="tsd-parameters">
 								<li class="tsd-parameter-signature">
 									<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-literal">
-										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">geocoderOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
+										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
 									</ul>
 									<ul class="tsd-descriptions">
 										<li class="tsd-description">
@@ -12064,7 +12004,7 @@ img {
 													<h5>query: <span class="tsd-signature-type">any</span></h5>
 												</li>
 												<li>
-													<h5>options: <a href="modules.html#geocoderoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">geocoderOptionsType</a><span class="tsd-signature-symbol"> = {}</span></h5>
+													<h5>options: <a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol"> = {}</span></h5>
 												</li>
 											</ul>
 											<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -12074,11 +12014,11 @@ img {
 							</ul>
 						</li>
 						<li class="tsd-parameter">
-							<h5>reverse<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>lngLat<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">geocoderOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
+							<h5>reverse<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>lngLat<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
 							<ul class="tsd-parameters">
 								<li class="tsd-parameter-signature">
 									<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-literal">
-										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>lngLat<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">geocoderOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
+										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>lngLat<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
 									</ul>
 									<ul class="tsd-descriptions">
 										<li class="tsd-description">
@@ -12092,10 +12032,10 @@ img {
 											<h4 class="tsd-parameters-title">Parameters</h4>
 											<ul class="tsd-parameters">
 												<li>
-													<h5>lngLat: <a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a></h5>
+													<h5>lngLat: <a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a></h5>
 												</li>
 												<li>
-													<h5>options: <a href="modules.html#geocoderoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">geocoderOptionsType</a><span class="tsd-signature-symbol"> = {}</span></h5>
+													<h5>options: <a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol"> = {}</span></h5>
 												</li>
 											</ul>
 											<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -12113,7 +12053,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">geolocation<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>info<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/services/geolocation.ts#L37">src/services/geolocation.ts:37</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/services/geolocation.ts#L36">src/services/geolocation.ts:36</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -12152,10 +12092,10 @@ img {
 			<section class="tsd-panel tsd-member tsd-kind-variable">
 				<a name="staticmaps" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagConst">Const</span> static<wbr>Maps</h3>
-				<div class="tsd-signature tsd-kind-icon">static<wbr>Maps<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>automatic<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><a href="modules.html#automaticstaticmapoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">automaticStaticMapOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>bounded<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>boundingBox<span class="tsd-signature-symbol">: </span><a href="modules.html#bboxtype" class="tsd-signature-type" data-tsd-kind="Type alias">bboxType</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#boundedstaticmapoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">boundedStaticMapOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>centered<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>center<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a>, zoom<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#centeredstaticmapoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">centeredStaticMapOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
+				<div class="tsd-signature tsd-kind-icon">static<wbr>Maps<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>automatic<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><a href="modules.html#automaticstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">AutomaticStaticMapOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>bounded<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>boundingBox<span class="tsd-signature-symbol">: </span><a href="modules.html#bbox" class="tsd-signature-type" data-tsd-kind="Type alias">Bbox</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#boundedstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">BoundedStaticMapOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>centered<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>center<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a>, zoom<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#centeredstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">CenteredStaticMapOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/58c9894/src/services/staticMaps.ts#L346">src/services/staticMaps.ts:346</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/3a08905/src/services/staticMaps.ts#L435">src/services/staticMaps.ts:435</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -12168,11 +12108,11 @@ img {
 					<h4>Type declaration</h4>
 					<ul class="tsd-parameters">
 						<li class="tsd-parameter">
-							<h5>automatic<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><a href="modules.html#automaticstaticmapoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">automaticStaticMapOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span></h5>
+							<h5>automatic<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><a href="modules.html#automaticstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">AutomaticStaticMapOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span></h5>
 							<ul class="tsd-parameters">
 								<li class="tsd-parameter-signature">
 									<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-literal">
-										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><a href="modules.html#automaticstaticmapoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">automaticStaticMapOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><a href="modules.html#automaticstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">AutomaticStaticMapOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
 									</ul>
 									<ul class="tsd-descriptions">
 										<li class="tsd-description">
@@ -12180,13 +12120,14 @@ img {
 												<div class="lead">
 													<p>Construct the URL for a static map automatically fitted around the provided path or markers.
 														Note: this function does not fetch the binary content of the image since
-													the purpose of a static map is generally to have its URL as a <code>src</code> property of a <img/> element.</p>
+														the purpose of a static map is generally to have its URL as a <code>src</code> property of a <img/> element.
+													If a path is provided and is too long, it will be simplified in an accurate way.</p>
 												</div>
 											</div>
 											<h4 class="tsd-parameters-title">Parameters</h4>
 											<ul class="tsd-parameters">
 												<li>
-													<h5>options: <a href="modules.html#automaticstaticmapoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">automaticStaticMapOptionsType</a><span class="tsd-signature-symbol"> = {}</span></h5>
+													<h5>options: <a href="modules.html#automaticstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">AutomaticStaticMapOptions</a><span class="tsd-signature-symbol"> = {}</span></h5>
 												</li>
 											</ul>
 											<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -12196,11 +12137,11 @@ img {
 							</ul>
 						</li>
 						<li class="tsd-parameter">
-							<h5>bounded<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>boundingBox<span class="tsd-signature-symbol">: </span><a href="modules.html#bboxtype" class="tsd-signature-type" data-tsd-kind="Type alias">bboxType</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#boundedstaticmapoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">boundedStaticMapOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span></h5>
+							<h5>bounded<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>boundingBox<span class="tsd-signature-symbol">: </span><a href="modules.html#bbox" class="tsd-signature-type" data-tsd-kind="Type alias">Bbox</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#boundedstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">BoundedStaticMapOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span></h5>
 							<ul class="tsd-parameters">
 								<li class="tsd-parameter-signature">
 									<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-literal">
-										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>boundingBox<span class="tsd-signature-symbol">: </span><a href="modules.html#bboxtype" class="tsd-signature-type" data-tsd-kind="Type alias">bboxType</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#boundedstaticmapoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">boundedStaticMapOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>boundingBox<span class="tsd-signature-symbol">: </span><a href="modules.html#bbox" class="tsd-signature-type" data-tsd-kind="Type alias">Bbox</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#boundedstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">BoundedStaticMapOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
 									</ul>
 									<ul class="tsd-descriptions">
 										<li class="tsd-description">
@@ -12208,16 +12149,17 @@ img {
 												<div class="lead">
 													<p>Construct the URL for a static map using a bounding box
 														Note: this function does not fetch the binary content of the image since
-													the purpose of a static map is generally to have its URL as a <code>src</code> property of a <img/> element.</p>
+														the purpose of a static map is generally to have its URL as a <code>src</code> property of a <img/> element.
+													If a path is provided and is too long, it will be simplified in an accurate way.</p>
 												</div>
 											</div>
 											<h4 class="tsd-parameters-title">Parameters</h4>
 											<ul class="tsd-parameters">
 												<li>
-													<h5>boundingBox: <a href="modules.html#bboxtype" class="tsd-signature-type" data-tsd-kind="Type alias">bboxType</a></h5>
+													<h5>boundingBox: <a href="modules.html#bbox" class="tsd-signature-type" data-tsd-kind="Type alias">Bbox</a></h5>
 												</li>
 												<li>
-													<h5>options: <a href="modules.html#boundedstaticmapoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">boundedStaticMapOptionsType</a><span class="tsd-signature-symbol"> = {}</span></h5>
+													<h5>options: <a href="modules.html#boundedstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">BoundedStaticMapOptions</a><span class="tsd-signature-symbol"> = {}</span></h5>
 												</li>
 											</ul>
 											<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -12227,11 +12169,11 @@ img {
 							</ul>
 						</li>
 						<li class="tsd-parameter">
-							<h5>centered<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>center<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a>, zoom<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#centeredstaticmapoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">centeredStaticMapOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span></h5>
+							<h5>centered<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>center<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a>, zoom<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#centeredstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">CenteredStaticMapOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span></h5>
 							<ul class="tsd-parameters">
 								<li class="tsd-parameter-signature">
 									<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-literal">
-										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>center<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a>, zoom<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#centeredstaticmapoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">centeredStaticMapOptionsType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>center<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a>, zoom<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#centeredstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">CenteredStaticMapOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
 									</ul>
 									<ul class="tsd-descriptions">
 										<li class="tsd-description">
@@ -12239,19 +12181,20 @@ img {
 												<div class="lead">
 													<p>Construct the URL for a static map centered on one point.
 														Note: this function does not fetch the binary content of the image since
-													the purpose of a static map is generally to have its URL as a <code>src</code> property of a <img/> element.</p>
+														the purpose of a static map is generally to have its URL as a <code>src</code> property of a <img/> element.
+													If a path is provided and is too long, it will be simplified in an accurate way.</p>
 												</div>
 											</div>
 											<h4 class="tsd-parameters-title">Parameters</h4>
 											<ul class="tsd-parameters">
 												<li>
-													<h5>center: <a href="modules.html#lnglattype" class="tsd-signature-type" data-tsd-kind="Type alias">lngLatType</a></h5>
+													<h5>center: <a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a></h5>
 												</li>
 												<li>
 													<h5>zoom: <span class="tsd-signature-type">number</span></h5>
 												</li>
 												<li>
-													<h5>options: <a href="modules.html#centeredstaticmapoptionstype" class="tsd-signature-type" data-tsd-kind="Type alias">centeredStaticMapOptionsType</a><span class="tsd-signature-symbol"> = {}</span></h5>
+													<h5>options: <a href="modules.html#centeredstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">CenteredStaticMapOptions</a><span class="tsd-signature-symbol"> = {}</span></h5>
 												</li>
 											</ul>
 											<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -12277,7 +12220,7 @@ img {
 			</div>
 		</footer>
 		<div class="container tsd-generator">
-			<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+			<p>Learn more at <a href="https://www.maptiler.com/" target="_blank">maptiler.com</a></p>
 		</div>
 	</div>
 </div>

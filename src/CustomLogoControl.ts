@@ -1,6 +1,6 @@
 import * as maplibre from "maplibre-gl";
 import { defaults } from "./defaults";
-import Map from "./Map";
+import { Map } from "./Map";
 
 type LogoOptions = maplibre.LogoOptions & {
   logoURL?: string;

@@ -14,7 +14,7 @@ export interface Config {
   verbose: boolean;
 
   /**
-   * The primary language, to overwrite the default language defined in the map style. 
+   * The primary language, to overwrite the default language defined in the map style.
    */
   primaryLanguage: languages | null;
 
@@ -31,6 +31,5 @@ const config: Config = {
   primaryLanguage: null,
   secondaryLanguage: null,
 };
-
 
 export { config };

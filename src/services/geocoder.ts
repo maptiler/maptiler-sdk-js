@@ -136,10 +136,9 @@ async function reverse(lngLat: LngLat, options: GeocoderOptions = {}) {
   return obj;
 }
 
-
 /**
  * The **geocoder** namespace contains asynchronous functions to call the [MapTiler Geocoding API](https://docs.maptiler.com/cloud/api/geocoding/).
- * The **Geocoder API** provides ways to get geographic coordinates from a human-readable search query of a place (forward geocoding) 
+ * The **Geocoder API** provides ways to get geographic coordinates from a human-readable search query of a place (forward geocoding)
  * and to get the location details (country, city, street, etc.) from a geographic coordinate (reverse geocoding);
  */
 const geocoder = {
