@@ -244,7 +244,7 @@ declare type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & 
     maptilerLogo?: boolean;
 };
 /**
- * The Map
+ * The Map class can be instanciated to display a map in a `<div>`
  */
 declare class Map extends maplibre.Map {
     private languageShouldUpdate;

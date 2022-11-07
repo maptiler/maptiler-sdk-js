@@ -10,7 +10,7 @@ const defaults = {
   maptilerURL: "https://www.maptiler.com/",
   maptilerApiURL: "https://api.maptiler.com/",
   rtlPluginURL:
-    "https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.min.js",
+    "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
   primaryLanguage: languages.LATIN,
   secondaryLanguage: languages.NON_LATIN,
 };
