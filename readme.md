@@ -23,6 +23,9 @@
 npm install --save @maptiler/sdk
 ```
 
+# API documentation
+In addition to the details and examples provided in this readme, you can find a complete API documentation here: https://labs.maptiler.com/sdk
+
 # Quick start
 ```ts
 import * as maptiler from 'maptiler';
