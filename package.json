@@ -10,7 +10,8 @@
     "dev": "NODE_ENV=development rollup -c -w",
     "format": "prettier --write \"src/**/*.{js,ts,tsx}\"",
     "lint": "eslint --fix \"src/**/*.{js,ts}\"",
-    "doc": "typedoc; cp -r images docs/"
+    "doc": "typedoc; cp -r images docs/",
+    "prepare": "npm run format; npm run lint; npm run build; npm run doc"
   },
   "author": "",
   "license": "MIT",

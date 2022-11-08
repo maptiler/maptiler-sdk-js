@@ -392,8 +392,8 @@ function automatic(options: AutomaticStaticMapOptions = {}) {
       markerStr += `anchor:${options.markerAnchor}|`;
     }
 
-    if (hasIcon && "markerScale" in options) {
-      markerStr += `scale:2}|`;
+    if (hasIcon && options.hiDPI) {
+      markerStr += `scale:2|`;
     }
 
     const markerList = Array.isArray(options.marker)

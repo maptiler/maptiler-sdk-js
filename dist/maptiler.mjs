@@ -1006,8 +1006,8 @@ function automatic(options = {}) {
     if (hasIcon && "markerAnchor" in options) {
       markerStr += `anchor:${options.markerAnchor}|`;
     }
-    if (hasIcon && "markerScale" in options) {
-      markerStr += `scale:2}|`;
+    if (hasIcon && options.hiDPI) {
+      markerStr += `scale:2|`;
     }
     const markerList = Array.isArray(options.marker) ? options.marker : [options.marker];
     markerStr += markerList.map((m) => staticMapMarkerToString(m, !hasIcon)).join("|");

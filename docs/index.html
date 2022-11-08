@@ -4256,20 +4256,20 @@ img {
 				<h1>Many styles to choose from</h1>
 			</a>
 			<p align="center">
-				<img src="images/screenshots/style-streets-v2.png" width="23%"></img>
-				<img src="images/screenshots/style-basic-v2.png" width="23%"></img>
-				<img src="images/screenshots/style-bright.png" width="23%"></img>
-				<img src="images/screenshots/style-hybrid.png" width="23%"></img>
-				<img src="images/screenshots/style-osm.png" width="23%"></img>
-				<img src="images/screenshots/style-outdoor.png" width="23%"></img>
-				<img src="images/screenshots/style-pastel.png" width="23%"></img>
-				<img src="images/screenshots/style-toner.png" width="23%"></img>
-				<img src="images/screenshots/style-topo.png" width="23%"></img>
-				<img src="images/screenshots/style-topographique.png" width="23%"></img>
-				<img src="images/screenshots/style-voyager.png" width="23%"></img>
-				<img src="images/screenshots/style-winter.png" width="23%"></img>
-				<img src="images/screenshots/style-streets-v2-dark.png" width="23%"></img>
-				<img src="images/screenshots/style-streets-v2-light.png" width="23%"></img>
+				<img title="streets-v2" src="images/screenshots/style-streets-v2.png" width="23%"></img>
+				<img title="basic-v2" src="images/screenshots/style-basic-v2.png" width="23%"></img>
+				<img title="bright" src="images/screenshots/style-bright.png" width="23%"></img>
+				<img title="hybrid" src="images/screenshots/style-hybrid.png" width="23%"></img>
+				<img title="osm" src="images/screenshots/style-osm.png" width="23%"></img>
+				<img title="outdoor" src="images/screenshots/style-outdoor.png" width="23%"></img>
+				<img title="pastel" src="images/screenshots/style-pastel.png" width="23%"></img>
+				<img title="toner" src="images/screenshots/style-toner.png" width="23%"></img>
+				<img title="topo" src="images/screenshots/style-topo.png" width="23%"></img>
+				<img title="topographique" src="images/screenshots/style-topographique.png" width="23%"></img>
+				<img title="voyager" src="images/screenshots/style-voyager.png" width="23%"></img>
+				<img title="winter" src="images/screenshots/style-winter.png" width="23%"></img>
+				<img title="streets-v2-dark" src="images/screenshots/style-streets-v2-dark.png" width="23%"></img>
+				<img title="streets-v2-light" src="images/screenshots/style-streets-v2-light.png" width="23%"></img>
 			</p>
 			<p>In addition to your custom styles, MapTiler Clouds comes with many styles that are easy to configure from the SDK:</p>
 			<pre><code class="language-ts"><span style="color: #001080">map</span><span style="color: #000000">.</span><span style="color: #795E26">setStyle</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;outdoor&#039;</span><span style="color: #000000">);</span>
@@ -4294,14 +4294,16 @@ img {
 			<a href="#easy-language-switching" id="easy-language-switching" style="color: inherit; text-decoration: none;">
 				<h1>Easy language switching</h1>
 			</a>
-			<p>The language gnerally depends on the style but we made it possible to easily update it with a single function and from a built-in list of languages:</p>
+			<p>The language generally depends on the style but we made it possible to easily update it with a single function and from a built-in list of languages:</p>
 			<pre><code class="language-ts"><span style="color: #001080">map</span><span style="color: #000000">.</span><span style="color: #795E26">setLanguage</span><span style="color: #000000">(</span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">languages</span><span style="color: #000000">.</span><span style="color: #0070C1">ENGLISH</span><span style="color: #000000">);</span>
 </code></pre>
 			<p>The special languages <code>maptiler.languages.LATIN</code> and <code>maptiler.languages.NON_LATIN</code> are generally the default ones in the styles developped by the MapTiler team and they are generaly safe all-around fallbacks.  </p>
-			<p>Some style, developped inhouse as well as by the community, may have a support for a secondary language. In this case, you can also update the second language:</p>
+			<p>Some style, developped in-house as well as by the community, may support a secondary language. In this case, you can also update it:</p>
 			<pre><code class="language-ts"><span style="color: #001080">map</span><span style="color: #000000">.</span><span style="color: #795E26">setSecondaryLanguage</span><span style="color: #000000">(</span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">languages</span><span style="color: #000000">.</span><span style="color: #0070C1">NON_LATIN</span><span style="color: #000000">);</span>
 </code></pre>
-			<p>Also, note that <code>.setLanguage()</code> is shorthand for <code>.setPrimaryLanguage()</code>.</p>
+			<blockquote>
+				<p>📣 <em><strong>Note:</strong></em> the <code>Map</code> method <code>.setLanguage()</code> is shorthand for <code>.setPrimaryLanguage()</code>. Use the one that makes more sense to your usage.</p>
+			</blockquote>
 			<a href="#built-in-support-for-right-to-left-languages" id="built-in-support-for-right-to-left-languages" style="color: inherit; text-decoration: none;">
 				<h1>Built-in support for right-to-left languages</h1>
 			</a>
@@ -4314,8 +4316,8 @@ img {
 				<h1>Easy access to MapTiler Cloud API</h1>
 			</a>
 			<p>A map SDK is not only about maps! Here is the list of service wrapper functions that are built-in:</p>
-			<a href="#geocoder" id="geocoder" style="color: inherit; text-decoration: none;">
-				<h2>Geocoder</h2>
+			<a href="#🔍-geocoder" id="🔍-geocoder" style="color: inherit; text-decoration: none;">
+				<h2>🔍 Geocoder</h2>
 			</a>
 			<a href="#forward" id="forward" style="color: inherit; text-decoration: none;">
 				<h3>Forward</h3>
@@ -4324,18 +4326,199 @@ img {
 			<pre><code class="language-ts"><span style="color: #008000">// in an async function, or as a &#039;thenable&#039;:</span>
 <span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">result</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">geocoder</span><span style="color: #000000">.</span><span style="color: #795E26">forward</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;paris&#039;</span><span style="color: #000000">);</span>
 </code></pre>
-			<p>You can provide [some options](proximity: {lng: -86.83138847351074, lat: 36.19394502137066}) such as:</p>
+			<p>You can provide some options such as:</p>
 			<ul>
 				<li>the proximity, given a lon-lat position, to sort the results</li>
 				<li>one of more languages to get the results into</li>
 				<li>a bounding geo box, to restrict the search to a given window</li>
 			</ul>
+			<p>Read more about forward geocoding on our official <a href="https://docs.maptiler.com/cloud/api/geocoding/#search-by-name-forward">API documentation</a>.</p>
 			<a href="#reverse" id="reverse" style="color: inherit; text-decoration: none;">
 				<h3>Reverse</h3>
 			</a>
-			<p>You wan to tknow the name of a place, given a longitude-latitude? Then use the reverse geocoding:</p>
-			<pre><code class="language-ts"><span style="color: #008000">// TODO WIP</span>
+			<p>You wan to tknow the name of a place, given a longitude-latitude? Use the reverse geocoding:</p>
+			<pre><code class="language-ts"><span style="color: #008000">// in an async function, or as a &#039;thenable&#039;:</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">result</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">geocoder</span><span style="color: #000000">.</span><span style="color: #795E26">reverse</span><span style="color: #000000">({ </span><span style="color: #001080">lng:</span><span style="color: #000000"> </span><span style="color: #098658">6.249638</span><span style="color: #000000">, </span><span style="color: #001080">lat:</span><span style="color: #000000"> </span><span style="color: #098658">46.402056</span><span style="color: #000000"> });</span>
 </code></pre>
+			<p>The same option object as the forward geocoding can be provided.</p>
+			<p>Read more about reverse geocoding on our official <a href="https://docs.maptiler.com/cloud/api/geocoding/#search-by-coordinates-reverse">API documentation</a>.</p>
+			<a href="#🕵️♂️-geolocation" id="🕵️♂️-geolocation" style="color: inherit; text-decoration: none;">
+				<h2>🕵️‍♂️ Geolocation</h2>
+			</a>
+			<p>The geolocation service provides an accurate location insight of a website visitor using its IP address.</p>
+			<p>There is only a single function:</p>
+			<pre><code class="language-ts"><span style="color: #008000">// in an async function, or as a &#039;thenable&#039;:</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">result</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">geolocation</span><span style="color: #000000">.</span><span style="color: #795E26">info</span><span style="color: #000000">();</span>
+</code></pre>
+			<p>Read more about geolocation on our official <a href="https://docs.maptiler.com/cloud/api/geolocation/">API documentation</a>.</p>
+			<a href="#🌐-coordinates" id="🌐-coordinates" style="color: inherit; text-decoration: none;">
+				<h2>🌐 Coordinates</h2>
+			</a>
+			<p>If you are already familiar with <a href="https://epsg.io/">epsg.io</a> (created by MapTiler), then you may find convenient to access the details of more than 10 thousands of coordinate reference systems (CRS) programmatically, as well as transforming coordinates from one system to another!</p>
+			<a href="#search" id="search" style="color: inherit; text-decoration: none;">
+				<h3>Search</h3>
+			</a>
+			<p>The <code>search</code> lets you perform a query in a free form fashion. Here are some examples:</p>
+			<pre><code class="language-ts"><span style="color: #008000">// in an async function, or as a &#039;thenable&#039;:</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">resultA</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">coordinates</span><span style="color: #000000">.</span><span style="color: #795E26">search</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;mercator&#039;</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">resultB</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">coordinates</span><span style="color: #000000">.</span><span style="color: #795E26">search</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;plate carree&#039;</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">resultC</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">coordinates</span><span style="color: #000000">.</span><span style="color: #795E26">search</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;france&#039;</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">resultD</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">coordinates</span><span style="color: #000000">.</span><span style="color: #795E26">search</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;code:4326&#039;</span><span style="color: #000000">, {</span><span style="color: #001080">transformations:</span><span style="color: #000000"> </span><span style="color: #0000FF">true</span><span style="color: #000000">}));</span>
+</code></pre>
+			<p>The <code>transformations</code> options retrieves a lot more details about the CRS that MapTiler API is able to transform to/from than just their IDs.</p>
+			<p>Read more about searching coordinate systems on our official <a href="https://docs.maptiler.com/cloud/api/coordinates/#search-coordinate-systems">API documentation</a>.</p>
+			<a href="#transform" id="transform" style="color: inherit; text-decoration: none;">
+				<h3>Transform</h3>
+			</a>
+			<p>Transforming a couple of coordinates from one system to another can be challenging, for example, most countries have their own official system, yet web mapping tools are more often than not exclusive to <a href="https://epsg.io/4326">WGS84</a>.</p>
+			<p>If not provided, both the source (<code>sourceCrs</code>) and the destination (<code>targetCrs</code>) are default to <strong>EPSG:4326</strong> (in other words, <a href="https://epsg.io/4326">WGS84</a>). Here is how to use this feature:</p>
+			<pre><code class="language-ts"><span style="color: #008000">// in an async function, or as a &#039;thenable&#039;:</span>
+
+<span style="color: #008000">// Providing one coordinate to transform, with a target CRS being EPSG:9793 (RGF93 v2 / Lambert-93, France official CRS)</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">resultA</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">coordinates</span><span style="color: #000000">.</span><span style="color: #795E26">transform</span><span style="color: #000000">({</span><span style="color: #001080">lng:</span><span style="color: #000000"> </span><span style="color: #098658">1</span><span style="color: #000000">, </span><span style="color: #001080">lat:</span><span style="color: #000000"> </span><span style="color: #098658">45</span><span style="color: #000000">}, {</span><span style="color: #001080">targetCrs:</span><span style="color: #000000"> </span><span style="color: #098658">9793</span><span style="color: #000000">})</span>
+
+<span style="color: #008000">// Using the same logic, we can pass up to 50 coordinates to be transformed</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">resultB</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">coordinates</span><span style="color: #000000">.</span><span style="color: #795E26">transform</span><span style="color: #000000">([{</span><span style="color: #001080">lng:</span><span style="color: #000000"> </span><span style="color: #098658">10</span><span style="color: #000000">, </span><span style="color: #001080">lat:</span><span style="color: #000000"> </span><span style="color: #098658">48</span><span style="color: #000000">}, {</span><span style="color: #001080">lng:</span><span style="color: #000000"> </span><span style="color: #098658">1</span><span style="color: #000000">, </span><span style="color: #001080">lat:</span><span style="color: #000000"> </span><span style="color: #098658">45</span><span style="color: #000000">}], {</span><span style="color: #001080">targetCrs:</span><span style="color: #000000"> </span><span style="color: #098658">9793</span><span style="color: #000000">})</span>
+</code></pre>
+			<p>Read more about transforming coordinates on our official <a href="https://docs.maptiler.com/cloud/api/coordinates/#transform-coordinates">API documentation</a>.</p>
+			<a href="#💽-data" id="💽-data" style="color: inherit; text-decoration: none;">
+				<h2>💽 Data</h2>
+			</a>
+			<p>MapTiler Cloud give its users the possibility to <a href="https://cloud.maptiler.com/data/">upload and create data</a>, manually with a user interface or by uploading a GPX, GeoJSON, KML or shp file. A unique ID is associated to each dataset so that we can later on access it programmatically to retrieve a GeoJSON equivalent of it:</p>
+			<pre><code class="language-ts"><span style="color: #008000">// in an async function, or as a &#039;thenable&#039;:</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">result</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">data</span><span style="color: #000000">.</span><span style="color: #795E26">get</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;my-dataset-unique-id&#039;</span><span style="color: #000000">)</span>
+</code></pre>
+			<p>Since the result is a GeoJSON, it can easily be added to a <code>map</code> with <code>.addSource()</code> and <code>.addLayer()</code>.</p>
+			<a href="#🗺️-static-maps" id="🗺️-static-maps" style="color: inherit; text-decoration: none;">
+				<h2>🗺️ Static maps</h2>
+			</a>
+			<p>Maptiler Cloud provides many possibilities for creating static maps as PNG, JPEG or WebP images. They all offer the possibilities to:</p>
+			<ul>
+				<li>Choose from one of the MapTiler style or your own</li>
+				<li>Add markers with a custom icon (or default icon with custom color)</li>
+				<li>Add path or polygon, with a parametric line width and color and a parametric filling color</li>
+			</ul>
+			<p>Three modes are available: <code>centered</code>, <code>bounded</code> and <code>automatic</code>.</p>
+			<blockquote>
+				<p>📣 <em><strong>important:</strong></em> Contrary to the geolocation/geocoding/coordinates/data service wrappers, the static maps function <strong>does not</strong> perform any query to the MapTiler API, instead they build the image URL. We took this decision because images are most likely going to be displayed  in <code>&lt;img src=&quot;path.png&quot;&gt;&lt;/img&gt;</code> markups and will naturaly be fetched by the web browser.</p>
+			</blockquote>
+			<a href="#centered-static-maps" id="centered-static-maps" style="color: inherit; text-decoration: none;">
+				<h3>Centered static maps</h3>
+			</a>
+			<p>This type of map is centered on a longitude-latitude coordinate and the zoom level must also be provided (from <code>0</code>: very zoomed out, to <code>22</code>: very zoomed in).<br>Note that if a path or markers are provided, the framing of the map will not automatically adapt to include those (use the <code>automatic</code> mode for that).</p>
+			<pre><code class="language-ts"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">imageLink</span><span style="color: #000000"> = </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">staticMaps</span><span style="color: #000000">.</span><span style="color: #795E26">centered</span><span style="color: #000000">(</span>
+<span style="color: #000000">  </span><span style="color: #008000">// center position (Boston)</span>
+<span style="color: #000000">  {</span><span style="color: #001080">lng:</span><span style="color: #000000"> -</span><span style="color: #098658">71.06080</span><span style="color: #000000">, </span><span style="color: #001080">lat:</span><span style="color: #000000"> </span><span style="color: #098658">42.362114</span><span style="color: #000000">}, </span>
+
+<span style="color: #000000">  </span><span style="color: #008000">// zoom level</span>
+<span style="color: #000000">  </span><span style="color: #098658">12.5</span><span style="color: #000000">, </span>
+<span style="color: #000000">  </span>
+<span style="color: #000000">  </span><span style="color: #008000">// Options</span>
+<span style="color: #000000">  {</span>
+<span style="color: #000000">    </span><span style="color: #008000">// Request a hiDPI/Retina image</span>
+<span style="color: #000000">    </span><span style="color: #001080">hiDPI:</span><span style="color: #000000"> </span><span style="color: #0000FF">true</span><span style="color: #000000">,</span>
+
+<span style="color: #000000">    </span><span style="color: #008000">// Output image size</span>
+<span style="color: #000000">    </span><span style="color: #001080">width:</span><span style="color: #000000"> </span><span style="color: #098658">1000</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">height:</span><span style="color: #000000"> </span><span style="color: #098658">1000</span><span style="color: #000000">,</span>
+
+<span style="color: #000000">    </span><span style="color: #008000">// Map style</span>
+<span style="color: #000000">    </span><span style="color: #001080">style:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;streets-v2&#039;</span><span style="color: #000000">,</span>
+<span style="color: #000000">  });</span>
+</code></pre>
+			<p>Read more about centered static maps on our official <a href="https://docs.maptiler.com/cloud/api/static-maps/#center-based-image">API documentation</a>.</p>
+			<a href="#bounded-static-maps" id="bounded-static-maps" style="color: inherit; text-decoration: none;">
+				<h3>Bounded static maps</h3>
+			</a>
+			<p>This type of map requires a bounding box made of two points: the south-west bound and the north-east bound. The zoom level cannot be provided and is automatically deduced from the size of the bounding box.</p>
+			<pre><code class="language-ts"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">imageLink</span><span style="color: #000000"> = </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">staticMaps</span><span style="color: #000000">.</span><span style="color: #795E26">bounded</span><span style="color: #000000">(</span>
+<span style="color: #000000">  </span><span style="color: #008000">// The bounding box on Europe</span>
+<span style="color: #000000">  {</span>
+<span style="color: #000000">    </span><span style="color: #001080">southWest:</span><span style="color: #000000"> { </span><span style="color: #001080">lng:</span><span style="color: #000000"> -</span><span style="color: #098658">24</span><span style="color: #000000">, </span><span style="color: #001080">lat:</span><span style="color: #000000"> </span><span style="color: #098658">34.5</span><span style="color: #000000"> },</span>
+<span style="color: #000000">    </span><span style="color: #001080">northEast:</span><span style="color: #000000"> { </span><span style="color: #001080">lng:</span><span style="color: #000000"> </span><span style="color: #098658">32</span><span style="color: #000000">, </span><span style="color: #001080">lat:</span><span style="color: #000000"> </span><span style="color: #098658">71</span><span style="color: #000000"> },</span>
+<span style="color: #000000">  },</span>
+
+<span style="color: #000000">  </span><span style="color: #008000">// Options</span>
+<span style="color: #000000">  {</span>
+<span style="color: #000000">    </span><span style="color: #001080">hiDPI:</span><span style="color: #000000"> </span><span style="color: #0000FF">true</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">width:</span><span style="color: #000000"> </span><span style="color: #098658">2048</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">height:</span><span style="color: #000000"> </span><span style="color: #098658">2048</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">style:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;streets-v2&#039;</span><span style="color: #000000">,</span>
+
+<span style="color: #000000">    </span><span style="color: #008000">// Extra space that will add around the bounding box, in percentage</span>
+<span style="color: #000000">    </span><span style="color: #008000">// (0.1 = 10% is actually the dafault)</span>
+<span style="color: #000000">    </span><span style="color: #001080">padding:</span><span style="color: #000000"> </span><span style="color: #098658">0.1</span>
+<span style="color: #000000">  });</span>
+</code></pre>
+			<p>Since the zoom level cannot be provided, the level of details is dictated by the size of the output image. here is an example:</p>
+			<table>
+				<thead>
+					<tr>
+						<th align="center"><code>2048 x 2048</code></th>
+						<th align="center"><code>1024 x 1024</code></th>
+					</tr>
+				</thead>
+				<tbody><tr>
+						<td align="center"><img src="images/screenshots/static-bounded-europe-2048.png" alt=""></td>
+						<td align="center"><img src="images/screenshots/static-bounded-europe-1024.png" alt=""></td>
+					</tr>
+			</tbody></table>
+			<p>As you may notice, the geo bounding box could have very different proportions than the output image size. In the following example, we place the very same bounding box around Portugal, which has a this particular strip looking shape. We also add a <code>path</code> that repeats exactely the same bounding box to show the difference between the provided bounding box and the final image. We kept the default padding of 10%:</p>
+			<table>
+				<thead>
+					<tr>
+						<th align="center"><code>2048 x 2048</code></th>
+						<th align="center"><code>1024 x 2048</code></th>
+					</tr>
+				</thead>
+				<tbody><tr>
+						<td align="center"><img src="images/screenshots/static-bounded-portugal-2048x2048.png" alt=""></td>
+						<td align="center"><img src="images/screenshots/static-bounded-portugal-1024x2048.png" alt=""></td>
+					</tr>
+			</tbody></table>
+			<p>Read more about bounded static maps on our official <a href="https://docs.maptiler.com/cloud/api/static-maps/#bounds-based-image">API documentation</a>.</p>
+			<a href="#automatic-static-maps" id="automatic-static-maps" style="color: inherit; text-decoration: none;">
+				<h3>Automatic static maps</h3>
+			</a>
+			<p>As we have seen with centered and bounded maps, providing all the parameters is nice but can be cumbersome for the simplest use cases. This is why MapTiler Cloud also provides static maps that fits automatically whatever you need to place inside: path or markers.</p>
+			<p>In the following example, we are going to load a cycling track recorded by one of our team members in Montreal, Canada. The track, originally a GPX file, was pushed to MapTiler Data and is now made avalable as a GeoJSON:</p>
+			<pre><code class="language-ts"><span style="color: #008000">// Fetching the GeoJSON</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">bikeTrack</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">data</span><span style="color: #000000">.</span><span style="color: #795E26">get</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;the-id-of-a-bike-track-in-montreal&#039;</span><span style="color: #000000">);</span>
+
+<span style="color: #008000">// Extracting the track points with the shape [[lng, lat], [lng, lat], ...]</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">trackPoints</span><span style="color: #000000"> = </span><span style="color: #001080">bikeTrack</span><span style="color: #000000">.</span><span style="color: #001080">features</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #001080">geometry</span><span style="color: #000000">.</span><span style="color: #001080">coordinates</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">]</span>
+<span style="color: #000000">  .</span><span style="color: #795E26">map</span><span style="color: #000000">(</span><span style="color: #001080">p</span><span style="color: #000000"> </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">p</span><span style="color: #000000">.</span><span style="color: #795E26">slice</span><span style="color: #000000">(</span><span style="color: #098658">0</span><span style="color: #000000">, </span><span style="color: #098658">2</span><span style="color: #000000">));</span>
+
+<span style="color: #008000">// We will need the starting point to create a nice marker</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">departure</span><span style="color: #000000"> = { </span><span style="color: #001080">lng:</span><span style="color: #000000"> </span><span style="color: #001080">trackPoints</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">][</span><span style="color: #098658">0</span><span style="color: #000000">], </span><span style="color: #001080">lat:</span><span style="color: #000000"> </span><span style="color: #001080">trackPoints</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">][</span><span style="color: #098658">1</span><span style="color: #000000">] };</span>
+
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">imageLink</span><span style="color: #000000"> = </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">staticMaps</span><span style="color: #000000">.</span><span style="color: #795E26">automatic</span><span style="color: #000000">({</span>
+<span style="color: #000000">  </span><span style="color: #008000">// hiDPI/Retina precision</span>
+<span style="color: #000000">  </span><span style="color: #001080">hiDPI:</span><span style="color: #000000"> </span><span style="color: #0000FF">true</span><span style="color: #000000">,</span>
+
+<span style="color: #000000">  </span><span style="color: #008000">// A farily large output image</span>
+<span style="color: #000000">  </span><span style="color: #001080">width:</span><span style="color: #000000"> </span><span style="color: #098658">2048</span><span style="color: #000000">,</span>
+<span style="color: #000000">  </span><span style="color: #001080">height:</span><span style="color: #000000"> </span><span style="color: #098658">1024</span><span style="color: #000000"> ,</span>
+
+<span style="color: #000000">  </span><span style="color: #008000">// A grey style on which the track will pop!</span>
+<span style="color: #000000">  </span><span style="color: #001080">style:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;streets-v2-light&#039;</span><span style="color: #000000">,</span>
+
+<span style="color: #000000">  </span><span style="color: #008000">// Draw a path with the trackpoints</span>
+<span style="color: #000000">  </span><span style="color: #001080">path:</span><span style="color: #000000"> </span><span style="color: #001080">trackPoints</span><span style="color: #000000">,</span>
+
+<span style="color: #000000">  </span><span style="color: #008000">// Adding a marker for the starting point, with a custom color</span>
+<span style="color: #000000">  </span><span style="color: #001080">marker:</span><span style="color: #000000"> {</span><span style="color: #001080">lng:</span><span style="color: #000000"> </span><span style="color: #001080">trackPoints</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">][</span><span style="color: #098658">0</span><span style="color: #000000">], </span><span style="color: #001080">lat:</span><span style="color: #000000"> </span><span style="color: #001080">trackPoints</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">][</span><span style="color: #098658">1</span><span style="color: #000000">], </span><span style="color: #001080">color:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;#0a0&#039;</span><span style="color: #000000">},</span>
+
+<span style="color: #000000">  </span><span style="color: #008000">// Showing the track in red</span>
+<span style="color: #000000">  </span><span style="color: #001080">pathStrokeColor:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;red&#039;</span><span style="color: #000000">,</span>
+<span style="color: #000000">});</span>
+</code></pre>
+			<p>And voila!</p>
+			<p><img src="images/screenshots/static-with-path.png" alt="static map with bike path"></p>
+			<blockquote>
+				<p>📣 <em><strong>Note:</strong></em> The GeoJSON for this track contains 9380 couples of coordinates, which is a lot! In order to send the track to MapTiler Cloud static maps API, the SDK simplifies the long paths while keeing a high degree of precision using a very fast <a href="https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm">Ramer-Douglas-Peucker algorithm</a>.</p>
+			</blockquote>
+			<p>Read more about bounded static maps on our official <a href="https://docs.maptiler.com/cloud/api/static-maps/#auto-fitted-image">API documentation</a>.</p>
 		</div>
 		<div style="position:relative;"><a name="typedoc-main-index" class="tsd-anchor"></a></div>
 		<section class="tsd-panel-group tsd-index-group">
@@ -4992,7 +5175,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Automatic<wbr>Static<wbr>Map<wbr>Options<span class="tsd-signature-symbol">:</span> <a href="modules.html#boundedstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">BoundedStaticMapOptions</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/c8d6cbe/src/services/staticMaps.ts#L123">src/services/staticMaps.ts:123</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/7063215/src/services/staticMaps.ts#L123">src/services/staticMaps.ts:123</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -5054,7 +5237,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Bbox<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>northEast<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol">; </span>southWest<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol"> }</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/c8d6cbe/src/generalTypes.ts#L23">src/generalTypes.ts:23</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/7063215/src/generalTypes.ts#L23">src/generalTypes.ts:23</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -5144,7 +5327,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Bounded<wbr>Static<wbr>Map<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">StaticMapBaseOptions</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>padding<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/c8d6cbe/src/services/staticMaps.ts#L115">src/services/staticMaps.ts:115</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/7063215/src/services/staticMaps.ts#L115">src/services/staticMaps.ts:115</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -5576,7 +5759,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Centered<wbr>Static<wbr>Map<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">StaticMapBaseOptions</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/c8d6cbe/src/services/staticMaps.ts#L113">src/services/staticMaps.ts:113</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/7063215/src/services/staticMaps.ts#L113">src/services/staticMaps.ts:113</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -6184,7 +6367,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Coordinates<wbr>Search<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>exports<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>limit<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>transformations<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> }</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/c8d6cbe/src/services/coordinates.ts#L6">src/services/coordinates.ts:6</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/7063215/src/services/coordinates.ts#L6">src/services/coordinates.ts:6</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-type-declaration">
@@ -7303,7 +7486,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Geocoder<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>bbox<span class="tsd-signature-symbol">?: </span><a href="modules.html#bbox" class="tsd-signature-type" data-tsd-kind="Type alias">Bbox</a><span class="tsd-signature-symbol">; </span>language<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>proximity<span class="tsd-signature-symbol">?: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol"> }</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/c8d6cbe/src/services/geocoder.ts#L6">src/services/geocoder.ts:6</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/7063215/src/services/geocoder.ts#L6">src/services/geocoder.ts:6</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-type-declaration">
@@ -8391,7 +8574,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Lng<wbr>Lat<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>lat<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>lng<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/c8d6cbe/src/generalTypes.ts#L4">src/generalTypes.ts:4</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/7063215/src/generalTypes.ts#L4">src/generalTypes.ts:4</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -8889,7 +9072,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Map<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Omit</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">maplibre.MapOptions</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;style&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;maplibreLogo&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>maptilerLogo<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>style<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/c8d6cbe/src/Map.ts#L21">src/Map.ts:21</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/7063215/src/Map.ts#L21">src/Map.ts:21</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -11936,7 +12119,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">config<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Config</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/c8d6cbe/src/config.ts#L28">src/config.ts:28</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/7063215/src/config.ts#L28">src/config.ts:28</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -11946,7 +12129,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">coordinates<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>search<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#coordinatessearchoptions" class="tsd-signature-type" data-tsd-kind="Type alias">CoordinatesSearchOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>transform<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>coordinates<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol">[]</span>, options<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">CoordinatesTransformOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/c8d6cbe/src/services/coordinates.ts#L146">src/services/coordinates.ts:146</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/7063215/src/services/coordinates.ts#L146">src/services/coordinates.ts:146</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -12030,7 +12213,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">data<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>get<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>dataId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/c8d6cbe/src/services/data.ts#L40">src/services/data.ts:40</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/7063215/src/services/data.ts#L40">src/services/data.ts:40</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -12078,7 +12261,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">geocoder<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>forward<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>reverse<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>lngLat<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/c8d6cbe/src/services/geocoder.ts#L144">src/services/geocoder.ts:144</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/7063215/src/services/geocoder.ts#L144">src/services/geocoder.ts:144</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -12163,7 +12346,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">geolocation<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>info<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/c8d6cbe/src/services/geolocation.ts#L36">src/services/geolocation.ts:36</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/7063215/src/services/geolocation.ts#L36">src/services/geolocation.ts:36</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -12205,7 +12388,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">static<wbr>Maps<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>automatic<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><a href="modules.html#automaticstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">AutomaticStaticMapOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>bounded<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>boundingBox<span class="tsd-signature-symbol">: </span><a href="modules.html#bbox" class="tsd-signature-type" data-tsd-kind="Type alias">Bbox</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#boundedstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">BoundedStaticMapOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>centered<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>center<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a>, zoom<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#centeredstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">CenteredStaticMapOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/c8d6cbe/src/services/staticMaps.ts#L435">src/services/staticMaps.ts:435</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/7063215/src/services/staticMaps.ts#L435">src/services/staticMaps.ts:435</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
