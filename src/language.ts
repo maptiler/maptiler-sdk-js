@@ -1,7 +1,7 @@
 /**
  * Languages. Note that not all the languages of this list are available but the compatibility list may be expanded in the future.
  */
-enum languages {
+enum Language {
   LATIN = "latin",
   NON_LATIN = "nonlatin",
   LOCAL = "",
@@ -188,4 +188,4 @@ enum languages {
   ZULU = "zu",
 }
 
-export { languages };
+export { Language }; 

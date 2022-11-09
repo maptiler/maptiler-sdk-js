@@ -25,8 +25,9 @@ import type {
 import { ServiceError } from "./services/ServiceError";
 
 import { config } from "./config";
-import { languages } from "./languages";
-import { units } from "./units";
+import { Language } from "./language";
+import { Unit } from "./unit";
+import { Style } from "./style"
 
 // Exporting types
 export type {
@@ -50,6 +51,7 @@ export {
   coordinates,
   data,
   staticMaps,
-  languages,
-  units,
+  Language,
+  Unit,
+  Style,
 };

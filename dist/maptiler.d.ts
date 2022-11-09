@@ -35,7 +35,7 @@ declare type Bbox = {
 /**
  * Languages. Note that not all the languages of this list are available but the compatibility list may be expanded in the future.
  */
-declare enum languages {
+declare enum Language {
     LATIN = "latin",
     NON_LATIN = "nonlatin",
     LOCAL = "",
@@ -266,18 +266,18 @@ declare class Map extends maplibre.Map {
      * This function is a short for `.setPrimaryLanguage()`
      * @param language
      */
-    setlanguage(language?: languages): void;
+    setlanguage(language?: Language): void;
     /**
      * Define the primary language of the map. Note that not all the languages shorthands provided are available.
      * @param language
      */
-    setPrimaryLanguage(language?: languages): void;
+    setPrimaryLanguage(language?: Language): void;
     /**
      * Define the secondary language of the map.
      * Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)
      * @param language
      */
-    setSecondaryLanguage(language?: languages): void;
+    setSecondaryLanguage(language?: Language): void;
 }
 
 declare type GeocoderOptions = {
@@ -576,18 +576,31 @@ interface Config {
     /**
      * The primary language, to overwrite the default language defined in the map style.
      */
-    primaryLanguage: languages | null;
+    primaryLanguage: Language | null;
     /**
      * The secondary language, to overwrite the default language defined in the map style.
      * This settings is highly dependant on the style compatibility and may not work in most cases.
      */
-    secondaryLanguage: languages | null;
+    secondaryLanguage: Language | null;
 }
 declare const config: Config;
 
-declare enum units {
+declare enum Unit {
     METRIC = 0,
     IMPERIAL = 1
 }
 
-export { AutomaticStaticMapOptions, Bbox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocoderOptions, LngLat, Map, MapOptions, ServiceError, config, coordinates, data, geocoder, geolocation, languages, staticMaps, units };
+/**
+ * Built-in styles
+ */
+declare enum Style {
+    STREETS = "streets-v2",
+    HYBRID = "hybrid",
+    SATELLITE = "satellite",
+    OUTDOOR = "outdoor",
+    BASIC = "basic-v2",
+    DARK = "streets-v2-dark",
+    LIGHT = "streets-v2-light"
+}
+
+export { AutomaticStaticMapOptions, Bbox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocoderOptions, Language, LngLat, Map, MapOptions, ServiceError, Style, Unit, config, coordinates, data, geocoder, geolocation, staticMaps };

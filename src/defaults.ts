@@ -1,4 +1,4 @@
-import { languages } from "./languages";
+import { Language } from "./language";
 
 /**
  * Some default settings for the SDK
@@ -11,8 +11,8 @@ const defaults = {
   maptilerApiURL: "https://api.maptiler.com/",
   rtlPluginURL:
     "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
-  primaryLanguage: languages.LATIN,
-  secondaryLanguage: languages.NON_LATIN,
+  primaryLanguage: Language.LATIN,
+  secondaryLanguage: Language.NON_LATIN,
 };
 
 Object.freeze(defaults);

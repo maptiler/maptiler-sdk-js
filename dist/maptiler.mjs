@@ -8,193 +8,193 @@ const config = {
   secondaryLanguage: null
 };
 
-var languages = /* @__PURE__ */ ((languages2) => {
-  languages2["LATIN"] = "latin";
-  languages2["NON_LATIN"] = "nonlatin";
-  languages2["LOCAL"] = "";
-  languages2["AFAR"] = "aa";
-  languages2["ABKHAZIAN"] = "ab";
-  languages2["AVESTAN"] = "ae";
-  languages2["AFRIKAANS"] = "af";
-  languages2["AKAN"] = "ak";
-  languages2["AMHARIC"] = "am";
-  languages2["ARAGONESE"] = "an";
-  languages2["ARABIC"] = "ar";
-  languages2["ASSAMESE"] = "as";
-  languages2["AVARIC"] = "av";
-  languages2["AYMARA"] = "ay";
-  languages2["AZERBAIJANI"] = "az";
-  languages2["BASHKIR"] = "ba";
-  languages2["BELARUSIAN"] = "be";
-  languages2["BULGARIAN"] = "bg";
-  languages2["BIHARI"] = "bh";
-  languages2["BISLAMA"] = "bi";
-  languages2["BAMBARA"] = "bm";
-  languages2["BENGALI"] = "bn";
-  languages2["TIBETAN"] = "bo";
-  languages2["BRETON"] = "br";
-  languages2["BOSNIAN"] = "bs";
-  languages2["CATALAN"] = "ca";
-  languages2["CHECHEN"] = "ce";
-  languages2["CHAMORRO"] = "ch";
-  languages2["CORSICAN"] = "co";
-  languages2["CREE"] = "cr";
-  languages2["CZECH"] = "cs";
-  languages2["CHURCH_SLAVIC"] = "cu";
-  languages2["CHUVASH"] = "cv";
-  languages2["WELSH"] = "cy";
-  languages2["DANISH"] = "da";
-  languages2["GERMAN"] = "de";
-  languages2["MALDIVIAN"] = "dv";
-  languages2["DZONGKHA"] = "dz";
-  languages2["EWE"] = "ee";
-  languages2["GREEK"] = "el";
-  languages2["ENGLISH"] = "en";
-  languages2["ESPERANTO"] = "eo";
-  languages2["SPANISH"] = "es";
-  languages2["ESTONIAN"] = "et";
-  languages2["BASQUE"] = "eu";
-  languages2["PERSIAN"] = "fa";
-  languages2["FULAH"] = "ff";
-  languages2["FINNISH"] = "fi";
-  languages2["FIJIAN"] = "fj";
-  languages2["FAROESE"] = "fo";
-  languages2["FRENCH"] = "fr";
-  languages2["WESTERN_FRISIAN"] = "fy";
-  languages2["IRISH"] = "ga";
-  languages2["GAELIC"] = "gd";
-  languages2["GALICIAN"] = "gl";
-  languages2["GUARANI"] = "gn";
-  languages2["GUJARATI"] = "gu";
-  languages2["MANX"] = "gv";
-  languages2["HAUSA"] = "ha";
-  languages2["HEBREW"] = "he";
-  languages2["HINDI"] = "hi";
-  languages2["HIRI_MOTU"] = "ho";
-  languages2["CROATIAN"] = "hr";
-  languages2["HAITIAN"] = "ht";
-  languages2["HUNGARIAN"] = "hu";
-  languages2["ARMENIAN"] = "hy";
-  languages2["HERERO"] = "hz";
-  languages2["INTERLINGUA"] = "ia";
-  languages2["INDONESIAN"] = "id";
-  languages2["INTERLINGUE"] = "ie";
-  languages2["IGBO"] = "ig";
-  languages2["SICHUAN_YI"] = "ii";
-  languages2["INUPIAQ"] = "ik";
-  languages2["IDO"] = "io";
-  languages2["ICELANDIC"] = "is";
-  languages2["ITALIAN"] = "it";
-  languages2["INUKTITUT"] = "iu";
-  languages2["JAPANESE"] = "ja";
-  languages2["JAVANESE"] = "jv";
-  languages2["GEORGIAN"] = "ka";
-  languages2["KONGO"] = "kg";
-  languages2["KIKUYU"] = "ki";
-  languages2["KUANYAMA"] = "kj";
-  languages2["KAZAKH"] = "kk";
-  languages2["KALAALLISUT"] = "kl";
-  languages2["CENTRAL_KHMER"] = "km";
-  languages2["KANNADA"] = "kn";
-  languages2["KOREAN"] = "ko";
-  languages2["KANURI"] = "kr";
-  languages2["KASHMIRI"] = "ks";
-  languages2["KURDISH"] = "ku";
-  languages2["KOMI"] = "kv";
-  languages2["CORNISH"] = "kw";
-  languages2["KIRGHIZ"] = "ky";
-  languages2["LUXEMBOURGISH"] = "lb";
-  languages2["GANDA"] = "lg";
-  languages2["LIMBURGAN"] = "li";
-  languages2["LINGALA"] = "ln";
-  languages2["LAO"] = "lo";
-  languages2["LITHUANIAN"] = "lt";
-  languages2["LUBA_KATANGA"] = "lu";
-  languages2["LATVIAN"] = "lv";
-  languages2["MALAGASY"] = "mg";
-  languages2["MARSHALLESE"] = "mh";
-  languages2["MAORI"] = "mi";
-  languages2["MACEDONIAN"] = "mk";
-  languages2["MALAYALAM"] = "ml";
-  languages2["MONGOLIAN"] = "mn";
-  languages2["MARATHI"] = "mr";
-  languages2["MALAY"] = "ms";
-  languages2["MALTESE"] = "mt";
-  languages2["BURMESE"] = "my";
-  languages2["NAURU"] = "na";
-  languages2["NORWEGIAN"] = "no";
-  languages2["NORTH_NDEBELE"] = "nd";
-  languages2["NEPALI"] = "ne";
-  languages2["NDONGA"] = "ng";
-  languages2["DUTCH"] = "nl";
-  languages2["SOUTH_NDEBELE"] = "nr";
-  languages2["NAVAJO"] = "nv";
-  languages2["CHICHEWA"] = "ny";
-  languages2["OCCITAN"] = "oc";
-  languages2["OJIBWA"] = "oj";
-  languages2["OROMO"] = "om";
-  languages2["ORIYA"] = "or";
-  languages2["OSSETIC"] = "os";
-  languages2["PANJABI"] = "pa";
-  languages2["PALI"] = "pi";
-  languages2["POLISH"] = "pl";
-  languages2["PUSHTO"] = "ps";
-  languages2["PORTUGUESE"] = "pt";
-  languages2["QUECHUA"] = "qu";
-  languages2["ROMANSH"] = "rm";
-  languages2["RUNDI"] = "rn";
-  languages2["ROMANIAN"] = "ro";
-  languages2["RUSSIAN"] = "ru";
-  languages2["KINYARWANDA"] = "rw";
-  languages2["SANSKRIT"] = "sa";
-  languages2["SARDINIAN"] = "sc";
-  languages2["SINDHI"] = "sd";
-  languages2["NORTHERN_SAMI"] = "se";
-  languages2["SANGO"] = "sg";
-  languages2["SINHALA"] = "si";
-  languages2["SLOVAK"] = "sk";
-  languages2["SLOVENIAN"] = "sl";
-  languages2["SAMOAN"] = "sm";
-  languages2["SHONA"] = "sn";
-  languages2["SOMALI"] = "so";
-  languages2["ALBANIAN"] = "sq";
-  languages2["SERBIAN"] = "sr";
-  languages2["SWATI"] = "ss";
-  languages2["SOTHO_SOUTHERN"] = "st";
-  languages2["SUNDANESE"] = "su";
-  languages2["SWEDISH"] = "sv";
-  languages2["SWAHILI"] = "sw";
-  languages2["TAMIL"] = "ta";
-  languages2["TELUGU"] = "te";
-  languages2["TAJIK"] = "tg";
-  languages2["THAI"] = "th";
-  languages2["TIGRINYA"] = "ti";
-  languages2["TURKMEN"] = "tk";
-  languages2["TAGALOG"] = "tl";
-  languages2["TSWANA"] = "tn";
-  languages2["TONGA"] = "to";
-  languages2["TURKISH"] = "tr";
-  languages2["TSONGA"] = "ts";
-  languages2["TATAR"] = "tt";
-  languages2["TWI"] = "tw";
-  languages2["TAHITIAN"] = "ty";
-  languages2["UIGHUR"] = "ug";
-  languages2["UKRAINIAN"] = "uk";
-  languages2["URDU"] = "ur";
-  languages2["UZBEK"] = "uz";
-  languages2["VENDA"] = "ve";
-  languages2["VIETNAMESE"] = "vi";
-  languages2["VOLAPUK"] = "vo";
-  languages2["WALLOON"] = "wa";
-  languages2["WOLOF"] = "wo";
-  languages2["XHOSA"] = "xh";
-  languages2["YIDDISH"] = "yi";
-  languages2["YORUBA"] = "yo";
-  languages2["ZHUANG"] = "za";
-  languages2["CHINESE"] = "zh";
-  languages2["ZULU"] = "zu";
-  return languages2;
-})(languages || {});
+var Language = /* @__PURE__ */ ((Language2) => {
+  Language2["LATIN"] = "latin";
+  Language2["NON_LATIN"] = "nonlatin";
+  Language2["LOCAL"] = "";
+  Language2["AFAR"] = "aa";
+  Language2["ABKHAZIAN"] = "ab";
+  Language2["AVESTAN"] = "ae";
+  Language2["AFRIKAANS"] = "af";
+  Language2["AKAN"] = "ak";
+  Language2["AMHARIC"] = "am";
+  Language2["ARAGONESE"] = "an";
+  Language2["ARABIC"] = "ar";
+  Language2["ASSAMESE"] = "as";
+  Language2["AVARIC"] = "av";
+  Language2["AYMARA"] = "ay";
+  Language2["AZERBAIJANI"] = "az";
+  Language2["BASHKIR"] = "ba";
+  Language2["BELARUSIAN"] = "be";
+  Language2["BULGARIAN"] = "bg";
+  Language2["BIHARI"] = "bh";
+  Language2["BISLAMA"] = "bi";
+  Language2["BAMBARA"] = "bm";
+  Language2["BENGALI"] = "bn";
+  Language2["TIBETAN"] = "bo";
+  Language2["BRETON"] = "br";
+  Language2["BOSNIAN"] = "bs";
+  Language2["CATALAN"] = "ca";
+  Language2["CHECHEN"] = "ce";
+  Language2["CHAMORRO"] = "ch";
+  Language2["CORSICAN"] = "co";
+  Language2["CREE"] = "cr";
+  Language2["CZECH"] = "cs";
+  Language2["CHURCH_SLAVIC"] = "cu";
+  Language2["CHUVASH"] = "cv";
+  Language2["WELSH"] = "cy";
+  Language2["DANISH"] = "da";
+  Language2["GERMAN"] = "de";
+  Language2["MALDIVIAN"] = "dv";
+  Language2["DZONGKHA"] = "dz";
+  Language2["EWE"] = "ee";
+  Language2["GREEK"] = "el";
+  Language2["ENGLISH"] = "en";
+  Language2["ESPERANTO"] = "eo";
+  Language2["SPANISH"] = "es";
+  Language2["ESTONIAN"] = "et";
+  Language2["BASQUE"] = "eu";
+  Language2["PERSIAN"] = "fa";
+  Language2["FULAH"] = "ff";
+  Language2["FINNISH"] = "fi";
+  Language2["FIJIAN"] = "fj";
+  Language2["FAROESE"] = "fo";
+  Language2["FRENCH"] = "fr";
+  Language2["WESTERN_FRISIAN"] = "fy";
+  Language2["IRISH"] = "ga";
+  Language2["GAELIC"] = "gd";
+  Language2["GALICIAN"] = "gl";
+  Language2["GUARANI"] = "gn";
+  Language2["GUJARATI"] = "gu";
+  Language2["MANX"] = "gv";
+  Language2["HAUSA"] = "ha";
+  Language2["HEBREW"] = "he";
+  Language2["HINDI"] = "hi";
+  Language2["HIRI_MOTU"] = "ho";
+  Language2["CROATIAN"] = "hr";
+  Language2["HAITIAN"] = "ht";
+  Language2["HUNGARIAN"] = "hu";
+  Language2["ARMENIAN"] = "hy";
+  Language2["HERERO"] = "hz";
+  Language2["INTERLINGUA"] = "ia";
+  Language2["INDONESIAN"] = "id";
+  Language2["INTERLINGUE"] = "ie";
+  Language2["IGBO"] = "ig";
+  Language2["SICHUAN_YI"] = "ii";
+  Language2["INUPIAQ"] = "ik";
+  Language2["IDO"] = "io";
+  Language2["ICELANDIC"] = "is";
+  Language2["ITALIAN"] = "it";
+  Language2["INUKTITUT"] = "iu";
+  Language2["JAPANESE"] = "ja";
+  Language2["JAVANESE"] = "jv";
+  Language2["GEORGIAN"] = "ka";
+  Language2["KONGO"] = "kg";
+  Language2["KIKUYU"] = "ki";
+  Language2["KUANYAMA"] = "kj";
+  Language2["KAZAKH"] = "kk";
+  Language2["KALAALLISUT"] = "kl";
+  Language2["CENTRAL_KHMER"] = "km";
+  Language2["KANNADA"] = "kn";
+  Language2["KOREAN"] = "ko";
+  Language2["KANURI"] = "kr";
+  Language2["KASHMIRI"] = "ks";
+  Language2["KURDISH"] = "ku";
+  Language2["KOMI"] = "kv";
+  Language2["CORNISH"] = "kw";
+  Language2["KIRGHIZ"] = "ky";
+  Language2["LUXEMBOURGISH"] = "lb";
+  Language2["GANDA"] = "lg";
+  Language2["LIMBURGAN"] = "li";
+  Language2["LINGALA"] = "ln";
+  Language2["LAO"] = "lo";
+  Language2["LITHUANIAN"] = "lt";
+  Language2["LUBA_KATANGA"] = "lu";
+  Language2["LATVIAN"] = "lv";
+  Language2["MALAGASY"] = "mg";
+  Language2["MARSHALLESE"] = "mh";
+  Language2["MAORI"] = "mi";
+  Language2["MACEDONIAN"] = "mk";
+  Language2["MALAYALAM"] = "ml";
+  Language2["MONGOLIAN"] = "mn";
+  Language2["MARATHI"] = "mr";
+  Language2["MALAY"] = "ms";
+  Language2["MALTESE"] = "mt";
+  Language2["BURMESE"] = "my";
+  Language2["NAURU"] = "na";
+  Language2["NORWEGIAN"] = "no";
+  Language2["NORTH_NDEBELE"] = "nd";
+  Language2["NEPALI"] = "ne";
+  Language2["NDONGA"] = "ng";
+  Language2["DUTCH"] = "nl";
+  Language2["SOUTH_NDEBELE"] = "nr";
+  Language2["NAVAJO"] = "nv";
+  Language2["CHICHEWA"] = "ny";
+  Language2["OCCITAN"] = "oc";
+  Language2["OJIBWA"] = "oj";
+  Language2["OROMO"] = "om";
+  Language2["ORIYA"] = "or";
+  Language2["OSSETIC"] = "os";
+  Language2["PANJABI"] = "pa";
+  Language2["PALI"] = "pi";
+  Language2["POLISH"] = "pl";
+  Language2["PUSHTO"] = "ps";
+  Language2["PORTUGUESE"] = "pt";
+  Language2["QUECHUA"] = "qu";
+  Language2["ROMANSH"] = "rm";
+  Language2["RUNDI"] = "rn";
+  Language2["ROMANIAN"] = "ro";
+  Language2["RUSSIAN"] = "ru";
+  Language2["KINYARWANDA"] = "rw";
+  Language2["SANSKRIT"] = "sa";
+  Language2["SARDINIAN"] = "sc";
+  Language2["SINDHI"] = "sd";
+  Language2["NORTHERN_SAMI"] = "se";
+  Language2["SANGO"] = "sg";
+  Language2["SINHALA"] = "si";
+  Language2["SLOVAK"] = "sk";
+  Language2["SLOVENIAN"] = "sl";
+  Language2["SAMOAN"] = "sm";
+  Language2["SHONA"] = "sn";
+  Language2["SOMALI"] = "so";
+  Language2["ALBANIAN"] = "sq";
+  Language2["SERBIAN"] = "sr";
+  Language2["SWATI"] = "ss";
+  Language2["SOTHO_SOUTHERN"] = "st";
+  Language2["SUNDANESE"] = "su";
+  Language2["SWEDISH"] = "sv";
+  Language2["SWAHILI"] = "sw";
+  Language2["TAMIL"] = "ta";
+  Language2["TELUGU"] = "te";
+  Language2["TAJIK"] = "tg";
+  Language2["THAI"] = "th";
+  Language2["TIGRINYA"] = "ti";
+  Language2["TURKMEN"] = "tk";
+  Language2["TAGALOG"] = "tl";
+  Language2["TSWANA"] = "tn";
+  Language2["TONGA"] = "to";
+  Language2["TURKISH"] = "tr";
+  Language2["TSONGA"] = "ts";
+  Language2["TATAR"] = "tt";
+  Language2["TWI"] = "tw";
+  Language2["TAHITIAN"] = "ty";
+  Language2["UIGHUR"] = "ug";
+  Language2["UKRAINIAN"] = "uk";
+  Language2["URDU"] = "ur";
+  Language2["UZBEK"] = "uz";
+  Language2["VENDA"] = "ve";
+  Language2["VIETNAMESE"] = "vi";
+  Language2["VOLAPUK"] = "vo";
+  Language2["WALLOON"] = "wa";
+  Language2["WOLOF"] = "wo";
+  Language2["XHOSA"] = "xh";
+  Language2["YIDDISH"] = "yi";
+  Language2["YORUBA"] = "yo";
+  Language2["ZHUANG"] = "za";
+  Language2["CHINESE"] = "zh";
+  Language2["ZULU"] = "zu";
+  return Language2;
+})(Language || {});
 
 const defaults = {
   mapStyle: "streets-v2",
@@ -202,8 +202,8 @@ const defaults = {
   maptilerURL: "https://www.maptiler.com/",
   maptilerApiURL: "https://api.maptiler.com/",
   rtlPluginURL: "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
-  primaryLanguage: languages.LATIN,
-  secondaryLanguage: languages.NON_LATIN
+  primaryLanguage: Language.LATIN,
+  secondaryLanguage: Language.NON_LATIN
 };
 Object.freeze(defaults);
 
@@ -281,6 +281,85 @@ function enableRTL() {
   }
 }
 
+var version = 8;
+var id = "f0e4ff8c-a9e4-414e-9f4d-7938762c948f";
+var name = "Satellite no label";
+var sources = {
+	satellite: {
+		url: "https://api.maptiler.com/tiles/satellite-v2/tiles.json?key={key}",
+		tileSize: 512,
+		type: "raster"
+	},
+	maptiler_attribution: {
+		attribution: "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+		type: "vector"
+	}
+};
+var layers = [
+	{
+		id: "satellite",
+		type: "raster",
+		source: "satellite",
+		minzoom: 0,
+		layout: {
+			visibility: "visible"
+		},
+		paint: {
+			"raster-opacity": 1
+		},
+		filter: [
+			"all"
+		]
+	}
+];
+var metadata = {
+	"maptiler:copyright": "This style was generated on MapTiler Cloud. Usage outside of MapTiler Cloud or MapTiler Server requires valid MapTiler Data package: https://www.maptiler.com/data/ -- please contact us."
+};
+var glyphs = "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key={key}";
+var bearing = 0;
+var pitch = 0;
+var center = [
+	-78.55323097748868,
+	24.03141891413972
+];
+var zoom = 5.066147709178387;
+var satelliteBuiltin = {
+	version: version,
+	id: id,
+	name: name,
+	sources: sources,
+	layers: layers,
+	metadata: metadata,
+	glyphs: glyphs,
+	bearing: bearing,
+	pitch: pitch,
+	center: center,
+	zoom: zoom
+};
+
+var Style = /* @__PURE__ */ ((Style2) => {
+  Style2["STREETS"] = "streets-v2";
+  Style2["HYBRID"] = "hybrid";
+  Style2["SATELLITE"] = "satellite";
+  Style2["OUTDOOR"] = "outdoor";
+  Style2["BASIC"] = "basic-v2";
+  Style2["DARK"] = "streets-v2-dark";
+  Style2["LIGHT"] = "streets-v2-light";
+  return Style2;
+})(Style || {});
+const builtInStyles = {};
+builtInStyles["satellite" /* SATELLITE */] = satelliteBuiltin;
+function isBuiltinStyle(styleId) {
+  return styleId in builtInStyles;
+}
+function prepareBuiltinStyle(styleId, apiKey) {
+  if (!isBuiltinStyle(styleId)) {
+    return null;
+  }
+  const fullTextVersion = JSON.stringify(builtInStyles[styleId]).replace(/{key}/gi, apiKey);
+  return JSON.parse(fullTextVersion);
+}
+
 var __defProp = Object.defineProperty;
 var __defProps = Object.defineProperties;
 var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
@@ -322,10 +401,17 @@ var __async$4 = (__this, __arguments, generator) => {
 };
 class Map extends maplibre.Map {
   constructor(options) {
-    let style = expandMapStyle(defaults.mapStyle);
+    let style;
     if ("style" in options) {
-      style = expandMapStyle(options.style);
+      if (typeof style === "string" && isBuiltinStyle(style)) {
+        style = prepareBuiltinStyle(style, config.apiKey);
+      } else if (typeof style === "string") {
+        style = expandMapStyle(style);
+      } else {
+        style = options.style;
+      }
     } else {
+      style = expandMapStyle(defaults.mapStyle);
       vlog(`Map style not provided, backing up to ${defaults.mapStyle}`);
     }
     super(__spreadProps(__spreadValues({}, options), { style, maplibreLogo: false }));
@@ -371,8 +457,13 @@ class Map extends maplibre.Map {
     }));
   }
   setStyle(style, options) {
-    const expandedStyle = style ? expandMapStyle(style) : null;
-    return super.setStyle(expandedStyle, options);
+    let tempStyle = style;
+    if (typeof style === "string" && isBuiltinStyle(style)) {
+      tempStyle = prepareBuiltinStyle(style, config.apiKey);
+    } else if (typeof style === "string") {
+      tempStyle = expandMapStyle(style);
+    }
+    return super.setStyle(tempStyle, options);
   }
   setlanguage(language = defaults.primaryLanguage) {
     this.setPrimaryLanguage(language);
@@ -1035,11 +1126,11 @@ const staticMaps = {
   automatic
 };
 
-var units = /* @__PURE__ */ ((units2) => {
-  units2[units2["METRIC"] = 0] = "METRIC";
-  units2[units2["IMPERIAL"] = 1] = "IMPERIAL";
-  return units2;
-})(units || {});
+var Unit = /* @__PURE__ */ ((Unit2) => {
+  Unit2[Unit2["METRIC"] = 0] = "METRIC";
+  Unit2[Unit2["IMPERIAL"] = 1] = "IMPERIAL";
+  return Unit2;
+})(Unit || {});
 
-export { Map, ServiceError, config, coordinates, data, geocoder, geolocation, languages, staticMaps, units };
+export { Language, Map, ServiceError, Style, Unit, config, coordinates, data, geocoder, geolocation, staticMaps };
 //# sourceMappingURL=maptiler.mjs.map

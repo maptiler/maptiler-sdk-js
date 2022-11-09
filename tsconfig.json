@@ -3,7 +3,8 @@
     "moduleResolution": "Node",
     "target": "es6",
     "declaration": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true
   }
   
 }

@@ -1,0 +1,44 @@
+{
+  "version": 8,
+  "id": "f0e4ff8c-a9e4-414e-9f4d-7938762c948f",
+  "name": "Satellite no label",
+  "sources": {
+    "satellite": {
+      "url": "https://api.maptiler.com/tiles/satellite-v2/tiles.json?key={key}",
+      "tileSize": 512,
+      "type": "raster"
+    },
+    "maptiler_attribution": {
+      "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+      "type": "vector"
+    }
+  },
+  "layers": [
+    {
+      "id": "satellite",
+      "type": "raster",
+      "source": "satellite",
+      "minzoom": 0.0,
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "raster-opacity": 1
+      },
+      "filter": [
+        "all"
+      ]
+    }
+  ],
+  "metadata": {
+    "maptiler:copyright": "This style was generated on MapTiler Cloud. Usage outside of MapTiler Cloud or MapTiler Server requires valid MapTiler Data package: https://www.maptiler.com/data/ -- please contact us."
+  },
+  "glyphs": "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key={key}",
+  "bearing": 0.0,
+  "pitch": 0.0,
+  "center": [
+    -78.55323097748868,
+    24.03141891413972
+  ],
+  "zoom": 5.066147709178387
+}

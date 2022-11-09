@@ -1,4 +1,4 @@
-import { languages } from "./languages";
+import { Language } from "./language";
 
 /**
  * The config object old some values related to the user settings
@@ -16,14 +16,15 @@ export interface Config {
   /**
    * The primary language, to overwrite the default language defined in the map style.
    */
-  primaryLanguage: languages | null;
+  primaryLanguage: Language | null;
 
   /**
    * The secondary language, to overwrite the default language defined in the map style.
    * This settings is highly dependant on the style compatibility and may not work in most cases.
    */
-  secondaryLanguage: languages | null;
+  secondaryLanguage: Language | null;
 }
+
 
 const config: Config = {
   apiKey: "Not defined yet.",

@@ -4,6 +4,7 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 import globals from "rollup-plugin-node-globals";
 import commonjs from "@rollup/plugin-commonjs";
 import copy from "rollup-plugin-copy";
+import json from '@rollup/plugin-json';
 
 const outputName = "maptiler"
 
@@ -20,7 +21,7 @@ const copyCssPlugin = copy({
 const bundles = [
   // ES module, not minified + sourcemap
   {
-    plugins: [copyCssPlugin, esbuild()],
+    plugins: [copyCssPlugin, json(), esbuild()],
     output: [
       {
         file: `dist/${outputName}.mjs`,
@@ -42,6 +43,7 @@ const bundles = [
   //     nodeResolve(), // for the standalone UMD, we want to resolve so that the bundle contains all the dep.
   //     commonjs({ include: 'node_modules/**' }),
   //     globals(),
+  //     json(),
   //     esbuild({
   //       // include: ['src/services/*.ts'],
   //       // exclude: ['*'],
@@ -68,6 +70,7 @@ const bundles = [
       nodeResolve(), // for the standalone UMD, we want to resolve so that the bundle contains all the dep.
       commonjs({ include: "node_modules/**" }),
       globals(),
+      json(),
       esbuild(),
     ],
     output: [
@@ -101,6 +104,7 @@ if (process.env.NODE_ENV === "production") {
     {
       plugins: [
         copyCssPlugin,
+        json(),
         esbuild({
           sourceMap: false,
           minify: true,

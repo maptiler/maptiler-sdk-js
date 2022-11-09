@@ -1,9 +1,10 @@
 import * as maplibre from "maplibre-gl";
-import { config } from "./config";
+import { config } from "./config"; 
 import { defaults } from "./defaults";
 import { CustomLogoControl } from "./CustomLogoControl";
 import { enableRTL, expandMapStyle, vlog } from "./tools";
-import { languages } from "./languages";
+import { Language } from "./language";
+import { isBuiltinStyle, prepareBuiltinStyle, Style } from "./style";
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (
@@ -41,11 +42,20 @@ export class Map extends maplibre.Map {
   private isStyleInitialized = false;
 
   constructor(options: MapOptions) {
-    let style = expandMapStyle(defaults.mapStyle);
+    let style;
 
     if ("style" in options) {
-      style = expandMapStyle(options.style as string);
+      if (typeof style === "string" && isBuiltinStyle(style)) {
+        style = prepareBuiltinStyle(style as Style, config.apiKey);
+      } else
+      if (typeof style === "string") {
+        style = expandMapStyle(style);
+      } else {
+        style = options.style;
+      }
+
     } else {
+      style = expandMapStyle(defaults.mapStyle);
       vlog(`Map style not provided, backing up to ${defaults.mapStyle}`);
     }
 
@@ -129,8 +139,17 @@ export class Map extends maplibre.Map {
     style: maplibre.StyleSpecification | string | null,
     options?: StyleSwapOptions & maplibre.StyleOptions
   ) {
-    const expandedStyle = style ? expandMapStyle(style) : null;
-    return super.setStyle(expandedStyle, options);
+
+    let tempStyle = style;
+
+    if (typeof style === "string" && isBuiltinStyle(style)) {
+      tempStyle = prepareBuiltinStyle(style as Style, config.apiKey);
+    } else
+    if (typeof style === "string") {
+      tempStyle = expandMapStyle(style);
+    } 
+
+    return super.setStyle(tempStyle, options);
   }
 
   /**
@@ -138,7 +157,7 @@ export class Map extends maplibre.Map {
    * This function is a short for `.setPrimaryLanguage()`
    * @param language
    */
-  setlanguage(language: languages = defaults.primaryLanguage) {
+  setlanguage(language: Language = defaults.primaryLanguage) {
     this.setPrimaryLanguage(language);
   }
 
@@ -146,7 +165,7 @@ export class Map extends maplibre.Map {
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
    * @param language
    */
-  setPrimaryLanguage(language: languages = defaults.primaryLanguage) {
+  setPrimaryLanguage(language: Language = defaults.primaryLanguage) {
     // We want to keep track of it to apply the language again when changing the style
     config.primaryLanguage = language;
 
@@ -301,7 +320,7 @@ export class Map extends maplibre.Map {
    * Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)
    * @param language
    */
-  setSecondaryLanguage(language: languages = defaults.secondaryLanguage) {
+  setSecondaryLanguage(language: Language = defaults.secondaryLanguage) {
     // We want to keep track of it to apply the language again when changing the style
     config.secondaryLanguage = language;
 
