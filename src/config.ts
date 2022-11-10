@@ -27,9 +27,24 @@ export interface Config {
 
 
 const config: Config = {
+  /**
+   * The MapTiler Cloud API key. Get one with a free account: https://www.maptiler.com/ 
+   */
   apiKey: "Not defined yet.",
+
+  /**
+   * Enable of disable the verbose mode
+   */
   verbose: false,
+
+  /**
+   * The primary language. Use the `Language` enum, it's easier!
+   */
   primaryLanguage: null,
+
+  /**
+   * The secondary language. Not compatible with all the styles
+   */
   secondaryLanguage: null,
 };
 

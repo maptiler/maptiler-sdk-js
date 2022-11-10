@@ -705,7 +705,7 @@ function reverse(_0) {
     return obj;
   });
 }
-const geocoder = {
+const geocoding = {
   forward,
   reverse
 };
@@ -1134,5 +1134,5 @@ var Unit = /* @__PURE__ */ ((Unit2) => {
   return Unit2;
 })(Unit || {});
 
-export { Language, Map, ServiceError, Style, Unit, config, coordinates, data, geocoder, geolocation, staticMaps };
+export { Language, Map, ServiceError, Style, Unit, config, coordinates, data, geocoding, geolocation, staticMaps };
 //# sourceMappingURL=maptiler.mjs.map

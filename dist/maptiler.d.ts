@@ -280,7 +280,7 @@ declare class Map extends maplibre.Map {
     setSecondaryLanguage(language?: Language): void;
 }
 
-declare type GeocoderOptions = {
+declare type GeocodingOptions = {
     /**
      * Only search for results in the specified area.
      */
@@ -303,7 +303,7 @@ declare type GeocoderOptions = {
  * @param options
  * @returns
  */
-declare function forward(query: any, options?: GeocoderOptions): Promise<any>;
+declare function forward(query: any, options?: GeocodingOptions): Promise<any>;
 /**
  * Perform a reverse geocoding query to MapTiler API.
  * Providing a longitude and latitude, this function returns a set of human readable information abou this place (country, city, street, etc.)
@@ -312,13 +312,13 @@ declare function forward(query: any, options?: GeocoderOptions): Promise<any>;
  * @param options
  * @returns
  */
-declare function reverse(lngLat: LngLat, options?: GeocoderOptions): Promise<any>;
+declare function reverse(lngLat: LngLat, options?: GeocodingOptions): Promise<any>;
 /**
- * The **geocoder** namespace contains asynchronous functions to call the [MapTiler Geocoding API](https://docs.maptiler.com/cloud/api/geocoding/).
- * The **Geocoder API** provides ways to get geographic coordinates from a human-readable search query of a place (forward geocoding)
+ * The **geocoding** namespace contains asynchronous functions to call the [MapTiler Geocoding API](https://docs.maptiler.com/cloud/api/geocoding/).
+ * The **Geocoding API** provides ways to get geographic coordinates from a human-readable search query of a place (forward geocoding)
  * and to get the location details (country, city, street, etc.) from a geographic coordinate (reverse geocoding);
  */
-declare const geocoder: {
+declare const geocoding: {
     forward: typeof forward;
     reverse: typeof reverse;
 };
@@ -603,4 +603,4 @@ declare enum Style {
     LIGHT = "streets-v2-light"
 }
 
-export { AutomaticStaticMapOptions, Bbox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocoderOptions, Language, LngLat, Map, MapOptions, ServiceError, Style, Unit, config, coordinates, data, geocoder, geolocation, staticMaps };
+export { AutomaticStaticMapOptions, Bbox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, Language, LngLat, Map, MapOptions, ServiceError, Style, Unit, config, coordinates, data, geocoding, geolocation, staticMaps };

@@ -779,7 +779,7 @@
 	    return obj;
 	  });
 	}
-	const geocoder = {
+	const geocoding = {
 	  forward,
 	  reverse
 	};
@@ -1216,7 +1216,7 @@
 	exports.config = config;
 	exports.coordinates = coordinates;
 	exports.data = data;
-	exports.geocoder = geocoder;
+	exports.geocoding = geocoding;
 	exports.geolocation = geolocation;
 	exports.staticMaps = staticMaps;
 

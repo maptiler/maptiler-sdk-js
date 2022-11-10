@@ -9,8 +9,8 @@ import { Map } from "./Map";
 import type { MapOptions } from "./Map";
 
 // Importing services
-import { geocoder } from "./services/geocoder";
-import type { GeocoderOptions } from "./services/geocoder";
+import { geocoding } from "./services/geocoding";
+import type { GeocodingOptions } from "./services/geocoding";
 import { geolocation } from "./services/geolocation";
 import { coordinates } from "./services/coordinates";
 import type { CoordinatesSearchOptions } from "./services/coordinates";
@@ -33,7 +33,7 @@ import { Style } from "./style"
 export type {
   LngLat,
   MapOptions,
-  GeocoderOptions,
+  GeocodingOptions,
   Bbox,
   CoordinatesSearchOptions,
   CenteredStaticMapOptions,
@@ -46,7 +46,7 @@ export {
   Map,
   config,
   ServiceError,
-  geocoder,
+  geocoding,
   geolocation,
   coordinates,
   data,

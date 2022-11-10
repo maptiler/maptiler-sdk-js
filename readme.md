@@ -4,15 +4,22 @@
 </p>
 
 <p align="center" style="color: #AAA">
-  The Javascript/TypeScript map SDK tailored for MapTiler Cloud
+  The Javascript/TypeScript map SDK tailored for <a href="https://www.maptiler.com/cloud/">MapTiler Cloud</a>
 </p>
 
 <p align="center">
-  <img src="images/TS-logo.svg" width="20px">
   <img src="images/JS-logo.svg" width="20px">
+  <img src="images/TS-logo.svg" width="20px">
   <img src="https://img.shields.io/npm/v/@maptiler/sdk"></img>
   <img src="https://img.shields.io/twitter/follow/maptiler?style=social"></img>
 </p>
+
+# What and why?
+**MapTiler JS SDK** extends Maplibre GL JS, exposes all its features and adds new ones one top. As a service, [MapTiler Cloud](https://www.maptiler.com/cloud/) provides all the data required to fuel a complete web mapping experience: vector tiles, satellite rasters tile, DEM with Terrain RGB, custom styles with editor, etc. And all these data are already being used by the community.  
+
+**Why creating a new SDK then?** To make things simpler for developers! With **MapTiler JS SDK**, no need to load external plugins for the most basic things, copy-paste complex datasource URLs or lookup the syntax to enable 3D terrain every time you start a project. All this is built-in, loaded when you need it, or exposed with simple functions. Under the hood, this SDK is opinionated as it's being fed by [MapTiler Cloud](https://www.maptiler.com/cloud/) data, but keep in mind that its Maplibre core makes it 100% compatible with other sources.
+
+In addition, **MapTiler JS SDK** provides well documented and easy-to-use wrapper functions to the [MapTiler Cloud API services](https://docs.maptiler.com/cloud/api) such as: geocoding, static maps, geolocation as well as a search engine for coordinate reference systems and transforming coordinates from one CRS to another.
 
 # Install
 ```shell
@@ -107,7 +114,8 @@ map.setStyle("c912ffc8-2360-487a-973b-59d037fb15b8");
 
 Or in its extended form:
 ```ts
-map.setStyle("https://api.maptiler.com/maps/c912ffc8-2360-487a-973b-59d037fb15b8/style.json?key=bod4IIn9bwK8mnZIk49v");
+map.setStyle("https://api.maptiler.com/maps/c912ffc8-2360-487a-973b-59d037fb15b8/style.json");
+// this could be suffixed with the API token as well
 ```
 
 And can even be provided in the URI form:
@@ -130,7 +138,12 @@ Some style, developped in-house as well as by the community, may support a secon
 map.setSecondaryLanguage(maptiler.languages.NON_LATIN);
 ```
 
+Here is a sample of some compatible languages:
+![](images/screenshots/multilang.gif)
+
 > 📣 *__Note:__* the `Map` method `.setLanguage()` is shorthand for `.setPrimaryLanguage()`. Use the one that makes more sense to your usage.
+
+> 📣 *__Note 2:__* Not all the labels are available in every languages. Depending on the style settings, a fallback to `maptiler.Language.LATIN` is likely tro happen.
 
 
 # Built-in support for right-to-left languages
@@ -144,12 +157,12 @@ Languages that are written right-to-left such as arabic and hebrew are fully sup
 # Easy access to MapTiler Cloud API
 A map SDK is not only about maps! Here is the list of service wrapper functions that are built-in:
 
-## 🔍 Geocoder
+## 🔍 Geocoding
 ### Forward
-You want to know the longitude and latitude of a specific place, use the forward geocoder:
+You want to know the longitude and latitude of a specific place, use the forward geocoding:
 ```ts
 // in an async function, or as a 'thenable':
-const result = await maptiler.geocoder.forward('paris');
+const result = await maptiler.geocoding.forward('paris');
 ```
 You can provide some options such as:
 - the proximity, given a lon-lat position, to sort the results
@@ -162,7 +175,7 @@ Read more about forward geocoding on our official [API documentation](https://do
 You wan to tknow the name of a place, given a longitude-latitude? Use the reverse geocoding:
 ```ts
 // in an async function, or as a 'thenable':
-const result = await maptiler.geocoder.reverse({ lng: 6.249638, lat: 46.402056 });
+const result = await maptiler.geocoding.reverse({ lng: 6.249638, lat: 46.402056 });
 ```
 The same option object as the forward geocoding can be provided.
 
