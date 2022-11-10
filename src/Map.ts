@@ -1,5 +1,5 @@
 import * as maplibre from "maplibre-gl";
-import { config } from "./config"; 
+import { config } from "./config";
 import { defaults } from "./defaults";
 import { CustomLogoControl } from "./CustomLogoControl";
 import { enableRTL, expandMapStyle, vlog } from "./tools";
@@ -47,13 +47,11 @@ export class Map extends maplibre.Map {
     if ("style" in options) {
       if (typeof style === "string" && isBuiltinStyle(style)) {
         style = prepareBuiltinStyle(style as Style, config.apiKey);
-      } else
-      if (typeof style === "string") {
+      } else if (typeof style === "string") {
         style = expandMapStyle(style);
       } else {
         style = options.style;
       }
-
     } else {
       style = expandMapStyle(defaults.mapStyle);
       vlog(`Map style not provided, backing up to ${defaults.mapStyle}`);
@@ -139,18 +137,13 @@ export class Map extends maplibre.Map {
     style: maplibre.StyleSpecification | string | null,
     options?: StyleSwapOptions & maplibre.StyleOptions
   ) {
-
     let tempStyle = style;
-
-    console.log('DEBUG02');
-    
 
     if (typeof style === "string" && isBuiltinStyle(style)) {
       tempStyle = prepareBuiltinStyle(style as Style, config.apiKey);
-    } else
-    if (typeof style === "string") {
+    } else if (typeof style === "string") {
       tempStyle = expandMapStyle(style);
-    } 
+    }
 
     return super.setStyle(tempStyle, options);
   }

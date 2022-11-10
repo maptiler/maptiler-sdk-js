@@ -25,10 +25,9 @@ export interface Config {
   secondaryLanguage: Language | null;
 }
 
-
 const config: Config = {
   /**
-   * The MapTiler Cloud API key. Get one with a free account: https://www.maptiler.com/ 
+   * The MapTiler Cloud API key. Get one with a free account: https://www.maptiler.com/
    */
   apiKey: "Not defined yet.",
 

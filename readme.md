@@ -4,7 +4,7 @@
 </p>
 
 <p align="center" style="color: #AAA">
-  The Javascript/TypeScript map SDK tailored for <a href="https://www.maptiler.com/cloud/">MapTiler Cloud</a>
+  The Javascript & TypeScript map SDK tailored for <a href="https://www.maptiler.com/cloud/">MapTiler Cloud</a>
 </p>
 
 <p align="center">
@@ -15,7 +15,7 @@
 </p>
 
 # What and why?
-**MapTiler JS SDK** extends Maplibre GL JS, exposes all its features and adds new ones one top. As a service, [MapTiler Cloud](https://www.maptiler.com/cloud/) provides all the data required to fuel a complete web mapping experience: vector tiles, satellite rasters tile, DEM with Terrain RGB, custom styles with editor, etc. And all these data are already being used by the community.  
+**MapTiler JS SDK** extends Maplibre GL JS, exposes all its features and adds new ones one top. As a service, [MapTiler Cloud](https://www.maptiler.com/cloud/) provides all the data required to fuel a complete web mapping experience: vector tiles, satellite raster tiles, DEM with Terrain RGB, custom styles with editor, etc. And all these data are already being used by the community.  
 
 **Why creating a new SDK then?** To make things simpler for developers! With **MapTiler JS SDK**, no need to load external plugins for the most basic things, copy-paste complex datasource URLs or lookup the syntax to enable 3D terrain every time you start a project. All this is built-in, loaded when you need it, or exposed with simple functions. Under the hood, this SDK is opinionated as it's being fed by [MapTiler Cloud](https://www.maptiler.com/cloud/) data, but keep in mind that its Maplibre core makes it 100% compatible with other sources.
 

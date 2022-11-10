@@ -34,7 +34,7 @@ export function expandMapStyle(style): string {
     // The style could also possibly just be the name of the style without any URI style
     expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
   }
-  
+
   // appending the token if necessary
   if (!expandedStyle.includes("key=")) {
     expandedStyle = `${expandedStyle}?key=${config.apiKey}`;
@@ -42,7 +42,6 @@ export function expandMapStyle(style): string {
 
   return expandedStyle;
 }
-
 
 export function enableRTL() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

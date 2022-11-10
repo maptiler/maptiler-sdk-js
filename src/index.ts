@@ -27,7 +27,7 @@ import { ServiceError } from "./services/ServiceError";
 import { config } from "./config";
 import { Language } from "./language";
 import { Unit } from "./unit";
-import { Style } from "./style"
+import { Style } from "./style";
 
 // Exporting types
 export type {

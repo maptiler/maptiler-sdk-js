@@ -6,14 +6,14 @@ import commonjs from "@rollup/plugin-commonjs";
 import copy from "rollup-plugin-copy";
 import json from '@rollup/plugin-json';
 
-const outputName = "maptiler"
+const outputName = "maptiler-js-sdk"
 
 const copyCssPlugin = copy({
   targets: [
     {
       src: "node_modules/maplibre-gl/dist/maplibre-gl.css",
       dest: "dist",
-      rename: "maptiler.css",
+      rename: `${outputName}.css`,
     },
   ],
 });
@@ -75,7 +75,7 @@ const bundles = [
     ],
     output: [
       {
-        name: outputName,
+        name: "maptilerSDK",
         file: `dist/${outputName}.umd.js`,
         format: "umd",
         sourcemap: true,
@@ -118,7 +118,32 @@ if (process.env.NODE_ENV === "production") {
       ],
       input: "src/index.ts",
       external: ["maplibre-gl"],
-    }
+    },
+    {
+      plugins: [
+        copyCssPlugin,
+        nodeResolve(), // for the standalone UMD, we want to resolve so that the bundle contains all the dep.
+        commonjs({ include: "node_modules/**" }),
+        globals(),
+        json(),
+        esbuild({
+          sourceMap: false,
+          minify: true,
+        }),
+      ],
+      output: [
+        {
+          name: "maptilerSDK",
+          file: `dist/${outputName}.umd.min.js`,
+          format: "umd",
+          sourcemap: true,
+        },
+      ],
+      input: "src/index.ts",
+      watch: {
+        include: "src/**",
+      },
+    },
   );
 }
 

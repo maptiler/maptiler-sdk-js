@@ -1,10 +1,10 @@
 {
-  "name": "@maptiler/sdk",
+  "name": "@maptiler/maptiler-js-sdk",
   "version": "1.0.0",
-  "description": "The frontend map SDK tailored for MapTiler Cloud",
-  "module": "dist/maptiler.mjs",
-  "types": "dist/maptiler.d.ts",
-  "style": "dist/maptiler.css",
+  "description": "The Javascript & TypeScript map SDK tailored for MapTiler Cloud",
+  "module": "dist/maptiler-js-sdk.mjs",
+  "types": "dist/maptiler-js-sdk.d.ts",
+  "style": "dist/maptiler-js-sdk.css",
   "type": "module",
   "scripts": {
     "build": "NODE_ENV=production rollup -c",

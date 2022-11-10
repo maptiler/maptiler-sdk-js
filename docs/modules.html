@@ -3734,7 +3734,7 @@ img {
 			<a href="modules.html#geojsonsourcespecification" class="tsd-kind-icon">GeoJSONSource<wbr>Specification</a>
 		</li>
 		<li class=" tsd-kind-type-alias">
-			<a href="modules.html#geocoderoptions" class="tsd-kind-icon">Geocoder<wbr>Options</a>
+			<a href="modules.html#geocodingoptions" class="tsd-kind-icon">Geocoding<wbr>Options</a>
 		</li>
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="modules.html#geolocateoptions" class="tsd-kind-icon">Geolocate<wbr>Options</a>
@@ -4199,7 +4199,7 @@ img {
 			<a href="modules.html#data" class="tsd-kind-icon">data</a>
 		</li>
 		<li class=" tsd-kind-variable">
-			<a href="modules.html#geocoder" class="tsd-kind-icon">geocoder</a>
+			<a href="modules.html#geocoding" class="tsd-kind-icon">geocoding</a>
 		</li>
 		<li class=" tsd-kind-variable">
 			<a href="modules.html#geolocation" class="tsd-kind-icon">geolocation</a>
@@ -4216,16 +4216,20 @@ img {
 				<img src="images/maptiler-sdk-logo.svg" width="400px">
 			</p>
 			<p align="center" style="color: #AAA">
-				The Javascript/TypeScript map SDK tailored for MapTiler Cloud
+				The Javascript & TypeScript map SDK tailored for <a href="https://www.maptiler.com/cloud/">MapTiler Cloud</a>
 			</p>
 			<p align="center">
-				<img src="images/TS-logo.svg" width="20px">
 				<img src="images/JS-logo.svg" width="20px">
-			</p>
-			<p align="center">
+				<img src="images/TS-logo.svg" width="20px">
 				<img src="https://img.shields.io/npm/v/@maptiler/sdk"></img>
 				<img src="https://img.shields.io/twitter/follow/maptiler?style=social"></img>
 			</p>
+			<a href="#what-and-why" id="what-and-why" style="color: inherit; text-decoration: none;">
+				<h1>What and why?</h1>
+			</a>
+			<p><strong>MapTiler JS SDK</strong> extends Maplibre GL JS, exposes all its features and adds new ones one top. As a service, <a href="https://www.maptiler.com/cloud/">MapTiler Cloud</a> provides all the data required to fuel a complete web mapping experience: vector tiles, satellite raster tiles, DEM with Terrain RGB, custom styles with editor, etc. And all these data are already being used by the community.  </p>
+			<p><strong>Why creating a new SDK then?</strong> To make things simpler for developers! With <strong>MapTiler JS SDK</strong>, no need to load external plugins for the most basic things, copy-paste complex datasource URLs or lookup the syntax to enable 3D terrain every time you start a project. All this is built-in, loaded when you need it, or exposed with simple functions. Under the hood, this SDK is opinionated as it&#39;s being fed by <a href="https://www.maptiler.com/cloud/">MapTiler Cloud</a> data, but keep in mind that its Maplibre core makes it 100% compatible with other sources.</p>
+			<p>In addition, <strong>MapTiler JS SDK</strong> provides well documented and easy-to-use wrapper functions to the <a href="https://docs.maptiler.com/cloud/api">MapTiler Cloud API services</a> such as: geocoding, static maps, geolocation as well as a search engine for coordinate reference systems and transforming coordinates from one CRS to another.</p>
 			<a href="#install" id="install" style="color: inherit; text-decoration: none;">
 				<h1>Install</h1>
 			</a>
@@ -4341,7 +4345,17 @@ img {
 				<img title="voyager" src="images/screenshots/style-voyager.png" width="12%"></img>
 				<img title="winter" src="images/screenshots/style-winter.png" width="12%"></img>
 			</p>
-			<p>And finally, you can use your own custom style TODO <a href="https://cloud.maptiler.com/maps/">https://cloud.maptiler.com/maps/</a></p>
+			<p>And finally, you can use your own custom styles designed with <a href="https://cloud.maptiler.com/maps/">our style editor</a>. Every custom style is given a unique ID, for instance: <code>c912ffc8-2360-487a-973b-59d037fb15b8</code>.</p>
+			<p>This ID can be provided as such:</p>
+			<pre><code class="language-ts"><span style="color: #001080">map</span><span style="color: #000000">.</span><span style="color: #795E26">setStyle</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;c912ffc8-2360-487a-973b-59d037fb15b8&quot;</span><span style="color: #000000">);</span>
+</code></pre>
+			<p>Or in its extended form:</p>
+			<pre><code class="language-ts"><span style="color: #001080">map</span><span style="color: #000000">.</span><span style="color: #795E26">setStyle</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;https://api.maptiler.com/maps/c912ffc8-2360-487a-973b-59d037fb15b8/style.json&quot;</span><span style="color: #000000">);</span>
+<span style="color: #008000">// this could be suffixed with the API token as well</span>
+</code></pre>
+			<p>And can even be provided in the URI form:</p>
+			<pre><code class="language-ts"><span style="color: #001080">map</span><span style="color: #000000">.</span><span style="color: #795E26">setStyle</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;maptiler://c912ffc8-2360-487a-973b-59d037fb15b8&quot;</span><span style="color: #000000">);</span>
+</code></pre>
 			<a href="#easy-language-switching" id="easy-language-switching" style="color: inherit; text-decoration: none;">
 				<h1>Easy language switching</h1>
 			</a>
@@ -4352,8 +4366,13 @@ img {
 			<p>Some style, developped in-house as well as by the community, may support a secondary language. In this case, you can also update it:</p>
 			<pre><code class="language-ts"><span style="color: #001080">map</span><span style="color: #000000">.</span><span style="color: #795E26">setSecondaryLanguage</span><span style="color: #000000">(</span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">languages</span><span style="color: #000000">.</span><span style="color: #0070C1">NON_LATIN</span><span style="color: #000000">);</span>
 </code></pre>
+			<p>Here is a sample of some compatible languages:
+			<img src="images/screenshots/multilang.gif" alt=""></p>
 			<blockquote>
 				<p>📣 <em><strong>Note:</strong></em> the <code>Map</code> method <code>.setLanguage()</code> is shorthand for <code>.setPrimaryLanguage()</code>. Use the one that makes more sense to your usage.</p>
+			</blockquote>
+			<blockquote>
+				<p>📣 <em><strong>Note 2:</strong></em> Not all the labels are available in every languages. Depending on the style settings, a fallback to <code>maptiler.Language.LATIN</code> is likely tro happen.</p>
 			</blockquote>
 			<a href="#built-in-support-for-right-to-left-languages" id="built-in-support-for-right-to-left-languages" style="color: inherit; text-decoration: none;">
 				<h1>Built-in support for right-to-left languages</h1>
@@ -4367,15 +4386,15 @@ img {
 				<h1>Easy access to MapTiler Cloud API</h1>
 			</a>
 			<p>A map SDK is not only about maps! Here is the list of service wrapper functions that are built-in:</p>
-			<a href="#🔍-geocoder" id="🔍-geocoder" style="color: inherit; text-decoration: none;">
-				<h2>🔍 Geocoder</h2>
+			<a href="#🔍-geocoding" id="🔍-geocoding" style="color: inherit; text-decoration: none;">
+				<h2>🔍 Geocoding</h2>
 			</a>
 			<a href="#forward" id="forward" style="color: inherit; text-decoration: none;">
 				<h3>Forward</h3>
 			</a>
-			<p>You want to know the longitude and latitude of a specific place, use the forward geocoder:</p>
+			<p>You want to know the longitude and latitude of a specific place, use the forward geocoding:</p>
 			<pre><code class="language-ts"><span style="color: #008000">// in an async function, or as a &#039;thenable&#039;:</span>
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">result</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">geocoder</span><span style="color: #000000">.</span><span style="color: #795E26">forward</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;paris&#039;</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">result</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">geocoding</span><span style="color: #000000">.</span><span style="color: #795E26">forward</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;paris&#039;</span><span style="color: #000000">);</span>
 </code></pre>
 			<p>You can provide some options such as:</p>
 			<ul>
@@ -4389,7 +4408,7 @@ img {
 			</a>
 			<p>You wan to tknow the name of a place, given a longitude-latitude? Use the reverse geocoding:</p>
 			<pre><code class="language-ts"><span style="color: #008000">// in an async function, or as a &#039;thenable&#039;:</span>
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">result</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">geocoder</span><span style="color: #000000">.</span><span style="color: #795E26">reverse</span><span style="color: #000000">({ </span><span style="color: #001080">lng:</span><span style="color: #000000"> </span><span style="color: #098658">6.249638</span><span style="color: #000000">, </span><span style="color: #001080">lat:</span><span style="color: #000000"> </span><span style="color: #098658">46.402056</span><span style="color: #000000"> });</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">result</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">maptiler</span><span style="color: #000000">.</span><span style="color: #001080">geocoding</span><span style="color: #000000">.</span><span style="color: #795E26">reverse</span><span style="color: #000000">({ </span><span style="color: #001080">lng:</span><span style="color: #000000"> </span><span style="color: #098658">6.249638</span><span style="color: #000000">, </span><span style="color: #001080">lat:</span><span style="color: #000000"> </span><span style="color: #098658">46.402056</span><span style="color: #000000"> });</span>
 </code></pre>
 			<p>The same option object as the forward geocoding can be provided.</p>
 			<p>Read more about reverse geocoding on our official <a href="https://docs.maptiler.com/cloud/api/geocoding/#search-by-coordinates-reverse">API documentation</a>.</p>
@@ -4934,7 +4953,7 @@ img {
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#fullscreenoptions" class="tsd-kind-icon">Fullscreen<wbr>Options</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#geojsonsourceoptions" class="tsd-kind-icon">GeoJSONSource<wbr>Options</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#geojsonsourcespecification" class="tsd-kind-icon">GeoJSONSource<wbr>Specification</a></li>
-							<li class="tsd-kind-type-alias"><a href="modules.html#geocoderoptions" class="tsd-kind-icon">Geocoder<wbr>Options</a></li>
+							<li class="tsd-kind-type-alias"><a href="modules.html#geocodingoptions" class="tsd-kind-icon">Geocoding<wbr>Options</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#geolocateoptions" class="tsd-kind-icon">Geolocate<wbr>Options</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#gestureoptions" class="tsd-kind-icon">Gesture<wbr>Options</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#getimagecallback" class="tsd-kind-icon">Get<wbr>Image<wbr>Callback</a></li>
@@ -5094,7 +5113,7 @@ img {
 							<li class="tsd-kind-variable"><a href="modules.html#config" class="tsd-kind-icon">config</a></li>
 							<li class="tsd-kind-variable"><a href="modules.html#coordinates" class="tsd-kind-icon">coordinates</a></li>
 							<li class="tsd-kind-variable"><a href="modules.html#data" class="tsd-kind-icon">data</a></li>
-							<li class="tsd-kind-variable"><a href="modules.html#geocoder" class="tsd-kind-icon">geocoder</a></li>
+							<li class="tsd-kind-variable"><a href="modules.html#geocoding" class="tsd-kind-icon">geocoding</a></li>
 							<li class="tsd-kind-variable"><a href="modules.html#geolocation" class="tsd-kind-icon">geolocation</a></li>
 							<li class="tsd-kind-variable"><a href="modules.html#staticmaps" class="tsd-kind-icon">static<wbr>Maps</a></li>
 						</ul>
@@ -5224,7 +5243,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Automatic<wbr>Static<wbr>Map<wbr>Options<span class="tsd-signature-symbol">:</span> <a href="modules.html#boundedstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">BoundedStaticMapOptions</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/fb50797/src/services/staticMaps.ts#L123">src/services/staticMaps.ts:123</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/6f7d800/src/services/staticMaps.ts#L123">src/services/staticMaps.ts:123</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -5286,7 +5305,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Bbox<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>northEast<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol">; </span>southWest<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol"> }</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/fb50797/src/generalTypes.ts#L23">src/generalTypes.ts:23</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/6f7d800/src/generalTypes.ts#L23">src/generalTypes.ts:23</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -5376,7 +5395,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Bounded<wbr>Static<wbr>Map<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">StaticMapBaseOptions</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>padding<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/fb50797/src/services/staticMaps.ts#L115">src/services/staticMaps.ts:115</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/6f7d800/src/services/staticMaps.ts#L115">src/services/staticMaps.ts:115</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -5808,7 +5827,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Centered<wbr>Static<wbr>Map<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">StaticMapBaseOptions</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/fb50797/src/services/staticMaps.ts#L113">src/services/staticMaps.ts:113</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/6f7d800/src/services/staticMaps.ts#L113">src/services/staticMaps.ts:113</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -6416,7 +6435,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Coordinates<wbr>Search<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>exports<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>limit<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>transformations<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> }</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/fb50797/src/services/coordinates.ts#L6">src/services/coordinates.ts:6</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/6f7d800/src/services/coordinates.ts#L6">src/services/coordinates.ts:6</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-type-declaration">
@@ -7530,12 +7549,12 @@ img {
 				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-type-alias">
-				<a name="geocoderoptions" class="tsd-anchor"></a>
-				<h3>Geocoder<wbr>Options</h3>
-				<div class="tsd-signature tsd-kind-icon">Geocoder<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>bbox<span class="tsd-signature-symbol">?: </span><a href="modules.html#bbox" class="tsd-signature-type" data-tsd-kind="Type alias">Bbox</a><span class="tsd-signature-symbol">; </span>language<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>proximity<span class="tsd-signature-symbol">?: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol"> }</span></div>
+				<a name="geocodingoptions" class="tsd-anchor"></a>
+				<h3>Geocoding<wbr>Options</h3>
+				<div class="tsd-signature tsd-kind-icon">Geocoding<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>bbox<span class="tsd-signature-symbol">?: </span><a href="modules.html#bbox" class="tsd-signature-type" data-tsd-kind="Type alias">Bbox</a><span class="tsd-signature-symbol">; </span>language<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>proximity<span class="tsd-signature-symbol">?: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol"> }</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/fb50797/src/services/geocoder.ts#L6">src/services/geocoder.ts:6</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/6f7d800/src/services/geocoding.ts#L6">src/services/geocoding.ts:6</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-type-declaration">
@@ -8623,7 +8642,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Lng<wbr>Lat<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>lat<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>lng<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/fb50797/src/generalTypes.ts#L4">src/generalTypes.ts:4</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/6f7d800/src/generalTypes.ts#L4">src/generalTypes.ts:4</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -9121,7 +9140,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Map<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Omit</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">maplibre.MapOptions</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;style&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;maplibreLogo&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>maptilerLogo<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>style<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/fb50797/src/Map.ts#L22">src/Map.ts:22</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/6f7d800/src/Map.ts#L22">src/Map.ts:22</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -12158,7 +12177,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">config<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Config</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/fb50797/src/config.ts#L29">src/config.ts:29</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/6f7d800/src/config.ts#L28">src/config.ts:28</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -12168,7 +12187,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">coordinates<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>search<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#coordinatessearchoptions" class="tsd-signature-type" data-tsd-kind="Type alias">CoordinatesSearchOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>transform<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>coordinates<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a><span class="tsd-signature-symbol">[]</span>, options<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">CoordinatesTransformOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/fb50797/src/services/coordinates.ts#L146">src/services/coordinates.ts:146</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/6f7d800/src/services/coordinates.ts#L146">src/services/coordinates.ts:146</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -12252,7 +12271,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">data<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>get<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>dataId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/fb50797/src/services/data.ts#L40">src/services/data.ts:40</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/6f7d800/src/services/data.ts#L40">src/services/data.ts:40</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -12295,18 +12314,18 @@ img {
 				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="geocoder" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> geocoder</h3>
-				<div class="tsd-signature tsd-kind-icon">geocoder<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>forward<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>reverse<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>lngLat<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
+				<a name="geocoding" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagConst">Const</span> geocoding</h3>
+				<div class="tsd-signature tsd-kind-icon">geocoding<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>forward<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocodingoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocodingOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>reverse<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>lngLat<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocodingoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocodingOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/fb50797/src/services/geocoder.ts#L144">src/services/geocoder.ts:144</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/6f7d800/src/services/geocoding.ts#L144">src/services/geocoding.ts:144</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>The <strong>geocoder</strong> namespace contains asynchronous functions to call the <a href="https://docs.maptiler.com/cloud/api/geocoding/">MapTiler Geocoding API</a>.
-							The <strong>Geocoder API</strong> provides ways to get geographic coordinates from a human-readable search query of a place (forward geocoding)
+						<p>The <strong>geocoding</strong> namespace contains asynchronous functions to call the <a href="https://docs.maptiler.com/cloud/api/geocoding/">MapTiler Geocoding API</a>.
+							The <strong>Geocoding API</strong> provides ways to get geographic coordinates from a human-readable search query of a place (forward geocoding)
 						and to get the location details (country, city, street, etc.) from a geographic coordinate (reverse geocoding);</p>
 					</div>
 				</div>
@@ -12314,11 +12333,11 @@ img {
 					<h4>Type declaration</h4>
 					<ul class="tsd-parameters">
 						<li class="tsd-parameter">
-							<h5>forward<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
+							<h5>forward<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocodingoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocodingOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
 							<ul class="tsd-parameters">
 								<li class="tsd-parameter-signature">
 									<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-literal">
-										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
+										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocodingoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocodingOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
 									</ul>
 									<ul class="tsd-descriptions">
 										<li class="tsd-description">
@@ -12336,7 +12355,7 @@ img {
 													<h5>query: <span class="tsd-signature-type">any</span></h5>
 												</li>
 												<li>
-													<h5>options: <a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol"> = {}</span></h5>
+													<h5>options: <a href="modules.html#geocodingoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocodingOptions</a><span class="tsd-signature-symbol"> = {}</span></h5>
 												</li>
 											</ul>
 											<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -12346,11 +12365,11 @@ img {
 							</ul>
 						</li>
 						<li class="tsd-parameter">
-							<h5>reverse<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>lngLat<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
+							<h5>reverse<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>lngLat<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocodingoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocodingOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
 							<ul class="tsd-parameters">
 								<li class="tsd-parameter-signature">
 									<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-literal">
-										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>lngLat<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
+										<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>lngLat<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#geocodingoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocodingOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
 									</ul>
 									<ul class="tsd-descriptions">
 										<li class="tsd-description">
@@ -12367,7 +12386,7 @@ img {
 													<h5>lngLat: <a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a></h5>
 												</li>
 												<li>
-													<h5>options: <a href="modules.html#geocoderoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocoderOptions</a><span class="tsd-signature-symbol"> = {}</span></h5>
+													<h5>options: <a href="modules.html#geocodingoptions" class="tsd-signature-type" data-tsd-kind="Type alias">GeocodingOptions</a><span class="tsd-signature-symbol"> = {}</span></h5>
 												</li>
 											</ul>
 											<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -12385,7 +12404,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">geolocation<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>info<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/fb50797/src/services/geolocation.ts#L36">src/services/geolocation.ts:36</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/6f7d800/src/services/geolocation.ts#L36">src/services/geolocation.ts:36</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -12427,7 +12446,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">static<wbr>Maps<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>automatic<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><a href="modules.html#automaticstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">AutomaticStaticMapOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>bounded<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>boundingBox<span class="tsd-signature-symbol">: </span><a href="modules.html#bbox" class="tsd-signature-type" data-tsd-kind="Type alias">Bbox</a>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#boundedstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">BoundedStaticMapOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>centered<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>center<span class="tsd-signature-symbol">: </span><a href="modules.html#lnglat" class="tsd-signature-type" data-tsd-kind="Type alias">LngLat</a>, zoom<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="modules.html#centeredstaticmapoptions" class="tsd-signature-type" data-tsd-kind="Type alias">CenteredStaticMapOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/fb50797/src/services/staticMaps.ts#L435">src/services/staticMaps.ts:435</a></li>
+						<li>Defined in <a href="https://github.com/maptiler/sdk/blob/6f7d800/src/services/staticMaps.ts#L435">src/services/staticMaps.ts:435</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">

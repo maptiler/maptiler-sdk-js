@@ -1,33 +1,32 @@
 <html>
   <head>
-    <title>tslib</title>
+    <title>MapTiler JS SDK example</title>
+    <style>
+      html, body {
+        margin: 0;
+      }
+
+      #map-container {
+        position: absolute;
+        width: 100vw;
+        height: 100vh;
+      }
+    </style>
   </head>
 
   <body>
-    <img id="image"/>
+    <div id="map-container"></div>
 
-    <script src ="../dist/maptiler.umd.js"></script>
+    <script src ="../dist/maptiler-js-sdk.umd.js"></script>
     
     <script>
-      maptiler.config.apiToken = 'ZFEK2gQSwT4Jcimbtcy7';
+      maptilerSDK.config.apiKey = 'wvElBzv1zqf8XeNE37ip';
 
-      const imageLink = maptiler.staticMaps.centered({lng: 1, lat: 45}, 5, {
-        hiDPI: true,
-        width: 1000,
-        height: 1000,
-        style: 'winter',
-        format: 'webp',
-        attribution: 'bottomleft',
-        marker: [{lng: -0.573, lat: 44.834, color: '#F0F'}, {lng: 0.573, lat: 45.834, color: '#FF0'}],
-        markerAnchor: 'right',
-        markerIcon: 'https://tinyurl.com/yakrjl3t',
-        markerScale: 0.25,
-      });
-
-      const imgElem = document.getElementById('image')
-      imgElem.src = imageLink;
-      imgElem.width = 1000;
-      imgElem.height = 1000;
+      const map = new maptilerSDK.Map({
+        container: document.getElementById('map-container'),
+        // style: 'satellite',
+        hash: true,
+      })
     </script>
   </body>
 </html>
