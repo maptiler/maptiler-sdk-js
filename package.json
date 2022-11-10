@@ -4,6 +4,7 @@
   "description": "The frontend map SDK tailored for MapTiler Cloud",
   "module": "dist/maptiler.mjs",
   "types": "dist/maptiler.d.ts",
+  "style": "dist/maptiler.css",
   "type": "module",
   "scripts": {
     "build": "NODE_ENV=production rollup -c",

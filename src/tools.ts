@@ -19,24 +19,22 @@ export function vlog(...args: any[]) {
  * @returns
  */
 export function expandMapStyle(style): string {
+  // testing if the style provided is of form "maptiler://some-style"
+  const maptilerDomainRegex = /^maptiler:\/\/(.*)/;
+  let match;
   const trimmed = style.trim();
+  let expandedStyle;
 
   // The style was possibly already given as expanded URL
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return trimmed;
+    expandedStyle = trimmed;
+  } else if ((match = maptilerDomainRegex.exec(trimmed)) !== null) {
+    expandedStyle = `https://api.maptiler.com/maps/${match[1]}/style.json`;
+  } else {
+    // The style could also possibly just be the name of the style without any URI style
+    expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
   }
-
-  // testing if the style provided is of form "maptiler://some-style"
-  const maptilerDomainRegex = /^maptiler:\/\/(.*)/;
-  const match = maptilerDomainRegex.exec(trimmed);
-
-  if (match) {
-    return `https://api.maptiler.com/maps/${match[1]}/style.json`;
-  }
-
-  // The style could also possibly just be the name of the style without any URI style
-  let expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
-
+  
   // appending the token if necessary
   if (!expandedStyle.includes("key=")) {
     expandedStyle = `${expandedStyle}?key=${config.apiKey}`;
@@ -44,6 +42,7 @@ export function expandMapStyle(style): string {
 
   return expandedStyle;
 }
+
 
 export function enableRTL() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

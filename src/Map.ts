@@ -142,6 +142,9 @@ export class Map extends maplibre.Map {
 
     let tempStyle = style;
 
+    console.log('DEBUG02');
+    
+
     if (typeof style === "string" && isBuiltinStyle(style)) {
       tempStyle = prepareBuiltinStyle(style as Style, config.apiKey);
     } else

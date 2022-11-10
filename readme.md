@@ -4,18 +4,14 @@
 </p>
 
 <p align="center" style="color: #AAA">
-  The frontend map SDK tailored for MapTiler Cloud
+  The Javascript/TypeScript map SDK tailored for MapTiler Cloud
 </p>
 
 <p align="center">
   <img src="images/TS-logo.svg" width="20px">
   <img src="images/JS-logo.svg" width="20px">
-</p>
-
-<p align="center">
   <img src="https://img.shields.io/npm/v/@maptiler/sdk"></img>
   <img src="https://img.shields.io/twitter/follow/maptiler?style=social"></img>
-  
 </p>
 
 # Install
@@ -28,61 +24,81 @@ In addition to the details and examples provided in this readme, you can find a 
 
 # Quick start
 ```ts
-import * as maptiler from 'maptiler';
+import * as maptiler from 'maptiler-js-sdk';
 
 // Add your MapTiler Cloud API key to the config
 // (Go to https://cloud.maptiler.com/account/keys/ to get one for free!)
 maptiler.config.apiKey = 'YOUR_API_KEY';
 
-// In React, you can use a Ref to a div and use it as a container
-const mapContainer: React.RefObject<HTMLElement> = React.createRef();
+// Let's say you have a DIV ready to receive a map
+const mapContainer = document.getElementById('my-container-div');
 
 // Instanciate the map
 const map = new maptiler.Map({
-    container: mapContainer,
+  container: mapContainer,
 });
 ```
 By default, the map will be initialized with the style [streets-v2](https://www.maptiler.com/maps/#style=streets-v2).
 
 # Many styles to choose from
-<p align="center">
-  <img title="streets-v2" src="images/screenshots/style-streets-v2.png" width="23%"></img>
-  <img title="basic-v2" src="images/screenshots/style-basic-v2.png" width="23%"></img>
-  <img title="bright" src="images/screenshots/style-bright.png" width="23%"></img>
-  <img title="hybrid" src="images/screenshots/style-hybrid.png" width="23%"></img>
-  <img title="osm" src="images/screenshots/style-osm.png" width="23%"></img>
-  <img title="outdoor" src="images/screenshots/style-outdoor.png" width="23%"></img>
-  <img title="pastel" src="images/screenshots/style-pastel.png" width="23%"></img>
-  <img title="toner" src="images/screenshots/style-toner.png" width="23%"></img> 
-  <img title="topo" src="images/screenshots/style-topo.png" width="23%"></img>
-  <img title="topographique" src="images/screenshots/style-topographique.png" width="23%"></img>
-  <img title="voyager" src="images/screenshots/style-voyager.png" width="23%"></img>
-  <img title="winter" src="images/screenshots/style-winter.png" width="23%"></img>
-  <img title="streets-v2-dark" src="images/screenshots/style-streets-v2-dark.png" width="23%"></img>
-  <img title="streets-v2-light" src="images/screenshots/style-streets-v2-light.png" width="23%"></img>
-</p>
+MapTiler teams maintains a few styles that we have decided to expose from th SDK. This has two advantages:
+- they are easier to remember, no need to type along style URL
+- if we make an update to a style, you will benefit from it without modifying your codebase
 
-In addition to your custom styles, MapTiler Clouds comes with many styles that are easy to configure from the SDK:
+Here is how it works:
+```ts
+import { Map, Style } from 'maptiler-js-sdk'
+// When instanciating a map
+const map = new Map({
+  container: mapContainer,
+  style: Style.OUTDOOR, // <-- the shorthand for the outdoor style
+});
+
+// Or later on, updating the style
+map.setStyle(Style.DARK);
+```
+
+The styles with a shorthand provided by the SDK are the following:
+
+| ID | Screenshot | Comment |
+|:-:|:-:|:-:|
+|`Style.STREETS`|![](images/screenshots/style-streets-v2.png)|The classic default style, perfect for urban areas|
+|`Style.SATELLITE`|![](images/screenshots/style-satellite.png)|Only high resolution satellite raster tiles without any labels|
+|`Style.HYBRID`|![](images/screenshots/style-hybrid.png)|Satellite tile with labels, landmarks, roads ways and political borders|
+|`Style.OUTDOOR`|![](images/screenshots/style-outdoor.png)|A solid hiking companion, with peaks, parks, isolines and more|
+|`Style.BASIC`|![](images/screenshots/style-basic-v2.png)|A minimalist alternative to `STREETS`, with a touch of flat design|
+|`Style.DARK`|![](images/screenshots/style-streets-v2-dark.png)|A dark theme perfect to display data layers on top without losing any precious information|
+|`Style.LIGHT`|![](images/screenshots/style-streets-v2-light.png)|Just like the `DARK`, but in bright mode! Your data layer as a first class citizen!|
+
+
+Still, you can still use some classic styles with just a *string*:
 
 ```ts
 map.setStyle('outdoor');
 ```
 
 You can choose from the following:
-- `basic-v2`
 - `bright`
 - `openstreetmap`
-- `outdoor`
 - `pastel`
-- `hybrid`
-- `streets-v2`
 - `toner`
 - `topo`
 - `topographique`
 - `voyager`
 - `winter`
-- `streets-v2-dark`
-- `streets-v2-light`
+
+<p align="center">
+  <img title="bright" src="images/screenshots/style-bright.png" width="12%"></img>
+  <img title="openstreetmap" src="images/screenshots/style-osm.png" width="12%"></img>
+  <img title="pastel" src="images/screenshots/style-pastel.png" width="12%"></img>
+  <img title="toner" src="images/screenshots/style-toner.png" width="12%"></img> 
+  <img title="topo" src="images/screenshots/style-topo.png" width="12%"></img>
+  <img title="topographique" src="images/screenshots/style-topographique.png" width="12%"></img>
+  <img title="voyager" src="images/screenshots/style-voyager.png" width="12%"></img>
+  <img title="winter" src="images/screenshots/style-winter.png" width="12%"></img>
+</p>
+
+And finally, you can use your own custom styles designed with [our style editor](https://cloud.maptiler.com/maps/). Every custom style 
 
 # Easy language switching
 The language generally depends on the style but we made it possible to easily update it with a single function and from a built-in list of languages:

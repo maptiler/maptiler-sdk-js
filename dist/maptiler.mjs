@@ -255,16 +255,17 @@ function vlog(...args) {
   }
 }
 function expandMapStyle(style) {
-  const trimmed = style.trim();
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return trimmed;
-  }
   const maptilerDomainRegex = /^maptiler:\/\/(.*)/;
-  const match = maptilerDomainRegex.exec(trimmed);
-  if (match) {
-    return `https://api.maptiler.com/maps/${match[1]}/style.json`;
+  let match;
+  const trimmed = style.trim();
+  let expandedStyle;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    expandedStyle = trimmed;
+  } else if ((match = maptilerDomainRegex.exec(trimmed)) !== null) {
+    expandedStyle = `https://api.maptiler.com/maps/${match[1]}/style.json`;
+  } else {
+    expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
   }
-  let expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
   if (!expandedStyle.includes("key=")) {
     expandedStyle = `${expandedStyle}?key=${config.apiKey}`;
   }
@@ -458,6 +459,7 @@ class Map extends maplibre.Map {
   }
   setStyle(style, options) {
     let tempStyle = style;
+    console.log("DEBUG02");
     if (typeof style === "string" && isBuiltinStyle(style)) {
       tempStyle = prepareBuiltinStyle(style, config.apiKey);
     } else if (typeof style === "string") {
