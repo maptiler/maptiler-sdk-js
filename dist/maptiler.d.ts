@@ -266,7 +266,7 @@ declare class Map extends maplibre.Map {
      * This function is a short for `.setPrimaryLanguage()`
      * @param language
      */
-    setlanguage(language?: Language): void;
+    setLanguage(language?: Language): void;
     /**
      * Define the primary language of the map. Note that not all the languages shorthands provided are available.
      * @param language

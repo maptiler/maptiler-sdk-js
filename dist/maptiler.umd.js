@@ -541,7 +541,7 @@
 	    }
 	    return super.setStyle(tempStyle, options);
 	  }
-	  setlanguage(language = defaults.primaryLanguage) {
+	  setLanguage(language = defaults.primaryLanguage) {
 	    this.setPrimaryLanguage(language);
 	  }
 	  setPrimaryLanguage(language = defaults.primaryLanguage) {

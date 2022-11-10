@@ -160,7 +160,7 @@ export class Map extends maplibre.Map {
    * This function is a short for `.setPrimaryLanguage()`
    * @param language
    */
-  setlanguage(language: Language = defaults.primaryLanguage) {
+  setLanguage(language: Language = defaults.primaryLanguage) {
     this.setPrimaryLanguage(language);
   }
 

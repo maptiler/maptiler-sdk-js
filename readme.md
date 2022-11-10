@@ -98,7 +98,22 @@ You can choose from the following:
   <img title="winter" src="images/screenshots/style-winter.png" width="12%"></img>
 </p>
 
-And finally, you can use your own custom styles designed with [our style editor](https://cloud.maptiler.com/maps/). Every custom style 
+And finally, you can use your own custom styles designed with [our style editor](https://cloud.maptiler.com/maps/). Every custom style is given a unique ID, for instance: `c912ffc8-2360-487a-973b-59d037fb15b8`.
+
+This ID can be provided as such:
+```ts
+map.setStyle("c912ffc8-2360-487a-973b-59d037fb15b8");
+```
+
+Or in its extended form:
+```ts
+map.setStyle("https://api.maptiler.com/maps/c912ffc8-2360-487a-973b-59d037fb15b8/style.json?key=bod4IIn9bwK8mnZIk49v");
+```
+
+And can even be provided in the URI form:
+```ts
+map.setStyle("maptiler://c912ffc8-2360-487a-973b-59d037fb15b8");
+```
 
 # Easy language switching
 The language generally depends on the style but we made it possible to easily update it with a single function and from a built-in list of languages:
