@@ -270,92 +270,6 @@
 	  return Language2;
 	})(Language || {});
 
-	const defaults = {
-	  mapStyle: "streets-v2",
-	  maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
-	  maptilerURL: "https://www.maptiler.com/",
-	  maptilerApiURL: "https://api.maptiler.com/",
-	  rtlPluginURL: "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
-	  primaryLanguage: Language.LATIN,
-	  secondaryLanguage: Language.NON_LATIN
-	};
-	Object.freeze(defaults);
-
-	class CustomLogoControl extends maplibreGl$1.exports.LogoControl {
-	  constructor(options = {}) {
-	    var _a, _b;
-	    super(options);
-	    this.logoURL = "";
-	    this.linkURL = "";
-	    this.logoURL = (_a = options.logoURL) != null ? _a : defaults.maptilerLogoURL;
-	    this.linkURL = (_b = options.linkURL) != null ? _b : defaults.maptilerURL;
-	  }
-	  onAdd(map) {
-	    this._map = map;
-	    this._compact = this.options && this.options.compact;
-	    this._container = window.document.createElement("div");
-	    this._container.className = "maplibregl-ctrl";
-	    const anchor = window.document.createElement("a");
-	    anchor.style.backgroundRepeat = "no-repeat";
-	    anchor.style.cursor = "pointer";
-	    anchor.style.display = "block";
-	    anchor.style.height = "23px";
-	    anchor.style.margin = "0 0 -4px -4px";
-	    anchor.style.overflow = "hidden";
-	    anchor.style.width = "88px";
-	    anchor.style.backgroundImage = `url(${this.logoURL})`;
-	    anchor.style.backgroundSize = "100px 30px";
-	    anchor.style.width = "100px";
-	    anchor.style.height = "30px";
-	    anchor.target = "_blank";
-	    anchor.rel = "noopener nofollow";
-	    anchor.href = this.linkURL;
-	    anchor.setAttribute(
-	      "aria-label",
-	      this._map._getUIString("LogoControl.Title")
-	    );
-	    anchor.setAttribute("rel", "noopener nofollow");
-	    this._container.appendChild(anchor);
-	    this._container.style.display = "block";
-	    this._map.on("resize", this._updateCompact);
-	    this._updateCompact();
-	    return this._container;
-	  }
-	}
-
-	function vlog(...args) {
-	  if (config.verbose) {
-	    console.log(...args);
-	  }
-	}
-	function expandMapStyle(style) {
-	  const maptilerDomainRegex = /^maptiler:\/\/(.*)/;
-	  let match;
-	  const trimmed = style.trim();
-	  let expandedStyle;
-	  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-	    expandedStyle = trimmed;
-	  } else if ((match = maptilerDomainRegex.exec(trimmed)) !== null) {
-	    expandedStyle = `https://api.maptiler.com/maps/${match[1]}/style.json`;
-	  } else {
-	    expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
-	  }
-	  if (!expandedStyle.includes("key=")) {
-	    expandedStyle = `${expandedStyle}?key=${config.apiKey}`;
-	  }
-	  return expandedStyle;
-	}
-	function enableRTL() {
-	  const maplibrePackage = maplibre;
-	  if (maplibrePackage.getRTLTextPluginStatus() === "unavailable") {
-	    maplibrePackage.setRTLTextPlugin(
-	      defaults.rtlPluginURL,
-	      null,
-	      true
-	    );
-	  }
-	}
-
 	var version = 8;
 	var id = "f0e4ff8c-a9e4-414e-9f4d-7938762c948f";
 	var name = "Satellite no label";
@@ -438,6 +352,94 @@
 	  return JSON.parse(fullTextVersion);
 	}
 
+	const defaults = {
+	  mapStyle: Style.STREETS,
+	  maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
+	  maptilerURL: "https://www.maptiler.com/",
+	  maptilerApiURL: "https://api.maptiler.com/",
+	  rtlPluginURL: "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
+	  primaryLanguage: Language.LATIN,
+	  secondaryLanguage: Language.NON_LATIN,
+	  terrainSourceURL: "https://api.maptiler.com/tiles/terrain-rgb/tiles.json",
+	  terrainSourceId: "maptiler-terrain"
+	};
+	Object.freeze(defaults);
+
+	class CustomLogoControl extends maplibreGl$1.exports.LogoControl {
+	  constructor(options = {}) {
+	    var _a, _b;
+	    super(options);
+	    this.logoURL = "";
+	    this.linkURL = "";
+	    this.logoURL = (_a = options.logoURL) != null ? _a : defaults.maptilerLogoURL;
+	    this.linkURL = (_b = options.linkURL) != null ? _b : defaults.maptilerURL;
+	  }
+	  onAdd(map) {
+	    this._map = map;
+	    this._compact = this.options && this.options.compact;
+	    this._container = window.document.createElement("div");
+	    this._container.className = "maplibregl-ctrl";
+	    const anchor = window.document.createElement("a");
+	    anchor.style.backgroundRepeat = "no-repeat";
+	    anchor.style.cursor = "pointer";
+	    anchor.style.display = "block";
+	    anchor.style.height = "23px";
+	    anchor.style.margin = "0 0 -4px -4px";
+	    anchor.style.overflow = "hidden";
+	    anchor.style.width = "88px";
+	    anchor.style.backgroundImage = `url(${this.logoURL})`;
+	    anchor.style.backgroundSize = "100px 30px";
+	    anchor.style.width = "100px";
+	    anchor.style.height = "30px";
+	    anchor.target = "_blank";
+	    anchor.rel = "noopener nofollow";
+	    anchor.href = this.linkURL;
+	    anchor.setAttribute(
+	      "aria-label",
+	      this._map._getUIString("LogoControl.Title")
+	    );
+	    anchor.setAttribute("rel", "noopener nofollow");
+	    this._container.appendChild(anchor);
+	    this._container.style.display = "block";
+	    this._map.on("resize", this._updateCompact);
+	    this._updateCompact();
+	    return this._container;
+	  }
+	}
+
+	function vlog(...args) {
+	  if (config.verbose) {
+	    console.log(...args);
+	  }
+	}
+	function expandMapStyle(style) {
+	  const maptilerDomainRegex = /^maptiler:\/\/(.*)/;
+	  let match;
+	  const trimmed = style.trim();
+	  let expandedStyle;
+	  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+	    expandedStyle = trimmed;
+	  } else if ((match = maptilerDomainRegex.exec(trimmed)) !== null) {
+	    expandedStyle = `https://api.maptiler.com/maps/${match[1]}/style.json`;
+	  } else {
+	    expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
+	  }
+	  if (!expandedStyle.includes("key=")) {
+	    expandedStyle = `${expandedStyle}?key=${config.apiKey}`;
+	  }
+	  return expandedStyle;
+	}
+	function enableRTL() {
+	  const maplibrePackage = maplibre;
+	  if (maplibrePackage.getRTLTextPluginStatus() === "unavailable") {
+	    maplibrePackage.setRTLTextPlugin(
+	      defaults.rtlPluginURL,
+	      null,
+	      true
+	    );
+	  }
+	}
+
 	var __defProp = Object.defineProperty;
 	var __defProps = Object.defineProperties;
 	var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
@@ -479,6 +481,7 @@
 	};
 	class Map extends maplibreGl$1.exports.Map {
 	  constructor(options) {
+	    var _a;
 	    let style;
 	    if ("style" in options) {
 	      if (typeof style === "string" && isBuiltinStyle(style)) {
@@ -533,6 +536,9 @@
 	        this.addControl(new CustomLogoControl(), options.logoPosition);
 	      }
 	    }));
+	    if (options.enableTerrain) {
+	      this.enableTerrain((_a = options.terrainExaggeration) != null ? _a : 1);
+	    }
 	  }
 	  setStyle(style, options) {
 	    let tempStyle = style;
@@ -665,6 +671,32 @@
 	        this.setLayoutProperty(layer.id, "text-field", newProp);
 	      }
 	    }
+	  }
+	  enableTerrain(exaggeration = 1) {
+	    const terrainInfo = this.getTerrain();
+	    if (terrainInfo) {
+	      this.setTerrain(__spreadProps(__spreadValues({}, terrainInfo), { exaggeration }));
+	      return;
+	    }
+	    this.once("load", () => {
+	      if (this.getTerrain() && this.getSource(defaults.terrainSourceId)) {
+	        return;
+	      }
+	      this.addSource(defaults.terrainSourceId, {
+	        type: "raster-dem",
+	        url: `${defaults.terrainSourceURL}?key=${config.apiKey}`
+	      });
+	      this.setTerrain({
+	        source: defaults.terrainSourceId,
+	        exaggeration
+	      });
+	    });
+	  }
+	  disableTerrain() {
+	    this.setTerrain(null);
+	  }
+	  setTerrainExaggeration(exaggeration) {
+	    this.enableTerrain(exaggeration);
 	  }
 	}
 

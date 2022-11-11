@@ -242,6 +242,14 @@ declare type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & 
      * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.
      */
     maptilerLogo?: boolean;
+    /**
+     * Enables 3D terrain if `true`. (default: `false`)
+     */
+    enableTerrain: boolean;
+    /**
+     * Exaggeration factor of the terrain. (default: `1`, no exaggeration)
+     */
+    terrainExaggeration: number;
 };
 /**
  * The Map class can be instanciated to display a map in a `<div>`
@@ -278,6 +286,22 @@ declare class Map extends maplibre.Map {
      * @param language
      */
     setSecondaryLanguage(language?: Language): void;
+    /**
+     * Enables the 3D terrain visualization
+     * @param exaggeration
+     * @returns
+     */
+    enableTerrain(exaggeration?: number): void;
+    /**
+     * Disable the 3D terrain visualization
+     */
+    disableTerrain(): void;
+    /**
+     * Sets the 3D terrain exageration factor.
+     * Note: this is only a shortcut to `.enableTerrain()`
+     * @param exaggeration
+     */
+    setTerrainExaggeration(exaggeration: number): void;
 }
 
 declare type GeocodingOptions = {

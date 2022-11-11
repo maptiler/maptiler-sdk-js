@@ -1,0 +1,57 @@
+<html>
+  <head>
+    <title>MapTiler JS SDK example</title>
+    <style>
+      html, body {
+        margin: 0;
+        background: radial-gradient(circle, rgb(143 208 255) 5%, rgb(0 72 114) 98%);
+      }
+
+      #map-container {
+        position: absolute;
+        width: 100vw;
+        height: 100vh;
+      }
+    </style>
+
+    <link rel="stylesheet" href="../dist/maptiler-js-sdk.css">
+  </head>
+
+  <body>
+    <div id="map-container"></div>
+  
+    <script src ="../dist/maptiler-js-sdk.umd.js"></script>
+    
+    <script>
+      maptilerjssdk.config.apiKey = 'wvElBzv1zqf8XeNE37ip';
+
+      const map = new maptilerjssdk.Map({
+        container: document.getElementById('map-container'),
+        style: maptilerjssdk.Style.HYBRID,
+        // style: 'https://api.maptiler.com/maps/outdoor/style.json?key=wvElBzv1zqf8XeNE37ip',
+        hash: true,
+        center: [6.85684, 45.83595], // starting position [lng, lat]
+        zoom: 14, // starting zoom
+        pitch: 61,
+        bearing: 172,
+        maxPitch: 85,
+        // maxZoom: 14,
+        enableTerrain: true,
+      })
+
+
+      map.on('load', () => {
+      //   map.addSource("blah", {
+      //     "type": "raster-dem",
+      //     "url": "https://api.maptiler.com/tiles/terrain-rgb/tiles.json?key=wvElBzv1zqf8XeNE37ip",
+      //   });
+      //   map.setTerrain({
+      //     source: "blah",
+      //     exaggeration: 2
+      //   });
+      });
+
+      console.log(map);
+    </script>
+  </body>
+</html>

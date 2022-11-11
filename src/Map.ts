@@ -32,6 +32,16 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
    * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.
    */
   maptilerLogo?: boolean;
+
+  /**
+   * Enables 3D terrain if `true`. (default: `false`)
+   */
+  enableTerrain: boolean,
+
+  /**
+   * Exaggeration factor of the terrain. (default: `1`, no exaggeration)
+   */
+  terrainExaggeration: number,
 };
 
 /**
@@ -123,6 +133,11 @@ export class Map extends maplibre.Map {
         this.addControl(new CustomLogoControl(), options.logoPosition);
       }
     });
+
+    // enable 3D terrain if provided in options
+    if (options.enableTerrain) {
+      this.enableTerrain(options.terrainExaggeration ?? 1);
+    }
   }
 
   /**
@@ -436,6 +451,56 @@ export class Map extends maplibre.Map {
         this.setLayoutProperty(layer.id, "text-field", newProp);
       }
     }
+  }
+
+
+  /**
+   * Enables the 3D terrain visualization
+   * @param exaggeration 
+   * @returns 
+   */
+  enableTerrain(exaggeration: number = 1) {
+    const terrainInfo = this.getTerrain();
+
+    // The terrain has already been loaded,
+    // we just update the exaggeration.
+    if (terrainInfo) {
+      this.setTerrain({...terrainInfo, exaggeration });
+      return;
+    }
+
+    this.once("load", () => {
+      if (this.getTerrain() && this.getSource(defaults.terrainSourceId) ) {
+        return;
+      }
+
+      this.addSource(defaults.terrainSourceId, {
+        type: "raster-dem",
+        url: `${defaults.terrainSourceURL}?key=${config.apiKey}`,
+      });
+      this.setTerrain({
+        source: defaults.terrainSourceId,
+        exaggeration: exaggeration
+      });
+    })
+  }
+
+
+  /**
+   * Disable the 3D terrain visualization
+   */
+  disableTerrain() {
+    this.setTerrain(null);
+  }
+
+
+  /**
+   * Sets the 3D terrain exageration factor.
+   * Note: this is only a shortcut to `.enableTerrain()`
+   * @param exaggeration 
+   */
+  setTerrainExaggeration(exaggeration: number) {
+    this.enableTerrain(exaggeration);
   }
 
   // getLanguages() {
