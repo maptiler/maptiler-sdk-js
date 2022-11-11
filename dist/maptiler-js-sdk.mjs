@@ -452,8 +452,8 @@ class Map extends maplibre.Map {
           new CustomLogoControl({ logoURL }),
           options.logoPosition
         );
-        if (!options.attributionControl) {
-          this.addControl(new maplibre.AttributionControl());
+        if (options.attributionControl === false) {
+          this.addControl(new maplibre.AttributionControl(options));
         }
       } else if (options.maptilerLogo) {
         this.addControl(new CustomLogoControl(), options.logoPosition);

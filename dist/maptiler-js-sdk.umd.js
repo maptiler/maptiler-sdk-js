@@ -1,7 +1,7 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.maptilerSDK = {}));
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.maptilerjssdk = {}));
 })(this, (function (exports) { 'use strict';
 
 	function _mergeNamespaces(n, m) {
@@ -526,8 +526,8 @@
 	          new CustomLogoControl({ logoURL }),
 	          options.logoPosition
 	        );
-	        if (!options.attributionControl) {
-	          this.addControl(new maplibreGl$1.exports.AttributionControl());
+	        if (options.attributionControl === false) {
+	          this.addControl(new maplibreGl$1.exports.AttributionControl(options));
 	        }
 	      } else if (options.maptilerLogo) {
 	        this.addControl(new CustomLogoControl(), options.logoPosition);

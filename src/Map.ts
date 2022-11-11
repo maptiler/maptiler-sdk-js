@@ -114,9 +114,11 @@ export class Map extends maplibre.Map {
           options.logoPosition
         );
 
-        if (!options.attributionControl) {
-          this.addControl(new maplibre.AttributionControl());
+        // if attribution in option is `false` but the the logo shows up in the tileJson, then the attribution must show anyways
+        if (options.attributionControl === false) {
+          this.addControl(new maplibre.AttributionControl(options));
         }
+
       } else if (options.maptilerLogo) {
         this.addControl(new CustomLogoControl(), options.logoPosition);
       }

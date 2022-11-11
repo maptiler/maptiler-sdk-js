@@ -26,7 +26,7 @@ In addition, the MapTiler JS SDK provides well-documented and easy-to-use wrappe
 
 # Install
 ```shell
-npm install --save @maptiler/sdk
+npm install --save @maptiler/js-sdk
 ```
 
 # API documentation
@@ -34,7 +34,7 @@ In addition to the details and examples provided in this readme, you can find a 
 
 # Quick start
 ```ts
-import * as maptiler from 'maptiler-js-sdk';
+import * as maptiler from '@maptiler/js-sdk';
 
 // Add your MapTiler Cloud API key to the config
 // (Go to https://cloud.maptiler.com/account/keys/ to get one for free!)
@@ -57,7 +57,7 @@ MapTiler teams maintains a few styles that we have decided to expose from th SDK
 
 Here is how it works:
 ```ts
-import { Map, Style } from 'maptiler-js-sdk'
+import { Map, Style } from '@maptiler/js-sdk'
 // When instanciating a map
 const map = new Map({
   container: mapContainer,
