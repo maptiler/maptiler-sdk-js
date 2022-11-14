@@ -600,14 +600,7 @@ class Map extends maplibre.Map {
   }
   enableTerrain(exaggeration = 1) {
     const terrainInfo = this.getTerrain();
-    if (terrainInfo) {
-      this.setTerrain(__spreadProps(__spreadValues({}, terrainInfo), { exaggeration }));
-      return;
-    }
-    this.once("load", () => {
-      if (this.getTerrain() && this.getSource(defaults.terrainSourceId)) {
-        return;
-      }
+    const addTerrain = () => {
       this.addSource(defaults.terrainSourceId, {
         type: "raster-dem",
         url: `${defaults.terrainSourceURL}?key=${config.apiKey}`
@@ -616,10 +609,25 @@ class Map extends maplibre.Map {
         source: defaults.terrainSourceId,
         exaggeration
       });
-    });
+    };
+    if (terrainInfo) {
+      this.setTerrain(__spreadProps(__spreadValues({}, terrainInfo), { exaggeration }));
+      return;
+    }
+    if (this.loaded()) {
+      addTerrain();
+    } else {
+      this.once("load", () => {
+        if (this.getTerrain() && this.getSource(defaults.terrainSourceId)) {
+          return;
+        }
+        addTerrain();
+      });
+    }
   }
   disableTerrain() {
     this.setTerrain(null);
+    this.removeSource(defaults.terrainSourceId);
   }
   setTerrainExaggeration(exaggeration) {
     this.enableTerrain(exaggeration);

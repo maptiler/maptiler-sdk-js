@@ -245,11 +245,11 @@ declare type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & 
     /**
      * Enables 3D terrain if `true`. (default: `false`)
      */
-    enableTerrain: boolean;
+    enableTerrain?: boolean;
     /**
      * Exaggeration factor of the terrain. (default: `1`, no exaggeration)
      */
-    terrainExaggeration: number;
+    terrainExaggeration?: number;
 };
 /**
  * The Map class can be instanciated to display a map in a `<div>`

@@ -36,12 +36,12 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
   /**
    * Enables 3D terrain if `true`. (default: `false`)
    */
-  enableTerrain: boolean;
+  enableTerrain?: boolean;
 
   /**
    * Exaggeration factor of the terrain. (default: `1`, no exaggeration)
    */
-  terrainExaggeration: number;
+  terrainExaggeration?: number;
 };
 
 /**
@@ -460,18 +460,7 @@ export class Map extends maplibre.Map {
   enableTerrain(exaggeration = 1) {
     const terrainInfo = this.getTerrain();
 
-    // The terrain has already been loaded,
-    // we just update the exaggeration.
-    if (terrainInfo) {
-      this.setTerrain({ ...terrainInfo, exaggeration });
-      return;
-    }
-
-    this.once("load", () => {
-      if (this.getTerrain() && this.getSource(defaults.terrainSourceId)) {
-        return;
-      }
-
+    const addTerrain = () => {
       this.addSource(defaults.terrainSourceId, {
         type: "raster-dem",
         url: `${defaults.terrainSourceURL}?key=${config.apiKey}`,
@@ -480,7 +469,28 @@ export class Map extends maplibre.Map {
         source: defaults.terrainSourceId,
         exaggeration: exaggeration,
       });
-    });
+    }
+
+    // The terrain has already been loaded,
+    // we just update the exaggeration.
+    if (terrainInfo) {
+      this.setTerrain({ ...terrainInfo, exaggeration });
+      return;
+    }
+
+    if (this.loaded()) {
+      addTerrain();
+    } else {
+      this.once("load", () => {
+        if (this.getTerrain() && this.getSource(defaults.terrainSourceId)) {
+          return;
+        }
+  
+        addTerrain();
+        
+      });
+    }
+    
   }
 
   /**
@@ -488,6 +498,7 @@ export class Map extends maplibre.Map {
    */
   disableTerrain() {
     this.setTerrain(null);
+    this.removeSource(defaults.terrainSourceId);
   }
 
   /**
