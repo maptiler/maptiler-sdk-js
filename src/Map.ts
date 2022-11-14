@@ -36,12 +36,12 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
   /**
    * Enables 3D terrain if `true`. (default: `false`)
    */
-  enableTerrain: boolean,
+  enableTerrain: boolean;
 
   /**
    * Exaggeration factor of the terrain. (default: `1`, no exaggeration)
    */
-  terrainExaggeration: number,
+  terrainExaggeration: number;
 };
 
 /**
@@ -128,7 +128,6 @@ export class Map extends maplibre.Map {
         if (options.attributionControl === false) {
           this.addControl(new maplibre.AttributionControl(options));
         }
-
       } else if (options.maptilerLogo) {
         this.addControl(new CustomLogoControl(), options.logoPosition);
       }
@@ -453,24 +452,23 @@ export class Map extends maplibre.Map {
     }
   }
 
-
   /**
    * Enables the 3D terrain visualization
-   * @param exaggeration 
-   * @returns 
+   * @param exaggeration
+   * @returns
    */
-  enableTerrain(exaggeration: number = 1) {
+  enableTerrain(exaggeration = 1) {
     const terrainInfo = this.getTerrain();
 
     // The terrain has already been loaded,
     // we just update the exaggeration.
     if (terrainInfo) {
-      this.setTerrain({...terrainInfo, exaggeration });
+      this.setTerrain({ ...terrainInfo, exaggeration });
       return;
     }
 
     this.once("load", () => {
-      if (this.getTerrain() && this.getSource(defaults.terrainSourceId) ) {
+      if (this.getTerrain() && this.getSource(defaults.terrainSourceId)) {
         return;
       }
 
@@ -480,11 +478,10 @@ export class Map extends maplibre.Map {
       });
       this.setTerrain({
         source: defaults.terrainSourceId,
-        exaggeration: exaggeration
+        exaggeration: exaggeration,
       });
-    })
+    });
   }
-
 
   /**
    * Disable the 3D terrain visualization
@@ -493,11 +490,10 @@ export class Map extends maplibre.Map {
     this.setTerrain(null);
   }
 
-
   /**
    * Sets the 3D terrain exageration factor.
    * Note: this is only a shortcut to `.enableTerrain()`
-   * @param exaggeration 
+   * @param exaggeration
    */
   setTerrainExaggeration(exaggeration: number) {
     this.enableTerrain(exaggeration);

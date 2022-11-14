@@ -16,7 +16,6 @@ const defaults = {
   secondaryLanguage: Language.NON_LATIN,
   terrainSourceURL: "https://api.maptiler.com/tiles/terrain-rgb/tiles.json",
   terrainSourceId: "maptiler-terrain",
-
 };
 
 Object.freeze(defaults);

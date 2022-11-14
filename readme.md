@@ -26,7 +26,7 @@ In addition, the MapTiler JS SDK provides well-documented and easy-to-use wrappe
 
 # Install
 ```shell
-npm install --save @maptiler/js-sdk
+npm install --save @maptiler/sdk
 ```
 
 # API documentation
@@ -125,6 +125,47 @@ And can even be provided in the URI form:
 ```ts
 map.setStyle("maptiler://c912ffc8-2360-487a-973b-59d037fb15b8");
 ```
+
+# 3D terrain in one call
+<p align="center">
+  <img src="images/screenshots/grandcanyon.gif" width="48%"></img>
+  <img src="images/screenshots/alps.gif" width="48%"></img>
+</p>
+
+
+You want to enable 3D terrain? That's easy now with a single function call:
+```ts
+// With the default exaggeration factor of 1
+map.enableTerrain();
+
+// Or, if you want to boost some volume a little
+map.enableTerrain(1.5);
+```
+
+The terrain can also be enabled directly from the `Map` constructor, with the options `enableTerrain` (a boolean, `false` by default) and `terrainExaggeration` (a number, `1` by default):
+
+```ts
+const map = new Map({
+  // some options...
+  enableTerrain: true,
+  terrainExaggeration: 1.5,
+})
+```
+
+At any point, you can modify the exaggeration factor:
+```ts
+map.setTerrainExaggeration(2);
+```
+
+Or simply disable it:
+```ts
+map.disableTerrain()
+```
+
+> 📣 *__Note:__* Keep in mind that setting an exaggeration factor at `0` will result in a the same result as disabling the elevation but that terrain RGB tiles will still be fetched in the background.
+
+> 📣 *__Note 2:__* please be aware that due to the volume and elevation of the map floor in 3D space, the navigation with the terrain enabled is slightly different than without.
+
 
 # Easy language switching
 The language generally depends on the style but we made it possible to easily update it with a single function and from a built-in list of languages:

@@ -6,7 +6,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import copy from "rollup-plugin-copy";
 import json from '@rollup/plugin-json';
 
-const outputName = "maptiler-js-sdk"
+const outputName = "maptiler-sdk"
 
 const copyCssPlugin = copy({
   targets: [
@@ -75,7 +75,7 @@ const bundles = [
     ],
     output: [
       {
-        name: "maptilerjssdk",
+        name: "maptilersdk",
         file: `dist/${outputName}.umd.js`,
         format: "umd",
         sourcemap: true,
@@ -133,7 +133,7 @@ if (process.env.NODE_ENV === "production") {
       ],
       output: [
         {
-          name: "maptilerjssdk",
+          name: "maptilersdk",
           file: `dist/${outputName}.umd.min.js`,
           format: "umd",
           sourcemap: true,

@@ -1,21 +1,29 @@
 {
-  "name": "@maptiler/js-sdk",
+  "name": "@maptiler/sdk",
   "version": "1.0.0",
   "description": "The Javascript & TypeScript map SDK tailored for MapTiler Cloud",
-  "module": "dist/maptiler-js-sdk.mjs",
-  "types": "dist/maptiler-js-sdk.d.ts",
-  "style": "dist/maptiler-js-sdk.css",
+  "main": "dist/maptiler-sdk.mjs",
+  "module": "dist/maptiler-sdk.mjs",
+  "browser": "dist/maptiler-sdk.umd.js",
+  "types": "dist/maptiler-sdk.d.ts",
+  "style": "dist/maptiler-sdk.css",
   "type": "module",
+  "keywords": ["maptiler", "map", "sdk", "webmap", "cloud", "webGL"],
+  "homepage": "https://www.maptiler.com/cloud/",
+  "license" : "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maptiler/maptiler-sdk-js.git"
+  },
   "scripts": {
-    "build": "NODE_ENV=production rollup -c",
-    "dev": "NODE_ENV=development rollup -c -w",
+    "build": "rm -rf dist/* ; NODE_ENV=production rollup -c",
+    "dev": "rm -rf dist/* ; NODE_ENV=development rollup -c -w",
     "format": "prettier --write \"src/**/*.{js,ts,tsx}\"",
     "lint": "eslint --fix \"src/**/*.{js,ts}\"",
-    "doc": "typedoc; cp -r images docs/",
+    "doc": "rm -rf docs/* ; typedoc; cp -r images docs/",
     "prepare": "npm run format; npm run lint; npm run build; npm run doc"
   },
   "author": "",
-  "license": "MIT",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-json": "^5.0.1",

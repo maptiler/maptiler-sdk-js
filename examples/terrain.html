@@ -14,20 +14,20 @@
       }
     </style>
 
-    <link rel="stylesheet" href="../dist/maptiler-js-sdk.css">
+    <link rel="stylesheet" href="../dist/maptiler-sdk.css">
   </head>
 
   <body>
     <div id="map-container"></div>
   
-    <script src ="../dist/maptiler-js-sdk.umd.js"></script>
+    <script src ="../dist/maptiler-sdk.umd.js"></script>
     
     <script>
-      maptilerjssdk.config.apiKey = 'wvElBzv1zqf8XeNE37ip';
+      maptilersdk.config.apiKey = 'wvElBzv1zqf8XeNE37ip';
 
-      const map = new maptilerjssdk.Map({
+      const map = new maptilersdk.Map({
         container: document.getElementById('map-container'),
-        style: maptilerjssdk.Style.HYBRID,
+        style: maptilersdk.Style.HYBRID,
         // style: 'https://api.maptiler.com/maps/outdoor/style.json?key=wvElBzv1zqf8XeNE37ip',
         hash: true,
         center: [6.85684, 45.83595], // starting position [lng, lat]

@@ -3055,8 +3055,14 @@ img {
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
 					<a href="map.html#cameraforbounds" class="tsd-kind-icon">camera<wbr>For<wbr>Bounds</a>
 				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="map.html#disableterrain" class="tsd-kind-icon">disable<wbr>Terrain</a>
+				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
 					<a href="map.html#easeto" class="tsd-kind-icon">ease<wbr>To</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="map.html#enableterrain" class="tsd-kind-icon">enable<wbr>Terrain</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
 					<a href="map.html#fire" class="tsd-kind-icon">fire</a>
@@ -3307,6 +3313,9 @@ img {
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
 					<a href="map.html#setterrain" class="tsd-kind-icon">set<wbr>Terrain</a>
 				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="map.html#setterrainexaggeration" class="tsd-kind-icon">set<wbr>Terrain<wbr>Exaggeration</a>
+				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
 					<a href="map.html#settransformrequest" class="tsd-kind-icon">set<wbr>Transform<wbr>Request</a>
 				</li>
@@ -3499,7 +3508,9 @@ img {
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#aretilesloaded" class="tsd-kind-icon">are<wbr>Tiles<wbr>Loaded</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#calculatecameraoptionsfromto" class="tsd-kind-icon">calculate<wbr>Camera<wbr>Options<wbr>From<wbr>To</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#cameraforbounds" class="tsd-kind-icon">camera<wbr>For<wbr>Bounds</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="map.html#disableterrain" class="tsd-kind-icon">disable<wbr>Terrain</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#easeto" class="tsd-kind-icon">ease<wbr>To</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="map.html#enableterrain" class="tsd-kind-icon">enable<wbr>Terrain</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#fire" class="tsd-kind-icon">fire</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#fitbounds" class="tsd-kind-icon">fit<wbr>Bounds</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#fitscreencoordinates" class="tsd-kind-icon">fit<wbr>Screen<wbr>Coordinates</a></li>
@@ -3583,6 +3594,7 @@ img {
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="map.html#setsecondarylanguage" class="tsd-kind-icon">set<wbr>Secondary<wbr>Language</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="map.html#setstyle" class="tsd-kind-icon">set<wbr>Style</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#setterrain" class="tsd-kind-icon">set<wbr>Terrain</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="map.html#setterrainexaggeration" class="tsd-kind-icon">set<wbr>Terrain<wbr>Exaggeration</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#settransformrequest" class="tsd-kind-icon">set<wbr>Transform<wbr>Request</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#setzoom" class="tsd-kind-icon">set<wbr>Zoom</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="map.html#snaptonorth" class="tsd-kind-icon">snap<wbr>ToNorth</a></li>
@@ -3611,7 +3623,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides maplibre.Map.constructor</p>
 							<ul>
-								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/221195e/src/Map.ts#L42">src/Map.ts:42</a></li>
+								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/d970e99/src/Map.ts#L52">src/Map.ts:52</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -7084,6 +7096,28 @@ img {
 					</li>
 				</ul>
 			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="disableterrain" class="tsd-anchor"></a>
+				<h3>disable<wbr>Terrain</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">disable<wbr>Terrain<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/d970e99/src/Map.ts#L489">src/Map.ts:489</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Disable the 3D terrain visualization</p>
+							</div>
+						</div>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
 				<a name="easeto" class="tsd-anchor"></a>
 				<h3>ease<wbr>To</h3>
@@ -7164,6 +7198,34 @@ img {
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="map.html" class="tsd-signature-type" data-tsd-kind="Class">Map</a></h4>
 						<p><code>this</code></p>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="enableterrain" class="tsd-anchor"></a>
+				<h3>enable<wbr>Terrain</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">enable<wbr>Terrain<span class="tsd-signature-symbol">(</span>exaggeration<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/d970e99/src/Map.ts#L460">src/Map.ts:460</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Enables the 3D terrain visualization</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>exaggeration: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 1</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -10498,7 +10560,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/221195e/src/Map.ts#L156">src/Map.ts:156</a></li>
+								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/d970e99/src/Map.ts#L172">src/Map.ts:172</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -11090,7 +11152,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/221195e/src/Map.ts#L164">src/Map.ts:164</a></li>
+								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/d970e99/src/Map.ts#L180">src/Map.ts:180</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -11168,7 +11230,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/221195e/src/Map.ts#L319">src/Map.ts:319</a></li>
+								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/d970e99/src/Map.ts#L335">src/Map.ts:335</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -11200,7 +11262,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides maplibre.Map.setStyle</p>
 							<ul>
-								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/221195e/src/Map.ts#L136">src/Map.ts:136</a></li>
+								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/d970e99/src/Map.ts#L152">src/Map.ts:152</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -11259,6 +11321,37 @@ img {
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Map</span></h4>
 						<p><code>this</code></p>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="setterrainexaggeration" class="tsd-anchor"></a>
+				<h3>set<wbr>Terrain<wbr>Exaggeration</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">set<wbr>Terrain<wbr>Exaggeration<span class="tsd-signature-symbol">(</span>exaggeration<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/maptiler/sdk/blob/d970e99/src/Map.ts#L498">src/Map.ts:498</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Sets the 3D terrain exageration factor.
+								Note: this is only a shortcut to <code>.enableTerrain()</code></p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>exaggeration: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 					</li>
 				</ul>
 			</section>
