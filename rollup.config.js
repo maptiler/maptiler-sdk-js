@@ -136,7 +136,7 @@ if (process.env.NODE_ENV === "production") {
           name: "maptilersdk",
           file: `dist/${outputName}.umd.min.js`,
           format: "umd",
-          sourcemap: true,
+          sourcemap: false,
         },
       ],
       input: "src/index.ts",

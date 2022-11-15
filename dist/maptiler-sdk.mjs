@@ -424,6 +424,8 @@ class Map extends maplibre.Map {
     super(__spreadProps(__spreadValues({}, options), { style, maplibreLogo: false }));
     this.languageShouldUpdate = false;
     this.isStyleInitialized = false;
+    this.isTerrainEnabled = false;
+    this.terrainExaggeration = 1;
     this.on("styledataloading", () => {
       this.languageShouldUpdate = !!config.primaryLanguage || !!config.secondaryLanguage;
     });
@@ -436,6 +438,11 @@ class Map extends maplibre.Map {
       }
       this.languageShouldUpdate = false;
       this.isStyleInitialized = true;
+    });
+    this.on("styledata", () => {
+      if (this.getTerrain() === null && this.isTerrainEnabled) {
+        this.enableTerrain(this.terrainExaggeration);
+      }
     });
     this.once("load", () => __async$4(this, null, function* () {
       enableRTL();
@@ -600,14 +607,9 @@ class Map extends maplibre.Map {
   }
   enableTerrain(exaggeration = 1) {
     const terrainInfo = this.getTerrain();
-    if (terrainInfo) {
-      this.setTerrain(__spreadProps(__spreadValues({}, terrainInfo), { exaggeration }));
-      return;
-    }
-    this.once("load", () => {
-      if (this.getTerrain() && this.getSource(defaults.terrainSourceId)) {
-        return;
-      }
+    const addTerrain = () => {
+      this.isTerrainEnabled = true;
+      this.terrainExaggeration = exaggeration;
       this.addSource(defaults.terrainSourceId, {
         type: "raster-dem",
         url: `${defaults.terrainSourceURL}?key=${config.apiKey}`
@@ -616,10 +618,28 @@ class Map extends maplibre.Map {
         source: defaults.terrainSourceId,
         exaggeration
       });
-    });
+    };
+    if (terrainInfo) {
+      this.setTerrain(__spreadProps(__spreadValues({}, terrainInfo), { exaggeration }));
+      return;
+    }
+    if (this.loaded() || this.isTerrainEnabled) {
+      addTerrain();
+    } else {
+      this.once("load", () => {
+        if (this.getTerrain() && this.getSource(defaults.terrainSourceId)) {
+          return;
+        }
+        addTerrain();
+      });
+    }
   }
   disableTerrain() {
+    this.isTerrainEnabled = false;
     this.setTerrain(null);
+    if (this.getSource(defaults.terrainSourceId)) {
+      this.removeSource(defaults.terrainSourceId);
+    }
   }
   setTerrainExaggeration(exaggeration) {
     this.enableTerrain(exaggeration);
