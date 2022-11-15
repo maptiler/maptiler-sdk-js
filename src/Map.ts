@@ -50,6 +50,8 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
 export class Map extends maplibre.Map {
   private languageShouldUpdate = false;
   private isStyleInitialized = false;
+  private isTerrainEnabled = false;
+  private terrainExaggeration = 1;
 
   constructor(options: MapOptions) {
     let style;
@@ -94,6 +96,17 @@ export class Map extends maplibre.Map {
 
       this.languageShouldUpdate = false;
       this.isStyleInitialized = true;
+    });
+
+    // this even is in charge of reaplying the terrain elevation after the
+    // style has changed because depending on the src/tgt style,
+    // the style logic is not always able to resolve the application of terrain
+    this.on("styledata", () => {
+      // the styling resolver did no manage to reaply the terrain,
+      // so let's reload it
+      if (this.getTerrain() === null && this.isTerrainEnabled) {
+        this.enableTerrain(this.terrainExaggeration);
+      }
     });
 
     // load the Right-to-Left text plugin (will happen only once)
@@ -461,6 +474,10 @@ export class Map extends maplibre.Map {
     const terrainInfo = this.getTerrain();
 
     const addTerrain = () => {
+      // When style is changed,
+      this.isTerrainEnabled = true;
+      this.terrainExaggeration = exaggeration;
+
       this.addSource(defaults.terrainSourceId, {
         type: "raster-dem",
         url: `${defaults.terrainSourceURL}?key=${config.apiKey}`,
@@ -469,7 +486,7 @@ export class Map extends maplibre.Map {
         source: defaults.terrainSourceId,
         exaggeration: exaggeration,
       });
-    }
+    };
 
     // The terrain has already been loaded,
     // we just update the exaggeration.
@@ -478,27 +495,27 @@ export class Map extends maplibre.Map {
       return;
     }
 
-    if (this.loaded()) {
+    if (this.loaded() || this.isTerrainEnabled) {
       addTerrain();
     } else {
       this.once("load", () => {
         if (this.getTerrain() && this.getSource(defaults.terrainSourceId)) {
           return;
         }
-  
         addTerrain();
-        
       });
     }
-    
   }
 
   /**
    * Disable the 3D terrain visualization
    */
   disableTerrain() {
+    this.isTerrainEnabled = false;
     this.setTerrain(null);
-    this.removeSource(defaults.terrainSourceId);
+    if (this.getSource(defaults.terrainSourceId)) {
+      this.removeSource(defaults.terrainSourceId);
+    }
   }
 
   /**

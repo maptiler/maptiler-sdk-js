@@ -257,6 +257,8 @@ declare type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & 
 declare class Map extends maplibre.Map {
     private languageShouldUpdate;
     private isStyleInitialized;
+    private isTerrainEnabled;
+    private terrainExaggeration;
     constructor(options: MapOptions);
     /**
      * Update the style of the map.
