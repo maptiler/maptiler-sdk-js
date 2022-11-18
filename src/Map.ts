@@ -11,6 +11,7 @@ export type TransformStyleFunction = (
   previous: maplibre.StyleSpecification,
   next: maplibre.StyleSpecification
 ) => maplibre.StyleSpecification;
+
 export type StyleSwapOptions = {
   diff?: boolean;
   transformStyle?: TransformStyleFunction;
