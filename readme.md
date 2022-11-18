@@ -15,14 +15,12 @@
 </p>
 
 # What and why?
-The **MapTiler JS SDK** extends MapLibre GL JS, exposes all its features, and adds new ones on top. The SDK is designed to work with the well-established  [MapTiler Cloud service](https://www.maptiler.com/cloud/), which provides all the data required to fuel a complete web mapping experience: vector tiles, satellite raster tiles, DEM with Terrain RGB, custom styles with an editor, etc.  
+The **MapTiler SDK JS** extends MapLibre GL JS, exposes all its features, and adds new ones on top. The SDK is designed to work with the well-established  [MapTiler Cloud service](https://www.maptiler.com/cloud/), which provides all the data required to fuel a complete web mapping experience: vector tiles, satellite raster tiles, DEM with Terrain RGB, custom styles with an editor, etc.  
 
-**Why are we creating a new SDK?** To make things simpler for developers working in the MapTiler ecosystem! With **MapTiler JS SDK**, there is no need to load external plugins for the most basic things, copy-paste complex data source URLs, or look up the syntax to enable 3D terrain every time you start a project. All this is built-in, loaded when needed, or exposed with simple functions. Under the hood, this SDK is opinionated as it's being fed by [MapTiler Cloud](https://www.maptiler.com/cloud/) data, but its MapLibre core makes it 100% compatible with other sources.  
+**Why are we creating a new SDK?** To make things simpler for developers working in the MapTiler ecosystem! With **MapTiler SDK JS**, there is no need to load external plugins for the most basic things, copy-paste complex data source URLs, or look up the syntax to enable 3D terrain every time you start a project. All this is built-in, loaded when needed, or exposed with simple functions. Under the hood, this SDK is opinionated as it's being fed by [MapTiler Cloud](https://www.maptiler.com/cloud/) data, but its MapLibre core makes it 100% compatible with other sources.  
 
-In addition, the MapTiler JS SDK provides well-documented and easy-to-use wrapper functions to the [MapTiler Cloud API services](https://docs.maptiler.com/cloud/api) such as: geocoding, static maps, geolocation, as well as a search engine for coordinate reference systems and transforming coordinates from one CRS to another.
-
-
-
+In addition, the MapTiler SDK JS provides well-documented and easy-to-use wrapper functions to the [MapTiler Cloud API services](https://docs.maptiler.com/cloud/api) such as: geocoding, static maps, geolocation, as well as a search engine for coordinate reference systems and transforming coordinates from one CRS to another.
+> 📣 *__Note:__* If you need <ins>only the API Client library</ins> to use in a headless fashion and without any map display, check out [MapTiler Client JS](https://github.com/maptiler/maptiler-client-js) library for browser and NodeJS.
 
 # Install
 ```shell
@@ -30,11 +28,11 @@ npm install --save @maptiler/sdk
 ```
 
 # API documentation
-In addition to the details and examples provided in this readme, you can find a complete API documentation here: https://labs.maptiler.com/sdk
+In addition to the details and examples provided in this readme, check out the [complete API documentation](https://maptiler.github.io/maptiler-sdk-js).
 
 # Quick start
 ```ts
-import * as maptiler from '@maptiler/js-sdk';
+import * as maptiler from '@maptiler/sdk';
 
 // Add your MapTiler Cloud API key to the config
 // (Go to https://cloud.maptiler.com/account/keys/ to get one for free!)
@@ -57,7 +55,7 @@ MapTiler teams maintains a few styles that we have decided to expose from th SDK
 
 Here is how it works:
 ```ts
-import { Map, Style } from '@maptiler/js-sdk'
+import { Map, Style } from '@maptiler/sdk'
 // When instanciating a map
 const map = new Map({
   container: mapContainer,
