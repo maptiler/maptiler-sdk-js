@@ -1,7 +1,7 @@
 import * as maplibre from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { config as config$1 } from '@maptiler/client';
-export { ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
+export { Language as LanguageGeocoding, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
 
 class SdkConfig {
   constructor() {
@@ -85,7 +85,7 @@ const Language = {
   OCCITAN: "oc",
   POLISH: "pl",
   PORTUGUESE: "pt",
-  ROMANIA: "ro",
+  ROMANIAN: "ro",
   ROMANSH: "rm",
   RUSSIAN: "ru",
   SCOTTISH_GAELIC: "gd",
@@ -103,10 +103,9 @@ const Language = {
   WELSH: "cy"
 };
 const languageCodeSet = new Set(Object.values(Language));
-console.log("languageCodeSet", languageCodeSet);
 function getBrowserLanguage() {
   if (typeof navigator === "undefined") {
-    return Language.LATIN;
+    return Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
   }
   const canditatelangs = Array.from(
     new Set(navigator.languages.map((l) => l.split("-")[0]))

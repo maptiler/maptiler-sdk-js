@@ -25,6 +25,8 @@ import {
   data,
   staticMaps,
   ServiceError,
+  Language as LanguageGeocoding,
+  LanguageString as LanguageStringGeocoding,
 } from "@maptiler/client";
 
 // Importing enums and configs
@@ -45,6 +47,7 @@ export type {
   BoundedStaticMapOptions,
   AutomaticStaticMapOptions,
   LanguageString,
+  LanguageStringGeocoding,
   StyleString,
 };
 
@@ -62,4 +65,5 @@ export {
   Unit,
   Style,
   Language,
+  LanguageGeocoding,
 };

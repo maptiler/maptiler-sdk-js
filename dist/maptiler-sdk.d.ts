@@ -1,7 +1,7 @@
 import * as maplibre from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { FetchFunction } from '@maptiler/client';
-export { AutomaticStaticMapOptions, Bbox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, LngLat, LngLatArray, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
+export { AutomaticStaticMapOptions, Bbox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, Language as LanguageGeocoding, LanguageString as LanguageStringGeocoding, LngLat, LngLatArray, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
 
 /**
  * Languages. Note that not all the languages of this list are available but the compatibility list may be expanded in the future.
@@ -77,7 +77,7 @@ declare const Language: {
     readonly OCCITAN: "oc";
     readonly POLISH: "pl";
     readonly PORTUGUESE: "pt";
-    readonly ROMANIA: "ro";
+    readonly ROMANIAN: "ro";
     readonly ROMANSH: "rm";
     readonly RUSSIAN: "ru";
     readonly SCOTTISH_GAELIC: "gd";

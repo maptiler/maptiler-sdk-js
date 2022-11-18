@@ -104,6 +104,74 @@
 	}
 	const config$1 = new ClientConfig();
 
+	const Language$1 = {
+	  AUTO: "auto",
+	  ALBANIAN: "sq",
+	  ARABIC: "ar",
+	  ARMENIAN: "hy",
+	  AZERBAIJANI: "az",
+	  BELORUSSIAN: "be",
+	  BOSNIAN: "bs",
+	  BRETON: "br",
+	  BULGARIAN: "bg",
+	  CATALAN: "ca",
+	  CHINESE: "zh",
+	  CROATIAN: "hr",
+	  CZECH: "cs",
+	  DANISH: "da",
+	  DUTCH: "nl",
+	  ENGLISH: "en",
+	  ESPERANTO: "eo",
+	  ESTONIAN: "et",
+	  FINNISH: "fi",
+	  FRENCH: "fr",
+	  FRISIAN: "fy",
+	  GEORGIAN: "ka",
+	  GERMAN: "de",
+	  GREEK: "el",
+	  HEBREW: "he",
+	  HUNGARIAN: "hu",
+	  ICELANDIC: "is",
+	  IRISH: "ga",
+	  ITALIAN: "it",
+	  JAPANESE: "ja",
+	  KANNADA: "kn",
+	  KAZAKH: "kk",
+	  KOREAN: "ko",
+	  ROMAN_LATIN: "la",
+	  LATVIAN: "lv",
+	  LITHUANIAN: "lt",
+	  LUXEMBOURGISH: "lb",
+	  MACEDONIAN: "mk",
+	  MALTESE: "mt",
+	  NORWEGIAN: "no",
+	  POLISH: "pl",
+	  PORTUGUESE: "pt",
+	  ROMANIAN: "ro",
+	  ROMANSH: "rm",
+	  RUSSIAN: "ru",
+	  SCOTTISH_GAELIC: "gd",
+	  SERBIAN_CYRILLIC: "sr",
+	  SLOVAK: "sk",
+	  SLOVENE: "sl",
+	  SPANISH: "es",
+	  SWEDISH: "sv",
+	  THAI: "th",
+	  TURKISH: "tr",
+	  UKRAINIAN: "uk",
+	  WELSH: "cy"
+	};
+	const languageCodeSet$1 = new Set(Object.values(Language$1));
+	function getAutoLanguage() {
+	  if (typeof navigator === "undefined") {
+	    return Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
+	  }
+	  const canditatelangs = Array.from(
+	    new Set(navigator.languages.map((l) => l.split("-")[0]))
+	  ).filter((l) => languageCodeSet$1.has(l));
+	  return canditatelangs.length ? canditatelangs[0] : Language$1.ENGLISH;
+	}
+
 	var __async$4 = (__this, __arguments, generator) => {
 	  return new Promise((resolve, reject) => {
 	    var fulfilled = (value) => {
@@ -199,7 +267,7 @@
 	      );
 	    }
 	    if ("language" in options) {
-	      const languages = (Array.isArray(options.language) ? options.language : [options.language]).join(",");
+	      const languages = (Array.isArray(options.language) ? options.language : [options.language]).map((lang) => lang === Language$1.AUTO ? getAutoLanguage() : lang).join(",");
 	      endpoint.searchParams.set("language", languages);
 	    }
 	    const urlWithParams = endpoint.toString();
@@ -239,7 +307,7 @@
 	      );
 	    }
 	    if ("language" in options) {
-	      const languages = (Array.isArray(options.language) ? options.language : [options.language]).join(",");
+	      const languages = (Array.isArray(options.language) ? options.language : [options.language]).map((lang) => lang === Language$1.AUTO ? getAutoLanguage() : lang).join(",");
 	      endpoint.searchParams.set("language", languages);
 	    }
 	    const urlWithParams = endpoint.toString();
@@ -759,7 +827,7 @@
 	  OCCITAN: "oc",
 	  POLISH: "pl",
 	  PORTUGUESE: "pt",
-	  ROMANIA: "ro",
+	  ROMANIAN: "ro",
 	  ROMANSH: "rm",
 	  RUSSIAN: "ru",
 	  SCOTTISH_GAELIC: "gd",
@@ -777,10 +845,9 @@
 	  WELSH: "cy"
 	};
 	const languageCodeSet = new Set(Object.values(Language));
-	console.log("languageCodeSet", languageCodeSet);
 	function getBrowserLanguage() {
 	  if (typeof navigator === "undefined") {
-	    return Language.LATIN;
+	    return Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
 	  }
 	  const canditatelangs = Array.from(
 	    new Set(navigator.languages.map((l) => l.split("-")[0]))
@@ -1254,6 +1321,7 @@
 	})(Unit || {});
 
 	exports.Language = Language;
+	exports.LanguageGeocoding = Language$1;
 	exports.Map = Map;
 	exports.SdkConfig = SdkConfig;
 	exports.ServiceError = ServiceError;

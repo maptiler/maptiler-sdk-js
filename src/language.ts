@@ -76,7 +76,7 @@ const Language = {
   OCCITAN: "oc",
   POLISH: "pl",
   PORTUGUESE: "pt",
-  ROMANIA: "ro",
+  ROMANIAN: "ro",
   ROMANSH: "rm",
   RUSSIAN: "ru",
   SCOTTISH_GAELIC: "gd",
@@ -96,8 +96,6 @@ const Language = {
 
 const languageCodeSet = new Set(Object.values(Language));
 
-console.log("languageCodeSet", languageCodeSet);
-
 type Values<T> = T[keyof T];
 
 /**
@@ -107,7 +105,9 @@ type LanguageString = Values<typeof Language>;
 
 function getBrowserLanguage(): LanguageString {
   if (typeof navigator === "undefined") {
-    return Language.LATIN;
+    return Intl.DateTimeFormat()
+      .resolvedOptions()
+      .locale.split("-")[0] as LanguageString;
   }
 
   const canditatelangs = Array.from(
