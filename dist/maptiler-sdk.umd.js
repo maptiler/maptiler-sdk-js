@@ -700,193 +700,93 @@
 	}
 	const config = new SdkConfig();
 
-	var Language = /* @__PURE__ */ ((Language2) => {
-	  Language2["LATIN"] = "latin";
-	  Language2["NON_LATIN"] = "nonlatin";
-	  Language2["LOCAL"] = "";
-	  Language2["AFAR"] = "aa";
-	  Language2["ABKHAZIAN"] = "ab";
-	  Language2["AVESTAN"] = "ae";
-	  Language2["AFRIKAANS"] = "af";
-	  Language2["AKAN"] = "ak";
-	  Language2["AMHARIC"] = "am";
-	  Language2["ARAGONESE"] = "an";
-	  Language2["ARABIC"] = "ar";
-	  Language2["ASSAMESE"] = "as";
-	  Language2["AVARIC"] = "av";
-	  Language2["AYMARA"] = "ay";
-	  Language2["AZERBAIJANI"] = "az";
-	  Language2["BASHKIR"] = "ba";
-	  Language2["BELARUSIAN"] = "be";
-	  Language2["BULGARIAN"] = "bg";
-	  Language2["BIHARI"] = "bh";
-	  Language2["BISLAMA"] = "bi";
-	  Language2["BAMBARA"] = "bm";
-	  Language2["BENGALI"] = "bn";
-	  Language2["TIBETAN"] = "bo";
-	  Language2["BRETON"] = "br";
-	  Language2["BOSNIAN"] = "bs";
-	  Language2["CATALAN"] = "ca";
-	  Language2["CHECHEN"] = "ce";
-	  Language2["CHAMORRO"] = "ch";
-	  Language2["CORSICAN"] = "co";
-	  Language2["CREE"] = "cr";
-	  Language2["CZECH"] = "cs";
-	  Language2["CHURCH_SLAVIC"] = "cu";
-	  Language2["CHUVASH"] = "cv";
-	  Language2["WELSH"] = "cy";
-	  Language2["DANISH"] = "da";
-	  Language2["GERMAN"] = "de";
-	  Language2["MALDIVIAN"] = "dv";
-	  Language2["DZONGKHA"] = "dz";
-	  Language2["EWE"] = "ee";
-	  Language2["GREEK"] = "el";
-	  Language2["ENGLISH"] = "en";
-	  Language2["ESPERANTO"] = "eo";
-	  Language2["SPANISH"] = "es";
-	  Language2["ESTONIAN"] = "et";
-	  Language2["BASQUE"] = "eu";
-	  Language2["PERSIAN"] = "fa";
-	  Language2["FULAH"] = "ff";
-	  Language2["FINNISH"] = "fi";
-	  Language2["FIJIAN"] = "fj";
-	  Language2["FAROESE"] = "fo";
-	  Language2["FRENCH"] = "fr";
-	  Language2["WESTERN_FRISIAN"] = "fy";
-	  Language2["IRISH"] = "ga";
-	  Language2["GAELIC"] = "gd";
-	  Language2["GALICIAN"] = "gl";
-	  Language2["GUARANI"] = "gn";
-	  Language2["GUJARATI"] = "gu";
-	  Language2["MANX"] = "gv";
-	  Language2["HAUSA"] = "ha";
-	  Language2["HEBREW"] = "he";
-	  Language2["HINDI"] = "hi";
-	  Language2["HIRI_MOTU"] = "ho";
-	  Language2["CROATIAN"] = "hr";
-	  Language2["HAITIAN"] = "ht";
-	  Language2["HUNGARIAN"] = "hu";
-	  Language2["ARMENIAN"] = "hy";
-	  Language2["HERERO"] = "hz";
-	  Language2["INTERLINGUA"] = "ia";
-	  Language2["INDONESIAN"] = "id";
-	  Language2["INTERLINGUE"] = "ie";
-	  Language2["IGBO"] = "ig";
-	  Language2["SICHUAN_YI"] = "ii";
-	  Language2["INUPIAQ"] = "ik";
-	  Language2["IDO"] = "io";
-	  Language2["ICELANDIC"] = "is";
-	  Language2["ITALIAN"] = "it";
-	  Language2["INUKTITUT"] = "iu";
-	  Language2["JAPANESE"] = "ja";
-	  Language2["JAVANESE"] = "jv";
-	  Language2["GEORGIAN"] = "ka";
-	  Language2["KONGO"] = "kg";
-	  Language2["KIKUYU"] = "ki";
-	  Language2["KUANYAMA"] = "kj";
-	  Language2["KAZAKH"] = "kk";
-	  Language2["KALAALLISUT"] = "kl";
-	  Language2["CENTRAL_KHMER"] = "km";
-	  Language2["KANNADA"] = "kn";
-	  Language2["KOREAN"] = "ko";
-	  Language2["KANURI"] = "kr";
-	  Language2["KASHMIRI"] = "ks";
-	  Language2["KURDISH"] = "ku";
-	  Language2["KOMI"] = "kv";
-	  Language2["CORNISH"] = "kw";
-	  Language2["KIRGHIZ"] = "ky";
-	  Language2["LUXEMBOURGISH"] = "lb";
-	  Language2["GANDA"] = "lg";
-	  Language2["LIMBURGAN"] = "li";
-	  Language2["LINGALA"] = "ln";
-	  Language2["LAO"] = "lo";
-	  Language2["LITHUANIAN"] = "lt";
-	  Language2["LUBA_KATANGA"] = "lu";
-	  Language2["LATVIAN"] = "lv";
-	  Language2["MALAGASY"] = "mg";
-	  Language2["MARSHALLESE"] = "mh";
-	  Language2["MAORI"] = "mi";
-	  Language2["MACEDONIAN"] = "mk";
-	  Language2["MALAYALAM"] = "ml";
-	  Language2["MONGOLIAN"] = "mn";
-	  Language2["MARATHI"] = "mr";
-	  Language2["MALAY"] = "ms";
-	  Language2["MALTESE"] = "mt";
-	  Language2["BURMESE"] = "my";
-	  Language2["NAURU"] = "na";
-	  Language2["NORWEGIAN"] = "no";
-	  Language2["NORTH_NDEBELE"] = "nd";
-	  Language2["NEPALI"] = "ne";
-	  Language2["NDONGA"] = "ng";
-	  Language2["DUTCH"] = "nl";
-	  Language2["SOUTH_NDEBELE"] = "nr";
-	  Language2["NAVAJO"] = "nv";
-	  Language2["CHICHEWA"] = "ny";
-	  Language2["OCCITAN"] = "oc";
-	  Language2["OJIBWA"] = "oj";
-	  Language2["OROMO"] = "om";
-	  Language2["ORIYA"] = "or";
-	  Language2["OSSETIC"] = "os";
-	  Language2["PANJABI"] = "pa";
-	  Language2["PALI"] = "pi";
-	  Language2["POLISH"] = "pl";
-	  Language2["PUSHTO"] = "ps";
-	  Language2["PORTUGUESE"] = "pt";
-	  Language2["QUECHUA"] = "qu";
-	  Language2["ROMANSH"] = "rm";
-	  Language2["RUNDI"] = "rn";
-	  Language2["ROMANIAN"] = "ro";
-	  Language2["RUSSIAN"] = "ru";
-	  Language2["KINYARWANDA"] = "rw";
-	  Language2["SANSKRIT"] = "sa";
-	  Language2["SARDINIAN"] = "sc";
-	  Language2["SINDHI"] = "sd";
-	  Language2["NORTHERN_SAMI"] = "se";
-	  Language2["SANGO"] = "sg";
-	  Language2["SINHALA"] = "si";
-	  Language2["SLOVAK"] = "sk";
-	  Language2["SLOVENIAN"] = "sl";
-	  Language2["SAMOAN"] = "sm";
-	  Language2["SHONA"] = "sn";
-	  Language2["SOMALI"] = "so";
-	  Language2["ALBANIAN"] = "sq";
-	  Language2["SERBIAN"] = "sr";
-	  Language2["SWATI"] = "ss";
-	  Language2["SOTHO_SOUTHERN"] = "st";
-	  Language2["SUNDANESE"] = "su";
-	  Language2["SWEDISH"] = "sv";
-	  Language2["SWAHILI"] = "sw";
-	  Language2["TAMIL"] = "ta";
-	  Language2["TELUGU"] = "te";
-	  Language2["TAJIK"] = "tg";
-	  Language2["THAI"] = "th";
-	  Language2["TIGRINYA"] = "ti";
-	  Language2["TURKMEN"] = "tk";
-	  Language2["TAGALOG"] = "tl";
-	  Language2["TSWANA"] = "tn";
-	  Language2["TONGA"] = "to";
-	  Language2["TURKISH"] = "tr";
-	  Language2["TSONGA"] = "ts";
-	  Language2["TATAR"] = "tt";
-	  Language2["TWI"] = "tw";
-	  Language2["TAHITIAN"] = "ty";
-	  Language2["UIGHUR"] = "ug";
-	  Language2["UKRAINIAN"] = "uk";
-	  Language2["URDU"] = "ur";
-	  Language2["UZBEK"] = "uz";
-	  Language2["VENDA"] = "ve";
-	  Language2["VIETNAMESE"] = "vi";
-	  Language2["VOLAPUK"] = "vo";
-	  Language2["WALLOON"] = "wa";
-	  Language2["WOLOF"] = "wo";
-	  Language2["XHOSA"] = "xh";
-	  Language2["YIDDISH"] = "yi";
-	  Language2["YORUBA"] = "yo";
-	  Language2["ZHUANG"] = "za";
-	  Language2["CHINESE"] = "zh";
-	  Language2["ZULU"] = "zu";
-	  return Language2;
-	})(Language || {});
+	const Language = {
+	  AUTO: "auto",
+	  LATIN: "latin",
+	  NON_LATIN: "nonlatin",
+	  LOCAL: "",
+	  ALBANIAN: "sq",
+	  AMHARIC: "am",
+	  ARABIC: "ar",
+	  ARMENIAN: "hy",
+	  AZERBAIJANI: "az",
+	  BASQUE: "eu",
+	  BELORUSSIAN: "be",
+	  BOSNIAN: "bs",
+	  BRETON: "br",
+	  BULGARIAN: "bg",
+	  CATALAN: "ca",
+	  CHINESE: "zh",
+	  CORSICAN: "co",
+	  CROATIAN: "hr",
+	  CZECH: "cs",
+	  DANISH: "da",
+	  DUTCH: "nl",
+	  ENGLISH: "en",
+	  ESPERANTO: "eo",
+	  ESTONIAN: "et",
+	  FINNISH: "fi",
+	  FRENCH: "fr",
+	  FRISIAN: "fy",
+	  GEORGIAN: "ka",
+	  GERMAN: "de",
+	  GREEK: "el",
+	  HEBREW: "he",
+	  HINDI: "hi",
+	  HUNGARIAN: "hu",
+	  ICELANDIC: "is",
+	  INDONESIAN: "id",
+	  IRISH: "ga",
+	  ITALIAN: "it",
+	  JAPANESE: "ja",
+	  JAPANESE_HIRAGANA: "ja-Hira",
+	  JAPANESE_KANA: "ja_kana",
+	  JAPANESE_LATIN: "ja_rm",
+	  JAPANESE_2018: "ja-Latn",
+	  KANNADA: "kn",
+	  KAZAKH: "kk",
+	  KOREAN: "ko",
+	  KOREAN_LATIN: "ko-Latn",
+	  KURDISH: "ku",
+	  ROMAN_LATIN: "la",
+	  LATVIAN: "lv",
+	  LITHUANIAN: "lt",
+	  LUXEMBOURGISH: "lb",
+	  MACEDONIAN: "mk",
+	  MALAYALAM: "ml",
+	  MALTESE: "mt",
+	  NORWEGIAN: "no",
+	  OCCITAN: "oc",
+	  POLISH: "pl",
+	  PORTUGUESE: "pt",
+	  ROMANIA: "ro",
+	  ROMANSH: "rm",
+	  RUSSIAN: "ru",
+	  SCOTTISH_GAELIC: "gd",
+	  SERBIAN_CYRILLIC: "sr",
+	  SERBIAN_LATIN: "sr-Latn",
+	  SLOVAK: "sk",
+	  SLOVENE: "sl",
+	  SPANISH: "es",
+	  SWEDISH: "sv",
+	  TAMIL: "ta",
+	  TELUGU: "te",
+	  THAI: "th",
+	  TURKISH: "tr",
+	  UKRAINIAN: "uk",
+	  WELSH: "cy"
+	};
+	const languageCodeSet = new Set(Object.values(Language));
+	console.log("languageCodeSet", languageCodeSet);
+	function getBrowserLanguage() {
+	  if (typeof navigator === "undefined") {
+	    return Language.LATIN;
+	  }
+	  const canditatelangs = Array.from(
+	    new Set(navigator.languages.map((l) => l.split("-")[0]))
+	  ).filter((l) => languageCodeSet.has(l));
+	  return canditatelangs.length ? canditatelangs[0] : Language.LATIN;
+	}
 
 	var version = 8;
 	var id = "f0e4ff8c-a9e4-414e-9f4d-7938762c948f";
@@ -944,18 +844,17 @@
 		zoom: zoom
 	};
 
-	var Style = /* @__PURE__ */ ((Style2) => {
-	  Style2["STREETS"] = "streets-v2";
-	  Style2["HYBRID"] = "hybrid";
-	  Style2["SATELLITE"] = "satellite";
-	  Style2["OUTDOOR"] = "outdoor";
-	  Style2["BASIC"] = "basic-v2";
-	  Style2["DARK"] = "streets-v2-dark";
-	  Style2["LIGHT"] = "streets-v2-light";
-	  return Style2;
-	})(Style || {});
+	const Style = {
+	  STREETS: "streets-v2",
+	  HYBRID: "hybrid",
+	  SATELLITE: "satellite",
+	  OUTDOOR: "outdoor",
+	  BASIC: "basic-v2",
+	  DARK: "streets-v2-dark",
+	  LIGHT: "streets-v2-light"
+	};
 	const builtInStyles = {};
-	builtInStyles["satellite" /* SATELLITE */] = satelliteBuiltin;
+	builtInStyles[Style.SATELLITE] = satelliteBuiltin;
 	function isBuiltinStyle(styleId) {
 	  return styleId in builtInStyles;
 	}
@@ -1175,9 +1074,16 @@
 	    return super.setStyle(tempStyle, options);
 	  }
 	  setLanguage(language = defaults.primaryLanguage) {
+	    if (language === Language.AUTO) {
+	      return this.setLanguage(getBrowserLanguage());
+	    }
 	    this.setPrimaryLanguage(language);
 	  }
 	  setPrimaryLanguage(language = defaults.primaryLanguage) {
+	    if (language === Language.AUTO) {
+	      return this.setPrimaryLanguage(getBrowserLanguage());
+	    }
+	    console.log("language", language);
 	    config.primaryLanguage = language;
 	    const layers = this.getStyle().layers;
 	    const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
@@ -1242,6 +1148,9 @@
 	    }
 	  }
 	  setSecondaryLanguage(language = defaults.secondaryLanguage) {
+	    if (language === Language.AUTO) {
+	      return this.setSecondaryLanguage(getBrowserLanguage());
+	    }
 	    config.secondaryLanguage = language;
 	    const layers = this.getStyle().layers;
 	    const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;

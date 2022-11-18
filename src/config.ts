@@ -1,4 +1,4 @@
-import { Language } from "./language";
+import { LanguageString } from "./language";
 import { config as clientConfig, FetchFunction } from "@maptiler/client";
 
 /**
@@ -13,13 +13,13 @@ class SdkConfig {
   /**
    * The primary language, to overwrite the default language defined in the map style.
    */
-  primaryLanguage: Language | null = null;
+  primaryLanguage: LanguageString | null = null;
 
   /**
    * The secondary language, to overwrite the default language defined in the map style.
    * This settings is highly dependant on the style compatibility and may not work in most cases.
    */
-  secondaryLanguage: Language | null = null;
+  secondaryLanguage: LanguageString | null = null;
 
   /**
    * MapTiler Cloud API key

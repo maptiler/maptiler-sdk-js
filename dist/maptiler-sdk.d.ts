@@ -6,192 +6,99 @@ export { AutomaticStaticMapOptions, Bbox, BoundedStaticMapOptions, CenteredStati
 /**
  * Languages. Note that not all the languages of this list are available but the compatibility list may be expanded in the future.
  */
-declare enum Language {
-    LATIN = "latin",
-    NON_LATIN = "nonlatin",
-    LOCAL = "",
-    AFAR = "aa",
-    ABKHAZIAN = "ab",
-    AVESTAN = "ae",
-    AFRIKAANS = "af",
-    AKAN = "ak",
-    AMHARIC = "am",
-    ARAGONESE = "an",
-    ARABIC = "ar",
-    ASSAMESE = "as",
-    AVARIC = "av",
-    AYMARA = "ay",
-    AZERBAIJANI = "az",
-    BASHKIR = "ba",
-    BELARUSIAN = "be",
-    BULGARIAN = "bg",
-    BIHARI = "bh",
-    BISLAMA = "bi",
-    BAMBARA = "bm",
-    BENGALI = "bn",
-    TIBETAN = "bo",
-    BRETON = "br",
-    BOSNIAN = "bs",
-    CATALAN = "ca",
-    CHECHEN = "ce",
-    CHAMORRO = "ch",
-    CORSICAN = "co",
-    CREE = "cr",
-    CZECH = "cs",
-    CHURCH_SLAVIC = "cu",
-    CHUVASH = "cv",
-    WELSH = "cy",
-    DANISH = "da",
-    GERMAN = "de",
-    MALDIVIAN = "dv",
-    DZONGKHA = "dz",
-    EWE = "ee",
-    GREEK = "el",
-    ENGLISH = "en",
-    ESPERANTO = "eo",
-    SPANISH = "es",
-    ESTONIAN = "et",
-    BASQUE = "eu",
-    PERSIAN = "fa",
-    FULAH = "ff",
-    FINNISH = "fi",
-    FIJIAN = "fj",
-    FAROESE = "fo",
-    FRENCH = "fr",
-    WESTERN_FRISIAN = "fy",
-    IRISH = "ga",
-    GAELIC = "gd",
-    GALICIAN = "gl",
-    GUARANI = "gn",
-    GUJARATI = "gu",
-    MANX = "gv",
-    HAUSA = "ha",
-    HEBREW = "he",
-    HINDI = "hi",
-    HIRI_MOTU = "ho",
-    CROATIAN = "hr",
-    HAITIAN = "ht",
-    HUNGARIAN = "hu",
-    ARMENIAN = "hy",
-    HERERO = "hz",
-    INTERLINGUA = "ia",
-    INDONESIAN = "id",
-    INTERLINGUE = "ie",
-    IGBO = "ig",
-    SICHUAN_YI = "ii",
-    INUPIAQ = "ik",
-    IDO = "io",
-    ICELANDIC = "is",
-    ITALIAN = "it",
-    INUKTITUT = "iu",
-    JAPANESE = "ja",
-    JAVANESE = "jv",
-    GEORGIAN = "ka",
-    KONGO = "kg",
-    KIKUYU = "ki",
-    KUANYAMA = "kj",
-    KAZAKH = "kk",
-    KALAALLISUT = "kl",
-    CENTRAL_KHMER = "km",
-    KANNADA = "kn",
-    KOREAN = "ko",
-    KANURI = "kr",
-    KASHMIRI = "ks",
-    KURDISH = "ku",
-    KOMI = "kv",
-    CORNISH = "kw",
-    KIRGHIZ = "ky",
-    LUXEMBOURGISH = "lb",
-    GANDA = "lg",
-    LIMBURGAN = "li",
-    LINGALA = "ln",
-    LAO = "lo",
-    LITHUANIAN = "lt",
-    LUBA_KATANGA = "lu",
-    LATVIAN = "lv",
-    MALAGASY = "mg",
-    MARSHALLESE = "mh",
-    MAORI = "mi",
-    MACEDONIAN = "mk",
-    MALAYALAM = "ml",
-    MONGOLIAN = "mn",
-    MARATHI = "mr",
-    MALAY = "ms",
-    MALTESE = "mt",
-    BURMESE = "my",
-    NAURU = "na",
-    NORWEGIAN = "no",
-    NORTH_NDEBELE = "nd",
-    NEPALI = "ne",
-    NDONGA = "ng",
-    DUTCH = "nl",
-    SOUTH_NDEBELE = "nr",
-    NAVAJO = "nv",
-    CHICHEWA = "ny",
-    OCCITAN = "oc",
-    OJIBWA = "oj",
-    OROMO = "om",
-    ORIYA = "or",
-    OSSETIC = "os",
-    PANJABI = "pa",
-    PALI = "pi",
-    POLISH = "pl",
-    PUSHTO = "ps",
-    PORTUGUESE = "pt",
-    QUECHUA = "qu",
-    ROMANSH = "rm",
-    RUNDI = "rn",
-    ROMANIAN = "ro",
-    RUSSIAN = "ru",
-    KINYARWANDA = "rw",
-    SANSKRIT = "sa",
-    SARDINIAN = "sc",
-    SINDHI = "sd",
-    NORTHERN_SAMI = "se",
-    SANGO = "sg",
-    SINHALA = "si",
-    SLOVAK = "sk",
-    SLOVENIAN = "sl",
-    SAMOAN = "sm",
-    SHONA = "sn",
-    SOMALI = "so",
-    ALBANIAN = "sq",
-    SERBIAN = "sr",
-    SWATI = "ss",
-    SOTHO_SOUTHERN = "st",
-    SUNDANESE = "su",
-    SWEDISH = "sv",
-    SWAHILI = "sw",
-    TAMIL = "ta",
-    TELUGU = "te",
-    TAJIK = "tg",
-    THAI = "th",
-    TIGRINYA = "ti",
-    TURKMEN = "tk",
-    TAGALOG = "tl",
-    TSWANA = "tn",
-    TONGA = "to",
-    TURKISH = "tr",
-    TSONGA = "ts",
-    TATAR = "tt",
-    TWI = "tw",
-    TAHITIAN = "ty",
-    UIGHUR = "ug",
-    UKRAINIAN = "uk",
-    URDU = "ur",
-    UZBEK = "uz",
-    VENDA = "ve",
-    VIETNAMESE = "vi",
-    VOLAPUK = "vo",
-    WALLOON = "wa",
-    WOLOF = "wo",
-    XHOSA = "xh",
-    YIDDISH = "yi",
-    YORUBA = "yo",
-    ZHUANG = "za",
-    CHINESE = "zh",
-    ZULU = "zu"
-}
+declare const Language: {
+    /**
+     * AUTO mode uses the language of the browser
+     */
+    readonly AUTO: "auto";
+    /**
+     * Default fallback languages that uses latin charaters
+     */
+    readonly LATIN: "latin";
+    /**
+     * Default fallback languages that uses non-latin charaters
+     */
+    readonly NON_LATIN: "nonlatin";
+    /**
+     * Labels are in their local language, when available
+     */
+    readonly LOCAL: "";
+    readonly ALBANIAN: "sq";
+    readonly AMHARIC: "am";
+    readonly ARABIC: "ar";
+    readonly ARMENIAN: "hy";
+    readonly AZERBAIJANI: "az";
+    readonly BASQUE: "eu";
+    readonly BELORUSSIAN: "be";
+    readonly BOSNIAN: "bs";
+    readonly BRETON: "br";
+    readonly BULGARIAN: "bg";
+    readonly CATALAN: "ca";
+    readonly CHINESE: "zh";
+    readonly CORSICAN: "co";
+    readonly CROATIAN: "hr";
+    readonly CZECH: "cs";
+    readonly DANISH: "da";
+    readonly DUTCH: "nl";
+    readonly ENGLISH: "en";
+    readonly ESPERANTO: "eo";
+    readonly ESTONIAN: "et";
+    readonly FINNISH: "fi";
+    readonly FRENCH: "fr";
+    readonly FRISIAN: "fy";
+    readonly GEORGIAN: "ka";
+    readonly GERMAN: "de";
+    readonly GREEK: "el";
+    readonly HEBREW: "he";
+    readonly HINDI: "hi";
+    readonly HUNGARIAN: "hu";
+    readonly ICELANDIC: "is";
+    readonly INDONESIAN: "id";
+    readonly IRISH: "ga";
+    readonly ITALIAN: "it";
+    readonly JAPANESE: "ja";
+    readonly JAPANESE_HIRAGANA: "ja-Hira";
+    readonly JAPANESE_KANA: "ja_kana";
+    readonly JAPANESE_LATIN: "ja_rm";
+    readonly JAPANESE_2018: "ja-Latn";
+    readonly KANNADA: "kn";
+    readonly KAZAKH: "kk";
+    readonly KOREAN: "ko";
+    readonly KOREAN_LATIN: "ko-Latn";
+    readonly KURDISH: "ku";
+    readonly ROMAN_LATIN: "la";
+    readonly LATVIAN: "lv";
+    readonly LITHUANIAN: "lt";
+    readonly LUXEMBOURGISH: "lb";
+    readonly MACEDONIAN: "mk";
+    readonly MALAYALAM: "ml";
+    readonly MALTESE: "mt";
+    readonly NORWEGIAN: "no";
+    readonly OCCITAN: "oc";
+    readonly POLISH: "pl";
+    readonly PORTUGUESE: "pt";
+    readonly ROMANIA: "ro";
+    readonly ROMANSH: "rm";
+    readonly RUSSIAN: "ru";
+    readonly SCOTTISH_GAELIC: "gd";
+    readonly SERBIAN_CYRILLIC: "sr";
+    readonly SERBIAN_LATIN: "sr-Latn";
+    readonly SLOVAK: "sk";
+    readonly SLOVENE: "sl";
+    readonly SPANISH: "es";
+    readonly SWEDISH: "sv";
+    readonly TAMIL: "ta";
+    readonly TELUGU: "te";
+    readonly THAI: "th";
+    readonly TURKISH: "tr";
+    readonly UKRAINIAN: "uk";
+    readonly WELSH: "cy";
+};
+declare type Values$1<T> = T[keyof T];
+/**
+ * Built-in languages values as strings
+ */
+declare type LanguageString = Values$1<typeof Language>;
 
 declare type TransformStyleFunction = (previous: maplibre.StyleSpecification, next: maplibre.StyleSpecification) => maplibre.StyleSpecification;
 declare type StyleSwapOptions = {
@@ -247,18 +154,18 @@ declare class Map extends maplibre.Map {
      * This function is a short for `.setPrimaryLanguage()`
      * @param language
      */
-    setLanguage(language?: Language): void;
+    setLanguage(language?: LanguageString): any;
     /**
      * Define the primary language of the map. Note that not all the languages shorthands provided are available.
      * @param language
      */
-    setPrimaryLanguage(language?: Language): void;
+    setPrimaryLanguage(language?: LanguageString): any;
     /**
      * Define the secondary language of the map.
      * Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)
      * @param language
      */
-    setSecondaryLanguage(language?: Language): void;
+    setSecondaryLanguage(language?: LanguageString): any;
     /**
      * Enables the 3D terrain visualization
      * @param exaggeration
@@ -288,12 +195,12 @@ declare class SdkConfig {
     /**
      * The primary language, to overwrite the default language defined in the map style.
      */
-    primaryLanguage: Language | null;
+    primaryLanguage: LanguageString | null;
     /**
      * The secondary language, to overwrite the default language defined in the map style.
      * This settings is highly dependant on the style compatibility and may not work in most cases.
      */
-    secondaryLanguage: Language | null;
+    secondaryLanguage: LanguageString | null;
     /**
      * MapTiler Cloud API key
      */
@@ -325,14 +232,19 @@ declare enum Unit {
 /**
  * Built-in styles
  */
-declare enum Style {
-    STREETS = "streets-v2",
-    HYBRID = "hybrid",
-    SATELLITE = "satellite",
-    OUTDOOR = "outdoor",
-    BASIC = "basic-v2",
-    DARK = "streets-v2-dark",
-    LIGHT = "streets-v2-light"
-}
+declare const Style: {
+    readonly STREETS: "streets-v2";
+    readonly HYBRID: "hybrid";
+    readonly SATELLITE: "satellite";
+    readonly OUTDOOR: "outdoor";
+    readonly BASIC: "basic-v2";
+    readonly DARK: "streets-v2-dark";
+    readonly LIGHT: "streets-v2-light";
+};
+declare type Values<T> = T[keyof T];
+/**
+ * Built-in style values as strings
+ */
+declare type StyleString = Values<typeof Style>;
 
-export { Language, Map, MapOptions, SdkConfig, Style, Unit, config };
+export { Language, LanguageString, Map, MapOptions, SdkConfig, Style, StyleString, Unit, config };

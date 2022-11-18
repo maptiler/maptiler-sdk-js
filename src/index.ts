@@ -29,9 +29,9 @@ import {
 
 // Importing enums and configs
 import { config, SdkConfig } from "./config";
-import { Language } from "./language";
+import { Language, LanguageString } from "./language";
 import { Unit } from "./unit";
-import { Style } from "./style";
+import { Style, StyleString } from "./style";
 
 // Exporting types
 export type {
@@ -44,6 +44,8 @@ export type {
   CenteredStaticMapOptions,
   BoundedStaticMapOptions,
   AutomaticStaticMapOptions,
+  LanguageString,
+  StyleString,
 };
 
 // Exporting classes, objects, functions, etc.
@@ -57,7 +59,7 @@ export {
   coordinates,
   data,
   staticMaps,
-  Language,
   Unit,
   Style,
+  Language,
 };
