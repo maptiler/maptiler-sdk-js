@@ -28,7 +28,7 @@ npm install --save @maptiler/sdk
 ```
 
 # API documentation
-In addition to the details and examples provided in this readme, check out the [complete API documentation](https://maptiler.github.io/maptiler-sdk-js).
+In addition to the details and examples provided in this readme, check out the [complete API documentation](https://maptiler.github.io/maptiler-sdk-js) (also available in [markdown](docsmd)).
 
 # Quick start
 ```ts

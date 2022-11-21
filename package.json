@@ -26,7 +26,8 @@
     "format": "prettier --write \"src/**/*.{js,ts,tsx}\"",
     "lint": "eslint --fix \"src/**/*.{js,ts}\"",
     "doc": "rm -rf docs/* ; typedoc; cp -r images docs/",
-    "prepare": "npm run format; npm run lint; npm run build; npm run doc"
+    "docmd": "rm -rf docsmd/*; typedoc --plugin typedoc-plugin-markdown --out docsmd src/index.ts; cp -r images docsmd/",
+    "prepare": "npm run format; npm run lint; npm run build; npm run doc; npm run docmd"
   },
   "author": "",
   "devDependencies": {
@@ -47,6 +48,7 @@
     "serve": "^14.0.1",
     "terser": "^5.15.0",
     "typedoc": "^0.23.21",
+    "typedoc-plugin-markdown": "^3.13.6",
     "typescript": "^4.8.4"
   },
   "dependencies": {
