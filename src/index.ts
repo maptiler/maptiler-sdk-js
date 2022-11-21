@@ -33,7 +33,7 @@ import {
 import { config, SdkConfig } from "./config";
 import { Language, LanguageString } from "./language";
 import { Unit } from "./unit";
-import { Style, StyleString } from "./style";
+import { MaptilerStyle, MaptilerStyleString } from "./style";
 
 // Exporting types
 export type {
@@ -48,7 +48,7 @@ export type {
   AutomaticStaticMapOptions,
   LanguageString,
   LanguageGeocodingString,
-  StyleString,
+  MaptilerStyleString, 
 };
 
 // Exporting classes, objects, functions, etc.
@@ -63,7 +63,7 @@ export {
   data,
   staticMaps,
   Unit,
-  Style,
+  MaptilerStyle,
   Language,
   LanguageGeocoding,
 };

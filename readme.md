@@ -59,24 +59,24 @@ import { Map, Style } from '@maptiler/sdk'
 // When instanciating a map
 const map = new Map({
   container: mapContainer,
-  style: Style.OUTDOOR, // <-- the shorthand for the outdoor style
+  style: MaptilerStyle.OUTDOOR, // <-- the shorthand for the outdoor style
 });
 
 // Or later on, updating the style
-map.setStyle(Style.DARK);
+map.setStyle(MaptilerStyle.DARK);
 ```
 
 The styles with a shorthand provided by the SDK are the following:
 
 | ID | Screenshot | Comment |
 |:-:|:-:|:-:|
-|`Style.STREETS`|![](images/screenshots/style-streets-v2.png)|The classic default style, perfect for urban areas|
-|`Style.SATELLITE`|![](images/screenshots/style-satellite.png)|Only high resolution satellite raster tiles without any labels|
-|`Style.HYBRID`|![](images/screenshots/style-hybrid.png)|Satellite tile with labels, landmarks, roads ways and political borders|
-|`Style.OUTDOOR`|![](images/screenshots/style-outdoor.png)|A solid hiking companion, with peaks, parks, isolines and more|
-|`Style.BASIC`|![](images/screenshots/style-basic-v2.png)|A minimalist alternative to `STREETS`, with a touch of flat design|
-|`Style.DARK`|![](images/screenshots/style-streets-v2-dark.png)|A dark theme perfect to display data layers on top without losing any precious information|
-|`Style.LIGHT`|![](images/screenshots/style-streets-v2-light.png)|Just like the `DARK`, but in bright mode! Your data layer as a first class citizen!|
+|`MaptilerStyle.STREETS`|![](images/screenshots/style-streets-v2.png)|The classic default style, perfect for urban areas|
+|`MaptilerStyle.SATELLITE`|![](images/screenshots/style-satellite.png)|Only high resolution satellite raster tiles without any labels|
+|`MaptilerStyle.HYBRID`|![](images/screenshots/style-hybrid.png)|Satellite tile with labels, landmarks, roads ways and political borders|
+|`MaptilerStyle.OUTDOOR`|![](images/screenshots/style-outdoor.png)|A solid hiking companion, with peaks, parks, isolines and more|
+|`MaptilerStyle.BASIC`|![](images/screenshots/style-basic-v2.png)|A minimalist alternative to `STREETS`, with a touch of flat design|
+|`MaptilerStyle.DARK`|![](images/screenshots/style-streets-v2-dark.png)|A dark theme perfect to display data layers on top without losing any precious information|
+|`MaptilerStyle.LIGHT`|![](images/screenshots/style-streets-v2-light.png)|Just like the `DARK`, but in bright mode! Your data layer as a first class citizen!|
 
 
 Still, you can still use some classic styles with just a *string*:

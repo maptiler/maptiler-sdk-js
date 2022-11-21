@@ -169,7 +169,7 @@ var satelliteBuiltin = {
 	zoom: zoom
 };
 
-const Style = {
+const MaptilerStyle = {
   STREETS: "streets-v2",
   HYBRID: "hybrid",
   SATELLITE: "satellite",
@@ -179,7 +179,7 @@ const Style = {
   LIGHT: "streets-v2-light"
 };
 const builtInStyles = {};
-builtInStyles[Style.SATELLITE] = satelliteBuiltin;
+builtInStyles[MaptilerStyle.SATELLITE] = satelliteBuiltin;
 function isBuiltinStyle(styleId) {
   return styleId in builtInStyles;
 }
@@ -195,7 +195,7 @@ function prepareBuiltinStyle(styleId, apiKey) {
 }
 
 const defaults = {
-  mapStyle: Style.STREETS,
+  mapStyle: MaptilerStyle.STREETS,
   maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
   maptilerURL: "https://www.maptiler.com/",
   maptilerApiURL: "https://api.maptiler.com/",
@@ -578,5 +578,5 @@ var Unit = /* @__PURE__ */ ((Unit2) => {
   return Unit2;
 })(Unit || {});
 
-export { Language, Map, SdkConfig, Style, Unit, config };
+export { Language, Map, MaptilerStyle, SdkConfig, Unit, config };
 //# sourceMappingURL=maptiler-sdk.mjs.map

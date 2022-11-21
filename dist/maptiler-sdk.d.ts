@@ -232,7 +232,7 @@ declare enum Unit {
 /**
  * Built-in styles
  */
-declare const Style: {
+declare const MaptilerStyle: {
     readonly STREETS: "streets-v2";
     readonly HYBRID: "hybrid";
     readonly SATELLITE: "satellite";
@@ -245,6 +245,6 @@ declare type Values<T> = T[keyof T];
 /**
  * Built-in style values as strings
  */
-declare type StyleString = Values<typeof Style>;
+declare type MaptilerStyleString = Values<typeof MaptilerStyle>;
 
-export { Language, LanguageString, Map, MapOptions, SdkConfig, Style, StyleString, Unit, config };
+export { Language, LanguageString, Map, MapOptions, MaptilerStyle, MaptilerStyleString, SdkConfig, Unit, config };
