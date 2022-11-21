@@ -169,15 +169,15 @@ map.disableTerrain()
 The language generally depends on the style but we made it possible to easily update it with a single function and from a built-in list of languages:
 
 ```ts
-map.setLanguage(maptiler.languages.ENGLISH);
+map.setLanguage(maptiler.Language.ENGLISH);
 ```
 
-The special languages `maptiler.languages.LATIN` and `maptiler.languages.NON_LATIN` are generally the default ones in the styles developped by the MapTiler team and they are generaly safe all-around fallbacks.  
+The special languages `maptiler.Language.LATIN` and `maptiler.Language.NON_LATIN` are generally the default ones in the styles developped by the MapTiler team and they are generaly safe all-around fallbacks.  
 
 Some style, developped in-house as well as by the community, may support a secondary language. In this case, you can also update it:
 
 ```ts
-map.setSecondaryLanguage(maptiler.languages.NON_LATIN);
+map.setSecondaryLanguage(maptiler.Language.NON_LATIN);
 ```
 
 Here is a sample of some compatible languages:
