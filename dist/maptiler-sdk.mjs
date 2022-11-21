@@ -3,29 +3,6 @@ export * from 'maplibre-gl';
 import { config as config$1 } from '@maptiler/client';
 export { Language as LanguageGeocoding, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
 
-class SdkConfig {
-  constructor() {
-    this.verbose = false;
-    this.primaryLanguage = null;
-    this.secondaryLanguage = null;
-    this._apiKey = "Not defined yet.";
-  }
-  set apiKey(k) {
-    this._apiKey = k;
-    config$1.apiKey = k;
-  }
-  get apiKey() {
-    return this._apiKey;
-  }
-  set fetch(f) {
-    config$1.fetch = f;
-  }
-  get fetch() {
-    return config$1.fetch;
-  }
-}
-const config = new SdkConfig();
-
 const Language = {
   AUTO: "auto",
   LATIN: "latin",
@@ -112,6 +89,29 @@ function getBrowserLanguage() {
   ).filter((l) => languageCodeSet.has(l));
   return canditatelangs.length ? canditatelangs[0] : Language.LATIN;
 }
+
+class SdkConfig {
+  constructor() {
+    this.verbose = false;
+    this.primaryLanguage = Language.AUTO;
+    this.secondaryLanguage = null;
+    this._apiKey = "Not defined yet.";
+  }
+  set apiKey(k) {
+    this._apiKey = k;
+    config$1.apiKey = k;
+  }
+  get apiKey() {
+    return this._apiKey;
+  }
+  set fetch(f) {
+    config$1.fetch = f;
+  }
+  get fetch() {
+    return config$1.fetch;
+  }
+}
+const config = new SdkConfig();
 
 var version = 8;
 var id = "f0e4ff8c-a9e4-414e-9f4d-7938762c948f";

@@ -1,4 +1,4 @@
-import { LanguageString } from "./language";
+import { Language, LanguageString } from "./language";
 import { config as clientConfig, FetchFunction } from "@maptiler/client";
 
 /**
@@ -11,9 +11,9 @@ class SdkConfig {
   verbose = false;
 
   /**
-   * The primary language, to overwrite the default language defined in the map style.
+   * The primary languag. By default, the language of the web browser is used.
    */
-  primaryLanguage: LanguageString | null = null;
+  primaryLanguage: LanguageString | null = Language.AUTO;
 
   /**
    * The secondary language, to overwrite the default language defined in the map style.

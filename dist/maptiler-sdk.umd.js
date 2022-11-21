@@ -75,6 +75,93 @@
 		'default': maplibreGl
 	}, [maplibreGl$1.exports]);
 
+	const Language$1 = {
+	  AUTO: "auto",
+	  LATIN: "latin",
+	  NON_LATIN: "nonlatin",
+	  LOCAL: "",
+	  ALBANIAN: "sq",
+	  AMHARIC: "am",
+	  ARABIC: "ar",
+	  ARMENIAN: "hy",
+	  AZERBAIJANI: "az",
+	  BASQUE: "eu",
+	  BELORUSSIAN: "be",
+	  BOSNIAN: "bs",
+	  BRETON: "br",
+	  BULGARIAN: "bg",
+	  CATALAN: "ca",
+	  CHINESE: "zh",
+	  CORSICAN: "co",
+	  CROATIAN: "hr",
+	  CZECH: "cs",
+	  DANISH: "da",
+	  DUTCH: "nl",
+	  ENGLISH: "en",
+	  ESPERANTO: "eo",
+	  ESTONIAN: "et",
+	  FINNISH: "fi",
+	  FRENCH: "fr",
+	  FRISIAN: "fy",
+	  GEORGIAN: "ka",
+	  GERMAN: "de",
+	  GREEK: "el",
+	  HEBREW: "he",
+	  HINDI: "hi",
+	  HUNGARIAN: "hu",
+	  ICELANDIC: "is",
+	  INDONESIAN: "id",
+	  IRISH: "ga",
+	  ITALIAN: "it",
+	  JAPANESE: "ja",
+	  JAPANESE_HIRAGANA: "ja-Hira",
+	  JAPANESE_KANA: "ja_kana",
+	  JAPANESE_LATIN: "ja_rm",
+	  JAPANESE_2018: "ja-Latn",
+	  KANNADA: "kn",
+	  KAZAKH: "kk",
+	  KOREAN: "ko",
+	  KOREAN_LATIN: "ko-Latn",
+	  KURDISH: "ku",
+	  ROMAN_LATIN: "la",
+	  LATVIAN: "lv",
+	  LITHUANIAN: "lt",
+	  LUXEMBOURGISH: "lb",
+	  MACEDONIAN: "mk",
+	  MALAYALAM: "ml",
+	  MALTESE: "mt",
+	  NORWEGIAN: "no",
+	  OCCITAN: "oc",
+	  POLISH: "pl",
+	  PORTUGUESE: "pt",
+	  ROMANIAN: "ro",
+	  ROMANSH: "rm",
+	  RUSSIAN: "ru",
+	  SCOTTISH_GAELIC: "gd",
+	  SERBIAN_CYRILLIC: "sr",
+	  SERBIAN_LATIN: "sr-Latn",
+	  SLOVAK: "sk",
+	  SLOVENE: "sl",
+	  SPANISH: "es",
+	  SWEDISH: "sv",
+	  TAMIL: "ta",
+	  TELUGU: "te",
+	  THAI: "th",
+	  TURKISH: "tr",
+	  UKRAINIAN: "uk",
+	  WELSH: "cy"
+	};
+	const languageCodeSet$1 = new Set(Object.values(Language$1));
+	function getBrowserLanguage() {
+	  if (typeof navigator === "undefined") {
+	    return Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
+	  }
+	  const canditatelangs = Array.from(
+	    new Set(navigator.languages.map((l) => l.split("-")[0]))
+	  ).filter((l) => languageCodeSet$1.has(l));
+	  return canditatelangs.length ? canditatelangs[0] : Language$1.LATIN;
+	}
+
 	function tryGettingFetch() {
 	  if (typeof self !== "undefined") {
 	    return fetch.bind(self);
@@ -104,7 +191,7 @@
 	}
 	const config$1 = new ClientConfig();
 
-	const Language$1 = {
+	const Language = {
 	  AUTO: "auto",
 	  ALBANIAN: "sq",
 	  ARABIC: "ar",
@@ -161,15 +248,15 @@
 	  UKRAINIAN: "uk",
 	  WELSH: "cy"
 	};
-	const languageCodeSet$1 = new Set(Object.values(Language$1));
+	const languageCodeSet = new Set(Object.values(Language));
 	function getAutoLanguage() {
 	  if (typeof navigator === "undefined") {
 	    return Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
 	  }
 	  const canditatelangs = Array.from(
 	    new Set(navigator.languages.map((l) => l.split("-")[0]))
-	  ).filter((l) => languageCodeSet$1.has(l));
-	  return canditatelangs.length ? canditatelangs[0] : Language$1.ENGLISH;
+	  ).filter((l) => languageCodeSet.has(l));
+	  return canditatelangs.length ? canditatelangs[0] : Language.ENGLISH;
 	}
 
 	var __async$4 = (__this, __arguments, generator) => {
@@ -267,7 +354,7 @@
 	      );
 	    }
 	    if ("language" in options) {
-	      const languages = (Array.isArray(options.language) ? options.language : [options.language]).map((lang) => lang === Language$1.AUTO ? getAutoLanguage() : lang).join(",");
+	      const languages = (Array.isArray(options.language) ? options.language : [options.language]).map((lang) => lang === Language.AUTO ? getAutoLanguage() : lang).join(",");
 	      endpoint.searchParams.set("language", languages);
 	    }
 	    const urlWithParams = endpoint.toString();
@@ -307,7 +394,7 @@
 	      );
 	    }
 	    if ("language" in options) {
-	      const languages = (Array.isArray(options.language) ? options.language : [options.language]).map((lang) => lang === Language$1.AUTO ? getAutoLanguage() : lang).join(",");
+	      const languages = (Array.isArray(options.language) ? options.language : [options.language]).map((lang) => lang === Language.AUTO ? getAutoLanguage() : lang).join(",");
 	      endpoint.searchParams.set("language", languages);
 	    }
 	    const urlWithParams = endpoint.toString();
@@ -748,7 +835,7 @@
 	class SdkConfig {
 	  constructor() {
 	    this.verbose = false;
-	    this.primaryLanguage = null;
+	    this.primaryLanguage = Language$1.AUTO;
 	    this.secondaryLanguage = null;
 	    this._apiKey = "Not defined yet.";
 	  }
@@ -767,93 +854,6 @@
 	  }
 	}
 	const config = new SdkConfig();
-
-	const Language = {
-	  AUTO: "auto",
-	  LATIN: "latin",
-	  NON_LATIN: "nonlatin",
-	  LOCAL: "",
-	  ALBANIAN: "sq",
-	  AMHARIC: "am",
-	  ARABIC: "ar",
-	  ARMENIAN: "hy",
-	  AZERBAIJANI: "az",
-	  BASQUE: "eu",
-	  BELORUSSIAN: "be",
-	  BOSNIAN: "bs",
-	  BRETON: "br",
-	  BULGARIAN: "bg",
-	  CATALAN: "ca",
-	  CHINESE: "zh",
-	  CORSICAN: "co",
-	  CROATIAN: "hr",
-	  CZECH: "cs",
-	  DANISH: "da",
-	  DUTCH: "nl",
-	  ENGLISH: "en",
-	  ESPERANTO: "eo",
-	  ESTONIAN: "et",
-	  FINNISH: "fi",
-	  FRENCH: "fr",
-	  FRISIAN: "fy",
-	  GEORGIAN: "ka",
-	  GERMAN: "de",
-	  GREEK: "el",
-	  HEBREW: "he",
-	  HINDI: "hi",
-	  HUNGARIAN: "hu",
-	  ICELANDIC: "is",
-	  INDONESIAN: "id",
-	  IRISH: "ga",
-	  ITALIAN: "it",
-	  JAPANESE: "ja",
-	  JAPANESE_HIRAGANA: "ja-Hira",
-	  JAPANESE_KANA: "ja_kana",
-	  JAPANESE_LATIN: "ja_rm",
-	  JAPANESE_2018: "ja-Latn",
-	  KANNADA: "kn",
-	  KAZAKH: "kk",
-	  KOREAN: "ko",
-	  KOREAN_LATIN: "ko-Latn",
-	  KURDISH: "ku",
-	  ROMAN_LATIN: "la",
-	  LATVIAN: "lv",
-	  LITHUANIAN: "lt",
-	  LUXEMBOURGISH: "lb",
-	  MACEDONIAN: "mk",
-	  MALAYALAM: "ml",
-	  MALTESE: "mt",
-	  NORWEGIAN: "no",
-	  OCCITAN: "oc",
-	  POLISH: "pl",
-	  PORTUGUESE: "pt",
-	  ROMANIAN: "ro",
-	  ROMANSH: "rm",
-	  RUSSIAN: "ru",
-	  SCOTTISH_GAELIC: "gd",
-	  SERBIAN_CYRILLIC: "sr",
-	  SERBIAN_LATIN: "sr-Latn",
-	  SLOVAK: "sk",
-	  SLOVENE: "sl",
-	  SPANISH: "es",
-	  SWEDISH: "sv",
-	  TAMIL: "ta",
-	  TELUGU: "te",
-	  THAI: "th",
-	  TURKISH: "tr",
-	  UKRAINIAN: "uk",
-	  WELSH: "cy"
-	};
-	const languageCodeSet = new Set(Object.values(Language));
-	function getBrowserLanguage() {
-	  if (typeof navigator === "undefined") {
-	    return Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
-	  }
-	  const canditatelangs = Array.from(
-	    new Set(navigator.languages.map((l) => l.split("-")[0]))
-	  ).filter((l) => languageCodeSet.has(l));
-	  return canditatelangs.length ? canditatelangs[0] : Language.LATIN;
-	}
 
 	var version = 8;
 	var id = "f0e4ff8c-a9e4-414e-9f4d-7938762c948f";
@@ -942,8 +942,8 @@
 	  maptilerURL: "https://www.maptiler.com/",
 	  maptilerApiURL: "https://api.maptiler.com/",
 	  rtlPluginURL: "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
-	  primaryLanguage: Language.LATIN,
-	  secondaryLanguage: Language.NON_LATIN,
+	  primaryLanguage: Language$1.LATIN,
+	  secondaryLanguage: Language$1.NON_LATIN,
 	  terrainSourceURL: "https://api.maptiler.com/tiles/terrain-rgb/tiles.json",
 	  terrainSourceId: "maptiler-terrain"
 	};
@@ -1141,13 +1141,13 @@
 	    return super.setStyle(tempStyle, options);
 	  }
 	  setLanguage(language = defaults.primaryLanguage) {
-	    if (language === Language.AUTO) {
+	    if (language === Language$1.AUTO) {
 	      return this.setLanguage(getBrowserLanguage());
 	    }
 	    this.setPrimaryLanguage(language);
 	  }
 	  setPrimaryLanguage(language = defaults.primaryLanguage) {
-	    if (language === Language.AUTO) {
+	    if (language === Language$1.AUTO) {
 	      return this.setPrimaryLanguage(getBrowserLanguage());
 	    }
 	    console.log("language", language);
@@ -1215,7 +1215,7 @@
 	    }
 	  }
 	  setSecondaryLanguage(language = defaults.secondaryLanguage) {
-	    if (language === Language.AUTO) {
+	    if (language === Language$1.AUTO) {
 	      return this.setSecondaryLanguage(getBrowserLanguage());
 	    }
 	    config.secondaryLanguage = language;
@@ -1320,8 +1320,8 @@
 	  return Unit2;
 	})(Unit || {});
 
-	exports.Language = Language;
-	exports.LanguageGeocoding = Language$1;
+	exports.Language = Language$1;
+	exports.LanguageGeocoding = Language;
 	exports.Map = Map;
 	exports.SdkConfig = SdkConfig;
 	exports.ServiceError = ServiceError;

@@ -193,7 +193,7 @@ declare class SdkConfig {
      */
     verbose: boolean;
     /**
-     * The primary language, to overwrite the default language defined in the map style.
+     * The primary languag. By default, the language of the web browser is used.
      */
     primaryLanguage: LanguageString | null;
     /**
