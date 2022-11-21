@@ -4,7 +4,7 @@ import { defaults } from "./defaults";
 import { CustomLogoControl } from "./CustomLogoControl";
 import { enableRTL, expandMapStyle, vlog } from "./tools";
 import { getBrowserLanguage, Language, LanguageString } from "./language";
-import { isBuiltinStyle, prepareBuiltinStyle, StyleString } from "./style";
+import { isBuiltinStyle, prepareBuiltinStyle, MaptilerStyleString } from "./style";
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (
@@ -59,7 +59,7 @@ export class Map extends maplibre.Map {
 
     if ("style" in options) {
       if (typeof style === "string" && isBuiltinStyle(style)) {
-        style = prepareBuiltinStyle(style as StyleString, config.apiKey);
+        style = prepareBuiltinStyle(style as MaptilerStyleString, config.apiKey);
       } else if (typeof style === "string") {
         style = expandMapStyle(style);
       } else {
@@ -170,7 +170,7 @@ export class Map extends maplibre.Map {
     let tempStyle = style;
 
     if (typeof style === "string" && isBuiltinStyle(style)) {
-      tempStyle = prepareBuiltinStyle(style as StyleString, config.apiKey);
+      tempStyle = prepareBuiltinStyle(style as MaptilerStyleString, config.apiKey);
     } else if (typeof style === "string") {
       tempStyle = expandMapStyle(style);
     }

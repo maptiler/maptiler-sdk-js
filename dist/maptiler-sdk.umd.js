@@ -915,7 +915,7 @@
 		zoom: zoom
 	};
 
-	const Style = {
+	const MaptilerStyle = {
 	  STREETS: "streets-v2",
 	  HYBRID: "hybrid",
 	  SATELLITE: "satellite",
@@ -925,7 +925,7 @@
 	  LIGHT: "streets-v2-light"
 	};
 	const builtInStyles = {};
-	builtInStyles[Style.SATELLITE] = satelliteBuiltin;
+	builtInStyles[MaptilerStyle.SATELLITE] = satelliteBuiltin;
 	function isBuiltinStyle(styleId) {
 	  return styleId in builtInStyles;
 	}
@@ -941,7 +941,7 @@
 	}
 
 	const defaults = {
-	  mapStyle: Style.STREETS,
+	  mapStyle: MaptilerStyle.STREETS,
 	  maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
 	  maptilerURL: "https://www.maptiler.com/",
 	  maptilerApiURL: "https://api.maptiler.com/",
@@ -1327,9 +1327,9 @@
 	exports.Language = Language;
 	exports.LanguageGeocoding = LanguageGeocoding;
 	exports.Map = Map;
+	exports.MaptilerStyle = MaptilerStyle;
 	exports.SdkConfig = SdkConfig;
 	exports.ServiceError = ServiceError;
-	exports.Style = Style;
 	exports.Unit = Unit;
 	exports.config = config;
 	exports.coordinates = coordinates;
