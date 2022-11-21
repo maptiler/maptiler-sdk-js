@@ -32,17 +32,17 @@ In addition to the details and examples provided in this readme, check out the [
 
 # Quick start
 ```ts
-import * as maptiler from '@maptiler/sdk';
+import * as maptilersdk from '@maptiler/sdk';
 
 // Add your MapTiler Cloud API key to the config
 // (Go to https://cloud.maptiler.com/account/keys/ to get one for free!)
-maptiler.config.apiKey = 'YOUR_API_KEY';
+maptilersdk.config.apiKey = 'YOUR_API_KEY';
 
 // Let's say you have a DIV ready to receive a map
 const mapContainer = document.getElementById('my-container-div');
 
 // Instanciate the map
-const map = new maptiler.Map({
+const map = new maptilersdk.Map({
   container: mapContainer,
 });
 ```
@@ -172,7 +172,7 @@ The language generally depends on the style but we made it possible to easily up
 map.setLanguage(maptiler.Language.ENGLISH);
 ```
 
-The special languages `maptiler.Language.LATIN` and `maptiler.Language.NON_LATIN` are generally the default ones in the styles developped by the MapTiler team and they are generaly safe all-around fallbacks.  
+The special languages `maptilersdk.Language.LATIN` and `maptilersdk.Language.NON_LATIN` are generally the default ones in the styles developped by the MapTiler team and they are generaly safe all-around fallbacks.  
 
 Some style, developped in-house as well as by the community, may support a secondary language. In this case, you can also update it:
 
@@ -185,7 +185,7 @@ Here is a sample of some compatible languages:
 
 > 📣 *__Note:__* the `Map` method `.setLanguage()` is shorthand for `.setPrimaryLanguage()`. Use the one that makes more sense to your usage.
 
-> 📣 *__Note 2:__* Not all the labels are available in every languages. Depending on the style settings, a fallback to `maptiler.Language.LATIN` is likely tro happen.
+> 📣 *__Note 2:__* Not all the labels are available in every languages. Depending on the style settings, a fallback to `maptilersdk.Language.LATIN` is likely tro happen.
 
 
 # Built-in support for right-to-left languages
@@ -207,7 +207,7 @@ Our map SDK is not only about maps! We also provide plenty of wrapper to our API
 You want to know the longitude and latitude of a specific place, use the forward geocoding:
 ```ts
 // in an async function, or as a 'thenable':
-const result = await maptiler.geocoding.forward('paris');
+const result = await maptilersdk.geocoding.forward('paris');
 ```
 You can provide some options such as:
 - the proximity, given a lon-lat position, to sort the results
@@ -220,7 +220,7 @@ Read more about forward geocoding on our official [API documentation](https://do
 You wan to tknow the name of a place, given a longitude-latitude? Use the reverse geocoding:
 ```ts
 // in an async function, or as a 'thenable':
-const result = await maptiler.geocoding.reverse({ lng: 6.249638, lat: 46.402056 });
+const result = await maptilersdk.geocoding.reverse({ lng: 6.249638, lat: 46.402056 });
 ```
 The same option object as the forward geocoding can be provided.
 
@@ -230,12 +230,12 @@ Read more about reverse geocoding on our official [API documentation](https://do
 For both *forward* and *reverse* geocoding, this library provides a list of supported languages as shorthands to [ISO language codes](https://en.wikipedia.org/wiki/ISO_639-1). The result will be provided in multiple languages if the `language` options is an array:
 
 ```ts
-const result = await maptiler.geocoding.forward('paris', {language: [maptiler.LanguageGeocoding.SPANISH, maptilerClient.LanguageGeocoding.KOREAN]})
+const result = await maptilersdk.geocoding.forward('paris', {language: [maptilersdk.LanguageGeocoding.SPANISH, maptilersdk.LanguageGeocoding.KOREAN]});
 ```
 
 The special language `AUTO` will detect the plateform of browser prefered language.
 
-> 📣 *__Note:__* thie SDK provides two lists of languages. `maptiler.Language` contains the list of languages available for map labels, while `maptiler.LanguageGeocoding` contains a slightly smaller subset of languages.
+> 📣 *__Note:__* thie SDK provides two lists of languages. `maptilersdk.Language` contains the list of languages available for map labels, while `maptilersdk.LanguageGeocoding` contains a slightly smaller subset of languages.
 
 ## 🕵️‍♂️ Geolocation
 The geolocation service provides an accurate location insight of a website visitor using its IP address.
@@ -243,7 +243,7 @@ The geolocation service provides an accurate location insight of a website visit
 There is only a single function:
 ```ts
 // in an async function, or as a 'thenable':
-const result = await maptiler.geolocation.info();
+const result = await maptilersdk.geolocation.info();
 ```
 
 Read more about geolocation on our official [API documentation](https://docs.maptiler.com/cloud/api/geolocation/).
@@ -255,10 +255,10 @@ If you are already familiar with [epsg.io](https://epsg.io/) (created by MapTile
 The `search` lets you perform a query in a free form fashion. Here are some examples:
 ```ts
 // in an async function, or as a 'thenable':
-const resultA = await maptiler.coordinates.search('mercator');
-const resultB = await maptiler.coordinates.search('plate carree');
-const resultC = await maptiler.coordinates.search('france');
-const resultD = await maptiler.coordinates.search('code:4326', {transformations: true}));
+const resultA = await maptilersdk.coordinates.search('mercator');
+const resultB = await maptilersdk.coordinates.search('plate carree');
+const resultC = await maptilersdk.coordinates.search('france');
+const resultD = await maptilersdk.coordinates.search('code:4326', {transformations: true});
 ```
 
 The `transformations` options retrieves a lot more details about the CRS that MapTiler API is able to transform to/from than just their IDs.
@@ -274,10 +274,10 @@ If not provided, both the source (`sourceCrs`) and the destination (`targetCrs`)
 // in an async function, or as a 'thenable':
 
 // Providing one coordinate to transform, with a target CRS being EPSG:9793 (RGF93 v2 / Lambert-93, France official CRS)
-const resultA = await maptiler.coordinates.transform({lng: 1, lat: 45}, {targetCrs: 9793})
+const resultA = await maptilersdk.coordinates.transform({lng: 1, lat: 45}, {targetCrs: 9793});
 
 // Using the same logic, we can pass up to 50 coordinates to be transformed
-const resultB = await maptiler.coordinates.transform([{lng: 10, lat: 48}, {lng: 1, lat: 45}], {targetCrs: 9793})
+const resultB = await maptilersdk.coordinates.transform([{lng: 10, lat: 48}, {lng: 1, lat: 45}], {targetCrs: 9793});
 ```
 
 Read more about transforming coordinates on our official [API documentation](https://docs.maptiler.com/cloud/api/coordinates/#transform-coordinates).
@@ -287,7 +287,7 @@ MapTiler Cloud give its users the possibility to [upload and create data](https:
 
 ```ts
 // in an async function, or as a 'thenable':
-const result = await maptiler.data.get('my-dataset-unique-id')
+const result = await maptilersdk.data.get('my-dataset-unique-id');
 ```
 
 Since the result is a GeoJSON, it can easily be added to a `map` with `.addSource()` and `.addLayer()`.
@@ -307,7 +307,7 @@ This type of map is centered on a longitude-latitude coordinate and the zoom lev
 Note that if a path or markers are provided, the framing of the map will not automatically adapt to include those (use the `automatic` mode for that).
 
 ```ts
-const imageLink = maptiler.staticMaps.centered(
+const imageLink = maptilersdk.staticMaps.centered(
   // center position (Boston)
   {lng: -71.06080, lat: 42.362114}, 
 
@@ -335,7 +335,7 @@ Read more about centered static maps on our official [API documentation](https:/
 This type of map requires a bounding box made of two points: the south-west bound and the north-east bound. The zoom level cannot be provided and is automatically deduced from the size of the bounding box.
 
 ```ts
-const imageLink = maptiler.staticMaps.bounded(
+const imageLink = maptilersdk.staticMaps.bounded(
   // The bounding box on Europe
   {
     southWest: { lng: -24, lat: 34.5 },
@@ -378,7 +378,7 @@ In the following example, we are going to load a cycling track recorded by one o
 
 ```ts
 // Fetching the GeoJSON
-const bikeTrack = await maptiler.data.get('the-id-of-a-bike-track-in-montreal');
+const bikeTrack = await maptilersdk.data.get('the-id-of-a-bike-track-in-montreal');
 
 // Extracting the track points with the shape [[lng, lat], [lng, lat], ...]
 const trackPoints = bikeTrack.features[0].geometry.coordinates[0]
@@ -387,7 +387,7 @@ const trackPoints = bikeTrack.features[0].geometry.coordinates[0]
 // We will need the starting point to create a nice marker
 const departure = { lng: trackPoints[0][0], lat: trackPoints[0][1] };
 
-const imageLink = maptiler.staticMaps.automatic({
+const imageLink = maptilersdk.staticMaps.automatic({
   // hiDPI/Retina precision
   hiDPI: true,
 
