@@ -4,15 +4,22 @@ import { StyleSpecification } from "maplibre-gl";
 /**
  * Built-in styles
  */
-enum Style {
-  STREETS = "streets-v2",
-  HYBRID = "hybrid",
-  SATELLITE = "satellite",
-  OUTDOOR = "outdoor",
-  BASIC = "basic-v2",
-  DARK = "streets-v2-dark",
-  LIGHT = "streets-v2-light",
-}
+const Style = {
+  STREETS: "streets-v2",
+  HYBRID: "hybrid",
+  SATELLITE: "satellite",
+  OUTDOOR: "outdoor",
+  BASIC: "basic-v2",
+  DARK: "streets-v2-dark",
+  LIGHT: "streets-v2-light",
+} as const;
+
+type Values<T> = T[keyof T];
+
+/**
+ * Built-in style values as strings
+ */
+type StyleString = Values<typeof Style>;
 
 const builtInStyles = {};
 builtInStyles[Style.SATELLITE] = satelliteBuiltin;
@@ -22,7 +29,7 @@ function isBuiltinStyle(styleId: string): boolean {
 }
 
 function prepareBuiltinStyle(
-  styleId: Style,
+  styleId: StyleString,
   apiKey: string
 ): StyleSpecification | null {
   if (!isBuiltinStyle(styleId)) {
@@ -36,4 +43,4 @@ function prepareBuiltinStyle(
   return JSON.parse(fullTextVersion) as StyleSpecification;
 }
 
-export { Style, isBuiltinStyle, prepareBuiltinStyle };
+export { Style, StyleString, isBuiltinStyle, prepareBuiltinStyle };

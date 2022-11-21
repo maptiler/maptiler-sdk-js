@@ -33,7 +33,7 @@ const bundles = [
     watch: {
       include: "src/**",
     },
-    external: ["maplibre-gl"],
+    external: ["maplibre-gl", "@maptiler/client"],
   },
 
   // CJS module, not minified + sourcemap
@@ -60,7 +60,7 @@ const bundles = [
   //   watch: {
   //     include: 'src/**'
   //   },
-  //   external: ['maplibre-gl']
+  //   external: ["maplibre-gl", "@maptiler/client"]
   // },
 
   // UMD module, not minified
@@ -117,7 +117,7 @@ if (process.env.NODE_ENV === "production") {
         },
       ],
       input: "src/index.ts",
-      external: ["maplibre-gl"],
+      external: ["maplibre-gl", "@maptiler/client"],
     },
     {
       plugins: [

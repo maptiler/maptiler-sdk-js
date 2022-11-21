@@ -1,37 +1,44 @@
 /**
- * Maplibre export
+ * Maplibre export first, then extensions can overload the exports.
  */
 export * from "maplibre-gl";
-
-import type { Bbox, LngLat } from "./generalTypes";
 
 import { Map } from "./Map";
 import type { MapOptions } from "./Map";
 
-// Importing services
-import { geocoding } from "./services/geocoding";
-import type { GeocodingOptions } from "./services/geocoding";
-import { geolocation } from "./services/geolocation";
-import { coordinates } from "./services/coordinates";
-import type { CoordinatesSearchOptions } from "./services/coordinates";
-import { data } from "./services/data";
-import { staticMaps } from "./services/staticMaps";
+// importing client functions to expose them as part of the SDK
 import type {
+  Bbox,
+  LngLat,
+  LngLatArray,
+  GeocodingOptions,
+  CoordinatesSearchOptions,
   CenteredStaticMapOptions,
   AutomaticStaticMapOptions,
   BoundedStaticMapOptions,
-} from "./services/staticMaps";
+} from "@maptiler/client";
 
-import { ServiceError } from "./services/ServiceError";
+import {
+  geocoding,
+  geolocation,
+  coordinates,
+  data,
+  staticMaps,
+  ServiceError,
+  LanguageGeocoding,
+  LanguageGeocodingString,
+} from "@maptiler/client";
 
-import { config } from "./config";
-import { Language } from "./language";
+// Importing enums and configs
+import { config, SdkConfig } from "./config";
+import { Language, LanguageString } from "./language";
 import { Unit } from "./unit";
-import { Style } from "./style";
+import { Style, StyleString } from "./style";
 
 // Exporting types
 export type {
   LngLat,
+  LngLatArray,
   MapOptions,
   GeocodingOptions,
   Bbox,
@@ -39,11 +46,15 @@ export type {
   CenteredStaticMapOptions,
   BoundedStaticMapOptions,
   AutomaticStaticMapOptions,
+  LanguageString,
+  LanguageGeocodingString,
+  StyleString,
 };
 
 // Exporting classes, objects, functions, etc.
 export {
   Map,
+  SdkConfig,
   config,
   ServiceError,
   geocoding,
@@ -51,7 +62,8 @@ export {
   coordinates,
   data,
   staticMaps,
-  Language,
   Unit,
   Style,
+  Language,
+  LanguageGeocoding,
 };

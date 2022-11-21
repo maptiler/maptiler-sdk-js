@@ -6,9 +6,16 @@
   "types": "dist/maptiler-sdk.d.ts",
   "style": "dist/maptiler-sdk.css",
   "type": "module",
-  "keywords": ["maptiler", "map", "sdk", "webmap", "cloud", "webGL"],
+  "keywords": [
+    "maptiler",
+    "map",
+    "sdk",
+    "webmap",
+    "cloud",
+    "webGL"
+  ],
   "homepage": "https://www.maptiler.com/cloud/",
-  "license" : "BSD-3-Clause",
+  "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
     "url": "https://github.com/maptiler/maptiler-sdk-js.git"
@@ -39,10 +46,11 @@
     "rollup-plugin-swc": "^0.2.1",
     "serve": "^14.0.1",
     "terser": "^5.15.0",
-    "typedoc": "^0.21.2",
+    "typedoc": "^0.23.21",
     "typescript": "^4.8.4"
   },
   "dependencies": {
+    "@maptiler/client": "github:maptiler/maptiler-client-js",
     "maplibre-gl": "2.4.0"
   }
 }

@@ -1,50 +1,61 @@
-import { Language } from "./language";
+import { Language, LanguageString } from "./language";
+import { config as clientConfig, FetchFunction } from "@maptiler/client";
 
 /**
- * The config object old some values related to the user settings
+ * Configuration class for the SDK
  */
-export interface Config {
-  /**
-   * Maptiler API token (sometimes calles "API key"). Default: empty.
-   */
-  apiKey: string;
+class SdkConfig {
   /**
    * If `true`, some more debuf text will show. Default: `false`
    */
-  verbose: boolean;
+  verbose = false;
 
   /**
-   * The primary language, to overwrite the default language defined in the map style.
+   * The primary languag. By default, the language of the web browser is used.
    */
-  primaryLanguage: Language | null;
+  primaryLanguage: LanguageString | null = Language.AUTO;
 
   /**
    * The secondary language, to overwrite the default language defined in the map style.
    * This settings is highly dependant on the style compatibility and may not work in most cases.
    */
-  secondaryLanguage: Language | null;
+  secondaryLanguage: LanguageString | null = null;
+
+  /**
+   * MapTiler Cloud API key
+   */
+  private _apiKey = "Not defined yet.";
+
+  /**
+   * Set the MapTiler Cloud API key
+   */
+  set apiKey(k: string) {
+    this._apiKey = k;
+    clientConfig.apiKey = k;
+  }
+
+  /**
+   * Get the MapTiler Cloud API key
+   */
+  get apiKey(): string {
+    return this._apiKey;
+  }
+
+  /**
+   * Set a the custom fetch function to replace the default one
+   */
+  set fetch(f: FetchFunction) {
+    clientConfig.fetch = f;
+  }
+
+  /**
+   * Get the fetch fucntion
+   */
+  get fetch(): FetchFunction | null {
+    return clientConfig.fetch;
+  }
 }
 
-const config: Config = {
-  /**
-   * The MapTiler Cloud API key. Get one with a free account: https://www.maptiler.com/
-   */
-  apiKey: "Not defined yet.",
+const config = new SdkConfig();
 
-  /**
-   * Enable of disable the verbose mode
-   */
-  verbose: false,
-
-  /**
-   * The primary language. Use the `Language` enum, it's easier!
-   */
-  primaryLanguage: null,
-
-  /**
-   * The secondary language. Not compatible with all the styles
-   */
-  secondaryLanguage: null,
-};
-
-export { config };
+export { config, SdkConfig };
