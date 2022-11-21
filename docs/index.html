@@ -208,7 +208,10 @@
 <a href="#easy-access-to-maptiler-cloud-api" id="easy-access-to-maptiler-cloud-api" style="color: inherit; text-decoration: none;">
   <h1>Easy access to MapTiler Cloud API</h1>
 </a>
-<p>A map SDK is not only about maps! Here is the list of service wrapper functions that are built-in:</p>
+<p>Our map SDK is not only about maps! We also provide plenty of wrapper to our API calls!</p>
+<blockquote>
+<p>📣 <em><strong>Note:</strong></em> If you need <ins>only the API Client library</ins> to use in a headless fashion and without any map display, check out <a href="https://github.com/maptiler/maptiler-client-js">MapTiler Client JS</a> library for browser and NodeJS.</p>
+</blockquote>
 
 <a href="#🔍-geocoding" id="🔍-geocoding" style="color: inherit; text-decoration: none;">
   <h2>🔍 Geocoding</h2>
@@ -236,6 +239,17 @@
 </code></pre>
 <p>The same option object as the forward geocoding can be provided.</p>
 <p>Read more about reverse geocoding on our official <a href="https://docs.maptiler.com/cloud/api/geocoding/#search-by-coordinates-reverse">API documentation</a>.</p>
+
+<a href="#language" id="language" style="color: inherit; text-decoration: none;">
+  <h3>Language</h3>
+</a>
+<p>For both <em>forward</em> and <em>reverse</em> geocoding, this library provides a list of supported languages as shorthands to <a href="https://en.wikipedia.org/wiki/ISO_639-1">ISO language codes</a>. The result will be provided in multiple languages if the <code>language</code> options is an array:</p>
+<pre><code class="language-ts"><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">result</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptiler</span><span class="hl-0">.</span><span class="hl-3">geocoding</span><span class="hl-0">.</span><span class="hl-7">forward</span><span class="hl-0">(</span><span class="hl-4">&#39;paris&#39;</span><span class="hl-0">, {</span><span class="hl-3">language:</span><span class="hl-0"> [</span><span class="hl-3">maptiler</span><span class="hl-0">.</span><span class="hl-3">LanguageGeocoding</span><span class="hl-0">.</span><span class="hl-6">SPANISH</span><span class="hl-0">, </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">LanguageGeocoding</span><span class="hl-0">.</span><span class="hl-6">KOREAN</span><span class="hl-0">]})</span>
+</code></pre>
+<p>The special language <code>AUTO</code> will detect the plateform of browser prefered language.</p>
+<blockquote>
+<p>📣 <em><strong>Note:</strong></em> thie SDK provides two lists of languages. <code>maptiler.Language</code> contains the list of languages available for map labels, while <code>maptiler.LanguageGeocoding</code> contains a slightly smaller subset of languages.</p>
+</blockquote>
 
 <a href="#🕵️♂️-geolocation" id="🕵️♂️-geolocation" style="color: inherit; text-decoration: none;">
   <h2>🕵️‍♂️ Geolocation</h2>

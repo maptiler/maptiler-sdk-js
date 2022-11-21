@@ -197,7 +197,10 @@ Languages that are written right-to-left such as arabic and hebrew are fully sup
 </p>
 
 # Easy access to MapTiler Cloud API
-A map SDK is not only about maps! Here is the list of service wrapper functions that are built-in:
+Our map SDK is not only about maps! We also provide plenty of wrapper to our API calls!
+
+> 📣 *__Note:__* If you need <ins>only the API Client library</ins> to use in a headless fashion and without any map display, check out [MapTiler Client JS](https://github.com/maptiler/maptiler-client-js) library for browser and NodeJS.
+
 
 ## 🔍 Geocoding
 ### Forward
@@ -222,6 +225,17 @@ const result = await maptiler.geocoding.reverse({ lng: 6.249638, lat: 46.402056 
 The same option object as the forward geocoding can be provided.
 
 Read more about reverse geocoding on our official [API documentation](https://docs.maptiler.com/cloud/api/geocoding/#search-by-coordinates-reverse).
+
+### Language
+For both *forward* and *reverse* geocoding, this library provides a list of supported languages as shorthands to [ISO language codes](https://en.wikipedia.org/wiki/ISO_639-1). The result will be provided in multiple languages if the `language` options is an array:
+
+```ts
+const result = await maptiler.geocoding.forward('paris', {language: [maptiler.LanguageGeocoding.SPANISH, maptilerClient.LanguageGeocoding.KOREAN]})
+```
+
+The special language `AUTO` will detect the plateform of browser prefered language.
+
+> 📣 *__Note:__* thie SDK provides two lists of languages. `maptiler.Language` contains the list of languages available for map labels, while `maptiler.LanguageGeocoding` contains a slightly smaller subset of languages.
 
 ## 🕵️‍♂️ Geolocation
 The geolocation service provides an accurate location insight of a website visitor using its IP address.

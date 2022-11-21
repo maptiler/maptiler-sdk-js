@@ -75,7 +75,7 @@
 		'default': maplibreGl
 	}, [maplibreGl$1.exports]);
 
-	const Language$1 = {
+	const Language = {
 	  AUTO: "auto",
 	  LATIN: "latin",
 	  NON_LATIN: "nonlatin",
@@ -151,7 +151,7 @@
 	  UKRAINIAN: "uk",
 	  WELSH: "cy"
 	};
-	const languageCodeSet$1 = new Set(Object.values(Language$1));
+	const languageCodeSet$1 = new Set(Object.values(Language));
 	function getBrowserLanguage() {
 	  if (typeof navigator === "undefined") {
 	    return Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
@@ -159,7 +159,7 @@
 	  const canditatelangs = Array.from(
 	    new Set(navigator.languages.map((l) => l.split("-")[0]))
 	  ).filter((l) => languageCodeSet$1.has(l));
-	  return canditatelangs.length ? canditatelangs[0] : Language$1.LATIN;
+	  return canditatelangs.length ? canditatelangs[0] : Language.LATIN;
 	}
 
 	function tryGettingFetch() {
@@ -191,7 +191,7 @@
 	}
 	const config$1 = new ClientConfig();
 
-	const Language = {
+	const LanguageGeocoding = {
 	  AUTO: "auto",
 	  ALBANIAN: "sq",
 	  ARABIC: "ar",
@@ -248,15 +248,15 @@
 	  UKRAINIAN: "uk",
 	  WELSH: "cy"
 	};
-	const languageCodeSet = new Set(Object.values(Language));
-	function getAutoLanguage() {
+	const languageCodeSet = new Set(Object.values(LanguageGeocoding));
+	function getAutoLanguageGeocoding() {
 	  if (typeof navigator === "undefined") {
 	    return Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0];
 	  }
 	  const canditatelangs = Array.from(
 	    new Set(navigator.languages.map((l) => l.split("-")[0]))
 	  ).filter((l) => languageCodeSet.has(l));
-	  return canditatelangs.length ? canditatelangs[0] : Language.ENGLISH;
+	  return canditatelangs.length ? canditatelangs[0] : LanguageGeocoding.ENGLISH;
 	}
 
 	var __async$4 = (__this, __arguments, generator) => {
@@ -354,7 +354,9 @@
 	      );
 	    }
 	    if ("language" in options) {
-	      const languages = (Array.isArray(options.language) ? options.language : [options.language]).map((lang) => lang === Language.AUTO ? getAutoLanguage() : lang).join(",");
+	      const languages = (Array.isArray(options.language) ? options.language : [options.language]).map(
+	        (lang) => lang === LanguageGeocoding.AUTO ? getAutoLanguageGeocoding() : lang
+	      ).join(",");
 	      endpoint.searchParams.set("language", languages);
 	    }
 	    const urlWithParams = endpoint.toString();
@@ -394,7 +396,9 @@
 	      );
 	    }
 	    if ("language" in options) {
-	      const languages = (Array.isArray(options.language) ? options.language : [options.language]).map((lang) => lang === Language.AUTO ? getAutoLanguage() : lang).join(",");
+	      const languages = (Array.isArray(options.language) ? options.language : [options.language]).map(
+	        (lang) => lang === LanguageGeocoding.AUTO ? getAutoLanguageGeocoding() : lang
+	      ).join(",");
 	      endpoint.searchParams.set("language", languages);
 	    }
 	    const urlWithParams = endpoint.toString();
@@ -835,7 +839,7 @@
 	class SdkConfig {
 	  constructor() {
 	    this.verbose = false;
-	    this.primaryLanguage = Language$1.AUTO;
+	    this.primaryLanguage = Language.AUTO;
 	    this.secondaryLanguage = null;
 	    this._apiKey = "Not defined yet.";
 	  }
@@ -942,8 +946,8 @@
 	  maptilerURL: "https://www.maptiler.com/",
 	  maptilerApiURL: "https://api.maptiler.com/",
 	  rtlPluginURL: "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
-	  primaryLanguage: Language$1.LATIN,
-	  secondaryLanguage: Language$1.NON_LATIN,
+	  primaryLanguage: Language.LATIN,
+	  secondaryLanguage: Language.NON_LATIN,
 	  terrainSourceURL: "https://api.maptiler.com/tiles/terrain-rgb/tiles.json",
 	  terrainSourceId: "maptiler-terrain"
 	};
@@ -1141,13 +1145,13 @@
 	    return super.setStyle(tempStyle, options);
 	  }
 	  setLanguage(language = defaults.primaryLanguage) {
-	    if (language === Language$1.AUTO) {
+	    if (language === Language.AUTO) {
 	      return this.setLanguage(getBrowserLanguage());
 	    }
 	    this.setPrimaryLanguage(language);
 	  }
 	  setPrimaryLanguage(language = defaults.primaryLanguage) {
-	    if (language === Language$1.AUTO) {
+	    if (language === Language.AUTO) {
 	      return this.setPrimaryLanguage(getBrowserLanguage());
 	    }
 	    console.log("language", language);
@@ -1215,7 +1219,7 @@
 	    }
 	  }
 	  setSecondaryLanguage(language = defaults.secondaryLanguage) {
-	    if (language === Language$1.AUTO) {
+	    if (language === Language.AUTO) {
 	      return this.setSecondaryLanguage(getBrowserLanguage());
 	    }
 	    config.secondaryLanguage = language;
@@ -1320,8 +1324,8 @@
 	  return Unit2;
 	})(Unit || {});
 
-	exports.Language = Language$1;
-	exports.LanguageGeocoding = Language;
+	exports.Language = Language;
+	exports.LanguageGeocoding = LanguageGeocoding;
 	exports.Map = Map;
 	exports.SdkConfig = SdkConfig;
 	exports.ServiceError = ServiceError;

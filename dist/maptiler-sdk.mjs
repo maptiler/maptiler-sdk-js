@@ -1,7 +1,7 @@
 import * as maplibre from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { config as config$1 } from '@maptiler/client';
-export { Language as LanguageGeocoding, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
+export { LanguageGeocoding, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
 
 const Language = {
   AUTO: "auto",
