@@ -43,4 +43,9 @@ function prepareBuiltinStyle(
   return JSON.parse(fullTextVersion) as StyleSpecification;
 }
 
-export { MaptilerStyle, MaptilerStyleString, isBuiltinStyle, prepareBuiltinStyle };
+export {
+  MaptilerStyle,
+  MaptilerStyleString,
+  isBuiltinStyle,
+  prepareBuiltinStyle,
+};

@@ -28,9 +28,13 @@ npm install --save @maptiler/sdk
 ```
 
 # API documentation
-In addition to the details and examples provided in this readme, check out the [complete API documentation](https://maptiler.github.io/maptiler-sdk-js) (also available in [markdown](docsmd)).
+In addition to the details and examples provided in this readme, check out the [complete API documentation](docs/README.md)
 
 # Quick start
+
+## With ES modules
+**Recommended for:** advanced applications
+
 ```ts
 import * as maptilersdk from '@maptiler/sdk';
 
@@ -47,6 +51,61 @@ const map = new maptilersdk.Map({
 });
 ```
 By default, the map will be initialized with the style [streets-v2](https://www.maptiler.com/maps/#style=streets-v2).
+
+Depending on the framework and environment your are using for your application, you will have to also include the CSS file. 
+
+For example, with a [NextJS](https://nextjs.org/) app, this can take place at the top of the file `_app.ts/js`:
+```ts
+import "@maptiler/sdk/dist/maptiler-sdk.css";
+```
+
+
+## With UMD bundle
+The UMD bundles includes everything in one single source file.
+
+**Recommended for:** simple map intergration example and demos
+
+```html
+<html>
+  <head>
+    <title>MapTiler JS SDK example</title>
+    <style>
+      html, body {
+        margin: 0;
+      }
+
+      #map-container {
+        position: absolute;
+        width: 100vw;
+        height: 100vh;
+      }
+    </style>
+
+    <!-- Load the SDK CSS -->
+    <link rel="stylesheet" href="dist/maptiler-sdk.css">
+  </head>
+
+  <body>
+    <div id="map-container"></div>
+  
+    <script src ="dist/maptiler-sdk.umd.js"></script>
+    
+    <script>
+      // Add your MapTiler Cloud API key to the config
+      // (Go to https://cloud.maptiler.com/account/keys/ to get one for free!)
+      maptilersdk.config.apiKey = 'YOUR_API_KEY';
+
+      const map = new maptilersdk.Map({
+        container: document.getElementById('map-container'),
+        style: maptilersdk.MaptilerStyle.DARK,
+        hash: true,
+      })
+    </script>
+  </body>
+</html>
+```
+Checkout the minimalist code samples in the [examples](examples) directory.
+
 
 # Many styles to choose from
 MapTiler teams maintains a few styles that we have decided to expose from th SDK. This has two advantages:
@@ -169,7 +228,7 @@ map.disableTerrain()
 The language generally depends on the style but we made it possible to easily update it with a single function and from a built-in list of languages:
 
 ```ts
-map.setLanguage(maptiler.Language.ENGLISH);
+map.setLanguage(maptilersdk.Language.ENGLISH);
 ```
 
 The special languages `maptilersdk.Language.LATIN` and `maptilersdk.Language.NON_LATIN` are generally the default ones in the styles developped by the MapTiler team and they are generaly safe all-around fallbacks.  
@@ -177,7 +236,7 @@ The special languages `maptilersdk.Language.LATIN` and `maptilersdk.Language.NON
 Some style, developped in-house as well as by the community, may support a secondary language. In this case, you can also update it:
 
 ```ts
-map.setSecondaryLanguage(maptiler.Language.NON_LATIN);
+map.setSecondaryLanguage(maptilersdk.Language.NON_LATIN);
 ```
 
 Here is a sample of some compatible languages:
