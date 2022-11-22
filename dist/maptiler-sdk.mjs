@@ -1,5 +1,4 @@
-import * as maplibre from 'maplibre-gl';
-export * from 'maplibre-gl';
+import * as ML from 'maplibre-gl';
 import { config as config$1 } from '@maptiler/client';
 export { LanguageGeocoding, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
 
@@ -113,7 +112,7 @@ class SdkConfig {
 }
 const config = new SdkConfig();
 
-var version = 8;
+var version$1 = 8;
 var id = "f0e4ff8c-a9e4-414e-9f4d-7938762c948f";
 var name = "Satellite no label";
 var sources = {
@@ -156,7 +155,7 @@ var center = [
 ];
 var zoom = 5.066147709178387;
 var satelliteBuiltin = {
-	version: version,
+	version: version$1,
 	id: id,
 	name: name,
 	sources: sources,
@@ -169,7 +168,7 @@ var satelliteBuiltin = {
 	zoom: zoom
 };
 
-const Style = {
+const MaptilerStyle = {
   STREETS: "streets-v2",
   HYBRID: "hybrid",
   SATELLITE: "satellite",
@@ -179,7 +178,7 @@ const Style = {
   LIGHT: "streets-v2-light"
 };
 const builtInStyles = {};
-builtInStyles[Style.SATELLITE] = satelliteBuiltin;
+builtInStyles[MaptilerStyle.SATELLITE] = satelliteBuiltin;
 function isBuiltinStyle(styleId) {
   return styleId in builtInStyles;
 }
@@ -195,7 +194,7 @@ function prepareBuiltinStyle(styleId, apiKey) {
 }
 
 const defaults = {
-  mapStyle: Style.STREETS,
+  mapStyle: MaptilerStyle.STREETS,
   maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
   maptilerURL: "https://www.maptiler.com/",
   maptilerApiURL: "https://api.maptiler.com/",
@@ -207,7 +206,7 @@ const defaults = {
 };
 Object.freeze(defaults);
 
-class CustomLogoControl extends maplibre.LogoControl {
+class CustomLogoControl extends ML.LogoControl {
   constructor(options = {}) {
     var _a, _b;
     super(options);
@@ -272,7 +271,7 @@ function expandMapStyle(style) {
   return expandedStyle;
 }
 function enableRTL() {
-  const maplibrePackage = maplibre;
+  const maplibrePackage = ML;
   if (maplibrePackage.getRTLTextPluginStatus() === "unavailable") {
     maplibrePackage.setRTLTextPlugin(
       defaults.rtlPluginURL,
@@ -321,13 +320,16 @@ var __async = (__this, __arguments, generator) => {
     step((generator = generator.apply(__this, __arguments)).next());
   });
 };
-class Map extends maplibre.Map {
+class Map extends ML.Map {
   constructor(options) {
     var _a;
     let style;
     if ("style" in options) {
       if (typeof style === "string" && isBuiltinStyle(style)) {
-        style = prepareBuiltinStyle(style, config.apiKey);
+        style = prepareBuiltinStyle(
+          style,
+          config.apiKey
+        );
       } else if (typeof style === "string") {
         style = expandMapStyle(style);
       } else {
@@ -379,12 +381,23 @@ class Map extends maplibre.Map {
           options.logoPosition
         );
         if (options.attributionControl === false) {
-          this.addControl(new maplibre.AttributionControl(options));
+          this.addControl(new ML.AttributionControl(options));
         }
       } else if (options.maptilerLogo) {
         this.addControl(new CustomLogoControl(), options.logoPosition);
       }
     }));
+    if (options.navigationControl !== false) {
+      const position = options.navigationControl === true || options.navigationControl === void 0 ? "top-right" : options.navigationControl;
+      this.addControl(
+        new ML.NavigationControl({
+          showCompass: true,
+          showZoom: true,
+          visualizePitch: true
+        }),
+        position
+      );
+    }
     if (options.enableTerrain) {
       this.enableTerrain((_a = options.terrainExaggeration) != null ? _a : 1);
     }
@@ -392,7 +405,10 @@ class Map extends maplibre.Map {
   setStyle(style, options) {
     let tempStyle = style;
     if (typeof style === "string" && isBuiltinStyle(style)) {
-      tempStyle = prepareBuiltinStyle(style, config.apiKey);
+      tempStyle = prepareBuiltinStyle(
+        style,
+        config.apiKey
+      );
     } else if (typeof style === "string") {
       tempStyle = expandMapStyle(style);
     }
@@ -408,7 +424,6 @@ class Map extends maplibre.Map {
     if (language === Language.AUTO) {
       return this.setPrimaryLanguage(getBrowserLanguage());
     }
-    console.log("language", language);
     config.primaryLanguage = language;
     const layers = this.getStyle().layers;
     const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
@@ -572,11 +587,189 @@ class Map extends maplibre.Map {
   }
 }
 
+function Point(x, y) {
+  this.x = x;
+  this.y = y;
+}
+Point.prototype = {
+  clone: function() {
+    return new Point(this.x, this.y);
+  },
+  add: function(p) {
+    return this.clone()._add(p);
+  },
+  sub: function(p) {
+    return this.clone()._sub(p);
+  },
+  multByPoint: function(p) {
+    return this.clone()._multByPoint(p);
+  },
+  divByPoint: function(p) {
+    return this.clone()._divByPoint(p);
+  },
+  mult: function(k) {
+    return this.clone()._mult(k);
+  },
+  div: function(k) {
+    return this.clone()._div(k);
+  },
+  rotate: function(a) {
+    return this.clone()._rotate(a);
+  },
+  rotateAround: function(a, p) {
+    return this.clone()._rotateAround(a, p);
+  },
+  matMult: function(m) {
+    return this.clone()._matMult(m);
+  },
+  unit: function() {
+    return this.clone()._unit();
+  },
+  perp: function() {
+    return this.clone()._perp();
+  },
+  round: function() {
+    return this.clone()._round();
+  },
+  mag: function() {
+    return Math.sqrt(this.x * this.x + this.y * this.y);
+  },
+  equals: function(other) {
+    return this.x === other.x && this.y === other.y;
+  },
+  dist: function(p) {
+    return Math.sqrt(this.distSqr(p));
+  },
+  distSqr: function(p) {
+    const dx = p.x - this.x, dy = p.y - this.y;
+    return dx * dx + dy * dy;
+  },
+  angle: function() {
+    return Math.atan2(this.y, this.x);
+  },
+  angleTo: function(b) {
+    return Math.atan2(this.y - b.y, this.x - b.x);
+  },
+  angleWith: function(b) {
+    return this.angleWithSep(b.x, b.y);
+  },
+  angleWithSep: function(x, y) {
+    return Math.atan2(this.x * y - this.y * x, this.x * x + this.y * y);
+  },
+  _matMult: function(m) {
+    const x = m[0] * this.x + m[1] * this.y, y = m[2] * this.x + m[3] * this.y;
+    this.x = x;
+    this.y = y;
+    return this;
+  },
+  _add: function(p) {
+    this.x += p.x;
+    this.y += p.y;
+    return this;
+  },
+  _sub: function(p) {
+    this.x -= p.x;
+    this.y -= p.y;
+    return this;
+  },
+  _mult: function(k) {
+    this.x *= k;
+    this.y *= k;
+    return this;
+  },
+  _div: function(k) {
+    this.x /= k;
+    this.y /= k;
+    return this;
+  },
+  _multByPoint: function(p) {
+    this.x *= p.x;
+    this.y *= p.y;
+    return this;
+  },
+  _divByPoint: function(p) {
+    this.x /= p.x;
+    this.y /= p.y;
+    return this;
+  },
+  _unit: function() {
+    this._div(this.mag());
+    return this;
+  },
+  _perp: function() {
+    const y = this.y;
+    this.y = this.x;
+    this.x = -y;
+    return this;
+  },
+  _rotate: function(angle) {
+    const cos = Math.cos(angle), sin = Math.sin(angle), x = cos * this.x - sin * this.y, y = sin * this.x + cos * this.y;
+    this.x = x;
+    this.y = y;
+    return this;
+  },
+  _rotateAround: function(angle, p) {
+    const cos = Math.cos(angle), sin = Math.sin(angle), x = p.x + cos * (this.x - p.x) - sin * (this.y - p.y), y = p.y + sin * (this.x - p.x) + cos * (this.y - p.y);
+    this.x = x;
+    this.y = y;
+    return this;
+  },
+  _round: function() {
+    this.x = Math.round(this.x);
+    this.y = Math.round(this.y);
+    return this;
+  }
+};
+Point.convert = function(a) {
+  if (a instanceof Point) {
+    return a;
+  }
+  if (Array.isArray(a)) {
+    return new Point(a[0], a[1]);
+  }
+  return a;
+};
+
 var Unit = /* @__PURE__ */ ((Unit2) => {
   Unit2[Unit2["METRIC"] = 0] = "METRIC";
   Unit2[Unit2["IMPERIAL"] = 1] = "IMPERIAL";
   return Unit2;
 })(Unit || {});
 
-export { Language, Map, SdkConfig, Style, Unit, config };
+const supported = ML.default.supported;
+const setRTLTextPlugin = ML.default.setRTLTextPlugin;
+const getRTLTextPluginStatus = ML.default.getRTLTextPluginStatus;
+const NavigationControl = ML.default.NavigationControl;
+const GeolocateControl = ML.default.GeolocateControl;
+const AttributionControl = ML.default.AttributionControl;
+const LogoControl = ML.default.LogoControl;
+const ScaleControl = ML.default.ScaleControl;
+const FullscreenControl = ML.default.FullscreenControl;
+const TerrainControl = ML.default.TerrainControl;
+const Popup = ML.default.Popup;
+const Marker = ML.default.Marker;
+const Style = ML.default.Style;
+const LngLat = ML.default.LngLat;
+const LngLatBounds = ML.default.LngLatBounds;
+const MercatorCoordinate = ML.default.MercatorCoordinate;
+const Evented = ML.default.Evented;
+const AJAXError = ML.default.AJAXError;
+const CanvasSource = ML.default.CanvasSource;
+const GeoJSONSource = ML.default.GeoJSONSource;
+const ImageSource = ML.default.ImageSource;
+const RasterDEMTileSource = ML.default.RasterDEMTileSource;
+const RasterTileSource = ML.default.RasterTileSource;
+const VectorTileSource = ML.default.VectorTileSource;
+const VideoSource = ML.default.VideoSource;
+const prewarm = ML.default.prewarm;
+const clearPrewarmedResources = ML.default.clearPrewarmedResources;
+const version = ML.default.version;
+const workerCount = ML.default.workerCount;
+const maxParallelImageRequests = ML.default.maxParallelImageRequests;
+const clearStorage = ML.default.clearStorage;
+const workerUrl = ML.default.workerUrl;
+const addProtocol = ML.default.addProtocol;
+const removeProtocol = ML.default.removeProtocol;
+
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MaptilerStyle, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
 //# sourceMappingURL=maptiler-sdk.mjs.map

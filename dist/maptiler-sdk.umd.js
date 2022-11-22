@@ -859,7 +859,7 @@
 	}
 	const config = new SdkConfig();
 
-	var version = 8;
+	var version$1 = 8;
 	var id = "f0e4ff8c-a9e4-414e-9f4d-7938762c948f";
 	var name = "Satellite no label";
 	var sources = {
@@ -902,7 +902,7 @@
 	];
 	var zoom = 5.066147709178387;
 	var satelliteBuiltin = {
-		version: version,
+		version: version$1,
 		id: id,
 		name: name,
 		sources: sources,
@@ -915,7 +915,7 @@
 		zoom: zoom
 	};
 
-	const Style = {
+	const MaptilerStyle = {
 	  STREETS: "streets-v2",
 	  HYBRID: "hybrid",
 	  SATELLITE: "satellite",
@@ -925,7 +925,7 @@
 	  LIGHT: "streets-v2-light"
 	};
 	const builtInStyles = {};
-	builtInStyles[Style.SATELLITE] = satelliteBuiltin;
+	builtInStyles[MaptilerStyle.SATELLITE] = satelliteBuiltin;
 	function isBuiltinStyle(styleId) {
 	  return styleId in builtInStyles;
 	}
@@ -941,7 +941,7 @@
 	}
 
 	const defaults = {
-	  mapStyle: Style.STREETS,
+	  mapStyle: MaptilerStyle.STREETS,
 	  maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
 	  maptilerURL: "https://www.maptiler.com/",
 	  maptilerApiURL: "https://api.maptiler.com/",
@@ -1073,7 +1073,10 @@
 	    let style;
 	    if ("style" in options) {
 	      if (typeof style === "string" && isBuiltinStyle(style)) {
-	        style = prepareBuiltinStyle(style, config.apiKey);
+	        style = prepareBuiltinStyle(
+	          style,
+	          config.apiKey
+	        );
 	      } else if (typeof style === "string") {
 	        style = expandMapStyle(style);
 	      } else {
@@ -1131,6 +1134,17 @@
 	        this.addControl(new CustomLogoControl(), options.logoPosition);
 	      }
 	    }));
+	    if (options.navigationControl !== false) {
+	      const position = options.navigationControl === true || options.navigationControl === void 0 ? "top-right" : options.navigationControl;
+	      this.addControl(
+	        new maplibreGl$1.exports.NavigationControl({
+	          showCompass: true,
+	          showZoom: true,
+	          visualizePitch: true
+	        }),
+	        position
+	      );
+	    }
 	    if (options.enableTerrain) {
 	      this.enableTerrain((_a = options.terrainExaggeration) != null ? _a : 1);
 	    }
@@ -1138,7 +1152,10 @@
 	  setStyle(style, options) {
 	    let tempStyle = style;
 	    if (typeof style === "string" && isBuiltinStyle(style)) {
-	      tempStyle = prepareBuiltinStyle(style, config.apiKey);
+	      tempStyle = prepareBuiltinStyle(
+	        style,
+	        config.apiKey
+	      );
 	    } else if (typeof style === "string") {
 	      tempStyle = expandMapStyle(style);
 	    }
@@ -1154,7 +1171,6 @@
 	    if (language === Language.AUTO) {
 	      return this.setPrimaryLanguage(getBrowserLanguage());
 	    }
-	    console.log("language", language);
 	    config.primaryLanguage = language;
 	    const layers = this.getStyle().layers;
 	    const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
@@ -1318,25 +1334,238 @@
 	  }
 	}
 
+	function Point(x, y) {
+	  this.x = x;
+	  this.y = y;
+	}
+	Point.prototype = {
+	  clone: function() {
+	    return new Point(this.x, this.y);
+	  },
+	  add: function(p) {
+	    return this.clone()._add(p);
+	  },
+	  sub: function(p) {
+	    return this.clone()._sub(p);
+	  },
+	  multByPoint: function(p) {
+	    return this.clone()._multByPoint(p);
+	  },
+	  divByPoint: function(p) {
+	    return this.clone()._divByPoint(p);
+	  },
+	  mult: function(k) {
+	    return this.clone()._mult(k);
+	  },
+	  div: function(k) {
+	    return this.clone()._div(k);
+	  },
+	  rotate: function(a) {
+	    return this.clone()._rotate(a);
+	  },
+	  rotateAround: function(a, p) {
+	    return this.clone()._rotateAround(a, p);
+	  },
+	  matMult: function(m) {
+	    return this.clone()._matMult(m);
+	  },
+	  unit: function() {
+	    return this.clone()._unit();
+	  },
+	  perp: function() {
+	    return this.clone()._perp();
+	  },
+	  round: function() {
+	    return this.clone()._round();
+	  },
+	  mag: function() {
+	    return Math.sqrt(this.x * this.x + this.y * this.y);
+	  },
+	  equals: function(other) {
+	    return this.x === other.x && this.y === other.y;
+	  },
+	  dist: function(p) {
+	    return Math.sqrt(this.distSqr(p));
+	  },
+	  distSqr: function(p) {
+	    const dx = p.x - this.x, dy = p.y - this.y;
+	    return dx * dx + dy * dy;
+	  },
+	  angle: function() {
+	    return Math.atan2(this.y, this.x);
+	  },
+	  angleTo: function(b) {
+	    return Math.atan2(this.y - b.y, this.x - b.x);
+	  },
+	  angleWith: function(b) {
+	    return this.angleWithSep(b.x, b.y);
+	  },
+	  angleWithSep: function(x, y) {
+	    return Math.atan2(this.x * y - this.y * x, this.x * x + this.y * y);
+	  },
+	  _matMult: function(m) {
+	    const x = m[0] * this.x + m[1] * this.y, y = m[2] * this.x + m[3] * this.y;
+	    this.x = x;
+	    this.y = y;
+	    return this;
+	  },
+	  _add: function(p) {
+	    this.x += p.x;
+	    this.y += p.y;
+	    return this;
+	  },
+	  _sub: function(p) {
+	    this.x -= p.x;
+	    this.y -= p.y;
+	    return this;
+	  },
+	  _mult: function(k) {
+	    this.x *= k;
+	    this.y *= k;
+	    return this;
+	  },
+	  _div: function(k) {
+	    this.x /= k;
+	    this.y /= k;
+	    return this;
+	  },
+	  _multByPoint: function(p) {
+	    this.x *= p.x;
+	    this.y *= p.y;
+	    return this;
+	  },
+	  _divByPoint: function(p) {
+	    this.x /= p.x;
+	    this.y /= p.y;
+	    return this;
+	  },
+	  _unit: function() {
+	    this._div(this.mag());
+	    return this;
+	  },
+	  _perp: function() {
+	    const y = this.y;
+	    this.y = this.x;
+	    this.x = -y;
+	    return this;
+	  },
+	  _rotate: function(angle) {
+	    const cos = Math.cos(angle), sin = Math.sin(angle), x = cos * this.x - sin * this.y, y = sin * this.x + cos * this.y;
+	    this.x = x;
+	    this.y = y;
+	    return this;
+	  },
+	  _rotateAround: function(angle, p) {
+	    const cos = Math.cos(angle), sin = Math.sin(angle), x = p.x + cos * (this.x - p.x) - sin * (this.y - p.y), y = p.y + sin * (this.x - p.x) + cos * (this.y - p.y);
+	    this.x = x;
+	    this.y = y;
+	    return this;
+	  },
+	  _round: function() {
+	    this.x = Math.round(this.x);
+	    this.y = Math.round(this.y);
+	    return this;
+	  }
+	};
+	Point.convert = function(a) {
+	  if (a instanceof Point) {
+	    return a;
+	  }
+	  if (Array.isArray(a)) {
+	    return new Point(a[0], a[1]);
+	  }
+	  return a;
+	};
+
 	var Unit = /* @__PURE__ */ ((Unit2) => {
 	  Unit2[Unit2["METRIC"] = 0] = "METRIC";
 	  Unit2[Unit2["IMPERIAL"] = 1] = "IMPERIAL";
 	  return Unit2;
 	})(Unit || {});
 
+	const supported = maplibreGl.supported;
+	const setRTLTextPlugin = maplibreGl.setRTLTextPlugin;
+	const getRTLTextPluginStatus = maplibreGl.getRTLTextPluginStatus;
+	const NavigationControl = maplibreGl.NavigationControl;
+	const GeolocateControl = maplibreGl.GeolocateControl;
+	const AttributionControl = maplibreGl.AttributionControl;
+	const LogoControl = maplibreGl.LogoControl;
+	const ScaleControl = maplibreGl.ScaleControl;
+	const FullscreenControl = maplibreGl.FullscreenControl;
+	const TerrainControl = maplibreGl.TerrainControl;
+	const Popup = maplibreGl.Popup;
+	const Marker = maplibreGl.Marker;
+	const Style = maplibreGl.Style;
+	const LngLat = maplibreGl.LngLat;
+	const LngLatBounds = maplibreGl.LngLatBounds;
+	const MercatorCoordinate = maplibreGl.MercatorCoordinate;
+	const Evented = maplibreGl.Evented;
+	const AJAXError = maplibreGl.AJAXError;
+	const CanvasSource = maplibreGl.CanvasSource;
+	const GeoJSONSource = maplibreGl.GeoJSONSource;
+	const ImageSource = maplibreGl.ImageSource;
+	const RasterDEMTileSource = maplibreGl.RasterDEMTileSource;
+	const RasterTileSource = maplibreGl.RasterTileSource;
+	const VectorTileSource = maplibreGl.VectorTileSource;
+	const VideoSource = maplibreGl.VideoSource;
+	const prewarm = maplibreGl.prewarm;
+	const clearPrewarmedResources = maplibreGl.clearPrewarmedResources;
+	const version = maplibreGl.version;
+	const workerCount = maplibreGl.workerCount;
+	const maxParallelImageRequests = maplibreGl.maxParallelImageRequests;
+	const clearStorage = maplibreGl.clearStorage;
+	const workerUrl = maplibreGl.workerUrl;
+	const addProtocol = maplibreGl.addProtocol;
+	const removeProtocol = maplibreGl.removeProtocol;
+
+	exports.AJAXError = AJAXError;
+	exports.AttributionControl = AttributionControl;
+	exports.CanvasSource = CanvasSource;
+	exports.Evented = Evented;
+	exports.FullscreenControl = FullscreenControl;
+	exports.GeoJSONSource = GeoJSONSource;
+	exports.GeolocateControl = GeolocateControl;
+	exports.ImageSource = ImageSource;
 	exports.Language = Language;
 	exports.LanguageGeocoding = LanguageGeocoding;
+	exports.LngLat = LngLat;
+	exports.LngLatBounds = LngLatBounds;
+	exports.LogoControl = LogoControl;
 	exports.Map = Map;
+	exports.MaptilerStyle = MaptilerStyle;
+	exports.Marker = Marker;
+	exports.MercatorCoordinate = MercatorCoordinate;
+	exports.NavigationControl = NavigationControl;
+	exports.Point = Point;
+	exports.Popup = Popup;
+	exports.RasterDEMTileSource = RasterDEMTileSource;
+	exports.RasterTileSource = RasterTileSource;
+	exports.ScaleControl = ScaleControl;
 	exports.SdkConfig = SdkConfig;
 	exports.ServiceError = ServiceError;
 	exports.Style = Style;
+	exports.TerrainControl = TerrainControl;
 	exports.Unit = Unit;
+	exports.VectorTileSource = VectorTileSource;
+	exports.VideoSource = VideoSource;
+	exports.addProtocol = addProtocol;
+	exports.clearPrewarmedResources = clearPrewarmedResources;
+	exports.clearStorage = clearStorage;
 	exports.config = config;
 	exports.coordinates = coordinates;
 	exports.data = data;
 	exports.geocoding = geocoding;
 	exports.geolocation = geolocation;
+	exports.getRTLTextPluginStatus = getRTLTextPluginStatus;
+	exports.maxParallelImageRequests = maxParallelImageRequests;
+	exports.prewarm = prewarm;
+	exports.removeProtocol = removeProtocol;
+	exports.setRTLTextPlugin = setRTLTextPlugin;
 	exports.staticMaps = staticMaps;
+	exports.supported = supported;
+	exports.version = version;
+	exports.workerCount = workerCount;
+	exports.workerUrl = workerUrl;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

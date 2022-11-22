@@ -1,7 +1,7 @@
-import * as maplibre from 'maplibre-gl';
-export * from 'maplibre-gl';
+import * as _mapbox_mapbox_gl_supported from '@mapbox/mapbox-gl-supported';
+import * as ML from 'maplibre-gl';
 import { FetchFunction } from '@maptiler/client';
-export { AutomaticStaticMapOptions, Bbox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, LanguageGeocoding, LanguageGeocodingString, LngLat, LngLatArray, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
+export { AutomaticStaticMapOptions, Bbox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, LanguageGeocoding, LanguageGeocodingString, LngLatArray, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
 
 /**
  * Languages. Note that not all the languages of this list are available but the compatibility list may be expanded in the future.
@@ -100,7 +100,7 @@ declare type Values$1<T> = T[keyof T];
  */
 declare type LanguageString = Values$1<typeof Language>;
 
-declare type TransformStyleFunction = (previous: maplibre.StyleSpecification, next: maplibre.StyleSpecification) => maplibre.StyleSpecification;
+declare type TransformStyleFunction = (previous: ML.StyleSpecification, next: ML.StyleSpecification) => ML.StyleSpecification;
 declare type StyleSwapOptions = {
     diff?: boolean;
     transformStyle?: TransformStyleFunction;
@@ -108,7 +108,7 @@ declare type StyleSwapOptions = {
 /**
  * Options to provide to the `Map` constructor
  */
-declare type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
+declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
     /**
      * Style of the map. Can be:
      * - a full style URL (possibly with API key)
@@ -128,11 +128,15 @@ declare type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & 
      * Exaggeration factor of the terrain. (default: `1`, no exaggeration)
      */
     terrainExaggeration?: number;
+    /**
+     * Show the navigation control. (default: `true`, will hide if `false`)
+     */
+    navigationControl?: boolean | ML.ControlPosition;
 };
 /**
  * The Map class can be instanciated to display a map in a `<div>`
  */
-declare class Map extends maplibre.Map {
+declare class Map extends ML.Map {
     private languageShouldUpdate;
     private isStyleInitialized;
     private isTerrainEnabled;
@@ -148,7 +152,7 @@ declare class Map extends maplibre.Map {
      * @param options
      * @returns
      */
-    setStyle(style: maplibre.StyleSpecification | string | null, options?: StyleSwapOptions & maplibre.StyleOptions): this;
+    setStyle(style: ML.StyleSpecification | string | null, options?: StyleSwapOptions & ML.StyleOptions): this;
     /**
      * Define the primary language of the map. Note that not all the languages shorthands provided are available.
      * This function is a short for `.setPrimaryLanguage()`
@@ -182,6 +186,23 @@ declare class Map extends maplibre.Map {
      * @param exaggeration
      */
     setTerrainExaggeration(exaggeration: number): void;
+}
+
+/**
+ * A standalone point geometry with useful accessor, comparison, and
+ * modification methods.
+ *
+ * @class Point
+ * @param {Number} x the x-coordinate. this could be longitude or screen
+ * pixels, or any other sort of unit.
+ * @param {Number} y the y-coordinate. this could be latitude or screen
+ * pixels, or any other sort of unit.
+ * @example
+ * var point = new Point(-77, 38);
+ */
+declare function Point(x: any, y: any): void;
+declare namespace Point {
+    var convert: (a: any) => any;
 }
 
 /**
@@ -232,7 +253,7 @@ declare enum Unit {
 /**
  * Built-in styles
  */
-declare const Style: {
+declare const MaptilerStyle: {
     readonly STREETS: "streets-v2";
     readonly HYBRID: "hybrid";
     readonly SATELLITE: "satellite";
@@ -245,6 +266,41 @@ declare type Values<T> = T[keyof T];
 /**
  * Built-in style values as strings
  */
-declare type StyleString = Values<typeof Style>;
+declare type MaptilerStyleString = Values<typeof MaptilerStyle>;
 
-export { Language, LanguageString, Map, MapOptions, SdkConfig, Style, StyleString, Unit, config };
+declare const supported: _mapbox_mapbox_gl_supported.IsSupported;
+declare const setRTLTextPlugin: (url: string, callback: (error?: Error) => void, deferred?: boolean) => void;
+declare const getRTLTextPluginStatus: () => string;
+declare const NavigationControl: typeof ML.NavigationControl;
+declare const GeolocateControl: typeof ML.GeolocateControl;
+declare const AttributionControl: typeof ML.AttributionControl;
+declare const LogoControl: typeof ML.LogoControl;
+declare const ScaleControl: typeof ML.ScaleControl;
+declare const FullscreenControl: typeof ML.FullscreenControl;
+declare const TerrainControl: typeof ML.TerrainControl;
+declare const Popup: typeof ML.Popup;
+declare const Marker: typeof ML.Marker;
+declare const Style: typeof ML.Style;
+declare const LngLat: typeof ML.LngLat;
+declare const LngLatBounds: typeof ML.LngLatBounds;
+declare const MercatorCoordinate: typeof ML.MercatorCoordinate;
+declare const Evented: typeof ML.Evented;
+declare const AJAXError: typeof ML.AJAXError;
+declare const CanvasSource: typeof ML.CanvasSource;
+declare const GeoJSONSource: typeof ML.GeoJSONSource;
+declare const ImageSource: typeof ML.ImageSource;
+declare const RasterDEMTileSource: typeof ML.RasterDEMTileSource;
+declare const RasterTileSource: typeof ML.RasterTileSource;
+declare const VectorTileSource: typeof ML.VectorTileSource;
+declare const VideoSource: typeof ML.VideoSource;
+declare const prewarm: () => void;
+declare const clearPrewarmedResources: () => void;
+declare const version: string;
+declare const workerCount: number;
+declare const maxParallelImageRequests: number;
+declare const clearStorage: (callback?: (err?: Error) => void) => void;
+declare const workerUrl: string;
+declare const addProtocol: (customProtocol: string, loadFn: (requestParameters: ML.RequestParameters, callback: ML.ResponseCallback<any>) => ML.Cancelable) => void;
+declare const removeProtocol: (customProtocol: string) => void;
+
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MaptilerStyle, MaptilerStyleString, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
