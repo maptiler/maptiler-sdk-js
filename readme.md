@@ -228,15 +228,15 @@ map.disableTerrain()
 The language generally depends on the style but we made it possible to easily update it with a single function and from a built-in list of languages:
 
 ```ts
-map.setLanguage(maptilersdk.languages.ENGLISH);
+map.setLanguage(maptilersdk.Language.ENGLISH);
 ```
 
-The special languages `maptilersdk.languages.LATIN` and `maptilersdk.languages.NON_LATIN` are generally the default ones in the styles developped by the MapTiler team and they are generaly safe all-around fallbacks.  
+The special languages `maptilersdk.Language.LATIN` and `maptilersdk.Language.NON_LATIN` are generally the default ones in the styles developped by the MapTiler team and they are generaly safe all-around fallbacks.  
 
 Some style, developped in-house as well as by the community, may support a secondary language. In this case, you can also update it:
 
 ```ts
-map.setSecondaryLanguage(maptilersdk.languages.NON_LATIN);
+map.setSecondaryLanguage(maptilersdk.Language.NON_LATIN);
 ```
 
 Here is a sample of some compatible languages:
@@ -289,7 +289,7 @@ Read more about reverse geocoding on our official [API documentation](https://do
 For both *forward* and *reverse* geocoding, this library provides a list of supported languages as shorthands to [ISO language codes](https://en.wikipedia.org/wiki/ISO_639-1). The result will be provided in multiple languages if the `language` options is an array:
 
 ```ts
-const result = await maptilersdk.geocoding.forward('paris', {language: [maptilersdk.LanguageGeocoding.SPANISH, maptilerClient.LanguageGeocoding.KOREAN]})
+const result = await maptilersdk.geocoding.forward('paris', {language: [maptilersdk.LanguageGeocoding.SPANISH, maptilersdk.LanguageGeocoding.KOREAN]});
 ```
 
 The special language `AUTO` will detect the plateform of browser prefered language.
@@ -317,7 +317,7 @@ The `search` lets you perform a query in a free form fashion. Here are some exam
 const resultA = await maptilersdk.coordinates.search('mercator');
 const resultB = await maptilersdk.coordinates.search('plate carree');
 const resultC = await maptilersdk.coordinates.search('france');
-const resultD = await maptilersdk.coordinates.search('code:4326', {transformations: true}));
+const resultD = await maptilersdk.coordinates.search('code:4326', {transformations: true});
 ```
 
 The `transformations` options retrieves a lot more details about the CRS that MapTiler API is able to transform to/from than just their IDs.
@@ -333,10 +333,10 @@ If not provided, both the source (`sourceCrs`) and the destination (`targetCrs`)
 // in an async function, or as a 'thenable':
 
 // Providing one coordinate to transform, with a target CRS being EPSG:9793 (RGF93 v2 / Lambert-93, France official CRS)
-const resultA = await maptilersdk.coordinates.transform({lng: 1, lat: 45}, {targetCrs: 9793})
+const resultA = await maptilersdk.coordinates.transform({lng: 1, lat: 45}, {targetCrs: 9793});
 
 // Using the same logic, we can pass up to 50 coordinates to be transformed
-const resultB = await maptilersdk.coordinates.transform([{lng: 10, lat: 48}, {lng: 1, lat: 45}], {targetCrs: 9793})
+const resultB = await maptilersdk.coordinates.transform([{lng: 10, lat: 48}, {lng: 1, lat: 45}], {targetCrs: 9793});
 ```
 
 Read more about transforming coordinates on our official [API documentation](https://docs.maptiler.com/cloud/api/coordinates/#transform-coordinates).
@@ -346,7 +346,7 @@ MapTiler Cloud give its users the possibility to [upload and create data](https:
 
 ```ts
 // in an async function, or as a 'thenable':
-const result = await maptilersdk.data.get('my-dataset-unique-id')
+const result = await maptilersdk.data.get('my-dataset-unique-id');
 ```
 
 Since the result is a GeoJSON, it can easily be added to a `map` with `.addSource()` and `.addLayer()`.
