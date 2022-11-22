@@ -7,8 +7,6 @@
 
 import * as ML from "maplibre-gl";
 
-// console.log(Object.keys(ML.default));
-
 const supported = ML.default.supported;
 const setRTLTextPlugin = ML.default.setRTLTextPlugin;
 const getRTLTextPluginStatus = ML.default.getRTLTextPluginStatus;
