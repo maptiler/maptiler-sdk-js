@@ -44,7 +44,7 @@ maplibre.Map.constructor
 
 #### Defined in
 
-[src/Map.ts:66](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/Map.ts#L66)
+[src/Map.ts:66](https://github.com/maptiler/maptiler-sdk-js/blob/05864aa/src/Map.ts#L66)
 
 ## Methods
 
@@ -60,7 +60,7 @@ Disable the 3D terrain visualization
 
 #### Defined in
 
-[src/Map.ts:558](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/Map.ts#L558)
+[src/Map.ts:558](https://github.com/maptiler/maptiler-sdk-js/blob/05864aa/src/Map.ts#L558)
 
 ___
 
@@ -82,7 +82,7 @@ Enables the 3D terrain visualization
 
 #### Defined in
 
-[src/Map.ts:518](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/Map.ts#L518)
+[src/Map.ts:518](https://github.com/maptiler/maptiler-sdk-js/blob/05864aa/src/Map.ts#L518)
 
 ___
 
@@ -105,7 +105,7 @@ This function is a short for `.setPrimaryLanguage()`
 
 #### Defined in
 
-[src/Map.ts:219](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/Map.ts#L219)
+[src/Map.ts:219](https://github.com/maptiler/maptiler-sdk-js/blob/05864aa/src/Map.ts#L219)
 
 ___
 
@@ -127,7 +127,7 @@ Define the primary language of the map. Note that not all the languages shorthan
 
 #### Defined in
 
-[src/Map.ts:230](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/Map.ts#L230)
+[src/Map.ts:230](https://github.com/maptiler/maptiler-sdk-js/blob/05864aa/src/Map.ts#L230)
 
 ___
 
@@ -150,7 +150,7 @@ Note that most styles do not allow a secondary language and this function only w
 
 #### Defined in
 
-[src/Map.ts:389](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/Map.ts#L389)
+[src/Map.ts:389](https://github.com/maptiler/maptiler-sdk-js/blob/05864aa/src/Map.ts#L389)
 
 ___
 
@@ -181,7 +181,7 @@ maplibre.Map.setStyle
 
 #### Defined in
 
-[src/Map.ts:196](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/Map.ts#L196)
+[src/Map.ts:196](https://github.com/maptiler/maptiler-sdk-js/blob/05864aa/src/Map.ts#L196)
 
 ___
 
@@ -204,4 +204,4 @@ Note: this is only a shortcut to `.enableTerrain()`
 
 #### Defined in
 
-[src/Map.ts:571](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/Map.ts#L571)
+[src/Map.ts:571](https://github.com/maptiler/maptiler-sdk-js/blob/05864aa/src/Map.ts#L571)

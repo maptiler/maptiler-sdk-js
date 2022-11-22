@@ -1,16 +1,17 @@
 /**
  * Maplibre export first, then extensions can overload the exports.
  */
-// export * from "maplibre-gl";
+export * from "maplibre-gl";
 
-// export { NavigationControl } from "maplibre-gl";
-
+/**
+ * To perform explicit named export so that they are included in the UMD bundle
+ */
 import * as ML from "maplibre-gl";
 
 const supported = ML.default.supported;
 const setRTLTextPlugin = ML.default.setRTLTextPlugin;
 const getRTLTextPluginStatus = ML.default.getRTLTextPluginStatus;
-// const Map = ML.default.Map;
+// const Map = ML.default.Map; // replaced by MapTiler's Map class
 const NavigationControl = ML.default.NavigationControl;
 const GeolocateControl = ML.default.GeolocateControl;
 const AttributionControl = ML.default.AttributionControl;
@@ -23,11 +24,11 @@ const Marker = ML.default.Marker;
 const Style = ML.default.Style;
 const LngLat = ML.default.LngLat;
 const LngLatBounds = ML.default.LngLatBounds;
-// const Point = ML.default.Point;
+// const Point = ML.default.Point; // replaced by actual ES module in ./Point.ts
 const MercatorCoordinate = ML.default.MercatorCoordinate;
 const Evented = ML.default.Evented;
 const AJAXError = ML.default.AJAXError;
-// const config = ML.default.config;
+// const config = ML.default.config; // replaced by MapTiler's config
 const CanvasSource = ML.default.CanvasSource;
 const GeoJSONSource = ML.default.GeoJSONSource;
 const ImageSource = ML.default.ImageSource;
