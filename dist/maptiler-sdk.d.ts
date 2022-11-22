@@ -1,5 +1,6 @@
 import * as _mapbox_mapbox_gl_supported from '@mapbox/mapbox-gl-supported';
 import * as ML from 'maplibre-gl';
+export * from 'maplibre-gl';
 import { FetchFunction } from '@maptiler/client';
 export { AutomaticStaticMapOptions, Bbox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, LanguageGeocoding, LanguageGeocodingString, LngLatArray, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
 
