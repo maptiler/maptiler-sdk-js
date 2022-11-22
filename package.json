@@ -25,9 +25,8 @@
     "dev": "rm -rf dist/* ; NODE_ENV=development rollup -c -w",
     "format": "prettier --write \"src/**/*.{js,ts,tsx}\"",
     "lint": "eslint --fix \"src/**/*.{js,ts}\"",
-    "doc": "rm -rf docs/* ; typedoc; cp -r images docs/",
-    "docmd": "rm -rf docsmd/*; typedoc --plugin typedoc-plugin-markdown --out docsmd src/index.ts; cp -r images docsmd/",
-    "prepare": "npm run format; npm run lint; npm run build; npm run doc; npm run docmd"
+    "doc": "rm -rf docs/*; typedoc --readme none --plugin typedoc-plugin-markdown --out docs src/index.ts; cp -r images docs/",
+    "prepare": "npm run format; npm run lint; npm run build; npm run doc"
   },
   "author": "",
   "devDependencies": {
