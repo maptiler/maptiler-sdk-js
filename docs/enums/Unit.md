@@ -17,7 +17,7 @@
 
 #### Defined in
 
-[src/unit.ts:3](https://github.com/maptiler/maptiler-sdk-js/blob/57ee746/src/unit.ts#L3)
+[src/unit.ts:3](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/unit.ts#L3)
 
 ___
 
@@ -27,4 +27,4 @@ ___
 
 #### Defined in
 
-[src/unit.ts:2](https://github.com/maptiler/maptiler-sdk-js/blob/57ee746/src/unit.ts#L2)
+[src/unit.ts:2](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/unit.ts#L2)

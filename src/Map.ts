@@ -47,6 +47,11 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
    * Exaggeration factor of the terrain. (default: `1`, no exaggeration)
    */
   terrainExaggeration?: number;
+
+  /**
+   * Show the navigation control. (default: `true`, will hide if `false`)
+   */
+  navigationControl?: boolean | maplibre.ControlPosition;
 };
 
 /**
@@ -154,6 +159,24 @@ export class Map extends maplibre.Map {
       }
     });
 
+    if (options.navigationControl !== false) {
+      // default position, if not provided, is top left corner
+      const position = (
+        options.navigationControl === true ||
+        options.navigationControl === undefined
+          ? "top-right"
+          : options.navigationControl
+      ) as maplibre.ControlPosition;
+      this.addControl(
+        new maplibre.NavigationControl({
+          showCompass: true,
+          showZoom: true,
+          visualizePitch: true,
+        }),
+        position
+      );
+    }
+
     // enable 3D terrain if provided in options
     if (options.enableTerrain) {
       this.enableTerrain(options.terrainExaggeration ?? 1);
@@ -208,8 +231,6 @@ export class Map extends maplibre.Map {
     if (language === Language.AUTO) {
       return this.setPrimaryLanguage(getBrowserLanguage());
     }
-
-    console.log("language", language);
 
     // We want to keep track of it to apply the language again when changing the style
     config.primaryLanguage = language;

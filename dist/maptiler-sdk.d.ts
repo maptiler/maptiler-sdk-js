@@ -128,6 +128,10 @@ declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
      * Exaggeration factor of the terrain. (default: `1`, no exaggeration)
      */
     terrainExaggeration?: number;
+    /**
+     * Show the navigation control. (default: `true`, will hide if `false`)
+     */
+    navigationControl?: boolean | ML.ControlPosition;
 };
 /**
  * The Map class can be instanciated to display a map in a `<div>`

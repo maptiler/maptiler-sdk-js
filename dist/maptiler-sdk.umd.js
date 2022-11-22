@@ -1134,6 +1134,17 @@
 	        this.addControl(new CustomLogoControl(), options.logoPosition);
 	      }
 	    }));
+	    if (options.navigationControl !== false) {
+	      const position = options.navigationControl === true || options.navigationControl === void 0 ? "top-right" : options.navigationControl;
+	      this.addControl(
+	        new maplibreGl$1.exports.NavigationControl({
+	          showCompass: true,
+	          showZoom: true,
+	          visualizePitch: true
+	        }),
+	        position
+	      );
+	    }
 	    if (options.enableTerrain) {
 	      this.enableTerrain((_a = options.terrainExaggeration) != null ? _a : 1);
 	    }
@@ -1160,7 +1171,6 @@
 	    if (language === Language.AUTO) {
 	      return this.setPrimaryLanguage(getBrowserLanguage());
 	    }
-	    console.log("language", language);
 	    config.primaryLanguage = language;
 	    const layers = this.getStyle().layers;
 	    const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;

@@ -37,7 +37,7 @@ The primary languag. By default, the language of the web browser is used.
 
 #### Defined in
 
-[src/config.ts:16](https://github.com/maptiler/maptiler-sdk-js/blob/57ee746/src/config.ts#L16)
+[src/config.ts:16](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/config.ts#L16)
 
 ___
 
@@ -50,7 +50,7 @@ This settings is highly dependant on the style compatibility and may not work in
 
 #### Defined in
 
-[src/config.ts:22](https://github.com/maptiler/maptiler-sdk-js/blob/57ee746/src/config.ts#L22)
+[src/config.ts:22](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/config.ts#L22)
 
 ___
 
@@ -62,7 +62,7 @@ If `true`, some more debuf text will show. Default: `false`
 
 #### Defined in
 
-[src/config.ts:11](https://github.com/maptiler/maptiler-sdk-js/blob/57ee746/src/config.ts#L11)
+[src/config.ts:11](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/config.ts#L11)
 
 ## Accessors
 
@@ -78,7 +78,7 @@ Get the MapTiler Cloud API key
 
 #### Defined in
 
-[src/config.ts:40](https://github.com/maptiler/maptiler-sdk-js/blob/57ee746/src/config.ts#L40)
+[src/config.ts:40](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/config.ts#L40)
 
 • `set` **apiKey**(`k`): `void`
 
@@ -96,7 +96,7 @@ Set the MapTiler Cloud API key
 
 #### Defined in
 
-[src/config.ts:32](https://github.com/maptiler/maptiler-sdk-js/blob/57ee746/src/config.ts#L32)
+[src/config.ts:32](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/config.ts#L32)
 
 ___
 
@@ -112,7 +112,7 @@ Get the fetch fucntion
 
 #### Defined in
 
-[src/config.ts:54](https://github.com/maptiler/maptiler-sdk-js/blob/57ee746/src/config.ts#L54)
+[src/config.ts:54](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/config.ts#L54)
 
 • `set` **fetch**(`f`): `void`
 
@@ -130,4 +130,4 @@ Set a the custom fetch function to replace the default one
 
 #### Defined in
 
-[src/config.ts:47](https://github.com/maptiler/maptiler-sdk-js/blob/57ee746/src/config.ts#L47)
+[src/config.ts:47](https://github.com/maptiler/maptiler-sdk-js/blob/69bdddc/src/config.ts#L47)
