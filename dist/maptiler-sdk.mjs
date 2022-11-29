@@ -1,4 +1,5 @@
 import * as ML from 'maplibre-gl';
+import { GeolocateControl as GeolocateControl$1 } from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { config as config$1 } from '@maptiler/client';
 export { LanguageGeocoding, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
@@ -118,7 +119,7 @@ var id = "f0e4ff8c-a9e4-414e-9f4d-7938762c948f";
 var name = "Satellite no label";
 var sources = {
 	satellite: {
-		url: "https://api.maptiler.com/tiles/satellite-v2/tiles.json?key={key}",
+		url: "https://api.maptiler.com/tiles/satellite-v2/tiles.json?",
 		tileSize: 512,
 		type: "raster"
 	},
@@ -147,7 +148,7 @@ var layers = [
 var metadata = {
 	"maptiler:copyright": "This style was generated on MapTiler Cloud. Usage outside of MapTiler Cloud or MapTiler Server requires valid MapTiler Data package: https://www.maptiler.com/data/ -- please contact us."
 };
-var glyphs = "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key={key}";
+var glyphs = "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?";
 var bearing = 0;
 var pitch = 0;
 var center = [
@@ -183,15 +184,11 @@ builtInStyles[MaptilerStyle.SATELLITE] = satelliteBuiltin;
 function isBuiltinStyle(styleId) {
   return styleId in builtInStyles;
 }
-function prepareBuiltinStyle(styleId, apiKey) {
+function getBuiltinStyle(styleId) {
   if (!isBuiltinStyle(styleId)) {
     return null;
   }
-  const fullTextVersion = JSON.stringify(builtInStyles[styleId]).replace(
-    /{key}/gi,
-    apiKey
-  );
-  return JSON.parse(fullTextVersion);
+  return builtInStyles[styleId];
 }
 
 const defaults = {
@@ -266,9 +263,6 @@ function expandMapStyle(style) {
   } else {
     expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
   }
-  if (!expandedStyle.includes("key=")) {
-    expandedStyle = `${expandedStyle}?key=${config.apiKey}`;
-  }
   return expandedStyle;
 }
 function enableRTL() {
@@ -327,10 +321,7 @@ class Map extends ML.Map {
     let style;
     if ("style" in options) {
       if (typeof style === "string" && isBuiltinStyle(style)) {
-        style = prepareBuiltinStyle(
-          style,
-          config.apiKey
-        );
+        style = getBuiltinStyle(style);
       } else if (typeof style === "string") {
         style = expandMapStyle(style);
       } else {
@@ -340,7 +331,20 @@ class Map extends ML.Map {
       style = expandMapStyle(defaults.mapStyle);
       vlog(`Map style not provided, backing up to ${defaults.mapStyle}`);
     }
-    super(__spreadProps(__spreadValues({}, options), { style, maplibreLogo: false }));
+    super(__spreadProps(__spreadValues({}, options), {
+      style,
+      maplibreLogo: false,
+      transformRequest: (url, resourceType) => {
+        const reqUrl = new URL(url);
+        if (!reqUrl.searchParams.has("key")) {
+          reqUrl.searchParams.append("key", config.apiKey);
+        }
+        return {
+          url: reqUrl.href,
+          headers: {}
+        };
+      }
+    }));
     this.languageShouldUpdate = false;
     this.isStyleInitialized = false;
     this.isTerrainEnabled = false;
@@ -406,10 +410,7 @@ class Map extends ML.Map {
   setStyle(style, options) {
     let tempStyle = style;
     if (typeof style === "string" && isBuiltinStyle(style)) {
-      tempStyle = prepareBuiltinStyle(
-        style,
-        config.apiKey
-      );
+      tempStyle = getBuiltinStyle(style);
     } else if (typeof style === "string") {
       tempStyle = expandMapStyle(style);
     }
@@ -554,7 +555,7 @@ class Map extends ML.Map {
       this.terrainExaggeration = exaggeration;
       this.addSource(defaults.terrainSourceId, {
         type: "raster-dem",
-        url: `${defaults.terrainSourceURL}?key=${config.apiKey}`
+        url: defaults.terrainSourceURL
       });
       this.setTerrain({
         source: defaults.terrainSourceId,
@@ -575,6 +576,7 @@ class Map extends ML.Map {
         addTerrain();
       });
     }
+    this.addControl(new GeolocateControl$1({}));
   }
   disableTerrain() {
     this.isTerrainEnabled = false;

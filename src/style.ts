@@ -28,24 +28,17 @@ function isBuiltinStyle(styleId: string): boolean {
   return styleId in builtInStyles;
 }
 
-function prepareBuiltinStyle(
-  styleId: MaptilerStyleString,
-  apiKey: string
-): StyleSpecification | null {
+function getBuiltinStyle(styleId: MaptilerStyleString): StyleSpecification | null {
   if (!isBuiltinStyle(styleId)) {
     return null;
   }
 
-  const fullTextVersion = JSON.stringify(builtInStyles[styleId]).replace(
-    /{key}/gi,
-    apiKey
-  );
-  return JSON.parse(fullTextVersion) as StyleSpecification;
+  return builtInStyles[styleId];
 }
 
 export {
   MaptilerStyle,
   MaptilerStyleString,
   isBuiltinStyle,
-  prepareBuiltinStyle,
+  getBuiltinStyle,
 };

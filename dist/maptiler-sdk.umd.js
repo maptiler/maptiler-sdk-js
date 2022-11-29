@@ -864,7 +864,7 @@
 	var name = "Satellite no label";
 	var sources = {
 		satellite: {
-			url: "https://api.maptiler.com/tiles/satellite-v2/tiles.json?key={key}",
+			url: "https://api.maptiler.com/tiles/satellite-v2/tiles.json?",
 			tileSize: 512,
 			type: "raster"
 		},
@@ -893,7 +893,7 @@
 	var metadata = {
 		"maptiler:copyright": "This style was generated on MapTiler Cloud. Usage outside of MapTiler Cloud or MapTiler Server requires valid MapTiler Data package: https://www.maptiler.com/data/ -- please contact us."
 	};
-	var glyphs = "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key={key}";
+	var glyphs = "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?";
 	var bearing = 0;
 	var pitch = 0;
 	var center = [
@@ -929,15 +929,11 @@
 	function isBuiltinStyle(styleId) {
 	  return styleId in builtInStyles;
 	}
-	function prepareBuiltinStyle(styleId, apiKey) {
+	function getBuiltinStyle(styleId) {
 	  if (!isBuiltinStyle(styleId)) {
 	    return null;
 	  }
-	  const fullTextVersion = JSON.stringify(builtInStyles[styleId]).replace(
-	    /{key}/gi,
-	    apiKey
-	  );
-	  return JSON.parse(fullTextVersion);
+	  return builtInStyles[styleId];
 	}
 
 	const defaults = {
@@ -1012,9 +1008,6 @@
 	  } else {
 	    expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
 	  }
-	  if (!expandedStyle.includes("key=")) {
-	    expandedStyle = `${expandedStyle}?key=${config.apiKey}`;
-	  }
 	  return expandedStyle;
 	}
 	function enableRTL() {
@@ -1073,10 +1066,7 @@
 	    let style;
 	    if ("style" in options) {
 	      if (typeof style === "string" && isBuiltinStyle(style)) {
-	        style = prepareBuiltinStyle(
-	          style,
-	          config.apiKey
-	        );
+	        style = getBuiltinStyle(style);
 	      } else if (typeof style === "string") {
 	        style = expandMapStyle(style);
 	      } else {
@@ -1086,7 +1076,20 @@
 	      style = expandMapStyle(defaults.mapStyle);
 	      vlog(`Map style not provided, backing up to ${defaults.mapStyle}`);
 	    }
-	    super(__spreadProps(__spreadValues({}, options), { style, maplibreLogo: false }));
+	    super(__spreadProps(__spreadValues({}, options), {
+	      style,
+	      maplibreLogo: false,
+	      transformRequest: (url, resourceType) => {
+	        const reqUrl = new URL(url);
+	        if (!reqUrl.searchParams.has("key")) {
+	          reqUrl.searchParams.append("key", config.apiKey);
+	        }
+	        return {
+	          url: reqUrl.href,
+	          headers: {}
+	        };
+	      }
+	    }));
 	    this.languageShouldUpdate = false;
 	    this.isStyleInitialized = false;
 	    this.isTerrainEnabled = false;
@@ -1152,10 +1155,7 @@
 	  setStyle(style, options) {
 	    let tempStyle = style;
 	    if (typeof style === "string" && isBuiltinStyle(style)) {
-	      tempStyle = prepareBuiltinStyle(
-	        style,
-	        config.apiKey
-	      );
+	      tempStyle = getBuiltinStyle(style);
 	    } else if (typeof style === "string") {
 	      tempStyle = expandMapStyle(style);
 	    }
@@ -1300,7 +1300,7 @@
 	      this.terrainExaggeration = exaggeration;
 	      this.addSource(defaults.terrainSourceId, {
 	        type: "raster-dem",
-	        url: `${defaults.terrainSourceURL}?key=${config.apiKey}`
+	        url: defaults.terrainSourceURL
 	      });
 	      this.setTerrain({
 	        source: defaults.terrainSourceId,
@@ -1321,6 +1321,7 @@
 	        addTerrain();
 	      });
 	    }
+	    this.addControl(new maplibreGl$1.exports.GeolocateControl({}));
 	  }
 	  disableTerrain() {
 	    this.isTerrainEnabled = false;

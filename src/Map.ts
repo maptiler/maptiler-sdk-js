@@ -6,9 +6,11 @@ import { enableRTL, expandMapStyle, vlog } from "./tools";
 import { getBrowserLanguage, Language, LanguageString } from "./language";
 import {
   isBuiltinStyle,
-  prepareBuiltinStyle,
+  getBuiltinStyle,
   MaptilerStyleString,
 } from "./style";
+import { GeolocateControl } from "maplibre-gl";
+
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (
@@ -68,10 +70,7 @@ export class Map extends maplibre.Map {
 
     if ("style" in options) {
       if (typeof style === "string" && isBuiltinStyle(style)) {
-        style = prepareBuiltinStyle(
-          style as MaptilerStyleString,
-          config.apiKey
-        );
+        style = getBuiltinStyle(style as MaptilerStyleString);
       } else if (typeof style === "string") {
         style = expandMapStyle(style);
       } else {
@@ -83,7 +82,24 @@ export class Map extends maplibre.Map {
     }
 
     // calling the map constructor with full length style
-    super({ ...options, style, maplibreLogo: false });
+    super({
+      ...options,
+      style,
+      maplibreLogo: false,
+
+      transformRequest: (url: string, resourceType: any) => {
+        const reqUrl = new URL(url);
+
+        if (!reqUrl.searchParams.has("key")) {
+          reqUrl.searchParams.append("key", config.apiKey);
+        }
+        
+        return {
+          url: reqUrl.href,
+          headers: {}
+        }
+      }
+    });
 
     // Check if language has been modified and. If so, it will be updated during the next lifecycle step
     this.on("styledataloading", () => {
@@ -159,6 +175,7 @@ export class Map extends maplibre.Map {
       }
     });
 
+
     if (options.navigationControl !== false) {
       // default position, if not provided, is top left corner
       const position = (
@@ -200,10 +217,7 @@ export class Map extends maplibre.Map {
     let tempStyle = style;
 
     if (typeof style === "string" && isBuiltinStyle(style)) {
-      tempStyle = prepareBuiltinStyle(
-        style as MaptilerStyleString,
-        config.apiKey
-      );
+      tempStyle = getBuiltinStyle(style as MaptilerStyleString);
     } else if (typeof style === "string") {
       tempStyle = expandMapStyle(style);
     }
@@ -525,7 +539,7 @@ export class Map extends maplibre.Map {
 
       this.addSource(defaults.terrainSourceId, {
         type: "raster-dem",
-        url: `${defaults.terrainSourceURL}?key=${config.apiKey}`,
+        url: defaults.terrainSourceURL,
       });
       this.setTerrain({
         source: defaults.terrainSourceId,
@@ -550,6 +564,9 @@ export class Map extends maplibre.Map {
         addTerrain();
       });
     }
+
+
+    this.addControl(new GeolocateControl({}));
   }
 
   /**
