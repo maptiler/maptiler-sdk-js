@@ -129,13 +129,13 @@ The styles with a shorthand provided by the SDK are the following:
 
 | ID | Screenshot | Comment |
 |:-:|:-:|:-:|
-|`MapStyle.STREETS`|![](images/screenshots/style-streets-v2.png)|The classic default style, perfect for urban areas|
-|`MapStyle.SATELLITE`|![](images/screenshots/style-satellite.png)|Only high resolution satellite raster tiles without any labels|
-|`MapStyle.HYBRID`|![](images/screenshots/style-hybrid.png)|Satellite tile with labels, landmarks, roads ways and political borders|
-|`MapStyle.OUTDOOR`|![](images/screenshots/style-outdoor.png)|A solid hiking companion, with peaks, parks, isolines and more|
-|`MapStyle.BASIC`|![](images/screenshots/style-basic-v2.png)|A minimalist alternative to `STREETS`, with a touch of flat design|
-|`MapStyle.DARK`|![](images/screenshots/style-streets-v2-dark.png)|A dark theme perfect to display data layers on top without losing any precious information|
-|`MapStyle.LIGHT`|![](images/screenshots/style-streets-v2-light.png)|Just like the `DARK`, but in bright mode! Your data layer as a first class citizen!|
+|`MapStyle.STREETS`|[![](images/screenshots/style-streets-v2.png)](https://www.maptiler.com/maps/#style=streets-v2&mode=2d&position=12.52/40.73676/-73.98418)|The classic default style, perfect for urban areas|
+|`MapStyle.SATELLITE`|[![](images/screenshots/style-satellite.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=7.87/24.518/-77.411)|Only high resolution satellite raster tiles without any labels|
+|`MapStyle.HYBRID`|[![](images/screenshots/style-hybrid.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)|Satellite tile with labels, landmarks, roads ways and political borders|
+|`MapStyle.OUTDOOR`|[![](images/screenshots/style-outdoor.png)](https://www.maptiler.com/maps/#style=outdoor&mode=2d&position=11.96/46.02591/7.7273)|A solid hiking companion, with peaks, parks, isolines and more|
+|`MapStyle.BASIC`|[![](images/screenshots/style-basic-v2.png)](https://www.maptiler.com/maps/#style=basic-v2&mode=2d&position=13.09/37.78734/-122.42025)|A minimalist alternative to `STREETS`, with a touch of flat design|
+|`MapStyle.DARK`|[![](images/screenshots/style-streets-v2-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A dark theme perfect to display data layers on top without losing any precious information|
+|`MapStyle.LIGHT`|[![](images/screenshots/style-streets-v2-light.png)](https://www.maptiler.com/maps/#style=streets-v2-light&mode=2d&position=4.4/48.15/12.65)|Just like the `DARK`, but in bright mode! Your data layer as a first class citizen!|
 
 
 Still, you can still use some classic styles with just a *string*:
