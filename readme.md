@@ -97,7 +97,7 @@ The UMD bundles includes everything in one single source file.
 
       const map = new maptilersdk.Map({
         container: document.getElementById('map-container'),
-        style: maptilersdk.MaptilerStyle.DARK,
+        style: maptilersdk.MapStyle.DARK,
         hash: true,
       })
     </script>
@@ -118,24 +118,24 @@ import { Map, Style } from '@maptiler/sdk'
 // When instanciating a map
 const map = new Map({
   container: mapContainer,
-  style: MaptilerStyle.OUTDOOR, // <-- the shorthand for the outdoor style
+  style: MapStyle.OUTDOOR, // <-- the shorthand for the outdoor style
 });
 
 // Or later on, updating the style
-map.setStyle(MaptilerStyle.DARK);
+map.setStyle(MapStyle.DARK);
 ```
 
 The styles with a shorthand provided by the SDK are the following:
 
 | ID | Screenshot | Comment |
 |:-:|:-:|:-:|
-|`MaptilerStyle.STREETS`|![](images/screenshots/style-streets-v2.png)|The classic default style, perfect for urban areas|
-|`MaptilerStyle.SATELLITE`|![](images/screenshots/style-satellite.png)|Only high resolution satellite raster tiles without any labels|
-|`MaptilerStyle.HYBRID`|![](images/screenshots/style-hybrid.png)|Satellite tile with labels, landmarks, roads ways and political borders|
-|`MaptilerStyle.OUTDOOR`|![](images/screenshots/style-outdoor.png)|A solid hiking companion, with peaks, parks, isolines and more|
-|`MaptilerStyle.BASIC`|![](images/screenshots/style-basic-v2.png)|A minimalist alternative to `STREETS`, with a touch of flat design|
-|`MaptilerStyle.DARK`|![](images/screenshots/style-streets-v2-dark.png)|A dark theme perfect to display data layers on top without losing any precious information|
-|`MaptilerStyle.LIGHT`|![](images/screenshots/style-streets-v2-light.png)|Just like the `DARK`, but in bright mode! Your data layer as a first class citizen!|
+|`MapStyle.STREETS`|![](images/screenshots/style-streets-v2.png)|The classic default style, perfect for urban areas|
+|`MapStyle.SATELLITE`|![](images/screenshots/style-satellite.png)|Only high resolution satellite raster tiles without any labels|
+|`MapStyle.HYBRID`|![](images/screenshots/style-hybrid.png)|Satellite tile with labels, landmarks, roads ways and political borders|
+|`MapStyle.OUTDOOR`|![](images/screenshots/style-outdoor.png)|A solid hiking companion, with peaks, parks, isolines and more|
+|`MapStyle.BASIC`|![](images/screenshots/style-basic-v2.png)|A minimalist alternative to `STREETS`, with a touch of flat design|
+|`MapStyle.DARK`|![](images/screenshots/style-streets-v2-dark.png)|A dark theme perfect to display data layers on top without losing any precious information|
+|`MapStyle.LIGHT`|![](images/screenshots/style-streets-v2-light.png)|Just like the `DARK`, but in bright mode! Your data layer as a first class citizen!|
 
 
 Still, you can still use some classic styles with just a *string*:
@@ -199,12 +199,12 @@ map.enableTerrain();
 map.enableTerrain(1.5);
 ```
 
-The terrain can also be enabled directly from the `Map` constructor, with the options `enableTerrain` (a boolean, `false` by default) and `terrainExaggeration` (a number, `1` by default):
+The terrain can also be enabled directly from the `Map` constructor, with the options `terrain` (a boolean, `false` by default) and `terrainExaggeration` (a number, `1` by default):
 
 ```ts
 const map = new Map({
   // some options...
-  enableTerrain: true,
+  terrain: true,
   terrainExaggeration: 1.5,
 })
 ```

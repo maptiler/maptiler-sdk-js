@@ -124,7 +124,7 @@ declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
     /**
      * Enables 3D terrain if `true`. (default: `false`)
      */
-    enableTerrain?: boolean;
+    terrain?: boolean;
     /**
      * Exaggeration factor of the terrain. (default: `1`, no exaggeration)
      */
@@ -254,7 +254,7 @@ declare enum Unit {
 /**
  * Built-in styles
  */
-declare const MaptilerStyle: {
+declare const MapStyle: {
     readonly STREETS: "streets-v2";
     readonly HYBRID: "hybrid";
     readonly SATELLITE: "satellite";
@@ -267,7 +267,7 @@ declare type Values<T> = T[keyof T];
 /**
  * Built-in style values as strings
  */
-declare type MaptilerStyleString = Values<typeof MaptilerStyle>;
+declare type MapStyleString = Values<typeof MapStyle>;
 
 declare const supported: _mapbox_mapbox_gl_supported.IsSupported;
 declare const setRTLTextPlugin: (url: string, callback: (error?: Error) => void, deferred?: boolean) => void;
@@ -304,4 +304,4 @@ declare const workerUrl: string;
 declare const addProtocol: (customProtocol: string, loadFn: (requestParameters: ML.RequestParameters, callback: ML.ResponseCallback<any>) => ML.Cancelable) => void;
 declare const removeProtocol: (customProtocol: string) => void;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MaptilerStyle, MaptilerStyleString, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MapStyle, MapStyleString, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };

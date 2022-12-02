@@ -3,7 +3,7 @@ import esbuild from "rollup-plugin-esbuild";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import globals from "rollup-plugin-node-globals";
 import commonjs from "@rollup/plugin-commonjs";
-import copy from "rollup-plugin-copy";
+import copy from 'rollup-plugin-copy-merge'
 import json from '@rollup/plugin-json';
 
 const outputName = "maptiler-sdk"
@@ -11,14 +11,14 @@ const outputName = "maptiler-sdk"
 const copyCssPlugin = copy({
   targets: [
     {
-      src: "node_modules/maplibre-gl/dist/maplibre-gl.css",
-      dest: "dist",
-      rename: `${outputName}.css`,
+      src: ["node_modules/maplibre-gl/dist/maplibre-gl.css", "src/style/style.css"],
+      file: `dist/${outputName}.css`,
     },
   ],
 });
 
-const bundles = [
+
+const bundles = [ 
   // ES module, not minified + sourcemap
   {
     plugins: [copyCssPlugin, json(), esbuild()],
@@ -28,14 +28,14 @@ const bundles = [
         format: "es",
         sourcemap: true,
       },
-    ],
-    input: "src/index.ts",
+    ], 
+    input: "src/index.ts", 
     watch: {
       include: "src/**",
     },
-    external: ["maplibre-gl", "@maptiler/client"],
+    external: ["maplibre-gl", "@maptiler/client"], 
   },
-
+ 
   // CJS module, not minified + sourcemap
   // {
   //   plugins: [

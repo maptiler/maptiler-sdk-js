@@ -915,7 +915,7 @@
 		zoom: zoom
 	};
 
-	const MaptilerStyle = {
+	const MapStyle = {
 	  STREETS: "streets-v2",
 	  HYBRID: "hybrid",
 	  SATELLITE: "satellite",
@@ -925,7 +925,7 @@
 	  LIGHT: "streets-v2-light"
 	};
 	const builtInStyles = {};
-	builtInStyles[MaptilerStyle.SATELLITE] = satelliteBuiltin;
+	builtInStyles[MapStyle.SATELLITE] = satelliteBuiltin;
 	function isBuiltinStyle(styleId) {
 	  return styleId in builtInStyles;
 	}
@@ -937,7 +937,7 @@
 	}
 
 	const defaults = {
-	  mapStyle: MaptilerStyle.STREETS,
+	  mapStyle: MapStyle.STREETS,
 	  maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
 	  maptilerURL: "https://www.maptiler.com/",
 	  maptilerApiURL: "https://api.maptiler.com/",
@@ -1147,8 +1147,9 @@
 	        }),
 	        position
 	      );
+	      this.addControl(new maplibreGl$1.exports.GeolocateControl({}), position);
 	    }
-	    if (options.enableTerrain) {
+	    if (options.terrain) {
 	      this.enableTerrain((_a = options.terrainExaggeration) != null ? _a : 1);
 	    }
 	  }
@@ -1321,7 +1322,6 @@
 	        addTerrain();
 	      });
 	    }
-	    this.addControl(new maplibreGl$1.exports.GeolocateControl({}));
 	  }
 	  disableTerrain() {
 	    this.isTerrainEnabled = false;
@@ -1533,7 +1533,7 @@
 	exports.LngLatBounds = LngLatBounds;
 	exports.LogoControl = LogoControl;
 	exports.Map = Map;
-	exports.MaptilerStyle = MaptilerStyle;
+	exports.MapStyle = MapStyle;
 	exports.Marker = Marker;
 	exports.MercatorCoordinate = MercatorCoordinate;
 	exports.NavigationControl = NavigationControl;

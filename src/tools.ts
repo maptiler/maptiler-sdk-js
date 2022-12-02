@@ -34,7 +34,7 @@ export function expandMapStyle(style): string {
     // The style could also possibly just be the name of the style without any URI style
     expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
   }
-  
+
   return expandedStyle;
 }
 

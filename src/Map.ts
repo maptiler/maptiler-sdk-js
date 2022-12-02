@@ -4,13 +4,8 @@ import { defaults } from "./defaults";
 import { CustomLogoControl } from "./CustomLogoControl";
 import { enableRTL, expandMapStyle, vlog } from "./tools";
 import { getBrowserLanguage, Language, LanguageString } from "./language";
-import {
-  isBuiltinStyle,
-  getBuiltinStyle,
-  MaptilerStyleString,
-} from "./style";
+import { isBuiltinStyle, getBuiltinStyle, MapStyleString } from "./style";
 import { GeolocateControl } from "maplibre-gl";
-
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (
@@ -43,7 +38,7 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
   /**
    * Enables 3D terrain if `true`. (default: `false`)
    */
-  enableTerrain?: boolean;
+  terrain?: boolean;
 
   /**
    * Exaggeration factor of the terrain. (default: `1`, no exaggeration)
@@ -70,7 +65,7 @@ export class Map extends maplibre.Map {
 
     if ("style" in options) {
       if (typeof style === "string" && isBuiltinStyle(style)) {
-        style = getBuiltinStyle(style as MaptilerStyleString);
+        style = getBuiltinStyle(style as MapStyleString);
       } else if (typeof style === "string") {
         style = expandMapStyle(style);
       } else {
@@ -93,12 +88,12 @@ export class Map extends maplibre.Map {
         if (!reqUrl.searchParams.has("key")) {
           reqUrl.searchParams.append("key", config.apiKey);
         }
-        
+
         return {
           url: reqUrl.href,
-          headers: {}
-        }
-      }
+          headers: {},
+        };
+      },
     });
 
     // Check if language has been modified and. If so, it will be updated during the next lifecycle step
@@ -175,7 +170,6 @@ export class Map extends maplibre.Map {
       }
     });
 
-
     if (options.navigationControl !== false) {
       // default position, if not provided, is top left corner
       const position = (
@@ -192,10 +186,12 @@ export class Map extends maplibre.Map {
         }),
         position
       );
+
+      this.addControl(new GeolocateControl({}), position);
     }
 
     // enable 3D terrain if provided in options
-    if (options.enableTerrain) {
+    if (options.terrain) {
       this.enableTerrain(options.terrainExaggeration ?? 1);
     }
   }
@@ -217,7 +213,7 @@ export class Map extends maplibre.Map {
     let tempStyle = style;
 
     if (typeof style === "string" && isBuiltinStyle(style)) {
-      tempStyle = getBuiltinStyle(style as MaptilerStyleString);
+      tempStyle = getBuiltinStyle(style as MapStyleString);
     } else if (typeof style === "string") {
       tempStyle = expandMapStyle(style);
     }
@@ -564,9 +560,6 @@ export class Map extends maplibre.Map {
         addTerrain();
       });
     }
-
-
-    this.addControl(new GeolocateControl({}));
   }
 
   /**

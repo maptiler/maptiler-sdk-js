@@ -4,7 +4,7 @@ import { StyleSpecification } from "maplibre-gl";
 /**
  * Built-in styles
  */
-const MaptilerStyle = {
+const MapStyle = {
   STREETS: "streets-v2",
   HYBRID: "hybrid",
   SATELLITE: "satellite",
@@ -19,16 +19,16 @@ type Values<T> = T[keyof T];
 /**
  * Built-in style values as strings
  */
-type MaptilerStyleString = Values<typeof MaptilerStyle>;
+type MapStyleString = Values<typeof MapStyle>;
 
 const builtInStyles = {};
-builtInStyles[MaptilerStyle.SATELLITE] = satelliteBuiltin;
+builtInStyles[MapStyle.SATELLITE] = satelliteBuiltin;
 
 function isBuiltinStyle(styleId: string): boolean {
   return styleId in builtInStyles;
 }
 
-function getBuiltinStyle(styleId: MaptilerStyleString): StyleSpecification | null {
+function getBuiltinStyle(styleId: MapStyleString): StyleSpecification | null {
   if (!isBuiltinStyle(styleId)) {
     return null;
   }
@@ -36,9 +36,4 @@ function getBuiltinStyle(styleId: MaptilerStyleString): StyleSpecification | nul
   return builtInStyles[styleId];
 }
 
-export {
-  MaptilerStyle,
-  MaptilerStyleString,
-  isBuiltinStyle,
-  getBuiltinStyle,
-};
+export { MapStyle, MapStyleString, isBuiltinStyle, getBuiltinStyle };

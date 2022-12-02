@@ -170,7 +170,7 @@ var satelliteBuiltin = {
 	zoom: zoom
 };
 
-const MaptilerStyle = {
+const MapStyle = {
   STREETS: "streets-v2",
   HYBRID: "hybrid",
   SATELLITE: "satellite",
@@ -180,7 +180,7 @@ const MaptilerStyle = {
   LIGHT: "streets-v2-light"
 };
 const builtInStyles = {};
-builtInStyles[MaptilerStyle.SATELLITE] = satelliteBuiltin;
+builtInStyles[MapStyle.SATELLITE] = satelliteBuiltin;
 function isBuiltinStyle(styleId) {
   return styleId in builtInStyles;
 }
@@ -192,7 +192,7 @@ function getBuiltinStyle(styleId) {
 }
 
 const defaults = {
-  mapStyle: MaptilerStyle.STREETS,
+  mapStyle: MapStyle.STREETS,
   maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
   maptilerURL: "https://www.maptiler.com/",
   maptilerApiURL: "https://api.maptiler.com/",
@@ -402,8 +402,9 @@ class Map extends ML.Map {
         }),
         position
       );
+      this.addControl(new GeolocateControl$1({}), position);
     }
-    if (options.enableTerrain) {
+    if (options.terrain) {
       this.enableTerrain((_a = options.terrainExaggeration) != null ? _a : 1);
     }
   }
@@ -576,7 +577,6 @@ class Map extends ML.Map {
         addTerrain();
       });
     }
-    this.addControl(new GeolocateControl$1({}));
   }
   disableTerrain() {
     this.isTerrainEnabled = false;
@@ -774,5 +774,5 @@ const workerUrl = ML.default.workerUrl;
 const addProtocol = ML.default.addProtocol;
 const removeProtocol = ML.default.removeProtocol;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MaptilerStyle, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MapStyle, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
 //# sourceMappingURL=maptiler-sdk.mjs.map
