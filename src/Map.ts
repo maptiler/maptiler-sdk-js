@@ -1,4 +1,5 @@
 import * as maplibre from "maplibre-gl";
+import { v4 as uuidv4 } from "uuid";
 import { config } from "./config";
 import { defaults } from "./defaults";
 import { CustomLogoControl } from "./CustomLogoControl";
@@ -18,6 +19,8 @@ export type StyleSwapOptions = {
   diff?: boolean;
   transformStyle?: TransformStyleFunction;
 };
+
+const MAPTILER_SESSION_ID = uuidv4();
 
 /**
  * Options to provide to the `Map` constructor
@@ -51,11 +54,10 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
    */
   navigationControl?: boolean | maplibre.ControlPosition;
 
-
   /**
    * Show the terrain control. (default: `true`, will hide if `false`)
    */
-   terrainControl?: boolean | maplibre.ControlPosition;
+  terrainControl?: boolean | maplibre.ControlPosition;
 };
 
 /**
@@ -89,12 +91,14 @@ export class Map extends maplibre.Map {
       style,
       maplibreLogo: false,
 
-      transformRequest: (url: string, resourceType: any) => {
+      transformRequest: (url: string) => {
         const reqUrl = new URL(url);
 
         if (!reqUrl.searchParams.has("key")) {
           reqUrl.searchParams.append("key", config.apiKey);
         }
+
+        reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
 
         return {
           url: reqUrl.href,
@@ -194,10 +198,10 @@ export class Map extends maplibre.Map {
           }),
           position
         );
-  
+
         this.addControl(new GeolocateControl({}), position);
       }
-  
+
       if (options.terrainControl !== false) {
         // default position, if not provided, is top left corner
         const position = (
@@ -210,12 +214,12 @@ export class Map extends maplibre.Map {
       }
     });
 
-
     // enable 3D terrain if provided in options
     if (options.terrain) {
-      this.enableTerrain(options.terrainExaggeration ?? this.terrainExaggeration);
+      this.enableTerrain(
+        options.terrainExaggeration ?? this.terrainExaggeration
+      );
     }
-
   }
 
   /**
@@ -254,10 +258,6 @@ export class Map extends maplibre.Map {
     }
     this.setPrimaryLanguage(language);
   }
-
-
-  
-
 
   /**
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
@@ -546,24 +546,21 @@ export class Map extends maplibre.Map {
     }
   }
 
-
   /**
    * Get the exaggeration factor applied to the terrain
-   * @returns 
+   * @returns
    */
   getTerrainExaggeration(): number {
     return this.terrainExaggeration;
   }
 
-
   /**
    * Know if terrian is enabled or not
-   * @returns 
+   * @returns
    */
-   hasTerrain(): boolean {
+  hasTerrain(): boolean {
     return this.isTerrainEnabled;
   }
-
 
   /**
    * Enables the 3D terrain visualization

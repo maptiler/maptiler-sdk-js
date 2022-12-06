@@ -33,7 +33,7 @@
 
 .mapboxgl-ctrl button.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-compass .maplibregl-ctrl-icon
 {
-  background-image: url("data:image/svg+xml;charset=utf-8,%0A%3Csvg%20width%3D%22100%25%22%20height%3D%22100%25%22%20viewBox%3D%220%200%2029%2029%22%20version%3D%221.1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20xml%3Aspace%3D%22preserve%22%20xmlns%3Aserif%3D%22http%3A%2F%2Fwww.serif.com%2F%22%20style%3D%22fill-rule%3Aevenodd%3Bclip-rule%3Aevenodd%3Bstroke-linejoin%3Around%3Bstroke-miterlimit%3A2%3B%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M10.5%2C14L14.5%2C6L18.5%2C14L10.5%2C14Z%22%20style%3D%22fill%3Argb(180%2C0%2C0)%3Bfill-rule%3Anonzero%3B%22%2F%3E%0A%20%20%20%20%3Cpath%20id%3D%22south%22%20d%3D%22M10.5%2C16L14.5%2C24L18.5%2C16L10.5%2C16Z%22%20style%3D%22fill%3Argb(204%2C204%2C204)%3Bfill-rule%3Anonzero%3B%22%2F%3E%0A%3C%2Fsvg%3E%0A");
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20width%3D%22100%25%22%20height%3D%22100%25%22%20viewBox%3D%220%200%2029%2029%22%20version%3D%221.1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20xml%3Aspace%3D%22preserve%22%20style%3D%22fill-rule%3Aevenodd%3Bclip-rule%3Aevenodd%3Bstroke-linejoin%3Around%3Bstroke-miterlimit%3A2%3B%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M10.5%2C14L14.5%2C6L18.5%2C14L10.5%2C14Z%22%20style%3D%22fill%3Argb(100%2C100%2C100)%3Bfill-rule%3Anonzero%3B%22%2F%3E%0A%20%20%20%20%3Cpath%20id%3D%22south%22%20d%3D%22M10.5%2C16L14.5%2C24L18.5%2C16L10.5%2C16Z%22%20style%3D%22fill%3Argb(204%2C204%2C204)%3Bfill-rule%3Anonzero%3B%22%2F%3E%0A%3C%2Fsvg%3E%0A%0A");
 }
 
 

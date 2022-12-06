@@ -1,6 +1,7 @@
 import * as ML from 'maplibre-gl';
 import { GeolocateControl as GeolocateControl$1 } from 'maplibre-gl';
 export * from 'maplibre-gl';
+import { v4 } from 'uuid';
 import { config as config$1 } from '@maptiler/client';
 export { LanguageGeocoding, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
 import Point$1 from '@mapbox/point-geometry';
@@ -350,10 +351,12 @@ const _DOM = class {
     const rect = el.getBoundingClientRect();
     const points = [];
     for (let i = 0; i < touches.length; i++) {
-      points.push(new Point$1(
-        touches[i].clientX - rect.left - el.clientLeft,
-        touches[i].clientY - rect.top - el.clientTop
-      ));
+      points.push(
+        new Point$1(
+          touches[i].clientX - rect.left - el.clientLeft,
+          touches[i].clientY - rect.top - el.clientTop
+        )
+      );
     }
     return points;
   }
@@ -368,7 +371,12 @@ const _DOM = class {
 };
 let DOM = _DOM;
 DOM.docStyle = typeof window !== "undefined" && window.document && window.document.documentElement.style;
-DOM.selectProp = _DOM.testProp(["userSelect", "MozUserSelect", "WebkitUserSelect", "msUserSelect"]);
+DOM.selectProp = _DOM.testProp([
+  "userSelect",
+  "MozUserSelect",
+  "WebkitUserSelect",
+  "msUserSelect"
+]);
 DOM.transformProp = _DOM.testProp(["transform", "WebkitTransform"]);
 function bindAll(fns, context) {
   fns.forEach((fn) => {
@@ -381,16 +389,24 @@ function bindAll(fns, context) {
 
 class TerrainControl$1 {
   constructor() {
-    bindAll([
-      "_toggleTerrain",
-      "_updateTerrainIcon"
-    ], this);
+    bindAll(["_toggleTerrain", "_updateTerrainIcon"], this);
   }
   onAdd(map) {
     this._map = map;
-    this._container = DOM.create("div", "maplibregl-ctrl maplibregl-ctrl-group");
-    this._terrainButton = DOM.create("button", "maplibregl-ctrl-terrain", this._container);
-    DOM.create("span", "maplibregl-ctrl-icon", this._terrainButton).setAttribute("aria-hidden", "true");
+    this._container = DOM.create(
+      "div",
+      "maplibregl-ctrl maplibregl-ctrl-group"
+    );
+    this._terrainButton = DOM.create(
+      "button",
+      "maplibregl-ctrl-terrain",
+      this._container
+    );
+    DOM.create(
+      "span",
+      "maplibregl-ctrl-icon",
+      this._terrainButton
+    ).setAttribute("aria-hidden", "true");
     this._terrainButton.type = "button";
     this._terrainButton.addEventListener("click", this._toggleTerrain);
     this._updateTerrainIcon();
@@ -415,10 +431,14 @@ class TerrainControl$1 {
     this._terrainButton.classList.remove("maplibregl-ctrl-terrain-enabled");
     if (this._map.hasTerrain()) {
       this._terrainButton.classList.add("maplibregl-ctrl-terrain-enabled");
-      this._terrainButton.title = this._map._getUIString("TerrainControl.disableTerrain");
+      this._terrainButton.title = this._map._getUIString(
+        "TerrainControl.disableTerrain"
+      );
     } else {
       this._terrainButton.classList.add("maplibregl-ctrl-terrain");
-      this._terrainButton.title = this._map._getUIString("TerrainControl.enableTerrain");
+      this._terrainButton.title = this._map._getUIString(
+        "TerrainControl.enableTerrain"
+      );
     }
   }
 }
@@ -462,6 +482,7 @@ var __async = (__this, __arguments, generator) => {
     step((generator = generator.apply(__this, __arguments)).next());
   });
 };
+const MAPTILER_SESSION_ID = v4();
 class Map extends ML.Map {
   constructor(options) {
     var _a;
@@ -481,11 +502,12 @@ class Map extends ML.Map {
     super(__spreadProps(__spreadValues({}, options), {
       style,
       maplibreLogo: false,
-      transformRequest: (url, resourceType) => {
+      transformRequest: (url) => {
         const reqUrl = new URL(url);
         if (!reqUrl.searchParams.has("key")) {
           reqUrl.searchParams.append("key", config.apiKey);
         }
+        reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
         return {
           url: reqUrl.href,
           headers: {}
@@ -556,7 +578,9 @@ class Map extends ML.Map {
       }
     }));
     if (options.terrain) {
-      this.enableTerrain((_a = options.terrainExaggeration) != null ? _a : this.terrainExaggeration);
+      this.enableTerrain(
+        (_a = options.terrainExaggeration) != null ? _a : this.terrainExaggeration
+      );
     }
   }
   setStyle(style, options) {
