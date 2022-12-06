@@ -3,6 +3,7 @@ import { GeolocateControl as GeolocateControl$1 } from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { config as config$1 } from '@maptiler/client';
 export { LanguageGeocoding, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
+import Point$1 from '@mapbox/point-geometry';
 
 const Language = {
   AUTO: "auto",
@@ -276,6 +277,152 @@ function enableRTL() {
   }
 }
 
+const _DOM = class {
+  static testProp(props) {
+    if (!_DOM.docStyle)
+      return props[0];
+    for (let i = 0; i < props.length; i++) {
+      if (props[i] in _DOM.docStyle) {
+        return props[i];
+      }
+    }
+    return props[0];
+  }
+  static create(tagName, className, container) {
+    const el = window.document.createElement(tagName);
+    if (className !== void 0)
+      el.className = className;
+    if (container)
+      container.appendChild(el);
+    return el;
+  }
+  static createNS(namespaceURI, tagName) {
+    const el = window.document.createElementNS(namespaceURI, tagName);
+    return el;
+  }
+  static disableDrag() {
+    if (_DOM.docStyle && _DOM.selectProp) {
+      _DOM.userSelect = _DOM.docStyle[_DOM.selectProp];
+      _DOM.docStyle[_DOM.selectProp] = "none";
+    }
+  }
+  static enableDrag() {
+    if (_DOM.docStyle && _DOM.selectProp) {
+      _DOM.docStyle[_DOM.selectProp] = _DOM.userSelect;
+    }
+  }
+  static setTransform(el, value) {
+    el.style[_DOM.transformProp] = value;
+  }
+  static addEventListener(target, type, callback, options = {}) {
+    if ("passive" in options) {
+      target.addEventListener(type, callback, options);
+    } else {
+      target.addEventListener(type, callback, options.capture);
+    }
+  }
+  static removeEventListener(target, type, callback, options = {}) {
+    if ("passive" in options) {
+      target.removeEventListener(type, callback, options);
+    } else {
+      target.removeEventListener(type, callback, options.capture);
+    }
+  }
+  static suppressClickInternal(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    window.removeEventListener("click", _DOM.suppressClickInternal, true);
+  }
+  static suppressClick() {
+    window.addEventListener("click", _DOM.suppressClickInternal, true);
+    window.setTimeout(() => {
+      window.removeEventListener("click", _DOM.suppressClickInternal, true);
+    }, 0);
+  }
+  static mousePos(el, e) {
+    const rect = el.getBoundingClientRect();
+    return new Point$1(
+      e.clientX - rect.left - el.clientLeft,
+      e.clientY - rect.top - el.clientTop
+    );
+  }
+  static touchPos(el, touches) {
+    const rect = el.getBoundingClientRect();
+    const points = [];
+    for (let i = 0; i < touches.length; i++) {
+      points.push(new Point$1(
+        touches[i].clientX - rect.left - el.clientLeft,
+        touches[i].clientY - rect.top - el.clientTop
+      ));
+    }
+    return points;
+  }
+  static mouseButton(e) {
+    return e.button;
+  }
+  static remove(node) {
+    if (node.parentNode) {
+      node.parentNode.removeChild(node);
+    }
+  }
+};
+let DOM = _DOM;
+DOM.docStyle = typeof window !== "undefined" && window.document && window.document.documentElement.style;
+DOM.selectProp = _DOM.testProp(["userSelect", "MozUserSelect", "WebkitUserSelect", "msUserSelect"]);
+DOM.transformProp = _DOM.testProp(["transform", "WebkitTransform"]);
+function bindAll(fns, context) {
+  fns.forEach((fn) => {
+    if (!context[fn]) {
+      return;
+    }
+    context[fn] = context[fn].bind(context);
+  });
+}
+
+class TerrainControl$1 {
+  constructor() {
+    bindAll([
+      "_toggleTerrain",
+      "_updateTerrainIcon"
+    ], this);
+  }
+  onAdd(map) {
+    this._map = map;
+    this._container = DOM.create("div", "maplibregl-ctrl maplibregl-ctrl-group");
+    this._terrainButton = DOM.create("button", "maplibregl-ctrl-terrain", this._container);
+    DOM.create("span", "maplibregl-ctrl-icon", this._terrainButton).setAttribute("aria-hidden", "true");
+    this._terrainButton.type = "button";
+    this._terrainButton.addEventListener("click", this._toggleTerrain);
+    this._updateTerrainIcon();
+    this._map.on("terrain", this._updateTerrainIcon);
+    return this._container;
+  }
+  onRemove() {
+    DOM.remove(this._container);
+    this._map.off("terrain", this._updateTerrainIcon);
+    this._map = void 0;
+  }
+  _toggleTerrain() {
+    if (this._map.hasTerrain()) {
+      this._map.disableTerrain();
+    } else {
+      this._map.enableTerrain();
+    }
+    this._updateTerrainIcon();
+  }
+  _updateTerrainIcon() {
+    this._terrainButton.classList.remove("maplibregl-ctrl-terrain");
+    this._terrainButton.classList.remove("maplibregl-ctrl-terrain-enabled");
+    if (this._map.hasTerrain()) {
+      this._terrainButton.classList.add("maplibregl-ctrl-terrain-enabled");
+      this._terrainButton.title = this._map._getUIString("TerrainControl.disableTerrain");
+    } else {
+      this._terrainButton.classList.add("maplibregl-ctrl-terrain");
+      this._terrainButton.title = this._map._getUIString("TerrainControl.enableTerrain");
+    }
+  }
+}
+
 var __defProp = Object.defineProperty;
 var __defProps = Object.defineProperties;
 var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
@@ -391,21 +538,25 @@ class Map extends ML.Map {
       } else if (options.maptilerLogo) {
         this.addControl(new CustomLogoControl(), options.logoPosition);
       }
+      if (options.navigationControl !== false) {
+        const position = options.navigationControl === true || options.navigationControl === void 0 ? "top-right" : options.navigationControl;
+        this.addControl(
+          new ML.NavigationControl({
+            showCompass: true,
+            showZoom: true,
+            visualizePitch: true
+          }),
+          position
+        );
+        this.addControl(new GeolocateControl$1({}), position);
+      }
+      if (options.terrainControl !== false) {
+        const position = options.terrainControl === true || options.terrainControl === void 0 ? "top-right" : options.terrainControl;
+        this.addControl(new TerrainControl$1(), position);
+      }
     }));
-    if (options.navigationControl !== false) {
-      const position = options.navigationControl === true || options.navigationControl === void 0 ? "top-right" : options.navigationControl;
-      this.addControl(
-        new ML.NavigationControl({
-          showCompass: true,
-          showZoom: true,
-          visualizePitch: true
-        }),
-        position
-      );
-      this.addControl(new GeolocateControl$1({}), position);
-    }
     if (options.terrain) {
-      this.enableTerrain((_a = options.terrainExaggeration) != null ? _a : 1);
+      this.enableTerrain((_a = options.terrainExaggeration) != null ? _a : this.terrainExaggeration);
     }
   }
   setStyle(style, options) {
@@ -549,7 +700,13 @@ class Map extends ML.Map {
       }
     }
   }
-  enableTerrain(exaggeration = 1) {
+  getTerrainExaggeration() {
+    return this.terrainExaggeration;
+  }
+  hasTerrain() {
+    return this.isTerrainEnabled;
+  }
+  enableTerrain(exaggeration = this.terrainExaggeration) {
     const terrainInfo = this.getTerrain();
     const addTerrain = () => {
       this.isTerrainEnabled = true;

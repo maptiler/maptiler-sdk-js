@@ -6,6 +6,7 @@ import { enableRTL, expandMapStyle, vlog } from "./tools";
 import { getBrowserLanguage, Language, LanguageString } from "./language";
 import { isBuiltinStyle, getBuiltinStyle, MapStyleString } from "./style";
 import { GeolocateControl } from "maplibre-gl";
+import TerrainControl from "./terraincontrol";
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (
@@ -49,6 +50,12 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
    * Show the navigation control. (default: `true`, will hide if `false`)
    */
   navigationControl?: boolean | maplibre.ControlPosition;
+
+
+  /**
+   * Show the terrain control. (default: `true`, will hide if `false`)
+   */
+   terrainControl?: boolean | maplibre.ControlPosition;
 };
 
 /**
@@ -168,32 +175,47 @@ export class Map extends maplibre.Map {
       } else if (options.maptilerLogo) {
         this.addControl(new CustomLogoControl(), options.logoPosition);
       }
+
+      // the other controls at init time but be after
+      // (due to the async nature of logo control)
+      if (options.navigationControl !== false) {
+        // default position, if not provided, is top left corner
+        const position = (
+          options.navigationControl === true ||
+          options.navigationControl === undefined
+            ? "top-right"
+            : options.navigationControl
+        ) as maplibre.ControlPosition;
+        this.addControl(
+          new maplibre.NavigationControl({
+            showCompass: true,
+            showZoom: true,
+            visualizePitch: true,
+          }),
+          position
+        );
+  
+        this.addControl(new GeolocateControl({}), position);
+      }
+  
+      if (options.terrainControl !== false) {
+        // default position, if not provided, is top left corner
+        const position = (
+          options.terrainControl === true ||
+          options.terrainControl === undefined
+            ? "top-right"
+            : options.terrainControl
+        ) as maplibre.ControlPosition;
+        this.addControl(new TerrainControl(), position);
+      }
     });
 
-    if (options.navigationControl !== false) {
-      // default position, if not provided, is top left corner
-      const position = (
-        options.navigationControl === true ||
-        options.navigationControl === undefined
-          ? "top-right"
-          : options.navigationControl
-      ) as maplibre.ControlPosition;
-      this.addControl(
-        new maplibre.NavigationControl({
-          showCompass: true,
-          showZoom: true,
-          visualizePitch: true,
-        }),
-        position
-      );
-
-      this.addControl(new GeolocateControl({}), position);
-    }
 
     // enable 3D terrain if provided in options
     if (options.terrain) {
-      this.enableTerrain(options.terrainExaggeration ?? 1);
+      this.enableTerrain(options.terrainExaggeration ?? this.terrainExaggeration);
     }
+
   }
 
   /**
@@ -232,6 +254,10 @@ export class Map extends maplibre.Map {
     }
     this.setPrimaryLanguage(language);
   }
+
+
+  
+
 
   /**
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
@@ -520,12 +546,31 @@ export class Map extends maplibre.Map {
     }
   }
 
+
+  /**
+   * Get the exaggeration factor applied to the terrain
+   * @returns 
+   */
+  getTerrainExaggeration(): number {
+    return this.terrainExaggeration;
+  }
+
+
+  /**
+   * Know if terrian is enabled or not
+   * @returns 
+   */
+   hasTerrain(): boolean {
+    return this.isTerrainEnabled;
+  }
+
+
   /**
    * Enables the 3D terrain visualization
    * @param exaggeration
    * @returns
    */
-  enableTerrain(exaggeration = 1) {
+  enableTerrain(exaggeration = this.terrainExaggeration) {
     const terrainInfo = this.getTerrain();
 
     const addTerrain = () => {

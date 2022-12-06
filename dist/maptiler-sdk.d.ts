@@ -133,6 +133,10 @@ declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
      * Show the navigation control. (default: `true`, will hide if `false`)
      */
     navigationControl?: boolean | ML.ControlPosition;
+    /**
+     * Show the terrain control. (default: `true`, will hide if `false`)
+     */
+    terrainControl?: boolean | ML.ControlPosition;
 };
 /**
  * The Map class can be instanciated to display a map in a `<div>`
@@ -171,6 +175,16 @@ declare class Map extends ML.Map {
      * @param language
      */
     setSecondaryLanguage(language?: LanguageString): any;
+    /**
+     * Get the exaggeration factor applied to the terrain
+     * @returns
+     */
+    getTerrainExaggeration(): number;
+    /**
+     * Know if terrian is enabled or not
+     * @returns
+     */
+    hasTerrain(): boolean;
     /**
      * Enables the 3D terrain visualization
      * @param exaggeration
