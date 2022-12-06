@@ -60,8 +60,8 @@ import "@maptiler/sdk/dist/maptiler-sdk.css";
 ```
 
 
-## With UMD bundle
-The UMD bundles includes everything in one single source file.
+## With CDN
+The SDK hosted on our CDN is bundled as *[Universal Module Definition](https://github.com/umdjs/umd)* (UMD) to make it standalone and containing all its dependencies. The CDN also serves the style sheet (css).
 
 **Recommended for:** simple map intergration example and demos
 
@@ -95,8 +95,10 @@ The UMD bundles includes everything in one single source file.
       // (Go to https://cloud.maptiler.com/account/keys/ to get one for free!)
       maptilersdk.config.apiKey = 'YOUR_API_KEY';
 
+      const mapContainer = document.getElementById('my-container-div');
+
       const map = new maptilersdk.Map({
-        container: document.getElementById('map-container'),
+        container: mapContainer,
         style: maptilersdk.MapStyle.DARK,
         hash: true,
       })
@@ -114,7 +116,7 @@ MapTiler teams maintains a few styles that we have decided to expose from th SDK
 
 Here is how it works:
 ```ts
-import { Map, Style } from '@maptiler/sdk'
+import { Map, MapStyle } from '@maptiler/sdk'
 // When instanciating a map
 const map = new Map({
   container: mapContainer,
