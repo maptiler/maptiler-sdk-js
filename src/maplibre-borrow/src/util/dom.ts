@@ -1,6 +1,7 @@
+// @ts-nocheck
 import Point from "@mapbox/point-geometry";
 
-export class DOM {
+export default class DOM {
   private static readonly docStyle =
     typeof window !== "undefined" &&
     window.document &&
@@ -137,13 +138,4 @@ export class DOM {
       node.parentNode.removeChild(node);
     }
   }
-}
-
-export function bindAll(fns: Array<string>, context: any): void {
-  fns.forEach((fn) => {
-    if (!context[fn]) {
-      return;
-    }
-    context[fn] = context[fn].bind(context);
-  });
 }

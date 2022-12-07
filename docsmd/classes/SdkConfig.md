@@ -4,6 +4,12 @@
 
 Configuration class for the SDK
 
+## Hierarchy
+
+- `EventEmitter`
+
+  ↳ **`SdkConfig`**
+
 ## Table of contents
 
 ### Constructors
@@ -20,12 +26,21 @@ Configuration class for the SDK
 
 - [apiKey](SdkConfig.md#apikey)
 - [fetch](SdkConfig.md#fetch)
+- [unit](SdkConfig.md#unit)
 
 ## Constructors
 
 ### constructor
 
 • **new SdkConfig**()
+
+#### Overrides
+
+EventEmitter.constructor
+
+#### Defined in
+
+[src/config.ts:36](https://github.com/maptiler/maptiler-sdk-js/blob/31b9ce2/src/config.ts#L36)
 
 ## Properties
 
@@ -37,7 +52,7 @@ The primary languag. By default, the language of the web browser is used.
 
 #### Defined in
 
-[src/config.ts:16](https://github.com/maptiler/maptiler-sdk-js/blob/eada93b/src/config.ts#L16)
+[src/config.ts:18](https://github.com/maptiler/maptiler-sdk-js/blob/31b9ce2/src/config.ts#L18)
 
 ___
 
@@ -50,7 +65,7 @@ This settings is highly dependant on the style compatibility and may not work in
 
 #### Defined in
 
-[src/config.ts:22](https://github.com/maptiler/maptiler-sdk-js/blob/eada93b/src/config.ts#L22)
+[src/config.ts:24](https://github.com/maptiler/maptiler-sdk-js/blob/31b9ce2/src/config.ts#L24)
 
 ___
 
@@ -62,7 +77,7 @@ If `true`, some more debuf text will show. Default: `false`
 
 #### Defined in
 
-[src/config.ts:11](https://github.com/maptiler/maptiler-sdk-js/blob/eada93b/src/config.ts#L11)
+[src/config.ts:13](https://github.com/maptiler/maptiler-sdk-js/blob/31b9ce2/src/config.ts#L13)
 
 ## Accessors
 
@@ -78,7 +93,7 @@ Get the MapTiler Cloud API key
 
 #### Defined in
 
-[src/config.ts:40](https://github.com/maptiler/maptiler-sdk-js/blob/eada93b/src/config.ts#L40)
+[src/config.ts:67](https://github.com/maptiler/maptiler-sdk-js/blob/31b9ce2/src/config.ts#L67)
 
 • `set` **apiKey**(`k`): `void`
 
@@ -96,7 +111,7 @@ Set the MapTiler Cloud API key
 
 #### Defined in
 
-[src/config.ts:32](https://github.com/maptiler/maptiler-sdk-js/blob/eada93b/src/config.ts#L32)
+[src/config.ts:58](https://github.com/maptiler/maptiler-sdk-js/blob/31b9ce2/src/config.ts#L58)
 
 ___
 
@@ -112,7 +127,7 @@ Get the fetch fucntion
 
 #### Defined in
 
-[src/config.ts:54](https://github.com/maptiler/maptiler-sdk-js/blob/eada93b/src/config.ts#L54)
+[src/config.ts:81](https://github.com/maptiler/maptiler-sdk-js/blob/31b9ce2/src/config.ts#L81)
 
 • `set` **fetch**(`f`): `void`
 
@@ -130,4 +145,38 @@ Set a the custom fetch function to replace the default one
 
 #### Defined in
 
-[src/config.ts:47](https://github.com/maptiler/maptiler-sdk-js/blob/eada93b/src/config.ts#L47)
+[src/config.ts:74](https://github.com/maptiler/maptiler-sdk-js/blob/31b9ce2/src/config.ts#L74)
+
+___
+
+### unit
+
+• `get` **unit**(): [`Unit`](../README.md#unit)
+
+Get the unit system
+
+#### Returns
+
+[`Unit`](../README.md#unit)
+
+#### Defined in
+
+[src/config.ts:51](https://github.com/maptiler/maptiler-sdk-js/blob/31b9ce2/src/config.ts#L51)
+
+• `set` **unit**(`u`): `void`
+
+Set the unit system
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `u` | [`Unit`](../README.md#unit) |
+
+#### Returns
+
+`void`
+
+#### Defined in
+
+[src/config.ts:43](https://github.com/maptiler/maptiler-sdk-js/blob/31b9ce2/src/config.ts#L43)

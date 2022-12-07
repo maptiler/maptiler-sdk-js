@@ -42,6 +42,8 @@
         container: document.getElementById("map-container"),
         hash: true,
         maxPitch: 85,
+        scaleControl: true,
+        fullscreenControl: true,
       })
 
       const styleDropDown = document.getElementById("mapstyles-picker")
@@ -55,7 +57,6 @@
         styleOption.value = maptilersdk.MapStyle[s];
         styleOption.innerHTML = s.replace("_", " ").toLowerCase();
         styleDropDown.appendChild(styleOption);
-        console.log(s);
       })
     </script>
   </body>

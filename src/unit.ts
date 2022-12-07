@@ -1,6 +1,1 @@
-enum Unit {
-  METRIC,
-  IMPERIAL,
-}
-
-export { Unit };
+export type Unit = "imperial" | "metric" | "nautical";
