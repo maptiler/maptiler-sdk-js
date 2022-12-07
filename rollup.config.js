@@ -20,15 +20,15 @@ const copyCssPlugin = copy({
 });
 
 
-const copyUmdBundle= copy({
+const copyUmdBundle = copy({
   targets: [
     {
       src: `dist/${outputName}.umd.js`,
-      dest: "examples/",
+      dest: "demos/",
     },
     {
       src: `dist/${outputName}.css`,
-      dest: "examples/",
+      dest: "demos/",
     },
   ],
   hook: "writeBundle"
@@ -64,7 +64,7 @@ const bundles = [
       globals(),
       json(),
       esbuild(),
-      copyUmdBundle,
+      copyUmdBundle, 
     ],
     output: [
       {

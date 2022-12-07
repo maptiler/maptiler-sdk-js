@@ -2467,7 +2467,7 @@
 	        this.addControl(new CustomLogoControl(), options.logoPosition);
 	      }
 	      if (options.scaleControl) {
-	        const position = options.scaleControl === true || options.scaleControl === void 0 ? "top-right" : options.scaleControl;
+	        const position = options.scaleControl === true || options.scaleControl === void 0 ? "bottom-right" : options.scaleControl;
 	        const scaleControl = new maplibreGl$1.exports.ScaleControl({ unit: config.unit });
 	        this.addControl(scaleControl, position);
 	        config.on("unit", (unit) => {
@@ -2489,6 +2489,10 @@
 	      if (options.terrainControl !== false) {
 	        const position = options.terrainControl === true || options.terrainControl === void 0 ? "top-right" : options.terrainControl;
 	        this.addControl(new TerrainControl$1(), position);
+	      }
+	      if (options.fullscreenControl) {
+	        const position = options.fullscreenControl === true || options.fullscreenControl === void 0 ? "top-right" : options.fullscreenControl;
+	        this.addControl(new maplibreGl$1.exports.FullscreenControl({}), position);
 	      }
 	    }));
 	    if (options.terrain) {

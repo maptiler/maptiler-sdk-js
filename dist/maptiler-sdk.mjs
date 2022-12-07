@@ -1,5 +1,5 @@
 import * as ML from 'maplibre-gl';
-import { ScaleControl as ScaleControl$1, GeolocateControl as GeolocateControl$1 } from 'maplibre-gl';
+import { ScaleControl as ScaleControl$1, GeolocateControl as GeolocateControl$1, FullscreenControl as FullscreenControl$1 } from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { v4 } from 'uuid';
 import EventEmitter from 'events';
@@ -881,7 +881,7 @@ class Map extends ML.Map {
         this.addControl(new CustomLogoControl(), options.logoPosition);
       }
       if (options.scaleControl) {
-        const position = options.scaleControl === true || options.scaleControl === void 0 ? "top-right" : options.scaleControl;
+        const position = options.scaleControl === true || options.scaleControl === void 0 ? "bottom-right" : options.scaleControl;
         const scaleControl = new ScaleControl$1({ unit: config.unit });
         this.addControl(scaleControl, position);
         config.on("unit", (unit) => {
@@ -903,6 +903,10 @@ class Map extends ML.Map {
       if (options.terrainControl !== false) {
         const position = options.terrainControl === true || options.terrainControl === void 0 ? "top-right" : options.terrainControl;
         this.addControl(new TerrainControl$1(), position);
+      }
+      if (options.fullscreenControl) {
+        const position = options.fullscreenControl === true || options.fullscreenControl === void 0 ? "top-right" : options.fullscreenControl;
+        this.addControl(new FullscreenControl$1({}), position);
       }
     }));
     if (options.terrain) {

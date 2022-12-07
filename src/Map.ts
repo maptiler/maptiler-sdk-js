@@ -6,7 +6,7 @@ import { CustomLogoControl } from "./CustomLogoControl";
 import { enableRTL, expandMapStyle, vlog } from "./tools";
 import { getBrowserLanguage, Language, LanguageString } from "./language";
 import { isBuiltinStyle, getBuiltinStyle, MapStyleString } from "./mapstyle";
-import { GeolocateControl, ScaleControl } from "maplibre-gl";
+import { FullscreenControl, GeolocateControl, ScaleControl } from "maplibre-gl";
 import { TerrainControl } from "./terraincontrol";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
 
@@ -61,9 +61,14 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
   terrainControl?: boolean | maplibre.ControlPosition;
 
   /**
-   * Show the scale control. (default: `true`, will hide if `false`)
+   * Show the scale control. (default: `false`, will show if `true`)
    */
   scaleControl?: boolean | maplibre.ControlPosition;
+
+  /**
+   * Show the full screen control. (default: `false`, will show if `true`)
+   */
+  fullscreenControl?: boolean | maplibre.ControlPosition;
 };
 
 /**
@@ -195,7 +200,7 @@ export class Map extends maplibre.Map {
         const position = (
           options.scaleControl === true ||
           options.scaleControl === undefined
-            ? "top-right"
+            ? "bottom-right"
             : options.scaleControl
         ) as maplibre.ControlPosition;
 
@@ -237,6 +242,19 @@ export class Map extends maplibre.Map {
         this.addControl(new TerrainControl(), position);
       }
 
+
+      // By default, no fullscreen control
+      if (options.fullscreenControl) {
+        // default position, if not provided, is top left corner
+        const position = (
+          options.fullscreenControl === true ||
+          options.fullscreenControl === undefined
+            ? "top-right"
+            : options.fullscreenControl
+        ) as maplibre.ControlPosition;
+
+        this.addControl(new FullscreenControl({}), position);
+      }
       
     });
 

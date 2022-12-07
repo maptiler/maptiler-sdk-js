@@ -139,9 +139,13 @@ declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
      */
     terrainControl?: boolean | ML.ControlPosition;
     /**
-     * Show the scale control. (default: `true`, will hide if `false`)
+     * Show the scale control. (default: `false`, will show if `true`)
      */
     scaleControl?: boolean | ML.ControlPosition;
+    /**
+     * Show the full screen control. (default: `false`, will show if `true`)
+     */
+    fullscreenControl?: boolean | ML.ControlPosition;
 };
 /**
  * The Map class can be instanciated to display a map in a `<div>`
