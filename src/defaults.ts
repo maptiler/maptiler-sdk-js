@@ -1,12 +1,12 @@
 import { Language } from "./language";
-import { MaptilerStyle } from "./style";
+import { MapStyle } from "./mapstyle";
 
 /**
  * Some default settings for the SDK
  */
 const defaults = {
   // When a Map is instanciated without a 'style', then this one is the default
-  mapStyle: MaptilerStyle.STREETS,
+  mapStyle: MapStyle.STREETS,
   maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
   maptilerURL: "https://www.maptiler.com/",
   maptilerApiURL: "https://api.maptiler.com/",

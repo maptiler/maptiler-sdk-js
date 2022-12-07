@@ -4,7 +4,7 @@
   "name": "Satellite no label",
   "sources": {
     "satellite": {
-      "url": "https://api.maptiler.com/tiles/satellite-v2/tiles.json?key={key}",
+      "url": "https://api.maptiler.com/tiles/satellite-v2/tiles.json?",
       "tileSize": 512,
       "type": "raster"
     },
@@ -33,7 +33,7 @@
   "metadata": {
     "maptiler:copyright": "This style was generated on MapTiler Cloud. Usage outside of MapTiler Cloud or MapTiler Server requires valid MapTiler Data package: https://www.maptiler.com/data/ -- please contact us."
   },
-  "glyphs": "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key={key}",
+  "glyphs": "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?",
   "bearing": 0.0,
   "pitch": 0.0,
   "center": [

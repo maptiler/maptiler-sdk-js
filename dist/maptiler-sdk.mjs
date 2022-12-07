@@ -1,7 +1,10 @@
 import * as ML from 'maplibre-gl';
+import { GeolocateControl as GeolocateControl$1 } from 'maplibre-gl';
 export * from 'maplibre-gl';
+import { v4 } from 'uuid';
 import { config as config$1 } from '@maptiler/client';
 export { LanguageGeocoding, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
+import Point$1 from '@mapbox/point-geometry';
 
 const Language = {
   AUTO: "auto",
@@ -118,7 +121,7 @@ var id = "f0e4ff8c-a9e4-414e-9f4d-7938762c948f";
 var name = "Satellite no label";
 var sources = {
 	satellite: {
-		url: "https://api.maptiler.com/tiles/satellite-v2/tiles.json?key={key}",
+		url: "https://api.maptiler.com/tiles/satellite-v2/tiles.json?",
 		tileSize: 512,
 		type: "raster"
 	},
@@ -147,7 +150,7 @@ var layers = [
 var metadata = {
 	"maptiler:copyright": "This style was generated on MapTiler Cloud. Usage outside of MapTiler Cloud or MapTiler Server requires valid MapTiler Data package: https://www.maptiler.com/data/ -- please contact us."
 };
-var glyphs = "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key={key}";
+var glyphs = "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?";
 var bearing = 0;
 var pitch = 0;
 var center = [
@@ -169,33 +172,29 @@ var satelliteBuiltin = {
 	zoom: zoom
 };
 
-const MaptilerStyle = {
+const MapStyle = {
   STREETS: "streets-v2",
   HYBRID: "hybrid",
   SATELLITE: "satellite",
   OUTDOOR: "outdoor",
   BASIC: "basic-v2",
-  DARK: "streets-v2-dark",
-  LIGHT: "streets-v2-light"
+  STREETS_DARK: "streets-v2-dark",
+  STREETS_LIGHT: "streets-v2-light"
 };
 const builtInStyles = {};
-builtInStyles[MaptilerStyle.SATELLITE] = satelliteBuiltin;
+builtInStyles[MapStyle.SATELLITE] = satelliteBuiltin;
 function isBuiltinStyle(styleId) {
   return styleId in builtInStyles;
 }
-function prepareBuiltinStyle(styleId, apiKey) {
+function getBuiltinStyle(styleId) {
   if (!isBuiltinStyle(styleId)) {
     return null;
   }
-  const fullTextVersion = JSON.stringify(builtInStyles[styleId]).replace(
-    /{key}/gi,
-    apiKey
-  );
-  return JSON.parse(fullTextVersion);
+  return builtInStyles[styleId];
 }
 
 const defaults = {
-  mapStyle: MaptilerStyle.STREETS,
+  mapStyle: MapStyle.STREETS,
   maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
   maptilerURL: "https://www.maptiler.com/",
   maptilerApiURL: "https://api.maptiler.com/",
@@ -266,9 +265,6 @@ function expandMapStyle(style) {
   } else {
     expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
   }
-  if (!expandedStyle.includes("key=")) {
-    expandedStyle = `${expandedStyle}?key=${config.apiKey}`;
-  }
   return expandedStyle;
 }
 function enableRTL() {
@@ -279,6 +275,171 @@ function enableRTL() {
       null,
       true
     );
+  }
+}
+
+const _DOM = class {
+  static testProp(props) {
+    if (!_DOM.docStyle)
+      return props[0];
+    for (let i = 0; i < props.length; i++) {
+      if (props[i] in _DOM.docStyle) {
+        return props[i];
+      }
+    }
+    return props[0];
+  }
+  static create(tagName, className, container) {
+    const el = window.document.createElement(tagName);
+    if (className !== void 0)
+      el.className = className;
+    if (container)
+      container.appendChild(el);
+    return el;
+  }
+  static createNS(namespaceURI, tagName) {
+    const el = window.document.createElementNS(namespaceURI, tagName);
+    return el;
+  }
+  static disableDrag() {
+    if (_DOM.docStyle && _DOM.selectProp) {
+      _DOM.userSelect = _DOM.docStyle[_DOM.selectProp];
+      _DOM.docStyle[_DOM.selectProp] = "none";
+    }
+  }
+  static enableDrag() {
+    if (_DOM.docStyle && _DOM.selectProp) {
+      _DOM.docStyle[_DOM.selectProp] = _DOM.userSelect;
+    }
+  }
+  static setTransform(el, value) {
+    el.style[_DOM.transformProp] = value;
+  }
+  static addEventListener(target, type, callback, options = {}) {
+    if ("passive" in options) {
+      target.addEventListener(type, callback, options);
+    } else {
+      target.addEventListener(type, callback, options.capture);
+    }
+  }
+  static removeEventListener(target, type, callback, options = {}) {
+    if ("passive" in options) {
+      target.removeEventListener(type, callback, options);
+    } else {
+      target.removeEventListener(type, callback, options.capture);
+    }
+  }
+  static suppressClickInternal(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    window.removeEventListener("click", _DOM.suppressClickInternal, true);
+  }
+  static suppressClick() {
+    window.addEventListener("click", _DOM.suppressClickInternal, true);
+    window.setTimeout(() => {
+      window.removeEventListener("click", _DOM.suppressClickInternal, true);
+    }, 0);
+  }
+  static mousePos(el, e) {
+    const rect = el.getBoundingClientRect();
+    return new Point$1(
+      e.clientX - rect.left - el.clientLeft,
+      e.clientY - rect.top - el.clientTop
+    );
+  }
+  static touchPos(el, touches) {
+    const rect = el.getBoundingClientRect();
+    const points = [];
+    for (let i = 0; i < touches.length; i++) {
+      points.push(
+        new Point$1(
+          touches[i].clientX - rect.left - el.clientLeft,
+          touches[i].clientY - rect.top - el.clientTop
+        )
+      );
+    }
+    return points;
+  }
+  static mouseButton(e) {
+    return e.button;
+  }
+  static remove(node) {
+    if (node.parentNode) {
+      node.parentNode.removeChild(node);
+    }
+  }
+};
+let DOM = _DOM;
+DOM.docStyle = typeof window !== "undefined" && window.document && window.document.documentElement.style;
+DOM.selectProp = _DOM.testProp([
+  "userSelect",
+  "MozUserSelect",
+  "WebkitUserSelect",
+  "msUserSelect"
+]);
+DOM.transformProp = _DOM.testProp(["transform", "WebkitTransform"]);
+function bindAll(fns, context) {
+  fns.forEach((fn) => {
+    if (!context[fn]) {
+      return;
+    }
+    context[fn] = context[fn].bind(context);
+  });
+}
+
+class TerrainControl$1 {
+  constructor() {
+    bindAll(["_toggleTerrain", "_updateTerrainIcon"], this);
+  }
+  onAdd(map) {
+    this._map = map;
+    this._container = DOM.create(
+      "div",
+      "maplibregl-ctrl maplibregl-ctrl-group"
+    );
+    this._terrainButton = DOM.create(
+      "button",
+      "maplibregl-ctrl-terrain",
+      this._container
+    );
+    DOM.create(
+      "span",
+      "maplibregl-ctrl-icon",
+      this._terrainButton
+    ).setAttribute("aria-hidden", "true");
+    this._terrainButton.type = "button";
+    this._terrainButton.addEventListener("click", this._toggleTerrain);
+    this._updateTerrainIcon();
+    this._map.on("terrain", this._updateTerrainIcon);
+    return this._container;
+  }
+  onRemove() {
+    DOM.remove(this._container);
+    this._map.off("terrain", this._updateTerrainIcon);
+    this._map = void 0;
+  }
+  _toggleTerrain() {
+    if (this._map.hasTerrain()) {
+      this._map.disableTerrain();
+    } else {
+      this._map.enableTerrain();
+    }
+    this._updateTerrainIcon();
+  }
+  _updateTerrainIcon() {
+    this._terrainButton.classList.remove("maplibregl-ctrl-terrain");
+    this._terrainButton.classList.remove("maplibregl-ctrl-terrain-enabled");
+    if (this._map.hasTerrain()) {
+      this._terrainButton.classList.add("maplibregl-ctrl-terrain-enabled");
+      this._terrainButton.title = this._map._getUIString(
+        "TerrainControl.disableTerrain"
+      );
+    } else {
+      this._terrainButton.classList.add("maplibregl-ctrl-terrain");
+      this._terrainButton.title = this._map._getUIString(
+        "TerrainControl.enableTerrain"
+      );
+    }
   }
 }
 
@@ -321,16 +482,14 @@ var __async = (__this, __arguments, generator) => {
     step((generator = generator.apply(__this, __arguments)).next());
   });
 };
+const MAPTILER_SESSION_ID = v4();
 class Map extends ML.Map {
   constructor(options) {
     var _a;
     let style;
     if ("style" in options) {
       if (typeof style === "string" && isBuiltinStyle(style)) {
-        style = prepareBuiltinStyle(
-          style,
-          config.apiKey
-        );
+        style = getBuiltinStyle(style);
       } else if (typeof style === "string") {
         style = expandMapStyle(style);
       } else {
@@ -340,7 +499,21 @@ class Map extends ML.Map {
       style = expandMapStyle(defaults.mapStyle);
       vlog(`Map style not provided, backing up to ${defaults.mapStyle}`);
     }
-    super(__spreadProps(__spreadValues({}, options), { style, maplibreLogo: false }));
+    super(__spreadProps(__spreadValues({}, options), {
+      style,
+      maplibreLogo: false,
+      transformRequest: (url) => {
+        const reqUrl = new URL(url);
+        if (!reqUrl.searchParams.has("key")) {
+          reqUrl.searchParams.append("key", config.apiKey);
+        }
+        reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
+        return {
+          url: reqUrl.href,
+          headers: {}
+        };
+      }
+    }));
     this.languageShouldUpdate = false;
     this.isStyleInitialized = false;
     this.isTerrainEnabled = false;
@@ -387,29 +560,33 @@ class Map extends ML.Map {
       } else if (options.maptilerLogo) {
         this.addControl(new CustomLogoControl(), options.logoPosition);
       }
+      if (options.navigationControl !== false) {
+        const position = options.navigationControl === true || options.navigationControl === void 0 ? "top-right" : options.navigationControl;
+        this.addControl(
+          new ML.NavigationControl({
+            showCompass: true,
+            showZoom: true,
+            visualizePitch: true
+          }),
+          position
+        );
+        this.addControl(new GeolocateControl$1({}), position);
+      }
+      if (options.terrainControl !== false) {
+        const position = options.terrainControl === true || options.terrainControl === void 0 ? "top-right" : options.terrainControl;
+        this.addControl(new TerrainControl$1(), position);
+      }
     }));
-    if (options.navigationControl !== false) {
-      const position = options.navigationControl === true || options.navigationControl === void 0 ? "top-right" : options.navigationControl;
-      this.addControl(
-        new ML.NavigationControl({
-          showCompass: true,
-          showZoom: true,
-          visualizePitch: true
-        }),
-        position
+    if (options.terrain) {
+      this.enableTerrain(
+        (_a = options.terrainExaggeration) != null ? _a : this.terrainExaggeration
       );
-    }
-    if (options.enableTerrain) {
-      this.enableTerrain((_a = options.terrainExaggeration) != null ? _a : 1);
     }
   }
   setStyle(style, options) {
     let tempStyle = style;
     if (typeof style === "string" && isBuiltinStyle(style)) {
-      tempStyle = prepareBuiltinStyle(
-        style,
-        config.apiKey
-      );
+      tempStyle = getBuiltinStyle(style);
     } else if (typeof style === "string") {
       tempStyle = expandMapStyle(style);
     }
@@ -547,14 +724,20 @@ class Map extends ML.Map {
       }
     }
   }
-  enableTerrain(exaggeration = 1) {
+  getTerrainExaggeration() {
+    return this.terrainExaggeration;
+  }
+  hasTerrain() {
+    return this.isTerrainEnabled;
+  }
+  enableTerrain(exaggeration = this.terrainExaggeration) {
     const terrainInfo = this.getTerrain();
     const addTerrain = () => {
       this.isTerrainEnabled = true;
       this.terrainExaggeration = exaggeration;
       this.addSource(defaults.terrainSourceId, {
         type: "raster-dem",
-        url: `${defaults.terrainSourceURL}?key=${config.apiKey}`
+        url: defaults.terrainSourceURL
       });
       this.setTerrain({
         source: defaults.terrainSourceId,
@@ -772,5 +955,5 @@ const workerUrl = ML.default.workerUrl;
 const addProtocol = ML.default.addProtocol;
 const removeProtocol = ML.default.removeProtocol;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MaptilerStyle, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MapStyle, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
 //# sourceMappingURL=maptiler-sdk.mjs.map

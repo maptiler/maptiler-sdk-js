@@ -35,11 +35,6 @@ export function expandMapStyle(style): string {
     expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
   }
 
-  // appending the token if necessary
-  if (!expandedStyle.includes("key=")) {
-    expandedStyle = `${expandedStyle}?key=${config.apiKey}`;
-  }
-
   return expandedStyle;
 }
 

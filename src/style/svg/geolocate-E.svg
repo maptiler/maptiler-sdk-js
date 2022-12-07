@@ -1,0 +1,17 @@
+<svg width="100%" height="100%" viewBox="0 0 38 38" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(0.964512,0,0,0.964512,-1.06023,-1.06527)">
+        <path d="M20.798,12.499C25.382,12.499 29.103,16.22 29.103,20.804C29.103,25.387 25.382,29.108 20.798,29.108C16.215,29.108 12.494,25.387 12.494,20.804C12.494,16.22 16.215,12.499 20.798,12.499ZM20.798,14.573C24.237,14.573 27.029,17.365 27.029,20.804C27.029,24.242 24.237,27.034 20.798,27.034C17.359,27.034 14.567,24.242 14.567,20.804C14.567,17.365 17.359,14.573 20.798,14.573Z" style="fill:rgb(52,187,255);"/>
+    </g>
+    <g transform="matrix(1,0,0,1,1,0)">
+        <rect x="7.524" y="18" width="3.016" height="2" style="fill:rgb(52,187,255);"/>
+    </g>
+    <g transform="matrix(1,0,0,1,-1,0)">
+        <rect x="27.459" y="18" width="3.016" height="2" style="fill:rgb(52,187,255);"/>
+    </g>
+    <g transform="matrix(1,0,0,1,0,-1)">
+        <rect x="18" y="27.166" width="2" height="3.31" style="fill:rgb(52,187,255);"/>
+    </g>
+    <g transform="matrix(1,0,0,1,0,1)">
+        <rect x="18" y="7.524" width="2" height="3.321" style="fill:rgb(52,187,255);"/>
+    </g>
+</svg>

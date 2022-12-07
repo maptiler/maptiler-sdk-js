@@ -124,7 +124,7 @@ declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
     /**
      * Enables 3D terrain if `true`. (default: `false`)
      */
-    enableTerrain?: boolean;
+    terrain?: boolean;
     /**
      * Exaggeration factor of the terrain. (default: `1`, no exaggeration)
      */
@@ -133,6 +133,10 @@ declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
      * Show the navigation control. (default: `true`, will hide if `false`)
      */
     navigationControl?: boolean | ML.ControlPosition;
+    /**
+     * Show the terrain control. (default: `true`, will hide if `false`)
+     */
+    terrainControl?: boolean | ML.ControlPosition;
 };
 /**
  * The Map class can be instanciated to display a map in a `<div>`
@@ -171,6 +175,16 @@ declare class Map extends ML.Map {
      * @param language
      */
     setSecondaryLanguage(language?: LanguageString): any;
+    /**
+     * Get the exaggeration factor applied to the terrain
+     * @returns
+     */
+    getTerrainExaggeration(): number;
+    /**
+     * Know if terrian is enabled or not
+     * @returns
+     */
+    hasTerrain(): boolean;
     /**
      * Enables the 3D terrain visualization
      * @param exaggeration
@@ -254,20 +268,20 @@ declare enum Unit {
 /**
  * Built-in styles
  */
-declare const MaptilerStyle: {
+declare const MapStyle: {
     readonly STREETS: "streets-v2";
     readonly HYBRID: "hybrid";
     readonly SATELLITE: "satellite";
     readonly OUTDOOR: "outdoor";
     readonly BASIC: "basic-v2";
-    readonly DARK: "streets-v2-dark";
-    readonly LIGHT: "streets-v2-light";
+    readonly STREETS_DARK: "streets-v2-dark";
+    readonly STREETS_LIGHT: "streets-v2-light";
 };
 declare type Values<T> = T[keyof T];
 /**
  * Built-in style values as strings
  */
-declare type MaptilerStyleString = Values<typeof MaptilerStyle>;
+declare type MapStyleString = Values<typeof MapStyle>;
 
 declare const supported: _mapbox_mapbox_gl_supported.IsSupported;
 declare const setRTLTextPlugin: (url: string, callback: (error?: Error) => void, deferred?: boolean) => void;
@@ -304,4 +318,4 @@ declare const workerUrl: string;
 declare const addProtocol: (customProtocol: string, loadFn: (requestParameters: ML.RequestParameters, callback: ML.ResponseCallback<any>) => ML.Cancelable) => void;
 declare const removeProtocol: (customProtocol: string) => void;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MaptilerStyle, MaptilerStyleString, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MapStyle, MapStyleString, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };

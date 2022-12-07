@@ -122,7 +122,7 @@ import { Point } from "./Point";
 import { config, SdkConfig } from "./config";
 import { Language, LanguageString } from "./language";
 import { Unit } from "./unit";
-import { MaptilerStyle, MaptilerStyleString } from "./style";
+import { MapStyle, MapStyleString } from "./mapstyle";
 
 // Exporting types
 export type {
@@ -137,7 +137,7 @@ export type {
   AutomaticStaticMapOptions,
   LanguageString,
   LanguageGeocodingString,
-  MaptilerStyleString,
+  MapStyleString,
 };
 
 // Exporting classes, objects, functions, etc.
@@ -152,7 +152,7 @@ export {
   data,
   staticMaps,
   Unit,
-  MaptilerStyle,
+  MapStyle,
   Language,
   LanguageGeocoding,
   Point,

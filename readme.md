@@ -28,7 +28,7 @@ npm install --save @maptiler/sdk
 ```
 
 # API documentation
-In addition to the details and examples provided in this readme, check out the [complete API documentation](docs/README.md)
+In addition to the details and examples provided in this readme, check out the [complete API documentation](https://maptiler.github.io/maptiler-sdk-js) (see the [Markdown version](docsmd/README.md))
 
 # Quick start
 
@@ -60,8 +60,8 @@ import "@maptiler/sdk/dist/maptiler-sdk.css";
 ```
 
 
-## With UMD bundle
-The UMD bundles includes everything in one single source file.
+## With CDN
+The SDK hosted on our CDN is bundled as *[Universal Module Definition](https://github.com/umdjs/umd)* (UMD) to make it standalone and containing all its dependencies. The CDN also serves the style sheet (css).
 
 **Recommended for:** simple map intergration example and demos
 
@@ -95,16 +95,18 @@ The UMD bundles includes everything in one single source file.
       // (Go to https://cloud.maptiler.com/account/keys/ to get one for free!)
       maptilersdk.config.apiKey = 'YOUR_API_KEY';
 
+      const mapContainer = document.getElementById('my-container-div');
+
       const map = new maptilersdk.Map({
-        container: document.getElementById('map-container'),
-        style: maptilersdk.MaptilerStyle.DARK,
+        container: mapContainer,
+        style: maptilersdk.MapStyle.STREETS_DARK,
         hash: true,
       })
     </script>
   </body>
 </html>
 ```
-Checkout the minimalist code samples in the [examples](examples) directory.
+Checkout the minimalist code samples in the [demos](demos) directory.
 
 
 # Many styles to choose from
@@ -114,28 +116,28 @@ MapTiler teams maintains a few styles that we have decided to expose from th SDK
 
 Here is how it works:
 ```ts
-import { Map, Style } from '@maptiler/sdk'
+import { Map, MapStyle } from '@maptiler/sdk'
 // When instanciating a map
 const map = new Map({
   container: mapContainer,
-  style: MaptilerStyle.OUTDOOR, // <-- the shorthand for the outdoor style
+  style: MapStyle.OUTDOOR, // <-- the shorthand for the outdoor style
 });
 
 // Or later on, updating the style
-map.setStyle(MaptilerStyle.DARK);
+map.setStyle(MapStyle.STREETS_DARK);
 ```
 
 The styles with a shorthand provided by the SDK are the following:
 
 | ID | Screenshot | Comment |
 |:-:|:-:|:-:|
-|`MaptilerStyle.STREETS`|![](images/screenshots/style-streets-v2.png)|The classic default style, perfect for urban areas|
-|`MaptilerStyle.SATELLITE`|![](images/screenshots/style-satellite.png)|Only high resolution satellite raster tiles without any labels|
-|`MaptilerStyle.HYBRID`|![](images/screenshots/style-hybrid.png)|Satellite tile with labels, landmarks, roads ways and political borders|
-|`MaptilerStyle.OUTDOOR`|![](images/screenshots/style-outdoor.png)|A solid hiking companion, with peaks, parks, isolines and more|
-|`MaptilerStyle.BASIC`|![](images/screenshots/style-basic-v2.png)|A minimalist alternative to `STREETS`, with a touch of flat design|
-|`MaptilerStyle.DARK`|![](images/screenshots/style-streets-v2-dark.png)|A dark theme perfect to display data layers on top without losing any precious information|
-|`MaptilerStyle.LIGHT`|![](images/screenshots/style-streets-v2-light.png)|Just like the `DARK`, but in bright mode! Your data layer as a first class citizen!|
+|`MapStyle.STREETS`|[![](images/screenshots/style-streets-v2.png)](https://www.maptiler.com/maps/#style=streets-v2&mode=2d&position=12.52/40.73676/-73.98418)|The classic default style, perfect for urban areas|
+|`MapStyle.SATELLITE`|[![](images/screenshots/style-satellite.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=7.87/24.518/-77.411)|Only high resolution satellite raster tiles without any labels|
+|`MapStyle.HYBRID`|[![](images/screenshots/style-hybrid.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)|Satellite tile with labels, landmarks, roads ways and political borders|
+|`MapStyle.OUTDOOR`|[![](images/screenshots/style-outdoor.png)](https://www.maptiler.com/maps/#style=outdoor&mode=2d&position=11.96/46.02591/7.7273)|A solid hiking companion, with peaks, parks, isolines and more|
+|`MapStyle.BASIC`|[![](images/screenshots/style-basic-v2.png)](https://www.maptiler.com/maps/#style=basic-v2&mode=2d&position=13.09/37.78734/-122.42025)|A minimalist alternative to `STREETS`, with a touch of flat design|
+|`MapStyle.STREETS_DARK`|[![](images/screenshots/style-streets-v2-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A dark theme perfect to display data layers on top without losing any precious information|
+|`MapStyle.STREETS_LIGHT`|[![](images/screenshots/style-streets-v2-light.png)](https://www.maptiler.com/maps/#style=streets-v2-light&mode=2d&position=4.4/48.15/12.65)|Just like the `STREETS_DARK`, but in bright mode! Your data layer as a first class citizen!|
 
 
 Still, you can still use some classic styles with just a *string*:
@@ -199,12 +201,12 @@ map.enableTerrain();
 map.enableTerrain(1.5);
 ```
 
-The terrain can also be enabled directly from the `Map` constructor, with the options `enableTerrain` (a boolean, `false` by default) and `terrainExaggeration` (a number, `1` by default):
+The terrain can also be enabled directly from the `Map` constructor, with the options `terrain` (a boolean, `false` by default) and `terrainExaggeration` (a number, `1` by default):
 
 ```ts
 const map = new Map({
   // some options...
-  enableTerrain: true,
+  terrain: true,
   terrainExaggeration: 1.5,
 })
 ```
