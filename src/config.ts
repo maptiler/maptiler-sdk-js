@@ -1,10 +1,12 @@
+import EventEmitter from "events";
 import { Language, LanguageString } from "./language";
 import { config as clientConfig, FetchFunction } from "@maptiler/client";
+import { Unit } from "./unit";
 
 /**
  * Configuration class for the SDK
  */
-class SdkConfig {
+class SdkConfig extends EventEmitter {
   /**
    * If `true`, some more debuf text will show. Default: `false`
    */
@@ -22,9 +24,33 @@ class SdkConfig {
   secondaryLanguage: LanguageString | null = null;
 
   /**
+   * Unit to be used
+   */
+  private _unit: Unit = "metric";
+
+  /**
    * MapTiler Cloud API key
    */
   private _apiKey = "Not defined yet.";
+
+  constructor() {
+    super();
+  }
+
+  /**
+   * Set the unit system
+   */
+  set unit(u: Unit) {
+    this._unit = u;
+    this.emit('unit', u);
+  }
+
+  /**
+   * Get the unit system
+   */
+  get unit(): Unit {
+    return this._unit;
+  }
 
   /**
    * Set the MapTiler Cloud API key
@@ -32,6 +58,7 @@ class SdkConfig {
   set apiKey(k: string) {
     this._apiKey = k;
     clientConfig.apiKey = k;
+    this.emit('apiKey', k);
   }
 
   /**

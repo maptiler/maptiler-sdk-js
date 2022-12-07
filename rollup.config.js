@@ -6,7 +6,9 @@ import commonjs from "@rollup/plugin-commonjs";
 import copy from 'rollup-plugin-copy-merge'
 import json from '@rollup/plugin-json';
 
-const outputName = "maptiler-sdk"
+const outputName = "maptiler-sdk";
+
+const externals = ["maplibre-gl", "@maptiler/client", "@mapbox/point-geometry", "uuid", "@mapbox/unitbezier", "events"];
 
 const copyCssPlugin = copy({
   targets: [
@@ -48,41 +50,16 @@ const bundles = [
     watch: {
       include: "src/**",
     }, 
-    external: ["maplibre-gl", "@maptiler/client", "@mapbox/point-geometry", "uuid"], 
+    external: externals, 
   },
- 
-  // CJS module, not minified + sourcemap
-  // {
-  //   plugins: [
-  //     copyCssPlugin,
-  //     nodeResolve(), // for the standalone UMD, we want to resolve so that the bundle contains all the dep.
-  //     commonjs({ include: 'node_modules/**' }),
-  //     globals(),
-  //     json(),
-  //     esbuild({
-  //       // include: ['src/services/*.ts'],
-  //       // exclude: ['*'],
-  //     })
-  //   ],
-  //   output: [
-  //     {
-  //       file: `dist/${outputName}.cjs`,
-  //       format: "cjs",
-  //       sourcemap: true
-  //     }
-  //   ],
-  //   input: "src/index.ts",
-  //   watch: {
-  //     include: 'src/**'
-  //   },
-  //   external: ["maplibre-gl", "@maptiler/client"]
-  // },
 
   // UMD module, not minified
   {
     plugins: [
       copyCssPlugin,
-      nodeResolve(), // for the standalone UMD, we want to resolve so that the bundle contains all the dep.
+      nodeResolve({
+        preferBuiltins: false,
+      }), // for the standalone UMD, we want to resolve so that the bundle contains all the dep.
       commonjs({ include: "node_modules/**" }),
       globals(),
       json(),
@@ -105,7 +82,7 @@ const bundles = [
 
   // types
   {
-    plugins: [dts()],
+    plugins: [dts()], 
     output: {
       file: `dist/${outputName}.d.ts`,
       format: "es",
@@ -133,12 +110,14 @@ if (process.env.NODE_ENV === "production") {
         },
       ],
       input: "src/index.ts",
-      external: ["maplibre-gl", "@maptiler/client", "@mapbox/point-geometry", "uuid"],
+      external: externals,
     },
     {
       plugins: [
         copyCssPlugin,
-        nodeResolve(), // for the standalone UMD, we want to resolve so that the bundle contains all the dep.
+        nodeResolve({
+          preferBuiltins: false,
+        }), // for the standalone UMD, we want to resolve so that the bundle contains all the dep.
         commonjs({ include: "node_modules/**" }),
         globals(),
         json(),

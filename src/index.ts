@@ -121,7 +121,7 @@ import { Point } from "./Point";
 // Importing enums and configs
 import { config, SdkConfig } from "./config";
 import { Language, LanguageString } from "./language";
-import { Unit } from "./unit";
+import type { Unit } from "./unit";
 import { MapStyle, MapStyleString } from "./mapstyle";
 
 // Exporting types
@@ -138,6 +138,7 @@ export type {
   LanguageString,
   LanguageGeocodingString,
   MapStyleString,
+  Unit,
 };
 
 // Exporting classes, objects, functions, etc.
@@ -151,7 +152,6 @@ export {
   coordinates,
   data,
   staticMaps,
-  Unit,
   MapStyle,
   Language,
   LanguageGeocoding,

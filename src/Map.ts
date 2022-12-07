@@ -6,8 +6,9 @@ import { CustomLogoControl } from "./CustomLogoControl";
 import { enableRTL, expandMapStyle, vlog } from "./tools";
 import { getBrowserLanguage, Language, LanguageString } from "./language";
 import { isBuiltinStyle, getBuiltinStyle, MapStyleString } from "./mapstyle";
-import { GeolocateControl } from "maplibre-gl";
-import TerrainControl from "./terraincontrol";
+import { GeolocateControl, ScaleControl } from "maplibre-gl";
+import { TerrainControl } from "./terraincontrol";
+import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (
@@ -58,6 +59,11 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
    * Show the terrain control. (default: `true`, will hide if `false`)
    */
   terrainControl?: boolean | maplibre.ControlPosition;
+
+  /**
+   * Show the scale control. (default: `true`, will hide if `false`)
+   */
+  scaleControl?: boolean | maplibre.ControlPosition;
 };
 
 /**
@@ -69,7 +75,7 @@ export class Map extends maplibre.Map {
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
 
-  constructor(options: MapOptions) {
+  constructor(options: MapOptions) { 
     let style;
 
     if ("style" in options) {
@@ -182,6 +188,24 @@ export class Map extends maplibre.Map {
 
       // the other controls at init time but be after
       // (due to the async nature of logo control)
+
+      // By default, no scale control
+      if (options.scaleControl) {
+        // default position, if not provided, is top left corner
+        const position = (
+          options.scaleControl === true ||
+          options.scaleControl === undefined
+            ? "top-right"
+            : options.scaleControl
+        ) as maplibre.ControlPosition;
+
+        const scaleControl = new ScaleControl({ unit: config.unit });
+        this.addControl(scaleControl, position);
+        config.on("unit", (unit) => {
+          scaleControl.setUnit(unit);
+        })
+      }
+
       if (options.navigationControl !== false) {
         // default position, if not provided, is top left corner
         const position = (
@@ -191,7 +215,7 @@ export class Map extends maplibre.Map {
             : options.navigationControl
         ) as maplibre.ControlPosition;
         this.addControl(
-          new maplibre.NavigationControl({
+          new MaptilerNavigationControl({
             showCompass: true,
             showZoom: true,
             visualizePitch: true,
@@ -212,6 +236,8 @@ export class Map extends maplibre.Map {
         ) as maplibre.ControlPosition;
         this.addControl(new TerrainControl(), position);
       }
+
+      
     });
 
     // enable 3D terrain if provided in options

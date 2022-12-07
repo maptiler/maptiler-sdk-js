@@ -3,6 +3,7 @@ import * as ML from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { FetchFunction } from '@maptiler/client';
 export { AutomaticStaticMapOptions, Bbox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, LanguageGeocoding, LanguageGeocodingString, LngLatArray, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
+import EventEmitter from 'events';
 
 /**
  * Languages. Note that not all the languages of this list are available but the compatibility list may be expanded in the future.
@@ -137,6 +138,10 @@ declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
      * Show the terrain control. (default: `true`, will hide if `false`)
      */
     terrainControl?: boolean | ML.ControlPosition;
+    /**
+     * Show the scale control. (default: `true`, will hide if `false`)
+     */
+    scaleControl?: boolean | ML.ControlPosition;
 };
 /**
  * The Map class can be instanciated to display a map in a `<div>`
@@ -220,10 +225,12 @@ declare namespace Point {
     var convert: (a: any) => any;
 }
 
+declare type Unit = 'imperial' | 'metric' | 'nautical';
+
 /**
  * Configuration class for the SDK
  */
-declare class SdkConfig {
+declare class SdkConfig extends EventEmitter {
     /**
      * If `true`, some more debuf text will show. Default: `false`
      */
@@ -238,9 +245,22 @@ declare class SdkConfig {
      */
     secondaryLanguage: LanguageString | null;
     /**
+     * Unit to be used
+     */
+    private _unit;
+    /**
      * MapTiler Cloud API key
      */
     private _apiKey;
+    constructor();
+    /**
+     * Set the unit system
+     */
+    set unit(u: Unit);
+    /**
+     * Get the unit system
+     */
+    get unit(): Unit;
     /**
      * Set the MapTiler Cloud API key
      */
@@ -259,11 +279,6 @@ declare class SdkConfig {
     get fetch(): FetchFunction | null;
 }
 declare const config: SdkConfig;
-
-declare enum Unit {
-    METRIC = 0,
-    IMPERIAL = 1
-}
 
 /**
  * Built-in styles

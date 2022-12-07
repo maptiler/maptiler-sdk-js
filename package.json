@@ -54,6 +54,7 @@
   },
   "dependencies": {
     "@maptiler/client": "github:maptiler/maptiler-client-js",
+    "events": "^3.3.0",
     "maplibre-gl": "2.4.0",
     "uuid": "^9.0.0"
   }

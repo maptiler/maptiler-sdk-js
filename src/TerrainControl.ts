@@ -1,4 +1,6 @@
-import { DOM, bindAll } from "./dom";
+// import { DOM, bindAll } from "./dom";
+import DOM from "./maplibre-borrow/src/util/dom";
+import { bindAll } from "./maplibre-borrow/src/util/util";
 
 import { Map } from "./map";
 import type { IControl } from "maplibre-gl";
@@ -17,7 +19,7 @@ import type { IControl } from "maplibre-gl";
  *         source: "terrain"
  *     }));
  */
-export default class TerrainControl implements IControl {
+export class TerrainControl implements IControl {
   _map: Map;
   _container: HTMLElement;
   _terrainButton: HTMLButtonElement;
@@ -37,7 +39,7 @@ export default class TerrainControl implements IControl {
       "maplibregl-ctrl-terrain",
       this._container
     );
-    DOM.create(
+    DOM.create( 
       "span",
       "maplibregl-ctrl-icon",
       this._terrainButton
