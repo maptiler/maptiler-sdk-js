@@ -28,7 +28,7 @@ npm install --save @maptiler/sdk
 ```
 
 # API documentation
-In addition to the details and examples provided in this readme, check out the [complete API documentation](docs/README.md)
+In addition to the details and examples provided in this readme, check out the [complete API documentation](https://maptiler.github.io/maptiler-sdk-js) (see the [Markdown version](docsmd/README.md))
 
 # Quick start
 
@@ -99,14 +99,14 @@ The SDK hosted on our CDN is bundled as *[Universal Module Definition](https://g
 
       const map = new maptilersdk.Map({
         container: mapContainer,
-        style: maptilersdk.MapStyle.DARK,
+        style: maptilersdk.MapStyle.STREETS_DARK,
         hash: true,
       })
     </script>
   </body>
 </html>
 ```
-Checkout the minimalist code samples in the [examples](examples) directory.
+Checkout the minimalist code samples in the [demos](demos) directory.
 
 
 # Many styles to choose from
@@ -124,7 +124,7 @@ const map = new Map({
 });
 
 // Or later on, updating the style
-map.setStyle(MapStyle.DARK);
+map.setStyle(MapStyle.STREETS_DARK);
 ```
 
 The styles with a shorthand provided by the SDK are the following:
@@ -136,8 +136,8 @@ The styles with a shorthand provided by the SDK are the following:
 |`MapStyle.HYBRID`|[![](images/screenshots/style-hybrid.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)|Satellite tile with labels, landmarks, roads ways and political borders|
 |`MapStyle.OUTDOOR`|[![](images/screenshots/style-outdoor.png)](https://www.maptiler.com/maps/#style=outdoor&mode=2d&position=11.96/46.02591/7.7273)|A solid hiking companion, with peaks, parks, isolines and more|
 |`MapStyle.BASIC`|[![](images/screenshots/style-basic-v2.png)](https://www.maptiler.com/maps/#style=basic-v2&mode=2d&position=13.09/37.78734/-122.42025)|A minimalist alternative to `STREETS`, with a touch of flat design|
-|`MapStyle.DARK`|[![](images/screenshots/style-streets-v2-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A dark theme perfect to display data layers on top without losing any precious information|
-|`MapStyle.LIGHT`|[![](images/screenshots/style-streets-v2-light.png)](https://www.maptiler.com/maps/#style=streets-v2-light&mode=2d&position=4.4/48.15/12.65)|Just like the `DARK`, but in bright mode! Your data layer as a first class citizen!|
+|`MapStyle.STREETS_DARK`|[![](images/screenshots/style-streets-v2-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A dark theme perfect to display data layers on top without losing any precious information|
+|`MapStyle.STREETS_LIGHT`|[![](images/screenshots/style-streets-v2-light.png)](https://www.maptiler.com/maps/#style=streets-v2-light&mode=2d&position=4.4/48.15/12.65)|Just like the `STREETS_DARK`, but in bright mode! Your data layer as a first class citizen!|
 
 
 Still, you can still use some classic styles with just a *string*:

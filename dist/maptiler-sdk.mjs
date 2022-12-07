@@ -178,8 +178,8 @@ const MapStyle = {
   SATELLITE: "satellite",
   OUTDOOR: "outdoor",
   BASIC: "basic-v2",
-  DARK: "streets-v2-dark",
-  LIGHT: "streets-v2-light"
+  STREETS_DARK: "streets-v2-dark",
+  STREETS_LIGHT: "streets-v2-light"
 };
 const builtInStyles = {};
 builtInStyles[MapStyle.SATELLITE] = satelliteBuiltin;

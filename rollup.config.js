@@ -18,6 +18,21 @@ const copyCssPlugin = copy({
 });
 
 
+const copyUmdBundle= copy({
+  targets: [
+    {
+      src: `dist/${outputName}.umd.js`,
+      dest: "examples/",
+    },
+    {
+      src: `dist/${outputName}.css`,
+      dest: "examples/",
+    },
+  ],
+  hook: "writeBundle"
+});
+
+
 const bundles = [ 
   // ES module, not minified + sourcemap
   {
@@ -72,6 +87,7 @@ const bundles = [
       globals(),
       json(),
       esbuild(),
+      copyUmdBundle,
     ],
     output: [
       {

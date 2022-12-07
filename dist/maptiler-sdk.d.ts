@@ -274,8 +274,8 @@ declare const MapStyle: {
     readonly SATELLITE: "satellite";
     readonly OUTDOOR: "outdoor";
     readonly BASIC: "basic-v2";
-    readonly DARK: "streets-v2-dark";
-    readonly LIGHT: "streets-v2-light";
+    readonly STREETS_DARK: "streets-v2-dark";
+    readonly STREETS_LIGHT: "streets-v2-light";
 };
 declare type Values<T> = T[keyof T];
 /**
