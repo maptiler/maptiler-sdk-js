@@ -229,7 +229,7 @@ declare namespace Point {
     var convert: (a: any) => any;
 }
 
-declare type Unit = 'imperial' | 'metric' | 'nautical';
+declare type Unit = "imperial" | "metric" | "nautical";
 
 /**
  * Configuration class for the SDK

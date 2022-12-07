@@ -39,7 +39,7 @@ export class TerrainControl implements IControl {
       "maplibregl-ctrl-terrain",
       this._container
     );
-    DOM.create( 
+    DOM.create(
       "span",
       "maplibregl-ctrl-icon",
       this._terrainButton

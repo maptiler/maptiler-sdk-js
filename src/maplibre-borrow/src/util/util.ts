@@ -1,9 +1,9 @@
-import UnitBezier from '@mapbox/unitbezier';
+// @ts-nocheck
+import UnitBezier from "@mapbox/unitbezier";
 
-import Point from '@mapbox/point-geometry';
+import Point from "@mapbox/point-geometry";
 
-import type {Callback} from '../types/callback';
-
+import type { Callback } from "../types/callback";
 
 /**
  * @module util
@@ -18,11 +18,11 @@ import type {Callback} from '../types/callback';
  * @private
  */
 export function easeCubicInOut(t: number): number {
-    if (t <= 0) return 0;
-    if (t >= 1) return 1;
-    const t2 = t * t,
-        t3 = t2 * t;
-    return 4 * (t < 0.5 ? t3 : 3 * (t - t2) + t3 - 0.75);
+  if (t <= 0) return 0;
+  if (t >= 1) return 1;
+  const t2 = t * t,
+    t3 = t2 * t;
+  return 4 * (t < 0.5 ? t3 : 3 * (t - t2) + t3 - 0.75);
 }
 
 /**
@@ -35,11 +35,16 @@ export function easeCubicInOut(t: number): number {
  * @param p2y control point 2 y coordinate
  * @private
  */
-export function bezier(p1x: number, p1y: number, p2x: number, p2y: number): (t: number) => number {
-    const bezier = new UnitBezier(p1x, p1y, p2x, p2y);
-    return function(t: number) {
-        return bezier.solve(t);
-    };
+export function bezier(
+  p1x: number,
+  p1y: number,
+  p2x: number,
+  p2y: number
+): (t: number) => number {
+  const bezier = new UnitBezier(p1x, p1y, p2x, p2y);
+  return function (t: number) {
+    return bezier.solve(t);
+  };
 }
 
 /**
@@ -60,7 +65,7 @@ export const ease = bezier(0.25, 0.1, 0.25, 1);
  * @private
  */
 export function clamp(n: number, min: number, max: number): number {
-    return Math.min(max, Math.max(min, n));
+  return Math.min(max, Math.max(min, n));
 }
 
 /**
@@ -73,9 +78,9 @@ export function clamp(n: number, min: number, max: number): number {
  * @private
  */
 export function wrap(n: number, min: number, max: number): number {
-    const d = max - min;
-    const w = ((n - min) % d + d) % d + min;
-    return (w === min) ? max : w;
+  const d = max - min;
+  const w = ((((n - min) % d) + d) % d) + min;
+  return w === min ? max : w;
 }
 
 /*
@@ -89,21 +94,23 @@ export function wrap(n: number, min: number, max: number): number {
  * @private
  */
 export function asyncAll<Item, Result>(
-    array: Array<Item>,
-    fn: (item: Item, fnCallback: Callback<Result>) => void,
-    callback: Callback<Array<Result>>
+  array: Array<Item>,
+  fn: (item: Item, fnCallback: Callback<Result>) => void,
+  callback: Callback<Array<Result>>
 ) {
-    if (!array.length) { return callback(null, []); }
-    let remaining = array.length;
-    const results = new Array(array.length);
-    let error = null;
-    array.forEach((item, i) => {
-        fn(item, (err, result) => {
-            if (err) error = err;
-            results[i] = (result as any as Result); // https://github.com/facebook/flow/issues/2123
-            if (--remaining === 0) callback(error, results);
-        });
+  if (!array.length) {
+    return callback(null, []);
+  }
+  let remaining = array.length;
+  const results = new Array(array.length);
+  let error = null;
+  array.forEach((item, i) => {
+    fn(item, (err, result) => {
+      if (err) error = err;
+      results[i] = result as any as Result; // https://github.com/facebook/flow/issues/2123
+      if (--remaining === 0) callback(error, results);
     });
+  });
 }
 
 /*
@@ -114,16 +121,16 @@ export function asyncAll<Item, Result>(
  * @private
  */
 export function keysDifference<S, T>(
-    obj: {[key: string]: S},
-    other: {[key: string]: T}
+  obj: { [key: string]: S },
+  other: { [key: string]: T }
 ): Array<string> {
-    const difference = [];
-    for (const i in obj) {
-        if (!(i in other)) {
-            difference.push(i);
-        }
+  const difference = [];
+  for (const i in obj) {
+    if (!(i in other)) {
+      difference.push(i);
     }
-    return difference;
+  }
+  return difference;
 }
 
 /**
@@ -137,12 +144,12 @@ export function keysDifference<S, T>(
  * @private
  */
 export function extend(dest: any, ...sources: Array<any>): any {
-    for (const src of sources) {
-        for (const k in src) {
-            dest[k] = src[k];
-        }
+  for (const src of sources) {
+    for (const k in src) {
+      dest[k] = src[k];
     }
-    return dest;
+  }
+  return dest;
 }
 
 /**
@@ -160,14 +167,14 @@ export function extend(dest: any, ...sources: Array<any>): any {
  * @private
  */
 export function pick(src: any, properties: Array<string>): any {
-    const result = {};
-    for (let i = 0; i < properties.length; i++) {
-        const k = properties[i];
-        if (k in src) {
-            result[k] = src[k];
-        }
+  const result = {};
+  for (let i = 0; i < properties.length; i++) {
+    const k = properties[i];
+    if (k in src) {
+      result[k] = src[k];
     }
-    return result;
+  }
+  return result;
 }
 
 let id = 1;
@@ -180,7 +187,7 @@ let id = 1;
  * @private
  */
 export function uniqueId(): number {
-    return id++;
+  return id++;
 }
 
 /**
@@ -188,7 +195,7 @@ export function uniqueId(): number {
  * @private
  */
 export function isPowerOfTwo(value: number): boolean {
-    return (Math.log(value) / Math.LN2) % 1 === 0;
+  return (Math.log(value) / Math.LN2) % 1 === 0;
 }
 
 /**
@@ -196,8 +203,8 @@ export function isPowerOfTwo(value: number): boolean {
  * @private
  */
 export function nextPowerOfTwo(value: number): number {
-    if (value <= 1) return 1;
-    return Math.pow(2, Math.ceil(Math.log(value) / Math.LN2));
+  if (value <= 1) return 1;
+  return Math.pow(2, Math.ceil(Math.log(value) / Math.LN2));
 }
 
 /**
@@ -222,10 +229,12 @@ export function nextPowerOfTwo(value: number): number {
  * @private
  */
 export function bindAll(fns: Array<string>, context: any): void {
-    fns.forEach((fn) => {
-        if (!context[fn]) { return; }
-        context[fn] = context[fn].bind(context);
-    });
+  fns.forEach((fn) => {
+    if (!context[fn]) {
+      return;
+    }
+    context[fn] = context[fn].bind(context);
+  });
 }
 
 /**
@@ -235,11 +244,11 @@ export function bindAll(fns: Array<string>, context: any): void {
  * @private
  */
 export function mapObject(input: any, iterator: Function, context?: any): any {
-    const output = {};
-    for (const key in input) {
-        output[key] = iterator.call(context || this, input[key], key, input);
-    }
-    return output;
+  const output = {};
+  for (const key in input) {
+    output[key] = iterator.call(context || this, input[key], key, input);
+  }
+  return output;
 }
 
 /**
@@ -247,18 +256,22 @@ export function mapObject(input: any, iterator: Function, context?: any): any {
  *
  * @private
  */
-export function filterObject(input: any, iterator: Function, context?: any): any {
-    const output = {};
-    for (const key in input) {
-        if (iterator.call(context || this, input[key], key, input)) {
-            output[key] = input[key];
-        }
+export function filterObject(
+  input: any,
+  iterator: Function,
+  context?: any
+): any {
+  const output = {};
+  for (const key in input) {
+    if (iterator.call(context || this, input[key], key, input)) {
+      output[key] = input[key];
     }
-    return output;
+  }
+  return output;
 }
 
-import deepEqual from '../style-spec/util/deep_equal';
-export {deepEqual};
+import deepEqual from "../style-spec/util/deep_equal";
+export { deepEqual };
 
 /**
  * Deeply clones two objects.
@@ -266,13 +279,13 @@ export {deepEqual};
  * @private
  */
 export function clone<T>(input: T): T {
-    if (Array.isArray(input)) {
-        return input.map(clone) as any as T;
-    } else if (typeof input === 'object' && input) {
-        return mapObject(input, clone) as any as T;
-    } else {
-        return input;
-    }
+  if (Array.isArray(input)) {
+    return input.map(clone) as any as T;
+  } else if (typeof input === "object" && input) {
+    return mapObject(input, clone) as any as T;
+  } else {
+    return input;
+  }
 }
 
 /**
@@ -281,10 +294,10 @@ export function clone<T>(input: T): T {
  * @private
  */
 export function arraysIntersect<T>(a: Array<T>, b: Array<T>): boolean {
-    for (let l = 0; l < a.length; l++) {
-        if (b.indexOf(a[l]) >= 0) return true;
-    }
-    return false;
+  for (let l = 0; l < a.length; l++) {
+    if (b.indexOf(a[l]) >= 0) return true;
+  }
+  return false;
 }
 
 /**
@@ -293,14 +306,14 @@ export function arraysIntersect<T>(a: Array<T>, b: Array<T>): boolean {
  *
  * @private
  */
-const warnOnceHistory: {[key: string]: boolean} = {};
+const warnOnceHistory: { [key: string]: boolean } = {};
 
 export function warnOnce(message: string): void {
-    if (!warnOnceHistory[message]) {
-        // console isn't defined in some WebWorkers, see #2558
-        if (typeof console !== 'undefined') console.warn(message);
-        warnOnceHistory[message] = true;
-    }
+  if (!warnOnceHistory[message]) {
+    // console isn't defined in some WebWorkers, see #2558
+    if (typeof console !== "undefined") console.warn(message);
+    warnOnceHistory[message] = true;
+  }
 }
 
 /**
@@ -311,7 +324,7 @@ export function warnOnce(message: string): void {
  */
 // http://bryceboe.com/2006/10/23/line-segment-intersection-algorithm/
 export function isCounterClockwise(a: Point, b: Point, c: Point): boolean {
-    return (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x);
+  return (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x);
 }
 
 /**
@@ -323,13 +336,13 @@ export function isCounterClockwise(a: Point, b: Point, c: Point): boolean {
  * @param ring Exterior or interior ring
  */
 export function calculateSignedArea(ring: Array<Point>): number {
-    let sum = 0;
-    for (let i = 0, len = ring.length, j = len - 1, p1, p2; i < len; j = i++) {
-        p1 = ring[i];
-        p2 = ring[j];
-        sum += (p2.x - p1.x) * (p1.y + p2.y);
-    }
-    return sum;
+  let sum = 0;
+  for (let i = 0, len = ring.length, j = len - 1, p1, p2; i < len; j = i++) {
+    p1 = ring[i];
+    p2 = ring[j];
+    sum += (p2.x - p1.x) * (p1.y + p2.y);
+  }
+  return sum;
 }
 
 /**
@@ -340,21 +353,19 @@ export function calculateSignedArea(ring: Array<Point>): number {
  * @return true if the points are a closed polygon
  */
 export function isClosedPolygon(points: Array<Point>): boolean {
-    // If it is 2 points that are the same then it is a point
-    // If it is 3 points with start and end the same then it is a line
-    if (points.length < 4)
-        return false;
+  // If it is 2 points that are the same then it is a point
+  // If it is 3 points with start and end the same then it is a line
+  if (points.length < 4) return false;
 
-    const p1 = points[0];
-    const p2 = points[points.length - 1];
+  const p1 = points[0];
+  const p2 = points[points.length - 1];
 
-    if (Math.abs(p1.x - p2.x) > 0 ||
-        Math.abs(p1.y - p2.y) > 0) {
-        return false;
-    }
+  if (Math.abs(p1.x - p2.x) > 0 || Math.abs(p1.y - p2.y) > 0) {
+    return false;
+  }
 
-    // polygon simplification can produce polygons with zero area and more than 3 points
-    return Math.abs(calculateSignedArea(points)) > 0.01;
+  // polygon simplification can produce polygons with zero area and more than 3 points
+  return Math.abs(calculateSignedArea(points)) > 0.01;
 }
 
 /**
@@ -365,24 +376,28 @@ export function isClosedPolygon(points: Array<Point>): boolean {
  * @return cartesian coordinates in [x, y, z]
  */
 
-export function sphericalToCartesian([r, azimuthal, polar]: [number, number, number]): {
-    x: number;
-    y: number;
-    z: number;
+export function sphericalToCartesian([r, azimuthal, polar]: [
+  number,
+  number,
+  number
+]): {
+  x: number;
+  y: number;
+  z: number;
 } {
-    // We abstract "north"/"up" (compass-wise) to be 0° when really this is 90° (π/2):
-    // correct for that here
-    azimuthal += 90;
+  // We abstract "north"/"up" (compass-wise) to be 0° when really this is 90° (π/2):
+  // correct for that here
+  azimuthal += 90;
 
-    // Convert azimuthal and polar angles to radians
-    azimuthal *= Math.PI / 180;
-    polar *= Math.PI / 180;
+  // Convert azimuthal and polar angles to radians
+  azimuthal *= Math.PI / 180;
+  polar *= Math.PI / 180;
 
-    return {
-        x: r * Math.cos(azimuthal) * Math.sin(polar),
-        y: r * Math.sin(azimuthal) * Math.sin(polar),
-        z: r * Math.cos(polar)
-    };
+  return {
+    x: r * Math.cos(azimuthal) * Math.sin(polar),
+    y: r * Math.sin(azimuthal) * Math.sin(polar),
+    z: r * Math.cos(polar),
+  };
 }
 
 /**
@@ -392,8 +407,12 @@ export function sphericalToCartesian([r, azimuthal, polar]: [number, number, num
  * @returns {boolean}
  */
 export function isWorker(): boolean {
-    // @ts-ignore
-    return typeof WorkerGlobalScope !== 'undefined' && typeof self !== 'undefined' && self instanceof WorkerGlobalScope;
+  // @ts-ignore
+  return (
+    typeof WorkerGlobalScope !== "undefined" &&
+    typeof self !== "undefined" &&
+    self instanceof WorkerGlobalScope
+  );
 }
 
 /**
@@ -405,23 +424,24 @@ export function isWorker(): boolean {
  */
 
 export function parseCacheControl(cacheControl: string): any {
-    // Taken from [Wreck](https://github.com/hapijs/wreck)
-    const re = /(?:^|(?:\s*\,\s*))([^\x00-\x20\(\)<>@\,;\:\\"\/\[\]\?\=\{\}\x7F]+)(?:\=(?:([^\x00-\x20\(\)<>@\,;\:\\"\/\[\]\?\=\{\}\x7F]+)|(?:\"((?:[^"\\]|\\.)*)\")))?/g;
+  // Taken from [Wreck](https://github.com/hapijs/wreck)
+  const re =
+    /(?:^|(?:\s*\,\s*))([^\x00-\x20\(\)<>@\,;\:\\"\/\[\]\?\=\{\}\x7F]+)(?:\=(?:([^\x00-\x20\(\)<>@\,;\:\\"\/\[\]\?\=\{\}\x7F]+)|(?:\"((?:[^"\\]|\\.)*)\")))?/g;
 
-    const header = {};
-    cacheControl.replace(re, ($0, $1, $2, $3) => {
-        const value = $2 || $3;
-        header[$1] = value ? value.toLowerCase() : true;
-        return '';
-    });
+  const header = {};
+  cacheControl.replace(re, ($0, $1, $2, $3) => {
+    const value = $2 || $3;
+    header[$1] = value ? value.toLowerCase() : true;
+    return "";
+  });
 
-    if (header['max-age']) {
-        const maxAge = parseInt(header['max-age'], 10);
-        if (isNaN(maxAge)) delete header['max-age'];
-        else header['max-age'] = maxAge;
-    }
+  if (header["max-age"]) {
+    const maxAge = parseInt(header["max-age"], 10);
+    if (isNaN(maxAge)) delete header["max-age"];
+    else header["max-age"] = maxAge;
+  }
 
-    return header;
+  return header;
 }
 
 let _isSafari = null;
@@ -440,44 +460,52 @@ let _isSafari = null;
  * @returns {boolean}
  */
 export function isSafari(scope: any): boolean {
-    if (_isSafari == null) {
-        const userAgent = scope.navigator ? scope.navigator.userAgent : null;
-        _isSafari = !!scope.safari ||
-        !!(userAgent && (/\b(iPad|iPhone|iPod)\b/.test(userAgent) || (!!userAgent.match('Safari') && !userAgent.match('Chrome'))));
-    }
-    return _isSafari;
+  if (_isSafari == null) {
+    const userAgent = scope.navigator ? scope.navigator.userAgent : null;
+    _isSafari =
+      !!scope.safari ||
+      !!(
+        userAgent &&
+        (/\b(iPad|iPhone|iPod)\b/.test(userAgent) ||
+          (!!userAgent.match("Safari") && !userAgent.match("Chrome")))
+      );
+  }
+  return _isSafari;
 }
 
 export function storageAvailable(type: string): boolean {
-    try {
-        const storage = window[type];
-        storage.setItem('_mapbox_test_', 1);
-        storage.removeItem('_mapbox_test_');
-        return true;
-    } catch (e) {
-        return false;
-    }
+  try {
+    const storage = window[type];
+    storage.setItem("_mapbox_test_", 1);
+    storage.removeItem("_mapbox_test_");
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
 // The following methods are from https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem
 //Unicode compliant base64 encoder for strings
 export function b64EncodeUnicode(str: string) {
-    return btoa(
-        encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
-            (match, p1) => {
-                return String.fromCharCode(Number('0x' + p1)); //eslint-disable-line
-            }
-        )
-    );
+  return btoa(
+    encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+      return String.fromCharCode(Number("0x" + p1)); //eslint-disable-line
+    })
+  );
 }
 
 // Unicode compliant decoder for base64-encoded strings
 export function b64DecodeUnicode(str: string) {
-    return decodeURIComponent(atob(str).split('').map((c) => {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); //eslint-disable-line
-    }).join(''));
+  return decodeURIComponent(
+    atob(str)
+      .split("")
+      .map((c) => {
+        return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2); //eslint-disable-line
+      })
+      .join("")
+  );
 }
 
 export function isImageBitmap(image: any): image is ImageBitmap {
-    return typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap;
+  return typeof ImageBitmap !== "undefined" && image instanceof ImageBitmap;
 }

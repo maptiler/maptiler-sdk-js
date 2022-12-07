@@ -42,7 +42,7 @@ class SdkConfig extends EventEmitter {
    */
   set unit(u: Unit) {
     this._unit = u;
-    this.emit('unit', u);
+    this.emit("unit", u);
   }
 
   /**
@@ -58,7 +58,7 @@ class SdkConfig extends EventEmitter {
   set apiKey(k: string) {
     this._apiKey = k;
     clientConfig.apiKey = k;
-    this.emit('apiKey', k);
+    this.emit("apiKey", k);
   }
 
   /**

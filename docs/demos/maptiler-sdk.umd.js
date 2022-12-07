@@ -140,6 +140,482 @@
 	  return unsafeStringify(rnds);
 	}
 
+	var events = {exports: {}};
+
+	var R = typeof Reflect === 'object' ? Reflect : null;
+	var ReflectApply = R && typeof R.apply === 'function'
+	  ? R.apply
+	  : function ReflectApply(target, receiver, args) {
+	    return Function.prototype.apply.call(target, receiver, args);
+	  };
+
+	var ReflectOwnKeys;
+	if (R && typeof R.ownKeys === 'function') {
+	  ReflectOwnKeys = R.ownKeys;
+	} else if (Object.getOwnPropertySymbols) {
+	  ReflectOwnKeys = function ReflectOwnKeys(target) {
+	    return Object.getOwnPropertyNames(target)
+	      .concat(Object.getOwnPropertySymbols(target));
+	  };
+	} else {
+	  ReflectOwnKeys = function ReflectOwnKeys(target) {
+	    return Object.getOwnPropertyNames(target);
+	  };
+	}
+
+	function ProcessEmitWarning(warning) {
+	  if (console && console.warn) console.warn(warning);
+	}
+
+	var NumberIsNaN = Number.isNaN || function NumberIsNaN(value) {
+	  return value !== value;
+	};
+
+	function EventEmitter() {
+	  EventEmitter.init.call(this);
+	}
+	events.exports = EventEmitter;
+	events.exports.once = once;
+
+	// Backwards-compat with node 0.10.x
+	EventEmitter.EventEmitter = EventEmitter;
+
+	EventEmitter.prototype._events = undefined;
+	EventEmitter.prototype._eventsCount = 0;
+	EventEmitter.prototype._maxListeners = undefined;
+
+	// By default EventEmitters will print a warning if more than 10 listeners are
+	// added to it. This is a useful default which helps finding memory leaks.
+	var defaultMaxListeners = 10;
+
+	function checkListener(listener) {
+	  if (typeof listener !== 'function') {
+	    throw new TypeError('The "listener" argument must be of type Function. Received type ' + typeof listener);
+	  }
+	}
+
+	Object.defineProperty(EventEmitter, 'defaultMaxListeners', {
+	  enumerable: true,
+	  get: function() {
+	    return defaultMaxListeners;
+	  },
+	  set: function(arg) {
+	    if (typeof arg !== 'number' || arg < 0 || NumberIsNaN(arg)) {
+	      throw new RangeError('The value of "defaultMaxListeners" is out of range. It must be a non-negative number. Received ' + arg + '.');
+	    }
+	    defaultMaxListeners = arg;
+	  }
+	});
+
+	EventEmitter.init = function() {
+
+	  if (this._events === undefined ||
+	      this._events === Object.getPrototypeOf(this)._events) {
+	    this._events = Object.create(null);
+	    this._eventsCount = 0;
+	  }
+
+	  this._maxListeners = this._maxListeners || undefined;
+	};
+
+	// Obviously not all Emitters should be limited to 10. This function allows
+	// that to be increased. Set to zero for unlimited.
+	EventEmitter.prototype.setMaxListeners = function setMaxListeners(n) {
+	  if (typeof n !== 'number' || n < 0 || NumberIsNaN(n)) {
+	    throw new RangeError('The value of "n" is out of range. It must be a non-negative number. Received ' + n + '.');
+	  }
+	  this._maxListeners = n;
+	  return this;
+	};
+
+	function _getMaxListeners(that) {
+	  if (that._maxListeners === undefined)
+	    return EventEmitter.defaultMaxListeners;
+	  return that._maxListeners;
+	}
+
+	EventEmitter.prototype.getMaxListeners = function getMaxListeners() {
+	  return _getMaxListeners(this);
+	};
+
+	EventEmitter.prototype.emit = function emit(type) {
+	  var args = [];
+	  for (var i = 1; i < arguments.length; i++) args.push(arguments[i]);
+	  var doError = (type === 'error');
+
+	  var events = this._events;
+	  if (events !== undefined)
+	    doError = (doError && events.error === undefined);
+	  else if (!doError)
+	    return false;
+
+	  // If there is no 'error' event listener then throw.
+	  if (doError) {
+	    var er;
+	    if (args.length > 0)
+	      er = args[0];
+	    if (er instanceof Error) {
+	      // Note: The comments on the `throw` lines are intentional, they show
+	      // up in Node's output if this results in an unhandled exception.
+	      throw er; // Unhandled 'error' event
+	    }
+	    // At least give some kind of context to the user
+	    var err = new Error('Unhandled error.' + (er ? ' (' + er.message + ')' : ''));
+	    err.context = er;
+	    throw err; // Unhandled 'error' event
+	  }
+
+	  var handler = events[type];
+
+	  if (handler === undefined)
+	    return false;
+
+	  if (typeof handler === 'function') {
+	    ReflectApply(handler, this, args);
+	  } else {
+	    var len = handler.length;
+	    var listeners = arrayClone(handler, len);
+	    for (var i = 0; i < len; ++i)
+	      ReflectApply(listeners[i], this, args);
+	  }
+
+	  return true;
+	};
+
+	function _addListener(target, type, listener, prepend) {
+	  var m;
+	  var events;
+	  var existing;
+
+	  checkListener(listener);
+
+	  events = target._events;
+	  if (events === undefined) {
+	    events = target._events = Object.create(null);
+	    target._eventsCount = 0;
+	  } else {
+	    // To avoid recursion in the case that type === "newListener"! Before
+	    // adding it to the listeners, first emit "newListener".
+	    if (events.newListener !== undefined) {
+	      target.emit('newListener', type,
+	                  listener.listener ? listener.listener : listener);
+
+	      // Re-assign `events` because a newListener handler could have caused the
+	      // this._events to be assigned to a new object
+	      events = target._events;
+	    }
+	    existing = events[type];
+	  }
+
+	  if (existing === undefined) {
+	    // Optimize the case of one listener. Don't need the extra array object.
+	    existing = events[type] = listener;
+	    ++target._eventsCount;
+	  } else {
+	    if (typeof existing === 'function') {
+	      // Adding the second element, need to change to array.
+	      existing = events[type] =
+	        prepend ? [listener, existing] : [existing, listener];
+	      // If we've already got an array, just append.
+	    } else if (prepend) {
+	      existing.unshift(listener);
+	    } else {
+	      existing.push(listener);
+	    }
+
+	    // Check for listener leak
+	    m = _getMaxListeners(target);
+	    if (m > 0 && existing.length > m && !existing.warned) {
+	      existing.warned = true;
+	      // No error code for this since it is a Warning
+	      // eslint-disable-next-line no-restricted-syntax
+	      var w = new Error('Possible EventEmitter memory leak detected. ' +
+	                          existing.length + ' ' + String(type) + ' listeners ' +
+	                          'added. Use emitter.setMaxListeners() to ' +
+	                          'increase limit');
+	      w.name = 'MaxListenersExceededWarning';
+	      w.emitter = target;
+	      w.type = type;
+	      w.count = existing.length;
+	      ProcessEmitWarning(w);
+	    }
+	  }
+
+	  return target;
+	}
+
+	EventEmitter.prototype.addListener = function addListener(type, listener) {
+	  return _addListener(this, type, listener, false);
+	};
+
+	EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+	EventEmitter.prototype.prependListener =
+	    function prependListener(type, listener) {
+	      return _addListener(this, type, listener, true);
+	    };
+
+	function onceWrapper() {
+	  if (!this.fired) {
+	    this.target.removeListener(this.type, this.wrapFn);
+	    this.fired = true;
+	    if (arguments.length === 0)
+	      return this.listener.call(this.target);
+	    return this.listener.apply(this.target, arguments);
+	  }
+	}
+
+	function _onceWrap(target, type, listener) {
+	  var state = { fired: false, wrapFn: undefined, target: target, type: type, listener: listener };
+	  var wrapped = onceWrapper.bind(state);
+	  wrapped.listener = listener;
+	  state.wrapFn = wrapped;
+	  return wrapped;
+	}
+
+	EventEmitter.prototype.once = function once(type, listener) {
+	  checkListener(listener);
+	  this.on(type, _onceWrap(this, type, listener));
+	  return this;
+	};
+
+	EventEmitter.prototype.prependOnceListener =
+	    function prependOnceListener(type, listener) {
+	      checkListener(listener);
+	      this.prependListener(type, _onceWrap(this, type, listener));
+	      return this;
+	    };
+
+	// Emits a 'removeListener' event if and only if the listener was removed.
+	EventEmitter.prototype.removeListener =
+	    function removeListener(type, listener) {
+	      var list, events, position, i, originalListener;
+
+	      checkListener(listener);
+
+	      events = this._events;
+	      if (events === undefined)
+	        return this;
+
+	      list = events[type];
+	      if (list === undefined)
+	        return this;
+
+	      if (list === listener || list.listener === listener) {
+	        if (--this._eventsCount === 0)
+	          this._events = Object.create(null);
+	        else {
+	          delete events[type];
+	          if (events.removeListener)
+	            this.emit('removeListener', type, list.listener || listener);
+	        }
+	      } else if (typeof list !== 'function') {
+	        position = -1;
+
+	        for (i = list.length - 1; i >= 0; i--) {
+	          if (list[i] === listener || list[i].listener === listener) {
+	            originalListener = list[i].listener;
+	            position = i;
+	            break;
+	          }
+	        }
+
+	        if (position < 0)
+	          return this;
+
+	        if (position === 0)
+	          list.shift();
+	        else {
+	          spliceOne(list, position);
+	        }
+
+	        if (list.length === 1)
+	          events[type] = list[0];
+
+	        if (events.removeListener !== undefined)
+	          this.emit('removeListener', type, originalListener || listener);
+	      }
+
+	      return this;
+	    };
+
+	EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
+
+	EventEmitter.prototype.removeAllListeners =
+	    function removeAllListeners(type) {
+	      var listeners, events, i;
+
+	      events = this._events;
+	      if (events === undefined)
+	        return this;
+
+	      // not listening for removeListener, no need to emit
+	      if (events.removeListener === undefined) {
+	        if (arguments.length === 0) {
+	          this._events = Object.create(null);
+	          this._eventsCount = 0;
+	        } else if (events[type] !== undefined) {
+	          if (--this._eventsCount === 0)
+	            this._events = Object.create(null);
+	          else
+	            delete events[type];
+	        }
+	        return this;
+	      }
+
+	      // emit removeListener for all listeners on all events
+	      if (arguments.length === 0) {
+	        var keys = Object.keys(events);
+	        var key;
+	        for (i = 0; i < keys.length; ++i) {
+	          key = keys[i];
+	          if (key === 'removeListener') continue;
+	          this.removeAllListeners(key);
+	        }
+	        this.removeAllListeners('removeListener');
+	        this._events = Object.create(null);
+	        this._eventsCount = 0;
+	        return this;
+	      }
+
+	      listeners = events[type];
+
+	      if (typeof listeners === 'function') {
+	        this.removeListener(type, listeners);
+	      } else if (listeners !== undefined) {
+	        // LIFO order
+	        for (i = listeners.length - 1; i >= 0; i--) {
+	          this.removeListener(type, listeners[i]);
+	        }
+	      }
+
+	      return this;
+	    };
+
+	function _listeners(target, type, unwrap) {
+	  var events = target._events;
+
+	  if (events === undefined)
+	    return [];
+
+	  var evlistener = events[type];
+	  if (evlistener === undefined)
+	    return [];
+
+	  if (typeof evlistener === 'function')
+	    return unwrap ? [evlistener.listener || evlistener] : [evlistener];
+
+	  return unwrap ?
+	    unwrapListeners(evlistener) : arrayClone(evlistener, evlistener.length);
+	}
+
+	EventEmitter.prototype.listeners = function listeners(type) {
+	  return _listeners(this, type, true);
+	};
+
+	EventEmitter.prototype.rawListeners = function rawListeners(type) {
+	  return _listeners(this, type, false);
+	};
+
+	EventEmitter.listenerCount = function(emitter, type) {
+	  if (typeof emitter.listenerCount === 'function') {
+	    return emitter.listenerCount(type);
+	  } else {
+	    return listenerCount.call(emitter, type);
+	  }
+	};
+
+	EventEmitter.prototype.listenerCount = listenerCount;
+	function listenerCount(type) {
+	  var events = this._events;
+
+	  if (events !== undefined) {
+	    var evlistener = events[type];
+
+	    if (typeof evlistener === 'function') {
+	      return 1;
+	    } else if (evlistener !== undefined) {
+	      return evlistener.length;
+	    }
+	  }
+
+	  return 0;
+	}
+
+	EventEmitter.prototype.eventNames = function eventNames() {
+	  return this._eventsCount > 0 ? ReflectOwnKeys(this._events) : [];
+	};
+
+	function arrayClone(arr, n) {
+	  var copy = new Array(n);
+	  for (var i = 0; i < n; ++i)
+	    copy[i] = arr[i];
+	  return copy;
+	}
+
+	function spliceOne(list, index) {
+	  for (; index + 1 < list.length; index++)
+	    list[index] = list[index + 1];
+	  list.pop();
+	}
+
+	function unwrapListeners(arr) {
+	  var ret = new Array(arr.length);
+	  for (var i = 0; i < ret.length; ++i) {
+	    ret[i] = arr[i].listener || arr[i];
+	  }
+	  return ret;
+	}
+
+	function once(emitter, name) {
+	  return new Promise(function (resolve, reject) {
+	    function errorListener(err) {
+	      emitter.removeListener(name, resolver);
+	      reject(err);
+	    }
+
+	    function resolver() {
+	      if (typeof emitter.removeListener === 'function') {
+	        emitter.removeListener('error', errorListener);
+	      }
+	      resolve([].slice.call(arguments));
+	    }
+	    eventTargetAgnosticAddListener(emitter, name, resolver, { once: true });
+	    if (name !== 'error') {
+	      addErrorHandlerIfEventEmitter(emitter, errorListener, { once: true });
+	    }
+	  });
+	}
+
+	function addErrorHandlerIfEventEmitter(emitter, handler, flags) {
+	  if (typeof emitter.on === 'function') {
+	    eventTargetAgnosticAddListener(emitter, 'error', handler, flags);
+	  }
+	}
+
+	function eventTargetAgnosticAddListener(emitter, name, listener, flags) {
+	  if (typeof emitter.on === 'function') {
+	    if (flags.once) {
+	      emitter.once(name, listener);
+	    } else {
+	      emitter.on(name, listener);
+	    }
+	  } else if (typeof emitter.addEventListener === 'function') {
+	    // EventTarget does not have `error` event semantics like Node
+	    // EventEmitters, we do not listen for `error` events here.
+	    emitter.addEventListener(name, function wrapListener(arg) {
+	      // IE does not have builtin `{ once: true }` support so we
+	      // have to do it manually.
+	      if (flags.once) {
+	        emitter.removeEventListener(name, wrapListener);
+	      }
+	      listener(arg);
+	    });
+	  } else {
+	    throw new TypeError('The "emitter" argument must be of type EventEmitter. Received type ' + typeof emitter);
+	  }
+	}
+
 	const Language = {
 	  AUTO: "auto",
 	  LATIN: "latin",
@@ -901,16 +1377,26 @@
 	  automatic
 	};
 
-	class SdkConfig {
+	class SdkConfig extends events.exports {
 	  constructor() {
+	    super();
 	    this.verbose = false;
 	    this.primaryLanguage = Language.AUTO;
 	    this.secondaryLanguage = null;
+	    this._unit = "metric";
 	    this._apiKey = "Not defined yet.";
+	  }
+	  set unit(u) {
+	    this._unit = u;
+	    this.emit("unit", u);
+	  }
+	  get unit() {
+	    return this._unit;
 	  }
 	  set apiKey(k) {
 	    this._apiKey = k;
 	    config$1.apiKey = k;
+	    this.emit("apiKey", k);
 	  }
 	  get apiKey() {
 	    return this._apiKey;
@@ -1497,6 +1983,15 @@
 	  "msUserSelect"
 	]);
 	DOM.transformProp = _DOM.testProp(["transform", "WebkitTransform"]);
+
+	function extend(dest, ...sources) {
+	  for (const src of sources) {
+	    for (const k in src) {
+	      dest[k] = src[k];
+	    }
+	  }
+	  return dest;
+	}
 	function bindAll(fns, context) {
 	  fns.forEach((fn) => {
 	    if (!context[fn]) {
@@ -1559,6 +2054,374 @@
 	        "TerrainControl.enableTerrain"
 	      );
 	    }
+	  }
+	}
+
+	const LEFT_BUTTON = 0;
+	const RIGHT_BUTTON = 2;
+	const BUTTONS_FLAGS = {
+	  [LEFT_BUTTON]: 1,
+	  [RIGHT_BUTTON]: 2
+	};
+	function buttonStillPressed(e, button) {
+	  const flag = BUTTONS_FLAGS[button];
+	  return e.buttons === void 0 || (e.buttons & flag) !== flag;
+	}
+	class MouseHandler {
+	  constructor(options) {
+	    this.reset();
+	    this._clickTolerance = options.clickTolerance || 1;
+	  }
+	  reset() {
+	    this._active = false;
+	    this._moved = false;
+	    delete this._lastPoint;
+	    delete this._eventButton;
+	  }
+	  _correctButton(e, button) {
+	    return false;
+	  }
+	  _move(lastPoint, point) {
+	    return {};
+	  }
+	  mousedown(e, point) {
+	    if (this._lastPoint)
+	      return;
+	    const eventButton = DOM.mouseButton(e);
+	    if (!this._correctButton(e, eventButton))
+	      return;
+	    this._lastPoint = point;
+	    this._eventButton = eventButton;
+	  }
+	  mousemoveWindow(e, point) {
+	    const lastPoint = this._lastPoint;
+	    if (!lastPoint)
+	      return;
+	    e.preventDefault();
+	    if (buttonStillPressed(e, this._eventButton)) {
+	      this.reset();
+	      return;
+	    }
+	    if (!this._moved && point.dist(lastPoint) < this._clickTolerance)
+	      return;
+	    this._moved = true;
+	    this._lastPoint = point;
+	    return this._move(lastPoint, point);
+	  }
+	  mouseupWindow(e) {
+	    if (!this._lastPoint)
+	      return;
+	    const eventButton = DOM.mouseButton(e);
+	    if (eventButton !== this._eventButton)
+	      return;
+	    if (this._moved)
+	      DOM.suppressClick();
+	    this.reset();
+	  }
+	  enable() {
+	    this._enabled = true;
+	  }
+	  disable() {
+	    this._enabled = false;
+	    this.reset();
+	  }
+	  isEnabled() {
+	    return this._enabled;
+	  }
+	  isActive() {
+	    return this._active;
+	  }
+	}
+	class MouseRotateHandler extends MouseHandler {
+	  _correctButton(e, button) {
+	    return button === LEFT_BUTTON && e.ctrlKey || button === RIGHT_BUTTON;
+	  }
+	  _move(lastPoint, point) {
+	    const degreesPerPixelMoved = 0.8;
+	    const bearingDelta = (point.x - lastPoint.x) * degreesPerPixelMoved;
+	    if (bearingDelta) {
+	      this._active = true;
+	      return { bearingDelta };
+	    }
+	  }
+	  contextmenu(e) {
+	    e.preventDefault();
+	  }
+	}
+	class MousePitchHandler extends MouseHandler {
+	  _correctButton(e, button) {
+	    return button === LEFT_BUTTON && e.ctrlKey || button === RIGHT_BUTTON;
+	  }
+	  _move(lastPoint, point) {
+	    const degreesPerPixelMoved = -0.5;
+	    const pitchDelta = (point.y - lastPoint.y) * degreesPerPixelMoved;
+	    if (pitchDelta) {
+	      this._active = true;
+	      return { pitchDelta };
+	    }
+	  }
+	  contextmenu(e) {
+	    e.preventDefault();
+	  }
+	}
+
+	const defaultOptions = {
+	  showCompass: true,
+	  showZoom: true,
+	  visualizePitch: false
+	};
+	class MaptilerNavigationControl {
+	  constructor(options) {
+	    this.options = extend({}, defaultOptions, options);
+	    this._container = DOM.create(
+	      "div",
+	      "maplibregl-ctrl maplibregl-ctrl-group mapboxgl-ctrl mapboxgl-ctrl-group"
+	    );
+	    this._container.addEventListener("contextmenu", (e) => e.preventDefault());
+	    if (this.options.showZoom) {
+	      bindAll(["_setButtonTitle", "_updateZoomButtons"], this);
+	      this._zoomInButton = this._createButton(
+	        "maplibregl-ctrl-zoom-in mapboxgl-ctrl-zoom-in",
+	        (e) => this._map.zoomIn({}, { originalEvent: e })
+	      );
+	      DOM.create(
+	        "span",
+	        "maplibregl-ctrl-icon mapboxgl-ctrl-icon",
+	        this._zoomInButton
+	      ).setAttribute("aria-hidden", "true");
+	      this._zoomOutButton = this._createButton(
+	        "maplibregl-ctrl-zoom-out mapboxgl-ctrl-zoom-out",
+	        (e) => this._map.zoomOut({}, { originalEvent: e })
+	      );
+	      DOM.create(
+	        "span",
+	        "maplibregl-ctrl-icon mapboxgl-ctrl-icon",
+	        this._zoomOutButton
+	      ).setAttribute("aria-hidden", "true");
+	    }
+	    if (this.options.showCompass) {
+	      bindAll(["_rotateCompassArrow"], this);
+	      this._compass = this._createButton(
+	        "maplibregl-ctrl-compass mapboxgl-ctrl-compass",
+	        (e) => {
+	          const currentPitch = this._map.getPitch();
+	          if (currentPitch === 0) {
+	            this._map.easeTo({ pitch: this._map.getMaxPitch() });
+	          } else {
+	            if (this.options.visualizePitch) {
+	              this._map.resetNorthPitch({}, { originalEvent: e });
+	            } else {
+	              this._map.resetNorth({}, { originalEvent: e });
+	            }
+	          }
+	        }
+	      );
+	      this._compassIcon = DOM.create(
+	        "span",
+	        "maplibregl-ctrl-icon mapboxgl-ctrl-icon",
+	        this._compass
+	      );
+	      this._compassIcon.setAttribute("aria-hidden", "true");
+	    }
+	  }
+	  _updateZoomButtons() {
+	    const zoom = this._map.getZoom();
+	    const isMax = zoom === this._map.getMaxZoom();
+	    const isMin = zoom === this._map.getMinZoom();
+	    this._zoomInButton.disabled = isMax;
+	    this._zoomOutButton.disabled = isMin;
+	    this._zoomInButton.setAttribute("aria-disabled", isMax.toString());
+	    this._zoomOutButton.setAttribute("aria-disabled", isMin.toString());
+	  }
+	  _rotateCompassArrow() {
+	    const rotate = this.options.visualizePitch ? `scale(${Math.min(
+      1.5,
+      1 / Math.pow(Math.cos(this._map.transform.pitch * (Math.PI / 180)), 0.5)
+    )}) rotateX(${Math.min(70, this._map.transform.pitch)}deg) rotateZ(${this._map.transform.angle * (180 / Math.PI)}deg)` : `rotate(${this._map.transform.angle * (180 / Math.PI)}deg)`;
+	    this._compassIcon.style.transform = rotate;
+	  }
+	  onAdd(map) {
+	    this._map = map;
+	    if (this.options.showZoom) {
+	      this._setButtonTitle(this._zoomInButton, "ZoomIn");
+	      this._setButtonTitle(this._zoomOutButton, "ZoomOut");
+	      this._map.on("zoom", this._updateZoomButtons);
+	      this._updateZoomButtons();
+	    }
+	    if (this.options.showCompass) {
+	      this._setButtonTitle(this._compass, "ResetBearing");
+	      if (this.options.visualizePitch) {
+	        this._map.on("pitch", this._rotateCompassArrow);
+	      }
+	      this._map.on("rotate", this._rotateCompassArrow);
+	      this._rotateCompassArrow();
+	      this._handler = new MouseRotateWrapper(
+	        this._map,
+	        this._compass,
+	        this.options.visualizePitch
+	      );
+	    }
+	    return this._container;
+	  }
+	  onRemove() {
+	    DOM.remove(this._container);
+	    if (this.options.showZoom) {
+	      this._map.off("zoom", this._updateZoomButtons);
+	    }
+	    if (this.options.showCompass) {
+	      if (this.options.visualizePitch) {
+	        this._map.off("pitch", this._rotateCompassArrow);
+	      }
+	      this._map.off("rotate", this._rotateCompassArrow);
+	      this._handler.off();
+	      delete this._handler;
+	    }
+	    delete this._map;
+	  }
+	  _createButton(className, fn) {
+	    const a = DOM.create(
+	      "button",
+	      className,
+	      this._container
+	    );
+	    a.type = "button";
+	    a.addEventListener("click", fn);
+	    return a;
+	  }
+	  _setButtonTitle(button, title) {
+	    const str = this._map._getUIString(`NavigationControl.${title}`);
+	    button.title = str;
+	    button.setAttribute("aria-label", str);
+	  }
+	}
+	class MouseRotateWrapper {
+	  constructor(map, element, pitch = false) {
+	    this._clickTolerance = 10;
+	    this.element = element;
+	    this.mouseRotate = new MouseRotateHandler({
+	      clickTolerance: map.dragRotate._mouseRotate._clickTolerance
+	    });
+	    this.map = map;
+	    if (pitch)
+	      this.mousePitch = new MousePitchHandler({
+	        clickTolerance: map.dragRotate._mousePitch._clickTolerance
+	      });
+	    bindAll(
+	      [
+	        "mousedown",
+	        "mousemove",
+	        "mouseup",
+	        "touchstart",
+	        "touchmove",
+	        "touchend",
+	        "reset"
+	      ],
+	      this
+	    );
+	    DOM.addEventListener(element, "mousedown", this.mousedown);
+	    DOM.addEventListener(element, "touchstart", this.touchstart, {
+	      passive: false
+	    });
+	    DOM.addEventListener(element, "touchmove", this.touchmove);
+	    DOM.addEventListener(element, "touchend", this.touchend);
+	    DOM.addEventListener(element, "touchcancel", this.reset);
+	  }
+	  down(e, point) {
+	    this.mouseRotate.mousedown(e, point);
+	    if (this.mousePitch)
+	      this.mousePitch.mousedown(e, point);
+	    DOM.disableDrag();
+	  }
+	  move(e, point) {
+	    const map = this.map;
+	    const r = this.mouseRotate.mousemoveWindow(e, point);
+	    if (r && r.bearingDelta)
+	      map.setBearing(map.getBearing() + r.bearingDelta);
+	    if (this.mousePitch) {
+	      const p = this.mousePitch.mousemoveWindow(e, point);
+	      if (p && p.pitchDelta)
+	        map.setPitch(map.getPitch() + p.pitchDelta);
+	    }
+	  }
+	  off() {
+	    const element = this.element;
+	    DOM.removeEventListener(element, "mousedown", this.mousedown);
+	    DOM.removeEventListener(element, "touchstart", this.touchstart, {
+	      passive: false
+	    });
+	    DOM.removeEventListener(element, "touchmove", this.touchmove);
+	    DOM.removeEventListener(element, "touchend", this.touchend);
+	    DOM.removeEventListener(element, "touchcancel", this.reset);
+	    this.offTemp();
+	  }
+	  offTemp() {
+	    DOM.enableDrag();
+	    DOM.removeEventListener(window, "mousemove", this.mousemove);
+	    DOM.removeEventListener(window, "mouseup", this.mouseup);
+	  }
+	  mousedown(e) {
+	    this.down(
+	      extend({}, e, {
+	        ctrlKey: true,
+	        preventDefault: () => e.preventDefault()
+	      }),
+	      DOM.mousePos(this.element, e)
+	    );
+	    DOM.addEventListener(window, "mousemove", this.mousemove);
+	    DOM.addEventListener(window, "mouseup", this.mouseup);
+	  }
+	  mousemove(e) {
+	    this.move(e, DOM.mousePos(this.element, e));
+	  }
+	  mouseup(e) {
+	    this.mouseRotate.mouseupWindow(e);
+	    if (this.mousePitch)
+	      this.mousePitch.mouseupWindow(e);
+	    this.offTemp();
+	  }
+	  touchstart(e) {
+	    if (e.targetTouches.length !== 1) {
+	      this.reset();
+	    } else {
+	      this._startPos = this._lastPos = DOM.touchPos(
+	        this.element,
+	        e.targetTouches
+	      )[0];
+	      this.down(
+	        {
+	          type: "mousedown",
+	          button: 0,
+	          ctrlKey: true,
+	          preventDefault: () => e.preventDefault()
+	        },
+	        this._startPos
+	      );
+	    }
+	  }
+	  touchmove(e) {
+	    if (e.targetTouches.length !== 1) {
+	      this.reset();
+	    } else {
+	      this._lastPos = DOM.touchPos(this.element, e.targetTouches)[0];
+	      this.move(
+	        { preventDefault: () => e.preventDefault() },
+	        this._lastPos
+	      );
+	    }
+	  }
+	  touchend(e) {
+	    if (e.targetTouches.length === 0 && this._startPos && this._lastPos && this._startPos.dist(this._lastPos) < this._clickTolerance) {
+	      this.element.click();
+	    }
+	    this.reset();
+	  }
+	  reset() {
+	    this.mouseRotate.reset();
+	    if (this.mousePitch)
+	      this.mousePitch.reset();
+	    delete this._startPos;
+	    delete this._lastPos;
+	    this.offTemp();
 	  }
 	}
 
@@ -1679,10 +2542,18 @@
 	      } else if (options.maptilerLogo) {
 	        this.addControl(new CustomLogoControl(), options.logoPosition);
 	      }
+	      if (options.scaleControl) {
+	        const position = options.scaleControl === true || options.scaleControl === void 0 ? "bottom-right" : options.scaleControl;
+	        const scaleControl = new maplibreGl$1.exports.ScaleControl({ unit: config.unit });
+	        this.addControl(scaleControl, position);
+	        config.on("unit", (unit) => {
+	          scaleControl.setUnit(unit);
+	        });
+	      }
 	      if (options.navigationControl !== false) {
 	        const position = options.navigationControl === true || options.navigationControl === void 0 ? "top-right" : options.navigationControl;
 	        this.addControl(
-	          new maplibreGl$1.exports.NavigationControl({
+	          new MaptilerNavigationControl({
 	            showCompass: true,
 	            showZoom: true,
 	            visualizePitch: true
@@ -1694,6 +2565,10 @@
 	      if (options.terrainControl !== false) {
 	        const position = options.terrainControl === true || options.terrainControl === void 0 ? "top-right" : options.terrainControl;
 	        this.addControl(new TerrainControl$1(), position);
+	      }
+	      if (options.fullscreenControl) {
+	        const position = options.fullscreenControl === true || options.fullscreenControl === void 0 ? "top-right" : options.fullscreenControl;
+	        this.addControl(new maplibreGl$1.exports.FullscreenControl({}), position);
 	      }
 	    }));
 	    if (options.terrain) {
@@ -2033,12 +2908,6 @@
 	  return a;
 	};
 
-	var Unit = /* @__PURE__ */ ((Unit2) => {
-	  Unit2[Unit2["METRIC"] = 0] = "METRIC";
-	  Unit2[Unit2["IMPERIAL"] = 1] = "IMPERIAL";
-	  return Unit2;
-	})(Unit || {});
-
 	const supported = maplibreGl.supported;
 	const setRTLTextPlugin = maplibreGl.setRTLTextPlugin;
 	const getRTLTextPluginStatus = maplibreGl.getRTLTextPluginStatus;
@@ -2101,7 +2970,6 @@
 	exports.ServiceError = ServiceError;
 	exports.Style = Style;
 	exports.TerrainControl = TerrainControl;
-	exports.Unit = Unit;
 	exports.VectorTileSource = VectorTileSource;
 	exports.VideoSource = VideoSource;
 	exports.addProtocol = addProtocol;

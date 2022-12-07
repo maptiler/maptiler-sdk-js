@@ -3,4 +3,5 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
   root: true,
+  "@typescript-eslint/ban-ts-comment": "warn"
 };

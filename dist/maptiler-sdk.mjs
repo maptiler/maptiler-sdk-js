@@ -363,10 +363,12 @@ const _DOM = class {
     const rect = el.getBoundingClientRect();
     const points = [];
     for (let i = 0; i < touches.length; i++) {
-      points.push(new Point$1(
-        touches[i].clientX - rect.left - el.clientLeft,
-        touches[i].clientY - rect.top - el.clientTop
-      ));
+      points.push(
+        new Point$1(
+          touches[i].clientX - rect.left - el.clientLeft,
+          touches[i].clientY - rect.top - el.clientTop
+        )
+      );
     }
     return points;
   }
@@ -381,7 +383,12 @@ const _DOM = class {
 };
 let DOM = _DOM;
 DOM.docStyle = typeof window !== "undefined" && window.document && window.document.documentElement.style;
-DOM.selectProp = _DOM.testProp(["userSelect", "MozUserSelect", "WebkitUserSelect", "msUserSelect"]);
+DOM.selectProp = _DOM.testProp([
+  "userSelect",
+  "MozUserSelect",
+  "WebkitUserSelect",
+  "msUserSelect"
+]);
 DOM.transformProp = _DOM.testProp(["transform", "WebkitTransform"]);
 
 function bezier(p1x, p1y, p2x, p2y) {
@@ -580,35 +587,54 @@ const defaultOptions = {
 class MaptilerNavigationControl {
   constructor(options) {
     this.options = extend({}, defaultOptions, options);
-    this._container = DOM.create("div", "maplibregl-ctrl maplibregl-ctrl-group mapboxgl-ctrl mapboxgl-ctrl-group");
+    this._container = DOM.create(
+      "div",
+      "maplibregl-ctrl maplibregl-ctrl-group mapboxgl-ctrl mapboxgl-ctrl-group"
+    );
     this._container.addEventListener("contextmenu", (e) => e.preventDefault());
     if (this.options.showZoom) {
-      bindAll([
-        "_setButtonTitle",
-        "_updateZoomButtons"
-      ], this);
-      this._zoomInButton = this._createButton("maplibregl-ctrl-zoom-in mapboxgl-ctrl-zoom-in", (e) => this._map.zoomIn({}, { originalEvent: e }));
-      DOM.create("span", "maplibregl-ctrl-icon mapboxgl-ctrl-icon", this._zoomInButton).setAttribute("aria-hidden", "true");
-      this._zoomOutButton = this._createButton("maplibregl-ctrl-zoom-out mapboxgl-ctrl-zoom-out", (e) => this._map.zoomOut({}, { originalEvent: e }));
-      DOM.create("span", "maplibregl-ctrl-icon mapboxgl-ctrl-icon", this._zoomOutButton).setAttribute("aria-hidden", "true");
+      bindAll(["_setButtonTitle", "_updateZoomButtons"], this);
+      this._zoomInButton = this._createButton(
+        "maplibregl-ctrl-zoom-in mapboxgl-ctrl-zoom-in",
+        (e) => this._map.zoomIn({}, { originalEvent: e })
+      );
+      DOM.create(
+        "span",
+        "maplibregl-ctrl-icon mapboxgl-ctrl-icon",
+        this._zoomInButton
+      ).setAttribute("aria-hidden", "true");
+      this._zoomOutButton = this._createButton(
+        "maplibregl-ctrl-zoom-out mapboxgl-ctrl-zoom-out",
+        (e) => this._map.zoomOut({}, { originalEvent: e })
+      );
+      DOM.create(
+        "span",
+        "maplibregl-ctrl-icon mapboxgl-ctrl-icon",
+        this._zoomOutButton
+      ).setAttribute("aria-hidden", "true");
     }
     if (this.options.showCompass) {
-      bindAll([
-        "_rotateCompassArrow"
-      ], this);
-      this._compass = this._createButton("maplibregl-ctrl-compass mapboxgl-ctrl-compass", (e) => {
-        const currentPitch = this._map.getPitch();
-        if (currentPitch === 0) {
-          this._map.easeTo({ pitch: this._map.getMaxPitch() });
-        } else {
-          if (this.options.visualizePitch) {
-            this._map.resetNorthPitch({}, { originalEvent: e });
+      bindAll(["_rotateCompassArrow"], this);
+      this._compass = this._createButton(
+        "maplibregl-ctrl-compass mapboxgl-ctrl-compass",
+        (e) => {
+          const currentPitch = this._map.getPitch();
+          if (currentPitch === 0) {
+            this._map.easeTo({ pitch: this._map.getMaxPitch() });
           } else {
-            this._map.resetNorth({}, { originalEvent: e });
+            if (this.options.visualizePitch) {
+              this._map.resetNorthPitch({}, { originalEvent: e });
+            } else {
+              this._map.resetNorth({}, { originalEvent: e });
+            }
           }
         }
-      });
-      this._compassIcon = DOM.create("span", "maplibregl-ctrl-icon mapboxgl-ctrl-icon", this._compass);
+      );
+      this._compassIcon = DOM.create(
+        "span",
+        "maplibregl-ctrl-icon mapboxgl-ctrl-icon",
+        this._compass
+      );
       this._compassIcon.setAttribute("aria-hidden", "true");
     }
   }
@@ -622,7 +648,10 @@ class MaptilerNavigationControl {
     this._zoomOutButton.setAttribute("aria-disabled", isMin.toString());
   }
   _rotateCompassArrow() {
-    const rotate = this.options.visualizePitch ? `scale(${Math.min(1.5, 1 / Math.pow(Math.cos(this._map.transform.pitch * (Math.PI / 180)), 0.5))}) rotateX(${Math.min(70, this._map.transform.pitch)}deg) rotateZ(${this._map.transform.angle * (180 / Math.PI)}deg)` : `rotate(${this._map.transform.angle * (180 / Math.PI)}deg)`;
+    const rotate = this.options.visualizePitch ? `scale(${Math.min(
+      1.5,
+      1 / Math.pow(Math.cos(this._map.transform.pitch * (Math.PI / 180)), 0.5)
+    )}) rotateX(${Math.min(70, this._map.transform.pitch)}deg) rotateZ(${this._map.transform.angle * (180 / Math.PI)}deg)` : `rotate(${this._map.transform.angle * (180 / Math.PI)}deg)`;
     this._compassIcon.style.transform = rotate;
   }
   onAdd(map) {
@@ -640,7 +669,11 @@ class MaptilerNavigationControl {
       }
       this._map.on("rotate", this._rotateCompassArrow);
       this._rotateCompassArrow();
-      this._handler = new MouseRotateWrapper(this._map, this._compass, this.options.visualizePitch);
+      this._handler = new MouseRotateWrapper(
+        this._map,
+        this._compass,
+        this.options.visualizePitch
+      );
     }
     return this._container;
   }
@@ -660,7 +693,11 @@ class MaptilerNavigationControl {
     delete this._map;
   }
   _createButton(className, fn) {
-    const a = DOM.create("button", className, this._container);
+    const a = DOM.create(
+      "button",
+      className,
+      this._container
+    );
     a.type = "button";
     a.addEventListener("click", fn);
     return a;
@@ -675,13 +712,30 @@ class MouseRotateWrapper {
   constructor(map, element, pitch = false) {
     this._clickTolerance = 10;
     this.element = element;
-    this.mouseRotate = new MouseRotateHandler({ clickTolerance: map.dragRotate._mouseRotate._clickTolerance });
+    this.mouseRotate = new MouseRotateHandler({
+      clickTolerance: map.dragRotate._mouseRotate._clickTolerance
+    });
     this.map = map;
     if (pitch)
-      this.mousePitch = new MousePitchHandler({ clickTolerance: map.dragRotate._mousePitch._clickTolerance });
-    bindAll(["mousedown", "mousemove", "mouseup", "touchstart", "touchmove", "touchend", "reset"], this);
+      this.mousePitch = new MousePitchHandler({
+        clickTolerance: map.dragRotate._mousePitch._clickTolerance
+      });
+    bindAll(
+      [
+        "mousedown",
+        "mousemove",
+        "mouseup",
+        "touchstart",
+        "touchmove",
+        "touchend",
+        "reset"
+      ],
+      this
+    );
     DOM.addEventListener(element, "mousedown", this.mousedown);
-    DOM.addEventListener(element, "touchstart", this.touchstart, { passive: false });
+    DOM.addEventListener(element, "touchstart", this.touchstart, {
+      passive: false
+    });
     DOM.addEventListener(element, "touchmove", this.touchmove);
     DOM.addEventListener(element, "touchend", this.touchend);
     DOM.addEventListener(element, "touchcancel", this.reset);
@@ -706,7 +760,9 @@ class MouseRotateWrapper {
   off() {
     const element = this.element;
     DOM.removeEventListener(element, "mousedown", this.mousedown);
-    DOM.removeEventListener(element, "touchstart", this.touchstart, { passive: false });
+    DOM.removeEventListener(element, "touchstart", this.touchstart, {
+      passive: false
+    });
     DOM.removeEventListener(element, "touchmove", this.touchmove);
     DOM.removeEventListener(element, "touchend", this.touchend);
     DOM.removeEventListener(element, "touchcancel", this.reset);
@@ -718,7 +774,13 @@ class MouseRotateWrapper {
     DOM.removeEventListener(window, "mouseup", this.mouseup);
   }
   mousedown(e) {
-    this.down(extend({}, e, { ctrlKey: true, preventDefault: () => e.preventDefault() }), DOM.mousePos(this.element, e));
+    this.down(
+      extend({}, e, {
+        ctrlKey: true,
+        preventDefault: () => e.preventDefault()
+      }),
+      DOM.mousePos(this.element, e)
+    );
     DOM.addEventListener(window, "mousemove", this.mousemove);
     DOM.addEventListener(window, "mouseup", this.mouseup);
   }
@@ -735,8 +797,19 @@ class MouseRotateWrapper {
     if (e.targetTouches.length !== 1) {
       this.reset();
     } else {
-      this._startPos = this._lastPos = DOM.touchPos(this.element, e.targetTouches)[0];
-      this.down({ type: "mousedown", button: 0, ctrlKey: true, preventDefault: () => e.preventDefault() }, this._startPos);
+      this._startPos = this._lastPos = DOM.touchPos(
+        this.element,
+        e.targetTouches
+      )[0];
+      this.down(
+        {
+          type: "mousedown",
+          button: 0,
+          ctrlKey: true,
+          preventDefault: () => e.preventDefault()
+        },
+        this._startPos
+      );
     }
   }
   touchmove(e) {
@@ -744,7 +817,10 @@ class MouseRotateWrapper {
       this.reset();
     } else {
       this._lastPos = DOM.touchPos(this.element, e.targetTouches)[0];
-      this.move({ preventDefault: () => e.preventDefault() }, this._lastPos);
+      this.move(
+        { preventDefault: () => e.preventDefault() },
+        this._lastPos
+      );
     }
   }
   touchend(e) {

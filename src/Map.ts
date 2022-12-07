@@ -80,7 +80,7 @@ export class Map extends maplibre.Map {
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
 
-  constructor(options: MapOptions) { 
+  constructor(options: MapOptions) {
     let style;
 
     if ("style" in options) {
@@ -198,8 +198,7 @@ export class Map extends maplibre.Map {
       if (options.scaleControl) {
         // default position, if not provided, is top left corner
         const position = (
-          options.scaleControl === true ||
-          options.scaleControl === undefined
+          options.scaleControl === true || options.scaleControl === undefined
             ? "bottom-right"
             : options.scaleControl
         ) as maplibre.ControlPosition;
@@ -208,7 +207,7 @@ export class Map extends maplibre.Map {
         this.addControl(scaleControl, position);
         config.on("unit", (unit) => {
           scaleControl.setUnit(unit);
-        })
+        });
       }
 
       if (options.navigationControl !== false) {
@@ -242,7 +241,6 @@ export class Map extends maplibre.Map {
         this.addControl(new TerrainControl(), position);
       }
 
-
       // By default, no fullscreen control
       if (options.fullscreenControl) {
         // default position, if not provided, is top left corner
@@ -255,7 +253,6 @@ export class Map extends maplibre.Map {
 
         this.addControl(new FullscreenControl({}), position);
       }
-      
     });
 
     // enable 3D terrain if provided in options

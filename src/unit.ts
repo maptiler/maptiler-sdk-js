@@ -1,1 +1,1 @@
-export type Unit = 'imperial' | 'metric' | 'nautical';
+export type Unit = "imperial" | "metric" | "nautical";
