@@ -184,25 +184,218 @@ var satelliteBuiltin = {
 	zoom: zoom
 };
 
-const MapStyle = {
-  STREETS: "streets-v2",
-  HYBRID: "hybrid",
-  SATELLITE: "satellite",
-  OUTDOOR: "outdoor",
-  BASIC: "basic-v2",
-  STREETS_DARK: "streets-v2-dark",
-  STREETS_LIGHT: "streets-v2-light"
-};
-const builtInStyles = {};
-builtInStyles[MapStyle.SATELLITE] = satelliteBuiltin;
-function isBuiltinStyle(styleId) {
-  return styleId in builtInStyles;
-}
-function getBuiltinStyle(styleId) {
-  if (!isBuiltinStyle(styleId)) {
-    return null;
+function expandMapStyle(style) {
+  const maptilerDomainRegex = /^maptiler:\/\/(.*)/;
+  let match;
+  const trimmed = style.trim();
+  let expandedStyle;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    expandedStyle = trimmed;
+  } else if ((match = maptilerDomainRegex.exec(trimmed)) !== null) {
+    expandedStyle = `https://api.maptiler.com/maps/${match[1]}/style.json`;
+  } else {
+    expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
   }
-  return builtInStyles[styleId];
+  return expandedStyle;
+}
+const builtInStyles = {};
+const MapStyleVariationIds = {
+  CLASSIC: "CLASSIC",
+  DARK: "DARK",
+  LIGHT: "LIGHT",
+  NO_LABEL: "NO_LABEL"
+};
+function makeVariationProxy(variation) {
+  return new Proxy(variation, {
+    get(target, name) {
+      return target.getVariation(name);
+    }
+  });
+}
+class MapStyleVariation {
+  constructor(name, variationId, id, priority, referenceStyle, description = "") {
+    this.name = name;
+    this.variationId = variationId;
+    this.id = id;
+    this.priority = priority;
+    this.referenceStyle = referenceStyle;
+    this.description = description;
+  }
+  getName() {
+    return this.name;
+  }
+  getVariationId() {
+    return this.variationId;
+  }
+  getUsableStyle() {
+    if (this.id in builtInStyles) {
+      return builtInStyles[this.id];
+    }
+    return expandMapStyle(this.id);
+  }
+  getId() {
+    return this.id;
+  }
+  getDescription() {
+    return this.description;
+  }
+  getPriority() {
+    return this.priority;
+  }
+  getReferenceStyle() {
+    return this.referenceStyle;
+  }
+  hasVariation(variationId) {
+    return this.referenceStyle.hasVariation(variationId);
+  }
+  get DARK() {
+    return this.referenceStyle.DARK;
+  }
+  get CLASSIC() {
+    return this.referenceStyle.CLASSIC;
+  }
+  get LIGHT() {
+    return this.referenceStyle.LIGHT;
+  }
+  getVariation(variationId) {
+    return this.referenceStyle.getVariation(variationId);
+  }
+  getVariations() {
+    const variationSet = new Set(this.referenceStyle.getVariations());
+    variationSet.delete(this);
+    const variationsArray = Array.from(variationSet);
+    variationsArray.sort((a, b) => a.getPriority() < b.getPriority() ? -1 : 1);
+    return variationsArray;
+  }
+}
+class ReferenceMapStyle {
+  constructor() {
+    this.variations = {};
+  }
+  addVariation(v) {
+    this.variations[v.getVariationId()] = v;
+  }
+  hasVariation(variationId) {
+    return variationId in this.variations;
+  }
+  getVariation(variationId) {
+    return variationId in this.variations ? this.variations[variationId] : this.CLASSIC;
+  }
+  getVariations() {
+    const variationsArray = Object.values(this.variations);
+    variationsArray.sort((a, b) => a.getPriority() < b.getPriority() ? -1 : 1);
+    return variationsArray;
+  }
+  get CLASSIC() {
+    return this.getVariation(MapStyleVariationIds.CLASSIC);
+  }
+  get DARK() {
+    return this.getVariation(MapStyleVariationIds.DARK);
+  }
+  get LIGHT() {
+    return this.getVariation(MapStyleVariationIds.LIGHT);
+  }
+}
+const MapStyle = {
+  STREETS: new ReferenceMapStyle(),
+  OUTDOOR: new ReferenceMapStyle(),
+  SATELLITE: new ReferenceMapStyle(),
+  BASIC: new ReferenceMapStyle()
+};
+MapStyle.STREETS.addVariation(
+  new MapStyleVariation(
+    "Streets Classic",
+    MapStyleVariationIds.CLASSIC,
+    "streets-v2",
+    0,
+    MapStyle.STREETS
+  )
+);
+MapStyle.STREETS.addVariation(
+  new MapStyleVariation(
+    "Streets Dark",
+    MapStyleVariationIds.DARK,
+    "streets-v2-dark",
+    1,
+    MapStyle.STREETS
+  )
+);
+MapStyle.STREETS.addVariation(
+  new MapStyleVariation(
+    "Streets Light",
+    MapStyleVariationIds.LIGHT,
+    "streets-v2-light",
+    2,
+    MapStyle.STREETS
+  )
+);
+MapStyle.OUTDOOR.addVariation(
+  new MapStyleVariation(
+    "Outdoor Classic",
+    MapStyleVariationIds.CLASSIC,
+    "outdoor-v2",
+    0,
+    MapStyle.OUTDOOR
+  )
+);
+const winterVariation = new MapStyleVariation(
+  "Outdoor Winter",
+  "WINTER",
+  "winter-v2",
+  1,
+  MapStyle.OUTDOOR
+);
+MapStyle.OUTDOOR.addVariation(
+  winterVariation
+);
+const winterVariationProxy = makeVariationProxy(winterVariation);
+console.log("winterVariationProxy", winterVariationProxy);
+MapStyle.SATELLITE.addVariation(
+  new MapStyleVariation(
+    "Satellite with labels",
+    MapStyleVariationIds.CLASSIC,
+    "hybrid",
+    0,
+    MapStyle.SATELLITE
+  )
+);
+const satelliteVariationId = "satellite";
+MapStyle.SATELLITE.addVariation(
+  new MapStyleVariation(
+    "Satellite without label",
+    MapStyleVariationIds.NO_LABEL,
+    satelliteVariationId,
+    1,
+    MapStyle.SATELLITE
+  )
+);
+builtInStyles[satelliteVariationId] = satelliteBuiltin;
+MapStyle.BASIC.addVariation(
+  new MapStyleVariation(
+    "Basic",
+    MapStyleVariationIds.CLASSIC,
+    "basic-v2",
+    0,
+    MapStyle.BASIC
+  )
+);
+function styleToStyle(style) {
+  if (!style) {
+    return defaults.mapStyle.CLASSIC.getUsableStyle();
+  }
+  if (typeof style === "string" && style.toLocaleLowerCase() in builtInStyles) {
+    return builtInStyles[style.toLocaleLowerCase()];
+  }
+  if (typeof style === "string" || style instanceof String) {
+    return expandMapStyle(style);
+  }
+  if (style instanceof MapStyleVariation) {
+    return style.getUsableStyle();
+  }
+  if (style instanceof ReferenceMapStyle) {
+    return style.CLASSIC.getUsableStyle();
+  }
+  return style;
 }
 
 const defaults = {
@@ -260,25 +453,6 @@ class CustomLogoControl extends ML.LogoControl {
   }
 }
 
-function vlog(...args) {
-  if (config.verbose) {
-    console.log(...args);
-  }
-}
-function expandMapStyle(style) {
-  const maptilerDomainRegex = /^maptiler:\/\/(.*)/;
-  let match;
-  const trimmed = style.trim();
-  let expandedStyle;
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    expandedStyle = trimmed;
-  } else if ((match = maptilerDomainRegex.exec(trimmed)) !== null) {
-    expandedStyle = `https://api.maptiler.com/maps/${match[1]}/style.json`;
-  } else {
-    expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
-  }
-  return expandedStyle;
-}
 function enableRTL() {
   const maplibrePackage = ML;
   if (maplibrePackage.getRTLTextPluginStatus() === "unavailable") {
@@ -882,19 +1056,8 @@ const MAPTILER_SESSION_ID = v4();
 class Map extends ML.Map {
   constructor(options) {
     var _a;
-    let style;
-    if ("style" in options) {
-      if (typeof style === "string" && isBuiltinStyle(style)) {
-        style = getBuiltinStyle(style);
-      } else if (typeof style === "string") {
-        style = expandMapStyle(style);
-      } else {
-        style = options.style;
-      }
-    } else {
-      style = expandMapStyle(defaults.mapStyle);
-      vlog(`Map style not provided, backing up to ${defaults.mapStyle}`);
-    }
+    const style = styleToStyle(options.style);
+    console.log("style >>> ", style);
     super(__spreadProps(__spreadValues({}, options), {
       style,
       maplibreLogo: false,
@@ -992,13 +1155,7 @@ class Map extends ML.Map {
     }
   }
   setStyle(style, options) {
-    let tempStyle = style;
-    if (typeof style === "string" && isBuiltinStyle(style)) {
-      tempStyle = getBuiltinStyle(style);
-    } else if (typeof style === "string") {
-      tempStyle = expandMapStyle(style);
-    }
-    return super.setStyle(tempStyle, options);
+    return super.setStyle(styleToStyle(style), options);
   }
   setLanguage(language = defaults.primaryLanguage) {
     if (language === Language.AUTO) {

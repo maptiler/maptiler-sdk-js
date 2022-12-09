@@ -1,5 +1,6 @@
 import * as _mapbox_mapbox_gl_supported from '@mapbox/mapbox-gl-supported';
 import * as ML from 'maplibre-gl';
+import { StyleSpecification } from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { FetchFunction } from '@maptiler/client';
 export { AutomaticStaticMapOptions, Bbox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, LanguageGeocoding, LanguageGeocodingString, LngLatArray, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
@@ -96,11 +97,11 @@ declare const Language: {
     readonly UKRAINIAN: "uk";
     readonly WELSH: "cy";
 };
-declare type Values$1<T> = T[keyof T];
+declare type Values<T> = T[keyof T];
 /**
  * Built-in languages values as strings
  */
-declare type LanguageString = Values$1<typeof Language>;
+declare type LanguageString = Values<typeof Language>;
 
 declare type TransformStyleFunction = (previous: ML.StyleSpecification, next: ML.StyleSpecification) => ML.StyleSpecification;
 declare type StyleSwapOptions = {
@@ -284,23 +285,45 @@ declare class SdkConfig extends EventEmitter {
 }
 declare const config: SdkConfig;
 
-/**
- * Built-in styles
- */
+declare class MapStyleVariation {
+    private name;
+    private variationId;
+    private id;
+    private priority;
+    private referenceStyle;
+    private description;
+    constructor(name: string, variationId: string, id: string, priority: number, referenceStyle: ReferenceMapStyle, description?: string);
+    getName(): string;
+    getVariationId(): string;
+    getUsableStyle(): string | StyleSpecification;
+    getId(): string;
+    getDescription(): string;
+    getPriority(): number;
+    getReferenceStyle(): ReferenceMapStyle;
+    hasVariation(variationId: string): boolean;
+    get DARK(): MapStyleVariation | null;
+    get CLASSIC(): MapStyleVariation | null;
+    get LIGHT(): MapStyleVariation | null;
+    getVariation(variationId: string): MapStyleVariation;
+    getVariations(): Array<MapStyleVariation>;
+}
+declare class ReferenceMapStyle {
+    private variations;
+    constructor();
+    addVariation(v: MapStyleVariation): void;
+    hasVariation(variationId: string): boolean;
+    getVariation(variationId: string): MapStyleVariation;
+    getVariations(): Array<MapStyleVariation>;
+    get CLASSIC(): MapStyleVariation | null;
+    get DARK(): MapStyleVariation | null;
+    get LIGHT(): MapStyleVariation | null;
+}
 declare const MapStyle: {
-    readonly STREETS: "streets-v2";
-    readonly HYBRID: "hybrid";
-    readonly SATELLITE: "satellite";
-    readonly OUTDOOR: "outdoor";
-    readonly BASIC: "basic-v2";
-    readonly STREETS_DARK: "streets-v2-dark";
-    readonly STREETS_LIGHT: "streets-v2-light";
+    STREETS: ReferenceMapStyle;
+    OUTDOOR: ReferenceMapStyle;
+    SATELLITE: ReferenceMapStyle;
+    BASIC: ReferenceMapStyle;
 };
-declare type Values<T> = T[keyof T];
-/**
- * Built-in style values as strings
- */
-declare type MapStyleString = Values<typeof MapStyle>;
 
 declare const supported: _mapbox_mapbox_gl_supported.IsSupported;
 declare const setRTLTextPlugin: (url: string, callback: (error?: Error) => void, deferred?: boolean) => void;
@@ -337,4 +360,4 @@ declare const workerUrl: string;
 declare const addProtocol: (customProtocol: string, loadFn: (requestParameters: ML.RequestParameters, callback: ML.ResponseCallback<any>) => ML.Cancelable) => void;
 declare const removeProtocol: (customProtocol: string) => void;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MapStyle, MapStyleString, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MapStyle, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };

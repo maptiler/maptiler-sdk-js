@@ -3,9 +3,9 @@ import { v4 as uuidv4 } from "uuid";
 import { config } from "./config";
 import { defaults } from "./defaults";
 import { CustomLogoControl } from "./CustomLogoControl";
-import { enableRTL, expandMapStyle, vlog } from "./tools";
+import { enableRTL, vlog } from "./tools";
 import { getBrowserLanguage, Language, LanguageString } from "./language";
-import { isBuiltinStyle, getBuiltinStyle, MapStyleString } from "./mapstyle";
+import { styleToStyle } from "./mapstyle";
 import { FullscreenControl, GeolocateControl, ScaleControl } from "maplibre-gl";
 import { TerrainControl } from "./terraincontrol";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
@@ -81,20 +81,10 @@ export class Map extends maplibre.Map {
   private terrainExaggeration = 1;
 
   constructor(options: MapOptions) {
-    let style;
 
-    if ("style" in options) {
-      if (typeof style === "string" && isBuiltinStyle(style)) {
-        style = getBuiltinStyle(style as MapStyleString);
-      } else if (typeof style === "string") {
-        style = expandMapStyle(style);
-      } else {
-        style = options.style;
-      }
-    } else {
-      style = expandMapStyle(defaults.mapStyle);
-      vlog(`Map style not provided, backing up to ${defaults.mapStyle}`);
-    }
+    const style = styleToStyle(options.style);
+
+    console.log("style >>> ", style);
 
     // calling the map constructor with full length style
     super({
@@ -277,15 +267,7 @@ export class Map extends maplibre.Map {
     style: maplibre.StyleSpecification | string | null,
     options?: StyleSwapOptions & maplibre.StyleOptions
   ) {
-    let tempStyle = style;
-
-    if (typeof style === "string" && isBuiltinStyle(style)) {
-      tempStyle = getBuiltinStyle(style as MapStyleString);
-    } else if (typeof style === "string") {
-      tempStyle = expandMapStyle(style);
-    }
-
-    return super.setStyle(tempStyle, options);
+    return super.setStyle(styleToStyle(style), options);
   }
 
   /**
