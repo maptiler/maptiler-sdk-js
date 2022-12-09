@@ -1410,6 +1410,71 @@
 	}
 	const config = new SdkConfig();
 
+	const defaults = {
+	  maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
+	  maptilerURL: "https://www.maptiler.com/",
+	  maptilerApiURL: "https://api.maptiler.com/",
+	  rtlPluginURL: "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
+	  primaryLanguage: Language.LATIN,
+	  secondaryLanguage: Language.NON_LATIN,
+	  terrainSourceURL: "https://api.maptiler.com/tiles/terrain-rgb/tiles.json",
+	  terrainSourceId: "maptiler-terrain"
+	};
+	Object.freeze(defaults);
+
+	class CustomLogoControl extends maplibreGl$1.exports.LogoControl {
+	  constructor(options = {}) {
+	    var _a, _b;
+	    super(options);
+	    this.logoURL = "";
+	    this.linkURL = "";
+	    this.logoURL = (_a = options.logoURL) != null ? _a : defaults.maptilerLogoURL;
+	    this.linkURL = (_b = options.linkURL) != null ? _b : defaults.maptilerURL;
+	  }
+	  onAdd(map) {
+	    this._map = map;
+	    this._compact = this.options && this.options.compact;
+	    this._container = window.document.createElement("div");
+	    this._container.className = "maplibregl-ctrl";
+	    const anchor = window.document.createElement("a");
+	    anchor.style.backgroundRepeat = "no-repeat";
+	    anchor.style.cursor = "pointer";
+	    anchor.style.display = "block";
+	    anchor.style.height = "23px";
+	    anchor.style.margin = "0 0 -4px -4px";
+	    anchor.style.overflow = "hidden";
+	    anchor.style.width = "88px";
+	    anchor.style.backgroundImage = `url(${this.logoURL})`;
+	    anchor.style.backgroundSize = "100px 30px";
+	    anchor.style.width = "100px";
+	    anchor.style.height = "30px";
+	    anchor.target = "_blank";
+	    anchor.rel = "noopener nofollow";
+	    anchor.href = this.linkURL;
+	    anchor.setAttribute(
+	      "aria-label",
+	      this._map._getUIString("LogoControl.Title")
+	    );
+	    anchor.setAttribute("rel", "noopener nofollow");
+	    this._container.appendChild(anchor);
+	    this._container.style.display = "block";
+	    this._map.on("resize", this._updateCompact);
+	    this._updateCompact();
+	    return this._container;
+	  }
+	}
+
+	function enableRTL() {
+	  const maplibrePackage = maplibre;
+	  if (maplibrePackage.getRTLTextPluginStatus() === "unavailable") {
+	    maplibrePackage.setRTLTextPlugin(
+	      defaults.rtlPluginURL,
+	      null,
+	      true
+	    );
+	  }
+	}
+
 	var version$1 = 8;
 	var id = "f0e4ff8c-a9e4-414e-9f4d-7938762c948f";
 	var name = "Satellite no label";
@@ -1489,8 +1554,29 @@
 	};
 	function makeVariationProxy(variation) {
 	  return new Proxy(variation, {
-	    get(target, name) {
-	      return target.getVariation(name);
+	    get(target, prop, receiver) {
+	      const referenceStyle = target.getReferenceStyle();
+	      const hasVariation = referenceStyle.hasVariation(prop);
+	      if (hasVariation) {
+	        return referenceStyle.getVariation(prop);
+	      }
+	      if (prop.toString().toUpperCase() === prop) {
+	        return referenceStyle.getVariation(target.getVariationId());
+	      }
+	      return Reflect.get(target, prop, receiver);
+	    }
+	  });
+	}
+	function makeReferenceStyleProxy(referenceStyle) {
+	  return new Proxy(referenceStyle, {
+	    get(target, prop, receiver) {
+	      if (target.hasVariation(prop)) {
+	        return target.getVariation(prop);
+	      }
+	      if (prop.toString().toUpperCase() === prop) {
+	        return referenceStyle.getVariation(MapStyleVariationIds.CLASSIC);
+	      }
+	      return Reflect.get(target, prop, receiver);
 	    }
 	  });
 	}
@@ -1530,15 +1616,6 @@
 	  hasVariation(variationId) {
 	    return this.referenceStyle.hasVariation(variationId);
 	  }
-	  get DARK() {
-	    return this.referenceStyle.DARK;
-	  }
-	  get CLASSIC() {
-	    return this.referenceStyle.CLASSIC;
-	  }
-	  get LIGHT() {
-	    return this.referenceStyle.LIGHT;
-	  }
 	  getVariation(variationId) {
 	    return this.referenceStyle.getVariation(variationId);
 	  }
@@ -1561,109 +1638,97 @@
 	    return variationId in this.variations;
 	  }
 	  getVariation(variationId) {
-	    return variationId in this.variations ? this.variations[variationId] : this.CLASSIC;
+	    return variationId in this.variations ? this.variations[variationId] : this.variations[MapStyleVariationIds.CLASSIC];
 	  }
 	  getVariations() {
 	    const variationsArray = Object.values(this.variations);
 	    variationsArray.sort((a, b) => a.getPriority() < b.getPriority() ? -1 : 1);
 	    return variationsArray;
 	  }
-	  get CLASSIC() {
-	    return this.getVariation(MapStyleVariationIds.CLASSIC);
-	  }
-	  get DARK() {
-	    return this.getVariation(MapStyleVariationIds.DARK);
-	  }
-	  get LIGHT() {
-	    return this.getVariation(MapStyleVariationIds.LIGHT);
-	  }
 	}
 	const MapStyle = {
-	  STREETS: new ReferenceMapStyle(),
-	  OUTDOOR: new ReferenceMapStyle(),
-	  SATELLITE: new ReferenceMapStyle(),
-	  BASIC: new ReferenceMapStyle()
+	  STREETS: makeReferenceStyleProxy(new ReferenceMapStyle()),
+	  OUTDOOR: makeReferenceStyleProxy(new ReferenceMapStyle()),
+	  SATELLITE: makeReferenceStyleProxy(new ReferenceMapStyle()),
+	  BASIC: makeReferenceStyleProxy(new ReferenceMapStyle())
 	};
 	MapStyle.STREETS.addVariation(
-	  new MapStyleVariation(
+	  makeVariationProxy(new MapStyleVariation(
 	    "Streets Classic",
 	    MapStyleVariationIds.CLASSIC,
 	    "streets-v2",
 	    0,
 	    MapStyle.STREETS
-	  )
+	  ))
 	);
 	MapStyle.STREETS.addVariation(
-	  new MapStyleVariation(
+	  makeVariationProxy(new MapStyleVariation(
 	    "Streets Dark",
 	    MapStyleVariationIds.DARK,
 	    "streets-v2-dark",
 	    1,
 	    MapStyle.STREETS
-	  )
+	  ))
 	);
 	MapStyle.STREETS.addVariation(
-	  new MapStyleVariation(
+	  makeVariationProxy(new MapStyleVariation(
 	    "Streets Light",
 	    MapStyleVariationIds.LIGHT,
 	    "streets-v2-light",
 	    2,
 	    MapStyle.STREETS
-	  )
+	  ))
 	);
 	MapStyle.OUTDOOR.addVariation(
-	  new MapStyleVariation(
+	  makeVariationProxy(new MapStyleVariation(
 	    "Outdoor Classic",
 	    MapStyleVariationIds.CLASSIC,
 	    "outdoor-v2",
 	    0,
 	    MapStyle.OUTDOOR
-	  )
-	);
-	const winterVariation = new MapStyleVariation(
-	  "Outdoor Winter",
-	  "WINTER",
-	  "winter-v2",
-	  1,
-	  MapStyle.OUTDOOR
+	  ))
 	);
 	MapStyle.OUTDOOR.addVariation(
-	  winterVariation
+	  makeVariationProxy(new MapStyleVariation(
+	    "Outdoor Winter",
+	    "WINTER",
+	    "winter-v2",
+	    1,
+	    MapStyle.OUTDOOR
+	  ))
 	);
-	const winterVariationProxy = makeVariationProxy(winterVariation);
-	console.log("winterVariationProxy", winterVariationProxy);
 	MapStyle.SATELLITE.addVariation(
-	  new MapStyleVariation(
+	  makeVariationProxy(new MapStyleVariation(
 	    "Satellite with labels",
 	    MapStyleVariationIds.CLASSIC,
 	    "hybrid",
 	    0,
 	    MapStyle.SATELLITE
-	  )
+	  ))
 	);
 	const satelliteVariationId = "satellite";
 	MapStyle.SATELLITE.addVariation(
-	  new MapStyleVariation(
+	  makeVariationProxy(new MapStyleVariation(
 	    "Satellite without label",
 	    MapStyleVariationIds.NO_LABEL,
 	    satelliteVariationId,
 	    1,
 	    MapStyle.SATELLITE
-	  )
+	  ))
 	);
 	builtInStyles[satelliteVariationId] = satelliteBuiltin;
 	MapStyle.BASIC.addVariation(
-	  new MapStyleVariation(
+	  makeVariationProxy(new MapStyleVariation(
 	    "Basic",
 	    MapStyleVariationIds.CLASSIC,
 	    "basic-v2",
 	    0,
 	    MapStyle.BASIC
-	  )
+	  ))
 	);
 	function styleToStyle(style) {
 	  if (!style) {
-	    return defaults.mapStyle.CLASSIC.getUsableStyle();
+	    return MapStyle.STREETS.getVariation(MapStyleVariationIds.CLASSIC).getUsableStyle();
 	  }
 	  if (typeof style === "string" && style.toLocaleLowerCase() in builtInStyles) {
 	    return builtInStyles[style.toLocaleLowerCase()];
@@ -1675,75 +1740,9 @@
 	    return style.getUsableStyle();
 	  }
 	  if (style instanceof ReferenceMapStyle) {
-	    return style.CLASSIC.getUsableStyle();
+	    return style.getVariation(MapStyleVariationIds.CLASSIC).getUsableStyle();
 	  }
 	  return style;
-	}
-
-	const defaults = {
-	  mapStyle: MapStyle.STREETS,
-	  maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
-	  maptilerURL: "https://www.maptiler.com/",
-	  maptilerApiURL: "https://api.maptiler.com/",
-	  rtlPluginURL: "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
-	  primaryLanguage: Language.LATIN,
-	  secondaryLanguage: Language.NON_LATIN,
-	  terrainSourceURL: "https://api.maptiler.com/tiles/terrain-rgb/tiles.json",
-	  terrainSourceId: "maptiler-terrain"
-	};
-	Object.freeze(defaults);
-
-	class CustomLogoControl extends maplibreGl$1.exports.LogoControl {
-	  constructor(options = {}) {
-	    var _a, _b;
-	    super(options);
-	    this.logoURL = "";
-	    this.linkURL = "";
-	    this.logoURL = (_a = options.logoURL) != null ? _a : defaults.maptilerLogoURL;
-	    this.linkURL = (_b = options.linkURL) != null ? _b : defaults.maptilerURL;
-	  }
-	  onAdd(map) {
-	    this._map = map;
-	    this._compact = this.options && this.options.compact;
-	    this._container = window.document.createElement("div");
-	    this._container.className = "maplibregl-ctrl";
-	    const anchor = window.document.createElement("a");
-	    anchor.style.backgroundRepeat = "no-repeat";
-	    anchor.style.cursor = "pointer";
-	    anchor.style.display = "block";
-	    anchor.style.height = "23px";
-	    anchor.style.margin = "0 0 -4px -4px";
-	    anchor.style.overflow = "hidden";
-	    anchor.style.width = "88px";
-	    anchor.style.backgroundImage = `url(${this.logoURL})`;
-	    anchor.style.backgroundSize = "100px 30px";
-	    anchor.style.width = "100px";
-	    anchor.style.height = "30px";
-	    anchor.target = "_blank";
-	    anchor.rel = "noopener nofollow";
-	    anchor.href = this.linkURL;
-	    anchor.setAttribute(
-	      "aria-label",
-	      this._map._getUIString("LogoControl.Title")
-	    );
-	    anchor.setAttribute("rel", "noopener nofollow");
-	    this._container.appendChild(anchor);
-	    this._container.style.display = "block";
-	    this._map.on("resize", this._updateCompact);
-	    this._updateCompact();
-	    return this._container;
-	  }
-	}
-
-	function enableRTL() {
-	  const maplibrePackage = maplibre;
-	  if (maplibrePackage.getRTLTextPluginStatus() === "unavailable") {
-	    maplibrePackage.setRTLTextPlugin(
-	      defaults.rtlPluginURL,
-	      null,
-	      true
-	    );
-	  }
 	}
 
 	var pointGeometry = Point$1;
@@ -2643,7 +2642,6 @@
 	  constructor(options) {
 	    var _a;
 	    const style = styleToStyle(options.style);
-	    console.log("style >>> ", style);
 	    super(__spreadProps(__spreadValues({}, options), {
 	      style,
 	      maplibreLogo: false,

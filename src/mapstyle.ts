@@ -1,6 +1,5 @@
 import satelliteBuiltin from "./builtinStyles/satellite.json";
 import { StyleSpecification } from "maplibre-gl";
-import { defaults } from "./defaults"
 
 
 /**
@@ -40,11 +39,46 @@ export const MapStyleVariationIds = {
 
 function makeVariationProxy(variation: MapStyleVariation) {
   return new Proxy(variation, {
-    get(target: MapStyleVariation, name: string) {
-      return target.getVariation(name);
+    get(target, prop, receiver) {
+      const referenceStyle = target.getReferenceStyle();
+      const hasVariation = referenceStyle.hasVariation(prop as string);
+
+      if (hasVariation) {
+        return referenceStyle.getVariation(prop as string);
+      }
+      
+      // This variation does not exist for this style, but since it's full uppercase
+      // we guess that the dev tries to access a style variation. So instead of
+      // returning the default (STREETS.CLASSIC), we return the non-variation of the current style
+      if (prop.toString().toUpperCase() === (prop as string)) {
+        return referenceStyle.getVariation(target.getVariationId());
+      }
+
+      return Reflect.get(target, prop, receiver);
     }
   });
 }
+
+
+function makeReferenceStyleProxy(referenceStyle: ReferenceMapStyle) {
+  return new Proxy(referenceStyle, {
+    get(target, prop, receiver) {
+      if (target.hasVariation(prop as string)) {
+        return target.getVariation(prop as string);
+      }
+
+      // This variation does not exist for this style, but since it's full uppercase
+      // we guess that the dev tries to access a style variation. So instead of
+      // returning the default (STREETS.CLASSIC), we return the non-variation of the current style
+      if (prop.toString().toUpperCase() === (prop as string)) {
+        return referenceStyle.getVariation(MapStyleVariationIds.CLASSIC);
+      }
+
+      return Reflect.get(target, prop, receiver);
+    }
+  });
+}
+
 
 
 export class MapStyleVariation {
@@ -87,22 +121,7 @@ export class MapStyleVariation {
   hasVariation(variationId: string): boolean {
     return this.referenceStyle.hasVariation(variationId);
   }
-
-  get DARK(): MapStyleVariation | null  {
-    // this will return _this_ if _this_ is the dark variation
-    return this.referenceStyle.DARK;
-  }
-
-  get CLASSIC(): MapStyleVariation | null {
-    // this will return _this_ if _this_ is the classic variation
-    return this.referenceStyle.CLASSIC;
-  }
-
-  get LIGHT(): MapStyleVariation | null  {
-    // this will return _this_ if _this_ is the light variation
-    return this.referenceStyle.LIGHT;
-  }
-
+ 
   getVariation(variationId: string): MapStyleVariation {
     return this.referenceStyle.getVariation(variationId);
   }
@@ -135,7 +154,7 @@ export class ReferenceMapStyle {
 
 
   getVariation(variationId: string): MapStyleVariation {
-    return variationId in this.variations ? this.variations[variationId] : this.CLASSIC;
+    return variationId in this.variations ? this.variations[variationId] : this.variations[MapStyleVariationIds.CLASSIC];
   }
 
   getVariations(): Array<MapStyleVariation> {
@@ -143,126 +162,109 @@ export class ReferenceMapStyle {
     variationsArray.sort((a: MapStyleVariation, b: MapStyleVariation) => a.getPriority() < b.getPriority() ? -1 : 1 );
     return variationsArray;
   }
-
-  get CLASSIC(): MapStyleVariation | null {
-    return this.getVariation(MapStyleVariationIds.CLASSIC);
-  }
-
-  get DARK(): MapStyleVariation | null {
-    return this.getVariation(MapStyleVariationIds.DARK);
-  }
-
-  get LIGHT(): MapStyleVariation | null {
-    return this.getVariation(MapStyleVariationIds.LIGHT);
-  }
 }
 
 
 const MapStyle = {
-  STREETS: new ReferenceMapStyle(),
-  OUTDOOR: new ReferenceMapStyle(),
-  SATELLITE: new ReferenceMapStyle(),
-  BASIC: new ReferenceMapStyle(),
+  STREETS: makeReferenceStyleProxy(new ReferenceMapStyle()),
+  OUTDOOR: makeReferenceStyleProxy(new ReferenceMapStyle()),
+  SATELLITE: makeReferenceStyleProxy(new ReferenceMapStyle()),
+  BASIC: makeReferenceStyleProxy(new ReferenceMapStyle()),
 };
 
 // STREETS variations
 MapStyle.STREETS.addVariation(
-  new MapStyleVariation(
+  makeVariationProxy(new MapStyleVariation(
     "Streets Classic",
     MapStyleVariationIds.CLASSIC,
     "streets-v2",
     0,
     MapStyle.STREETS,
-  )
+  ))
 );
 
 MapStyle.STREETS.addVariation(
-  new MapStyleVariation(
+  makeVariationProxy(new MapStyleVariation(
     "Streets Dark",
     MapStyleVariationIds.DARK,
     "streets-v2-dark",
     1,
     MapStyle.STREETS,
-  )
+  ))
 );
 
 MapStyle.STREETS.addVariation(
-  new MapStyleVariation(
+  makeVariationProxy(new MapStyleVariation(
     "Streets Light",
     MapStyleVariationIds.LIGHT,
     "streets-v2-light",
     2,
     MapStyle.STREETS,
-  )
+  ))
 );
 
 // OUTDOOR variations
 MapStyle.OUTDOOR.addVariation(
-  new MapStyleVariation(
+  makeVariationProxy(new MapStyleVariation(
     "Outdoor Classic",
     MapStyleVariationIds.CLASSIC,
     "outdoor-v2",
     0,
     MapStyle.OUTDOOR,
-  )
+  ))
 );
 
-const winterVariation = new MapStyleVariation(
-  "Outdoor Winter",
-  "WINTER",
-  "winter-v2",
-  1,
-  MapStyle.OUTDOOR,
-);
+const winterVariation = 
 MapStyle.OUTDOOR.addVariation(
-  winterVariation
+  makeVariationProxy(new MapStyleVariation(
+    "Outdoor Winter",
+    "WINTER",
+    "winter-v2",
+    1,
+    MapStyle.OUTDOOR,
+  ))
 );
-
-const winterVariationProxy = makeVariationProxy(winterVariation)
-
-console.log("winterVariationProxy", winterVariationProxy);
-
 
 
 // SATELLITE variations
 MapStyle.SATELLITE.addVariation(
-  new MapStyleVariation(
+  makeVariationProxy(new MapStyleVariation(
     "Satellite with labels",
     MapStyleVariationIds.CLASSIC,
     "hybrid",
     0,
     MapStyle.SATELLITE,
-  )
+  ))
 );
 
 // Satellite is currently a built-in.
 const satelliteVariationId = "satellite"
 MapStyle.SATELLITE.addVariation(
-  new MapStyleVariation(
+  makeVariationProxy(new MapStyleVariation(
     "Satellite without label",
     MapStyleVariationIds.NO_LABEL,
     satelliteVariationId,
     1,
     MapStyle.SATELLITE,
-  )
+  ))
 );
 builtInStyles[satelliteVariationId] = satelliteBuiltin;
 
 // BASIC variations
 MapStyle.BASIC.addVariation(
-  new MapStyleVariation(
+  makeVariationProxy(new MapStyleVariation(
     "Basic",
     MapStyleVariationIds.CLASSIC,
     "basic-v2",
     0,
     MapStyle.BASIC,
-  )
+  ))
 );
 
 
 function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariation | StyleSpecification | null | undefined ): string | StyleSpecification {
   if (!style) {
-    return defaults.mapStyle.CLASSIC.getUsableStyle();
+    return MapStyle.STREETS.getVariation(MapStyleVariationIds.CLASSIC).getUsableStyle();
   }
 
   // If the style is given as a string and this corresponds to a built-in style
@@ -280,7 +282,7 @@ function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariation | St
   }
 
   if ( style instanceof ReferenceMapStyle) {
-    return style.CLASSIC.getUsableStyle();
+    return style.getVariation(MapStyleVariationIds.CLASSIC).getUsableStyle();
   }
 
   return style as StyleSpecification;

@@ -81,10 +81,7 @@ export class Map extends maplibre.Map {
   private terrainExaggeration = 1;
 
   constructor(options: MapOptions) {
-
     const style = styleToStyle(options.style);
-
-    console.log("style >>> ", style);
 
     // calling the map constructor with full length style
     super({

@@ -301,9 +301,6 @@ declare class MapStyleVariation {
     getPriority(): number;
     getReferenceStyle(): ReferenceMapStyle;
     hasVariation(variationId: string): boolean;
-    get DARK(): MapStyleVariation | null;
-    get CLASSIC(): MapStyleVariation | null;
-    get LIGHT(): MapStyleVariation | null;
     getVariation(variationId: string): MapStyleVariation;
     getVariations(): Array<MapStyleVariation>;
 }
@@ -314,9 +311,6 @@ declare class ReferenceMapStyle {
     hasVariation(variationId: string): boolean;
     getVariation(variationId: string): MapStyleVariation;
     getVariations(): Array<MapStyleVariation>;
-    get CLASSIC(): MapStyleVariation | null;
-    get DARK(): MapStyleVariation | null;
-    get LIGHT(): MapStyleVariation | null;
 }
 declare const MapStyle: {
     STREETS: ReferenceMapStyle;
