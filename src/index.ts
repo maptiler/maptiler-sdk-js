@@ -122,7 +122,9 @@ import { Point } from "./Point";
 import { config, SdkConfig } from "./config";
 import { Language, LanguageString } from "./language";
 import type { Unit } from "./unit";
-import { MapStyle } from "./mapstyle";
+import { MapStyle } from "./mapstyle/mapstyle";
+
+import type { MapStyleType } from "./mapstyle/mapstyle";
 
 // Exporting types
 export type {
@@ -138,6 +140,7 @@ export type {
   LanguageString,
   LanguageGeocodingString,
   Unit,
+  MapStyleType,
 };
 
 // Exporting classes, objects, functions, etc.

@@ -3,5 +3,8 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
   root: true,
-  "@typescript-eslint/ban-ts-comment": "warn"
+  //"@typescript-eslint/ban-ts-comment": "warn"
+  rules: {
+    "@typescript-eslint/ban-ts-comment": "warn",
+  }
 };

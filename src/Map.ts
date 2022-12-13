@@ -5,7 +5,7 @@ import { defaults } from "./defaults";
 import { CustomLogoControl } from "./CustomLogoControl";
 import { enableRTL, vlog } from "./tools";
 import { getBrowserLanguage, Language, LanguageString } from "./language";
-import { styleToStyle } from "./mapstyle";
+import { styleToStyle } from "./mapstyle/mapstyle";
 import { FullscreenControl, GeolocateControl, ScaleControl } from "maplibre-gl";
 import { TerrainControl } from "./terraincontrol";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";

@@ -285,39 +285,182 @@ declare class SdkConfig extends EventEmitter {
 }
 declare const config: SdkConfig;
 
+/**
+ * An instance of MapStyleVariation contains information about a style to use that belong to a reference style
+ */
 declare class MapStyleVariation {
+    /**
+     * Human-friendly name
+     */
     private name;
-    private variationId;
+    /**
+     * Variation name the variation is addressed to from its reference style: `MapStyle.REFERNCE_STYLE_NAME.VARIATION_TYPE`
+     */
+    private variationType;
+    /**
+     * MapTiler Cloud id
+     */
     private id;
-    private priority;
+    /**
+     * Reference map style, used to retrieve sibling variations
+     */
     private referenceStyle;
+    /**
+     * Human-friendly description
+     */
     private description;
-    constructor(name: string, variationId: string, id: string, priority: number, referenceStyle: ReferenceMapStyle, description?: string);
+    /**
+     * URL to an image describing the style variation
+     */
+    private imageURL;
+    constructor(
+    /**
+     * Human-friendly name
+     */
+    name: string, 
+    /**
+     * Variation name the variation is addressed to from its reference style: `MapStyle.REFERNCE_STYLE_NAME.VARIATION_TYPE`
+     */
+    variationType: string, 
+    /**
+     * MapTiler Cloud id
+     */
+    id: string, 
+    /**
+     * Reference map style, used to retrieve sibling variations
+     */
+    referenceStyle: ReferenceMapStyle, 
+    /**
+     * Human-friendly description
+     */
+    description: string, 
+    /**
+     * URL to an image describing the style variation
+     */
+    imageURL: string);
+    /**
+     * Get the human-friendly name
+     * @returns
+     */
     getName(): string;
-    getVariationId(): string;
+    /**
+     * Get the variation type (eg. "DEFAULT", "DARK", "PASTEL", etc.)
+     * @returns
+     */
+    getVariationType(): string;
+    /**
+     * Get the style as usable by MapLibre, a string (URL) or a plain style description (StyleSpecification)
+     * @returns
+     */
     getUsableStyle(): string | StyleSpecification;
+    /**
+     * Get the MapTiler Cloud id
+     * @returns
+     */
     getId(): string;
+    /**
+     * Get the human-friendly description
+     */
     getDescription(): string;
-    getPriority(): number;
+    /**
+     * Get the reference style this variation belongs to
+     * @returns
+     */
     getReferenceStyle(): ReferenceMapStyle;
-    hasVariation(variationId: string): boolean;
-    getVariation(variationId: string): MapStyleVariation;
+    /**
+     * Check if a variation of a given type exists for _this_ variations
+     * (eg. if this is a "DARK", then we can check if there is a "LIGHT" variation of it)
+     * @param variationType
+     * @returns
+     */
+    hasVariation(variationType: string): boolean;
+    /**
+     * Retrieve the variation of a given type. If not found, will return the "DEFAULT" variation.
+     * (eg. _this_ "DARK" variation does not have any "PASTEL" variation, then the "DEFAULT" is returned)
+     * @param variationType
+     * @returns
+     */
+    getVariation(variationType: string): MapStyleVariation;
+    /**
+     * Get all the variations for _this_ variations, except _this_ current one
+     * @returns
+     */
     getVariations(): Array<MapStyleVariation>;
+    /**
+     * Get the image URL that represent _this_ variation
+     * @returns
+     */
+    getImageURL(): string;
 }
+/**
+ * An instance of reference style contains a list of StyleVariations ordered by relevance
+ */
 declare class ReferenceMapStyle {
+    /**
+     * Human-friendly name of this reference style
+     */
+    private name;
+    /**
+     * ID of this reference style
+     */
+    private id;
+    /**
+     * Variations that belong to this reference style, key being the reference type
+     */
     private variations;
-    constructor();
+    /**
+     * Variations that belong to this reference style, ordered by relevance
+     */
+    private orderedVariations;
+    constructor(
+    /**
+     * Human-friendly name of this reference style
+     */
+    name: string, 
+    /**
+     * ID of this reference style
+     */
+    id: string);
     addVariation(v: MapStyleVariation): void;
-    hasVariation(variationId: string): boolean;
-    getVariation(variationId: string): MapStyleVariation;
+    /**
+     * Check if a given variation type exists for this reference style
+     * @param variationType
+     * @returns
+     */
+    hasVariation(variationType: string): boolean;
+    /**
+     * Get a given variation. If the given type of variation does not exist for this reference style,
+     * then the most relevant default variation is returned instead
+     * @param variationType
+     * @returns
+     */
+    getVariation(variationType: string): MapStyleVariation;
+    /**
+     * Get the list of variations for this reference style
+     * @returns
+     */
     getVariations(): Array<MapStyleVariation>;
+    /**
+     * Get the defualt variation for this reference style
+     * @returns
+     */
+    getDefaultVariation(): MapStyleVariation;
 }
-declare const MapStyle: {
-    STREETS: ReferenceMapStyle;
-    OUTDOOR: ReferenceMapStyle;
-    SATELLITE: ReferenceMapStyle;
-    BASIC: ReferenceMapStyle;
+declare type MapStyleType = {
+    /**
+     * Reference styles by ID
+     */
+    [key: string]: ReferenceMapStyle;
 };
+/**
+ * Contains all the reference map style created by MapTiler team as well as all the variations.
+ * For example, `MapStyle.STREETS` and the variations:
+ * - `MapStyle.STREETS.DARK`
+ * - `MapStyle.STREETS.LIGHT`
+ * - `MapStyle.STREETS.PASTEL`
+ *
+ */
+declare const MapStyle: MapStyleType;
 
 declare const supported: _mapbox_mapbox_gl_supported.IsSupported;
 declare const setRTLTextPlugin: (url: string, callback: (error?: Error) => void, deferred?: boolean) => void;
@@ -354,4 +497,4 @@ declare const workerUrl: string;
 declare const addProtocol: (customProtocol: string, loadFn: (requestParameters: ML.RequestParameters, callback: ML.ResponseCallback<any>) => ML.Cancelable) => void;
 declare const removeProtocol: (customProtocol: string) => void;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MapStyle, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MapStyle, MapStyleType, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };

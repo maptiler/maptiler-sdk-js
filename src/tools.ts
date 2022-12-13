@@ -13,7 +13,6 @@ export function vlog(...args: any[]) {
   }
 }
 
-
 export function enableRTL() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const maplibrePackage = maplibre as any;

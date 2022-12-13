@@ -193,61 +193,269 @@ function enableRTL() {
   }
 }
 
-var version$1 = 8;
-var id = "f0e4ff8c-a9e4-414e-9f4d-7938762c948f";
-var name = "Satellite no label";
-var sources = {
-	satellite: {
-		url: "https://api.maptiler.com/tiles/satellite-v2/tiles.json?",
-		tileSize: 512,
-		type: "raster"
-	},
-	maptiler_attribution: {
-		attribution: "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
-		type: "vector"
-	}
-};
-var layers = [
+var mapstylepresets = [
 	{
-		id: "satellite",
-		type: "raster",
-		source: "satellite",
-		minzoom: 0,
-		layout: {
-			visibility: "visible"
-		},
-		paint: {
-			"raster-opacity": 1
-		},
-		filter: [
-			"all"
+		referenceStyleID: "STREETS",
+		name: "Streets",
+		description: "",
+		variations: [
+			{
+				id: "streets-v2",
+				name: "Streets",
+				variationType: "DEFAULT",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "streets-v2-dark",
+				name: "Streets Dark",
+				variationType: "DARK",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "streets-v2-light",
+				name: "Streets Light",
+				variationType: "LIGHT",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "streets-v2-pastel",
+				name: "Streets Pastel",
+				variationType: "PASTEL",
+				description: "",
+				imageURL: ""
+			}
+		]
+	},
+	{
+		referenceStyleID: "OUTDOOR",
+		name: "Outdoor",
+		description: "",
+		variations: [
+			{
+				id: "outdoor-v2",
+				name: "Outdoor",
+				variationType: "DEFAULT",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "winter-v2",
+				name: "Winter",
+				variationType: "WINTER",
+				description: "",
+				imageURL: ""
+			}
+		]
+	},
+	{
+		referenceStyleID: "SATELLITE",
+		name: "Satellite",
+		description: "",
+		variations: [
+			{
+				id: "hybrid",
+				name: "Satellite With Labels",
+				variationType: "DEFAULT",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "satellite",
+				name: "Satellite Without Label",
+				variationType: "NO_LABEL",
+				priority: 1,
+				description: "",
+				imageURL: ""
+			}
+		]
+	},
+	{
+		referenceStyleID: "BASIC",
+		name: "Basic",
+		description: "",
+		variations: [
+			{
+				id: "basic-v2",
+				name: "Basic",
+				variationType: "DEFAULT",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "basic-v2-dark",
+				name: "Basic Dark",
+				variationType: "DARK",
+				priority: 1,
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "basic-v2-light",
+				name: "Basic Light",
+				variationType: "LIGHT",
+				description: "",
+				imageURL: ""
+			}
+		]
+	},
+	{
+		referenceStyleID: "BRIGHT",
+		name: "Bright",
+		description: "",
+		variations: [
+			{
+				id: "bright-v2",
+				name: "Bright",
+				variationType: "DEFAULT",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "bright-v2-dark",
+				name: "Bright Dark",
+				variationType: "DARK",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "bright-v2-light",
+				name: "Bright Light",
+				variationType: "LIGHT",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "bright-v2-pastel",
+				name: "Bright Pastel",
+				variationType: "PASTEL",
+				description: "",
+				imageURL: ""
+			}
+		]
+	},
+	{
+		referenceStyleID: "OPENSTREETMAP",
+		name: "OpenStreetMap",
+		description: "",
+		variations: [
+			{
+				id: "openstreetmap",
+				name: "OpenStreetMap",
+				variationType: "DEFAULT",
+				description: "",
+				imageURL: ""
+			}
+		]
+	},
+	{
+		referenceStyleID: "TOPO",
+		name: "Topo",
+		description: "",
+		variations: [
+			{
+				id: "topo-v2",
+				name: "Topo",
+				variationType: "DEFAULT",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "topo-v2-shiny",
+				name: "Topo Shiny",
+				variationType: "SHINY",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "topo-v2-pastel",
+				name: "Topo Pastel",
+				variationType: "PASTEL",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "topo-v2-topographique",
+				name: "Topo Topographique",
+				variationType: "TOPOGRAPHIQUE",
+				description: "",
+				imageURL: ""
+			}
+		]
+	},
+	{
+		referenceStyleID: "VOYAGER",
+		name: "Voyager",
+		description: "",
+		variations: [
+			{
+				id: "voyager-v2",
+				name: "Voyager",
+				variationType: "DEFAULT",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "voyager-v2-darkmatter",
+				name: "Voyager Darkmatter",
+				variationType: "DARK",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "voyager-v2-positron",
+				name: "Voyager Positron",
+				variationType: "LIGHT",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "voyager-v2-vintage",
+				name: "Voyager Vintage",
+				variationType: "VINTAGE",
+				description: "",
+				imageURL: ""
+			}
+		]
+	},
+	{
+		referenceStyleID: "TONER",
+		name: "Toner",
+		description: "",
+		variations: [
+			{
+				id: "toner-v2",
+				name: "Toner",
+				variationType: "DEFAULT",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "toner-v2-background",
+				name: "Toner Background",
+				variationType: "BACKGROUND",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "toner-v2-lite",
+				name: "Toner Lite",
+				variationType: "LITE",
+				description: "",
+				imageURL: ""
+			},
+			{
+				id: "toner-v2-lines",
+				name: "Toner Lines",
+				variationType: "LINES",
+				description: "",
+				imageURL: ""
+			}
 		]
 	}
 ];
-var metadata = {
-	"maptiler:copyright": "This style was generated on MapTiler Cloud. Usage outside of MapTiler Cloud or MapTiler Server requires valid MapTiler Data package: https://www.maptiler.com/data/ -- please contact us."
-};
-var glyphs = "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?";
-var bearing = 0;
-var pitch = 0;
-var center = [
-	-78.55323097748868,
-	24.03141891413972
-];
-var zoom = 5.066147709178387;
-var satelliteBuiltin = {
-	version: version$1,
-	id: id,
-	name: name,
-	sources: sources,
-	layers: layers,
-	metadata: metadata,
-	glyphs: glyphs,
-	bearing: bearing,
-	pitch: pitch,
-	center: center,
-	zoom: zoom
-};
 
 function expandMapStyle(style) {
   const maptilerDomainRegex = /^maptiler:\/\/(.*)/;
@@ -264,27 +472,6 @@ function expandMapStyle(style) {
   return expandedStyle;
 }
 const builtInStyles = {};
-const MapStyleVariationIds = {
-  CLASSIC: "CLASSIC",
-  DARK: "DARK",
-  LIGHT: "LIGHT",
-  NO_LABEL: "NO_LABEL"
-};
-function makeVariationProxy(variation) {
-  return new Proxy(variation, {
-    get(target, prop, receiver) {
-      const referenceStyle = target.getReferenceStyle();
-      const hasVariation = referenceStyle.hasVariation(prop);
-      if (hasVariation) {
-        return referenceStyle.getVariation(prop);
-      }
-      if (prop.toString().toUpperCase() === prop) {
-        return referenceStyle.getVariation(target.getVariationId());
-      }
-      return Reflect.get(target, prop, receiver);
-    }
-  });
-}
 function makeReferenceStyleProxy(referenceStyle) {
   return new Proxy(referenceStyle, {
     get(target, prop, receiver) {
@@ -292,26 +479,26 @@ function makeReferenceStyleProxy(referenceStyle) {
         return target.getVariation(prop);
       }
       if (prop.toString().toUpperCase() === prop) {
-        return referenceStyle.getVariation(MapStyleVariationIds.CLASSIC);
+        return referenceStyle.getDefaultVariation();
       }
       return Reflect.get(target, prop, receiver);
     }
   });
 }
 class MapStyleVariation {
-  constructor(name, variationId, id, priority, referenceStyle, description = "") {
+  constructor(name, variationType, id, referenceStyle, description, imageURL) {
     this.name = name;
-    this.variationId = variationId;
+    this.variationType = variationType;
     this.id = id;
-    this.priority = priority;
     this.referenceStyle = referenceStyle;
     this.description = description;
+    this.imageURL = imageURL;
   }
   getName() {
     return this.name;
   }
-  getVariationId() {
-    return this.variationId;
+  getVariationType() {
+    return this.variationType;
   }
   getUsableStyle() {
     if (this.id in builtInStyles) {
@@ -325,128 +512,76 @@ class MapStyleVariation {
   getDescription() {
     return this.description;
   }
-  getPriority() {
-    return this.priority;
-  }
   getReferenceStyle() {
     return this.referenceStyle;
   }
-  hasVariation(variationId) {
-    return this.referenceStyle.hasVariation(variationId);
+  hasVariation(variationType) {
+    return this.referenceStyle.hasVariation(variationType);
   }
-  getVariation(variationId) {
-    return this.referenceStyle.getVariation(variationId);
+  getVariation(variationType) {
+    return this.referenceStyle.getVariation(variationType);
   }
   getVariations() {
-    const variationSet = new Set(this.referenceStyle.getVariations());
-    variationSet.delete(this);
-    const variationsArray = Array.from(variationSet);
-    variationsArray.sort((a, b) => a.getPriority() < b.getPriority() ? -1 : 1);
-    return variationsArray;
+    return this.referenceStyle.getVariations().filter((v) => v !== this);
+  }
+  getImageURL() {
+    return this.imageURL;
   }
 }
 class ReferenceMapStyle {
-  constructor() {
+  constructor(name, id) {
+    this.name = name;
+    this.id = id;
     this.variations = {};
+    this.orderedVariations = [];
   }
   addVariation(v) {
-    this.variations[v.getVariationId()] = v;
+    this.variations[v.getVariationType()] = v;
+    this.orderedVariations.push(v);
   }
-  hasVariation(variationId) {
-    return variationId in this.variations;
+  hasVariation(variationType) {
+    return variationType in this.variations;
   }
-  getVariation(variationId) {
-    return variationId in this.variations ? this.variations[variationId] : this.variations[MapStyleVariationIds.CLASSIC];
+  getVariation(variationType) {
+    return variationType in this.variations ? this.variations[variationType] : this.orderedVariations[0];
   }
   getVariations() {
-    const variationsArray = Object.values(this.variations);
-    variationsArray.sort((a, b) => a.getPriority() < b.getPriority() ? -1 : 1);
-    return variationsArray;
+    return Object.values(this.variations);
+  }
+  getDefaultVariation() {
+    return this.orderedVariations[0];
   }
 }
-const MapStyle = {
-  STREETS: makeReferenceStyleProxy(new ReferenceMapStyle()),
-  OUTDOOR: makeReferenceStyleProxy(new ReferenceMapStyle()),
-  SATELLITE: makeReferenceStyleProxy(new ReferenceMapStyle()),
-  BASIC: makeReferenceStyleProxy(new ReferenceMapStyle())
-};
-MapStyle.STREETS.addVariation(
-  makeVariationProxy(new MapStyleVariation(
-    "Streets Classic",
-    MapStyleVariationIds.CLASSIC,
-    "streets-v2",
-    0,
-    MapStyle.STREETS
-  ))
-);
-MapStyle.STREETS.addVariation(
-  makeVariationProxy(new MapStyleVariation(
-    "Streets Dark",
-    MapStyleVariationIds.DARK,
-    "streets-v2-dark",
-    1,
-    MapStyle.STREETS
-  ))
-);
-MapStyle.STREETS.addVariation(
-  makeVariationProxy(new MapStyleVariation(
-    "Streets Light",
-    MapStyleVariationIds.LIGHT,
-    "streets-v2-light",
-    2,
-    MapStyle.STREETS
-  ))
-);
-MapStyle.OUTDOOR.addVariation(
-  makeVariationProxy(new MapStyleVariation(
-    "Outdoor Classic",
-    MapStyleVariationIds.CLASSIC,
-    "outdoor-v2",
-    0,
-    MapStyle.OUTDOOR
-  ))
-);
-MapStyle.OUTDOOR.addVariation(
-  makeVariationProxy(new MapStyleVariation(
-    "Outdoor Winter",
-    "WINTER",
-    "winter-v2",
-    1,
-    MapStyle.OUTDOOR
-  ))
-);
-MapStyle.SATELLITE.addVariation(
-  makeVariationProxy(new MapStyleVariation(
-    "Satellite with labels",
-    MapStyleVariationIds.CLASSIC,
-    "hybrid",
-    0,
-    MapStyle.SATELLITE
-  ))
-);
-const satelliteVariationId = "satellite";
-MapStyle.SATELLITE.addVariation(
-  makeVariationProxy(new MapStyleVariation(
-    "Satellite without label",
-    MapStyleVariationIds.NO_LABEL,
-    satelliteVariationId,
-    1,
-    MapStyle.SATELLITE
-  ))
-);
-builtInStyles[satelliteVariationId] = satelliteBuiltin;
-MapStyle.BASIC.addVariation(
-  makeVariationProxy(new MapStyleVariation(
-    "Basic",
-    MapStyleVariationIds.CLASSIC,
-    "basic-v2",
-    0,
-    MapStyle.BASIC
-  ))
-);
+function buildMapStyles() {
+  const mapStyle = {};
+  for (let i = 0; i < mapstylepresets.length; i += 1) {
+    const refStyleInfo = mapstylepresets[i];
+    const refStyle = makeReferenceStyleProxy(
+      new ReferenceMapStyle(refStyleInfo.name, refStyleInfo.referenceStyleID)
+    );
+    for (let j = 0; j < refStyleInfo.variations.length; j += 1) {
+      const variationInfo = refStyleInfo.variations[j];
+      const variation = new MapStyleVariation(
+        variationInfo.name,
+        variationInfo.variationType,
+        variationInfo.id,
+        refStyle,
+        variationInfo.description,
+        variationInfo.imageURL
+      );
+      refStyle.addVariation(variation);
+    }
+    mapStyle[refStyleInfo.referenceStyleID] = refStyle;
+    if (i === 0) {
+      mapStyle.DEFAULT = refStyle;
+    }
+  }
+  return mapStyle;
+}
+const MapStyle = buildMapStyles();
 function styleToStyle(style) {
   if (!style) {
-    return MapStyle.STREETS.getVariation(MapStyleVariationIds.CLASSIC).getUsableStyle();
+    return MapStyle.DEFAULT.getDefaultVariation().getUsableStyle();
   }
   if (typeof style === "string" && style.toLocaleLowerCase() in builtInStyles) {
     return builtInStyles[style.toLocaleLowerCase()];
@@ -458,7 +593,7 @@ function styleToStyle(style) {
     return style.getUsableStyle();
   }
   if (style instanceof ReferenceMapStyle) {
-    return style.getVariation(MapStyleVariationIds.CLASSIC).getUsableStyle();
+    return style.getDefaultVariation().getUsableStyle();
   }
   return style;
 }
