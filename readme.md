@@ -143,31 +143,33 @@ The styles with a shorthand provided by the SDK are the following:
 <details>
   <summary>Know more about built-in map styles</summary>
 
-MapTiler provides some reference styles as well as some variations for each. Here is the full list:
-- `MapStyle.STREETS` (reference style)
+MapTiler provides some **reference styles** as well as some **variations** for each. A **reference syle** sets some guidelines about what kind of information is displayed, the granularity of the information, and more generaly defines a purpose for which this style is the most relevant: street navigation, outdoor adventure, minimalist dashboard, etc. Then, each **reference style** offers a range of **variations** that contain the same level of information and has the same purpose but using different colors schemes.
+
+Here is the full list:
+- `MapStyle.STREETS`, reference style for navigation and city exploration
   - `MapStyle.STREETS.DARK` (variation)
   - `MapStyle.STREETS.LIGHT` (variation)
   - `MapStyle.STREETS.PASTEL` (variation)
-- `MapStyle.OUTDOOR` (reference style)
+- `MapStyle.OUTDOOR` reference style for adventure
   - `MapStyle.OUTDOOR.WINTER` (variation)
-- `MapStyle.SATELLITE` (reference style)
+- `MapStyle.SATELLITE` reference style satellite and airborne imagery
   - `MapStyle.SATELLITE.NO_LABEL` (variation)
-- `MapStyle.BASIC` (reference style)
+- `MapStyle.BASIC` reference style for minimalist design and general purpose
   - `MapStyle.BASIC.DARK` (variation)
   - `MapStyle.BASIC.LIGHT` (variation)
-- `MapStyle.BRIGHT` (reference style)
+- `MapStyle.BRIGHT` reference style for high contrast navigation
   - `MapStyle.BRIGHT.DARK` (variation)
   - `MapStyle.BRIGHT.LIGHT` (variation)
   - `MapStyle.BRIGHT.PASTEL` (variation)
-- `MapStyle.TOPO` (reference style)
+- `MapStyle.TOPO` reference style for topographic study
   - `MapStyle.TOPO.SHINY` (variation)
   - `MapStyle.TOPO.PASTEL` (variation)
   - `MapStyle.TOPO.TOPOGRAPHIQUE` (variation)
-- `MapStyle.VOYAGER` (reference style)
+- `MapStyle.VOYAGER` reference style for stylish yet minimalist maps
   - `MapStyle.VOYAGER.DARK` (variation)
   - `MapStyle.VOYAGER.LIGHT` (variation)
   - `MapStyle.VOYAGER.VINTAGE` (variation)
-- `MapStyle.TONER` (reference style)
+- `MapStyle.TONER` reference style for very high contrast stylish maps 
   - `MapStyle.TONER.BACKGROUND` (variation)
   - `MapStyle.TONER.LITE` (variation)
   - `MapStyle.TONER.LINES` (variation)
