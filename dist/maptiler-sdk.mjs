@@ -1647,5 +1647,5 @@ const workerUrl = ML.default.workerUrl;
 const addProtocol = ML.default.addProtocol;
 const removeProtocol = ML.default.removeProtocol;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MapStyle, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MapStyle, MapStyleVariation, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ReferenceMapStyle, ScaleControl, SdkConfig, Style, TerrainControl, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
 //# sourceMappingURL=maptiler-sdk.mjs.map

@@ -124,7 +124,7 @@ const map = new Map({
 });
 
 // Or later on, updating the style
-map.setStyle(MapStyle.STREETS_DARK);
+map.setStyle(MapStyle.STREETS.DARK);
 ```
 
 The styles with a shorthand provided by the SDK are the following:
@@ -132,40 +132,51 @@ The styles with a shorthand provided by the SDK are the following:
 | ID | Screenshot | Comment |
 |:-:|:-:|:-:|
 |`MapStyle.STREETS`|[![](images/screenshots/style-streets-v2.png)](https://www.maptiler.com/maps/#style=streets-v2&mode=2d&position=12.52/40.73676/-73.98418)|The classic default style, perfect for urban areas|
+|`MapStyle.STREETS.DARK`|[![](images/screenshots/style-streets-v2-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A dark theme perfect to display data layers on top without losing any precious information|
+|`MapStyle.STREETS.LIGHT`|[![](images/screenshots/style-streets-v2-light.png)](https://www.maptiler.com/maps/#style=streets-v2-light&mode=2d&position=4.4/48.15/12.65)|Just like the `STREETS_DARK`, but in bright mode! Your data layer as a first class citizen!|
 |`MapStyle.SATELLITE`|[![](images/screenshots/style-satellite.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=7.87/24.518/-77.411)|Only high resolution satellite raster tiles without any labels|
-|`MapStyle.HYBRID`|[![](images/screenshots/style-hybrid.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)|Satellite tile with labels, landmarks, roads ways and political borders|
+|`MapStyle.SATELLITE.NO_LABEL`|[![](images/screenshots/style-hybrid.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)|Satellite tile with labels, landmarks, roads ways and political borders|
 |`MapStyle.OUTDOOR`|[![](images/screenshots/style-outdoor.png)](https://www.maptiler.com/maps/#style=outdoor&mode=2d&position=11.96/46.02591/7.7273)|A solid hiking companion, with peaks, parks, isolines and more|
 |`MapStyle.BASIC`|[![](images/screenshots/style-basic-v2.png)](https://www.maptiler.com/maps/#style=basic-v2&mode=2d&position=13.09/37.78734/-122.42025)|A minimalist alternative to `STREETS`, with a touch of flat design|
-|`MapStyle.STREETS_DARK`|[![](images/screenshots/style-streets-v2-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A dark theme perfect to display data layers on top without losing any precious information|
-|`MapStyle.STREETS_LIGHT`|[![](images/screenshots/style-streets-v2-light.png)](https://www.maptiler.com/maps/#style=streets-v2-light&mode=2d&position=4.4/48.15/12.65)|Just like the `STREETS_DARK`, but in bright mode! Your data layer as a first class citizen!|
+
+MapTiler provides some reference styles as well as some variations for each. Here is the full list:
+- `MapStyle.STREETS` (reference style)
+  - `MapStyle.STREETS.DARK` (variation)
+  - `MapStyle.STREETS.LIGHT` (variation)
+  - `MapStyle.STREETS.PASTEL` (variation)
+- `MapStyle.OUTDOOR` (reference style)
+  - `MapStyle.OUTDOOR.WINTER` (variation)
+- `MapStyle.SATELLITE` (reference style)
+  - `MapStyle.SATELLITE.NO_LABEL` (variation)
+- `MapStyle.BASIC` (reference style)
+  - `MapStyle.BASIC.DARK` (variation)
+  - `MapStyle.BASIC.LIGHT` (variation)
+- `MapStyle.BRIGHT` (reference style)
+  - `MapStyle.BRIGHT.DARK` (variation)
+  - `MapStyle.BRIGHT.LIGHT` (variation)
+  - `MapStyle.BRIGHT.PASTEL` (variation)
+- `MapStyle.TOPO` (reference style)
+  - `MapStyle.TOPO.SHINY` (variation)
+  - `MapStyle.TOPO.PASTEL` (variation)
+  - `MapStyle.TOPO.TOPOGRAPHIQUE` (variation)
+- `MapStyle.VOYAGER` (reference style)
+  - `MapStyle.VOYAGER.DARK` (variation)
+  - `MapStyle.VOYAGER.LIGHT` (variation)
+  - `MapStyle.VOYAGER.VINTAGE` (variation)
+- `MapStyle.TONER` (reference style)
+  - `MapStyle.TONER.BACKGROUND` (variation)
+  - `MapStyle.TONER.LITE` (variation)
+  - `MapStyle.TONER.LINES` (variation)
+- `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variations)
+
+All reference styles (instances of `ReferenceMapStyle`) and style variations (instances of `MapStyleVariation`) have methods to know the alternative styles and variation that belong to the same reference style (`.getVariations()`). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style.
 
 
-Still, you can still use some classic styles with just a *string*:
+Still, you can still use some classic styles with just a *string* if you know their MapTiler CLoud ID:
 
 ```ts
-map.setStyle('outdoor');
+map.setStyle('outdoor-v2');
 ```
-
-You can choose from the following:
-- `bright`
-- `openstreetmap`
-- `pastel`
-- `toner`
-- `topo`
-- `topographique`
-- `voyager`
-- `winter`
-
-<p align="center">
-  <img title="bright" src="images/screenshots/style-bright.png" width="12%"></img>
-  <img title="openstreetmap" src="images/screenshots/style-osm.png" width="12%"></img>
-  <img title="pastel" src="images/screenshots/style-pastel.png" width="12%"></img>
-  <img title="toner" src="images/screenshots/style-toner.png" width="12%"></img> 
-  <img title="topo" src="images/screenshots/style-topo.png" width="12%"></img>
-  <img title="topographique" src="images/screenshots/style-topographique.png" width="12%"></img>
-  <img title="voyager" src="images/screenshots/style-voyager.png" width="12%"></img>
-  <img title="winter" src="images/screenshots/style-winter.png" width="12%"></img>
-</p>
 
 And finally, you can use your own custom styles designed with [our style editor](https://cloud.maptiler.com/maps/). Every custom style is given a unique ID, for instance: `c912ffc8-2360-487a-973b-59d037fb15b8`.
 

@@ -83,7 +83,7 @@
 <li>if we make an update to a style, you will benefit from it without modifying your codebase</li>
 </ul>
 <p>Here is how it works:</p>
-<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-3">Map</span><span class="hl-0">, </span><span class="hl-3">MapStyle</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-4">&#39;@maptiler/sdk&#39;</span><br/><span class="hl-5">// When instanciating a map</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">map</span><span class="hl-0"> = </span><span class="hl-2">new</span><span class="hl-0"> </span><span class="hl-7">Map</span><span class="hl-0">({</span><br/><span class="hl-0">  </span><span class="hl-3">container:</span><span class="hl-0"> </span><span class="hl-3">mapContainer</span><span class="hl-0">,</span><br/><span class="hl-0">  </span><span class="hl-3">style:</span><span class="hl-0"> </span><span class="hl-3">MapStyle</span><span class="hl-0">.</span><span class="hl-6">OUTDOOR</span><span class="hl-0">, </span><span class="hl-5">// &lt;-- the shorthand for the outdoor style</span><br/><span class="hl-0">});</span><br/><br/><span class="hl-5">// Or later on, updating the style</span><br/><span class="hl-3">map</span><span class="hl-0">.</span><span class="hl-7">setStyle</span><span class="hl-0">(</span><span class="hl-3">MapStyle</span><span class="hl-0">.</span><span class="hl-6">STREETS_DARK</span><span class="hl-0">);</span>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-3">Map</span><span class="hl-0">, </span><span class="hl-3">MapStyle</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-4">&#39;@maptiler/sdk&#39;</span><br/><span class="hl-5">// When instanciating a map</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">map</span><span class="hl-0"> = </span><span class="hl-2">new</span><span class="hl-0"> </span><span class="hl-7">Map</span><span class="hl-0">({</span><br/><span class="hl-0">  </span><span class="hl-3">container:</span><span class="hl-0"> </span><span class="hl-3">mapContainer</span><span class="hl-0">,</span><br/><span class="hl-0">  </span><span class="hl-3">style:</span><span class="hl-0"> </span><span class="hl-3">MapStyle</span><span class="hl-0">.</span><span class="hl-6">OUTDOOR</span><span class="hl-0">, </span><span class="hl-5">// &lt;-- the shorthand for the outdoor style</span><br/><span class="hl-0">});</span><br/><br/><span class="hl-5">// Or later on, updating the style</span><br/><span class="hl-3">map</span><span class="hl-0">.</span><span class="hl-7">setStyle</span><span class="hl-0">(</span><span class="hl-3">MapStyle</span><span class="hl-0">.</span><span class="hl-6">STREETS</span><span class="hl-0">.</span><span class="hl-6">DARK</span><span class="hl-0">);</span>
 </code></pre>
 <p>The styles with a shorthand provided by the SDK are the following:</p>
 <table>
@@ -100,12 +100,22 @@
 <td align="center">The classic default style, perfect for urban areas</td>
 </tr>
 <tr>
+<td align="center"><code>MapStyle.STREETS.DARK</code></td>
+<td align="center"><a href="https://www.maptiler.com/maps/#style=streets-v2-dark&amp;mode=2d&amp;position=3.71/39.66/-99.05"><img src="images/screenshots/style-streets-v2-dark.png" alt=""></a></td>
+<td align="center">A dark theme perfect to display data layers on top without losing any precious information</td>
+</tr>
+<tr>
+<td align="center"><code>MapStyle.STREETS.LIGHT</code></td>
+<td align="center"><a href="https://www.maptiler.com/maps/#style=streets-v2-light&amp;mode=2d&amp;position=4.4/48.15/12.65"><img src="images/screenshots/style-streets-v2-light.png" alt=""></a></td>
+<td align="center">Just like the <code>STREETS_DARK</code>, but in bright mode! Your data layer as a first class citizen!</td>
+</tr>
+<tr>
 <td align="center"><code>MapStyle.SATELLITE</code></td>
 <td align="center"><a href="https://www.maptiler.com/maps/#style=hybrid&amp;mode=2d&amp;position=7.87/24.518/-77.411"><img src="images/screenshots/style-satellite.png" alt=""></a></td>
 <td align="center">Only high resolution satellite raster tiles without any labels</td>
 </tr>
 <tr>
-<td align="center"><code>MapStyle.HYBRID</code></td>
+<td align="center"><code>MapStyle.SATELLITE.NO_LABEL</code></td>
 <td align="center"><a href="https://www.maptiler.com/maps/#style=hybrid&amp;mode=2d&amp;position=9.4/-26.175/122.6631"><img src="images/screenshots/style-hybrid.png" alt=""></a></td>
 <td align="center">Satellite tile with labels, landmarks, roads ways and political borders</td>
 </tr>
@@ -119,42 +129,58 @@
 <td align="center"><a href="https://www.maptiler.com/maps/#style=basic-v2&amp;mode=2d&amp;position=13.09/37.78734/-122.42025"><img src="images/screenshots/style-basic-v2.png" alt=""></a></td>
 <td align="center">A minimalist alternative to <code>STREETS</code>, with a touch of flat design</td>
 </tr>
-<tr>
-<td align="center"><code>MapStyle.STREETS_DARK</code></td>
-<td align="center"><a href="https://www.maptiler.com/maps/#style=streets-v2-dark&amp;mode=2d&amp;position=3.71/39.66/-99.05"><img src="images/screenshots/style-streets-v2-dark.png" alt=""></a></td>
-<td align="center">A dark theme perfect to display data layers on top without losing any precious information</td>
-</tr>
-<tr>
-<td align="center"><code>MapStyle.STREETS_LIGHT</code></td>
-<td align="center"><a href="https://www.maptiler.com/maps/#style=streets-v2-light&amp;mode=2d&amp;position=4.4/48.15/12.65"><img src="images/screenshots/style-streets-v2-light.png" alt=""></a></td>
-<td align="center">Just like the <code>STREETS_DARK</code>, but in bright mode! Your data layer as a first class citizen!</td>
-</tr>
 </tbody></table>
-<p>Still, you can still use some classic styles with just a <em>string</em>:</p>
-<pre><code class="language-ts"><span class="hl-3">map</span><span class="hl-0">.</span><span class="hl-7">setStyle</span><span class="hl-0">(</span><span class="hl-4">&#39;outdoor&#39;</span><span class="hl-0">);</span>
-</code></pre>
-<p>You can choose from the following:</p>
+<p>MapTiler provides some reference styles as well as some variations for each. Here is the full list:</p>
 <ul>
-<li><code>bright</code></li>
-<li><code>openstreetmap</code></li>
-<li><code>pastel</code></li>
-<li><code>toner</code></li>
-<li><code>topo</code></li>
-<li><code>topographique</code></li>
-<li><code>voyager</code></li>
-<li><code>winter</code></li>
+<li><code>MapStyle.STREETS</code> (reference style)<ul>
+<li><code>MapStyle.STREETS.DARK</code> (variation)</li>
+<li><code>MapStyle.STREETS.LIGHT</code> (variation)</li>
+<li><code>MapStyle.STREETS.PASTEL</code> (variation)</li>
 </ul>
-<p align="center">
-  <img title="bright" src="images/screenshots/style-bright.png" width="12%"></img>
-  <img title="openstreetmap" src="images/screenshots/style-osm.png" width="12%"></img>
-  <img title="pastel" src="images/screenshots/style-pastel.png" width="12%"></img>
-  <img title="toner" src="images/screenshots/style-toner.png" width="12%"></img> 
-  <img title="topo" src="images/screenshots/style-topo.png" width="12%"></img>
-  <img title="topographique" src="images/screenshots/style-topographique.png" width="12%"></img>
-  <img title="voyager" src="images/screenshots/style-voyager.png" width="12%"></img>
-  <img title="winter" src="images/screenshots/style-winter.png" width="12%"></img>
-</p>
-
+</li>
+<li><code>MapStyle.OUTDOOR</code> (reference style)<ul>
+<li><code>MapStyle.OUTDOOR.WINTER</code> (variation)</li>
+</ul>
+</li>
+<li><code>MapStyle.SATELLITE</code> (reference style)<ul>
+<li><code>MapStyle.SATELLITE.NO_LABEL</code> (variation)</li>
+</ul>
+</li>
+<li><code>MapStyle.BASIC</code> (reference style)<ul>
+<li><code>MapStyle.BASIC.DARK</code> (variation)</li>
+<li><code>MapStyle.BASIC.LIGHT</code> (variation)</li>
+</ul>
+</li>
+<li><code>MapStyle.BRIGHT</code> (reference style)<ul>
+<li><code>MapStyle.BRIGHT.DARK</code> (variation)</li>
+<li><code>MapStyle.BRIGHT.LIGHT</code> (variation)</li>
+<li><code>MapStyle.BRIGHT.PASTEL</code> (variation)</li>
+</ul>
+</li>
+<li><code>MapStyle.TOPO</code> (reference style)<ul>
+<li><code>MapStyle.TOPO.SHINY</code> (variation)</li>
+<li><code>MapStyle.TOPO.PASTEL</code> (variation)</li>
+<li><code>MapStyle.TOPO.TOPOGRAPHIQUE</code> (variation)</li>
+</ul>
+</li>
+<li><code>MapStyle.VOYAGER</code> (reference style)<ul>
+<li><code>MapStyle.VOYAGER.DARK</code> (variation)</li>
+<li><code>MapStyle.VOYAGER.LIGHT</code> (variation)</li>
+<li><code>MapStyle.VOYAGER.VINTAGE</code> (variation)</li>
+</ul>
+</li>
+<li><code>MapStyle.TONER</code> (reference style)<ul>
+<li><code>MapStyle.TONER.BACKGROUND</code> (variation)</li>
+<li><code>MapStyle.TONER.LITE</code> (variation)</li>
+<li><code>MapStyle.TONER.LINES</code> (variation)</li>
+</ul>
+</li>
+<li><code>MapStyle.OPENSTREETMAP</code> (reference style, this one does not have any variations)</li>
+</ul>
+<p>All reference styles (instances of <code>ReferenceMapStyle</code>) and style variations (instances of <code>MapStyleVariation</code>) have methods to know the alternative styles and variation that belong to the same reference style (<code>.getVariations()</code>). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style.</p>
+<p>Still, you can still use some classic styles with just a <em>string</em> if you know their MapTiler CLoud ID:</p>
+<pre><code class="language-ts"><span class="hl-3">map</span><span class="hl-0">.</span><span class="hl-7">setStyle</span><span class="hl-0">(</span><span class="hl-4">&#39;outdoor-v2&#39;</span><span class="hl-0">);</span>
+</code></pre>
 <p>And finally, you can use your own custom styles designed with <a href="https://cloud.maptiler.com/maps/">our style editor</a>. Every custom style is given a unique ID, for instance: <code>c912ffc8-2360-487a-973b-59d037fb15b8</code>.</p>
 <p>This ID can be provided as such:</p>
 <pre><code class="language-ts"><span class="hl-3">map</span><span class="hl-0">.</span><span class="hl-7">setStyle</span><span class="hl-0">(</span><span class="hl-4">&quot;c912ffc8-2360-487a-973b-59d037fb15b8&quot;</span><span class="hl-0">);</span>
@@ -401,6 +427,8 @@
 <nav class="tsd-navigation secondary menu-sticky">
 <ul>
 <li class="tsd-kind-class"><a href="classes/Map.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-class)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-128-path"></rect><path d="M11.898 16.1201C11.098 16.1201 10.466 15.8961 10.002 15.4481C9.53803 15.0001 9.30603 14.3841 9.30603 13.6001V9.64012C9.30603 8.85612 9.53803 8.24012 10.002 7.79212C10.466 7.34412 11.098 7.12012 11.898 7.12012C12.682 7.12012 13.306 7.34812 13.77 7.80412C14.234 8.25212 14.466 8.86412 14.466 9.64012H13.386C13.386 9.14412 13.254 8.76412 12.99 8.50012C12.734 8.22812 12.37 8.09212 11.898 8.09212C11.426 8.09212 11.054 8.22412 10.782 8.48812C10.518 8.75212 10.386 9.13212 10.386 9.62812V13.6001C10.386 14.0961 10.518 14.4801 10.782 14.7521C11.054 15.0161 11.426 15.1481 11.898 15.1481C12.37 15.1481 12.734 15.0161 12.99 14.7521C13.254 14.4801 13.386 14.0961 13.386 13.6001H14.466C14.466 14.3761 14.234 14.9921 13.77 15.4481C13.306 15.8961 12.682 16.1201 11.898 16.1201Z" fill="var(--color-text)" id="icon-128-text"></path></svg>Map</a></li>
+<li class="tsd-kind-class"><a href="classes/MapStyleVariation.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-128-path"></use><use href="#icon-128-text"></use></svg>Map<wbr/>Style<wbr/>Variation</a></li>
+<li class="tsd-kind-class"><a href="classes/ReferenceMapStyle.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-128-path"></use><use href="#icon-128-text"></use></svg>Reference<wbr/>Map<wbr/>Style</a></li>
 <li class="tsd-kind-class"><a href="classes/SdkConfig.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-128-path"></use><use href="#icon-128-text"></use></svg>Sdk<wbr/>Config</a></li>
 <li class="tsd-kind-type-alias"><a href="types/LanguageString.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-4194304-path"></rect><path d="M11.31 16V8.224H8.91V7.24H14.79V8.224H12.39V16H11.31Z" fill="var(--color-text)" id="icon-4194304-text"></path></svg>Language<wbr/>String</a></li>
 <li class="tsd-kind-type-alias"><a href="types/MapOptions.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>Map<wbr/>Options</a></li>

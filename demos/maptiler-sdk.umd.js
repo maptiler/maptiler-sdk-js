@@ -3248,6 +3248,7 @@
 	exports.LogoControl = LogoControl;
 	exports.Map = Map;
 	exports.MapStyle = MapStyle;
+	exports.MapStyleVariation = MapStyleVariation;
 	exports.Marker = Marker;
 	exports.MercatorCoordinate = MercatorCoordinate;
 	exports.NavigationControl = NavigationControl;
@@ -3255,6 +3256,7 @@
 	exports.Popup = Popup;
 	exports.RasterDEMTileSource = RasterDEMTileSource;
 	exports.RasterTileSource = RasterTileSource;
+	exports.ReferenceMapStyle = ReferenceMapStyle;
 	exports.ScaleControl = ScaleControl;
 	exports.SdkConfig = SdkConfig;
 	exports.ServiceError = ServiceError;
