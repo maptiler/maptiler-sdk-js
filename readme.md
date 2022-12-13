@@ -133,11 +133,15 @@ The styles with a shorthand provided by the SDK are the following:
 |:-:|:-:|:-:|
 |`MapStyle.STREETS`|[![](images/screenshots/style-streets-v2.png)](https://www.maptiler.com/maps/#style=streets-v2&mode=2d&position=12.52/40.73676/-73.98418)|The classic default style, perfect for urban areas|
 |`MapStyle.STREETS.DARK`|[![](images/screenshots/style-streets-v2-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A dark theme perfect to display data layers on top without losing any precious information|
-|`MapStyle.STREETS.LIGHT`|[![](images/screenshots/style-streets-v2-light.png)](https://www.maptiler.com/maps/#style=streets-v2-light&mode=2d&position=4.4/48.15/12.65)|Just like the `STREETS_DARK`, but in bright mode! Your data layer as a first class citizen!|
+|`MapStyle.STREETS.LIGHT`|[![](images/screenshots/style-streets-v2-light.png)](https://www.maptiler.com/maps/#style=streets-v2-light&mode=2d&position=4.4/48.15/12.65)|Just like the `STREETS.DARK`, but in bright mode! Your data layer as a first class citizen!|
 |`MapStyle.SATELLITE`|[![](images/screenshots/style-satellite.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=7.87/24.518/-77.411)|Only high resolution satellite raster tiles without any labels|
 |`MapStyle.SATELLITE.NO_LABEL`|[![](images/screenshots/style-hybrid.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)|Satellite tile with labels, landmarks, roads ways and political borders|
 |`MapStyle.OUTDOOR`|[![](images/screenshots/style-outdoor.png)](https://www.maptiler.com/maps/#style=outdoor&mode=2d&position=11.96/46.02591/7.7273)|A solid hiking companion, with peaks, parks, isolines and more|
 |`MapStyle.BASIC`|[![](images/screenshots/style-basic-v2.png)](https://www.maptiler.com/maps/#style=basic-v2&mode=2d&position=13.09/37.78734/-122.42025)|A minimalist alternative to `STREETS`, with a touch of flat design|
+
+
+<details>
+  <summary>Know more about built-in map styles</summary>
 
 MapTiler provides some reference styles as well as some variations for each. Here is the full list:
 - `MapStyle.STREETS` (reference style)
@@ -169,7 +173,10 @@ MapTiler provides some reference styles as well as some variations for each. Her
   - `MapStyle.TONER.LINES` (variation)
 - `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variations)
 
-All reference styles (instances of `ReferenceMapStyle`) and style variations (instances of `MapStyleVariation`) have methods to know the alternative styles and variation that belong to the same reference style (`.getVariations()`). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style.
+All reference styles (instances of `ReferenceMapStyle`) and style variations (instances of `MapStyleVariation`) have methods to know the alternative styles and variation that belong to the same reference style (`.getVariations()`). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style. Read more about about [ReferenceMapStyle](docsmd/classes/ReferenceMapStyle.md) and [MapStyleVariation](docsmd/classes/MapStyleVariation.md).
+</details>  
+
+___
 
 
 Still, you can still use some classic styles with just a *string* if you know their MapTiler CLoud ID:
