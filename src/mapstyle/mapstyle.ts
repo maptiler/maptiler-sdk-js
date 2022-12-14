@@ -92,11 +92,15 @@ export class MapStyleVariation {
     return this.name;
   }
 
+  getFullName(): string {
+    return `${this.referenceStyle.getName()} ${this.name}`;
+  }
+
   /**
    * Get the variation type (eg. "DEFAULT", "DARK", "PASTEL", etc.)
    * @returns
    */
-  getVariationType(): string {
+  getType(): string {
     return this.variationType;
   }
 
@@ -197,8 +201,28 @@ export class ReferenceMapStyle {
     private id: string
   ) {}
 
+  /**
+   * Get the human-friendly name of this reference style
+   * @returns
+   */
+  getName(): string {
+    return this.name;
+  }
+
+  /**
+   * Get the id of _this_ reference style
+   * @returns
+   */
+  getId(): string {
+    return this.id;
+  }
+
+  /**
+   * Add a variation to _this_ reference style
+   * @param v
+   */
   addVariation(v: MapStyleVariation) {
-    this.variations[v.getVariationType()] = v;
+    this.variations[v.getType()] = v;
     this.orderedVariations.push(v);
   }
 
@@ -271,10 +295,6 @@ function buildMapStyles(): MapStyleType {
       refStyle.addVariation(variation);
     }
     mapStyle[refStyleInfo.referenceStyleID] = refStyle;
-
-    if (i === 0) {
-      mapStyle.DEFAULT = refStyle;
-    }
   }
   return mapStyle;
 }
@@ -299,7 +319,9 @@ function styleToStyle(
     | undefined
 ): string | StyleSpecification {
   if (!style) {
-    return MapStyle.DEFAULT.getDefaultVariation().getUsableStyle();
+    return MapStyle[mapstylepresets[0].referenceStyleID]
+      .getDefaultVariation()
+      .getUsableStyle();
   }
 
   // If the style is given as a string and this corresponds to a built-in style

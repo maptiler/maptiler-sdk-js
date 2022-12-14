@@ -1483,28 +1483,28 @@
 			variations: [
 				{
 					id: "streets-v2",
-					name: "Streets",
+					name: "Default",
 					variationType: "DEFAULT",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "streets-v2-dark",
-					name: "Streets Dark",
+					name: "Dark",
 					variationType: "DARK",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "streets-v2-light",
-					name: "Streets Light",
+					name: "Light",
 					variationType: "LIGHT",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "streets-v2-pastel",
-					name: "Streets Pastel",
+					name: "Pastel",
 					variationType: "PASTEL",
 					description: "",
 					imageURL: ""
@@ -1518,7 +1518,7 @@
 			variations: [
 				{
 					id: "outdoor-v2",
-					name: "Outdoor",
+					name: "Default",
 					variationType: "DEFAULT",
 					description: "",
 					imageURL: ""
@@ -1539,14 +1539,14 @@
 			variations: [
 				{
 					id: "hybrid",
-					name: "Satellite With Labels",
+					name: "Default",
 					variationType: "DEFAULT",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "satellite",
-					name: "Satellite Without Label",
+					name: "Without Label",
 					variationType: "NO_LABEL",
 					priority: 1,
 					description: "",
@@ -1561,14 +1561,14 @@
 			variations: [
 				{
 					id: "basic-v2",
-					name: "Basic",
+					name: "Default",
 					variationType: "DEFAULT",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "basic-v2-dark",
-					name: "Basic Dark",
+					name: "Dark",
 					variationType: "DARK",
 					priority: 1,
 					description: "",
@@ -1576,7 +1576,7 @@
 				},
 				{
 					id: "basic-v2-light",
-					name: "Basic Light",
+					name: "Light",
 					variationType: "LIGHT",
 					description: "",
 					imageURL: ""
@@ -1590,28 +1590,28 @@
 			variations: [
 				{
 					id: "bright-v2",
-					name: "Bright",
+					name: "Default",
 					variationType: "DEFAULT",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "bright-v2-dark",
-					name: "Bright Dark",
+					name: "Dark",
 					variationType: "DARK",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "bright-v2-light",
-					name: "Bright Light",
+					name: "Light",
 					variationType: "LIGHT",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "bright-v2-pastel",
-					name: "Bright Pastel",
+					name: "Pastel",
 					variationType: "PASTEL",
 					description: "",
 					imageURL: ""
@@ -1625,7 +1625,7 @@
 			variations: [
 				{
 					id: "openstreetmap",
-					name: "OpenStreetMap",
+					name: "Default",
 					variationType: "DEFAULT",
 					description: "",
 					imageURL: ""
@@ -1639,28 +1639,28 @@
 			variations: [
 				{
 					id: "topo-v2",
-					name: "Topo",
+					name: "Default",
 					variationType: "DEFAULT",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "topo-v2-shiny",
-					name: "Topo Shiny",
+					name: "Shiny",
 					variationType: "SHINY",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "topo-v2-pastel",
-					name: "Topo Pastel",
+					name: "Pastel",
 					variationType: "PASTEL",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "topo-v2-topographique",
-					name: "Topo Topographique",
+					name: "Topographique",
 					variationType: "TOPOGRAPHIQUE",
 					description: "",
 					imageURL: ""
@@ -1674,28 +1674,28 @@
 			variations: [
 				{
 					id: "voyager-v2",
-					name: "Voyager",
+					name: "Default",
 					variationType: "DEFAULT",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "voyager-v2-darkmatter",
-					name: "Voyager Darkmatter",
+					name: "Darkmatter",
 					variationType: "DARK",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "voyager-v2-positron",
-					name: "Voyager Positron",
+					name: "Positron",
 					variationType: "LIGHT",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "voyager-v2-vintage",
-					name: "Voyager Vintage",
+					name: "Vintage",
 					variationType: "VINTAGE",
 					description: "",
 					imageURL: ""
@@ -1709,28 +1709,28 @@
 			variations: [
 				{
 					id: "toner-v2",
-					name: "Toner",
+					name: "Default",
 					variationType: "DEFAULT",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "toner-v2-background",
-					name: "Toner Background",
+					name: "Background",
 					variationType: "BACKGROUND",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "toner-v2-lite",
-					name: "Toner Lite",
+					name: "Lite",
 					variationType: "LITE",
 					description: "",
 					imageURL: ""
 				},
 				{
 					id: "toner-v2-lines",
-					name: "Toner Lines",
+					name: "Lines",
 					variationType: "LINES",
 					description: "",
 					imageURL: ""
@@ -1779,7 +1779,10 @@
 	  getName() {
 	    return this.name;
 	  }
-	  getVariationType() {
+	  getFullName() {
+	    return `${this.referenceStyle.getName()} ${this.name}`;
+	  }
+	  getType() {
 	    return this.variationType;
 	  }
 	  getUsableStyle() {
@@ -1817,8 +1820,14 @@
 	    this.variations = {};
 	    this.orderedVariations = [];
 	  }
+	  getName() {
+	    return this.name;
+	  }
+	  getId() {
+	    return this.id;
+	  }
 	  addVariation(v) {
-	    this.variations[v.getVariationType()] = v;
+	    this.variations[v.getType()] = v;
 	    this.orderedVariations.push(v);
 	  }
 	  hasVariation(variationType) {
@@ -1854,16 +1863,13 @@
 	      refStyle.addVariation(variation);
 	    }
 	    mapStyle[refStyleInfo.referenceStyleID] = refStyle;
-	    if (i === 0) {
-	      mapStyle.DEFAULT = refStyle;
-	    }
 	  }
 	  return mapStyle;
 	}
 	const MapStyle = buildMapStyles();
 	function styleToStyle(style) {
 	  if (!style) {
-	    return MapStyle.DEFAULT.getDefaultVariation().getUsableStyle();
+	    return MapStyle[mapstylepresets[0].referenceStyleID].getDefaultVariation().getUsableStyle();
 	  }
 	  if (typeof style === "string" && style.toLocaleLowerCase() in builtInStyles) {
 	    return builtInStyles[style.toLocaleLowerCase()];

@@ -14,6 +14,8 @@ An instance of reference style contains a list of StyleVariations ordered by rel
 
 - [addVariation](ReferenceMapStyle.md#addvariation)
 - [getDefaultVariation](ReferenceMapStyle.md#getdefaultvariation)
+- [getId](ReferenceMapStyle.md#getid)
+- [getName](ReferenceMapStyle.md#getname)
 - [getVariation](ReferenceMapStyle.md#getvariation)
 - [getVariations](ReferenceMapStyle.md#getvariations)
 - [hasVariation](ReferenceMapStyle.md#hasvariation)
@@ -33,13 +35,15 @@ An instance of reference style contains a list of StyleVariations ordered by rel
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:188](https://github.com/maptiler/maptiler-sdk-js/blob/31aa1aa/src/mapstyle/mapstyle.ts#L188)
+[src/mapstyle/mapstyle.ts:192](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L192)
 
 ## Methods
 
 ### addVariation
 
 ▸ **addVariation**(`v`): `void`
+
+Add a variation to _this_ reference style
 
 #### Parameters
 
@@ -53,7 +57,7 @@ An instance of reference style contains a list of StyleVariations ordered by rel
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:200](https://github.com/maptiler/maptiler-sdk-js/blob/31aa1aa/src/mapstyle/mapstyle.ts#L200)
+[src/mapstyle/mapstyle.ts:224](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L224)
 
 ___
 
@@ -69,7 +73,39 @@ Get the defualt variation for this reference style
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:238](https://github.com/maptiler/maptiler-sdk-js/blob/31aa1aa/src/mapstyle/mapstyle.ts#L238)
+[src/mapstyle/mapstyle.ts:262](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L262)
+
+___
+
+### getId
+
+▸ **getId**(): `string`
+
+Get the id of _this_ reference style
+
+#### Returns
+
+`string`
+
+#### Defined in
+
+[src/mapstyle/mapstyle.ts:216](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L216)
+
+___
+
+### getName
+
+▸ **getName**(): `string`
+
+Get the human-friendly name of this reference style
+
+#### Returns
+
+`string`
+
+#### Defined in
+
+[src/mapstyle/mapstyle.ts:208](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L208)
 
 ___
 
@@ -92,7 +128,7 @@ then the most relevant default variation is returned instead
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:220](https://github.com/maptiler/maptiler-sdk-js/blob/31aa1aa/src/mapstyle/mapstyle.ts#L220)
+[src/mapstyle/mapstyle.ts:244](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L244)
 
 ___
 
@@ -108,7 +144,7 @@ Get the list of variations for this reference style
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:230](https://github.com/maptiler/maptiler-sdk-js/blob/31aa1aa/src/mapstyle/mapstyle.ts#L230)
+[src/mapstyle/mapstyle.ts:254](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L254)
 
 ___
 
@@ -130,4 +166,4 @@ Check if a given variation type exists for this reference style
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:210](https://github.com/maptiler/maptiler-sdk-js/blob/31aa1aa/src/mapstyle/mapstyle.ts#L210)
+[src/mapstyle/mapstyle.ts:234](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L234)

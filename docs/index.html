@@ -107,7 +107,7 @@
 <tr>
 <td align="center"><code>MapStyle.STREETS.LIGHT</code></td>
 <td align="center"><a href="https://www.maptiler.com/maps/#style=streets-v2-light&amp;mode=2d&amp;position=4.4/48.15/12.65"><img src="images/screenshots/style-streets-v2-light.png" alt=""></a></td>
-<td align="center">Just like the <code>STREETS_DARK</code>, but in bright mode! Your data layer as a first class citizen!</td>
+<td align="center">Just like the <code>STREETS.DARK</code>, but in bright mode! Your data layer as a first class citizen!</td>
 </tr>
 <tr>
 <td align="center"><code>MapStyle.SATELLITE</code></td>
@@ -130,46 +130,50 @@
 <td align="center">A minimalist alternative to <code>STREETS</code>, with a touch of flat design</td>
 </tr>
 </tbody></table>
-<p>MapTiler provides some reference styles as well as some variations for each. Here is the full list:</p>
+<details>
+  <summary>Know more about built-in map styles</summary>
+
+<p>MapTiler provides some <strong>reference styles</strong> as well as some <strong>variations</strong> for each. A <strong>reference syle</strong> sets some guidelines about what kind of information is displayed, the granularity of the information, and more generaly defines a purpose for which this style is the most relevant: street navigation, outdoor adventure, minimalist dashboard, etc. Then, each <strong>reference style</strong> offers a range of <strong>variations</strong> that contain the same level of information and has the same purpose but using different colors schemes.</p>
+<p>Here is the full list:</p>
 <ul>
-<li><code>MapStyle.STREETS</code> (reference style)<ul>
+<li><code>MapStyle.STREETS</code>, reference style for navigation and city exploration<ul>
 <li><code>MapStyle.STREETS.DARK</code> (variation)</li>
 <li><code>MapStyle.STREETS.LIGHT</code> (variation)</li>
 <li><code>MapStyle.STREETS.PASTEL</code> (variation)</li>
 </ul>
 </li>
-<li><code>MapStyle.OUTDOOR</code> (reference style)<ul>
+<li><code>MapStyle.OUTDOOR</code> reference style for adventure<ul>
 <li><code>MapStyle.OUTDOOR.WINTER</code> (variation)</li>
 </ul>
 </li>
-<li><code>MapStyle.SATELLITE</code> (reference style)<ul>
+<li><code>MapStyle.SATELLITE</code> reference style satellite and airborne imagery<ul>
 <li><code>MapStyle.SATELLITE.NO_LABEL</code> (variation)</li>
 </ul>
 </li>
-<li><code>MapStyle.BASIC</code> (reference style)<ul>
+<li><code>MapStyle.BASIC</code> reference style for minimalist design and general purpose<ul>
 <li><code>MapStyle.BASIC.DARK</code> (variation)</li>
 <li><code>MapStyle.BASIC.LIGHT</code> (variation)</li>
 </ul>
 </li>
-<li><code>MapStyle.BRIGHT</code> (reference style)<ul>
+<li><code>MapStyle.BRIGHT</code> reference style for high contrast navigation<ul>
 <li><code>MapStyle.BRIGHT.DARK</code> (variation)</li>
 <li><code>MapStyle.BRIGHT.LIGHT</code> (variation)</li>
 <li><code>MapStyle.BRIGHT.PASTEL</code> (variation)</li>
 </ul>
 </li>
-<li><code>MapStyle.TOPO</code> (reference style)<ul>
+<li><code>MapStyle.TOPO</code> reference style for topographic study<ul>
 <li><code>MapStyle.TOPO.SHINY</code> (variation)</li>
 <li><code>MapStyle.TOPO.PASTEL</code> (variation)</li>
 <li><code>MapStyle.TOPO.TOPOGRAPHIQUE</code> (variation)</li>
 </ul>
 </li>
-<li><code>MapStyle.VOYAGER</code> (reference style)<ul>
+<li><code>MapStyle.VOYAGER</code> reference style for stylish yet minimalist maps<ul>
 <li><code>MapStyle.VOYAGER.DARK</code> (variation)</li>
 <li><code>MapStyle.VOYAGER.LIGHT</code> (variation)</li>
 <li><code>MapStyle.VOYAGER.VINTAGE</code> (variation)</li>
 </ul>
 </li>
-<li><code>MapStyle.TONER</code> (reference style)<ul>
+<li><code>MapStyle.TONER</code> reference style for very high contrast stylish maps <ul>
 <li><code>MapStyle.TONER.BACKGROUND</code> (variation)</li>
 <li><code>MapStyle.TONER.LITE</code> (variation)</li>
 <li><code>MapStyle.TONER.LINES</code> (variation)</li>
@@ -177,7 +181,10 @@
 </li>
 <li><code>MapStyle.OPENSTREETMAP</code> (reference style, this one does not have any variations)</li>
 </ul>
-<p>All reference styles (instances of <code>ReferenceMapStyle</code>) and style variations (instances of <code>MapStyleVariation</code>) have methods to know the alternative styles and variation that belong to the same reference style (<code>.getVariations()</code>). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style.</p>
+<p>All reference styles (instances of <code>ReferenceMapStyle</code>) and style variations (instances of <code>MapStyleVariation</code>) have methods to know the alternative styles and variation that belong to the same reference style (<code>.getVariations()</code>). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style. Read more about about <a href="docsmd/classes/ReferenceMapStyle.md">ReferenceMapStyle</a> and <a href="docsmd/classes/MapStyleVariation.md">MapStyleVariation</a>.</p>
+</details>  
+
+<hr>
 <p>Still, you can still use some classic styles with just a <em>string</em> if you know their MapTiler CLoud ID:</p>
 <pre><code class="language-ts"><span class="hl-3">map</span><span class="hl-0">.</span><span class="hl-7">setStyle</span><span class="hl-0">(</span><span class="hl-4">&#39;outdoor-v2&#39;</span><span class="hl-0">);</span>
 </code></pre>

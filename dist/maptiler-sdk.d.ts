@@ -343,11 +343,12 @@ declare class MapStyleVariation {
      * @returns
      */
     getName(): string;
+    getFullName(): string;
     /**
      * Get the variation type (eg. "DEFAULT", "DARK", "PASTEL", etc.)
      * @returns
      */
-    getVariationType(): string;
+    getType(): string;
     /**
      * Get the style as usable by MapLibre, a string (URL) or a plain style description (StyleSpecification)
      * @returns
@@ -421,6 +422,20 @@ declare class ReferenceMapStyle {
      * ID of this reference style
      */
     id: string);
+    /**
+     * Get the human-friendly name of this reference style
+     * @returns
+     */
+    getName(): string;
+    /**
+     * Get the id of _this_ reference style
+     * @returns
+     */
+    getId(): string;
+    /**
+     * Add a variation to _this_ reference style
+     * @param v
+     */
     addVariation(v: MapStyleVariation): void;
     /**
      * Check if a given variation type exists for this reference style
