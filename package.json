@@ -6,6 +6,9 @@
   "types": "dist/maptiler-sdk.d.ts",
   "style": "dist/maptiler-sdk.css",
   "type": "module",
+  "exports": {     
+    "import": "./dist/maptiler-sdk.mjs"
+  },
   "keywords": [
     "maptiler",
     "map",
