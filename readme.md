@@ -135,7 +135,7 @@ The styles with a shorthand provided by the SDK are the following:
 |`MapStyle.STREETS.DARK`|[![](images/screenshots/style-streets-v2-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A dark theme perfect to display data layers on top without losing any precious information|
 |`MapStyle.STREETS.LIGHT`|[![](images/screenshots/style-streets-v2-light.png)](https://www.maptiler.com/maps/#style=streets-v2-light&mode=2d&position=4.4/48.15/12.65)|Just like the `STREETS.DARK`, but in bright mode! Your data layer as a first class citizen!|
 |`MapStyle.SATELLITE`|[![](images/screenshots/style-satellite.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=7.87/24.518/-77.411)|Only high resolution satellite raster tiles without any labels|
-|`MapStyle.SATELLITE.NO_LABEL`|[![](images/screenshots/style-hybrid.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)|Satellite tile with labels, landmarks, roads ways and political borders|
+|`MapStyle.HYBRID`|[![](images/screenshots/style-hybrid.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)|Satellite tile with labels, landmarks, roads ways and political borders|
 |`MapStyle.OUTDOOR`|[![](images/screenshots/style-outdoor.png)](https://www.maptiler.com/maps/#style=outdoor&mode=2d&position=11.96/46.02591/7.7273)|A solid hiking companion, with peaks, parks, isolines and more|
 |`MapStyle.BASIC`|[![](images/screenshots/style-basic-v2.png)](https://www.maptiler.com/maps/#style=basic-v2&mode=2d&position=13.09/37.78734/-122.42025)|A minimalist alternative to `STREETS`, with a touch of flat design|
 
@@ -152,8 +152,8 @@ Here is the full list:
   - `MapStyle.STREETS.PASTEL` (variation)
 - `MapStyle.OUTDOOR` reference style for adventure
   - `MapStyle.OUTDOOR.WINTER` (variation)
-- `MapStyle.SATELLITE` reference style satellite and airborne imagery
-  - `MapStyle.SATELLITE.NO_LABEL` (variation)
+- `MapStyle.SATELLITE` reference style satellite and airborne imagery (no variations)
+- `MapStyle.HYBRID` reference style satellite and airborne imagery with labels (no variations)
 - `MapStyle.BASIC` reference style for minimalist design and general purpose
   - `MapStyle.BASIC.DARK` (variation)
   - `MapStyle.BASIC.LIGHT` (variation)

@@ -256,17 +256,23 @@ var mapstylepresets = [
 		description: "",
 		variations: [
 			{
-				id: "hybrid",
+				id: "satellite",
 				name: "Default",
 				variationType: "DEFAULT",
 				description: "",
 				imageURL: ""
-			},
+			}
+		]
+	},
+	{
+		referenceStyleID: "HYBRID",
+		name: "Hybrid",
+		description: "",
+		variations: [
 			{
-				id: "satellite",
-				name: "Without Label",
-				variationType: "NO_LABEL",
-				priority: 1,
+				id: "hybrid",
+				name: "Default",
+				variationType: "DEFAULT",
 				description: "",
 				imageURL: ""
 			}

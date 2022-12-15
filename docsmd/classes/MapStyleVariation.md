@@ -43,7 +43,7 @@ An instance of MapStyleVariation contains information about a style to use that 
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:55](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L55)
+[src/mapstyle/mapstyle.ts:55](https://github.com/maptiler/maptiler-sdk-js/blob/31b341d/src/mapstyle/mapstyle.ts#L55)
 
 ## Methods
 
@@ -59,7 +59,7 @@ Get the human-friendly description
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:129](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L129)
+[src/mapstyle/mapstyle.ts:129](https://github.com/maptiler/maptiler-sdk-js/blob/31b341d/src/mapstyle/mapstyle.ts#L129)
 
 ___
 
@@ -73,7 +73,7 @@ ___
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:95](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L95)
+[src/mapstyle/mapstyle.ts:95](https://github.com/maptiler/maptiler-sdk-js/blob/31b341d/src/mapstyle/mapstyle.ts#L95)
 
 ___
 
@@ -89,7 +89,7 @@ Get the MapTiler Cloud id
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:122](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L122)
+[src/mapstyle/mapstyle.ts:122](https://github.com/maptiler/maptiler-sdk-js/blob/31b341d/src/mapstyle/mapstyle.ts#L122)
 
 ___
 
@@ -105,7 +105,7 @@ Get the image URL that represent _this_ variation
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:173](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L173)
+[src/mapstyle/mapstyle.ts:173](https://github.com/maptiler/maptiler-sdk-js/blob/31b341d/src/mapstyle/mapstyle.ts#L173)
 
 ___
 
@@ -121,7 +121,7 @@ Get the human-friendly name
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:91](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L91)
+[src/mapstyle/mapstyle.ts:91](https://github.com/maptiler/maptiler-sdk-js/blob/31b341d/src/mapstyle/mapstyle.ts#L91)
 
 ___
 
@@ -137,7 +137,7 @@ Get the reference style this variation belongs to
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:137](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L137)
+[src/mapstyle/mapstyle.ts:137](https://github.com/maptiler/maptiler-sdk-js/blob/31b341d/src/mapstyle/mapstyle.ts#L137)
 
 ___
 
@@ -153,7 +153,7 @@ Get the variation type (eg. "DEFAULT", "DARK", "PASTEL", etc.)
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:103](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L103)
+[src/mapstyle/mapstyle.ts:103](https://github.com/maptiler/maptiler-sdk-js/blob/31b341d/src/mapstyle/mapstyle.ts#L103)
 
 ___
 
@@ -169,7 +169,7 @@ Get the style as usable by MapLibre, a string (URL) or a plain style description
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:111](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L111)
+[src/mapstyle/mapstyle.ts:111](https://github.com/maptiler/maptiler-sdk-js/blob/31b341d/src/mapstyle/mapstyle.ts#L111)
 
 ___
 
@@ -192,7 +192,7 @@ Retrieve the variation of a given type. If not found, will return the "DEFAULT" 
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:157](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L157)
+[src/mapstyle/mapstyle.ts:157](https://github.com/maptiler/maptiler-sdk-js/blob/31b341d/src/mapstyle/mapstyle.ts#L157)
 
 ___
 
@@ -208,7 +208,7 @@ Get all the variations for _this_ variations, except _this_ current one
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:165](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L165)
+[src/mapstyle/mapstyle.ts:165](https://github.com/maptiler/maptiler-sdk-js/blob/31b341d/src/mapstyle/mapstyle.ts#L165)
 
 ___
 
@@ -231,4 +231,4 @@ Check if a variation of a given type exists for _this_ variations
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:147](https://github.com/maptiler/maptiler-sdk-js/blob/1c936a5/src/mapstyle/mapstyle.ts#L147)
+[src/mapstyle/mapstyle.ts:147](https://github.com/maptiler/maptiler-sdk-js/blob/31b341d/src/mapstyle/mapstyle.ts#L147)
