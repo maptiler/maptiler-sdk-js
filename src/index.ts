@@ -95,9 +95,11 @@ import type { MapOptions } from "./Map";
 
 // importing client functions to expose them as part of the SDK
 import type {
-  Bbox,
+  BBox,
+  ObjectBBox,
+  ArrayBBox,
   // LngLat,
-  LngLatArray,
+  ArrayLngLat,
   GeocodingOptions,
   CoordinatesSearchOptions,
   CenteredStaticMapOptions,
@@ -133,10 +135,12 @@ import type { MapStyleType } from "./mapstyle/mapstyle";
 // Exporting types
 export type {
   // LngLat,
-  LngLatArray,
+  ArrayLngLat,
   MapOptions,
   GeocodingOptions,
-  Bbox,
+  BBox,
+  ObjectBBox,
+  ArrayBBox,
   CoordinatesSearchOptions,
   CenteredStaticMapOptions,
   BoundedStaticMapOptions,

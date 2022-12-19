@@ -3,7 +3,7 @@ import * as ML from 'maplibre-gl';
 import { StyleSpecification } from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { FetchFunction } from '@maptiler/client';
-export { AutomaticStaticMapOptions, Bbox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, LanguageGeocoding, LanguageGeocodingString, LngLatArray, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
+export { ArrayBBox, ArrayLngLat, AutomaticStaticMapOptions, BBox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, LanguageGeocoding, LanguageGeocodingString, ObjectBBox, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
 import EventEmitter from 'events';
 
 /**
