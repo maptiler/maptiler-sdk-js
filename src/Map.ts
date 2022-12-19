@@ -6,7 +6,7 @@ import { CustomLogoControl } from "./CustomLogoControl";
 import { enableRTL, vlog } from "./tools";
 import { getBrowserLanguage, Language, LanguageString } from "./language";
 import {
-  MapStyleVariation,
+  MapStyleVariant,
   ReferenceMapStyle,
   styleToStyle,
 } from "./mapstyle/mapstyle";
@@ -37,7 +37,7 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
    * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
    * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
    */
-  style?: ReferenceMapStyle | MapStyleVariation | string;
+  style?: ReferenceMapStyle | MapStyleVariant | string;
 
   /**
    * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.

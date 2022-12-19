@@ -125,7 +125,7 @@ import type { Unit } from "./unit";
 import {
   MapStyle,
   ReferenceMapStyle,
-  MapStyleVariation,
+  MapStyleVariant,
 } from "./mapstyle/mapstyle";
 
 import type { MapStyleType } from "./mapstyle/mapstyle";
@@ -163,5 +163,5 @@ export {
   LanguageGeocoding,
   Point,
   ReferenceMapStyle,
-  MapStyleVariation,
+  MapStyleVariant,
 };

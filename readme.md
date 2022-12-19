@@ -143,39 +143,39 @@ The styles with a shorthand provided by the SDK are the following:
 <details>
   <summary>Know more about built-in map styles</summary>
 
-MapTiler provides some **reference styles** as well as some **variations** for each. A **reference syle** sets some guidelines about what kind of information is displayed, the granularity of the information, and more generaly defines a purpose for which this style is the most relevant: street navigation, outdoor adventure, minimalist dashboard, etc. Then, each **reference style** offers a range of **variations** that contain the same level of information and has the same purpose but using different colors schemes.
+MapTiler provides some **reference styles** as well as some **variants** for each. A **reference syle** sets some guidelines about what kind of information is displayed, the granularity of the information, and more generaly defines a purpose for which this style is the most relevant: street navigation, outdoor adventure, minimalist dashboard, etc. Then, each **reference style** offers a range of **variants** that contain the same level of information and has the same purpose but using different colors schemes.
 
 Here is the full list:
 - `MapStyle.STREETS`, reference style for navigation and city exploration
-  - `MapStyle.STREETS.DARK` (variation)
-  - `MapStyle.STREETS.LIGHT` (variation)
-  - `MapStyle.STREETS.PASTEL` (variation)
+  - `MapStyle.STREETS.DARK` (variant)
+  - `MapStyle.STREETS.LIGHT` (variant)
+  - `MapStyle.STREETS.PASTEL` (variant)
 - `MapStyle.OUTDOOR` reference style for adventure
-  - `MapStyle.OUTDOOR.WINTER` (variation)
-- `MapStyle.SATELLITE` reference style satellite and airborne imagery (no variations)
-- `MapStyle.HYBRID` reference style satellite and airborne imagery with labels (no variations)
+  - `MapStyle.OUTDOOR.WINTER` (variant)
+- `MapStyle.SATELLITE` reference style satellite and airborne imagery (no variants)
+- `MapStyle.HYBRID` reference style satellite and airborne imagery with labels (no variants)
 - `MapStyle.BASIC` reference style for minimalist design and general purpose
-  - `MapStyle.BASIC.DARK` (variation)
-  - `MapStyle.BASIC.LIGHT` (variation)
+  - `MapStyle.BASIC.DARK` (variant)
+  - `MapStyle.BASIC.LIGHT` (variant)
 - `MapStyle.BRIGHT` reference style for high contrast navigation
-  - `MapStyle.BRIGHT.DARK` (variation)
-  - `MapStyle.BRIGHT.LIGHT` (variation)
-  - `MapStyle.BRIGHT.PASTEL` (variation)
+  - `MapStyle.BRIGHT.DARK` (variant)
+  - `MapStyle.BRIGHT.LIGHT` (variant)
+  - `MapStyle.BRIGHT.PASTEL` (variant)
 - `MapStyle.TOPO` reference style for topographic study
-  - `MapStyle.TOPO.SHINY` (variation)
-  - `MapStyle.TOPO.PASTEL` (variation)
-  - `MapStyle.TOPO.TOPOGRAPHIQUE` (variation)
+  - `MapStyle.TOPO.SHINY` (variant)
+  - `MapStyle.TOPO.PASTEL` (variant)
+  - `MapStyle.TOPO.TOPOGRAPHIQUE` (variant)
 - `MapStyle.VOYAGER` reference style for stylish yet minimalist maps
-  - `MapStyle.VOYAGER.DARK` (variation)
-  - `MapStyle.VOYAGER.LIGHT` (variation)
-  - `MapStyle.VOYAGER.VINTAGE` (variation)
+  - `MapStyle.VOYAGER.DARK` (variant)
+  - `MapStyle.VOYAGER.LIGHT` (variant)
+  - `MapStyle.VOYAGER.VINTAGE` (variant)
 - `MapStyle.TONER` reference style for very high contrast stylish maps 
-  - `MapStyle.TONER.BACKGROUND` (variation)
-  - `MapStyle.TONER.LITE` (variation)
-  - `MapStyle.TONER.LINES` (variation)
-- `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variations)
+  - `MapStyle.TONER.BACKGROUND` (variant)
+  - `MapStyle.TONER.LITE` (variant)
+  - `MapStyle.TONER.LINES` (variant)
+- `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variants)
 
-All reference styles (instances of `ReferenceMapStyle`) and style variations (instances of `MapStyleVariation`) have methods to know the alternative styles and variation that belong to the same reference style (`.getVariations()`). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style. Read more about about [ReferenceMapStyle](docsmd/classes/ReferenceMapStyle.md) and [MapStyleVariation](docsmd/classes/MapStyleVariation.md).
+All reference styles (instances of `ReferenceMapStyle`) and style variants (instances of `MapStyleVariant`) have methods to know the alternative styles and variant that belong to the same reference style (`.getVariants()`). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style. Read more about about [ReferenceMapStyle](docsmd/classes/ReferenceMapStyle.md) and [MapStyleVariant](docsmd/classes/MapStyleVariant.md).
 </details>  
 
 ___

@@ -104,23 +104,23 @@ declare type Values<T> = T[keyof T];
 declare type LanguageString = Values<typeof Language>;
 
 /**
- * An instance of MapStyleVariation contains information about a style to use that belong to a reference style
+ * An instance of MapStyleVariant contains information about a style to use that belong to a reference style
  */
-declare class MapStyleVariation {
+declare class MapStyleVariant {
     /**
      * Human-friendly name
      */
     private name;
     /**
-     * Variation name the variation is addressed to from its reference style: `MapStyle.REFERNCE_STYLE_NAME.VARIATION_TYPE`
+     * Variant name the variant is addressed to from its reference style: `MapStyle.REFERNCE_STYLE_NAME.VARIANT_TYPE`
      */
-    private variationType;
+    private variantType;
     /**
      * MapTiler Cloud id
      */
     private id;
     /**
-     * Reference map style, used to retrieve sibling variations
+     * Reference map style, used to retrieve sibling variants
      */
     private referenceStyle;
     /**
@@ -128,7 +128,7 @@ declare class MapStyleVariation {
      */
     private description;
     /**
-     * URL to an image describing the style variation
+     * URL to an image describing the style variant
      */
     private imageURL;
     constructor(
@@ -137,15 +137,15 @@ declare class MapStyleVariation {
      */
     name: string, 
     /**
-     * Variation name the variation is addressed to from its reference style: `MapStyle.REFERNCE_STYLE_NAME.VARIATION_TYPE`
+     * Variant name the variant is addressed to from its reference style: `MapStyle.REFERNCE_STYLE_NAME.VARIANT_TYPE`
      */
-    variationType: string, 
+    variantType: string, 
     /**
      * MapTiler Cloud id
      */
     id: string, 
     /**
-     * Reference map style, used to retrieve sibling variations
+     * Reference map style, used to retrieve sibling variants
      */
     referenceStyle: ReferenceMapStyle, 
     /**
@@ -153,7 +153,7 @@ declare class MapStyleVariation {
      */
     description: string, 
     /**
-     * URL to an image describing the style variation
+     * URL to an image describing the style variant
      */
     imageURL: string);
     /**
@@ -163,7 +163,7 @@ declare class MapStyleVariation {
     getName(): string;
     getFullName(): string;
     /**
-     * Get the variation type (eg. "DEFAULT", "DARK", "PASTEL", etc.)
+     * Get the variant type (eg. "DEFAULT", "DARK", "PASTEL", etc.)
      * @returns
      */
     getType(): string;
@@ -182,37 +182,37 @@ declare class MapStyleVariation {
      */
     getDescription(): string;
     /**
-     * Get the reference style this variation belongs to
+     * Get the reference style this variant belongs to
      * @returns
      */
     getReferenceStyle(): ReferenceMapStyle;
     /**
-     * Check if a variation of a given type exists for _this_ variations
-     * (eg. if this is a "DARK", then we can check if there is a "LIGHT" variation of it)
-     * @param variationType
+     * Check if a variant of a given type exists for _this_ variants
+     * (eg. if this is a "DARK", then we can check if there is a "LIGHT" variant of it)
+     * @param variantType
      * @returns
      */
-    hasVariation(variationType: string): boolean;
+    hasVariant(variantType: string): boolean;
     /**
-     * Retrieve the variation of a given type. If not found, will return the "DEFAULT" variation.
-     * (eg. _this_ "DARK" variation does not have any "PASTEL" variation, then the "DEFAULT" is returned)
-     * @param variationType
+     * Retrieve the variant of a given type. If not found, will return the "DEFAULT" variant.
+     * (eg. _this_ "DARK" variant does not have any "PASTEL" variant, then the "DEFAULT" is returned)
+     * @param variantType
      * @returns
      */
-    getVariation(variationType: string): MapStyleVariation;
+    getVariant(variantType: string): MapStyleVariant;
     /**
-     * Get all the variations for _this_ variations, except _this_ current one
+     * Get all the variants for _this_ variants, except _this_ current one
      * @returns
      */
-    getVariations(): Array<MapStyleVariation>;
+    getVariants(): Array<MapStyleVariant>;
     /**
-     * Get the image URL that represent _this_ variation
+     * Get the image URL that represent _this_ variant
      * @returns
      */
     getImageURL(): string;
 }
 /**
- * An instance of reference style contains a list of StyleVariations ordered by relevance
+ * An instance of reference style contains a list of StyleVariants ordered by relevance
  */
 declare class ReferenceMapStyle {
     /**
@@ -224,13 +224,13 @@ declare class ReferenceMapStyle {
      */
     private id;
     /**
-     * Variations that belong to this reference style, key being the reference type
+     * Variants that belong to this reference style, key being the reference type
      */
-    private variations;
+    private variants;
     /**
-     * Variations that belong to this reference style, ordered by relevance
+     * Variants that belong to this reference style, ordered by relevance
      */
-    private orderedVariations;
+    private orderedVariants;
     constructor(
     /**
      * Human-friendly name of this reference style
@@ -251,33 +251,33 @@ declare class ReferenceMapStyle {
      */
     getId(): string;
     /**
-     * Add a variation to _this_ reference style
+     * Add a variant to _this_ reference style
      * @param v
      */
-    addVariation(v: MapStyleVariation): void;
+    addVariant(v: MapStyleVariant): void;
     /**
-     * Check if a given variation type exists for this reference style
-     * @param variationType
+     * Check if a given variant type exists for this reference style
+     * @param variantType
      * @returns
      */
-    hasVariation(variationType: string): boolean;
+    hasVariant(variantType: string): boolean;
     /**
-     * Get a given variation. If the given type of variation does not exist for this reference style,
-     * then the most relevant default variation is returned instead
-     * @param variationType
+     * Get a given variant. If the given type of variant does not exist for this reference style,
+     * then the most relevant default variant is returned instead
+     * @param variantType
      * @returns
      */
-    getVariation(variationType: string): MapStyleVariation;
+    getVariant(variantType: string): MapStyleVariant;
     /**
-     * Get the list of variations for this reference style
+     * Get the list of variants for this reference style
      * @returns
      */
-    getVariations(): Array<MapStyleVariation>;
+    getVariants(): Array<MapStyleVariant>;
     /**
-     * Get the defualt variation for this reference style
+     * Get the defualt variant for this reference style
      * @returns
      */
-    getDefaultVariation(): MapStyleVariation;
+    getDefaultVariant(): MapStyleVariant;
 }
 declare type MapStyleType = {
     /**
@@ -286,8 +286,8 @@ declare type MapStyleType = {
     [key: string]: ReferenceMapStyle;
 };
 /**
- * Contains all the reference map style created by MapTiler team as well as all the variations.
- * For example, `MapStyle.STREETS` and the variations:
+ * Contains all the reference map style created by MapTiler team as well as all the variants.
+ * For example, `MapStyle.STREETS` and the variants:
  * - `MapStyle.STREETS.DARK`
  * - `MapStyle.STREETS.LIGHT`
  * - `MapStyle.STREETS.PASTEL`
@@ -310,7 +310,7 @@ declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
      * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
      * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
      */
-    style?: ReferenceMapStyle | MapStyleVariation | string;
+    style?: ReferenceMapStyle | MapStyleVariant | string;
     /**
      * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.
      */
@@ -512,4 +512,4 @@ declare const workerUrl: string;
 declare const addProtocol: (customProtocol: string, loadFn: (requestParameters: ML.RequestParameters, callback: ML.ResponseCallback<any>) => ML.Cancelable) => void;
 declare const removeProtocol: (customProtocol: string) => void;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MapStyle, MapStyleType, MapStyleVariation, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ReferenceMapStyle, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MapStyle, MapStyleType, MapStyleVariant, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ReferenceMapStyle, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };

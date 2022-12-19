@@ -32,15 +32,15 @@ const builtInStyles = {};
 function makeReferenceStyleProxy(referenceStyle: ReferenceMapStyle) {
   return new Proxy(referenceStyle, {
     get(target, prop, receiver) {
-      if (target.hasVariation(prop as string)) {
-        return target.getVariation(prop as string);
+      if (target.hasVariant(prop as string)) {
+        return target.getVariant(prop as string);
       }
 
-      // This variation does not exist for this style, but since it's full uppercase
-      // we guess that the dev tries to access a style variation. So instead of
-      // returning the default (STREETS.DEFAULT), we return the non-variation of the current style
+      // This variant does not exist for this style, but since it's full uppercase
+      // we guess that the dev tries to access a style variant. So instead of
+      // returning the default (STREETS.DEFAULT), we return the non-variant of the current style
       if (prop.toString().toUpperCase() === (prop as string)) {
-        return referenceStyle.getDefaultVariation();
+        return referenceStyle.getDefaultVariant();
       }
 
       return Reflect.get(target, prop, receiver);
@@ -49,9 +49,9 @@ function makeReferenceStyleProxy(referenceStyle: ReferenceMapStyle) {
 }
 
 /**
- * An instance of MapStyleVariation contains information about a style to use that belong to a reference style
+ * An instance of MapStyleVariant contains information about a style to use that belong to a reference style
  */
-export class MapStyleVariation {
+export class MapStyleVariant {
   constructor(
     /**
      * Human-friendly name
@@ -59,9 +59,9 @@ export class MapStyleVariation {
     private name: string,
 
     /**
-     * Variation name the variation is addressed to from its reference style: `MapStyle.REFERNCE_STYLE_NAME.VARIATION_TYPE`
+     * Variant name the variant is addressed to from its reference style: `MapStyle.REFERNCE_STYLE_NAME.VARIANT_TYPE`
      */
-    private variationType: string,
+    private variantType: string,
 
     /**
      * MapTiler Cloud id
@@ -69,7 +69,7 @@ export class MapStyleVariation {
     private id: string,
 
     /**
-     * Reference map style, used to retrieve sibling variations
+     * Reference map style, used to retrieve sibling variants
      */
     private referenceStyle: ReferenceMapStyle,
 
@@ -79,7 +79,7 @@ export class MapStyleVariation {
     private description: string,
 
     /**
-     * URL to an image describing the style variation
+     * URL to an image describing the style variant
      */
     private imageURL: string
   ) {}
@@ -97,11 +97,11 @@ export class MapStyleVariation {
   }
 
   /**
-   * Get the variation type (eg. "DEFAULT", "DARK", "PASTEL", etc.)
+   * Get the variant type (eg. "DEFAULT", "DARK", "PASTEL", etc.)
    * @returns
    */
   getType(): string {
-    return this.variationType;
+    return this.variantType;
   }
 
   /**
@@ -131,7 +131,7 @@ export class MapStyleVariation {
   }
 
   /**
-   * Get the reference style this variation belongs to
+   * Get the reference style this variant belongs to
    * @returns
    */
   getReferenceStyle(): ReferenceMapStyle {
@@ -139,35 +139,35 @@ export class MapStyleVariation {
   }
 
   /**
-   * Check if a variation of a given type exists for _this_ variations
-   * (eg. if this is a "DARK", then we can check if there is a "LIGHT" variation of it)
-   * @param variationType
+   * Check if a variant of a given type exists for _this_ variants
+   * (eg. if this is a "DARK", then we can check if there is a "LIGHT" variant of it)
+   * @param variantType
    * @returns
    */
-  hasVariation(variationType: string): boolean {
-    return this.referenceStyle.hasVariation(variationType);
+  hasVariant(variantType: string): boolean {
+    return this.referenceStyle.hasVariant(variantType);
   }
 
   /**
-   * Retrieve the variation of a given type. If not found, will return the "DEFAULT" variation.
-   * (eg. _this_ "DARK" variation does not have any "PASTEL" variation, then the "DEFAULT" is returned)
-   * @param variationType
+   * Retrieve the variant of a given type. If not found, will return the "DEFAULT" variant.
+   * (eg. _this_ "DARK" variant does not have any "PASTEL" variant, then the "DEFAULT" is returned)
+   * @param variantType
    * @returns
    */
-  getVariation(variationType: string): MapStyleVariation {
-    return this.referenceStyle.getVariation(variationType);
+  getVariant(variantType: string): MapStyleVariant {
+    return this.referenceStyle.getVariant(variantType);
   }
 
   /**
-   * Get all the variations for _this_ variations, except _this_ current one
+   * Get all the variants for _this_ variants, except _this_ current one
    * @returns
    */
-  getVariations(): Array<MapStyleVariation> {
-    return this.referenceStyle.getVariations().filter((v) => v !== this);
+  getVariants(): Array<MapStyleVariant> {
+    return this.referenceStyle.getVariants().filter((v) => v !== this);
   }
 
   /**
-   * Get the image URL that represent _this_ variation
+   * Get the image URL that represent _this_ variant
    * @returns
    */
   getImageURL(): string {
@@ -176,18 +176,18 @@ export class MapStyleVariation {
 }
 
 /**
- * An instance of reference style contains a list of StyleVariations ordered by relevance
+ * An instance of reference style contains a list of StyleVariants ordered by relevance
  */
 export class ReferenceMapStyle {
   /**
-   * Variations that belong to this reference style, key being the reference type
+   * Variants that belong to this reference style, key being the reference type
    */
-  private variations: { [key: string]: MapStyleVariation } = {};
+  private variants: { [key: string]: MapStyleVariant } = {};
 
   /**
-   * Variations that belong to this reference style, ordered by relevance
+   * Variants that belong to this reference style, ordered by relevance
    */
-  private orderedVariations: Array<MapStyleVariation> = [];
+  private orderedVariants: Array<MapStyleVariant> = [];
 
   constructor(
     /**
@@ -218,49 +218,49 @@ export class ReferenceMapStyle {
   }
 
   /**
-   * Add a variation to _this_ reference style
+   * Add a variant to _this_ reference style
    * @param v
    */
-  addVariation(v: MapStyleVariation) {
-    this.variations[v.getType()] = v;
-    this.orderedVariations.push(v);
+  addVariant(v: MapStyleVariant) {
+    this.variants[v.getType()] = v;
+    this.orderedVariants.push(v);
   }
 
   /**
-   * Check if a given variation type exists for this reference style
-   * @param variationType
+   * Check if a given variant type exists for this reference style
+   * @param variantType
    * @returns
    */
-  hasVariation(variationType: string): boolean {
-    return variationType in this.variations;
+  hasVariant(variantType: string): boolean {
+    return variantType in this.variants;
   }
 
   /**
-   * Get a given variation. If the given type of variation does not exist for this reference style,
-   * then the most relevant default variation is returned instead
-   * @param variationType
+   * Get a given variant. If the given type of variant does not exist for this reference style,
+   * then the most relevant default variant is returned instead
+   * @param variantType
    * @returns
    */
-  getVariation(variationType: string): MapStyleVariation {
-    return variationType in this.variations
-      ? this.variations[variationType]
-      : this.orderedVariations[0];
+  getVariant(variantType: string): MapStyleVariant {
+    return variantType in this.variants
+      ? this.variants[variantType]
+      : this.orderedVariants[0];
   }
 
   /**
-   * Get the list of variations for this reference style
+   * Get the list of variants for this reference style
    * @returns
    */
-  getVariations(): Array<MapStyleVariation> {
-    return Object.values(this.variations);
+  getVariants(): Array<MapStyleVariant> {
+    return Object.values(this.variants);
   }
 
   /**
-   * Get the defualt variation for this reference style
+   * Get the defualt variant for this reference style
    * @returns
    */
-  getDefaultVariation(): MapStyleVariation {
-    return this.orderedVariations[0];
+  getDefaultVariant(): MapStyleVariant {
+    return this.orderedVariants[0];
   }
 }
 
@@ -281,18 +281,18 @@ function buildMapStyles(): MapStyleType {
       new ReferenceMapStyle(refStyleInfo.name, refStyleInfo.referenceStyleID)
     );
 
-    for (let j = 0; j < refStyleInfo.variations.length; j += 1) {
-      const variationInfo = refStyleInfo.variations[j];
-      const variation = new MapStyleVariation(
-        variationInfo.name, // name
-        variationInfo.variationType, // variationType
-        variationInfo.id, // id
+    for (let j = 0; j < refStyleInfo.variants.length; j += 1) {
+      const variantInfo = refStyleInfo.variants[j];
+      const variant = new MapStyleVariant(
+        variantInfo.name, // name
+        variantInfo.variantType, // variantType
+        variantInfo.id, // id
         refStyle, // referenceStyle
-        variationInfo.description,
-        variationInfo.imageURL // imageURL
+        variantInfo.description,
+        variantInfo.imageURL // imageURL
       );
 
-      refStyle.addVariation(variation);
+      refStyle.addVariant(variant);
     }
     mapStyle[refStyleInfo.referenceStyleID] = refStyle;
   }
@@ -300,8 +300,8 @@ function buildMapStyles(): MapStyleType {
 }
 
 /**
- * Contains all the reference map style created by MapTiler team as well as all the variations.
- * For example, `MapStyle.STREETS` and the variations:
+ * Contains all the reference map style created by MapTiler team as well as all the variants.
+ * For example, `MapStyle.STREETS` and the variants:
  * - `MapStyle.STREETS.DARK`
  * - `MapStyle.STREETS.LIGHT`
  * - `MapStyle.STREETS.PASTEL`
@@ -313,14 +313,14 @@ function styleToStyle(
   style:
     | string
     | ReferenceMapStyle
-    | MapStyleVariation
+    | MapStyleVariant
     | StyleSpecification
     | null
     | undefined
 ): string | StyleSpecification {
   if (!style) {
     return MapStyle[mapstylepresets[0].referenceStyleID]
-      .getDefaultVariation()
+      .getDefaultVariant()
       .getUsableStyle();
   }
 
@@ -334,12 +334,12 @@ function styleToStyle(
     return expandMapStyle(style);
   }
 
-  if (style instanceof MapStyleVariation) {
+  if (style instanceof MapStyleVariant) {
     return style.getUsableStyle();
   }
 
   if (style instanceof ReferenceMapStyle) {
-    return style.getDefaultVariation().getUsableStyle();
+    return style.getDefaultVariant().getUsableStyle();
   }
 
   return style as StyleSpecification;
