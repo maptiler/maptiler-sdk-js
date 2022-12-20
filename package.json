@@ -46,7 +46,7 @@
     "rollup-plugin-node-globals": "^1.4.0",
     "rollup-plugin-string": "^3.0.0",
     "rollup-plugin-swc": "^0.2.1",
-    "serve": "^14.0.1",
+    "serve": "^14.1.2",
     "terser": "^5.15.0",
     "typedoc": "^0.23.21",
     "typedoc-plugin-markdown": "^3.13.6",
