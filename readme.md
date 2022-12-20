@@ -207,9 +207,8 @@ map.setStyle("maptiler://c912ffc8-2360-487a-973b-59d037fb15b8");
 ```
 
 # Easy to add controls
-The term "control" is commonly used for all sorts of button and information display that takes place in one of the corner of the map display area. The most well know are probably the `[+]` and `[-]` zoom button as well as the attribution. Plenty of others are possible and we have made them easy to add and directly accessible from the `Map` constructor options!
+The term "control" is commonly used for all sorts of buttons and information display that take place in one of the corner of the map area. The most well know are probably the `[+]` and `[-]` zoom buttons as well as the attribution information. Plenty of others are possible and we have made a few easy to add and directly accessible from the `Map` constructor options:
 
-The options are:
 - `navigationControl`
   - Shows the `[+]`, `[-]` and tilt/bearing/compass buttons
   - a boolean or a corner position. Showing on the top-right by default. Hidden if `false`.
@@ -223,7 +222,6 @@ The options are:
   - Shows a button that toggles the map into fullscreen
   - a boolean or a corner position. Hidden by default, showing on top-right if `true`.
 
-The corner positions possible are:
 The corner positions possible are:
 - `"top-left"`
 - `"top-right"`
