@@ -1,6 +1,10 @@
 import satelliteBuiltin from "./builtinMapStyles/satellite.json";
 import { StyleSpecification } from "maplibre-gl";
-import mapstylepresets from "./mapstylepresets.json";
+import { mapStylePresetList, MapStyleType } from "./mapstylepresetlist";
+
+const builtInStyles = {
+  satellite: satelliteBuiltin,
+};
 
 /**
  * Expand the map style provided as argument of the Map constructor
@@ -26,8 +30,6 @@ export function expandMapStyle(style): string {
 
   return expandedStyle;
 }
-
-const builtInStyles = {};
 
 function makeReferenceStyleProxy(referenceStyle: ReferenceMapStyle) {
   return new Proxy(referenceStyle, {
@@ -264,18 +266,11 @@ export class ReferenceMapStyle {
   }
 }
 
-export type MapStyleType = {
-  /**
-   * Reference styles by ID
-   */
-  [key: string]: ReferenceMapStyle;
-};
-
 function buildMapStyles(): MapStyleType {
-  const mapStyle: MapStyleType = {};
+  const mapStyle = {};
 
-  for (let i = 0; i < mapstylepresets.length; i += 1) {
-    const refStyleInfo = mapstylepresets[i];
+  for (let i = 0; i < mapStylePresetList.length; i += 1) {
+    const refStyleInfo = mapStylePresetList[i];
 
     const refStyle = makeReferenceStyleProxy(
       new ReferenceMapStyle(refStyleInfo.name, refStyleInfo.referenceStyleID)
@@ -296,7 +291,7 @@ function buildMapStyles(): MapStyleType {
     }
     mapStyle[refStyleInfo.referenceStyleID] = refStyle;
   }
-  return mapStyle;
+  return mapStyle as MapStyleType;
 }
 
 /**
@@ -307,7 +302,7 @@ function buildMapStyles(): MapStyleType {
  * - `MapStyle.STREETS.PASTEL`
  *
  */
-const MapStyle = buildMapStyles();
+const MapStyle: MapStyleType = buildMapStyles();
 
 function styleToStyle(
   style:
@@ -319,14 +314,14 @@ function styleToStyle(
     | undefined
 ): string | StyleSpecification {
   if (!style) {
-    return MapStyle[mapstylepresets[0].referenceStyleID]
+    return MapStyle[mapStylePresetList[0].referenceStyleID]
       .getDefaultVariant()
       .getUsableStyle();
   }
 
   // If the style is given as a string and this corresponds to a built-in style
-  if (typeof style === "string" && style.toLocaleLowerCase() in builtInStyles) {
-    return builtInStyles[style.toLocaleLowerCase()];
+  if (typeof style === "string" && style.toLowerCase() in builtInStyles) {
+    return builtInStyles[style.toLowerCase()];
   }
 
   // If the provided style is a shorthand (eg. "streets-v2") or a full style URL

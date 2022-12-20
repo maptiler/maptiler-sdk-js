@@ -153,17 +153,29 @@ export class Map extends maplibre.Map {
 
     // Update logo and attibution
     this.once("load", async () => {
-      let tileJsonURL = null;
-      try {
-        tileJsonURL = (
-          this.getSource("openmaptiles") as maplibre.VectorTileSource
-        ).url;
-      } catch (e) {
-        return;
-      }
+      let tileJsonContent = { logo: null };
 
-      const tileJsonRes = await fetch(tileJsonURL);
-      const tileJsonContent = await tileJsonRes.json();
+      try {
+        const possibleSources = Object.keys(this.style.sourceCaches)
+          .map((sourceName) => this.getSource(sourceName))
+          .filter(
+            (s: any) =>
+              typeof s.url === "string" && s.url.includes("tiles.json")
+          );
+
+        const styleUrl = new URL(
+          (possibleSources[0] as maplibre.VectorTileSource).url
+        );
+
+        if (!styleUrl.searchParams.has("key")) {
+          styleUrl.searchParams.append("key", config.apiKey);
+        }
+
+        const tileJsonRes = await fetch(styleUrl.href);
+        tileJsonContent = await tileJsonRes.json();
+      } catch (e) {
+        // No tiles.json found (should not happen on maintained styles)
+      }
 
       // The attribution and logo must show when required
       if ("logo" in tileJsonContent && tileJsonContent.logo) {

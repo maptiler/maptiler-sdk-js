@@ -130,7 +130,7 @@ import {
   MapStyleVariant,
 } from "./mapstyle/mapstyle";
 
-import type { MapStyleType } from "./mapstyle/mapstyle";
+import type { MapStyleType } from "./mapstyle/mapstylepresetlist";
 
 // Exporting types
 export type {

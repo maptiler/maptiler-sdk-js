@@ -110,7 +110,7 @@ Checkout the minimalist code samples in the [demos](demos) directory.
 
 
 # Many styles to choose from
-MapTiler teams maintains a few styles that we have decided to expose from th SDK. This has two advantages:
+MapTiler teams maintains a few styles that we have decided to expose from the SDK. This has two advantages:
 - they are easier to remember, no need to type along style URL
 - if we make an update to a style, you will benefit from it without modifying your codebase
 

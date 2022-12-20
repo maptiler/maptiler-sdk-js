@@ -104,6 +104,86 @@ declare type Values<T> = T[keyof T];
 declare type LanguageString = Values<typeof Language>;
 
 /**
+ * All the styles and variants maintained by MapTiler.
+ */
+declare type MapStyleType = {
+    /**
+     * Suitable for navigation, with high level of detail on urban areas.
+     */
+    STREETS: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+        /**
+         * Suitable for navigation, with high level of detail on urban areas, in dark mode.
+         */
+        DARK: MapStyleVariant;
+        /**
+         * Suitable for navigation, with high level of detail on urban areas, in light mode.
+         */
+        LIGHT: MapStyleVariant;
+        /**
+         * Suitable for navigation, with high level of detail on urban areas, with a pastel color palette.
+         */
+        PASTEL: MapStyleVariant;
+    };
+    /**
+     * Suitable for outdoor activities. With elevation isolines and hillshading.
+     */
+    OUTDOOR: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+    };
+    /**
+     * Suitabe for winter outdoor activities. With ski tracks, elevation isolines and hillshading.
+     */
+    WINTER: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+    };
+    /**
+     * High resolution imagery only, without any label.
+     */
+    SATELLITE: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+    };
+    /**
+     * High resolution imagery with labels, political borders and roads.
+     */
+    HYBRID: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+    };
+    BASIC: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+        DARK: MapStyleVariant;
+        LIGHT: MapStyleVariant;
+    };
+    BRIGHT: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+        DARK: MapStyleVariant;
+        LIGHT: MapStyleVariant;
+        PASTEL: MapStyleVariant;
+    };
+    OPENSTREETMAP: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+    };
+    TOPO: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+        SHINY: MapStyleVariant;
+        PASTEL: MapStyleVariant;
+        TOPOGRAPHIQUE: MapStyleVariant;
+    };
+    VOYAGER: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+        DARK: MapStyleVariant;
+        LIGHT: MapStyleVariant;
+        VINTAGE: MapStyleVariant;
+    };
+    TONER: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+        BACKGROUND: MapStyleVariant;
+        LITE: MapStyleVariant;
+        LINES: MapStyleVariant;
+    };
+};
+
+/**
  * An instance of MapStyleVariant contains information about a style to use that belong to a reference style
  */
 declare class MapStyleVariant {
@@ -279,12 +359,6 @@ declare class ReferenceMapStyle {
      */
     getDefaultVariant(): MapStyleVariant;
 }
-declare type MapStyleType = {
-    /**
-     * Reference styles by ID
-     */
-    [key: string]: ReferenceMapStyle;
-};
 /**
  * Contains all the reference map style created by MapTiler team as well as all the variants.
  * For example, `MapStyle.STREETS` and the variants:

@@ -4,7 +4,7 @@
   "name": "Satellite no label",
   "sources": {
     "satellite": {
-      "url": "https://api.maptiler.com/tiles/satellite-v2/tiles.json?",
+      "url": "https://api.maptiler.com/tiles/satellite-v2/tiles.json",
       "tileSize": 512,
       "type": "raster"
     },
