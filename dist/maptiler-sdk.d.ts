@@ -503,11 +503,7 @@ declare type Unit = "imperial" | "metric" | "nautical";
  */
 declare class SdkConfig extends EventEmitter {
     /**
-     * If `true`, some more debuf text will show. Default: `false`
-     */
-    verbose: boolean;
-    /**
-     * The primary languag. By default, the language of the web browser is used.
+     * The primary language. By default, the language of the web browser is used.
      */
     primaryLanguage: LanguageString | null;
     /**

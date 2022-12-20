@@ -1386,7 +1386,6 @@
 	class SdkConfig extends events.exports {
 	  constructor() {
 	    super();
-	    this.verbose = false;
 	    this.primaryLanguage = Language.AUTO;
 	    this.secondaryLanguage = null;
 	    this._unit = "metric";

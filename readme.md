@@ -117,9 +117,10 @@ MapTiler teams maintains a few styles that we have decided to expose from the SD
 Here is how it works:
 ```ts
 import { Map, MapStyle } from '@maptiler/sdk'
+
 // When instanciating a map
 const map = new Map({
-  container: mapContainer,
+  container: document.getElementById("my-container-div"),
   style: MapStyle.OUTDOOR, // <-- the shorthand for the outdoor style
 });
 
@@ -151,7 +152,7 @@ Here is the full list:
   - `MapStyle.STREETS.LIGHT` (variant)
   - `MapStyle.STREETS.PASTEL` (variant)
 - `MapStyle.OUTDOOR` reference style for adventure
-  - `MapStyle.OUTDOOR.WINTER` (variant)
+- `MapStyle.WINTER` reference style for winter adventure
 - `MapStyle.SATELLITE` reference style satellite and airborne imagery (no variants)
 - `MapStyle.HYBRID` reference style satellite and airborne imagery with labels (no variants)
 - `MapStyle.BASIC` reference style for minimalist design and general purpose
@@ -204,6 +205,44 @@ And can even be provided in the URI form:
 ```ts
 map.setStyle("maptiler://c912ffc8-2360-487a-973b-59d037fb15b8");
 ```
+
+# Easy to add controls
+The term "control" is commonly used for all sorts of button and information display that takes place in one of the corner of the map display area. The most well know are probably the `[+]` and `[-]` zoom button as well as the attribution. Plenty of others are possible and we have made them easy to add and directly accessible from the `Map` constructor options!
+
+The options are:
+- `navigationControl`
+  - Shows the `[+]`, `[-]` and tilt/bearing/compass buttons
+  - a boolean or a corner position. Showing on the top-right by default. Hidden if `false`.
+- `terrainControl`
+  - Shows a button to enable/disable the 3D terrain (does not tilt the map)
+  - a boolean or a corner position. Showing on the top-right by default. Hidden if `false`.
+- `scaleControl`
+  - Shows a distance scale. The unit (`"metric"`, `"imperial"` or `"nautical"`) can be set in the config object `config.unit` (default: `"metric"`)
+  - a boolean or a corner position. Hidden by default, showing on bottom-right if `true`.
+- `fullscreenControl`
+  - Shows a button that toggles the map into fullscreen
+  - a boolean or a corner position. Hidden by default, showing on top-right if `true`.
+
+The corner positions possible are:
+The corner positions possible are:
+- `"top-left"`
+- `"top-right"`
+- `"bottom-left"`
+- `"bottom-right"`
+
+**Example:**  
+```ts
+import { Map } from "@maptiler/sdk";
+
+const map = new Map({
+  container: document.getElementById("my-container-div"),
+  terrainControl: false,
+  scaleControl: true,
+  fullscreenControl: "top-left",
+})
+```
+
+
 
 # 3D terrain in one call
 <p align="center">

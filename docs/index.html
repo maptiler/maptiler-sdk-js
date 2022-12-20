@@ -83,7 +83,7 @@
 <li>if we make an update to a style, you will benefit from it without modifying your codebase</li>
 </ul>
 <p>Here is how it works:</p>
-<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-3">Map</span><span class="hl-0">, </span><span class="hl-3">MapStyle</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-4">&#39;@maptiler/sdk&#39;</span><br/><span class="hl-5">// When instanciating a map</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">map</span><span class="hl-0"> = </span><span class="hl-2">new</span><span class="hl-0"> </span><span class="hl-7">Map</span><span class="hl-0">({</span><br/><span class="hl-0">  </span><span class="hl-3">container:</span><span class="hl-0"> </span><span class="hl-3">mapContainer</span><span class="hl-0">,</span><br/><span class="hl-0">  </span><span class="hl-3">style:</span><span class="hl-0"> </span><span class="hl-3">MapStyle</span><span class="hl-0">.</span><span class="hl-6">OUTDOOR</span><span class="hl-0">, </span><span class="hl-5">// &lt;-- the shorthand for the outdoor style</span><br/><span class="hl-0">});</span><br/><br/><span class="hl-5">// Or later on, updating the style</span><br/><span class="hl-3">map</span><span class="hl-0">.</span><span class="hl-7">setStyle</span><span class="hl-0">(</span><span class="hl-3">MapStyle</span><span class="hl-0">.</span><span class="hl-6">STREETS</span><span class="hl-0">.</span><span class="hl-6">DARK</span><span class="hl-0">);</span>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-3">Map</span><span class="hl-0">, </span><span class="hl-3">MapStyle</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-4">&#39;@maptiler/sdk&#39;</span><br/><br/><span class="hl-5">// When instanciating a map</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">map</span><span class="hl-0"> = </span><span class="hl-2">new</span><span class="hl-0"> </span><span class="hl-7">Map</span><span class="hl-0">({</span><br/><span class="hl-0">  </span><span class="hl-3">container:</span><span class="hl-0"> </span><span class="hl-3">document</span><span class="hl-0">.</span><span class="hl-7">getElementById</span><span class="hl-0">(</span><span class="hl-4">&quot;my-container-div&quot;</span><span class="hl-0">),</span><br/><span class="hl-0">  </span><span class="hl-3">style:</span><span class="hl-0"> </span><span class="hl-3">MapStyle</span><span class="hl-0">.</span><span class="hl-6">OUTDOOR</span><span class="hl-0">, </span><span class="hl-5">// &lt;-- the shorthand for the outdoor style</span><br/><span class="hl-0">});</span><br/><br/><span class="hl-5">// Or later on, updating the style</span><br/><span class="hl-3">map</span><span class="hl-0">.</span><span class="hl-7">setStyle</span><span class="hl-0">(</span><span class="hl-3">MapStyle</span><span class="hl-0">.</span><span class="hl-6">STREETS</span><span class="hl-0">.</span><span class="hl-6">DARK</span><span class="hl-0">);</span>
 </code></pre>
 <p>The styles with a shorthand provided by the SDK are the following:</p>
 <table>
@@ -142,10 +142,8 @@
 <li><code>MapStyle.STREETS.PASTEL</code> (variant)</li>
 </ul>
 </li>
-<li><code>MapStyle.OUTDOOR</code> reference style for adventure<ul>
-<li><code>MapStyle.OUTDOOR.WINTER</code> (variant)</li>
-</ul>
-</li>
+<li><code>MapStyle.OUTDOOR</code> reference style for adventure</li>
+<li><code>MapStyle.WINTER</code> reference style for winter adventure</li>
 <li><code>MapStyle.SATELLITE</code> reference style satellite and airborne imagery (no variants)</li>
 <li><code>MapStyle.HYBRID</code> reference style satellite and airborne imagery with labels (no variants)</li>
 <li><code>MapStyle.BASIC</code> reference style for minimalist design and general purpose<ul>
@@ -195,6 +193,45 @@
 </code></pre>
 <p>And can even be provided in the URI form:</p>
 <pre><code class="language-ts"><span class="hl-3">map</span><span class="hl-0">.</span><span class="hl-7">setStyle</span><span class="hl-0">(</span><span class="hl-4">&quot;maptiler://c912ffc8-2360-487a-973b-59d037fb15b8&quot;</span><span class="hl-0">);</span>
+</code></pre>
+
+<a href="#easy-to-add-controls" id="easy-to-add-controls" style="color: inherit; text-decoration: none;">
+  <h1>Easy to add controls</h1>
+</a>
+<p>The term &quot;control&quot; is commonly used for all sorts of button and information display that takes place in one of the corner of the map display area. The most well know are probably the <code>[+]</code> and <code>[-]</code> zoom button as well as the attribution. Plenty of others are possible and we have made them easy to add and directly accessible from the <code>Map</code> constructor options!</p>
+<p>The options are:</p>
+<ul>
+<li><code>navigationControl</code><ul>
+<li>Shows the <code>[+]</code>, <code>[-]</code> and tilt/bearing/compass buttons</li>
+<li>a boolean or a corner position. Showing on the top-right by default. Hidden if <code>false</code>.</li>
+</ul>
+</li>
+<li><code>terrainControl</code><ul>
+<li>Shows a button to enable/disable the 3D terrain (does not tilt the map)</li>
+<li>a boolean or a corner position. Showing on the top-right by default. Hidden if <code>false</code>.</li>
+</ul>
+</li>
+<li><code>scaleControl</code><ul>
+<li>Shows a distance scale. The unit (<code>&quot;metric&quot;</code>, <code>&quot;imperial&quot;</code> or <code>&quot;nautical&quot;</code>) can be set in the config object <code>config.unit</code> (default: <code>&quot;metric&quot;</code>)</li>
+<li>a boolean or a corner position. Hidden by default, showing on bottom-right if <code>true</code>.</li>
+</ul>
+</li>
+<li><code>fullscreenControl</code><ul>
+<li>Shows a button that toggles the map into fullscreen</li>
+<li>a boolean or a corner position. Hidden by default, showing on top-right if <code>true</code>.</li>
+</ul>
+</li>
+</ul>
+<p>The corner positions possible are:
+The corner positions possible are:</p>
+<ul>
+<li><code>&quot;top-left&quot;</code></li>
+<li><code>&quot;top-right&quot;</code></li>
+<li><code>&quot;bottom-left&quot;</code></li>
+<li><code>&quot;bottom-right&quot;</code></li>
+</ul>
+<p><strong>Example:</strong>  </p>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-3">Map</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-4">&quot;@maptiler/sdk&quot;</span><span class="hl-0">;</span><br/><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">map</span><span class="hl-0"> = </span><span class="hl-2">new</span><span class="hl-0"> </span><span class="hl-7">Map</span><span class="hl-0">({</span><br/><span class="hl-0">  </span><span class="hl-3">container:</span><span class="hl-0"> </span><span class="hl-3">document</span><span class="hl-0">.</span><span class="hl-7">getElementById</span><span class="hl-0">(</span><span class="hl-4">&quot;my-container-div&quot;</span><span class="hl-0">),</span><br/><span class="hl-0">  </span><span class="hl-3">terrainControl:</span><span class="hl-0"> </span><span class="hl-2">false</span><span class="hl-0">,</span><br/><span class="hl-0">  </span><span class="hl-3">scaleControl:</span><span class="hl-0"> </span><span class="hl-2">true</span><span class="hl-0">,</span><br/><span class="hl-0">  </span><span class="hl-3">fullscreenControl:</span><span class="hl-0"> </span><span class="hl-4">&quot;top-left&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">})</span>
 </code></pre>
 
 <a href="#3d-terrain-in-one-call" id="3d-terrain-in-one-call" style="color: inherit; text-decoration: none;">

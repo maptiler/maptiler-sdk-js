@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { config } from "./config";
 import { defaults } from "./defaults";
 import { CustomLogoControl } from "./CustomLogoControl";
-import { enableRTL, vlog } from "./tools";
+import { enableRTL } from "./tools";
 import { getBrowserLanguage, Language, LanguageString } from "./language";
 import {
   MapStyleVariant,
