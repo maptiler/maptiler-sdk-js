@@ -1530,6 +1530,10 @@ class Map extends ML.Map {
     return this.isTerrainEnabled;
   }
   enableTerrain(exaggeration = this.terrainExaggeration) {
+    if (exaggeration < 0) {
+      console.warn("Terrain exaggeration cannot be negative.");
+      return;
+    }
     const terrainInfo = this.getTerrain();
     const addTerrain = () => {
       this.isTerrainEnabled = true;
