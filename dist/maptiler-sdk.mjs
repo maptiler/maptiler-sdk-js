@@ -1271,7 +1271,9 @@ class Map extends ML.Map {
     var _a;
     const style = styleToStyle(options.style);
     if (!config.apiKey) {
-      console.warn("MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!");
+      console.warn(
+        "MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!"
+      );
     }
     super(__spreadProps(__spreadValues({}, options), {
       style,
@@ -1452,7 +1454,9 @@ class Map extends ML.Map {
         )) !== null) {
           const newProp = `{${langStr}}${regexMatch[3]}{name${regexMatch[4] || ""}}`;
           this.setLayoutProperty(layer.id, "text-field", newProp);
-        } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strMoreInfoRegex.exec(textFieldLayoutProp.toString())) !== null) {
+        } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strMoreInfoRegex.exec(
+          textFieldLayoutProp.toString()
+        )) !== null) {
           const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
           this.setLayoutProperty(layer.id, "text-field", newProp);
         }

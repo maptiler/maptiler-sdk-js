@@ -46,7 +46,7 @@ maplibre.Map.constructor
 
 #### Defined in
 
-[src/Map.ts:87](https://github.com/maptiler/maptiler-sdk-js/blob/b91fbd2/src/Map.ts#L87)
+[src/Map.ts:96](https://github.com/maptiler/maptiler-sdk-js/blob/4b41cb1/src/Map.ts#L96)
 
 ## Methods
 
@@ -62,7 +62,7 @@ Disable the 3D terrain visualization
 
 #### Defined in
 
-[src/Map.ts:646](https://github.com/maptiler/maptiler-sdk-js/blob/b91fbd2/src/Map.ts#L646)
+[src/Map.ts:685](https://github.com/maptiler/maptiler-sdk-js/blob/4b41cb1/src/Map.ts#L685)
 
 ___
 
@@ -84,7 +84,7 @@ Enables the 3D terrain visualization
 
 #### Defined in
 
-[src/Map.ts:606](https://github.com/maptiler/maptiler-sdk-js/blob/b91fbd2/src/Map.ts#L606)
+[src/Map.ts:640](https://github.com/maptiler/maptiler-sdk-js/blob/4b41cb1/src/Map.ts#L640)
 
 ___
 
@@ -100,7 +100,7 @@ Get the exaggeration factor applied to the terrain
 
 #### Defined in
 
-[src/Map.ts:589](https://github.com/maptiler/maptiler-sdk-js/blob/b91fbd2/src/Map.ts#L589)
+[src/Map.ts:623](https://github.com/maptiler/maptiler-sdk-js/blob/4b41cb1/src/Map.ts#L623)
 
 ___
 
@@ -116,7 +116,7 @@ Know if terrian is enabled or not
 
 #### Defined in
 
-[src/Map.ts:597](https://github.com/maptiler/maptiler-sdk-js/blob/b91fbd2/src/Map.ts#L597)
+[src/Map.ts:631](https://github.com/maptiler/maptiler-sdk-js/blob/4b41cb1/src/Map.ts#L631)
 
 ___
 
@@ -139,13 +139,13 @@ This function is a short for `.setPrimaryLanguage()`
 
 #### Defined in
 
-[src/Map.ts:291](https://github.com/maptiler/maptiler-sdk-js/blob/b91fbd2/src/Map.ts#L291)
+[src/Map.ts:312](https://github.com/maptiler/maptiler-sdk-js/blob/4b41cb1/src/Map.ts#L312)
 
 ___
 
 ### setPrimaryLanguage
 
-▸ **setPrimaryLanguage**(`language?`): `any`
+▸ **setPrimaryLanguage**(`language?`): `void`
 
 Define the primary language of the map. Note that not all the languages shorthands provided are available.
 
@@ -157,17 +157,17 @@ Define the primary language of the map. Note that not all the languages shorthan
 
 #### Returns
 
-`any`
+`void`
 
 #### Defined in
 
-[src/Map.ts:302](https://github.com/maptiler/maptiler-sdk-js/blob/b91fbd2/src/Map.ts#L302)
+[src/Map.ts:323](https://github.com/maptiler/maptiler-sdk-js/blob/4b41cb1/src/Map.ts#L323)
 
 ___
 
 ### setSecondaryLanguage
 
-▸ **setSecondaryLanguage**(`language?`): `any`
+▸ **setSecondaryLanguage**(`language?`): `void`
 
 Define the secondary language of the map.
 Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)
@@ -180,11 +180,11 @@ Note that most styles do not allow a secondary language and this function only w
 
 #### Returns
 
-`any`
+`void`
 
 #### Defined in
 
-[src/Map.ts:461](https://github.com/maptiler/maptiler-sdk-js/blob/b91fbd2/src/Map.ts#L461)
+[src/Map.ts:489](https://github.com/maptiler/maptiler-sdk-js/blob/4b41cb1/src/Map.ts#L489)
 
 ___
 
@@ -202,7 +202,7 @@ Can be:
 
 | Name | Type |
 | :------ | :------ |
-| `style` | `string` \| `StyleSpecification` |
+| `style` | `string` \| `StyleSpecification` \| [`ReferenceMapStyle`](ReferenceMapStyle.md) \| [`MapStyleVariant`](MapStyleVariant.md) |
 | `options?` | `StyleSwapOptions` & `StyleOptions` |
 
 #### Returns
@@ -215,7 +215,7 @@ maplibre.Map.setStyle
 
 #### Defined in
 
-[src/Map.ts:279](https://github.com/maptiler/maptiler-sdk-js/blob/b91fbd2/src/Map.ts#L279)
+[src/Map.ts:296](https://github.com/maptiler/maptiler-sdk-js/blob/4b41cb1/src/Map.ts#L296)
 
 ___
 
@@ -238,4 +238,4 @@ Note: this is only a shortcut to `.enableTerrain()`
 
 #### Defined in
 
-[src/Map.ts:659](https://github.com/maptiler/maptiler-sdk-js/blob/b91fbd2/src/Map.ts#L659)
+[src/Map.ts:698](https://github.com/maptiler/maptiler-sdk-js/blob/4b41cb1/src/Map.ts#L698)

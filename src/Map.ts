@@ -4,7 +4,12 @@ import { config } from "./config";
 import { defaults } from "./defaults";
 import { CustomLogoControl } from "./CustomLogoControl";
 import { enableRTL } from "./tools";
-import { getBrowserLanguage, isLanguageSupported, Language, LanguageString } from "./language";
+import {
+  getBrowserLanguage,
+  isLanguageSupported,
+  Language,
+  LanguageString,
+} from "./language";
 import {
   MapStyleVariant,
   ReferenceMapStyle,
@@ -37,7 +42,11 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
    * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
    * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
    */
-  style?: ReferenceMapStyle | MapStyleVariant | maplibre.StyleSpecification | string;
+  style?:
+    | ReferenceMapStyle
+    | MapStyleVariant
+    | maplibre.StyleSpecification
+    | string;
 
   /**
    * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.
@@ -87,9 +96,10 @@ export class Map extends maplibre.Map {
   constructor(options: MapOptions) {
     const style = styleToStyle(options.style);
 
-
     if (!config.apiKey) {
-      console.warn('MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!')
+      console.warn(
+        "MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!"
+      );
     }
 
     // calling the map constructor with full length style
@@ -100,12 +110,12 @@ export class Map extends maplibre.Map {
 
       transformRequest: (url: string) => {
         const reqUrl = new URL(url);
-        
+
         if (reqUrl.host === defaults.maptilerApiHost) {
           if (!reqUrl.searchParams.has("key")) {
             reqUrl.searchParams.append("key", config.apiKey);
           }
-  
+
           reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
         }
 
@@ -284,7 +294,11 @@ export class Map extends maplibre.Map {
    * @returns
    */
   setStyle(
-    style: ReferenceMapStyle | MapStyleVariant | maplibre.StyleSpecification | string,
+    style:
+      | ReferenceMapStyle
+      | MapStyleVariant
+      | maplibre.StyleSpecification
+      | string,
     options?: StyleSwapOptions & maplibre.StyleOptions
   ) {
     return super.setStyle(styleToStyle(style), options);
@@ -456,14 +470,15 @@ export class Map extends maplibre.Map {
         } else if (
           (typeof textFieldLayoutProp === "string" ||
             textFieldLayoutProp instanceof String) &&
-          (regexMatch = strMoreInfoRegex.exec(textFieldLayoutProp.toString())) !==
-            null
+          (regexMatch = strMoreInfoRegex.exec(
+            textFieldLayoutProp.toString()
+          )) !== null
         ) {
           const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
           this.setLayoutProperty(layer.id, "text-field", newProp);
         }
       }
-    })
+    });
   }
 
   /**
@@ -598,7 +613,7 @@ export class Map extends maplibre.Map {
           this.setLayoutProperty(layer.id, "text-field", newProp);
         }
       }
-    })
+    });
   }
 
   /**
@@ -709,7 +724,7 @@ export class Map extends maplibre.Map {
   /**
    * Perform an action when the style is ready. It could be at the moment of calling this method
    * or later.
-   * @param cb 
+   * @param cb
    */
   private onStyleReady(cb) {
     if (this.isStyleLoaded()) {
