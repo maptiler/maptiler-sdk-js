@@ -7,7 +7,7 @@ import { MapStyle } from "./mapstyle/mapstyle";
 const defaults = {
   maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
   maptilerURL: "https://www.maptiler.com/",
-  maptilerApiURL: "https://api.maptiler.com/",
+  maptilerApiHost: "api.maptiler.com",
   rtlPluginURL:
     "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
   primaryLanguage: Language.LATIN,

@@ -1418,7 +1418,7 @@
 	const defaults = {
 	  maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
 	  maptilerURL: "https://www.maptiler.com/",
-	  maptilerApiURL: "https://api.maptiler.com/",
+	  maptilerApiHost: "api.maptiler.com",
 	  rtlPluginURL: "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
 	  primaryLanguage: Language.LATIN,
 	  secondaryLanguage: Language.NON_LATIN,
@@ -2863,10 +2863,12 @@
 	      maplibreLogo: false,
 	      transformRequest: (url) => {
 	        const reqUrl = new URL(url);
-	        if (!reqUrl.searchParams.has("key")) {
-	          reqUrl.searchParams.append("key", config.apiKey);
+	        if (reqUrl.host === defaults.maptilerApiHost) {
+	          if (!reqUrl.searchParams.has("key")) {
+	            reqUrl.searchParams.append("key", config.apiKey);
+	          }
+	          reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
 	        }
-	        reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
 	        return {
 	          url: reqUrl.href,
 	          headers: {}

@@ -95,12 +95,14 @@ export class Map extends maplibre.Map {
 
       transformRequest: (url: string) => {
         const reqUrl = new URL(url);
-
-        if (!reqUrl.searchParams.has("key")) {
-          reqUrl.searchParams.append("key", config.apiKey);
+        
+        if (reqUrl.host === defaults.maptilerApiHost) {
+          if (!reqUrl.searchParams.has("key")) {
+            reqUrl.searchParams.append("key", config.apiKey);
+          }
+  
+          reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
         }
-
-        reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
 
         return {
           url: reqUrl.href,
