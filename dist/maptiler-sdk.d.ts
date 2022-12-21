@@ -384,7 +384,7 @@ declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
      * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
      * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
      */
-    style?: ReferenceMapStyle | MapStyleVariant | string;
+    style?: ReferenceMapStyle | MapStyleVariant | ML.StyleSpecification | string;
     /**
      * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.
      */
@@ -433,7 +433,7 @@ declare class Map extends ML.Map {
      * @param options
      * @returns
      */
-    setStyle(style: ML.StyleSpecification | string | null, options?: StyleSwapOptions & ML.StyleOptions): this;
+    setStyle(style: ReferenceMapStyle | MapStyleVariant | ML.StyleSpecification | string, options?: StyleSwapOptions & ML.StyleOptions): this;
     /**
      * Define the primary language of the map. Note that not all the languages shorthands provided are available.
      * This function is a short for `.setPrimaryLanguage()`
@@ -444,13 +444,13 @@ declare class Map extends ML.Map {
      * Define the primary language of the map. Note that not all the languages shorthands provided are available.
      * @param language
      */
-    setPrimaryLanguage(language?: LanguageString): any;
+    setPrimaryLanguage(language?: LanguageString): void;
     /**
      * Define the secondary language of the map.
      * Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)
      * @param language
      */
-    setSecondaryLanguage(language?: LanguageString): any;
+    setSecondaryLanguage(language?: LanguageString): void;
     /**
      * Get the exaggeration factor applied to the terrain
      * @returns
@@ -477,6 +477,12 @@ declare class Map extends ML.Map {
      * @param exaggeration
      */
     setTerrainExaggeration(exaggeration: number): void;
+    /**
+     * Perform an action when the style is ready. It could be at the moment of calling this method
+     * or later.
+     * @param cb
+     */
+    private onStyleReady;
 }
 
 /**

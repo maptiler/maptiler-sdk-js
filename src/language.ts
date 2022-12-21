@@ -94,6 +94,12 @@ const Language = {
   WELSH: "cy",
 } as const;
 
+const languagesIsoSet = new Set(Object.values(Language) as Array<string>);
+
+function isLanguageSupported(lang: string): boolean {
+  return languagesIsoSet.has(lang);
+}
+
 const languageCodeSet = new Set(Object.values(Language));
 
 type Values<T> = T[keyof T];
@@ -119,4 +125,4 @@ function getBrowserLanguage(): LanguageString {
     : Language.LATIN;
 }
 
-export { Language, LanguageString, getBrowserLanguage };
+export { Language, LanguageString, getBrowserLanguage, isLanguageSupported };

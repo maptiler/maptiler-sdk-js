@@ -692,6 +692,10 @@
 	  UKRAINIAN: "uk",
 	  WELSH: "cy"
 	};
+	const languagesIsoSet = new Set(Object.values(Language));
+	function isLanguageSupported(lang) {
+	  return languagesIsoSet.has(lang);
+	}
 	const languageCodeSet$1 = new Set(Object.values(Language));
 	function getBrowserLanguage() {
 	  if (typeof navigator === "undefined") {
@@ -2976,130 +2980,140 @@
 	    this.setPrimaryLanguage(language);
 	  }
 	  setPrimaryLanguage(language = defaults.primaryLanguage) {
-	    if (language === Language.AUTO) {
-	      return this.setPrimaryLanguage(getBrowserLanguage());
+	    if (!isLanguageSupported(language)) {
+	      return;
 	    }
-	    config.primaryLanguage = language;
-	    const layers = this.getStyle().layers;
-	    const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
-	    const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
-	    const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
-	    const strMoreInfoRegex = /^(.*)({\s*name\s*(:\s*(\S*))?\s*})(.*)$/;
-	    const langStr = language ? `name:${language}` : "name";
-	    const replacer = [
-	      "case",
-	      ["has", langStr],
-	      ["get", langStr],
-	      ["get", "name:latin"]
-	    ];
-	    for (let i = 0; i < layers.length; i += 1) {
-	      const layer = layers[i];
-	      const layout = layer.layout;
-	      if (!layout) {
-	        continue;
+	    this.onStyleReady(() => {
+	      if (language === Language.AUTO) {
+	        return this.setPrimaryLanguage(getBrowserLanguage());
 	      }
-	      if (!layout["text-field"]) {
-	        continue;
-	      }
-	      const textFieldLayoutProp = this.getLayoutProperty(
-	        layer.id,
-	        "text-field"
-	      );
-	      let regexMatch;
-	      if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "concat") {
-	        const newProp = textFieldLayoutProp.slice();
-	        for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
-	          const elem = textFieldLayoutProp[j];
-	          if ((typeof elem === "string" || elem instanceof String) && strLanguageRegex.exec(elem.toString())) {
-	            newProp[j] = replacer;
-	            break;
-	          } else if (Array.isArray(elem) && elem.length >= 2 && elem[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(elem[1].toString())) {
-	            newProp[j] = replacer;
-	            break;
-	          } else if (Array.isArray(elem) && elem.length === 4 && elem[0].trim().toLowerCase() === "case") {
-	            newProp[j] = replacer;
-	            break;
-	          }
+	      config.primaryLanguage = language;
+	      const layers = this.getStyle().layers;
+	      const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
+	      const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
+	      const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
+	      const strMoreInfoRegex = /^(.*)({\s*name\s*(:\s*(\S*))?\s*})(.*)$/;
+	      const langStr = language ? `name:${language}` : "name";
+	      const replacer = [
+	        "case",
+	        ["has", langStr],
+	        ["get", langStr],
+	        ["get", "name:latin"]
+	      ];
+	      for (let i = 0; i < layers.length; i += 1) {
+	        const layer = layers[i];
+	        const layout = layer.layout;
+	        if (!layout) {
+	          continue;
 	        }
-	        this.setLayoutProperty(layer.id, "text-field", newProp);
-	      } else if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(textFieldLayoutProp[1].toString())) {
-	        const newProp = replacer;
-	        this.setLayoutProperty(layer.id, "text-field", newProp);
-	      } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && strLanguageRegex.exec(textFieldLayoutProp.toString())) {
-	        const newProp = replacer;
-	        this.setLayoutProperty(layer.id, "text-field", newProp);
-	      } else if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length === 4 && textFieldLayoutProp[0].trim().toLowerCase() === "case") {
-	        const newProp = replacer;
-	        this.setLayoutProperty(layer.id, "text-field", newProp);
-	      } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strBilingualRegex.exec(
-	        textFieldLayoutProp.toString()
-	      )) !== null) {
-	        const newProp = `{${langStr}}${regexMatch[3]}{name${regexMatch[4] || ""}}`;
-	        this.setLayoutProperty(layer.id, "text-field", newProp);
-	      } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strMoreInfoRegex.exec(textFieldLayoutProp.toString())) !== null) {
-	        const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
-	        this.setLayoutProperty(layer.id, "text-field", newProp);
+	        if (!layout["text-field"]) {
+	          continue;
+	        }
+	        const textFieldLayoutProp = this.getLayoutProperty(
+	          layer.id,
+	          "text-field"
+	        );
+	        let regexMatch;
+	        if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "concat") {
+	          const newProp = textFieldLayoutProp.slice();
+	          for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
+	            const elem = textFieldLayoutProp[j];
+	            if ((typeof elem === "string" || elem instanceof String) && strLanguageRegex.exec(elem.toString())) {
+	              newProp[j] = replacer;
+	              break;
+	            } else if (Array.isArray(elem) && elem.length >= 2 && elem[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(elem[1].toString())) {
+	              newProp[j] = replacer;
+	              break;
+	            } else if (Array.isArray(elem) && elem.length === 4 && elem[0].trim().toLowerCase() === "case") {
+	              newProp[j] = replacer;
+	              break;
+	            }
+	          }
+	          this.setLayoutProperty(layer.id, "text-field", newProp);
+	        } else if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(textFieldLayoutProp[1].toString())) {
+	          const newProp = replacer;
+	          this.setLayoutProperty(layer.id, "text-field", newProp);
+	        } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && strLanguageRegex.exec(textFieldLayoutProp.toString())) {
+	          const newProp = replacer;
+	          this.setLayoutProperty(layer.id, "text-field", newProp);
+	        } else if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length === 4 && textFieldLayoutProp[0].trim().toLowerCase() === "case") {
+	          const newProp = replacer;
+	          this.setLayoutProperty(layer.id, "text-field", newProp);
+	        } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strBilingualRegex.exec(
+	          textFieldLayoutProp.toString()
+	        )) !== null) {
+	          const newProp = `{${langStr}}${regexMatch[3]}{name${regexMatch[4] || ""}}`;
+	          this.setLayoutProperty(layer.id, "text-field", newProp);
+	        } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strMoreInfoRegex.exec(textFieldLayoutProp.toString())) !== null) {
+	          const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
+	          this.setLayoutProperty(layer.id, "text-field", newProp);
+	        }
 	      }
-	    }
+	    });
 	  }
 	  setSecondaryLanguage(language = defaults.secondaryLanguage) {
-	    if (language === Language.AUTO) {
-	      return this.setSecondaryLanguage(getBrowserLanguage());
+	    if (!isLanguageSupported(language)) {
+	      return;
 	    }
-	    config.secondaryLanguage = language;
-	    const layers = this.getStyle().layers;
-	    const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
-	    const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
-	    const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
-	    let regexMatch;
-	    for (let i = 0; i < layers.length; i += 1) {
-	      const layer = layers[i];
-	      const layout = layer.layout;
-	      if (!layout) {
-	        continue;
+	    this.onStyleReady(() => {
+	      if (language === Language.AUTO) {
+	        return this.setSecondaryLanguage(getBrowserLanguage());
 	      }
-	      if (!layout["text-field"]) {
-	        continue;
-	      }
-	      const textFieldLayoutProp = this.getLayoutProperty(
-	        layer.id,
-	        "text-field"
-	      );
-	      let newProp;
-	      if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "concat") {
-	        newProp = textFieldLayoutProp.slice();
-	        let languagesAlreadyFound = 0;
-	        for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
-	          const elem = textFieldLayoutProp[j];
-	          if ((typeof elem === "string" || elem instanceof String) && strLanguageRegex.exec(elem.toString())) {
-	            if (languagesAlreadyFound === 1) {
-	              newProp[j] = `{name:${language}}`;
-	              break;
-	            }
-	            languagesAlreadyFound += 1;
-	          } else if (Array.isArray(elem) && elem.length >= 2 && elem[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(elem[1].toString())) {
-	            if (languagesAlreadyFound === 1) {
-	              newProp[j][1] = `name:${language}`;
-	              break;
-	            }
-	            languagesAlreadyFound += 1;
-	          } else if (Array.isArray(elem) && elem.length === 4 && elem[0].trim().toLowerCase() === "case") {
-	            if (languagesAlreadyFound === 1) {
-	              newProp[j] = ["get", `name:${language}`];
-	              break;
-	            }
-	            languagesAlreadyFound += 1;
-	          }
+	      config.secondaryLanguage = language;
+	      const layers = this.getStyle().layers;
+	      const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
+	      const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
+	      const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
+	      let regexMatch;
+	      for (let i = 0; i < layers.length; i += 1) {
+	        const layer = layers[i];
+	        const layout = layer.layout;
+	        if (!layout) {
+	          continue;
 	        }
-	        this.setLayoutProperty(layer.id, "text-field", newProp);
-	      } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strBilingualRegex.exec(
-	        textFieldLayoutProp.toString()
-	      )) !== null) {
-	        const langStr = language ? `name:${language}` : "name";
-	        newProp = `{name${regexMatch[1] || ""}}${regexMatch[3]}{${langStr}}`;
-	        this.setLayoutProperty(layer.id, "text-field", newProp);
+	        if (!layout["text-field"]) {
+	          continue;
+	        }
+	        const textFieldLayoutProp = this.getLayoutProperty(
+	          layer.id,
+	          "text-field"
+	        );
+	        let newProp;
+	        if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "concat") {
+	          newProp = textFieldLayoutProp.slice();
+	          let languagesAlreadyFound = 0;
+	          for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
+	            const elem = textFieldLayoutProp[j];
+	            if ((typeof elem === "string" || elem instanceof String) && strLanguageRegex.exec(elem.toString())) {
+	              if (languagesAlreadyFound === 1) {
+	                newProp[j] = `{name:${language}}`;
+	                break;
+	              }
+	              languagesAlreadyFound += 1;
+	            } else if (Array.isArray(elem) && elem.length >= 2 && elem[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(elem[1].toString())) {
+	              if (languagesAlreadyFound === 1) {
+	                newProp[j][1] = `name:${language}`;
+	                break;
+	              }
+	              languagesAlreadyFound += 1;
+	            } else if (Array.isArray(elem) && elem.length === 4 && elem[0].trim().toLowerCase() === "case") {
+	              if (languagesAlreadyFound === 1) {
+	                newProp[j] = ["get", `name:${language}`];
+	                break;
+	              }
+	              languagesAlreadyFound += 1;
+	            }
+	          }
+	          this.setLayoutProperty(layer.id, "text-field", newProp);
+	        } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strBilingualRegex.exec(
+	          textFieldLayoutProp.toString()
+	        )) !== null) {
+	          const langStr = language ? `name:${language}` : "name";
+	          newProp = `{name${regexMatch[1] || ""}}${regexMatch[3]}{${langStr}}`;
+	          this.setLayoutProperty(layer.id, "text-field", newProp);
+	        }
 	      }
-	    }
+	    });
 	  }
 	  getTerrainExaggeration() {
 	    return this.terrainExaggeration;
@@ -3145,6 +3159,15 @@
 	  }
 	  setTerrainExaggeration(exaggeration) {
 	    this.enableTerrain(exaggeration);
+	  }
+	  onStyleReady(cb) {
+	    if (this.isStyleLoaded()) {
+	      cb();
+	    } else {
+	      this.once("styledata", () => {
+	        cb();
+	      });
+	    }
 	  }
 	}
 
