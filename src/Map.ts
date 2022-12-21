@@ -87,6 +87,11 @@ export class Map extends maplibre.Map {
   constructor(options: MapOptions) {
     const style = styleToStyle(options.style);
 
+
+    if (!config.apiKey) {
+      console.warn('MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!')
+    }
+
     // calling the map constructor with full length style
     super({
       ...options,

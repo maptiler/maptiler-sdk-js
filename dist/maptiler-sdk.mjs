@@ -101,7 +101,7 @@ class SdkConfig extends EventEmitter {
     this.primaryLanguage = Language.AUTO;
     this.secondaryLanguage = null;
     this._unit = "metric";
-    this._apiKey = "Not defined yet.";
+    this._apiKey = "";
   }
   set unit(u) {
     this._unit = u;
@@ -1266,6 +1266,9 @@ class Map extends ML.Map {
   constructor(options) {
     var _a;
     const style = styleToStyle(options.style);
+    if (!config.apiKey) {
+      console.warn("MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!");
+    }
     super(__spreadProps(__spreadValues({}, options), {
       style,
       maplibreLogo: false,

@@ -26,7 +26,7 @@ class SdkConfig extends EventEmitter {
   /**
    * MapTiler Cloud API key
    */
-  private _apiKey = "Not defined yet.";
+  private _apiKey = "";
 
   constructor() {
     super();
