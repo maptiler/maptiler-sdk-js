@@ -74,6 +74,11 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
   terrainControl?: boolean | maplibre.ControlPosition;
 
   /**
+   * Show the geolocate control. (default: `true`, will hide if `false`)
+   */
+  geolocateControl?: boolean | maplibre.ControlPosition;
+
+  /**
    * Show the scale control. (default: `false`, will show if `true`)
    */
   scaleControl?: boolean | maplibre.ControlPosition;
@@ -239,6 +244,17 @@ export class Map extends maplibre.Map {
             : options.navigationControl
         ) as maplibre.ControlPosition;
         this.addControl(new MaptilerNavigationControl(), position);
+      }
+
+      if (options.geolocateControl !== false) {
+        // default position, if not provided, is top left corner
+        const position = (
+          options.geolocateControl === true ||
+          options.geolocateControl === undefined
+            ? "top-right"
+            : options.geolocateControl
+        ) as maplibre.ControlPosition;
+        // this.addControl(new TerrainControl(), position);
 
         this.addControl(
           new GeolocateControl({

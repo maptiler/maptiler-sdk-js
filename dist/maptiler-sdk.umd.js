@@ -2210,6 +2210,9 @@
 	      if (options.navigationControl !== false) {
 	        const position = options.navigationControl === true || options.navigationControl === void 0 ? "top-right" : options.navigationControl;
 	        this.addControl(new MaptilerNavigationControl(), position);
+	      }
+	      if (options.geolocateControl !== false) {
+	        const position = options.geolocateControl === true || options.geolocateControl === void 0 ? "top-right" : options.geolocateControl;
 	        this.addControl(
 	          new maplibreGl$1.exports.GeolocateControl({
 	            positionOptions: {

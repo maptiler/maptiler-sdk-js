@@ -46,7 +46,7 @@ maplibre.Map.constructor
 
 #### Defined in
 
-[src/Map.ts:96](https://github.com/maptiler/maptiler-sdk-js/blob/8224ddd/src/Map.ts#L96)
+[src/Map.ts:101](https://github.com/maptiler/maptiler-sdk-js/blob/4d9c657/src/Map.ts#L101)
 
 ## Methods
 
@@ -62,7 +62,7 @@ Disable the 3D terrain visualization
 
 #### Defined in
 
-[src/Map.ts:693](https://github.com/maptiler/maptiler-sdk-js/blob/8224ddd/src/Map.ts#L693)
+[src/Map.ts:709](https://github.com/maptiler/maptiler-sdk-js/blob/4d9c657/src/Map.ts#L709)
 
 ___
 
@@ -84,7 +84,7 @@ Enables the 3D terrain visualization
 
 #### Defined in
 
-[src/Map.ts:648](https://github.com/maptiler/maptiler-sdk-js/blob/8224ddd/src/Map.ts#L648)
+[src/Map.ts:664](https://github.com/maptiler/maptiler-sdk-js/blob/4d9c657/src/Map.ts#L664)
 
 ___
 
@@ -100,7 +100,7 @@ Get the exaggeration factor applied to the terrain
 
 #### Defined in
 
-[src/Map.ts:631](https://github.com/maptiler/maptiler-sdk-js/blob/8224ddd/src/Map.ts#L631)
+[src/Map.ts:647](https://github.com/maptiler/maptiler-sdk-js/blob/4d9c657/src/Map.ts#L647)
 
 ___
 
@@ -116,7 +116,7 @@ Know if terrian is enabled or not
 
 #### Defined in
 
-[src/Map.ts:639](https://github.com/maptiler/maptiler-sdk-js/blob/8224ddd/src/Map.ts#L639)
+[src/Map.ts:655](https://github.com/maptiler/maptiler-sdk-js/blob/4d9c657/src/Map.ts#L655)
 
 ___
 
@@ -139,7 +139,7 @@ This function is a short for `.setPrimaryLanguage()`
 
 #### Defined in
 
-[src/Map.ts:320](https://github.com/maptiler/maptiler-sdk-js/blob/8224ddd/src/Map.ts#L320)
+[src/Map.ts:336](https://github.com/maptiler/maptiler-sdk-js/blob/4d9c657/src/Map.ts#L336)
 
 ___
 
@@ -161,7 +161,7 @@ Define the primary language of the map. Note that not all the languages shorthan
 
 #### Defined in
 
-[src/Map.ts:331](https://github.com/maptiler/maptiler-sdk-js/blob/8224ddd/src/Map.ts#L331)
+[src/Map.ts:347](https://github.com/maptiler/maptiler-sdk-js/blob/4d9c657/src/Map.ts#L347)
 
 ___
 
@@ -184,7 +184,7 @@ Note that most styles do not allow a secondary language and this function only w
 
 #### Defined in
 
-[src/Map.ts:497](https://github.com/maptiler/maptiler-sdk-js/blob/8224ddd/src/Map.ts#L497)
+[src/Map.ts:513](https://github.com/maptiler/maptiler-sdk-js/blob/4d9c657/src/Map.ts#L513)
 
 ___
 
@@ -215,7 +215,7 @@ maplibre.Map.setStyle
 
 #### Defined in
 
-[src/Map.ts:304](https://github.com/maptiler/maptiler-sdk-js/blob/8224ddd/src/Map.ts#L304)
+[src/Map.ts:320](https://github.com/maptiler/maptiler-sdk-js/blob/4d9c657/src/Map.ts#L320)
 
 ___
 
@@ -238,4 +238,4 @@ Note: this is only a shortcut to `.enableTerrain()`
 
 #### Defined in
 
-[src/Map.ts:706](https://github.com/maptiler/maptiler-sdk-js/blob/8224ddd/src/Map.ts#L706)
+[src/Map.ts:722](https://github.com/maptiler/maptiler-sdk-js/blob/4d9c657/src/Map.ts#L722)

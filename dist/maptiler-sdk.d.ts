@@ -406,6 +406,10 @@ declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
      */
     terrainControl?: boolean | ML.ControlPosition;
     /**
+     * Show the geolocate control. (default: `true`, will hide if `false`)
+     */
+    geolocateControl?: boolean | ML.ControlPosition;
+    /**
      * Show the scale control. (default: `false`, will show if `true`)
      */
     scaleControl?: boolean | ML.ControlPosition;

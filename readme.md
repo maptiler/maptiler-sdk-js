@@ -212,6 +212,9 @@ The term "control" is commonly used for all sorts of buttons and information dis
 - `navigationControl`
   - Shows the `[+]`, `[-]` and tilt/bearing/compass buttons
   - a boolean or a corner position. Showing on the top-right by default. Hidden if `false`.
+- `geolocateControl`
+  - Shows a arrow-shaped locate button. When clicked, it adds a marker and center the map. If clicked again, the marker disapears (unless the map was moved since first clicked)
+  - a boolean or a corner position. Showing on the top-right by default. Hidden if `false`.
 - `terrainControl`
   - Shows a button to enable/disable the 3D terrain (does not tilt the map)
   - a boolean or a corner position. Showing on the top-right by default. Hidden if `false`.
