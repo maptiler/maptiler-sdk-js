@@ -1,12 +1,10 @@
 import * as ML from 'maplibre-gl';
-import { ScaleControl as ScaleControl$1, GeolocateControl as GeolocateControl$1, FullscreenControl as FullscreenControl$1 } from 'maplibre-gl';
+import { NavigationControl as NavigationControl$1, ScaleControl as ScaleControl$1, GeolocateControl as GeolocateControl$1, FullscreenControl as FullscreenControl$1 } from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { v4 } from 'uuid';
 import EventEmitter from 'events';
 import { config as config$1 } from '@maptiler/client';
 export { LanguageGeocoding, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
-import Point$1 from '@mapbox/point-geometry';
-import UnitBezier from '@mapbox/unitbezier';
 
 const Language = {
   AUTO: "auto",
@@ -193,6 +191,27 @@ function enableRTL() {
       null,
       true
     );
+  }
+}
+function bindAll(fns, context) {
+  fns.forEach((fn) => {
+    if (!context[fn]) {
+      return;
+    }
+    context[fn] = context[fn].bind(context);
+  });
+}
+function DOMcreate(tagName, className, container) {
+  const el = window.document.createElement(tagName);
+  if (className !== void 0)
+    el.className = className;
+  if (container)
+    container.appendChild(el);
+  return el;
+}
+function DOMremove(node) {
+  if (node.parentNode) {
+    node.parentNode.removeChild(node);
   }
 }
 
@@ -677,151 +696,22 @@ function styleToStyle(style) {
   return style;
 }
 
-const _DOM = class {
-  static testProp(props) {
-    if (!_DOM.docStyle)
-      return props[0];
-    for (let i = 0; i < props.length; i++) {
-      if (props[i] in _DOM.docStyle) {
-        return props[i];
-      }
-    }
-    return props[0];
-  }
-  static create(tagName, className, container) {
-    const el = window.document.createElement(tagName);
-    if (className !== void 0)
-      el.className = className;
-    if (container)
-      container.appendChild(el);
-    return el;
-  }
-  static createNS(namespaceURI, tagName) {
-    const el = window.document.createElementNS(namespaceURI, tagName);
-    return el;
-  }
-  static disableDrag() {
-    if (_DOM.docStyle && _DOM.selectProp) {
-      _DOM.userSelect = _DOM.docStyle[_DOM.selectProp];
-      _DOM.docStyle[_DOM.selectProp] = "none";
-    }
-  }
-  static enableDrag() {
-    if (_DOM.docStyle && _DOM.selectProp) {
-      _DOM.docStyle[_DOM.selectProp] = _DOM.userSelect;
-    }
-  }
-  static setTransform(el, value) {
-    el.style[_DOM.transformProp] = value;
-  }
-  static addEventListener(target, type, callback, options = {}) {
-    if ("passive" in options) {
-      target.addEventListener(type, callback, options);
-    } else {
-      target.addEventListener(type, callback, options.capture);
-    }
-  }
-  static removeEventListener(target, type, callback, options = {}) {
-    if ("passive" in options) {
-      target.removeEventListener(type, callback, options);
-    } else {
-      target.removeEventListener(type, callback, options.capture);
-    }
-  }
-  static suppressClickInternal(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    window.removeEventListener("click", _DOM.suppressClickInternal, true);
-  }
-  static suppressClick() {
-    window.addEventListener("click", _DOM.suppressClickInternal, true);
-    window.setTimeout(() => {
-      window.removeEventListener("click", _DOM.suppressClickInternal, true);
-    }, 0);
-  }
-  static mousePos(el, e) {
-    const rect = el.getBoundingClientRect();
-    return new Point$1(
-      e.clientX - rect.left - el.clientLeft,
-      e.clientY - rect.top - el.clientTop
-    );
-  }
-  static touchPos(el, touches) {
-    const rect = el.getBoundingClientRect();
-    const points = [];
-    for (let i = 0; i < touches.length; i++) {
-      points.push(
-        new Point$1(
-          touches[i].clientX - rect.left - el.clientLeft,
-          touches[i].clientY - rect.top - el.clientTop
-        )
-      );
-    }
-    return points;
-  }
-  static mouseButton(e) {
-    return e.button;
-  }
-  static remove(node) {
-    if (node.parentNode) {
-      node.parentNode.removeChild(node);
-    }
-  }
-};
-let DOM = _DOM;
-DOM.docStyle = typeof window !== "undefined" && window.document && window.document.documentElement.style;
-DOM.selectProp = _DOM.testProp([
-  "userSelect",
-  "MozUserSelect",
-  "WebkitUserSelect",
-  "msUserSelect"
-]);
-DOM.transformProp = _DOM.testProp(["transform", "WebkitTransform"]);
-
-function bezier(p1x, p1y, p2x, p2y) {
-  const bezier2 = new UnitBezier(p1x, p1y, p2x, p2y);
-  return function(t) {
-    return bezier2.solve(t);
-  };
-}
-bezier(0.25, 0.1, 0.25, 1);
-function extend(dest, ...sources) {
-  for (const src of sources) {
-    for (const k in src) {
-      dest[k] = src[k];
-    }
-  }
-  return dest;
-}
-function bindAll(fns, context) {
-  fns.forEach((fn) => {
-    if (!context[fn]) {
-      return;
-    }
-    context[fn] = context[fn].bind(context);
-  });
-}
-
 class TerrainControl$1 {
   constructor() {
     bindAll(["_toggleTerrain", "_updateTerrainIcon"], this);
   }
   onAdd(map) {
     this._map = map;
-    this._container = DOM.create(
-      "div",
-      "maplibregl-ctrl maplibregl-ctrl-group"
-    );
-    this._terrainButton = DOM.create(
+    this._container = DOMcreate("div", "maplibregl-ctrl maplibregl-ctrl-group");
+    this._terrainButton = DOMcreate(
       "button",
       "maplibregl-ctrl-terrain",
       this._container
     );
-    DOM.create(
-      "span",
-      "maplibregl-ctrl-icon",
-      this._terrainButton
-    ).setAttribute("aria-hidden", "true");
+    DOMcreate("span", "maplibregl-ctrl-icon", this._terrainButton).setAttribute(
+      "aria-hidden",
+      "true"
+    );
     this._terrainButton.type = "button";
     this._terrainButton.addEventListener("click", this._toggleTerrain);
     this._updateTerrainIcon();
@@ -829,7 +719,7 @@ class TerrainControl$1 {
     return this._container;
   }
   onRemove() {
-    DOM.remove(this._container);
+    DOMremove(this._container);
     this._map.off("terrain", this._updateTerrainIcon);
     this._map = void 0;
   }
@@ -858,181 +748,36 @@ class TerrainControl$1 {
   }
 }
 
-const LEFT_BUTTON = 0;
-const RIGHT_BUTTON = 2;
-const BUTTONS_FLAGS = {
-  [LEFT_BUTTON]: 1,
-  [RIGHT_BUTTON]: 2
-};
-function buttonStillPressed(e, button) {
-  const flag = BUTTONS_FLAGS[button];
-  return e.buttons === void 0 || (e.buttons & flag) !== flag;
-}
-class MouseHandler {
-  constructor(options) {
-    this.reset();
-    this._clickTolerance = options.clickTolerance || 1;
-  }
-  reset() {
-    this._active = false;
-    this._moved = false;
-    delete this._lastPoint;
-    delete this._eventButton;
-  }
-  _correctButton(e, button) {
-    return false;
-  }
-  _move(lastPoint, point) {
-    return {};
-  }
-  mousedown(e, point) {
-    if (this._lastPoint)
-      return;
-    const eventButton = DOM.mouseButton(e);
-    if (!this._correctButton(e, eventButton))
-      return;
-    this._lastPoint = point;
-    this._eventButton = eventButton;
-  }
-  mousemoveWindow(e, point) {
-    const lastPoint = this._lastPoint;
-    if (!lastPoint)
-      return;
-    e.preventDefault();
-    if (buttonStillPressed(e, this._eventButton)) {
-      this.reset();
-      return;
-    }
-    if (!this._moved && point.dist(lastPoint) < this._clickTolerance)
-      return;
-    this._moved = true;
-    this._lastPoint = point;
-    return this._move(lastPoint, point);
-  }
-  mouseupWindow(e) {
-    if (!this._lastPoint)
-      return;
-    const eventButton = DOM.mouseButton(e);
-    if (eventButton !== this._eventButton)
-      return;
-    if (this._moved)
-      DOM.suppressClick();
-    this.reset();
-  }
-  enable() {
-    this._enabled = true;
-  }
-  disable() {
-    this._enabled = false;
-    this.reset();
-  }
-  isEnabled() {
-    return this._enabled;
-  }
-  isActive() {
-    return this._active;
-  }
-}
-class MouseRotateHandler extends MouseHandler {
-  _correctButton(e, button) {
-    return button === LEFT_BUTTON && e.ctrlKey || button === RIGHT_BUTTON;
-  }
-  _move(lastPoint, point) {
-    const degreesPerPixelMoved = 0.8;
-    const bearingDelta = (point.x - lastPoint.x) * degreesPerPixelMoved;
-    if (bearingDelta) {
-      this._active = true;
-      return { bearingDelta };
-    }
-  }
-  contextmenu(e) {
-    e.preventDefault();
-  }
-}
-class MousePitchHandler extends MouseHandler {
-  _correctButton(e, button) {
-    return button === LEFT_BUTTON && e.ctrlKey || button === RIGHT_BUTTON;
-  }
-  _move(lastPoint, point) {
-    const degreesPerPixelMoved = -0.5;
-    const pitchDelta = (point.y - lastPoint.y) * degreesPerPixelMoved;
-    if (pitchDelta) {
-      this._active = true;
-      return { pitchDelta };
-    }
-  }
-  contextmenu(e) {
-    e.preventDefault();
-  }
-}
-
-const defaultOptions = {
-  showCompass: true,
-  showZoom: true,
-  visualizePitch: false
-};
-class MaptilerNavigationControl {
-  constructor(options) {
-    this.options = extend({}, defaultOptions, options);
-    this._container = DOM.create(
-      "div",
-      "maplibregl-ctrl maplibregl-ctrl-group mapboxgl-ctrl mapboxgl-ctrl-group"
+class MaptilerNavigationControl extends NavigationControl$1 {
+  constructor() {
+    super({
+      showCompass: true,
+      showZoom: true,
+      visualizePitch: true
+    });
+    this._compass.removeEventListener(
+      "click",
+      this._compass.clickFunction
     );
-    this._container.addEventListener("contextmenu", (e) => e.preventDefault());
-    if (this.options.showZoom) {
-      bindAll(["_setButtonTitle", "_updateZoomButtons"], this);
-      this._zoomInButton = this._createButton(
-        "maplibregl-ctrl-zoom-in mapboxgl-ctrl-zoom-in",
-        (e) => this._map.zoomIn({}, { originalEvent: e })
-      );
-      DOM.create(
-        "span",
-        "maplibregl-ctrl-icon mapboxgl-ctrl-icon",
-        this._zoomInButton
-      ).setAttribute("aria-hidden", "true");
-      this._zoomOutButton = this._createButton(
-        "maplibregl-ctrl-zoom-out mapboxgl-ctrl-zoom-out",
-        (e) => this._map.zoomOut({}, { originalEvent: e })
-      );
-      DOM.create(
-        "span",
-        "maplibregl-ctrl-icon mapboxgl-ctrl-icon",
-        this._zoomOutButton
-      ).setAttribute("aria-hidden", "true");
-    }
-    if (this.options.showCompass) {
-      bindAll(["_rotateCompassArrow"], this);
-      this._compass = this._createButton(
-        "maplibregl-ctrl-compass mapboxgl-ctrl-compass",
-        (e) => {
-          const currentPitch = this._map.getPitch();
-          if (currentPitch === 0) {
-            this._map.easeTo({ pitch: this._map.getMaxPitch() });
+    this._compass.addEventListener("click", (e) => {
+      {
+        const currentPitch = this._map.getPitch();
+        if (currentPitch === 0) {
+          this._map.easeTo({ pitch: this._map.getMaxPitch() });
+        } else {
+          if (this.options.visualizePitch) {
+            this._map.resetNorthPitch({}, { originalEvent: e });
           } else {
-            if (this.options.visualizePitch) {
-              this._map.resetNorthPitch({}, { originalEvent: e });
-            } else {
-              this._map.resetNorth({}, { originalEvent: e });
-            }
+            this._map.resetNorth({}, { originalEvent: e });
           }
         }
-      );
-      this._compassIcon = DOM.create(
-        "span",
-        "maplibregl-ctrl-icon mapboxgl-ctrl-icon",
-        this._compass
-      );
-      this._compassIcon.setAttribute("aria-hidden", "true");
-    }
+      }
+    });
   }
-  _updateZoomButtons() {
-    const zoom = this._map.getZoom();
-    const isMax = zoom === this._map.getMaxZoom();
-    const isMin = zoom === this._map.getMinZoom();
-    this._zoomInButton.disabled = isMax;
-    this._zoomOutButton.disabled = isMin;
-    this._zoomInButton.setAttribute("aria-disabled", isMax.toString());
-    this._zoomOutButton.setAttribute("aria-disabled", isMin.toString());
+  _createButton(className, fn) {
+    const button = super._createButton(className, fn);
+    button.clickFunction = fn;
+    return button;
   }
   _rotateCompassArrow() {
     const rotate = this.options.visualizePitch ? `scale(${Math.min(
@@ -1040,189 +785,6 @@ class MaptilerNavigationControl {
       1 / Math.pow(Math.cos(this._map.transform.pitch * (Math.PI / 180)), 0.5)
     )}) rotateX(${Math.min(70, this._map.transform.pitch)}deg) rotateZ(${this._map.transform.angle * (180 / Math.PI)}deg)` : `rotate(${this._map.transform.angle * (180 / Math.PI)}deg)`;
     this._compassIcon.style.transform = rotate;
-  }
-  onAdd(map) {
-    this._map = map;
-    if (this.options.showZoom) {
-      this._setButtonTitle(this._zoomInButton, "ZoomIn");
-      this._setButtonTitle(this._zoomOutButton, "ZoomOut");
-      this._map.on("zoom", this._updateZoomButtons);
-      this._updateZoomButtons();
-    }
-    if (this.options.showCompass) {
-      this._setButtonTitle(this._compass, "ResetBearing");
-      if (this.options.visualizePitch) {
-        this._map.on("pitch", this._rotateCompassArrow);
-      }
-      this._map.on("rotate", this._rotateCompassArrow);
-      this._rotateCompassArrow();
-      this._handler = new MouseRotateWrapper(
-        this._map,
-        this._compass,
-        this.options.visualizePitch
-      );
-    }
-    return this._container;
-  }
-  onRemove() {
-    DOM.remove(this._container);
-    if (this.options.showZoom) {
-      this._map.off("zoom", this._updateZoomButtons);
-    }
-    if (this.options.showCompass) {
-      if (this.options.visualizePitch) {
-        this._map.off("pitch", this._rotateCompassArrow);
-      }
-      this._map.off("rotate", this._rotateCompassArrow);
-      this._handler.off();
-      delete this._handler;
-    }
-    delete this._map;
-  }
-  _createButton(className, fn) {
-    const a = DOM.create(
-      "button",
-      className,
-      this._container
-    );
-    a.type = "button";
-    a.addEventListener("click", fn);
-    return a;
-  }
-  _setButtonTitle(button, title) {
-    const str = this._map._getUIString(`NavigationControl.${title}`);
-    button.title = str;
-    button.setAttribute("aria-label", str);
-  }
-}
-class MouseRotateWrapper {
-  constructor(map, element, pitch = false) {
-    this._clickTolerance = 10;
-    this.element = element;
-    this.mouseRotate = new MouseRotateHandler({
-      clickTolerance: map.dragRotate._mouseRotate._clickTolerance
-    });
-    this.map = map;
-    if (pitch)
-      this.mousePitch = new MousePitchHandler({
-        clickTolerance: map.dragRotate._mousePitch._clickTolerance
-      });
-    bindAll(
-      [
-        "mousedown",
-        "mousemove",
-        "mouseup",
-        "touchstart",
-        "touchmove",
-        "touchend",
-        "reset"
-      ],
-      this
-    );
-    DOM.addEventListener(element, "mousedown", this.mousedown);
-    DOM.addEventListener(element, "touchstart", this.touchstart, {
-      passive: false
-    });
-    DOM.addEventListener(element, "touchmove", this.touchmove);
-    DOM.addEventListener(element, "touchend", this.touchend);
-    DOM.addEventListener(element, "touchcancel", this.reset);
-  }
-  down(e, point) {
-    this.mouseRotate.mousedown(e, point);
-    if (this.mousePitch)
-      this.mousePitch.mousedown(e, point);
-    DOM.disableDrag();
-  }
-  move(e, point) {
-    const map = this.map;
-    const r = this.mouseRotate.mousemoveWindow(e, point);
-    if (r && r.bearingDelta)
-      map.setBearing(map.getBearing() + r.bearingDelta);
-    if (this.mousePitch) {
-      const p = this.mousePitch.mousemoveWindow(e, point);
-      if (p && p.pitchDelta)
-        map.setPitch(map.getPitch() + p.pitchDelta);
-    }
-  }
-  off() {
-    const element = this.element;
-    DOM.removeEventListener(element, "mousedown", this.mousedown);
-    DOM.removeEventListener(element, "touchstart", this.touchstart, {
-      passive: false
-    });
-    DOM.removeEventListener(element, "touchmove", this.touchmove);
-    DOM.removeEventListener(element, "touchend", this.touchend);
-    DOM.removeEventListener(element, "touchcancel", this.reset);
-    this.offTemp();
-  }
-  offTemp() {
-    DOM.enableDrag();
-    DOM.removeEventListener(window, "mousemove", this.mousemove);
-    DOM.removeEventListener(window, "mouseup", this.mouseup);
-  }
-  mousedown(e) {
-    this.down(
-      extend({}, e, {
-        ctrlKey: true,
-        preventDefault: () => e.preventDefault()
-      }),
-      DOM.mousePos(this.element, e)
-    );
-    DOM.addEventListener(window, "mousemove", this.mousemove);
-    DOM.addEventListener(window, "mouseup", this.mouseup);
-  }
-  mousemove(e) {
-    this.move(e, DOM.mousePos(this.element, e));
-  }
-  mouseup(e) {
-    this.mouseRotate.mouseupWindow(e);
-    if (this.mousePitch)
-      this.mousePitch.mouseupWindow(e);
-    this.offTemp();
-  }
-  touchstart(e) {
-    if (e.targetTouches.length !== 1) {
-      this.reset();
-    } else {
-      this._startPos = this._lastPos = DOM.touchPos(
-        this.element,
-        e.targetTouches
-      )[0];
-      this.down(
-        {
-          type: "mousedown",
-          button: 0,
-          ctrlKey: true,
-          preventDefault: () => e.preventDefault()
-        },
-        this._startPos
-      );
-    }
-  }
-  touchmove(e) {
-    if (e.targetTouches.length !== 1) {
-      this.reset();
-    } else {
-      this._lastPos = DOM.touchPos(this.element, e.targetTouches)[0];
-      this.move(
-        { preventDefault: () => e.preventDefault() },
-        this._lastPos
-      );
-    }
-  }
-  touchend(e) {
-    if (e.targetTouches.length === 0 && this._startPos && this._lastPos && this._startPos.dist(this._lastPos) < this._clickTolerance) {
-      this.element.click();
-    }
-    this.reset();
-  }
-  reset() {
-    this.mouseRotate.reset();
-    if (this.mousePitch)
-      this.mousePitch.reset();
-    delete this._startPos;
-    delete this._lastPos;
-    this.offTemp();
   }
 }
 
@@ -1355,15 +917,23 @@ class Map extends ML.Map {
       }
       if (options.navigationControl !== false) {
         const position = options.navigationControl === true || options.navigationControl === void 0 ? "top-right" : options.navigationControl;
+        this.addControl(new MaptilerNavigationControl(), position);
         this.addControl(
-          new MaptilerNavigationControl({
-            showCompass: true,
-            showZoom: true,
-            visualizePitch: true
+          new GeolocateControl$1({
+            positionOptions: {
+              enableHighAccuracy: true,
+              maximumAge: 0,
+              timeout: 6e3
+            },
+            fitBoundsOptions: {
+              maxZoom: 15
+            },
+            trackUserLocation: true,
+            showAccuracyCircle: true,
+            showUserLocation: true
           }),
           position
         );
-        this.addControl(new GeolocateControl$1({}), position);
       }
       if (options.terrainControl !== false) {
         const position = options.terrainControl === true || options.terrainControl === void 0 ? "top-right" : options.terrainControl;

@@ -238,16 +238,24 @@ export class Map extends maplibre.Map {
             ? "top-right"
             : options.navigationControl
         ) as maplibre.ControlPosition;
+        this.addControl(new MaptilerNavigationControl(), position);
+
         this.addControl(
-          new MaptilerNavigationControl({
-            showCompass: true,
-            showZoom: true,
-            visualizePitch: true,
+          new GeolocateControl({
+            positionOptions: {
+              enableHighAccuracy: true,
+              maximumAge: 0,
+              timeout: 6000 /* 6 sec */,
+            },
+            fitBoundsOptions: {
+              maxZoom: 15,
+            },
+            trackUserLocation: true,
+            showAccuracyCircle: true,
+            showUserLocation: true,
           }),
           position
         );
-
-        this.addControl(new GeolocateControl({}), position);
       }
 
       if (options.terrainControl !== false) {

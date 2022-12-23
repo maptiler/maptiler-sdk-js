@@ -1,6 +1,4 @@
-// import { DOM, bindAll } from "./dom";
-import DOM from "./maplibre-borrow/src/util/dom";
-import { bindAll } from "./maplibre-borrow/src/util/util";
+import { bindAll, DOMcreate, DOMremove } from "./tools";
 
 import { Map } from "./map";
 import type { IControl } from "maplibre-gl";
@@ -30,20 +28,16 @@ export class TerrainControl implements IControl {
 
   onAdd(map: Map) {
     this._map = map;
-    this._container = DOM.create(
-      "div",
-      "maplibregl-ctrl maplibregl-ctrl-group"
-    );
-    this._terrainButton = DOM.create(
+    this._container = DOMcreate("div", "maplibregl-ctrl maplibregl-ctrl-group");
+    this._terrainButton = DOMcreate(
       "button",
       "maplibregl-ctrl-terrain",
       this._container
     );
-    DOM.create(
-      "span",
-      "maplibregl-ctrl-icon",
-      this._terrainButton
-    ).setAttribute("aria-hidden", "true");
+    DOMcreate("span", "maplibregl-ctrl-icon", this._terrainButton).setAttribute(
+      "aria-hidden",
+      "true"
+    );
     this._terrainButton.type = "button";
     this._terrainButton.addEventListener("click", this._toggleTerrain);
 
@@ -53,7 +47,7 @@ export class TerrainControl implements IControl {
   }
 
   onRemove() {
-    DOM.remove(this._container);
+    DOMremove(this._container);
     this._map.off("terrain", this._updateTerrainIcon);
     this._map = undefined;
   }

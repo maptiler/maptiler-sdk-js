@@ -63,7 +63,7 @@
   "dependencies": {
     "@maptiler/client": "github:maptiler/maptiler-client-js#dev",
     "events": "^3.3.0",
-    "maplibre-gl": "2.4.0",
+    "maplibre-gl": "^3.0.0-pre.2",
     "uuid": "^9.0.0"
   }
 }
