@@ -110,21 +110,22 @@ Checkout the minimalist code samples in the [demos](demos) directory.
 
 
 # Many styles to choose from
-MapTiler teams maintains a few styles that we have decided to expose from th SDK. This has two advantages:
+MapTiler teams maintains a few styles that we have decided to expose from the SDK. This has two advantages:
 - they are easier to remember, no need to type along style URL
 - if we make an update to a style, you will benefit from it without modifying your codebase
 
 Here is how it works:
 ```ts
 import { Map, MapStyle } from '@maptiler/sdk'
+
 // When instanciating a map
 const map = new Map({
-  container: mapContainer,
+  container: document.getElementById("my-container-div"),
   style: MapStyle.OUTDOOR, // <-- the shorthand for the outdoor style
 });
 
 // Or later on, updating the style
-map.setStyle(MapStyle.STREETS_DARK);
+map.setStyle(MapStyle.STREETS.DARK);
 ```
 
 The styles with a shorthand provided by the SDK are the following:
@@ -132,40 +133,60 @@ The styles with a shorthand provided by the SDK are the following:
 | ID | Screenshot | Comment |
 |:-:|:-:|:-:|
 |`MapStyle.STREETS`|[![](images/screenshots/style-streets-v2.png)](https://www.maptiler.com/maps/#style=streets-v2&mode=2d&position=12.52/40.73676/-73.98418)|The classic default style, perfect for urban areas|
+|`MapStyle.STREETS.DARK`|[![](images/screenshots/style-streets-v2-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A dark theme perfect to display data layers on top without losing any precious information|
+|`MapStyle.STREETS.LIGHT`|[![](images/screenshots/style-streets-v2-light.png)](https://www.maptiler.com/maps/#style=streets-v2-light&mode=2d&position=4.4/48.15/12.65)|Just like the `STREETS.DARK`, but in bright mode! Your data layer as a first class citizen!|
 |`MapStyle.SATELLITE`|[![](images/screenshots/style-satellite.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=7.87/24.518/-77.411)|Only high resolution satellite raster tiles without any labels|
 |`MapStyle.HYBRID`|[![](images/screenshots/style-hybrid.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)|Satellite tile with labels, landmarks, roads ways and political borders|
 |`MapStyle.OUTDOOR`|[![](images/screenshots/style-outdoor.png)](https://www.maptiler.com/maps/#style=outdoor&mode=2d&position=11.96/46.02591/7.7273)|A solid hiking companion, with peaks, parks, isolines and more|
 |`MapStyle.BASIC`|[![](images/screenshots/style-basic-v2.png)](https://www.maptiler.com/maps/#style=basic-v2&mode=2d&position=13.09/37.78734/-122.42025)|A minimalist alternative to `STREETS`, with a touch of flat design|
-|`MapStyle.STREETS_DARK`|[![](images/screenshots/style-streets-v2-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A dark theme perfect to display data layers on top without losing any precious information|
-|`MapStyle.STREETS_LIGHT`|[![](images/screenshots/style-streets-v2-light.png)](https://www.maptiler.com/maps/#style=streets-v2-light&mode=2d&position=4.4/48.15/12.65)|Just like the `STREETS_DARK`, but in bright mode! Your data layer as a first class citizen!|
 
 
-Still, you can still use some classic styles with just a *string*:
+<details>
+  <summary>Know more about built-in map styles</summary>
+
+MapTiler provides some **reference styles** as well as some **variants** for each. A **reference syle** sets some guidelines about what kind of information is displayed, the granularity of the information, and more generaly defines a purpose for which this style is the most relevant: street navigation, outdoor adventure, minimalist dashboard, etc. Then, each **reference style** offers a range of **variants** that contain the same level of information and has the same purpose but using different colors schemes.
+
+Here is the full list:
+- `MapStyle.STREETS`, reference style for navigation and city exploration
+  - `MapStyle.STREETS.DARK` (variant)
+  - `MapStyle.STREETS.LIGHT` (variant)
+  - `MapStyle.STREETS.PASTEL` (variant)
+- `MapStyle.OUTDOOR` reference style for adventure
+- `MapStyle.WINTER` reference style for winter adventure
+- `MapStyle.SATELLITE` reference style satellite and airborne imagery (no variants)
+- `MapStyle.HYBRID` reference style satellite and airborne imagery with labels (no variants)
+- `MapStyle.BASIC` reference style for minimalist design and general purpose
+  - `MapStyle.BASIC.DARK` (variant)
+  - `MapStyle.BASIC.LIGHT` (variant)
+- `MapStyle.BRIGHT` reference style for high contrast navigation
+  - `MapStyle.BRIGHT.DARK` (variant)
+  - `MapStyle.BRIGHT.LIGHT` (variant)
+  - `MapStyle.BRIGHT.PASTEL` (variant)
+- `MapStyle.TOPO` reference style for topographic study
+  - `MapStyle.TOPO.SHINY` (variant)
+  - `MapStyle.TOPO.PASTEL` (variant)
+  - `MapStyle.TOPO.TOPOGRAPHIQUE` (variant)
+- `MapStyle.VOYAGER` reference style for stylish yet minimalist maps
+  - `MapStyle.VOYAGER.DARK` (variant)
+  - `MapStyle.VOYAGER.LIGHT` (variant)
+  - `MapStyle.VOYAGER.VINTAGE` (variant)
+- `MapStyle.TONER` reference style for very high contrast stylish maps 
+  - `MapStyle.TONER.BACKGROUND` (variant)
+  - `MapStyle.TONER.LITE` (variant)
+  - `MapStyle.TONER.LINES` (variant)
+- `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variants)
+
+All reference styles (instances of `ReferenceMapStyle`) and style variants (instances of `MapStyleVariant`) have methods to know the alternative styles and variant that belong to the same reference style (`.getVariants()`). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style. Read more about about [ReferenceMapStyle](docsmd/classes/ReferenceMapStyle.md) and [MapStyleVariant](docsmd/classes/MapStyleVariant.md).
+</details>  
+
+___
+
+
+Still, you can still use some classic styles with just a *string* if you know their MapTiler CLoud ID:
 
 ```ts
-map.setStyle('outdoor');
+map.setStyle('outdoor-v2');
 ```
-
-You can choose from the following:
-- `bright`
-- `openstreetmap`
-- `pastel`
-- `toner`
-- `topo`
-- `topographique`
-- `voyager`
-- `winter`
-
-<p align="center">
-  <img title="bright" src="images/screenshots/style-bright.png" width="12%"></img>
-  <img title="openstreetmap" src="images/screenshots/style-osm.png" width="12%"></img>
-  <img title="pastel" src="images/screenshots/style-pastel.png" width="12%"></img>
-  <img title="toner" src="images/screenshots/style-toner.png" width="12%"></img> 
-  <img title="topo" src="images/screenshots/style-topo.png" width="12%"></img>
-  <img title="topographique" src="images/screenshots/style-topographique.png" width="12%"></img>
-  <img title="voyager" src="images/screenshots/style-voyager.png" width="12%"></img>
-  <img title="winter" src="images/screenshots/style-winter.png" width="12%"></img>
-</p>
 
 And finally, you can use your own custom styles designed with [our style editor](https://cloud.maptiler.com/maps/). Every custom style is given a unique ID, for instance: `c912ffc8-2360-487a-973b-59d037fb15b8`.
 
@@ -184,6 +205,45 @@ And can even be provided in the URI form:
 ```ts
 map.setStyle("maptiler://c912ffc8-2360-487a-973b-59d037fb15b8");
 ```
+
+# Easy to add controls
+The term "control" is commonly used for all sorts of buttons and information display that take place in one of the corner of the map area. The most well know are probably the `[+]` and `[-]` zoom buttons as well as the attribution information. Plenty of others are possible and we have made a few easy to add and directly accessible from the `Map` constructor options:
+
+- `navigationControl`
+  - Shows the `[+]`, `[-]` and tilt/bearing/compass buttons
+  - a boolean or a corner position. Showing on the top-right by default. Hidden if `false`.
+- `geolocateControl`
+  - Shows a arrow-shaped locate button. When clicked, it adds a marker and center the map. If clicked again, the marker disapears (unless the map was moved since first clicked)
+  - a boolean or a corner position. Showing on the top-right by default. Hidden if `false`.
+- `terrainControl`
+  - Shows a button to enable/disable the 3D terrain (does not tilt the map)
+  - a boolean or a corner position. Showing on the top-right by default. Hidden if `false`.
+- `scaleControl`
+  - Shows a distance scale. The unit (`"metric"`, `"imperial"` or `"nautical"`) can be set in the config object `config.unit` (default: `"metric"`)
+  - a boolean or a corner position. Hidden by default, showing on bottom-right if `true`.
+- `fullscreenControl`
+  - Shows a button that toggles the map into fullscreen
+  - a boolean or a corner position. Hidden by default, showing on top-right if `true`.
+
+The corner positions possible are:
+- `"top-left"`
+- `"top-right"`
+- `"bottom-left"`
+- `"bottom-right"`
+
+**Example:**  
+```ts
+import { Map } from "@maptiler/sdk";
+
+const map = new Map({
+  container: document.getElementById("my-container-div"),
+  terrainControl: false,
+  scaleControl: true,
+  fullscreenControl: "top-left",
+})
+```
+
+
 
 # 3D terrain in one call
 <p align="center">

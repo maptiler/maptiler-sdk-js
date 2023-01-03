@@ -3,9 +3,18 @@ import { v4 as uuidv4 } from "uuid";
 import { config } from "./config";
 import { defaults } from "./defaults";
 import { CustomLogoControl } from "./CustomLogoControl";
-import { enableRTL, expandMapStyle, vlog } from "./tools";
-import { getBrowserLanguage, Language, LanguageString } from "./language";
-import { isBuiltinStyle, getBuiltinStyle, MapStyleString } from "./mapstyle";
+import { enableRTL } from "./tools";
+import {
+  getBrowserLanguage,
+  isLanguageSupported,
+  Language,
+  LanguageString,
+} from "./language";
+import {
+  MapStyleVariant,
+  ReferenceMapStyle,
+  styleToStyle,
+} from "./mapstyle/mapstyle";
 import { FullscreenControl, GeolocateControl, ScaleControl } from "maplibre-gl";
 import { TerrainControl } from "./terraincontrol";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
@@ -33,7 +42,11 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
    * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
    * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
    */
-  style?: string;
+  style?:
+    | ReferenceMapStyle
+    | MapStyleVariant
+    | maplibre.StyleSpecification
+    | string;
 
   /**
    * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.
@@ -61,6 +74,11 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
   terrainControl?: boolean | maplibre.ControlPosition;
 
   /**
+   * Show the geolocate control. (default: `true`, will hide if `false`)
+   */
+  geolocateControl?: boolean | maplibre.ControlPosition;
+
+  /**
    * Show the scale control. (default: `false`, will show if `true`)
    */
   scaleControl?: boolean | maplibre.ControlPosition;
@@ -81,19 +99,12 @@ export class Map extends maplibre.Map {
   private terrainExaggeration = 1;
 
   constructor(options: MapOptions) {
-    let style;
+    const style = styleToStyle(options.style);
 
-    if ("style" in options) {
-      if (typeof style === "string" && isBuiltinStyle(style)) {
-        style = getBuiltinStyle(style as MapStyleString);
-      } else if (typeof style === "string") {
-        style = expandMapStyle(style);
-      } else {
-        style = options.style;
-      }
-    } else {
-      style = expandMapStyle(defaults.mapStyle);
-      vlog(`Map style not provided, backing up to ${defaults.mapStyle}`);
+    if (!config.apiKey) {
+      console.warn(
+        "MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!"
+      );
     }
 
     // calling the map constructor with full length style
@@ -105,11 +116,13 @@ export class Map extends maplibre.Map {
       transformRequest: (url: string) => {
         const reqUrl = new URL(url);
 
-        if (!reqUrl.searchParams.has("key")) {
-          reqUrl.searchParams.append("key", config.apiKey);
-        }
+        if (reqUrl.host === defaults.maptilerApiHost) {
+          if (!reqUrl.searchParams.has("key")) {
+            reqUrl.searchParams.append("key", config.apiKey);
+          }
 
-        reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
+          reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
+        }
 
         return {
           url: reqUrl.href,
@@ -162,17 +175,29 @@ export class Map extends maplibre.Map {
 
     // Update logo and attibution
     this.once("load", async () => {
-      let tileJsonURL = null;
-      try {
-        tileJsonURL = (
-          this.getSource("openmaptiles") as maplibre.VectorTileSource
-        ).url;
-      } catch (e) {
-        return;
-      }
+      let tileJsonContent = { logo: null };
 
-      const tileJsonRes = await fetch(tileJsonURL);
-      const tileJsonContent = await tileJsonRes.json();
+      try {
+        const possibleSources = Object.keys(this.style.sourceCaches)
+          .map((sourceName) => this.getSource(sourceName))
+          .filter(
+            (s: any) =>
+              typeof s.url === "string" && s.url.includes("tiles.json")
+          );
+
+        const styleUrl = new URL(
+          (possibleSources[0] as maplibre.VectorTileSource).url
+        );
+
+        if (!styleUrl.searchParams.has("key")) {
+          styleUrl.searchParams.append("key", config.apiKey);
+        }
+
+        const tileJsonRes = await fetch(styleUrl.href);
+        tileJsonContent = await tileJsonRes.json();
+      } catch (e) {
+        // No tiles.json found (should not happen on maintained styles)
+      }
 
       // The attribution and logo must show when required
       if ("logo" in tileJsonContent && tileJsonContent.logo) {
@@ -218,16 +243,35 @@ export class Map extends maplibre.Map {
             ? "top-right"
             : options.navigationControl
         ) as maplibre.ControlPosition;
+        this.addControl(new MaptilerNavigationControl(), position);
+      }
+
+      if (options.geolocateControl !== false) {
+        // default position, if not provided, is top left corner
+        const position = (
+          options.geolocateControl === true ||
+          options.geolocateControl === undefined
+            ? "top-right"
+            : options.geolocateControl
+        ) as maplibre.ControlPosition;
+        // this.addControl(new TerrainControl(), position);
+
         this.addControl(
-          new MaptilerNavigationControl({
-            showCompass: true,
-            showZoom: true,
-            visualizePitch: true,
+          new GeolocateControl({
+            positionOptions: {
+              enableHighAccuracy: true,
+              maximumAge: 0,
+              timeout: 6000 /* 6 sec */,
+            },
+            fitBoundsOptions: {
+              maxZoom: 15,
+            },
+            trackUserLocation: true,
+            showAccuracyCircle: true,
+            showUserLocation: true,
           }),
           position
         );
-
-        this.addControl(new GeolocateControl({}), position);
       }
 
       if (options.terrainControl !== false) {
@@ -274,18 +318,14 @@ export class Map extends maplibre.Map {
    * @returns
    */
   setStyle(
-    style: maplibre.StyleSpecification | string | null,
+    style:
+      | ReferenceMapStyle
+      | MapStyleVariant
+      | maplibre.StyleSpecification
+      | string,
     options?: StyleSwapOptions & maplibre.StyleOptions
   ) {
-    let tempStyle = style;
-
-    if (typeof style === "string" && isBuiltinStyle(style)) {
-      tempStyle = getBuiltinStyle(style as MapStyleString);
-    } else if (typeof style === "string") {
-      tempStyle = expandMapStyle(style);
-    }
-
-    return super.setStyle(tempStyle, options);
+    return super.setStyle(styleToStyle(style), options);
   }
 
   /**
@@ -305,157 +345,164 @@ export class Map extends maplibre.Map {
    * @param language
    */
   setPrimaryLanguage(language: LanguageString = defaults.primaryLanguage) {
-    if (language === Language.AUTO) {
-      return this.setPrimaryLanguage(getBrowserLanguage());
+    if (!isLanguageSupported(language as string)) {
+      return;
     }
 
-    // We want to keep track of it to apply the language again when changing the style
-    config.primaryLanguage = language;
-
-    const layers = this.getStyle().layers;
-
-    // detects pattern like "{name:somelanguage}" with loose spacing
-    const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
-
-    // detects pattern like "name:somelanguage" with loose spacing
-    const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
-
-    // for string based bilingual lang such as "{name:latin}  {name:nonlatin}" or "{name:latin}  {name}"
-    const strBilingualRegex =
-      /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
-
-    // Regex to capture when there are more info, such as mountains elevation with unit m/ft
-    const strMoreInfoRegex = /^(.*)({\s*name\s*(:\s*(\S*))?\s*})(.*)$/;
-
-    const langStr = language ? `name:${language}` : "name"; // to handle local lang
-    const replacer = [
-      "case",
-      ["has", langStr],
-      ["get", langStr],
-      ["get", "name:latin"],
-    ];
-
-    for (let i = 0; i < layers.length; i += 1) {
-      const layer = layers[i];
-      const layout = layer.layout;
-
-      if (!layout) {
-        continue;
+    this.onStyleReady(() => {
+      if (language === Language.AUTO) {
+        return this.setPrimaryLanguage(getBrowserLanguage());
       }
 
-      if (!layout["text-field"]) {
-        continue;
-      }
+      // We want to keep track of it to apply the language again when changing the style
+      config.primaryLanguage = language;
 
-      const textFieldLayoutProp = this.getLayoutProperty(
-        layer.id,
-        "text-field"
-      );
+      const layers = this.getStyle().layers;
 
-      // Note:
-      // The value of the 'text-field' property can take multiple shape;
-      // 1. can be an array with 'concat' on its first element (most likely means bilingual)
-      // 2. can be an array with 'get' on its first element (monolingual)
-      // 3. can be a string of shape '{name:latin}'
-      // 4. can be a string referencing another prop such as '{housenumber}' or '{ref}'
-      //
-      // The case 1, 2 and 3 will be updated while maintaining their original type and shape.
-      // The case 3 will not be updated
+      // detects pattern like "{name:somelanguage}" with loose spacing
+      const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
 
-      let regexMatch;
+      // detects pattern like "name:somelanguage" with loose spacing
+      const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
 
-      // This is case 1
-      if (
-        Array.isArray(textFieldLayoutProp) &&
-        textFieldLayoutProp.length >= 2 &&
-        textFieldLayoutProp[0].trim().toLowerCase() === "concat"
-      ) {
-        const newProp = textFieldLayoutProp.slice(); // newProp is Array
-        // The style could possibly have defined more than 2 concatenated language strings but we only want to edit the first
-        // The style could also define that there are more things being concatenated and not only languages
+      // for string based bilingual lang such as "{name:latin}  {name:nonlatin}" or "{name:latin}  {name}"
+      const strBilingualRegex =
+        /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
 
-        for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
-          const elem = textFieldLayoutProp[j];
+      // Regex to capture when there are more info, such as mountains elevation with unit m/ft
+      const strMoreInfoRegex = /^(.*)({\s*name\s*(:\s*(\S*))?\s*})(.*)$/;
 
-          // we are looking for an elem of shape '{name:somelangage}' (string) of `["get", "name:somelanguage"]` (array)
+      const langStr = language ? `name:${language}` : "name"; // to handle local lang
+      const replacer = [
+        "case",
+        ["has", langStr],
+        ["get", langStr],
+        ["get", "name:latin"],
+      ];
 
-          // the entry of of shape '{name:somelangage}', possibly with loose spacing
-          if (
-            (typeof elem === "string" || elem instanceof String) &&
-            strLanguageRegex.exec(elem.toString())
-          ) {
-            newProp[j] = replacer;
-            break; // we just want to update the primary language
-          }
-          // the entry is of an array of shape `["get", "name:somelanguage"]`
-          else if (
-            Array.isArray(elem) &&
-            elem.length >= 2 &&
-            elem[0].trim().toLowerCase() === "get" &&
-            strLanguageInArrayRegex.exec(elem[1].toString())
-          ) {
-            newProp[j] = replacer;
-            break; // we just want to update the primary language
-          } else if (
-            Array.isArray(elem) &&
-            elem.length === 4 &&
-            elem[0].trim().toLowerCase() === "case"
-          ) {
-            newProp[j] = replacer;
-            break; // we just want to update the primary language
-          }
+      for (let i = 0; i < layers.length; i += 1) {
+        const layer = layers[i];
+        const layout = layer.layout;
+
+        if (!layout) {
+          continue;
         }
 
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      }
+        if (!layout["text-field"]) {
+          continue;
+        }
 
-      // This is case 2
-      else if (
-        Array.isArray(textFieldLayoutProp) &&
-        textFieldLayoutProp.length >= 2 &&
-        textFieldLayoutProp[0].trim().toLowerCase() === "get" &&
-        strLanguageInArrayRegex.exec(textFieldLayoutProp[1].toString())
-      ) {
-        const newProp = replacer;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      }
+        const textFieldLayoutProp = this.getLayoutProperty(
+          layer.id,
+          "text-field"
+        );
 
-      // This is case 3
-      else if (
-        (typeof textFieldLayoutProp === "string" ||
-          textFieldLayoutProp instanceof String) &&
-        strLanguageRegex.exec(textFieldLayoutProp.toString())
-      ) {
-        const newProp = replacer;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      } else if (
-        Array.isArray(textFieldLayoutProp) &&
-        textFieldLayoutProp.length === 4 &&
-        textFieldLayoutProp[0].trim().toLowerCase() === "case"
-      ) {
-        const newProp = replacer;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      } else if (
-        (typeof textFieldLayoutProp === "string" ||
-          textFieldLayoutProp instanceof String) &&
-        (regexMatch = strBilingualRegex.exec(
-          textFieldLayoutProp.toString()
-        )) !== null
-      ) {
-        const newProp = `{${langStr}}${regexMatch[3]}{name${
-          regexMatch[4] || ""
-        }}`;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      } else if (
-        (typeof textFieldLayoutProp === "string" ||
-          textFieldLayoutProp instanceof String) &&
-        (regexMatch = strMoreInfoRegex.exec(textFieldLayoutProp.toString())) !==
-          null
-      ) {
-        const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
+        // Note:
+        // The value of the 'text-field' property can take multiple shape;
+        // 1. can be an array with 'concat' on its first element (most likely means bilingual)
+        // 2. can be an array with 'get' on its first element (monolingual)
+        // 3. can be a string of shape '{name:latin}'
+        // 4. can be a string referencing another prop such as '{housenumber}' or '{ref}'
+        //
+        // The case 1, 2 and 3 will be updated while maintaining their original type and shape.
+        // The case 3 will not be updated
+
+        let regexMatch;
+
+        // This is case 1
+        if (
+          Array.isArray(textFieldLayoutProp) &&
+          textFieldLayoutProp.length >= 2 &&
+          textFieldLayoutProp[0].trim().toLowerCase() === "concat"
+        ) {
+          const newProp = textFieldLayoutProp.slice(); // newProp is Array
+          // The style could possibly have defined more than 2 concatenated language strings but we only want to edit the first
+          // The style could also define that there are more things being concatenated and not only languages
+
+          for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
+            const elem = textFieldLayoutProp[j];
+
+            // we are looking for an elem of shape '{name:somelangage}' (string) of `["get", "name:somelanguage"]` (array)
+
+            // the entry of of shape '{name:somelangage}', possibly with loose spacing
+            if (
+              (typeof elem === "string" || elem instanceof String) &&
+              strLanguageRegex.exec(elem.toString())
+            ) {
+              newProp[j] = replacer;
+              break; // we just want to update the primary language
+            }
+            // the entry is of an array of shape `["get", "name:somelanguage"]`
+            else if (
+              Array.isArray(elem) &&
+              elem.length >= 2 &&
+              elem[0].trim().toLowerCase() === "get" &&
+              strLanguageInArrayRegex.exec(elem[1].toString())
+            ) {
+              newProp[j] = replacer;
+              break; // we just want to update the primary language
+            } else if (
+              Array.isArray(elem) &&
+              elem.length === 4 &&
+              elem[0].trim().toLowerCase() === "case"
+            ) {
+              newProp[j] = replacer;
+              break; // we just want to update the primary language
+            }
+          }
+
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        }
+
+        // This is case 2
+        else if (
+          Array.isArray(textFieldLayoutProp) &&
+          textFieldLayoutProp.length >= 2 &&
+          textFieldLayoutProp[0].trim().toLowerCase() === "get" &&
+          strLanguageInArrayRegex.exec(textFieldLayoutProp[1].toString())
+        ) {
+          const newProp = replacer;
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        }
+
+        // This is case 3
+        else if (
+          (typeof textFieldLayoutProp === "string" ||
+            textFieldLayoutProp instanceof String) &&
+          strLanguageRegex.exec(textFieldLayoutProp.toString())
+        ) {
+          const newProp = replacer;
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        } else if (
+          Array.isArray(textFieldLayoutProp) &&
+          textFieldLayoutProp.length === 4 &&
+          textFieldLayoutProp[0].trim().toLowerCase() === "case"
+        ) {
+          const newProp = replacer;
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        } else if (
+          (typeof textFieldLayoutProp === "string" ||
+            textFieldLayoutProp instanceof String) &&
+          (regexMatch = strBilingualRegex.exec(
+            textFieldLayoutProp.toString()
+          )) !== null
+        ) {
+          const newProp = `{${langStr}}${regexMatch[3]}{name${
+            regexMatch[4] || ""
+          }}`;
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        } else if (
+          (typeof textFieldLayoutProp === "string" ||
+            textFieldLayoutProp instanceof String) &&
+          (regexMatch = strMoreInfoRegex.exec(
+            textFieldLayoutProp.toString()
+          )) !== null
+        ) {
+          const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        }
       }
-    }
+    });
   }
 
   /**
@@ -464,127 +511,133 @@ export class Map extends maplibre.Map {
    * @param language
    */
   setSecondaryLanguage(language: LanguageString = defaults.secondaryLanguage) {
-    if (language === Language.AUTO) {
-      return this.setSecondaryLanguage(getBrowserLanguage());
+    if (!isLanguageSupported(language as string)) {
+      return;
     }
 
-    // We want to keep track of it to apply the language again when changing the style
-    config.secondaryLanguage = language;
-
-    const layers = this.getStyle().layers;
-
-    // detects pattern like "{name:somelanguage}" with loose spacing
-    const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
-
-    // detects pattern like "name:somelanguage" with loose spacing
-    const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
-
-    // for string based bilingual lang such as "{name:latin}  {name:nonlatin}" or "{name:latin}  {name}"
-    const strBilingualRegex =
-      /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
-
-    let regexMatch;
-
-    for (let i = 0; i < layers.length; i += 1) {
-      const layer = layers[i];
-      const layout = layer.layout;
-
-      if (!layout) {
-        continue;
+    this.onStyleReady(() => {
+      if (language === Language.AUTO) {
+        return this.setSecondaryLanguage(getBrowserLanguage());
       }
 
-      if (!layout["text-field"]) {
-        continue;
-      }
+      // We want to keep track of it to apply the language again when changing the style
+      config.secondaryLanguage = language;
 
-      const textFieldLayoutProp = this.getLayoutProperty(
-        layer.id,
-        "text-field"
-      );
+      const layers = this.getStyle().layers;
 
-      let newProp;
+      // detects pattern like "{name:somelanguage}" with loose spacing
+      const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
 
-      // Note:
-      // The value of the 'text-field' property can take multiple shape;
-      // 1. can be an array with 'concat' on its first element (most likely means bilingual)
-      // 2. can be an array with 'get' on its first element (monolingual)
-      // 3. can be a string of shape '{name:latin}'
-      // 4. can be a string referencing another prop such as '{housenumber}' or '{ref}'
-      //
-      // Only the case 1 will be updated because we don't want to change the styling (read: add a secondary language where the original styling is only displaying 1)
+      // detects pattern like "name:somelanguage" with loose spacing
+      const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
 
-      // This is case 1
-      if (
-        Array.isArray(textFieldLayoutProp) &&
-        textFieldLayoutProp.length >= 2 &&
-        textFieldLayoutProp[0].trim().toLowerCase() === "concat"
-      ) {
-        newProp = textFieldLayoutProp.slice(); // newProp is Array
-        // The style could possibly have defined more than 2 concatenated language strings but we only want to edit the first
-        // The style could also define that there are more things being concatenated and not only languages
+      // for string based bilingual lang such as "{name:latin}  {name:nonlatin}" or "{name:latin}  {name}"
+      const strBilingualRegex =
+        /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
 
-        let languagesAlreadyFound = 0;
+      let regexMatch;
 
-        for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
-          const elem = textFieldLayoutProp[j];
+      for (let i = 0; i < layers.length; i += 1) {
+        const layer = layers[i];
+        const layout = layer.layout;
 
-          // we are looking for an elem of shape '{name:somelangage}' (string) of `["get", "name:somelanguage"]` (array)
-
-          // the entry of of shape '{name:somelangage}', possibly with loose spacing
-          if (
-            (typeof elem === "string" || elem instanceof String) &&
-            strLanguageRegex.exec(elem.toString())
-          ) {
-            if (languagesAlreadyFound === 1) {
-              newProp[j] = `{name:${language}}`;
-              break; // we just want to update the secondary language
-            }
-
-            languagesAlreadyFound += 1;
-          }
-          // the entry is of an array of shape `["get", "name:somelanguage"]`
-          else if (
-            Array.isArray(elem) &&
-            elem.length >= 2 &&
-            elem[0].trim().toLowerCase() === "get" &&
-            strLanguageInArrayRegex.exec(elem[1].toString())
-          ) {
-            if (languagesAlreadyFound === 1) {
-              newProp[j][1] = `name:${language}`;
-              break; // we just want to update the secondary language
-            }
-
-            languagesAlreadyFound += 1;
-          } else if (
-            Array.isArray(elem) &&
-            elem.length === 4 &&
-            elem[0].trim().toLowerCase() === "case"
-          ) {
-            if (languagesAlreadyFound === 1) {
-              newProp[j] = ["get", `name:${language}`]; // the situation with 'case' is supposed to only happen with the primary lang
-              break; // but in case a styling also does that for secondary...
-            }
-
-            languagesAlreadyFound += 1;
-          }
+        if (!layout) {
+          continue;
         }
 
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      }
+        if (!layout["text-field"]) {
+          continue;
+        }
 
-      // the language (both first and second) are defined into a single string model
-      else if (
-        (typeof textFieldLayoutProp === "string" ||
-          textFieldLayoutProp instanceof String) &&
-        (regexMatch = strBilingualRegex.exec(
-          textFieldLayoutProp.toString()
-        )) !== null
-      ) {
-        const langStr = language ? `name:${language}` : "name"; // to handle local lang
-        newProp = `{name${regexMatch[1] || ""}}${regexMatch[3]}{${langStr}}`;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
+        const textFieldLayoutProp = this.getLayoutProperty(
+          layer.id,
+          "text-field"
+        );
+
+        let newProp;
+
+        // Note:
+        // The value of the 'text-field' property can take multiple shape;
+        // 1. can be an array with 'concat' on its first element (most likely means bilingual)
+        // 2. can be an array with 'get' on its first element (monolingual)
+        // 3. can be a string of shape '{name:latin}'
+        // 4. can be a string referencing another prop such as '{housenumber}' or '{ref}'
+        //
+        // Only the case 1 will be updated because we don't want to change the styling (read: add a secondary language where the original styling is only displaying 1)
+
+        // This is case 1
+        if (
+          Array.isArray(textFieldLayoutProp) &&
+          textFieldLayoutProp.length >= 2 &&
+          textFieldLayoutProp[0].trim().toLowerCase() === "concat"
+        ) {
+          newProp = textFieldLayoutProp.slice(); // newProp is Array
+          // The style could possibly have defined more than 2 concatenated language strings but we only want to edit the first
+          // The style could also define that there are more things being concatenated and not only languages
+
+          let languagesAlreadyFound = 0;
+
+          for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
+            const elem = textFieldLayoutProp[j];
+
+            // we are looking for an elem of shape '{name:somelangage}' (string) of `["get", "name:somelanguage"]` (array)
+
+            // the entry of of shape '{name:somelangage}', possibly with loose spacing
+            if (
+              (typeof elem === "string" || elem instanceof String) &&
+              strLanguageRegex.exec(elem.toString())
+            ) {
+              if (languagesAlreadyFound === 1) {
+                newProp[j] = `{name:${language}}`;
+                break; // we just want to update the secondary language
+              }
+
+              languagesAlreadyFound += 1;
+            }
+            // the entry is of an array of shape `["get", "name:somelanguage"]`
+            else if (
+              Array.isArray(elem) &&
+              elem.length >= 2 &&
+              elem[0].trim().toLowerCase() === "get" &&
+              strLanguageInArrayRegex.exec(elem[1].toString())
+            ) {
+              if (languagesAlreadyFound === 1) {
+                newProp[j][1] = `name:${language}`;
+                break; // we just want to update the secondary language
+              }
+
+              languagesAlreadyFound += 1;
+            } else if (
+              Array.isArray(elem) &&
+              elem.length === 4 &&
+              elem[0].trim().toLowerCase() === "case"
+            ) {
+              if (languagesAlreadyFound === 1) {
+                newProp[j] = ["get", `name:${language}`]; // the situation with 'case' is supposed to only happen with the primary lang
+                break; // but in case a styling also does that for secondary...
+              }
+
+              languagesAlreadyFound += 1;
+            }
+          }
+
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        }
+
+        // the language (both first and second) are defined into a single string model
+        else if (
+          (typeof textFieldLayoutProp === "string" ||
+            textFieldLayoutProp instanceof String) &&
+          (regexMatch = strBilingualRegex.exec(
+            textFieldLayoutProp.toString()
+          )) !== null
+        ) {
+          const langStr = language ? `name:${language}` : "name"; // to handle local lang
+          newProp = `{name${regexMatch[1] || ""}}${regexMatch[3]}{${langStr}}`;
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        }
       }
-    }
+    });
   }
 
   /**
@@ -609,6 +662,11 @@ export class Map extends maplibre.Map {
    * @returns
    */
   enableTerrain(exaggeration = this.terrainExaggeration) {
+    if (exaggeration < 0) {
+      console.warn("Terrain exaggeration cannot be negative.");
+      return;
+    }
+
     const terrainInfo = this.getTerrain();
 
     const addTerrain = () => {
@@ -686,4 +744,19 @@ export class Map extends maplibre.Map {
   //     );
   //   }
   // }
+
+  /**
+   * Perform an action when the style is ready. It could be at the moment of calling this method
+   * or later.
+   * @param cb
+   */
+  private onStyleReady(cb) {
+    if (this.isStyleLoaded()) {
+      cb();
+    } else {
+      this.once("styledata", () => {
+        cb();
+      });
+    }
+  }
 }

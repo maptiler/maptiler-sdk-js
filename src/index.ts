@@ -95,9 +95,8 @@ import type { MapOptions } from "./Map";
 
 // importing client functions to expose them as part of the SDK
 import type {
-  Bbox,
-  // LngLat,
-  LngLatArray,
+  BBox,
+  Position,
   GeocodingOptions,
   CoordinatesSearchOptions,
   CenteredStaticMapOptions,
@@ -122,23 +121,28 @@ import { Point } from "./Point";
 import { config, SdkConfig } from "./config";
 import { Language, LanguageString } from "./language";
 import type { Unit } from "./unit";
-import { MapStyle, MapStyleString } from "./mapstyle";
+import {
+  MapStyle,
+  ReferenceMapStyle,
+  MapStyleVariant,
+} from "./mapstyle/mapstyle";
+
+import type { MapStyleType } from "./mapstyle/mapstylepresetlist";
 
 // Exporting types
 export type {
-  // LngLat,
-  LngLatArray,
   MapOptions,
   GeocodingOptions,
-  Bbox,
+  BBox,
+  Position,
   CoordinatesSearchOptions,
   CenteredStaticMapOptions,
   BoundedStaticMapOptions,
   AutomaticStaticMapOptions,
   LanguageString,
   LanguageGeocodingString,
-  MapStyleString,
   Unit,
+  MapStyleType,
 };
 
 // Exporting classes, objects, functions, etc.
@@ -156,4 +160,6 @@ export {
   Language,
   LanguageGeocoding,
   Point,
+  ReferenceMapStyle,
+  MapStyleVariant,
 };

@@ -1,12 +1,10 @@
 import * as ML from 'maplibre-gl';
-import { ScaleControl as ScaleControl$1, GeolocateControl as GeolocateControl$1, FullscreenControl as FullscreenControl$1 } from 'maplibre-gl';
+import { NavigationControl as NavigationControl$1, ScaleControl as ScaleControl$1, GeolocateControl as GeolocateControl$1, FullscreenControl as FullscreenControl$1 } from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { v4 } from 'uuid';
 import EventEmitter from 'events';
 import { config as config$1 } from '@maptiler/client';
 export { LanguageGeocoding, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
-import Point$1 from '@mapbox/point-geometry';
-import UnitBezier from '@mapbox/unitbezier';
 
 const Language = {
   AUTO: "auto",
@@ -84,6 +82,10 @@ const Language = {
   UKRAINIAN: "uk",
   WELSH: "cy"
 };
+const languagesIsoSet = new Set(Object.values(Language));
+function isLanguageSupported(lang) {
+  return languagesIsoSet.has(lang);
+}
 const languageCodeSet = new Set(Object.values(Language));
 function getBrowserLanguage() {
   if (typeof navigator === "undefined") {
@@ -98,11 +100,10 @@ function getBrowserLanguage() {
 class SdkConfig extends EventEmitter {
   constructor() {
     super();
-    this.verbose = false;
     this.primaryLanguage = Language.AUTO;
     this.secondaryLanguage = null;
     this._unit = "metric";
-    this._apiKey = "Not defined yet.";
+    this._apiKey = "";
   }
   set unit(u) {
     this._unit = u;
@@ -128,88 +129,10 @@ class SdkConfig extends EventEmitter {
 }
 const config = new SdkConfig();
 
-var version$1 = 8;
-var id = "f0e4ff8c-a9e4-414e-9f4d-7938762c948f";
-var name = "Satellite no label";
-var sources = {
-	satellite: {
-		url: "https://api.maptiler.com/tiles/satellite-v2/tiles.json?",
-		tileSize: 512,
-		type: "raster"
-	},
-	maptiler_attribution: {
-		attribution: "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
-		type: "vector"
-	}
-};
-var layers = [
-	{
-		id: "satellite",
-		type: "raster",
-		source: "satellite",
-		minzoom: 0,
-		layout: {
-			visibility: "visible"
-		},
-		paint: {
-			"raster-opacity": 1
-		},
-		filter: [
-			"all"
-		]
-	}
-];
-var metadata = {
-	"maptiler:copyright": "This style was generated on MapTiler Cloud. Usage outside of MapTiler Cloud or MapTiler Server requires valid MapTiler Data package: https://www.maptiler.com/data/ -- please contact us."
-};
-var glyphs = "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?";
-var bearing = 0;
-var pitch = 0;
-var center = [
-	-78.55323097748868,
-	24.03141891413972
-];
-var zoom = 5.066147709178387;
-var satelliteBuiltin = {
-	version: version$1,
-	id: id,
-	name: name,
-	sources: sources,
-	layers: layers,
-	metadata: metadata,
-	glyphs: glyphs,
-	bearing: bearing,
-	pitch: pitch,
-	center: center,
-	zoom: zoom
-};
-
-const MapStyle = {
-  STREETS: "streets-v2",
-  HYBRID: "hybrid",
-  SATELLITE: "satellite",
-  OUTDOOR: "outdoor",
-  BASIC: "basic-v2",
-  STREETS_DARK: "streets-v2-dark",
-  STREETS_LIGHT: "streets-v2-light"
-};
-const builtInStyles = {};
-builtInStyles[MapStyle.SATELLITE] = satelliteBuiltin;
-function isBuiltinStyle(styleId) {
-  return styleId in builtInStyles;
-}
-function getBuiltinStyle(styleId) {
-  if (!isBuiltinStyle(styleId)) {
-    return null;
-  }
-  return builtInStyles[styleId];
-}
-
 const defaults = {
-  mapStyle: MapStyle.STREETS,
   maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
   maptilerURL: "https://www.maptiler.com/",
-  maptilerApiURL: "https://api.maptiler.com/",
+  maptilerApiHost: "api.maptiler.com",
   rtlPluginURL: "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
   primaryLanguage: Language.LATIN,
   secondaryLanguage: Language.NON_LATIN,
@@ -260,11 +183,373 @@ class CustomLogoControl extends ML.LogoControl {
   }
 }
 
-function vlog(...args) {
-  if (config.verbose) {
-    console.log(...args);
+function enableRTL() {
+  const maplibrePackage = ML;
+  if (maplibrePackage.getRTLTextPluginStatus() === "unavailable") {
+    maplibrePackage.setRTLTextPlugin(
+      defaults.rtlPluginURL,
+      null,
+      true
+    );
   }
 }
+function bindAll(fns, context) {
+  fns.forEach((fn) => {
+    if (!context[fn]) {
+      return;
+    }
+    context[fn] = context[fn].bind(context);
+  });
+}
+function DOMcreate(tagName, className, container) {
+  const el = window.document.createElement(tagName);
+  if (className !== void 0)
+    el.className = className;
+  if (container)
+    container.appendChild(el);
+  return el;
+}
+function DOMremove(node) {
+  if (node.parentNode) {
+    node.parentNode.removeChild(node);
+  }
+}
+
+var version$1 = 8;
+var id = "f0e4ff8c-a9e4-414e-9f4d-7938762c948f";
+var name = "Satellite no label";
+var sources = {
+	satellite: {
+		url: "https://api.maptiler.com/tiles/satellite-v2/tiles.json",
+		tileSize: 512,
+		type: "raster"
+	},
+	maptiler_attribution: {
+		attribution: "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+		type: "vector"
+	}
+};
+var layers = [
+	{
+		id: "satellite",
+		type: "raster",
+		source: "satellite",
+		minzoom: 0,
+		layout: {
+			visibility: "visible"
+		},
+		paint: {
+			"raster-opacity": 1
+		},
+		filter: [
+			"all"
+		]
+	}
+];
+var metadata = {
+	"maptiler:copyright": "This style was generated on MapTiler Cloud. Usage outside of MapTiler Cloud or MapTiler Server requires valid MapTiler Data package: https://www.maptiler.com/data/ -- please contact us."
+};
+var glyphs = "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?";
+var bearing = 0;
+var pitch = 0;
+var center = [
+	-78.55323097748868,
+	24.03141891413972
+];
+var zoom = 5.066147709178387;
+var satelliteBuiltin = {
+	version: version$1,
+	id: id,
+	name: name,
+	sources: sources,
+	layers: layers,
+	metadata: metadata,
+	glyphs: glyphs,
+	bearing: bearing,
+	pitch: pitch,
+	center: center,
+	zoom: zoom
+};
+
+const mapStylePresetList = [
+  {
+    referenceStyleID: "STREETS",
+    name: "Streets",
+    description: "",
+    variants: [
+      {
+        id: "streets-v2",
+        name: "Default",
+        variantType: "DEFAULT",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "streets-v2-dark",
+        name: "Dark",
+        variantType: "DARK",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "streets-v2-light",
+        name: "Light",
+        variantType: "LIGHT",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "streets-v2-pastel",
+        name: "Pastel",
+        variantType: "PASTEL",
+        description: "",
+        imageURL: ""
+      }
+    ]
+  },
+  {
+    referenceStyleID: "OUTDOOR",
+    name: "Outdoor",
+    description: "",
+    variants: [
+      {
+        id: "outdoor-v2",
+        name: "Default",
+        variantType: "DEFAULT",
+        description: "",
+        imageURL: ""
+      }
+    ]
+  },
+  {
+    referenceStyleID: "WINTER",
+    name: "Winter",
+    description: "",
+    variants: [
+      {
+        id: "winter-v2",
+        name: "Winter",
+        variantType: "DEFAULT",
+        description: "",
+        imageURL: ""
+      }
+    ]
+  },
+  {
+    referenceStyleID: "SATELLITE",
+    name: "Satellite",
+    description: "",
+    variants: [
+      {
+        id: "satellite",
+        name: "Default",
+        variantType: "DEFAULT",
+        description: "",
+        imageURL: ""
+      }
+    ]
+  },
+  {
+    referenceStyleID: "HYBRID",
+    name: "Hybrid",
+    description: "",
+    variants: [
+      {
+        id: "hybrid",
+        name: "Default",
+        variantType: "DEFAULT",
+        description: "",
+        imageURL: ""
+      }
+    ]
+  },
+  {
+    referenceStyleID: "BASIC",
+    name: "Basic",
+    description: "",
+    variants: [
+      {
+        id: "basic-v2",
+        name: "Default",
+        variantType: "DEFAULT",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "basic-v2-dark",
+        name: "Dark",
+        variantType: "DARK",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "basic-v2-light",
+        name: "Light",
+        variantType: "LIGHT",
+        description: "",
+        imageURL: ""
+      }
+    ]
+  },
+  {
+    referenceStyleID: "BRIGHT",
+    name: "Bright",
+    description: "",
+    variants: [
+      {
+        id: "bright-v2",
+        name: "Default",
+        variantType: "DEFAULT",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "bright-v2-dark",
+        name: "Dark",
+        variantType: "DARK",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "bright-v2-light",
+        name: "Light",
+        variantType: "LIGHT",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "bright-v2-pastel",
+        name: "Pastel",
+        variantType: "PASTEL",
+        description: "",
+        imageURL: ""
+      }
+    ]
+  },
+  {
+    referenceStyleID: "OPENSTREETMAP",
+    name: "OpenStreetMap",
+    description: "",
+    variants: [
+      {
+        id: "openstreetmap",
+        name: "Default",
+        variantType: "DEFAULT",
+        description: "",
+        imageURL: ""
+      }
+    ]
+  },
+  {
+    referenceStyleID: "TOPO",
+    name: "Topo",
+    description: "",
+    variants: [
+      {
+        id: "topo-v2",
+        name: "Default",
+        variantType: "DEFAULT",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "topo-v2-shiny",
+        name: "Shiny",
+        variantType: "SHINY",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "topo-v2-pastel",
+        name: "Pastel",
+        variantType: "PASTEL",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "topo-v2-topographique",
+        name: "Topographique",
+        variantType: "TOPOGRAPHIQUE",
+        description: "",
+        imageURL: ""
+      }
+    ]
+  },
+  {
+    referenceStyleID: "VOYAGER",
+    name: "Voyager",
+    description: "",
+    variants: [
+      {
+        id: "voyager-v2",
+        name: "Default",
+        variantType: "DEFAULT",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "voyager-v2-darkmatter",
+        name: "Darkmatter",
+        variantType: "DARK",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "voyager-v2-positron",
+        name: "Positron",
+        variantType: "LIGHT",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "voyager-v2-vintage",
+        name: "Vintage",
+        variantType: "VINTAGE",
+        description: "",
+        imageURL: ""
+      }
+    ]
+  },
+  {
+    referenceStyleID: "TONER",
+    name: "Toner",
+    description: "",
+    variants: [
+      {
+        id: "toner-v2",
+        name: "Default",
+        variantType: "DEFAULT",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "toner-v2-background",
+        name: "Background",
+        variantType: "BACKGROUND",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "toner-v2-lite",
+        name: "Lite",
+        variantType: "LITE",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "toner-v2-lines",
+        name: "Lines",
+        variantType: "LINES",
+        description: "",
+        imageURL: ""
+      }
+    ]
+  }
+];
+
+const builtInStyles = {
+  satellite: satelliteBuiltin
+};
 function expandMapStyle(style) {
   const maptilerDomainRegex = /^maptiler:\/\/(.*)/;
   let match;
@@ -279,140 +564,136 @@ function expandMapStyle(style) {
   }
   return expandedStyle;
 }
-function enableRTL() {
-  const maplibrePackage = ML;
-  if (maplibrePackage.getRTLTextPluginStatus() === "unavailable") {
-    maplibrePackage.setRTLTextPlugin(
-      defaults.rtlPluginURL,
-      null,
-      true
-    );
-  }
-}
-
-const _DOM = class {
-  static testProp(props) {
-    if (!_DOM.docStyle)
-      return props[0];
-    for (let i = 0; i < props.length; i++) {
-      if (props[i] in _DOM.docStyle) {
-        return props[i];
+function makeReferenceStyleProxy(referenceStyle) {
+  return new Proxy(referenceStyle, {
+    get(target, prop, receiver) {
+      if (target.hasVariant(prop)) {
+        return target.getVariant(prop);
       }
+      if (prop.toString().toUpperCase() === prop) {
+        return referenceStyle.getDefaultVariant();
+      }
+      return Reflect.get(target, prop, receiver);
     }
-    return props[0];
-  }
-  static create(tagName, className, container) {
-    const el = window.document.createElement(tagName);
-    if (className !== void 0)
-      el.className = className;
-    if (container)
-      container.appendChild(el);
-    return el;
-  }
-  static createNS(namespaceURI, tagName) {
-    const el = window.document.createElementNS(namespaceURI, tagName);
-    return el;
-  }
-  static disableDrag() {
-    if (_DOM.docStyle && _DOM.selectProp) {
-      _DOM.userSelect = _DOM.docStyle[_DOM.selectProp];
-      _DOM.docStyle[_DOM.selectProp] = "none";
-    }
-  }
-  static enableDrag() {
-    if (_DOM.docStyle && _DOM.selectProp) {
-      _DOM.docStyle[_DOM.selectProp] = _DOM.userSelect;
-    }
-  }
-  static setTransform(el, value) {
-    el.style[_DOM.transformProp] = value;
-  }
-  static addEventListener(target, type, callback, options = {}) {
-    if ("passive" in options) {
-      target.addEventListener(type, callback, options);
-    } else {
-      target.addEventListener(type, callback, options.capture);
-    }
-  }
-  static removeEventListener(target, type, callback, options = {}) {
-    if ("passive" in options) {
-      target.removeEventListener(type, callback, options);
-    } else {
-      target.removeEventListener(type, callback, options.capture);
-    }
-  }
-  static suppressClickInternal(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    window.removeEventListener("click", _DOM.suppressClickInternal, true);
-  }
-  static suppressClick() {
-    window.addEventListener("click", _DOM.suppressClickInternal, true);
-    window.setTimeout(() => {
-      window.removeEventListener("click", _DOM.suppressClickInternal, true);
-    }, 0);
-  }
-  static mousePos(el, e) {
-    const rect = el.getBoundingClientRect();
-    return new Point$1(
-      e.clientX - rect.left - el.clientLeft,
-      e.clientY - rect.top - el.clientTop
-    );
-  }
-  static touchPos(el, touches) {
-    const rect = el.getBoundingClientRect();
-    const points = [];
-    for (let i = 0; i < touches.length; i++) {
-      points.push(
-        new Point$1(
-          touches[i].clientX - rect.left - el.clientLeft,
-          touches[i].clientY - rect.top - el.clientTop
-        )
-      );
-    }
-    return points;
-  }
-  static mouseButton(e) {
-    return e.button;
-  }
-  static remove(node) {
-    if (node.parentNode) {
-      node.parentNode.removeChild(node);
-    }
-  }
-};
-let DOM = _DOM;
-DOM.docStyle = typeof window !== "undefined" && window.document && window.document.documentElement.style;
-DOM.selectProp = _DOM.testProp([
-  "userSelect",
-  "MozUserSelect",
-  "WebkitUserSelect",
-  "msUserSelect"
-]);
-DOM.transformProp = _DOM.testProp(["transform", "WebkitTransform"]);
-
-function bezier(p1x, p1y, p2x, p2y) {
-  const bezier2 = new UnitBezier(p1x, p1y, p2x, p2y);
-  return function(t) {
-    return bezier2.solve(t);
-  };
-}
-bezier(0.25, 0.1, 0.25, 1);
-function extend(dest, ...sources) {
-  for (const src of sources) {
-    for (const k in src) {
-      dest[k] = src[k];
-    }
-  }
-  return dest;
-}
-function bindAll(fns, context) {
-  fns.forEach((fn) => {
-    if (!context[fn]) {
-      return;
-    }
-    context[fn] = context[fn].bind(context);
   });
+}
+class MapStyleVariant {
+  constructor(name, variantType, id, referenceStyle, description, imageURL) {
+    this.name = name;
+    this.variantType = variantType;
+    this.id = id;
+    this.referenceStyle = referenceStyle;
+    this.description = description;
+    this.imageURL = imageURL;
+  }
+  getName() {
+    return this.name;
+  }
+  getFullName() {
+    return `${this.referenceStyle.getName()} ${this.name}`;
+  }
+  getType() {
+    return this.variantType;
+  }
+  getUsableStyle() {
+    if (this.id in builtInStyles) {
+      return builtInStyles[this.id];
+    }
+    return expandMapStyle(this.id);
+  }
+  getId() {
+    return this.id;
+  }
+  getDescription() {
+    return this.description;
+  }
+  getReferenceStyle() {
+    return this.referenceStyle;
+  }
+  hasVariant(variantType) {
+    return this.referenceStyle.hasVariant(variantType);
+  }
+  getVariant(variantType) {
+    return this.referenceStyle.getVariant(variantType);
+  }
+  getVariants() {
+    return this.referenceStyle.getVariants().filter((v) => v !== this);
+  }
+  getImageURL() {
+    return this.imageURL;
+  }
+}
+class ReferenceMapStyle {
+  constructor(name, id) {
+    this.name = name;
+    this.id = id;
+    this.variants = {};
+    this.orderedVariants = [];
+  }
+  getName() {
+    return this.name;
+  }
+  getId() {
+    return this.id;
+  }
+  addVariant(v) {
+    this.variants[v.getType()] = v;
+    this.orderedVariants.push(v);
+  }
+  hasVariant(variantType) {
+    return variantType in this.variants;
+  }
+  getVariant(variantType) {
+    return variantType in this.variants ? this.variants[variantType] : this.orderedVariants[0];
+  }
+  getVariants() {
+    return Object.values(this.variants);
+  }
+  getDefaultVariant() {
+    return this.orderedVariants[0];
+  }
+}
+function buildMapStyles() {
+  const mapStyle = {};
+  for (let i = 0; i < mapStylePresetList.length; i += 1) {
+    const refStyleInfo = mapStylePresetList[i];
+    const refStyle = makeReferenceStyleProxy(
+      new ReferenceMapStyle(refStyleInfo.name, refStyleInfo.referenceStyleID)
+    );
+    for (let j = 0; j < refStyleInfo.variants.length; j += 1) {
+      const variantInfo = refStyleInfo.variants[j];
+      const variant = new MapStyleVariant(
+        variantInfo.name,
+        variantInfo.variantType,
+        variantInfo.id,
+        refStyle,
+        variantInfo.description,
+        variantInfo.imageURL
+      );
+      refStyle.addVariant(variant);
+    }
+    mapStyle[refStyleInfo.referenceStyleID] = refStyle;
+  }
+  return mapStyle;
+}
+const MapStyle = buildMapStyles();
+function styleToStyle(style) {
+  if (!style) {
+    return MapStyle[mapStylePresetList[0].referenceStyleID].getDefaultVariant().getUsableStyle();
+  }
+  if (typeof style === "string" && style.toLowerCase() in builtInStyles) {
+    return builtInStyles[style.toLowerCase()];
+  }
+  if (typeof style === "string" || style instanceof String) {
+    return expandMapStyle(style);
+  }
+  if (style instanceof MapStyleVariant) {
+    return style.getUsableStyle();
+  }
+  if (style instanceof ReferenceMapStyle) {
+    return style.getDefaultVariant().getUsableStyle();
+  }
+  return style;
 }
 
 class TerrainControl$1 {
@@ -421,20 +702,16 @@ class TerrainControl$1 {
   }
   onAdd(map) {
     this._map = map;
-    this._container = DOM.create(
-      "div",
-      "maplibregl-ctrl maplibregl-ctrl-group"
-    );
-    this._terrainButton = DOM.create(
+    this._container = DOMcreate("div", "maplibregl-ctrl maplibregl-ctrl-group");
+    this._terrainButton = DOMcreate(
       "button",
       "maplibregl-ctrl-terrain",
       this._container
     );
-    DOM.create(
-      "span",
-      "maplibregl-ctrl-icon",
-      this._terrainButton
-    ).setAttribute("aria-hidden", "true");
+    DOMcreate("span", "maplibregl-ctrl-icon", this._terrainButton).setAttribute(
+      "aria-hidden",
+      "true"
+    );
     this._terrainButton.type = "button";
     this._terrainButton.addEventListener("click", this._toggleTerrain);
     this._updateTerrainIcon();
@@ -442,7 +719,7 @@ class TerrainControl$1 {
     return this._container;
   }
   onRemove() {
-    DOM.remove(this._container);
+    DOMremove(this._container);
     this._map.off("terrain", this._updateTerrainIcon);
     this._map = void 0;
   }
@@ -471,181 +748,36 @@ class TerrainControl$1 {
   }
 }
 
-const LEFT_BUTTON = 0;
-const RIGHT_BUTTON = 2;
-const BUTTONS_FLAGS = {
-  [LEFT_BUTTON]: 1,
-  [RIGHT_BUTTON]: 2
-};
-function buttonStillPressed(e, button) {
-  const flag = BUTTONS_FLAGS[button];
-  return e.buttons === void 0 || (e.buttons & flag) !== flag;
-}
-class MouseHandler {
-  constructor(options) {
-    this.reset();
-    this._clickTolerance = options.clickTolerance || 1;
-  }
-  reset() {
-    this._active = false;
-    this._moved = false;
-    delete this._lastPoint;
-    delete this._eventButton;
-  }
-  _correctButton(e, button) {
-    return false;
-  }
-  _move(lastPoint, point) {
-    return {};
-  }
-  mousedown(e, point) {
-    if (this._lastPoint)
-      return;
-    const eventButton = DOM.mouseButton(e);
-    if (!this._correctButton(e, eventButton))
-      return;
-    this._lastPoint = point;
-    this._eventButton = eventButton;
-  }
-  mousemoveWindow(e, point) {
-    const lastPoint = this._lastPoint;
-    if (!lastPoint)
-      return;
-    e.preventDefault();
-    if (buttonStillPressed(e, this._eventButton)) {
-      this.reset();
-      return;
-    }
-    if (!this._moved && point.dist(lastPoint) < this._clickTolerance)
-      return;
-    this._moved = true;
-    this._lastPoint = point;
-    return this._move(lastPoint, point);
-  }
-  mouseupWindow(e) {
-    if (!this._lastPoint)
-      return;
-    const eventButton = DOM.mouseButton(e);
-    if (eventButton !== this._eventButton)
-      return;
-    if (this._moved)
-      DOM.suppressClick();
-    this.reset();
-  }
-  enable() {
-    this._enabled = true;
-  }
-  disable() {
-    this._enabled = false;
-    this.reset();
-  }
-  isEnabled() {
-    return this._enabled;
-  }
-  isActive() {
-    return this._active;
-  }
-}
-class MouseRotateHandler extends MouseHandler {
-  _correctButton(e, button) {
-    return button === LEFT_BUTTON && e.ctrlKey || button === RIGHT_BUTTON;
-  }
-  _move(lastPoint, point) {
-    const degreesPerPixelMoved = 0.8;
-    const bearingDelta = (point.x - lastPoint.x) * degreesPerPixelMoved;
-    if (bearingDelta) {
-      this._active = true;
-      return { bearingDelta };
-    }
-  }
-  contextmenu(e) {
-    e.preventDefault();
-  }
-}
-class MousePitchHandler extends MouseHandler {
-  _correctButton(e, button) {
-    return button === LEFT_BUTTON && e.ctrlKey || button === RIGHT_BUTTON;
-  }
-  _move(lastPoint, point) {
-    const degreesPerPixelMoved = -0.5;
-    const pitchDelta = (point.y - lastPoint.y) * degreesPerPixelMoved;
-    if (pitchDelta) {
-      this._active = true;
-      return { pitchDelta };
-    }
-  }
-  contextmenu(e) {
-    e.preventDefault();
-  }
-}
-
-const defaultOptions = {
-  showCompass: true,
-  showZoom: true,
-  visualizePitch: false
-};
-class MaptilerNavigationControl {
-  constructor(options) {
-    this.options = extend({}, defaultOptions, options);
-    this._container = DOM.create(
-      "div",
-      "maplibregl-ctrl maplibregl-ctrl-group mapboxgl-ctrl mapboxgl-ctrl-group"
+class MaptilerNavigationControl extends NavigationControl$1 {
+  constructor() {
+    super({
+      showCompass: true,
+      showZoom: true,
+      visualizePitch: true
+    });
+    this._compass.removeEventListener(
+      "click",
+      this._compass.clickFunction
     );
-    this._container.addEventListener("contextmenu", (e) => e.preventDefault());
-    if (this.options.showZoom) {
-      bindAll(["_setButtonTitle", "_updateZoomButtons"], this);
-      this._zoomInButton = this._createButton(
-        "maplibregl-ctrl-zoom-in mapboxgl-ctrl-zoom-in",
-        (e) => this._map.zoomIn({}, { originalEvent: e })
-      );
-      DOM.create(
-        "span",
-        "maplibregl-ctrl-icon mapboxgl-ctrl-icon",
-        this._zoomInButton
-      ).setAttribute("aria-hidden", "true");
-      this._zoomOutButton = this._createButton(
-        "maplibregl-ctrl-zoom-out mapboxgl-ctrl-zoom-out",
-        (e) => this._map.zoomOut({}, { originalEvent: e })
-      );
-      DOM.create(
-        "span",
-        "maplibregl-ctrl-icon mapboxgl-ctrl-icon",
-        this._zoomOutButton
-      ).setAttribute("aria-hidden", "true");
-    }
-    if (this.options.showCompass) {
-      bindAll(["_rotateCompassArrow"], this);
-      this._compass = this._createButton(
-        "maplibregl-ctrl-compass mapboxgl-ctrl-compass",
-        (e) => {
-          const currentPitch = this._map.getPitch();
-          if (currentPitch === 0) {
-            this._map.easeTo({ pitch: this._map.getMaxPitch() });
+    this._compass.addEventListener("click", (e) => {
+      {
+        const currentPitch = this._map.getPitch();
+        if (currentPitch === 0) {
+          this._map.easeTo({ pitch: this._map.getMaxPitch() });
+        } else {
+          if (this.options.visualizePitch) {
+            this._map.resetNorthPitch({}, { originalEvent: e });
           } else {
-            if (this.options.visualizePitch) {
-              this._map.resetNorthPitch({}, { originalEvent: e });
-            } else {
-              this._map.resetNorth({}, { originalEvent: e });
-            }
+            this._map.resetNorth({}, { originalEvent: e });
           }
         }
-      );
-      this._compassIcon = DOM.create(
-        "span",
-        "maplibregl-ctrl-icon mapboxgl-ctrl-icon",
-        this._compass
-      );
-      this._compassIcon.setAttribute("aria-hidden", "true");
-    }
+      }
+    });
   }
-  _updateZoomButtons() {
-    const zoom = this._map.getZoom();
-    const isMax = zoom === this._map.getMaxZoom();
-    const isMin = zoom === this._map.getMinZoom();
-    this._zoomInButton.disabled = isMax;
-    this._zoomOutButton.disabled = isMin;
-    this._zoomInButton.setAttribute("aria-disabled", isMax.toString());
-    this._zoomOutButton.setAttribute("aria-disabled", isMin.toString());
+  _createButton(className, fn) {
+    const button = super._createButton(className, fn);
+    button.clickFunction = fn;
+    return button;
   }
   _rotateCompassArrow() {
     const rotate = this.options.visualizePitch ? `scale(${Math.min(
@@ -653,189 +785,6 @@ class MaptilerNavigationControl {
       1 / Math.pow(Math.cos(this._map.transform.pitch * (Math.PI / 180)), 0.5)
     )}) rotateX(${Math.min(70, this._map.transform.pitch)}deg) rotateZ(${this._map.transform.angle * (180 / Math.PI)}deg)` : `rotate(${this._map.transform.angle * (180 / Math.PI)}deg)`;
     this._compassIcon.style.transform = rotate;
-  }
-  onAdd(map) {
-    this._map = map;
-    if (this.options.showZoom) {
-      this._setButtonTitle(this._zoomInButton, "ZoomIn");
-      this._setButtonTitle(this._zoomOutButton, "ZoomOut");
-      this._map.on("zoom", this._updateZoomButtons);
-      this._updateZoomButtons();
-    }
-    if (this.options.showCompass) {
-      this._setButtonTitle(this._compass, "ResetBearing");
-      if (this.options.visualizePitch) {
-        this._map.on("pitch", this._rotateCompassArrow);
-      }
-      this._map.on("rotate", this._rotateCompassArrow);
-      this._rotateCompassArrow();
-      this._handler = new MouseRotateWrapper(
-        this._map,
-        this._compass,
-        this.options.visualizePitch
-      );
-    }
-    return this._container;
-  }
-  onRemove() {
-    DOM.remove(this._container);
-    if (this.options.showZoom) {
-      this._map.off("zoom", this._updateZoomButtons);
-    }
-    if (this.options.showCompass) {
-      if (this.options.visualizePitch) {
-        this._map.off("pitch", this._rotateCompassArrow);
-      }
-      this._map.off("rotate", this._rotateCompassArrow);
-      this._handler.off();
-      delete this._handler;
-    }
-    delete this._map;
-  }
-  _createButton(className, fn) {
-    const a = DOM.create(
-      "button",
-      className,
-      this._container
-    );
-    a.type = "button";
-    a.addEventListener("click", fn);
-    return a;
-  }
-  _setButtonTitle(button, title) {
-    const str = this._map._getUIString(`NavigationControl.${title}`);
-    button.title = str;
-    button.setAttribute("aria-label", str);
-  }
-}
-class MouseRotateWrapper {
-  constructor(map, element, pitch = false) {
-    this._clickTolerance = 10;
-    this.element = element;
-    this.mouseRotate = new MouseRotateHandler({
-      clickTolerance: map.dragRotate._mouseRotate._clickTolerance
-    });
-    this.map = map;
-    if (pitch)
-      this.mousePitch = new MousePitchHandler({
-        clickTolerance: map.dragRotate._mousePitch._clickTolerance
-      });
-    bindAll(
-      [
-        "mousedown",
-        "mousemove",
-        "mouseup",
-        "touchstart",
-        "touchmove",
-        "touchend",
-        "reset"
-      ],
-      this
-    );
-    DOM.addEventListener(element, "mousedown", this.mousedown);
-    DOM.addEventListener(element, "touchstart", this.touchstart, {
-      passive: false
-    });
-    DOM.addEventListener(element, "touchmove", this.touchmove);
-    DOM.addEventListener(element, "touchend", this.touchend);
-    DOM.addEventListener(element, "touchcancel", this.reset);
-  }
-  down(e, point) {
-    this.mouseRotate.mousedown(e, point);
-    if (this.mousePitch)
-      this.mousePitch.mousedown(e, point);
-    DOM.disableDrag();
-  }
-  move(e, point) {
-    const map = this.map;
-    const r = this.mouseRotate.mousemoveWindow(e, point);
-    if (r && r.bearingDelta)
-      map.setBearing(map.getBearing() + r.bearingDelta);
-    if (this.mousePitch) {
-      const p = this.mousePitch.mousemoveWindow(e, point);
-      if (p && p.pitchDelta)
-        map.setPitch(map.getPitch() + p.pitchDelta);
-    }
-  }
-  off() {
-    const element = this.element;
-    DOM.removeEventListener(element, "mousedown", this.mousedown);
-    DOM.removeEventListener(element, "touchstart", this.touchstart, {
-      passive: false
-    });
-    DOM.removeEventListener(element, "touchmove", this.touchmove);
-    DOM.removeEventListener(element, "touchend", this.touchend);
-    DOM.removeEventListener(element, "touchcancel", this.reset);
-    this.offTemp();
-  }
-  offTemp() {
-    DOM.enableDrag();
-    DOM.removeEventListener(window, "mousemove", this.mousemove);
-    DOM.removeEventListener(window, "mouseup", this.mouseup);
-  }
-  mousedown(e) {
-    this.down(
-      extend({}, e, {
-        ctrlKey: true,
-        preventDefault: () => e.preventDefault()
-      }),
-      DOM.mousePos(this.element, e)
-    );
-    DOM.addEventListener(window, "mousemove", this.mousemove);
-    DOM.addEventListener(window, "mouseup", this.mouseup);
-  }
-  mousemove(e) {
-    this.move(e, DOM.mousePos(this.element, e));
-  }
-  mouseup(e) {
-    this.mouseRotate.mouseupWindow(e);
-    if (this.mousePitch)
-      this.mousePitch.mouseupWindow(e);
-    this.offTemp();
-  }
-  touchstart(e) {
-    if (e.targetTouches.length !== 1) {
-      this.reset();
-    } else {
-      this._startPos = this._lastPos = DOM.touchPos(
-        this.element,
-        e.targetTouches
-      )[0];
-      this.down(
-        {
-          type: "mousedown",
-          button: 0,
-          ctrlKey: true,
-          preventDefault: () => e.preventDefault()
-        },
-        this._startPos
-      );
-    }
-  }
-  touchmove(e) {
-    if (e.targetTouches.length !== 1) {
-      this.reset();
-    } else {
-      this._lastPos = DOM.touchPos(this.element, e.targetTouches)[0];
-      this.move(
-        { preventDefault: () => e.preventDefault() },
-        this._lastPos
-      );
-    }
-  }
-  touchend(e) {
-    if (e.targetTouches.length === 0 && this._startPos && this._lastPos && this._startPos.dist(this._lastPos) < this._clickTolerance) {
-      this.element.click();
-    }
-    this.reset();
-  }
-  reset() {
-    this.mouseRotate.reset();
-    if (this.mousePitch)
-      this.mousePitch.reset();
-    delete this._startPos;
-    delete this._lastPos;
-    this.offTemp();
   }
 }
 
@@ -882,28 +831,23 @@ const MAPTILER_SESSION_ID = v4();
 class Map extends ML.Map {
   constructor(options) {
     var _a;
-    let style;
-    if ("style" in options) {
-      if (typeof style === "string" && isBuiltinStyle(style)) {
-        style = getBuiltinStyle(style);
-      } else if (typeof style === "string") {
-        style = expandMapStyle(style);
-      } else {
-        style = options.style;
-      }
-    } else {
-      style = expandMapStyle(defaults.mapStyle);
-      vlog(`Map style not provided, backing up to ${defaults.mapStyle}`);
+    const style = styleToStyle(options.style);
+    if (!config.apiKey) {
+      console.warn(
+        "MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!"
+      );
     }
     super(__spreadProps(__spreadValues({}, options), {
       style,
       maplibreLogo: false,
       transformRequest: (url) => {
         const reqUrl = new URL(url);
-        if (!reqUrl.searchParams.has("key")) {
-          reqUrl.searchParams.append("key", config.apiKey);
+        if (reqUrl.host === defaults.maptilerApiHost) {
+          if (!reqUrl.searchParams.has("key")) {
+            reqUrl.searchParams.append("key", config.apiKey);
+          }
+          reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
         }
-        reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
         return {
           url: reqUrl.href,
           headers: {}
@@ -936,14 +880,21 @@ class Map extends ML.Map {
       enableRTL();
     }));
     this.once("load", () => __async(this, null, function* () {
-      let tileJsonURL = null;
+      let tileJsonContent = { logo: null };
       try {
-        tileJsonURL = this.getSource("openmaptiles").url;
+        const possibleSources = Object.keys(this.style.sourceCaches).map((sourceName) => this.getSource(sourceName)).filter(
+          (s) => typeof s.url === "string" && s.url.includes("tiles.json")
+        );
+        const styleUrl = new URL(
+          possibleSources[0].url
+        );
+        if (!styleUrl.searchParams.has("key")) {
+          styleUrl.searchParams.append("key", config.apiKey);
+        }
+        const tileJsonRes = yield fetch(styleUrl.href);
+        tileJsonContent = yield tileJsonRes.json();
       } catch (e) {
-        return;
       }
-      const tileJsonRes = yield fetch(tileJsonURL);
-      const tileJsonContent = yield tileJsonRes.json();
       if ("logo" in tileJsonContent && tileJsonContent.logo) {
         const logoURL = tileJsonContent.logo;
         this.addControl(
@@ -966,15 +917,26 @@ class Map extends ML.Map {
       }
       if (options.navigationControl !== false) {
         const position = options.navigationControl === true || options.navigationControl === void 0 ? "top-right" : options.navigationControl;
+        this.addControl(new MaptilerNavigationControl(), position);
+      }
+      if (options.geolocateControl !== false) {
+        const position = options.geolocateControl === true || options.geolocateControl === void 0 ? "top-right" : options.geolocateControl;
         this.addControl(
-          new MaptilerNavigationControl({
-            showCompass: true,
-            showZoom: true,
-            visualizePitch: true
+          new GeolocateControl$1({
+            positionOptions: {
+              enableHighAccuracy: true,
+              maximumAge: 0,
+              timeout: 6e3
+            },
+            fitBoundsOptions: {
+              maxZoom: 15
+            },
+            trackUserLocation: true,
+            showAccuracyCircle: true,
+            showUserLocation: true
           }),
           position
         );
-        this.addControl(new GeolocateControl$1({}), position);
       }
       if (options.terrainControl !== false) {
         const position = options.terrainControl === true || options.terrainControl === void 0 ? "top-right" : options.terrainControl;
@@ -992,13 +954,7 @@ class Map extends ML.Map {
     }
   }
   setStyle(style, options) {
-    let tempStyle = style;
-    if (typeof style === "string" && isBuiltinStyle(style)) {
-      tempStyle = getBuiltinStyle(style);
-    } else if (typeof style === "string") {
-      tempStyle = expandMapStyle(style);
-    }
-    return super.setStyle(tempStyle, options);
+    return super.setStyle(styleToStyle(style), options);
   }
   setLanguage(language = defaults.primaryLanguage) {
     if (language === Language.AUTO) {
@@ -1007,130 +963,142 @@ class Map extends ML.Map {
     this.setPrimaryLanguage(language);
   }
   setPrimaryLanguage(language = defaults.primaryLanguage) {
-    if (language === Language.AUTO) {
-      return this.setPrimaryLanguage(getBrowserLanguage());
+    if (!isLanguageSupported(language)) {
+      return;
     }
-    config.primaryLanguage = language;
-    const layers = this.getStyle().layers;
-    const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
-    const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
-    const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
-    const strMoreInfoRegex = /^(.*)({\s*name\s*(:\s*(\S*))?\s*})(.*)$/;
-    const langStr = language ? `name:${language}` : "name";
-    const replacer = [
-      "case",
-      ["has", langStr],
-      ["get", langStr],
-      ["get", "name:latin"]
-    ];
-    for (let i = 0; i < layers.length; i += 1) {
-      const layer = layers[i];
-      const layout = layer.layout;
-      if (!layout) {
-        continue;
+    this.onStyleReady(() => {
+      if (language === Language.AUTO) {
+        return this.setPrimaryLanguage(getBrowserLanguage());
       }
-      if (!layout["text-field"]) {
-        continue;
-      }
-      const textFieldLayoutProp = this.getLayoutProperty(
-        layer.id,
-        "text-field"
-      );
-      let regexMatch;
-      if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "concat") {
-        const newProp = textFieldLayoutProp.slice();
-        for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
-          const elem = textFieldLayoutProp[j];
-          if ((typeof elem === "string" || elem instanceof String) && strLanguageRegex.exec(elem.toString())) {
-            newProp[j] = replacer;
-            break;
-          } else if (Array.isArray(elem) && elem.length >= 2 && elem[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(elem[1].toString())) {
-            newProp[j] = replacer;
-            break;
-          } else if (Array.isArray(elem) && elem.length === 4 && elem[0].trim().toLowerCase() === "case") {
-            newProp[j] = replacer;
-            break;
-          }
+      config.primaryLanguage = language;
+      const layers = this.getStyle().layers;
+      const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
+      const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
+      const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
+      const strMoreInfoRegex = /^(.*)({\s*name\s*(:\s*(\S*))?\s*})(.*)$/;
+      const langStr = language ? `name:${language}` : "name";
+      const replacer = [
+        "case",
+        ["has", langStr],
+        ["get", langStr],
+        ["get", "name:latin"]
+      ];
+      for (let i = 0; i < layers.length; i += 1) {
+        const layer = layers[i];
+        const layout = layer.layout;
+        if (!layout) {
+          continue;
         }
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      } else if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(textFieldLayoutProp[1].toString())) {
-        const newProp = replacer;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && strLanguageRegex.exec(textFieldLayoutProp.toString())) {
-        const newProp = replacer;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      } else if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length === 4 && textFieldLayoutProp[0].trim().toLowerCase() === "case") {
-        const newProp = replacer;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strBilingualRegex.exec(
-        textFieldLayoutProp.toString()
-      )) !== null) {
-        const newProp = `{${langStr}}${regexMatch[3]}{name${regexMatch[4] || ""}}`;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strMoreInfoRegex.exec(textFieldLayoutProp.toString())) !== null) {
-        const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
+        if (!layout["text-field"]) {
+          continue;
+        }
+        const textFieldLayoutProp = this.getLayoutProperty(
+          layer.id,
+          "text-field"
+        );
+        let regexMatch;
+        if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "concat") {
+          const newProp = textFieldLayoutProp.slice();
+          for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
+            const elem = textFieldLayoutProp[j];
+            if ((typeof elem === "string" || elem instanceof String) && strLanguageRegex.exec(elem.toString())) {
+              newProp[j] = replacer;
+              break;
+            } else if (Array.isArray(elem) && elem.length >= 2 && elem[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(elem[1].toString())) {
+              newProp[j] = replacer;
+              break;
+            } else if (Array.isArray(elem) && elem.length === 4 && elem[0].trim().toLowerCase() === "case") {
+              newProp[j] = replacer;
+              break;
+            }
+          }
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        } else if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(textFieldLayoutProp[1].toString())) {
+          const newProp = replacer;
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && strLanguageRegex.exec(textFieldLayoutProp.toString())) {
+          const newProp = replacer;
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        } else if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length === 4 && textFieldLayoutProp[0].trim().toLowerCase() === "case") {
+          const newProp = replacer;
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strBilingualRegex.exec(
+          textFieldLayoutProp.toString()
+        )) !== null) {
+          const newProp = `{${langStr}}${regexMatch[3]}{name${regexMatch[4] || ""}}`;
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strMoreInfoRegex.exec(
+          textFieldLayoutProp.toString()
+        )) !== null) {
+          const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        }
       }
-    }
+    });
   }
   setSecondaryLanguage(language = defaults.secondaryLanguage) {
-    if (language === Language.AUTO) {
-      return this.setSecondaryLanguage(getBrowserLanguage());
+    if (!isLanguageSupported(language)) {
+      return;
     }
-    config.secondaryLanguage = language;
-    const layers = this.getStyle().layers;
-    const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
-    const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
-    const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
-    let regexMatch;
-    for (let i = 0; i < layers.length; i += 1) {
-      const layer = layers[i];
-      const layout = layer.layout;
-      if (!layout) {
-        continue;
+    this.onStyleReady(() => {
+      if (language === Language.AUTO) {
+        return this.setSecondaryLanguage(getBrowserLanguage());
       }
-      if (!layout["text-field"]) {
-        continue;
-      }
-      const textFieldLayoutProp = this.getLayoutProperty(
-        layer.id,
-        "text-field"
-      );
-      let newProp;
-      if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "concat") {
-        newProp = textFieldLayoutProp.slice();
-        let languagesAlreadyFound = 0;
-        for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
-          const elem = textFieldLayoutProp[j];
-          if ((typeof elem === "string" || elem instanceof String) && strLanguageRegex.exec(elem.toString())) {
-            if (languagesAlreadyFound === 1) {
-              newProp[j] = `{name:${language}}`;
-              break;
-            }
-            languagesAlreadyFound += 1;
-          } else if (Array.isArray(elem) && elem.length >= 2 && elem[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(elem[1].toString())) {
-            if (languagesAlreadyFound === 1) {
-              newProp[j][1] = `name:${language}`;
-              break;
-            }
-            languagesAlreadyFound += 1;
-          } else if (Array.isArray(elem) && elem.length === 4 && elem[0].trim().toLowerCase() === "case") {
-            if (languagesAlreadyFound === 1) {
-              newProp[j] = ["get", `name:${language}`];
-              break;
-            }
-            languagesAlreadyFound += 1;
-          }
+      config.secondaryLanguage = language;
+      const layers = this.getStyle().layers;
+      const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
+      const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
+      const strBilingualRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
+      let regexMatch;
+      for (let i = 0; i < layers.length; i += 1) {
+        const layer = layers[i];
+        const layout = layer.layout;
+        if (!layout) {
+          continue;
         }
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strBilingualRegex.exec(
-        textFieldLayoutProp.toString()
-      )) !== null) {
-        const langStr = language ? `name:${language}` : "name";
-        newProp = `{name${regexMatch[1] || ""}}${regexMatch[3]}{${langStr}}`;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
+        if (!layout["text-field"]) {
+          continue;
+        }
+        const textFieldLayoutProp = this.getLayoutProperty(
+          layer.id,
+          "text-field"
+        );
+        let newProp;
+        if (Array.isArray(textFieldLayoutProp) && textFieldLayoutProp.length >= 2 && textFieldLayoutProp[0].trim().toLowerCase() === "concat") {
+          newProp = textFieldLayoutProp.slice();
+          let languagesAlreadyFound = 0;
+          for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
+            const elem = textFieldLayoutProp[j];
+            if ((typeof elem === "string" || elem instanceof String) && strLanguageRegex.exec(elem.toString())) {
+              if (languagesAlreadyFound === 1) {
+                newProp[j] = `{name:${language}}`;
+                break;
+              }
+              languagesAlreadyFound += 1;
+            } else if (Array.isArray(elem) && elem.length >= 2 && elem[0].trim().toLowerCase() === "get" && strLanguageInArrayRegex.exec(elem[1].toString())) {
+              if (languagesAlreadyFound === 1) {
+                newProp[j][1] = `name:${language}`;
+                break;
+              }
+              languagesAlreadyFound += 1;
+            } else if (Array.isArray(elem) && elem.length === 4 && elem[0].trim().toLowerCase() === "case") {
+              if (languagesAlreadyFound === 1) {
+                newProp[j] = ["get", `name:${language}`];
+                break;
+              }
+              languagesAlreadyFound += 1;
+            }
+          }
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        } else if ((typeof textFieldLayoutProp === "string" || textFieldLayoutProp instanceof String) && (regexMatch = strBilingualRegex.exec(
+          textFieldLayoutProp.toString()
+        )) !== null) {
+          const langStr = language ? `name:${language}` : "name";
+          newProp = `{name${regexMatch[1] || ""}}${regexMatch[3]}{${langStr}}`;
+          this.setLayoutProperty(layer.id, "text-field", newProp);
+        }
       }
-    }
+    });
   }
   getTerrainExaggeration() {
     return this.terrainExaggeration;
@@ -1139,6 +1107,10 @@ class Map extends ML.Map {
     return this.isTerrainEnabled;
   }
   enableTerrain(exaggeration = this.terrainExaggeration) {
+    if (exaggeration < 0) {
+      console.warn("Terrain exaggeration cannot be negative.");
+      return;
+    }
     const terrainInfo = this.getTerrain();
     const addTerrain = () => {
       this.isTerrainEnabled = true;
@@ -1176,6 +1148,15 @@ class Map extends ML.Map {
   }
   setTerrainExaggeration(exaggeration) {
     this.enableTerrain(exaggeration);
+  }
+  onStyleReady(cb) {
+    if (this.isStyleLoaded()) {
+      cb();
+    } else {
+      this.once("styledata", () => {
+        cb();
+      });
+    }
   }
 }
 
@@ -1357,5 +1338,5 @@ const workerUrl = ML.default.workerUrl;
 const addProtocol = ML.default.addProtocol;
 const removeProtocol = ML.default.removeProtocol;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MapStyle, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MapStyle, MapStyleVariant, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ReferenceMapStyle, ScaleControl, SdkConfig, Style, TerrainControl, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
 //# sourceMappingURL=maptiler-sdk.mjs.map

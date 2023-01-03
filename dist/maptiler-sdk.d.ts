@@ -1,8 +1,9 @@
 import * as _mapbox_mapbox_gl_supported from '@mapbox/mapbox-gl-supported';
 import * as ML from 'maplibre-gl';
+import { StyleSpecification } from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { FetchFunction } from '@maptiler/client';
-export { AutomaticStaticMapOptions, Bbox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, LanguageGeocoding, LanguageGeocodingString, LngLatArray, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
+export { AutomaticStaticMapOptions, BBox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, LanguageGeocoding, LanguageGeocodingString, Position, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
 import EventEmitter from 'events';
 
 /**
@@ -96,11 +97,277 @@ declare const Language: {
     readonly UKRAINIAN: "uk";
     readonly WELSH: "cy";
 };
-declare type Values$1<T> = T[keyof T];
+declare type Values<T> = T[keyof T];
 /**
  * Built-in languages values as strings
  */
-declare type LanguageString = Values$1<typeof Language>;
+declare type LanguageString = Values<typeof Language>;
+
+/**
+ * All the styles and variants maintained by MapTiler.
+ */
+declare type MapStyleType = {
+    /**
+     * Suitable for navigation, with high level of detail on urban areas.
+     */
+    STREETS: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+        /**
+         * Suitable for navigation, with high level of detail on urban areas, in dark mode.
+         */
+        DARK: MapStyleVariant;
+        /**
+         * Suitable for navigation, with high level of detail on urban areas, in light mode.
+         */
+        LIGHT: MapStyleVariant;
+        /**
+         * Suitable for navigation, with high level of detail on urban areas, with a pastel color palette.
+         */
+        PASTEL: MapStyleVariant;
+    };
+    /**
+     * Suitable for outdoor activities. With elevation isolines and hillshading.
+     */
+    OUTDOOR: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+    };
+    /**
+     * Suitabe for winter outdoor activities. With ski tracks, elevation isolines and hillshading.
+     */
+    WINTER: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+    };
+    /**
+     * High resolution imagery only, without any label.
+     */
+    SATELLITE: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+    };
+    /**
+     * High resolution imagery with labels, political borders and roads.
+     */
+    HYBRID: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+    };
+    BASIC: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+        DARK: MapStyleVariant;
+        LIGHT: MapStyleVariant;
+    };
+    BRIGHT: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+        DARK: MapStyleVariant;
+        LIGHT: MapStyleVariant;
+        PASTEL: MapStyleVariant;
+    };
+    OPENSTREETMAP: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+    };
+    TOPO: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+        SHINY: MapStyleVariant;
+        PASTEL: MapStyleVariant;
+        TOPOGRAPHIQUE: MapStyleVariant;
+    };
+    VOYAGER: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+        DARK: MapStyleVariant;
+        LIGHT: MapStyleVariant;
+        VINTAGE: MapStyleVariant;
+    };
+    TONER: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+        BACKGROUND: MapStyleVariant;
+        LITE: MapStyleVariant;
+        LINES: MapStyleVariant;
+    };
+};
+
+/**
+ * An instance of MapStyleVariant contains information about a style to use that belong to a reference style
+ */
+declare class MapStyleVariant {
+    /**
+     * Human-friendly name
+     */
+    private name;
+    /**
+     * Variant name the variant is addressed to from its reference style: `MapStyle.REFERNCE_STYLE_NAME.VARIANT_TYPE`
+     */
+    private variantType;
+    /**
+     * MapTiler Cloud id
+     */
+    private id;
+    /**
+     * Reference map style, used to retrieve sibling variants
+     */
+    private referenceStyle;
+    /**
+     * Human-friendly description
+     */
+    private description;
+    /**
+     * URL to an image describing the style variant
+     */
+    private imageURL;
+    constructor(
+    /**
+     * Human-friendly name
+     */
+    name: string, 
+    /**
+     * Variant name the variant is addressed to from its reference style: `MapStyle.REFERNCE_STYLE_NAME.VARIANT_TYPE`
+     */
+    variantType: string, 
+    /**
+     * MapTiler Cloud id
+     */
+    id: string, 
+    /**
+     * Reference map style, used to retrieve sibling variants
+     */
+    referenceStyle: ReferenceMapStyle, 
+    /**
+     * Human-friendly description
+     */
+    description: string, 
+    /**
+     * URL to an image describing the style variant
+     */
+    imageURL: string);
+    /**
+     * Get the human-friendly name
+     * @returns
+     */
+    getName(): string;
+    getFullName(): string;
+    /**
+     * Get the variant type (eg. "DEFAULT", "DARK", "PASTEL", etc.)
+     * @returns
+     */
+    getType(): string;
+    /**
+     * Get the style as usable by MapLibre, a string (URL) or a plain style description (StyleSpecification)
+     * @returns
+     */
+    getUsableStyle(): string | StyleSpecification;
+    /**
+     * Get the MapTiler Cloud id
+     * @returns
+     */
+    getId(): string;
+    /**
+     * Get the human-friendly description
+     */
+    getDescription(): string;
+    /**
+     * Get the reference style this variant belongs to
+     * @returns
+     */
+    getReferenceStyle(): ReferenceMapStyle;
+    /**
+     * Check if a variant of a given type exists for _this_ variants
+     * (eg. if this is a "DARK", then we can check if there is a "LIGHT" variant of it)
+     * @param variantType
+     * @returns
+     */
+    hasVariant(variantType: string): boolean;
+    /**
+     * Retrieve the variant of a given type. If not found, will return the "DEFAULT" variant.
+     * (eg. _this_ "DARK" variant does not have any "PASTEL" variant, then the "DEFAULT" is returned)
+     * @param variantType
+     * @returns
+     */
+    getVariant(variantType: string): MapStyleVariant;
+    /**
+     * Get all the variants for _this_ variants, except _this_ current one
+     * @returns
+     */
+    getVariants(): Array<MapStyleVariant>;
+    /**
+     * Get the image URL that represent _this_ variant
+     * @returns
+     */
+    getImageURL(): string;
+}
+/**
+ * An instance of reference style contains a list of StyleVariants ordered by relevance
+ */
+declare class ReferenceMapStyle {
+    /**
+     * Human-friendly name of this reference style
+     */
+    private name;
+    /**
+     * ID of this reference style
+     */
+    private id;
+    /**
+     * Variants that belong to this reference style, key being the reference type
+     */
+    private variants;
+    /**
+     * Variants that belong to this reference style, ordered by relevance
+     */
+    private orderedVariants;
+    constructor(
+    /**
+     * Human-friendly name of this reference style
+     */
+    name: string, 
+    /**
+     * ID of this reference style
+     */
+    id: string);
+    /**
+     * Get the human-friendly name of this reference style
+     * @returns
+     */
+    getName(): string;
+    /**
+     * Get the id of _this_ reference style
+     * @returns
+     */
+    getId(): string;
+    /**
+     * Add a variant to _this_ reference style
+     * @param v
+     */
+    addVariant(v: MapStyleVariant): void;
+    /**
+     * Check if a given variant type exists for this reference style
+     * @param variantType
+     * @returns
+     */
+    hasVariant(variantType: string): boolean;
+    /**
+     * Get a given variant. If the given type of variant does not exist for this reference style,
+     * then the most relevant default variant is returned instead
+     * @param variantType
+     * @returns
+     */
+    getVariant(variantType: string): MapStyleVariant;
+    /**
+     * Get the list of variants for this reference style
+     * @returns
+     */
+    getVariants(): Array<MapStyleVariant>;
+    /**
+     * Get the defualt variant for this reference style
+     * @returns
+     */
+    getDefaultVariant(): MapStyleVariant;
+}
+/**
+ * Contains all the reference map style created by MapTiler team as well as all the variants.
+ * For example, `MapStyle.STREETS` and the variants:
+ * - `MapStyle.STREETS.DARK`
+ * - `MapStyle.STREETS.LIGHT`
+ * - `MapStyle.STREETS.PASTEL`
+ *
+ */
+declare const MapStyle: MapStyleType;
 
 declare type TransformStyleFunction = (previous: ML.StyleSpecification, next: ML.StyleSpecification) => ML.StyleSpecification;
 declare type StyleSwapOptions = {
@@ -117,7 +384,7 @@ declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
      * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
      * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
      */
-    style?: string;
+    style?: ReferenceMapStyle | MapStyleVariant | ML.StyleSpecification | string;
     /**
      * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.
      */
@@ -138,6 +405,10 @@ declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
      * Show the terrain control. (default: `true`, will hide if `false`)
      */
     terrainControl?: boolean | ML.ControlPosition;
+    /**
+     * Show the geolocate control. (default: `true`, will hide if `false`)
+     */
+    geolocateControl?: boolean | ML.ControlPosition;
     /**
      * Show the scale control. (default: `false`, will show if `true`)
      */
@@ -166,7 +437,7 @@ declare class Map extends ML.Map {
      * @param options
      * @returns
      */
-    setStyle(style: ML.StyleSpecification | string | null, options?: StyleSwapOptions & ML.StyleOptions): this;
+    setStyle(style: ReferenceMapStyle | MapStyleVariant | ML.StyleSpecification | string, options?: StyleSwapOptions & ML.StyleOptions): this;
     /**
      * Define the primary language of the map. Note that not all the languages shorthands provided are available.
      * This function is a short for `.setPrimaryLanguage()`
@@ -177,13 +448,13 @@ declare class Map extends ML.Map {
      * Define the primary language of the map. Note that not all the languages shorthands provided are available.
      * @param language
      */
-    setPrimaryLanguage(language?: LanguageString): any;
+    setPrimaryLanguage(language?: LanguageString): void;
     /**
      * Define the secondary language of the map.
      * Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)
      * @param language
      */
-    setSecondaryLanguage(language?: LanguageString): any;
+    setSecondaryLanguage(language?: LanguageString): void;
     /**
      * Get the exaggeration factor applied to the terrain
      * @returns
@@ -210,6 +481,12 @@ declare class Map extends ML.Map {
      * @param exaggeration
      */
     setTerrainExaggeration(exaggeration: number): void;
+    /**
+     * Perform an action when the style is ready. It could be at the moment of calling this method
+     * or later.
+     * @param cb
+     */
+    private onStyleReady;
 }
 
 /**
@@ -236,11 +513,7 @@ declare type Unit = "imperial" | "metric" | "nautical";
  */
 declare class SdkConfig extends EventEmitter {
     /**
-     * If `true`, some more debuf text will show. Default: `false`
-     */
-    verbose: boolean;
-    /**
-     * The primary languag. By default, the language of the web browser is used.
+     * The primary language. By default, the language of the web browser is used.
      */
     primaryLanguage: LanguageString | null;
     /**
@@ -284,24 +557,6 @@ declare class SdkConfig extends EventEmitter {
 }
 declare const config: SdkConfig;
 
-/**
- * Built-in styles
- */
-declare const MapStyle: {
-    readonly STREETS: "streets-v2";
-    readonly HYBRID: "hybrid";
-    readonly SATELLITE: "satellite";
-    readonly OUTDOOR: "outdoor";
-    readonly BASIC: "basic-v2";
-    readonly STREETS_DARK: "streets-v2-dark";
-    readonly STREETS_LIGHT: "streets-v2-light";
-};
-declare type Values<T> = T[keyof T];
-/**
- * Built-in style values as strings
- */
-declare type MapStyleString = Values<typeof MapStyle>;
-
 declare const supported: _mapbox_mapbox_gl_supported.IsSupported;
 declare const setRTLTextPlugin: (url: string, callback: (error?: Error) => void, deferred?: boolean) => void;
 declare const getRTLTextPluginStatus: () => string;
@@ -337,4 +592,4 @@ declare const workerUrl: string;
 declare const addProtocol: (customProtocol: string, loadFn: (requestParameters: ML.RequestParameters, callback: ML.ResponseCallback<any>) => ML.Cancelable) => void;
 declare const removeProtocol: (customProtocol: string) => void;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MapStyle, MapStyleString, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MapStyle, MapStyleType, MapStyleVariant, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ReferenceMapStyle, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };

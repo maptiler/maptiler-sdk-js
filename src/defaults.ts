@@ -1,15 +1,13 @@
 import { Language } from "./language";
-import { MapStyle } from "./mapstyle";
+import { MapStyle } from "./mapstyle/mapstyle";
 
 /**
  * Some default settings for the SDK
  */
 const defaults = {
-  // When a Map is instanciated without a 'style', then this one is the default
-  mapStyle: MapStyle.STREETS,
   maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
   maptilerURL: "https://www.maptiler.com/",
-  maptilerApiURL: "https://api.maptiler.com/",
+  maptilerApiHost: "api.maptiler.com",
   rtlPluginURL:
     "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
   primaryLanguage: Language.LATIN,

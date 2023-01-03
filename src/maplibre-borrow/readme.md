@@ -1,1 +1,0 @@
-This folders copies centain files from MapLibre that have necessary logic that is not exported in the final bundle.
