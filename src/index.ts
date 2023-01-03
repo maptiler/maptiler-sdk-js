@@ -163,4 +163,3 @@ export {
   ReferenceMapStyle,
   MapStyleVariant,
 };
-
