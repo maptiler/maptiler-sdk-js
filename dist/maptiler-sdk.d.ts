@@ -374,6 +374,10 @@ declare type StyleSwapOptions = {
     diff?: boolean;
     transformStyle?: TransformStyleFunction;
 };
+declare const GeolocationType: {
+    IP_POINT: "IP_POINT";
+    IP_COUNTRY: "IP_COUNTRY";
+};
 /**
  * Options to provide to the `Map` constructor
  */
@@ -417,6 +421,26 @@ declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
      * Show the full screen control. (default: `false`, will show if `true`)
      */
     fullscreenControl?: boolean | ML.ControlPosition;
+    /**
+     * Method to position the map at a given geolocation. Only if:
+     * - `hash` is `false`
+     * - `center` is not provided
+     *
+     * If the value is `true` of `"IP_POINT"` (given by `GeolocationType.IP_POINT`) then the positionning uses the MapTiler Cloud
+     * Geolocation to find the non-GPS location point.
+     * The zoom level can be provided in the `Map` constructor with the `zoom` option or will be `13` if not provided.
+     *
+     * If the value is `"IP_COUNTRY"` (given by `GeolocationType.IP_COUNTRY`) then the map is centered around the bounding box of the country.
+     * In this case, the `zoom` option will be ignored.
+     *
+     * If the value is `false`, no geolocation is performed and the map centering and zooming depends on other options or on
+     * the built-in defaults.
+     *
+     * If this option is non-false and the options `center` is also provided, then `center` prevails.
+     *
+     * Default: `false`
+     */
+    geolocate?: typeof GeolocationType[keyof typeof GeolocationType] | boolean;
 };
 /**
  * The Map class can be instanciated to display a map in a `<div>`
@@ -592,4 +616,4 @@ declare const workerUrl: string;
 declare const addProtocol: (customProtocol: string, loadFn: (requestParameters: ML.RequestParameters, callback: ML.ResponseCallback<any>) => ML.Cancelable) => void;
 declare const removeProtocol: (customProtocol: string) => void;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MapStyle, MapStyleType, MapStyleVariant, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ReferenceMapStyle, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, GeolocationType, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MapStyle, MapStyleType, MapStyleVariant, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ReferenceMapStyle, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };

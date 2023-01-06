@@ -3,7 +3,7 @@ import { NavigationControl as NavigationControl$1, ScaleControl as ScaleControl$
 export * from 'maplibre-gl';
 import { v4 } from 'uuid';
 import EventEmitter from 'events';
-import { config as config$1 } from '@maptiler/client';
+import { config as config$1, geolocation } from '@maptiler/client';
 export { LanguageGeocoding, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
 
 const Language = {
@@ -828,10 +828,15 @@ var __async = (__this, __arguments, generator) => {
   });
 };
 const MAPTILER_SESSION_ID = v4();
+const GeolocationType = {
+  IP_POINT: "IP_POINT",
+  IP_COUNTRY: "IP_COUNTRY"
+};
 class Map extends ML.Map {
   constructor(options) {
     var _a;
     const style = styleToStyle(options.style);
+    const hashPreConstructor = location.hash;
     if (!config.apiKey) {
       console.warn(
         "MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!"
@@ -858,6 +863,30 @@ class Map extends ML.Map {
     this.isStyleInitialized = false;
     this.isTerrainEnabled = false;
     this.terrainExaggeration = 1;
+    this.once("styledata", () => __async(this, null, function* () {
+      if (options.center) {
+        return;
+      }
+      if (options.hash && !!hashPreConstructor) {
+        return;
+      }
+      try {
+        const result = yield geolocation.info();
+        if (options.geolocate === GeolocationType.IP_COUNTRY) {
+          this.fitBounds(
+            result.country_bounds,
+            {
+              duration: 0,
+              padding: 100
+            }
+          );
+          return;
+        }
+        this.setCenter([result.longitude, result.latitude]);
+        this.setZoom(options.zoom || 13);
+      } catch (err) {
+      }
+    }));
     this.on("styledataloading", () => {
       this.languageShouldUpdate = !!config.primaryLanguage || !!config.secondaryLanguage;
     });
@@ -1338,5 +1367,5 @@ const workerUrl = ML.default.workerUrl;
 const addProtocol = ML.default.addProtocol;
 const removeProtocol = ML.default.removeProtocol;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MapStyle, MapStyleVariant, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ReferenceMapStyle, ScaleControl, SdkConfig, Style, TerrainControl, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, GeolocationType, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MapStyle, MapStyleVariant, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ReferenceMapStyle, ScaleControl, SdkConfig, Style, TerrainControl, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
 //# sourceMappingURL=maptiler-sdk.mjs.map
