@@ -61,7 +61,7 @@
     "typescript": "^4.8.4"
   },
   "dependencies": {
-    "@maptiler/client": "github:maptiler/maptiler-client-js#dev",
+    "@maptiler/client": "^1.0.2",
     "events": "^3.3.0",
     "maplibre-gl": "^3.0.0-pre.2",
     "uuid": "^9.0.0"
