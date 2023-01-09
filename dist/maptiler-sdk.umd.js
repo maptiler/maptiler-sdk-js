@@ -2184,6 +2184,9 @@
 	    this.isTerrainEnabled = false;
 	    this.terrainExaggeration = 1;
 	    this.once("styledata", () => __async(this, null, function* () {
+	      if (options.geolocate === false) {
+	        return;
+	      }
 	      if (options.center) {
 	        return;
 	      }

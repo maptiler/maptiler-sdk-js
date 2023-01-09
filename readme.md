@@ -209,6 +209,37 @@ And can even be provided in the URI form:
 map.setStyle("maptiler://c912ffc8-2360-487a-973b-59d037fb15b8");
 ```
 
+# Centering the map on visitors
+It is sometimes handy to center map on the visitor's location, and there are multiple ways of doing it but for the SDK, we have decided to make this extra simple by using the [IP geolocation](#%EF%B8%8F%EF%B8%8F-geolocation) API provided by [MapTiler Cloud](https://docs.maptiler.com/cloud/api/geolocation/), directly exposed as a single option of the `Map` constructor. There are two strategies:
+1. `IP_POINT`: centering the map on the actual visitor location, optionnaly using the `zoom` option (zoom level `13` if none is provided)
+2. `IP_COUNTRY`: fitting the map view on the bounding box of the visitor's country. In this case, the `zoom` option, if provided, will be ignored
+
+Here is how the map gets centered on the visitor's location:
+```js
+new maptiler.Map({
+  // ... other options
+
+  geolocate: maptiler.GeolocationType.IP_POINT
+})
+```
+
+Here is how the map fits the visitor's country bounds:
+```js
+new maptiler.Map({
+  // ... other options
+
+  geolocate: maptiler.GeolocationType.IP_COUNTRY
+})
+```
+
+The `geolocation` options will not be taken into consideration in the following cases:
+- if the `center` options is provided, then it prevails
+- if the `hash` options is provided with the value `true` **AND** a location hash is already part of the URL. If `hash` is `true` but there is not yet a location hash in the URL, then the geolocation will work.
+
+> 📣 *__Note:__* if none of the options `center` or `hash` is provided to the `Map` constructor, then the map will be centered using the `IP_POINT` strategy, unless the `geolocate` has the value `false`.
+
+> 📣 *__Note 2:__* the term *IP geolocation* refers to finding the physical location of a computer using its *IP address*. The *IP address* is a numerical identifier of a computer within a network, just like the phone number for a telephone. The *IP geolocation* is **not** using the GPS of a device and usually provides a precision in the order of a few hundred meters. This precision may vary based on many local parameters such as the density of the network grid or the terrain, this is why it is generaly better not to use a zoom level higher than `14`.
+
 # Easy to add controls
 The term "control" is commonly used for all sorts of buttons and information display that take place in one of the corner of the map area. The most well know are probably the `[+]` and `[-]` zoom buttons as well as the attribution information. Plenty of others are possible and we have made a few easy to add and directly accessible from the `Map` constructor options:
 

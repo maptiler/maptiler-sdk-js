@@ -166,6 +166,10 @@ export class Map extends maplibre.Map {
     this.once("styledata", async () => {
       // Not using geolocation centering if...
 
+      if (options.geolocate === false) {
+        return;
+      }
+
       // ... a center is provided in options
       if (options.center) {
         return;

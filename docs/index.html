@@ -200,6 +200,32 @@
 <pre><code class="language-ts"><span class="hl-3">map</span><span class="hl-0">.</span><span class="hl-7">setStyle</span><span class="hl-0">(</span><span class="hl-4">&quot;maptiler://c912ffc8-2360-487a-973b-59d037fb15b8&quot;</span><span class="hl-0">);</span>
 </code></pre>
 
+<a href="#centering-the-map-on-visitors" id="centering-the-map-on-visitors" style="color: inherit; text-decoration: none;">
+  <h1>Centering the map on visitors</h1>
+</a>
+<p>It is sometimes handy to center map on the visitor&#39;s location, and there are multiple ways of doing it but for the SDK, we have decided to make this extra simple by using the <a href="#%EF%B8%8F%EF%B8%8F-geolocation">IP geolocation</a> API provided by <a href="https://docs.maptiler.com/cloud/api/geolocation/">MapTiler Cloud</a>, directly exposed as a single option of the <code>Map</code> constructor. There are two strategies:</p>
+<ol>
+<li><code>IP_POINT</code>: centering the map on the actual visitor location, optionnaly using the <code>zoom</code> option (zoom level <code>13</code> if none is provided)</li>
+<li><code>IP_COUNTRY</code>: fitting the map view on the bounding box of the visitor&#39;s country. In this case, the <code>zoom</code> option, if provided, will be ignored</li>
+</ol>
+<p>Here is how the map gets centered on the visitor&#39;s location:</p>
+<pre><code class="language-js"><span class="hl-2">new</span><span class="hl-0"> </span><span class="hl-3">maptiler</span><span class="hl-0">.</span><span class="hl-7">Map</span><span class="hl-0">({</span><br/><span class="hl-0">  </span><span class="hl-5">// ... other options</span><br/><br/><span class="hl-0">  </span><span class="hl-3">geolocate:</span><span class="hl-0"> </span><span class="hl-3">maptiler</span><span class="hl-0">.</span><span class="hl-3">GeolocationType</span><span class="hl-0">.</span><span class="hl-6">IP_POINT</span><br/><span class="hl-0">})</span>
+</code></pre>
+<p>Here is how the map fits the visitor&#39;s country bounds:</p>
+<pre><code class="language-js"><span class="hl-2">new</span><span class="hl-0"> </span><span class="hl-3">maptiler</span><span class="hl-0">.</span><span class="hl-7">Map</span><span class="hl-0">({</span><br/><span class="hl-0">  </span><span class="hl-5">// ... other options</span><br/><br/><span class="hl-0">  </span><span class="hl-3">geolocate:</span><span class="hl-0"> </span><span class="hl-3">maptiler</span><span class="hl-0">.</span><span class="hl-3">GeolocationType</span><span class="hl-0">.</span><span class="hl-6">IP_COUNTRY</span><br/><span class="hl-0">})</span>
+</code></pre>
+<p>The <code>geolocation</code> options will not be taken into consideration in the following cases:</p>
+<ul>
+<li>if the <code>center</code> options is provided, then it prevails</li>
+<li>if the <code>hash</code> options is provided with the value <code>true</code> <strong>AND</strong> a location hash is already part of the URL. If <code>hash</code> is <code>true</code> but there is not yet a location hash in the URL, then the geolocation will work.</li>
+</ul>
+<blockquote>
+<p>📣 <em><strong>Note:</strong></em> if none of the options <code>center</code> or <code>hash</code> is provided to the <code>Map</code> constructor, then the map will be centered using the <code>IP_POINT</code> strategy, unless the <code>geolocate</code> has the value <code>false</code>.</p>
+</blockquote>
+<blockquote>
+<p>📣 <em><strong>Note 2:</strong></em> the term <em>IP geolocation</em> refers to finding the physical location of a computer using its <em>IP address</em>. The <em>IP address</em> is a numerical identifier of a computer within a network, just like the phone number for a telephone. The <em>IP geolocation</em> is <strong>not</strong> using the GPS of a device and usually provides a precision in the order of a few hundred meters. This precision may vary based on many local parameters such as the density of the network grid or the terrain, this is why it is generaly better not to use a zoom level higher than <code>14</code>.</p>
+</blockquote>
+
 <a href="#easy-to-add-controls" id="easy-to-add-controls" style="color: inherit; text-decoration: none;">
   <h1>Easy to add controls</h1>
 </a>
