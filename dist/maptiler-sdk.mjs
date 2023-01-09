@@ -1,5 +1,4 @@
 import * as ML from 'maplibre-gl';
-import { NavigationControl as NavigationControl$1, ScaleControl as ScaleControl$1, GeolocateControl as GeolocateControl$1, FullscreenControl as FullscreenControl$1 } from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { v4 } from 'uuid';
 import EventEmitter from 'events';
@@ -776,6 +775,7 @@ class TerrainControl$1 {
   }
 }
 
+const { NavigationControl: NavigationControl$1 } = ML;
 class MaptilerNavigationControl extends NavigationControl$1 {
   constructor() {
     super({
@@ -855,6 +855,7 @@ var __async = (__this, __arguments, generator) => {
     step((generator = generator.apply(__this, __arguments)).next());
   });
 };
+const { FullscreenControl: FullscreenControl$1, GeolocateControl: GeolocateControl$1, ScaleControl: ScaleControl$1 } = ML;
 const MAPTILER_SESSION_ID = v4();
 const GeolocationType = {
   IP_POINT: "IP_POINT",

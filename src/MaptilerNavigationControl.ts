@@ -1,4 +1,6 @@
-import { NavigationControl } from "maplibre-gl";
+import * as maplibre from "maplibre-gl";
+
+const { NavigationControl } = maplibre;
 
 type HTMLButtonElementPlus = HTMLButtonElement & {
   clickFunction: (e?: any) => unknown;

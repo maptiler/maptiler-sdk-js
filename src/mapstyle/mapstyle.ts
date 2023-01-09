@@ -1,5 +1,5 @@
 import satelliteBuiltin from "./builtinMapStyles/satellite.json";
-import { StyleSpecification } from "maplibre-gl";
+import type { StyleSpecification } from "maplibre-gl";
 import { mapStylePresetList, MapStyleType } from "./mapstylepresetlist";
 
 const builtInStyles = {

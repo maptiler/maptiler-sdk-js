@@ -15,10 +15,11 @@ import {
   ReferenceMapStyle,
   styleToStyle,
 } from "./mapstyle/mapstyle";
-import { FullscreenControl, GeolocateControl, ScaleControl } from "maplibre-gl";
 import { TerrainControl } from "./terraincontrol";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
 import { BBox, geolocation } from "@maptiler/client";
+
+const { FullscreenControl, GeolocateControl, ScaleControl } = maplibre;
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (

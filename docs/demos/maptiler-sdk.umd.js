@@ -2068,7 +2068,8 @@
 	  }
 	}
 
-	class MaptilerNavigationControl extends maplibreGl$1.exports.NavigationControl {
+	const { NavigationControl: NavigationControl$1 } = maplibre;
+	class MaptilerNavigationControl extends NavigationControl$1 {
 	  constructor() {
 	    super({
 	      showCompass: true,
@@ -2147,6 +2148,7 @@
 	    step((generator = generator.apply(__this, __arguments)).next());
 	  });
 	};
+	const { FullscreenControl: FullscreenControl$1, GeolocateControl: GeolocateControl$1, ScaleControl: ScaleControl$1 } = maplibre;
 	const MAPTILER_SESSION_ID = v4();
 	const GeolocationType = {
 	  IP_POINT: "IP_POINT",
@@ -2261,7 +2263,7 @@
 	      }
 	      if (options.scaleControl) {
 	        const position = options.scaleControl === true || options.scaleControl === void 0 ? "bottom-right" : options.scaleControl;
-	        const scaleControl = new maplibreGl$1.exports.ScaleControl({ unit: config.unit });
+	        const scaleControl = new ScaleControl$1({ unit: config.unit });
 	        this.addControl(scaleControl, position);
 	        config.on("unit", (unit) => {
 	          scaleControl.setUnit(unit);
@@ -2274,7 +2276,7 @@
 	      if (options.geolocateControl !== false) {
 	        const position = options.geolocateControl === true || options.geolocateControl === void 0 ? "top-right" : options.geolocateControl;
 	        this.addControl(
-	          new maplibreGl$1.exports.GeolocateControl({
+	          new GeolocateControl$1({
 	            positionOptions: {
 	              enableHighAccuracy: true,
 	              maximumAge: 0,
@@ -2296,7 +2298,7 @@
 	      }
 	      if (options.fullscreenControl) {
 	        const position = options.fullscreenControl === true || options.fullscreenControl === void 0 ? "top-right" : options.fullscreenControl;
-	        this.addControl(new maplibreGl$1.exports.FullscreenControl({}), position);
+	        this.addControl(new FullscreenControl$1({}), position);
 	      }
 	    }));
 	    if (options.terrain) {
