@@ -4,28 +4,13 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.maptilersdk = {}));
 })(this, (function (exports) { 'use strict';
 
-	function _mergeNamespaces(n, m) {
-		m.forEach(function (e) {
-			e && typeof e !== 'string' && !Array.isArray(e) && Object.keys(e).forEach(function (k) {
-				if (k !== 'default' && !(k in n)) {
-					var d = Object.getOwnPropertyDescriptor(e, k);
-					Object.defineProperty(n, k, d.get ? d : {
-						enumerable: true,
-						get: function () { return e[k]; }
-					});
-				}
-			});
-		});
-		return Object.freeze(n);
-	}
-
 	var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 	function getDefaultExportFromCjs (x) {
 		return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
 	}
 
-	var maplibreGl$1 = {exports: {}};
+	var maplibreGl = {exports: {}};
 
 	/* MapLibre GL JS is licensed under the 3-Clause BSD License. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v3.0.0-pre.2/LICENSE.txt */
 
@@ -70,14 +55,9 @@
 
 		}));
 		
-	} (maplibreGl$1));
+	} (maplibreGl));
 
-	var maplibreGl = /*@__PURE__*/getDefaultExportFromCjs(maplibreGl$1.exports);
-
-	var maplibre = /*#__PURE__*/_mergeNamespaces({
-		__proto__: null,
-		'default': maplibreGl
-	}, [maplibreGl$1.exports]);
+	var maplibregl = /*@__PURE__*/getDefaultExportFromCjs(maplibreGl.exports);
 
 	// Unique ID creation requires a high quality random # generator. In the browser we therefore
 	// require the crypto API and do not support built-in fallback to lower quality random number
@@ -1433,7 +1413,7 @@
 	};
 	Object.freeze(defaults);
 
-	class CustomLogoControl extends maplibreGl$1.exports.LogoControl {
+	class CustomLogoControl extends maplibregl.LogoControl {
 	  constructor(options = {}) {
 	    var _a, _b;
 	    super(options);
@@ -1476,9 +1456,8 @@
 	}
 
 	function enableRTL() {
-	  const maplibrePackage = maplibre;
-	  if (maplibrePackage.getRTLTextPluginStatus() === "unavailable") {
-	    maplibrePackage.setRTLTextPlugin(
+	  if (maplibregl.getRTLTextPluginStatus() === "unavailable") {
+	    maplibregl.setRTLTextPlugin(
 	      defaults.rtlPluginURL,
 	      null,
 	      true
@@ -2068,7 +2047,7 @@
 	  }
 	}
 
-	const { NavigationControl: NavigationControl$1 } = maplibre;
+	const { NavigationControl: NavigationControl$1 } = maplibregl;
 	class MaptilerNavigationControl extends NavigationControl$1 {
 	  constructor() {
 	    super({
@@ -2148,13 +2127,14 @@
 	    step((generator = generator.apply(__this, __arguments)).next());
 	  });
 	};
-	const { FullscreenControl: FullscreenControl$1, GeolocateControl: GeolocateControl$1, ScaleControl: ScaleControl$1 } = maplibre;
+	const { FullscreenControl: FullscreenControl$1, GeolocateControl: GeolocateControl$1, ScaleControl: ScaleControl$1 } = maplibregl;
+	const MapML = maplibregl.Map;
 	const MAPTILER_SESSION_ID = v4();
 	const GeolocationType = {
 	  IP_POINT: "IP_POINT",
 	  IP_COUNTRY: "IP_COUNTRY"
 	};
-	class Map$1 extends maplibreGl$1.exports.Map {
+	class Map$1 extends MapML {
 	  constructor(options) {
 	    var _a;
 	    const style = styleToStyle(options.style);
@@ -2256,7 +2236,7 @@
 	          options.logoPosition
 	        );
 	        if (options.attributionControl === false) {
-	          this.addControl(new maplibreGl$1.exports.AttributionControl(options));
+	          this.addControl(new maplibregl.AttributionControl(options));
 	        }
 	      } else if (options.maptilerLogo) {
 	        this.addControl(new CustomLogoControl(), options.logoPosition);
@@ -2657,40 +2637,42 @@
 	  return a;
 	};
 
-	const supported = maplibreGl.supported;
-	const setRTLTextPlugin = maplibreGl.setRTLTextPlugin;
-	const getRTLTextPluginStatus = maplibreGl.getRTLTextPluginStatus;
-	const NavigationControl = maplibreGl.NavigationControl;
-	const GeolocateControl = maplibreGl.GeolocateControl;
-	const AttributionControl = maplibreGl.AttributionControl;
-	const LogoControl = maplibreGl.LogoControl;
-	const ScaleControl = maplibreGl.ScaleControl;
-	const FullscreenControl = maplibreGl.FullscreenControl;
-	const TerrainControl = maplibreGl.TerrainControl;
-	const Popup = maplibreGl.Popup;
-	const Marker = maplibreGl.Marker;
-	const Style = maplibreGl.Style;
-	const LngLat = maplibreGl.LngLat;
-	const LngLatBounds = maplibreGl.LngLatBounds;
-	const MercatorCoordinate = maplibreGl.MercatorCoordinate;
-	const Evented = maplibreGl.Evented;
-	const AJAXError = maplibreGl.AJAXError;
-	const CanvasSource = maplibreGl.CanvasSource;
-	const GeoJSONSource = maplibreGl.GeoJSONSource;
-	const ImageSource = maplibreGl.ImageSource;
-	const RasterDEMTileSource = maplibreGl.RasterDEMTileSource;
-	const RasterTileSource = maplibreGl.RasterTileSource;
-	const VectorTileSource = maplibreGl.VectorTileSource;
-	const VideoSource = maplibreGl.VideoSource;
-	const prewarm = maplibreGl.prewarm;
-	const clearPrewarmedResources = maplibreGl.clearPrewarmedResources;
-	const version = maplibreGl.version;
-	const workerCount = maplibreGl.workerCount;
-	const maxParallelImageRequests = maplibreGl.maxParallelImageRequests;
-	const clearStorage = maplibreGl.clearStorage;
-	const workerUrl = maplibreGl.workerUrl;
-	const addProtocol = maplibreGl.addProtocol;
-	const removeProtocol = maplibreGl.removeProtocol;
+	const {
+	  supported,
+	  setRTLTextPlugin,
+	  getRTLTextPluginStatus,
+	  NavigationControl,
+	  GeolocateControl,
+	  AttributionControl,
+	  LogoControl,
+	  ScaleControl,
+	  FullscreenControl,
+	  TerrainControl,
+	  Popup,
+	  Marker,
+	  Style,
+	  LngLat,
+	  LngLatBounds,
+	  MercatorCoordinate,
+	  Evented,
+	  AJAXError,
+	  CanvasSource,
+	  GeoJSONSource,
+	  ImageSource,
+	  RasterDEMTileSource,
+	  RasterTileSource,
+	  VectorTileSource,
+	  VideoSource,
+	  prewarm,
+	  clearPrewarmedResources,
+	  version,
+	  workerCount,
+	  maxParallelImageRequests,
+	  clearStorage,
+	  workerUrl,
+	  addProtocol,
+	  removeProtocol
+	} = maplibregl;
 
 	exports.AJAXError = AJAXError;
 	exports.AttributionControl = AttributionControl;

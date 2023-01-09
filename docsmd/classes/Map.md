@@ -6,7 +6,7 @@ The Map class can be instanciated to display a map in a `<div>`
 
 ## Hierarchy
 
-- `Map`
+- `MapML`
 
   ↳ **`Map`**
 
@@ -42,11 +42,11 @@ The Map class can be instanciated to display a map in a `<div>`
 
 #### Overrides
 
-maplibre.Map.constructor
+MapML.constructor
 
 #### Defined in
 
-[src/Map.ts:132](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/Map.ts#L132)
+[src/Map.ts:135](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/Map.ts#L135)
 
 ## Methods
 
@@ -62,7 +62,7 @@ Disable the 3D terrain visualization
 
 #### Defined in
 
-[src/Map.ts:782](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/Map.ts#L782)
+[src/Map.ts:781](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/Map.ts#L781)
 
 ___
 
@@ -84,7 +84,7 @@ Enables the 3D terrain visualization
 
 #### Defined in
 
-[src/Map.ts:737](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/Map.ts#L737)
+[src/Map.ts:736](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/Map.ts#L736)
 
 ___
 
@@ -100,7 +100,7 @@ Get the exaggeration factor applied to the terrain
 
 #### Defined in
 
-[src/Map.ts:720](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/Map.ts#L720)
+[src/Map.ts:719](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/Map.ts#L719)
 
 ___
 
@@ -116,7 +116,7 @@ Know if terrian is enabled or not
 
 #### Defined in
 
-[src/Map.ts:728](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/Map.ts#L728)
+[src/Map.ts:727](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/Map.ts#L727)
 
 ___
 
@@ -139,7 +139,7 @@ This function is a short for `.setPrimaryLanguage()`
 
 #### Defined in
 
-[src/Map.ts:409](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/Map.ts#L409)
+[src/Map.ts:408](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/Map.ts#L408)
 
 ___
 
@@ -161,7 +161,7 @@ Define the primary language of the map. Note that not all the languages shorthan
 
 #### Defined in
 
-[src/Map.ts:420](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/Map.ts#L420)
+[src/Map.ts:419](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/Map.ts#L419)
 
 ___
 
@@ -184,7 +184,7 @@ Note that most styles do not allow a secondary language and this function only w
 
 #### Defined in
 
-[src/Map.ts:586](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/Map.ts#L586)
+[src/Map.ts:585](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/Map.ts#L585)
 
 ___
 
@@ -211,11 +211,11 @@ Can be:
 
 #### Overrides
 
-maplibre.Map.setStyle
+MapML.setStyle
 
 #### Defined in
 
-[src/Map.ts:393](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/Map.ts#L393)
+[src/Map.ts:396](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/Map.ts#L396)
 
 ___
 
@@ -238,4 +238,4 @@ Note: this is only a shortcut to `.enableTerrain()`
 
 #### Defined in
 
-[src/Map.ts:795](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/Map.ts#L795)
+[src/Map.ts:794](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/Map.ts#L794)

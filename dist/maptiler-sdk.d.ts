@@ -1,7 +1,7 @@
-import * as _mapbox_mapbox_gl_supported from '@mapbox/mapbox-gl-supported';
-import * as ML from 'maplibre-gl';
-import { StyleSpecification } from 'maplibre-gl';
+import * as maplibre_gl from 'maplibre-gl';
+import { MapOptions as MapOptions$1, StyleSpecification, ControlPosition, StyleOptions } from 'maplibre-gl';
 export * from 'maplibre-gl';
+import * as _mapbox_mapbox_gl_supported from '@mapbox/mapbox-gl-supported';
 import { FetchFunction } from '@maptiler/client';
 export { AutomaticStaticMapOptions, BBox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, LanguageGeocoding, LanguageGeocodingString, Position, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
 import EventEmitter from 'events';
@@ -256,7 +256,7 @@ declare class MapStyleVariant {
      * Get the style as usable by MapLibre, a string (URL) or a plain style description (StyleSpecification)
      * @returns
      */
-    getUsableStyle(): string | StyleSpecification;
+    getUsableStyle(): string | maplibregl.StyleSpecification;
     /**
      * Get the MapTiler Cloud id
      * @returns
@@ -374,7 +374,8 @@ declare class ReferenceMapStyle {
  */
 declare const MapStyle: MapStyleType;
 
-declare type TransformStyleFunction = (previous: ML.StyleSpecification, next: ML.StyleSpecification) => ML.StyleSpecification;
+declare const MapML: typeof maplibre_gl.Map;
+declare type TransformStyleFunction = (previous: StyleSpecification, next: StyleSpecification) => StyleSpecification;
 declare type StyleSwapOptions = {
     diff?: boolean;
     transformStyle?: TransformStyleFunction;
@@ -386,14 +387,14 @@ declare const GeolocationType: {
 /**
  * Options to provide to the `Map` constructor
  */
-declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
+declare type MapOptions = Omit<MapOptions$1, "style" | "maplibreLogo"> & {
     /**
      * Style of the map. Can be:
      * - a full style URL (possibly with API key)
      * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
      * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
      */
-    style?: ReferenceMapStyle | MapStyleVariant | ML.StyleSpecification | string;
+    style?: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string;
     /**
      * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.
      */
@@ -409,23 +410,23 @@ declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
     /**
      * Show the navigation control. (default: `true`, will hide if `false`)
      */
-    navigationControl?: boolean | ML.ControlPosition;
+    navigationControl?: boolean | ControlPosition;
     /**
      * Show the terrain control. (default: `true`, will hide if `false`)
      */
-    terrainControl?: boolean | ML.ControlPosition;
+    terrainControl?: boolean | ControlPosition;
     /**
      * Show the geolocate control. (default: `true`, will hide if `false`)
      */
-    geolocateControl?: boolean | ML.ControlPosition;
+    geolocateControl?: boolean | ControlPosition;
     /**
      * Show the scale control. (default: `false`, will show if `true`)
      */
-    scaleControl?: boolean | ML.ControlPosition;
+    scaleControl?: boolean | ControlPosition;
     /**
      * Show the full screen control. (default: `false`, will show if `true`)
      */
-    fullscreenControl?: boolean | ML.ControlPosition;
+    fullscreenControl?: boolean | ControlPosition;
     /**
      * Method to position the map at a given geolocation. Only if:
      * - `hash` is `false`
@@ -450,7 +451,7 @@ declare type MapOptions = Omit<ML.MapOptions, "style" | "maplibreLogo"> & {
 /**
  * The Map class can be instanciated to display a map in a `<div>`
  */
-declare class Map extends ML.Map {
+declare class Map extends MapML {
     private languageShouldUpdate;
     private isStyleInitialized;
     private isTerrainEnabled;
@@ -466,7 +467,7 @@ declare class Map extends ML.Map {
      * @param options
      * @returns
      */
-    setStyle(style: ReferenceMapStyle | MapStyleVariant | ML.StyleSpecification | string, options?: StyleSwapOptions & ML.StyleOptions): this;
+    setStyle(style: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string, options?: StyleSwapOptions & StyleOptions): this;
     /**
      * Define the primary language of the map. Note that not all the languages shorthands provided are available.
      * This function is a short for `.setPrimaryLanguage()`
@@ -589,28 +590,28 @@ declare const config: SdkConfig;
 declare const supported: _mapbox_mapbox_gl_supported.IsSupported;
 declare const setRTLTextPlugin: (url: string, callback: (error?: Error) => void, deferred?: boolean) => void;
 declare const getRTLTextPluginStatus: () => string;
-declare const NavigationControl: typeof ML.NavigationControl;
-declare const GeolocateControl: typeof ML.GeolocateControl;
-declare const AttributionControl: typeof ML.AttributionControl;
-declare const LogoControl: typeof ML.LogoControl;
-declare const ScaleControl: typeof ML.ScaleControl;
-declare const FullscreenControl: typeof ML.FullscreenControl;
-declare const TerrainControl: typeof ML.TerrainControl;
-declare const Popup: typeof ML.Popup;
-declare const Marker: typeof ML.Marker;
-declare const Style: typeof ML.Style;
-declare const LngLat: typeof ML.LngLat;
-declare const LngLatBounds: typeof ML.LngLatBounds;
-declare const MercatorCoordinate: typeof ML.MercatorCoordinate;
-declare const Evented: typeof ML.Evented;
-declare const AJAXError: typeof ML.AJAXError;
-declare const CanvasSource: typeof ML.CanvasSource;
-declare const GeoJSONSource: typeof ML.GeoJSONSource;
-declare const ImageSource: typeof ML.ImageSource;
-declare const RasterDEMTileSource: typeof ML.RasterDEMTileSource;
-declare const RasterTileSource: typeof ML.RasterTileSource;
-declare const VectorTileSource: typeof ML.VectorTileSource;
-declare const VideoSource: typeof ML.VideoSource;
+declare const NavigationControl: typeof maplibre_gl.NavigationControl;
+declare const GeolocateControl: typeof maplibre_gl.GeolocateControl;
+declare const AttributionControl: typeof maplibre_gl.AttributionControl;
+declare const LogoControl: typeof maplibre_gl.LogoControl;
+declare const ScaleControl: typeof maplibre_gl.ScaleControl;
+declare const FullscreenControl: typeof maplibre_gl.FullscreenControl;
+declare const TerrainControl: typeof maplibre_gl.TerrainControl;
+declare const Popup: typeof maplibre_gl.Popup;
+declare const Marker: typeof maplibre_gl.Marker;
+declare const Style: typeof maplibre_gl.Style;
+declare const LngLat: typeof maplibre_gl.LngLat;
+declare const LngLatBounds: typeof maplibre_gl.LngLatBounds;
+declare const MercatorCoordinate: typeof maplibre_gl.MercatorCoordinate;
+declare const Evented: typeof maplibre_gl.Evented;
+declare const AJAXError: typeof maplibre_gl.AJAXError;
+declare const CanvasSource: typeof maplibre_gl.CanvasSource;
+declare const GeoJSONSource: typeof maplibre_gl.GeoJSONSource;
+declare const ImageSource: typeof maplibre_gl.ImageSource;
+declare const RasterDEMTileSource: typeof maplibre_gl.RasterDEMTileSource;
+declare const RasterTileSource: typeof maplibre_gl.RasterTileSource;
+declare const VectorTileSource: typeof maplibre_gl.VectorTileSource;
+declare const VideoSource: typeof maplibre_gl.VideoSource;
 declare const prewarm: () => void;
 declare const clearPrewarmedResources: () => void;
 declare const version: string;
@@ -618,7 +619,7 @@ declare const workerCount: number;
 declare const maxParallelImageRequests: number;
 declare const clearStorage: (callback?: (err?: Error) => void) => void;
 declare const workerUrl: string;
-declare const addProtocol: (customProtocol: string, loadFn: (requestParameters: ML.RequestParameters, callback: ML.ResponseCallback<any>) => ML.Cancelable) => void;
+declare const addProtocol: (customProtocol: string, loadFn: (requestParameters: maplibre_gl.RequestParameters, callback: maplibre_gl.ResponseCallback<any>) => maplibre_gl.Cancelable) => void;
 declare const removeProtocol: (customProtocol: string) => void;
 
 export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, GeolocationType, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MapStyle, MapStyleType, MapStyleVariant, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ReferenceMapStyle, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };

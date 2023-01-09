@@ -1,4 +1,4 @@
-import * as ML from 'maplibre-gl';
+import maplibregl__default from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { v4 } from 'uuid';
 import EventEmitter from 'events';
@@ -140,7 +140,7 @@ const defaults = {
 };
 Object.freeze(defaults);
 
-class CustomLogoControl extends ML.LogoControl {
+class CustomLogoControl extends maplibregl__default.LogoControl {
   constructor(options = {}) {
     var _a, _b;
     super(options);
@@ -183,9 +183,8 @@ class CustomLogoControl extends ML.LogoControl {
 }
 
 function enableRTL() {
-  const maplibrePackage = ML;
-  if (maplibrePackage.getRTLTextPluginStatus() === "unavailable") {
-    maplibrePackage.setRTLTextPlugin(
+  if (maplibregl__default.getRTLTextPluginStatus() === "unavailable") {
+    maplibregl__default.setRTLTextPlugin(
       defaults.rtlPluginURL,
       null,
       true
@@ -775,7 +774,7 @@ class TerrainControl$1 {
   }
 }
 
-const { NavigationControl: NavigationControl$1 } = ML;
+const { NavigationControl: NavigationControl$1 } = maplibregl__default;
 class MaptilerNavigationControl extends NavigationControl$1 {
   constructor() {
     super({
@@ -855,13 +854,14 @@ var __async = (__this, __arguments, generator) => {
     step((generator = generator.apply(__this, __arguments)).next());
   });
 };
-const { FullscreenControl: FullscreenControl$1, GeolocateControl: GeolocateControl$1, ScaleControl: ScaleControl$1 } = ML;
+const { FullscreenControl: FullscreenControl$1, GeolocateControl: GeolocateControl$1, ScaleControl: ScaleControl$1 } = maplibregl__default;
+const MapML = maplibregl__default.Map;
 const MAPTILER_SESSION_ID = v4();
 const GeolocationType = {
   IP_POINT: "IP_POINT",
   IP_COUNTRY: "IP_COUNTRY"
 };
-class Map extends ML.Map {
+class Map extends MapML {
   constructor(options) {
     var _a;
     const style = styleToStyle(options.style);
@@ -963,7 +963,7 @@ class Map extends ML.Map {
           options.logoPosition
         );
         if (options.attributionControl === false) {
-          this.addControl(new ML.AttributionControl(options));
+          this.addControl(new maplibregl__default.AttributionControl(options));
         }
       } else if (options.maptilerLogo) {
         this.addControl(new CustomLogoControl(), options.logoPosition);
@@ -1364,40 +1364,42 @@ Point.convert = function(a) {
   return a;
 };
 
-const supported = ML.default.supported;
-const setRTLTextPlugin = ML.default.setRTLTextPlugin;
-const getRTLTextPluginStatus = ML.default.getRTLTextPluginStatus;
-const NavigationControl = ML.default.NavigationControl;
-const GeolocateControl = ML.default.GeolocateControl;
-const AttributionControl = ML.default.AttributionControl;
-const LogoControl = ML.default.LogoControl;
-const ScaleControl = ML.default.ScaleControl;
-const FullscreenControl = ML.default.FullscreenControl;
-const TerrainControl = ML.default.TerrainControl;
-const Popup = ML.default.Popup;
-const Marker = ML.default.Marker;
-const Style = ML.default.Style;
-const LngLat = ML.default.LngLat;
-const LngLatBounds = ML.default.LngLatBounds;
-const MercatorCoordinate = ML.default.MercatorCoordinate;
-const Evented = ML.default.Evented;
-const AJAXError = ML.default.AJAXError;
-const CanvasSource = ML.default.CanvasSource;
-const GeoJSONSource = ML.default.GeoJSONSource;
-const ImageSource = ML.default.ImageSource;
-const RasterDEMTileSource = ML.default.RasterDEMTileSource;
-const RasterTileSource = ML.default.RasterTileSource;
-const VectorTileSource = ML.default.VectorTileSource;
-const VideoSource = ML.default.VideoSource;
-const prewarm = ML.default.prewarm;
-const clearPrewarmedResources = ML.default.clearPrewarmedResources;
-const version = ML.default.version;
-const workerCount = ML.default.workerCount;
-const maxParallelImageRequests = ML.default.maxParallelImageRequests;
-const clearStorage = ML.default.clearStorage;
-const workerUrl = ML.default.workerUrl;
-const addProtocol = ML.default.addProtocol;
-const removeProtocol = ML.default.removeProtocol;
+const {
+  supported,
+  setRTLTextPlugin,
+  getRTLTextPluginStatus,
+  NavigationControl,
+  GeolocateControl,
+  AttributionControl,
+  LogoControl,
+  ScaleControl,
+  FullscreenControl,
+  TerrainControl,
+  Popup,
+  Marker,
+  Style,
+  LngLat,
+  LngLatBounds,
+  MercatorCoordinate,
+  Evented,
+  AJAXError,
+  CanvasSource,
+  GeoJSONSource,
+  ImageSource,
+  RasterDEMTileSource,
+  RasterTileSource,
+  VectorTileSource,
+  VideoSource,
+  prewarm,
+  clearPrewarmedResources,
+  version,
+  workerCount,
+  maxParallelImageRequests,
+  clearStorage,
+  workerUrl,
+  addProtocol,
+  removeProtocol
+} = maplibregl__default;
 
 export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, GeolocationType, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MapStyle, MapStyleVariant, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ReferenceMapStyle, ScaleControl, SdkConfig, Style, TerrainControl, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
 //# sourceMappingURL=maptiler-sdk.mjs.map

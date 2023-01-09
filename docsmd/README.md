@@ -77,19 +77,19 @@ Built-in languages values as strings
 
 #### Defined in
 
-[src/language.ts:110](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/language.ts#L110)
+[src/language.ts:110](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/language.ts#L110)
 
 ___
 
 ### MapOptions
 
-Ƭ **MapOptions**: `Omit`<`maplibre.MapOptions`, ``"style"`` \| ``"maplibreLogo"``\> & { `fullscreenControl?`: `boolean` \| `maplibre.ControlPosition` ; `geolocate?`: typeof [`GeolocationType`](README.md#geolocationtype)[keyof typeof [`GeolocationType`](README.md#geolocationtype)] \| `boolean` ; `geolocateControl?`: `boolean` \| `maplibre.ControlPosition` ; `maptilerLogo?`: `boolean` ; `navigationControl?`: `boolean` \| `maplibre.ControlPosition` ; `scaleControl?`: `boolean` \| `maplibre.ControlPosition` ; `style?`: [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) \| [`MapStyleVariant`](classes/MapStyleVariant.md) \| `maplibre.StyleSpecification` \| `string` ; `terrain?`: `boolean` ; `terrainControl?`: `boolean` \| `maplibre.ControlPosition` ; `terrainExaggeration?`: `number`  }
+Ƭ **MapOptions**: `Omit`<`MapOptionsML`, ``"style"`` \| ``"maplibreLogo"``\> & { `fullscreenControl?`: `boolean` \| `ControlPosition` ; `geolocate?`: typeof [`GeolocationType`](README.md#geolocationtype)[keyof typeof [`GeolocationType`](README.md#geolocationtype)] \| `boolean` ; `geolocateControl?`: `boolean` \| `ControlPosition` ; `maptilerLogo?`: `boolean` ; `navigationControl?`: `boolean` \| `ControlPosition` ; `scaleControl?`: `boolean` \| `ControlPosition` ; `style?`: [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) \| [`MapStyleVariant`](classes/MapStyleVariant.md) \| `StyleSpecification` \| `string` ; `terrain?`: `boolean` ; `terrainControl?`: `boolean` \| `ControlPosition` ; `terrainExaggeration?`: `number`  }
 
 Options to provide to the `Map` constructor
 
 #### Defined in
 
-[src/Map.ts:48](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/Map.ts#L48)
+[src/Map.ts:55](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/Map.ts#L55)
 
 ___
 
@@ -118,7 +118,7 @@ All the styles and variants maintained by MapTiler.
 
 #### Defined in
 
-[src/mapstyle/mapstylepresetlist.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/mapstyle/mapstylepresetlist.ts#L19)
+[src/mapstyle/mapstylepresetlist.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/mapstyle/mapstylepresetlist.ts#L19)
 
 ___
 
@@ -128,77 +128,77 @@ ___
 
 #### Defined in
 
-[src/unit.ts:1](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/unit.ts#L1)
+[src/unit.ts:1](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/unit.ts#L1)
 
 ## Variables
 
 ### AJAXError
 
-• `Const` **AJAXError**: typeof `AJAXError` = `ML.default.AJAXError`
+• **AJAXError**: typeof `AJAXError`
 
 #### Defined in
 
-[src/index.ts:30](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L30)
+[src/index.ts:71](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L71)
 
 ___
 
 ### AttributionControl
 
-• `Const` **AttributionControl**: typeof `AttributionControl` = `ML.default.AttributionControl`
+• **AttributionControl**: typeof `AttributionControl`
 
 #### Defined in
 
-[src/index.ts:17](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L17)
+[src/index.ts:59](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L59)
 
 ___
 
 ### CanvasSource
 
-• `Const` **CanvasSource**: typeof `CanvasSource` = `ML.default.CanvasSource`
+• **CanvasSource**: typeof `CanvasSource`
 
 #### Defined in
 
-[src/index.ts:32](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L32)
+[src/index.ts:72](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L72)
 
 ___
 
 ### Evented
 
-• `Const` **Evented**: typeof `Evented` = `ML.default.Evented`
+• **Evented**: typeof `Evented`
 
 #### Defined in
 
-[src/index.ts:29](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L29)
+[src/index.ts:70](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L70)
 
 ___
 
 ### FullscreenControl
 
-• `Const` **FullscreenControl**: typeof `FullscreenControl` = `ML.default.FullscreenControl`
+• **FullscreenControl**: typeof `FullscreenControl`
 
 #### Defined in
 
-[src/index.ts:20](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L20)
+[src/index.ts:62](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L62)
 
 ___
 
 ### GeoJSONSource
 
-• `Const` **GeoJSONSource**: typeof `GeoJSONSource` = `ML.default.GeoJSONSource`
+• **GeoJSONSource**: typeof `GeoJSONSource`
 
 #### Defined in
 
-[src/index.ts:33](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L33)
+[src/index.ts:73](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L73)
 
 ___
 
 ### GeolocateControl
 
-• `Const` **GeolocateControl**: typeof `GeolocateControl` = `ML.default.GeolocateControl`
+• **GeolocateControl**: typeof `GeolocateControl`
 
 #### Defined in
 
-[src/index.ts:16](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L16)
+[src/index.ts:58](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L58)
 
 ___
 
@@ -215,17 +215,17 @@ ___
 
 #### Defined in
 
-[src/Map.ts:37](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/Map.ts#L37)
+[src/Map.ts:44](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/Map.ts#L44)
 
 ___
 
 ### ImageSource
 
-• `Const` **ImageSource**: typeof `ImageSource` = `ML.default.ImageSource`
+• **ImageSource**: typeof `ImageSource`
 
 #### Defined in
 
-[src/index.ts:34](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L34)
+[src/index.ts:74](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L74)
 
 ___
 
@@ -316,37 +316,37 @@ Languages. Note that not all the languages of this list are available but the co
 
 #### Defined in
 
-[src/language.ts:4](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/language.ts#L4)
+[src/language.ts:4](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/language.ts#L4)
 
 ___
 
 ### LngLat
 
-• `Const` **LngLat**: typeof `LngLat` = `ML.default.LngLat`
+• **LngLat**: typeof `LngLat`
 
 #### Defined in
 
-[src/index.ts:25](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L25)
+[src/index.ts:67](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L67)
 
 ___
 
 ### LngLatBounds
 
-• `Const` **LngLatBounds**: typeof `LngLatBounds` = `ML.default.LngLatBounds`
+• **LngLatBounds**: typeof `LngLatBounds`
 
 #### Defined in
 
-[src/index.ts:26](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L26)
+[src/index.ts:68](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L68)
 
 ___
 
 ### LogoControl
 
-• `Const` **LogoControl**: typeof `LogoControl` = `ML.default.LogoControl`
+• **LogoControl**: typeof `LogoControl`
 
 #### Defined in
 
-[src/index.ts:18](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L18)
+[src/index.ts:60](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L60)
 
 ___
 
@@ -362,117 +362,117 @@ For example, `MapStyle.STREETS` and the variants:
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:305](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/mapstyle/mapstyle.ts#L305)
+[src/mapstyle/mapstyle.ts:305](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/mapstyle/mapstyle.ts#L305)
 
 ___
 
 ### Marker
 
-• `Const` **Marker**: typeof `Marker` = `ML.default.Marker`
+• **Marker**: typeof `Marker`
 
 #### Defined in
 
-[src/index.ts:23](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L23)
+[src/index.ts:65](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L65)
 
 ___
 
 ### MercatorCoordinate
 
-• `Const` **MercatorCoordinate**: typeof `MercatorCoordinate` = `ML.default.MercatorCoordinate`
+• **MercatorCoordinate**: typeof `MercatorCoordinate`
 
 #### Defined in
 
-[src/index.ts:28](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L28)
+[src/index.ts:69](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L69)
 
 ___
 
 ### NavigationControl
 
-• `Const` **NavigationControl**: typeof `NavigationControl` = `ML.default.NavigationControl`
+• **NavigationControl**: typeof `NavigationControl`
 
 #### Defined in
 
-[src/index.ts:15](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L15)
+[src/index.ts:57](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L57)
 
 ___
 
 ### Popup
 
-• `Const` **Popup**: typeof `Popup` = `ML.default.Popup`
+• **Popup**: typeof `Popup`
 
 #### Defined in
 
-[src/index.ts:22](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L22)
+[src/index.ts:64](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L64)
 
 ___
 
 ### RasterDEMTileSource
 
-• `Const` **RasterDEMTileSource**: typeof `RasterDEMTileSource` = `ML.default.RasterDEMTileSource`
+• **RasterDEMTileSource**: typeof `RasterDEMTileSource`
 
 #### Defined in
 
-[src/index.ts:35](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L35)
+[src/index.ts:75](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L75)
 
 ___
 
 ### RasterTileSource
 
-• `Const` **RasterTileSource**: typeof `RasterTileSource` = `ML.default.RasterTileSource`
+• **RasterTileSource**: typeof `RasterTileSource`
 
 #### Defined in
 
-[src/index.ts:36](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L36)
+[src/index.ts:76](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L76)
 
 ___
 
 ### ScaleControl
 
-• `Const` **ScaleControl**: typeof `ScaleControl` = `ML.default.ScaleControl`
+• **ScaleControl**: typeof `ScaleControl`
 
 #### Defined in
 
-[src/index.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L19)
+[src/index.ts:61](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L61)
 
 ___
 
 ### Style
 
-• `Const` **Style**: typeof `Style` = `ML.default.Style`
+• **Style**: typeof `Style`
 
 #### Defined in
 
-[src/index.ts:24](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L24)
+[src/index.ts:66](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L66)
 
 ___
 
 ### TerrainControl
 
-• `Const` **TerrainControl**: typeof `TerrainControl` = `ML.default.TerrainControl`
+• **TerrainControl**: typeof `TerrainControl`
 
 #### Defined in
 
-[src/index.ts:21](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L21)
+[src/index.ts:63](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L63)
 
 ___
 
 ### VectorTileSource
 
-• `Const` **VectorTileSource**: typeof `VectorTileSource` = `ML.default.VectorTileSource`
+• **VectorTileSource**: typeof `VectorTileSource`
 
 #### Defined in
 
-[src/index.ts:37](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L37)
+[src/index.ts:77](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L77)
 
 ___
 
 ### VideoSource
 
-• `Const` **VideoSource**: typeof `VideoSource` = `ML.default.VideoSource`
+• **VideoSource**: typeof `VideoSource`
 
 #### Defined in
 
-[src/index.ts:38](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L38)
+[src/index.ts:78](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L78)
 
 ___
 
@@ -482,47 +482,47 @@ ___
 
 #### Defined in
 
-[src/config.ts:81](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/config.ts#L81)
+[src/config.ts:81](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/config.ts#L81)
 
 ___
 
 ### maxParallelImageRequests
 
-• `Const` **maxParallelImageRequests**: `number` = `ML.default.maxParallelImageRequests`
+• **maxParallelImageRequests**: `number`
 
 #### Defined in
 
-[src/index.ts:43](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L43)
+[src/index.ts:83](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L83)
 
 ___
 
 ### version
 
-• `Const` **version**: `string` = `ML.default.version`
+• **version**: `string`
 
 #### Defined in
 
-[src/index.ts:41](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L41)
+[src/index.ts:81](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L81)
 
 ___
 
 ### workerCount
 
-• `Const` **workerCount**: `number` = `ML.default.workerCount`
+• **workerCount**: `number`
 
 #### Defined in
 
-[src/index.ts:42](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L42)
+[src/index.ts:82](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L82)
 
 ___
 
 ### workerUrl
 
-• `Const` **workerUrl**: `string` = `ML.default.workerUrl`
+• **workerUrl**: `string`
 
 #### Defined in
 
-[src/index.ts:45](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/index.ts#L45)
+[src/index.ts:85](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/index.ts#L85)
 
 ## Functions
 
@@ -552,7 +552,7 @@ var point = new Point(-77, 38);
 
 #### Defined in
 
-[src/Point.ts:17](https://github.com/maptiler/maptiler-sdk-js/blob/57e8179/src/Point.ts#L17)
+[src/Point.ts:17](https://github.com/maptiler/maptiler-sdk-js/blob/9c8ff49/src/Point.ts#L17)
 
 ___
 
