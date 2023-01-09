@@ -1,12 +1,10 @@
 import maplibregl from "maplibre-gl";
 
-const { NavigationControl } = maplibregl;
-
 type HTMLButtonElementPlus = HTMLButtonElement & {
   clickFunction: (e?: any) => unknown;
 };
 
-export class MaptilerNavigationControl extends NavigationControl {
+export class MaptilerNavigationControl extends maplibregl.NavigationControl {
   constructor() {
     super({
       showCompass: true,

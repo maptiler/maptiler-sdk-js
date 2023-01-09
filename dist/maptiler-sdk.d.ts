@@ -1,5 +1,5 @@
 import * as maplibre_gl from 'maplibre-gl';
-import { MapOptions as MapOptions$1, StyleSpecification, ControlPosition, StyleOptions } from 'maplibre-gl';
+import maplibre_gl__default, { MapOptions as MapOptions$1, StyleSpecification, ControlPosition, StyleOptions } from 'maplibre-gl';
 export * from 'maplibre-gl';
 import * as _mapbox_mapbox_gl_supported from '@mapbox/mapbox-gl-supported';
 import { FetchFunction } from '@maptiler/client';
@@ -374,7 +374,6 @@ declare class ReferenceMapStyle {
  */
 declare const MapStyle: MapStyleType;
 
-declare const MapML: typeof maplibre_gl.Map;
 declare type TransformStyleFunction = (previous: StyleSpecification, next: StyleSpecification) => StyleSpecification;
 declare type StyleSwapOptions = {
     diff?: boolean;
@@ -451,7 +450,7 @@ declare type MapOptions = Omit<MapOptions$1, "style" | "maplibreLogo"> & {
 /**
  * The Map class can be instanciated to display a map in a `<div>`
  */
-declare class Map extends MapML {
+declare class Map extends maplibre_gl__default.Map {
     private languageShouldUpdate;
     private isStyleInitialized;
     private isTerrainEnabled;

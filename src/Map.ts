@@ -23,10 +23,7 @@ import {
 } from "./mapstyle/mapstyle";
 import { TerrainControl } from "./terraincontrol";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
-import { BBox, geolocation } from "@maptiler/client";
-
-const { FullscreenControl, GeolocateControl, ScaleControl } = maplibregl;
-const MapML = maplibregl.Map;
+import { geolocation } from "@maptiler/client";
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (
@@ -126,7 +123,7 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
 /**
  * The Map class can be instanciated to display a map in a `<div>`
  */
-export class Map extends MapML {
+export class Map extends maplibregl.Map {
   private languageShouldUpdate = false;
   private isStyleInitialized = false;
   private isTerrainEnabled = false;
@@ -304,7 +301,7 @@ export class Map extends MapML {
             : options.scaleControl
         ) as ControlPosition;
 
-        const scaleControl = new ScaleControl({ unit: config.unit });
+        const scaleControl = new maplibregl.ScaleControl({ unit: config.unit });
         this.addControl(scaleControl, position);
         config.on("unit", (unit) => {
           scaleControl.setUnit(unit);
@@ -333,7 +330,7 @@ export class Map extends MapML {
         // this.addControl(new TerrainControl(), position);
 
         this.addControl(
-          new GeolocateControl({
+          new maplibregl.GeolocateControl({
             positionOptions: {
               enableHighAccuracy: true,
               maximumAge: 0,
@@ -371,7 +368,7 @@ export class Map extends MapML {
             : options.fullscreenControl
         ) as ControlPosition;
 
-        this.addControl(new FullscreenControl({}), position);
+        this.addControl(new maplibregl.FullscreenControl({}), position);
       }
     });
 

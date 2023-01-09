@@ -2047,8 +2047,7 @@
 	  }
 	}
 
-	const { NavigationControl: NavigationControl$1 } = maplibregl;
-	class MaptilerNavigationControl extends NavigationControl$1 {
+	class MaptilerNavigationControl extends maplibregl.NavigationControl {
 	  constructor() {
 	    super({
 	      showCompass: true,
@@ -2127,14 +2126,12 @@
 	    step((generator = generator.apply(__this, __arguments)).next());
 	  });
 	};
-	const { FullscreenControl: FullscreenControl$1, GeolocateControl: GeolocateControl$1, ScaleControl: ScaleControl$1 } = maplibregl;
-	const MapML = maplibregl.Map;
 	const MAPTILER_SESSION_ID = v4();
 	const GeolocationType = {
 	  IP_POINT: "IP_POINT",
 	  IP_COUNTRY: "IP_COUNTRY"
 	};
-	class Map$1 extends MapML {
+	class Map$1 extends maplibregl.Map {
 	  constructor(options) {
 	    var _a;
 	    const style = styleToStyle(options.style);
@@ -2243,7 +2240,7 @@
 	      }
 	      if (options.scaleControl) {
 	        const position = options.scaleControl === true || options.scaleControl === void 0 ? "bottom-right" : options.scaleControl;
-	        const scaleControl = new ScaleControl$1({ unit: config.unit });
+	        const scaleControl = new maplibregl.ScaleControl({ unit: config.unit });
 	        this.addControl(scaleControl, position);
 	        config.on("unit", (unit) => {
 	          scaleControl.setUnit(unit);
@@ -2256,7 +2253,7 @@
 	      if (options.geolocateControl !== false) {
 	        const position = options.geolocateControl === true || options.geolocateControl === void 0 ? "top-right" : options.geolocateControl;
 	        this.addControl(
-	          new GeolocateControl$1({
+	          new maplibregl.GeolocateControl({
 	            positionOptions: {
 	              enableHighAccuracy: true,
 	              maximumAge: 0,
@@ -2278,7 +2275,7 @@
 	      }
 	      if (options.fullscreenControl) {
 	        const position = options.fullscreenControl === true || options.fullscreenControl === void 0 ? "top-right" : options.fullscreenControl;
-	        this.addControl(new FullscreenControl$1({}), position);
+	        this.addControl(new maplibregl.FullscreenControl({}), position);
 	      }
 	    }));
 	    if (options.terrain) {

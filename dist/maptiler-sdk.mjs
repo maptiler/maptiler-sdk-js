@@ -774,8 +774,7 @@ class TerrainControl$1 {
   }
 }
 
-const { NavigationControl: NavigationControl$1 } = maplibregl__default;
-class MaptilerNavigationControl extends NavigationControl$1 {
+class MaptilerNavigationControl extends maplibregl__default.NavigationControl {
   constructor() {
     super({
       showCompass: true,
@@ -854,14 +853,12 @@ var __async = (__this, __arguments, generator) => {
     step((generator = generator.apply(__this, __arguments)).next());
   });
 };
-const { FullscreenControl: FullscreenControl$1, GeolocateControl: GeolocateControl$1, ScaleControl: ScaleControl$1 } = maplibregl__default;
-const MapML = maplibregl__default.Map;
 const MAPTILER_SESSION_ID = v4();
 const GeolocationType = {
   IP_POINT: "IP_POINT",
   IP_COUNTRY: "IP_COUNTRY"
 };
-class Map extends MapML {
+class Map extends maplibregl__default.Map {
   constructor(options) {
     var _a;
     const style = styleToStyle(options.style);
@@ -970,7 +967,7 @@ class Map extends MapML {
       }
       if (options.scaleControl) {
         const position = options.scaleControl === true || options.scaleControl === void 0 ? "bottom-right" : options.scaleControl;
-        const scaleControl = new ScaleControl$1({ unit: config.unit });
+        const scaleControl = new maplibregl__default.ScaleControl({ unit: config.unit });
         this.addControl(scaleControl, position);
         config.on("unit", (unit) => {
           scaleControl.setUnit(unit);
@@ -983,7 +980,7 @@ class Map extends MapML {
       if (options.geolocateControl !== false) {
         const position = options.geolocateControl === true || options.geolocateControl === void 0 ? "top-right" : options.geolocateControl;
         this.addControl(
-          new GeolocateControl$1({
+          new maplibregl__default.GeolocateControl({
             positionOptions: {
               enableHighAccuracy: true,
               maximumAge: 0,
@@ -1005,7 +1002,7 @@ class Map extends MapML {
       }
       if (options.fullscreenControl) {
         const position = options.fullscreenControl === true || options.fullscreenControl === void 0 ? "top-right" : options.fullscreenControl;
-        this.addControl(new FullscreenControl$1({}), position);
+        this.addControl(new maplibregl__default.FullscreenControl({}), position);
       }
     }));
     if (options.terrain) {
