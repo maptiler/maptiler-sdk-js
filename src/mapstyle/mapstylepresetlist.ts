@@ -101,6 +101,12 @@ export type MapStyleType = {
     LITE: MapStyleVariant;
     LINES: MapStyleVariant;
   };
+
+  STAGE: ReferenceMapStyle & {
+    DEFAULT: MapStyleVariant;
+    DARK: MapStyleVariant;
+    LIGHT: MapStyleVariant;
+  };
 };
 
 export const mapStylePresetList: MapStylePresetList = [
@@ -382,6 +388,35 @@ export const mapStylePresetList: MapStylePresetList = [
         id: "toner-v2-lines",
         name: "Lines",
         variantType: "LINES",
+        description: "",
+        imageURL: "",
+      },
+    ],
+  },
+
+  {
+    referenceStyleID: "STAGE",
+    name: "Stage",
+    description: "",
+    variants: [
+      {
+        id: "stage",
+        name: "Default",
+        variantType: "DEFAULT",
+        description: "",
+        imageURL: "",
+      },
+      {
+        id: "stage-dark",
+        name: "Dark",
+        variantType: "DARK",
+        description: "",
+        imageURL: "",
+      },
+      {
+        id: "stage-light",
+        name: "Light",
+        variantType: "LIGHT",
         description: "",
         imageURL: "",
       },

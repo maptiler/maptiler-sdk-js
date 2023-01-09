@@ -133,8 +133,8 @@ The styles with a shorthand provided by the SDK are the following:
 | ID | Screenshot | Comment |
 |:-:|:-:|:-:|
 |`MapStyle.STREETS`|[![](images/screenshots/style-streets-v2.png)](https://www.maptiler.com/maps/#style=streets-v2&mode=2d&position=12.52/40.73676/-73.98418)|The classic default style, perfect for urban areas|
-|`MapStyle.STREETS.DARK`|[![](images/screenshots/style-streets-v2-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A dark theme perfect to display data layers on top without losing any precious information|
-|`MapStyle.STREETS.LIGHT`|[![](images/screenshots/style-streets-v2-light.png)](https://www.maptiler.com/maps/#style=streets-v2-light&mode=2d&position=4.4/48.15/12.65)|Just like the `STREETS.DARK`, but in bright mode! Your data layer as a first class citizen!|
+|`MapStyle.STREETS.DARK`|[![](images/screenshots/style-streets-v2-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A dark theme perfect for eye-fiendly street navigation in a low light|
+|`MapStyle.STAGE.DARK`| MISSING IMAGE|A minimalist style for data visualization|
 |`MapStyle.SATELLITE`|[![](images/screenshots/style-satellite.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=7.87/24.518/-77.411)|Only high resolution satellite raster tiles without any labels|
 |`MapStyle.HYBRID`|[![](images/screenshots/style-hybrid.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)|Satellite tile with labels, landmarks, roads ways and political borders|
 |`MapStyle.OUTDOOR`|[![](images/screenshots/style-outdoor.png)](https://www.maptiler.com/maps/#style=outdoor&mode=2d&position=11.96/46.02591/7.7273)|A solid hiking companion, with peaks, parks, isolines and more|
@@ -175,6 +175,9 @@ Here is the full list:
   - `MapStyle.TONER.LITE` (variant)
   - `MapStyle.TONER.LINES` (variant)
 - `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variants)
+- `MapStyle.STAGE`, the perfect style for data visualization, with very little noise
+  - `MapStyle.STAGE.DARK` (variant)
+  - `MapStyle.STAGE.LIGHT` (variant)
 
 All reference styles (instances of `ReferenceMapStyle`) and style variants (instances of `MapStyleVariant`) have methods to know the alternative styles and variant that belong to the same reference style (`.getVariants()`). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style. Read more about about [ReferenceMapStyle](docsmd/classes/ReferenceMapStyle.md) and [MapStyleVariant](docsmd/classes/MapStyleVariant.md).
 </details>  

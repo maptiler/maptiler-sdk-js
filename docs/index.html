@@ -102,12 +102,12 @@
 <tr>
 <td align="center"><code>MapStyle.STREETS.DARK</code></td>
 <td align="center"><a href="https://www.maptiler.com/maps/#style=streets-v2-dark&amp;mode=2d&amp;position=3.71/39.66/-99.05"><img src="images/screenshots/style-streets-v2-dark.png" alt=""></a></td>
-<td align="center">A dark theme perfect to display data layers on top without losing any precious information</td>
+<td align="center">A dark theme perfect for eye-fiendly street navigation in a low light</td>
 </tr>
 <tr>
-<td align="center"><code>MapStyle.STREETS.LIGHT</code></td>
-<td align="center"><a href="https://www.maptiler.com/maps/#style=streets-v2-light&amp;mode=2d&amp;position=4.4/48.15/12.65"><img src="images/screenshots/style-streets-v2-light.png" alt=""></a></td>
-<td align="center">Just like the <code>STREETS.DARK</code>, but in bright mode! Your data layer as a first class citizen!</td>
+<td align="center"><code>MapStyle.STAGE.DARK</code></td>
+<td align="center">MISSING IMAGE</td>
+<td align="center">A minimalist style for data visualization</td>
 </tr>
 <tr>
 <td align="center"><code>MapStyle.SATELLITE</code></td>
@@ -176,6 +176,11 @@
 </ul>
 </li>
 <li><code>MapStyle.OPENSTREETMAP</code> (reference style, this one does not have any variants)</li>
+<li><code>MapStyle.STAGE</code>, the perfect style for data visualization, with very little noise<ul>
+<li><code>MapStyle.STAGE.DARK</code> (variant)</li>
+<li><code>MapStyle.STAGE.LIGHT</code> (variant)</li>
+</ul>
+</li>
 </ul>
 <p>All reference styles (instances of <code>ReferenceMapStyle</code>) and style variants (instances of <code>MapStyleVariant</code>) have methods to know the alternative styles and variant that belong to the same reference style (<code>.getVariants()</code>). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style. Read more about about <a href="docsmd/classes/ReferenceMapStyle.md">ReferenceMapStyle</a> and <a href="docsmd/classes/MapStyleVariant.md">MapStyleVariant</a>.</p>
 </details>  

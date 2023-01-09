@@ -181,6 +181,11 @@ declare type MapStyleType = {
         LITE: MapStyleVariant;
         LINES: MapStyleVariant;
     };
+    STAGE: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+        DARK: MapStyleVariant;
+        LIGHT: MapStyleVariant;
+    };
 };
 
 /**

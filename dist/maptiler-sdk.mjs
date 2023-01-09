@@ -544,6 +544,34 @@ const mapStylePresetList = [
         imageURL: ""
       }
     ]
+  },
+  {
+    referenceStyleID: "STAGE",
+    name: "Stage",
+    description: "",
+    variants: [
+      {
+        id: "stage",
+        name: "Default",
+        variantType: "DEFAULT",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "stage-dark",
+        name: "Dark",
+        variantType: "DARK",
+        description: "",
+        imageURL: ""
+      },
+      {
+        id: "stage-light",
+        name: "Light",
+        variantType: "LIGHT",
+        description: "",
+        imageURL: ""
+      }
+    ]
   }
 ];
 
