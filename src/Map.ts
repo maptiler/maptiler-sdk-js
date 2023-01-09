@@ -18,6 +18,7 @@ import {
 import { FullscreenControl, GeolocateControl, ScaleControl } from "maplibre-gl";
 import { TerrainControl } from "./terraincontrol";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
+import { BBox, geolocation } from "@maptiler/client";
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (
@@ -31,6 +32,14 @@ export type StyleSwapOptions = {
 };
 
 const MAPTILER_SESSION_ID = uuidv4();
+
+export const GeolocationType: {
+  IP_POINT: "IP_POINT";
+  IP_COUNTRY: "IP_COUNTRY";
+} = {
+  IP_POINT: "IP_POINT",
+  IP_COUNTRY: "IP_COUNTRY",
+} as const;
 
 /**
  * Options to provide to the `Map` constructor
@@ -87,6 +96,27 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
    * Show the full screen control. (default: `false`, will show if `true`)
    */
   fullscreenControl?: boolean | maplibre.ControlPosition;
+
+  /**
+   * Method to position the map at a given geolocation. Only if:
+   * - `hash` is `false`
+   * - `center` is not provided
+   *
+   * If the value is `true` of `"IP_POINT"` (given by `GeolocationType.IP_POINT`) then the positionning uses the MapTiler Cloud
+   * Geolocation to find the non-GPS location point.
+   * The zoom level can be provided in the `Map` constructor with the `zoom` option or will be `13` if not provided.
+   *
+   * If the value is `"IP_COUNTRY"` (given by `GeolocationType.IP_COUNTRY`) then the map is centered around the bounding box of the country.
+   * In this case, the `zoom` option will be ignored.
+   *
+   * If the value is `false`, no geolocation is performed and the map centering and zooming depends on other options or on
+   * the built-in defaults.
+   *
+   * If this option is non-false and the options `center` is also provided, then `center` prevails.
+   *
+   * Default: `false`
+   */
+  geolocate?: typeof GeolocationType[keyof typeof GeolocationType] | boolean;
 };
 
 /**
@@ -100,6 +130,7 @@ export class Map extends maplibre.Map {
 
   constructor(options: MapOptions) {
     const style = styleToStyle(options.style);
+    const hashPreConstructor = location.hash;
 
     if (!config.apiKey) {
       console.warn(
@@ -129,6 +160,47 @@ export class Map extends maplibre.Map {
           headers: {},
         };
       },
+    });
+
+    // Map centering and geolocation
+    this.once("styledata", async () => {
+      // Not using geolocation centering if...
+
+      if (options.geolocate === false) {
+        return;
+      }
+
+      // ... a center is provided in options
+      if (options.center) {
+        return;
+      }
+
+      // ... the hash option is enabled and a hash is present in the URL
+      if (options.hash && !!hashPreConstructor) {
+        return;
+      }
+
+      try {
+        const result = await geolocation.info();
+
+        // If the geolocation is set to IP_COUNTRY:
+        if (options.geolocate === GeolocationType.IP_COUNTRY) {
+          this.fitBounds(
+            result.country_bounds as [number, number, number, number],
+            {
+              duration: 0,
+              padding: 100,
+            }
+          );
+          return;
+        }
+
+        // Fallback case is GeolocationType.IP_POINT for all the remaining cases
+        this.setCenter([result.longitude, result.latitude]);
+        this.setZoom(options.zoom || 13);
+      } catch (err) {
+        // not raising
+      }
     });
 
     // Check if language has been modified and. If so, it will be updated during the next lifecycle step

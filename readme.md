@@ -133,8 +133,8 @@ The styles with a shorthand provided by the SDK are the following:
 | ID | Screenshot | Comment |
 |:-:|:-:|:-:|
 |`MapStyle.STREETS`|[![](images/screenshots/style-streets-v2.png)](https://www.maptiler.com/maps/#style=streets-v2&mode=2d&position=12.52/40.73676/-73.98418)|The classic default style, perfect for urban areas|
-|`MapStyle.STREETS.DARK`|[![](images/screenshots/style-streets-v2-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A dark theme perfect to display data layers on top without losing any precious information|
-|`MapStyle.STREETS.LIGHT`|[![](images/screenshots/style-streets-v2-light.png)](https://www.maptiler.com/maps/#style=streets-v2-light&mode=2d&position=4.4/48.15/12.65)|Just like the `STREETS.DARK`, but in bright mode! Your data layer as a first class citizen!|
+|`MapStyle.STREETS.DARK`|[![](images/screenshots/style-streets-v2-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A dark theme perfect for eye-fiendly street navigation in a low light|
+|`MapStyle.STAGE.DARK`| MISSING IMAGE|A minimalist style for data visualization|
 |`MapStyle.SATELLITE`|[![](images/screenshots/style-satellite.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=7.87/24.518/-77.411)|Only high resolution satellite raster tiles without any labels|
 |`MapStyle.HYBRID`|[![](images/screenshots/style-hybrid.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)|Satellite tile with labels, landmarks, roads ways and political borders|
 |`MapStyle.OUTDOOR`|[![](images/screenshots/style-outdoor.png)](https://www.maptiler.com/maps/#style=outdoor&mode=2d&position=11.96/46.02591/7.7273)|A solid hiking companion, with peaks, parks, isolines and more|
@@ -175,6 +175,9 @@ Here is the full list:
   - `MapStyle.TONER.LITE` (variant)
   - `MapStyle.TONER.LINES` (variant)
 - `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variants)
+- `MapStyle.STAGE`, the perfect style for data visualization, with very little noise
+  - `MapStyle.STAGE.DARK` (variant)
+  - `MapStyle.STAGE.LIGHT` (variant)
 
 All reference styles (instances of `ReferenceMapStyle`) and style variants (instances of `MapStyleVariant`) have methods to know the alternative styles and variant that belong to the same reference style (`.getVariants()`). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style. Read more about about [ReferenceMapStyle](docsmd/classes/ReferenceMapStyle.md) and [MapStyleVariant](docsmd/classes/MapStyleVariant.md).
 </details>  
@@ -205,6 +208,37 @@ And can even be provided in the URI form:
 ```ts
 map.setStyle("maptiler://c912ffc8-2360-487a-973b-59d037fb15b8");
 ```
+
+# Centering the map on visitors
+It is sometimes handy to center map on the visitor's location, and there are multiple ways of doing it but for the SDK, we have decided to make this extra simple by using the [IP geolocation](#%EF%B8%8F%EF%B8%8F-geolocation) API provided by [MapTiler Cloud](https://docs.maptiler.com/cloud/api/geolocation/), directly exposed as a single option of the `Map` constructor. There are two strategies:
+1. `IP_POINT`: centering the map on the actual visitor location, optionnaly using the `zoom` option (zoom level `13` if none is provided)
+2. `IP_COUNTRY`: fitting the map view on the bounding box of the visitor's country. In this case, the `zoom` option, if provided, will be ignored
+
+Here is how the map gets centered on the visitor's location:
+```js
+new maptiler.Map({
+  // ... other options
+
+  geolocate: maptiler.GeolocationType.IP_POINT
+})
+```
+
+Here is how the map fits the visitor's country bounds:
+```js
+new maptiler.Map({
+  // ... other options
+
+  geolocate: maptiler.GeolocationType.IP_COUNTRY
+})
+```
+
+The `geolocation` options will not be taken into consideration in the following cases:
+- if the `center` options is provided, then it prevails
+- if the `hash` options is provided with the value `true` **AND** a location hash is already part of the URL. If `hash` is `true` but there is not yet a location hash in the URL, then the geolocation will work.
+
+> 📣 *__Note:__* if none of the options `center` or `hash` is provided to the `Map` constructor, then the map will be centered using the `IP_POINT` strategy, unless the `geolocate` has the value `false`.
+
+> 📣 *__Note 2:__* the term *IP geolocation* refers to finding the physical location of a computer using its *IP address*. The *IP address* is a numerical identifier of a computer within a network, just like the phone number for a telephone. The *IP geolocation* is **not** using the GPS of a device and usually provides a precision in the order of a few hundred meters. This precision may vary based on many local parameters such as the density of the network grid or the terrain, this is why it is generaly better not to use a zoom level higher than `14`.
 
 # Easy to add controls
 The term "control" is commonly used for all sorts of buttons and information display that take place in one of the corner of the map area. The most well know are probably the `[+]` and `[-]` zoom buttons as well as the attribution information. Plenty of others are possible and we have made a few easy to add and directly accessible from the `Map` constructor options:

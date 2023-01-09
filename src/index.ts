@@ -90,7 +90,7 @@ export {
   // getPerformanceMetrics
 };
 
-import { Map } from "./Map";
+import { Map, GeolocationType } from "./Map";
 import type { MapOptions } from "./Map";
 
 // importing client functions to expose them as part of the SDK
@@ -148,6 +148,7 @@ export type {
 // Exporting classes, objects, functions, etc.
 export {
   Map,
+  GeolocationType,
   SdkConfig,
   config,
   ServiceError,

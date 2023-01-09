@@ -1836,6 +1836,34 @@
 	        imageURL: ""
 	      }
 	    ]
+	  },
+	  {
+	    referenceStyleID: "STAGE",
+	    name: "Stage",
+	    description: "",
+	    variants: [
+	      {
+	        id: "stage",
+	        name: "Default",
+	        variantType: "DEFAULT",
+	        description: "",
+	        imageURL: ""
+	      },
+	      {
+	        id: "stage-dark",
+	        name: "Dark",
+	        variantType: "DARK",
+	        description: "",
+	        imageURL: ""
+	      },
+	      {
+	        id: "stage-light",
+	        name: "Light",
+	        variantType: "LIGHT",
+	        description: "",
+	        imageURL: ""
+	      }
+	    ]
 	  }
 	];
 
@@ -2120,10 +2148,15 @@
 	  });
 	};
 	const MAPTILER_SESSION_ID = v4();
+	const GeolocationType = {
+	  IP_POINT: "IP_POINT",
+	  IP_COUNTRY: "IP_COUNTRY"
+	};
 	class Map$1 extends maplibreGl$1.exports.Map {
 	  constructor(options) {
 	    var _a;
 	    const style = styleToStyle(options.style);
+	    const hashPreConstructor = location.hash;
 	    if (!config.apiKey) {
 	      console.warn(
 	        "MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!"
@@ -2150,6 +2183,33 @@
 	    this.isStyleInitialized = false;
 	    this.isTerrainEnabled = false;
 	    this.terrainExaggeration = 1;
+	    this.once("styledata", () => __async(this, null, function* () {
+	      if (options.geolocate === false) {
+	        return;
+	      }
+	      if (options.center) {
+	        return;
+	      }
+	      if (options.hash && !!hashPreConstructor) {
+	        return;
+	      }
+	      try {
+	        const result = yield geolocation.info();
+	        if (options.geolocate === GeolocationType.IP_COUNTRY) {
+	          this.fitBounds(
+	            result.country_bounds,
+	            {
+	              duration: 0,
+	              padding: 100
+	            }
+	          );
+	          return;
+	        }
+	        this.setCenter([result.longitude, result.latitude]);
+	        this.setZoom(options.zoom || 13);
+	      } catch (err) {
+	      }
+	    }));
 	    this.on("styledataloading", () => {
 	      this.languageShouldUpdate = !!config.primaryLanguage || !!config.secondaryLanguage;
 	    });
@@ -2637,6 +2697,7 @@
 	exports.FullscreenControl = FullscreenControl;
 	exports.GeoJSONSource = GeoJSONSource;
 	exports.GeolocateControl = GeolocateControl;
+	exports.GeolocationType = GeolocationType;
 	exports.ImageSource = ImageSource;
 	exports.Language = Language;
 	exports.LanguageGeocoding = LanguageGeocoding;
