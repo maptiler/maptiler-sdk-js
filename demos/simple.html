@@ -36,7 +36,7 @@
     <script src ="maptiler-sdk.umd.js"></script>
     
     <script>
-      maptilersdk.config.apiKey = "YOUR_API_TOKEN";
+      maptilersdk.config.apiKey = "wvElBzv1zqf8XeNE37ip";
 
       const map = new maptilersdk.Map({
         container: document.getElementById("map-container"),
@@ -54,7 +54,7 @@
 
       Object.keys(maptilersdk.MapStyle).forEach(s => {
         const styleOption = document.createElement('option');
-        styleOption.value = maptilersdk.MapStyle[s];
+        styleOption.value = maptilersdk.MapStyle[s].DEFAULT.id;
         styleOption.innerHTML = s.replace("_", " ").toLowerCase();
         styleDropDown.appendChild(styleOption);
       })

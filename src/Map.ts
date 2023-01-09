@@ -1,4 +1,10 @@
-import * as maplibre from "maplibre-gl";
+import maplibregl from "maplibre-gl";
+import type {
+  StyleSpecification,
+  MapOptions as MapOptionsML,
+  ControlPosition,
+  StyleOptions,
+} from "maplibre-gl";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "./config";
 import { defaults } from "./defaults";
@@ -15,16 +21,15 @@ import {
   ReferenceMapStyle,
   styleToStyle,
 } from "./mapstyle/mapstyle";
-import { FullscreenControl, GeolocateControl, ScaleControl } from "maplibre-gl";
 import { TerrainControl } from "./terraincontrol";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
-import { BBox, geolocation } from "@maptiler/client";
+import { geolocation } from "@maptiler/client";
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (
-  previous: maplibre.StyleSpecification,
-  next: maplibre.StyleSpecification
-) => maplibre.StyleSpecification;
+  previous: StyleSpecification,
+  next: StyleSpecification
+) => StyleSpecification;
 
 export type StyleSwapOptions = {
   diff?: boolean;
@@ -44,18 +49,14 @@ export const GeolocationType: {
 /**
  * Options to provide to the `Map` constructor
  */
-export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
+export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   /**
    * Style of the map. Can be:
    * - a full style URL (possibly with API key)
    * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
    * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
    */
-  style?:
-    | ReferenceMapStyle
-    | MapStyleVariant
-    | maplibre.StyleSpecification
-    | string;
+  style?: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string;
 
   /**
    * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.
@@ -75,27 +76,27 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
   /**
    * Show the navigation control. (default: `true`, will hide if `false`)
    */
-  navigationControl?: boolean | maplibre.ControlPosition;
+  navigationControl?: boolean | ControlPosition;
 
   /**
    * Show the terrain control. (default: `true`, will hide if `false`)
    */
-  terrainControl?: boolean | maplibre.ControlPosition;
+  terrainControl?: boolean | ControlPosition;
 
   /**
    * Show the geolocate control. (default: `true`, will hide if `false`)
    */
-  geolocateControl?: boolean | maplibre.ControlPosition;
+  geolocateControl?: boolean | ControlPosition;
 
   /**
    * Show the scale control. (default: `false`, will show if `true`)
    */
-  scaleControl?: boolean | maplibre.ControlPosition;
+  scaleControl?: boolean | ControlPosition;
 
   /**
    * Show the full screen control. (default: `false`, will show if `true`)
    */
-  fullscreenControl?: boolean | maplibre.ControlPosition;
+  fullscreenControl?: boolean | ControlPosition;
 
   /**
    * Method to position the map at a given geolocation. Only if:
@@ -122,7 +123,7 @@ export type MapOptions = Omit<maplibre.MapOptions, "style" | "maplibreLogo"> & {
 /**
  * The Map class can be instanciated to display a map in a `<div>`
  */
-export class Map extends maplibre.Map {
+export class Map extends maplibregl.Map {
   private languageShouldUpdate = false;
   private isStyleInitialized = false;
   private isTerrainEnabled = false;
@@ -258,7 +259,7 @@ export class Map extends maplibre.Map {
           );
 
         const styleUrl = new URL(
-          (possibleSources[0] as maplibre.VectorTileSource).url
+          (possibleSources[0] as maplibregl.VectorTileSource).url
         );
 
         if (!styleUrl.searchParams.has("key")) {
@@ -282,7 +283,7 @@ export class Map extends maplibre.Map {
 
         // if attribution in option is `false` but the the logo shows up in the tileJson, then the attribution must show anyways
         if (options.attributionControl === false) {
-          this.addControl(new maplibre.AttributionControl(options));
+          this.addControl(new maplibregl.AttributionControl(options));
         }
       } else if (options.maptilerLogo) {
         this.addControl(new CustomLogoControl(), options.logoPosition);
@@ -298,9 +299,9 @@ export class Map extends maplibre.Map {
           options.scaleControl === true || options.scaleControl === undefined
             ? "bottom-right"
             : options.scaleControl
-        ) as maplibre.ControlPosition;
+        ) as ControlPosition;
 
-        const scaleControl = new ScaleControl({ unit: config.unit });
+        const scaleControl = new maplibregl.ScaleControl({ unit: config.unit });
         this.addControl(scaleControl, position);
         config.on("unit", (unit) => {
           scaleControl.setUnit(unit);
@@ -314,7 +315,7 @@ export class Map extends maplibre.Map {
           options.navigationControl === undefined
             ? "top-right"
             : options.navigationControl
-        ) as maplibre.ControlPosition;
+        ) as ControlPosition;
         this.addControl(new MaptilerNavigationControl(), position);
       }
 
@@ -325,11 +326,11 @@ export class Map extends maplibre.Map {
           options.geolocateControl === undefined
             ? "top-right"
             : options.geolocateControl
-        ) as maplibre.ControlPosition;
+        ) as ControlPosition;
         // this.addControl(new TerrainControl(), position);
 
         this.addControl(
-          new GeolocateControl({
+          new maplibregl.GeolocateControl({
             positionOptions: {
               enableHighAccuracy: true,
               maximumAge: 0,
@@ -353,7 +354,7 @@ export class Map extends maplibre.Map {
           options.terrainControl === undefined
             ? "top-right"
             : options.terrainControl
-        ) as maplibre.ControlPosition;
+        ) as ControlPosition;
         this.addControl(new TerrainControl(), position);
       }
 
@@ -365,9 +366,9 @@ export class Map extends maplibre.Map {
           options.fullscreenControl === undefined
             ? "top-right"
             : options.fullscreenControl
-        ) as maplibre.ControlPosition;
+        ) as ControlPosition;
 
-        this.addControl(new FullscreenControl({}), position);
+        this.addControl(new maplibregl.FullscreenControl({}), position);
       }
     });
 
@@ -390,12 +391,8 @@ export class Map extends maplibre.Map {
    * @returns
    */
   setStyle(
-    style:
-      | ReferenceMapStyle
-      | MapStyleVariant
-      | maplibre.StyleSpecification
-      | string,
-    options?: StyleSwapOptions & maplibre.StyleOptions
+    style: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string,
+    options?: StyleSwapOptions & StyleOptions
   ) {
     return super.setStyle(styleToStyle(style), options);
   }

@@ -1,7 +1,7 @@
 import { bindAll, DOMcreate, DOMremove } from "./tools";
 
 import { Map } from "./map";
-import type { IControl } from "maplibre-gl";
+import maplibregl from "maplibre-gl";
 
 /**
  * An `TerrainControl` control adds a button to turn terrain on and off.
@@ -17,7 +17,7 @@ import type { IControl } from "maplibre-gl";
  *         source: "terrain"
  *     }));
  */
-export class TerrainControl implements IControl {
+export class TerrainControl implements maplibregl.IControl {
   _map: Map;
   _container: HTMLElement;
   _terrainButton: HTMLButtonElement;

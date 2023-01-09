@@ -1,5 +1,4 @@
 import satelliteBuiltin from "./builtinMapStyles/satellite.json";
-import { StyleSpecification } from "maplibre-gl";
 import { mapStylePresetList, MapStyleType } from "./mapstylepresetlist";
 
 const builtInStyles = {
@@ -110,7 +109,7 @@ export class MapStyleVariant {
    * Get the style as usable by MapLibre, a string (URL) or a plain style description (StyleSpecification)
    * @returns
    */
-  getUsableStyle(): string | StyleSpecification {
+  getUsableStyle(): string | maplibregl.StyleSpecification {
     if (this.id in builtInStyles) {
       return builtInStyles[this.id];
     }
@@ -309,10 +308,10 @@ function styleToStyle(
     | string
     | ReferenceMapStyle
     | MapStyleVariant
-    | StyleSpecification
+    | maplibregl.StyleSpecification
     | null
     | undefined
-): string | StyleSpecification {
+): string | maplibregl.StyleSpecification {
   if (!style) {
     return MapStyle[mapStylePresetList[0].referenceStyleID]
       .getDefaultVariant()
@@ -337,7 +336,7 @@ function styleToStyle(
     return style.getDefaultVariant().getUsableStyle();
   }
 
-  return style as StyleSpecification;
+  return style as maplibregl.StyleSpecification;
 }
 
 export { MapStyle, styleToStyle };
