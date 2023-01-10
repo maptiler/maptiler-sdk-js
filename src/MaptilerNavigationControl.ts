@@ -23,7 +23,7 @@ export class MaptilerNavigationControl extends maplibregl.NavigationControl {
       {
         const currentPitch = this._map.getPitch();
         if (currentPitch === 0) {
-          this._map.easeTo({ pitch: this._map.getMaxPitch() });
+          this._map.easeTo({ pitch: Math.min(this._map.getMaxPitch(), 80) });
         } else {
           if (this.options.visualizePitch) {
             this._map.resetNorthPitch({}, { originalEvent: e });
