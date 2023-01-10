@@ -1,4 +1,5 @@
 import maplibregl from "maplibre-gl";
+import { Base64 } from "js-base64";
 import type {
   StyleSpecification,
   MapOptions as MapOptionsML,
@@ -39,11 +40,11 @@ export type StyleSwapOptions = {
 const MAPTILER_SESSION_ID = uuidv4();
 
 export const GeolocationType: {
-  IP_POINT: "IP_POINT";
-  IP_COUNTRY: "IP_COUNTRY";
+  POINT: "POINT";
+  COUNTRY: "COUNTRY";
 } = {
-  IP_POINT: "IP_POINT",
-  IP_COUNTRY: "IP_COUNTRY",
+  POINT: "POINT",
+  COUNTRY: "COUNTRY",
 } as const;
 
 /**
@@ -103,11 +104,11 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * - `hash` is `false`
    * - `center` is not provided
    *
-   * If the value is `true` of `"IP_POINT"` (given by `GeolocationType.IP_POINT`) then the positionning uses the MapTiler Cloud
+   * If the value is `true` of `"POINT"` (given by `GeolocationType.POINT`) then the positionning uses the MapTiler Cloud
    * Geolocation to find the non-GPS location point.
    * The zoom level can be provided in the `Map` constructor with the `zoom` option or will be `13` if not provided.
    *
-   * If the value is `"IP_COUNTRY"` (given by `GeolocationType.IP_COUNTRY`) then the map is centered around the bounding box of the country.
+   * If the value is `"COUNTRY"` (given by `GeolocationType.COUNTRY`) then the map is centered around the bounding box of the country.
    * In this case, the `zoom` option will be ignored.
    *
    * If the value is `false`, no geolocation is performed and the map centering and zooming depends on other options or on
@@ -181,26 +182,59 @@ export class Map extends maplibregl.Map {
         return;
       }
 
+      // If the geolocation is set to COUNTRY:
       try {
-        const result = await geolocation.info();
-
-        // If the geolocation is set to IP_COUNTRY:
-        if (options.geolocate === GeolocationType.IP_COUNTRY) {
-          this.fitBounds(
-            result.country_bounds as [number, number, number, number],
-            {
-              duration: 0,
-              padding: 100,
-            }
-          );
+        if (options.geolocate === GeolocationType.COUNTRY) {
+          await this.fitToIpBounds();
           return;
         }
-
-        // Fallback case is GeolocationType.IP_POINT for all the remaining cases
-        this.setCenter([result.longitude, result.latitude]);
-        this.setZoom(options.zoom || 13);
-      } catch (err) {
+      } catch (e) {
         // not raising
+        console.warn(e.message);
+      }
+
+      // As a fallback, we want to center the map on the visitor. First with IP geolocation...
+      let ipLocatedCameraHash = null;
+      try {
+        await this.centerOnIpPoint(options.zoom);
+        ipLocatedCameraHash = this.getCameraHash();
+      } catch (e) {
+        // not raising
+        console.warn(e.message);
+      }
+
+      // Then, the get a more precise location, we rely on the browser location, but only if it was already granted
+      // before (we don't want to ask wih a popup at launch time)
+      const locationResult = await navigator.permissions.query({
+        name: "geolocation",
+      });
+
+      if (locationResult.state === "granted") {
+        navigator.geolocation.getCurrentPosition(
+          // success callback
+          (data) => {
+            // If the user has already moved since the ip location, then we no longer want to move the center
+            if (ipLocatedCameraHash !== this.getCameraHash()) {
+              return;
+            }
+
+            this.easeTo({
+              center: [data.coords.longitude, data.coords.latitude],
+              zoom: options.zoom || 12,
+              duration: 2000,
+            });
+          },
+
+          // error callback
+          null,
+
+          // options
+          {
+            maximumAge: 24 * 3600 * 1000, // a day in millisec
+            timeout: 5000, // milliseconds
+            enableHighAccuracy: false,
+          }
+        );
       }
     });
 
@@ -827,5 +861,35 @@ export class Map extends maplibregl.Map {
         cb();
       });
     }
+  }
+
+  async fitToIpBounds() {
+    const ipGeolocateResult = await geolocation.info();
+    this.fitBounds(
+      ipGeolocateResult.country_bounds as [number, number, number, number],
+      {
+        duration: 0,
+        padding: 100,
+      }
+    );
+  }
+
+  async centerOnIpPoint(zoom: number | undefined) {
+    const ipGeolocateResult = await geolocation.info();
+    this.jumpTo({
+      center: [ipGeolocateResult.longitude, ipGeolocateResult.latitude],
+      zoom: zoom || 11,
+    });
+  }
+
+  getCameraHash() {
+    const hashBin = new Float32Array(5);
+    const center = this.getCenter();
+    hashBin[0] = center.lng;
+    hashBin[1] = center.lat;
+    hashBin[2] = this.getZoom();
+    hashBin[3] = this.getPitch();
+    hashBin[4] = this.getBearing();
+    return Base64.fromUint8Array(new Uint8Array(hashBin.buffer));
   }
 }

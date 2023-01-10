@@ -18,8 +18,11 @@ The Map class can be instanciated to display a map in a `<div>`
 
 ### Methods
 
+- [centerOnIpPoint](Map.md#centeronippoint)
 - [disableTerrain](Map.md#disableterrain)
 - [enableTerrain](Map.md#enableterrain)
+- [fitToIpBounds](Map.md#fittoipbounds)
+- [getCameraHash](Map.md#getcamerahash)
 - [getTerrainExaggeration](Map.md#getterrainexaggeration)
 - [hasTerrain](Map.md#hasterrain)
 - [setLanguage](Map.md#setlanguage)
@@ -46,9 +49,29 @@ maplibregl.Map.constructor
 
 #### Defined in
 
-[src/Map.ts:132](https://github.com/maptiler/maptiler-sdk-js/blob/cdf4233/src/Map.ts#L132)
+[src/Map.ts:133](https://github.com/maptiler/maptiler-sdk-js/blob/8b9b4eb/src/Map.ts#L133)
 
 ## Methods
+
+### centerOnIpPoint
+
+▸ **centerOnIpPoint**(`zoom`): `Promise`<`void`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `zoom` | `number` |
+
+#### Returns
+
+`Promise`<`void`\>
+
+#### Defined in
+
+[src/Map.ts:877](https://github.com/maptiler/maptiler-sdk-js/blob/8b9b4eb/src/Map.ts#L877)
+
+___
 
 ### disableTerrain
 
@@ -62,7 +85,7 @@ Disable the 3D terrain visualization
 
 #### Defined in
 
-[src/Map.ts:778](https://github.com/maptiler/maptiler-sdk-js/blob/cdf4233/src/Map.ts#L778)
+[src/Map.ts:812](https://github.com/maptiler/maptiler-sdk-js/blob/8b9b4eb/src/Map.ts#L812)
 
 ___
 
@@ -84,7 +107,35 @@ Enables the 3D terrain visualization
 
 #### Defined in
 
-[src/Map.ts:733](https://github.com/maptiler/maptiler-sdk-js/blob/cdf4233/src/Map.ts#L733)
+[src/Map.ts:767](https://github.com/maptiler/maptiler-sdk-js/blob/8b9b4eb/src/Map.ts#L767)
+
+___
+
+### fitToIpBounds
+
+▸ **fitToIpBounds**(): `Promise`<`void`\>
+
+#### Returns
+
+`Promise`<`void`\>
+
+#### Defined in
+
+[src/Map.ts:866](https://github.com/maptiler/maptiler-sdk-js/blob/8b9b4eb/src/Map.ts#L866)
+
+___
+
+### getCameraHash
+
+▸ **getCameraHash**(): `string`
+
+#### Returns
+
+`string`
+
+#### Defined in
+
+[src/Map.ts:885](https://github.com/maptiler/maptiler-sdk-js/blob/8b9b4eb/src/Map.ts#L885)
 
 ___
 
@@ -100,7 +151,7 @@ Get the exaggeration factor applied to the terrain
 
 #### Defined in
 
-[src/Map.ts:716](https://github.com/maptiler/maptiler-sdk-js/blob/cdf4233/src/Map.ts#L716)
+[src/Map.ts:750](https://github.com/maptiler/maptiler-sdk-js/blob/8b9b4eb/src/Map.ts#L750)
 
 ___
 
@@ -116,7 +167,7 @@ Know if terrian is enabled or not
 
 #### Defined in
 
-[src/Map.ts:724](https://github.com/maptiler/maptiler-sdk-js/blob/cdf4233/src/Map.ts#L724)
+[src/Map.ts:758](https://github.com/maptiler/maptiler-sdk-js/blob/8b9b4eb/src/Map.ts#L758)
 
 ___
 
@@ -139,7 +190,7 @@ This function is a short for `.setPrimaryLanguage()`
 
 #### Defined in
 
-[src/Map.ts:405](https://github.com/maptiler/maptiler-sdk-js/blob/cdf4233/src/Map.ts#L405)
+[src/Map.ts:439](https://github.com/maptiler/maptiler-sdk-js/blob/8b9b4eb/src/Map.ts#L439)
 
 ___
 
@@ -161,7 +212,7 @@ Define the primary language of the map. Note that not all the languages shorthan
 
 #### Defined in
 
-[src/Map.ts:416](https://github.com/maptiler/maptiler-sdk-js/blob/cdf4233/src/Map.ts#L416)
+[src/Map.ts:450](https://github.com/maptiler/maptiler-sdk-js/blob/8b9b4eb/src/Map.ts#L450)
 
 ___
 
@@ -184,7 +235,7 @@ Note that most styles do not allow a secondary language and this function only w
 
 #### Defined in
 
-[src/Map.ts:582](https://github.com/maptiler/maptiler-sdk-js/blob/cdf4233/src/Map.ts#L582)
+[src/Map.ts:616](https://github.com/maptiler/maptiler-sdk-js/blob/8b9b4eb/src/Map.ts#L616)
 
 ___
 
@@ -215,7 +266,7 @@ maplibregl.Map.setStyle
 
 #### Defined in
 
-[src/Map.ts:393](https://github.com/maptiler/maptiler-sdk-js/blob/cdf4233/src/Map.ts#L393)
+[src/Map.ts:427](https://github.com/maptiler/maptiler-sdk-js/blob/8b9b4eb/src/Map.ts#L427)
 
 ___
 
@@ -238,4 +289,4 @@ Note: this is only a shortcut to `.enableTerrain()`
 
 #### Defined in
 
-[src/Map.ts:791](https://github.com/maptiler/maptiler-sdk-js/blob/cdf4233/src/Map.ts#L791)
+[src/Map.ts:825](https://github.com/maptiler/maptiler-sdk-js/blob/8b9b4eb/src/Map.ts#L825)
