@@ -1,0 +1,127 @@
+
+.mapboxgl-ctrl-group:not(:empty), .maplibregl-ctrl-group:not(:empty) {
+  box-shadow: 0 0 6px 2px rgb(0 0 0 / 8%);
+}
+
+
+.mapboxgl-ctrl-group, .maplibregl-ctrl-group {
+  background: #fff;
+  border-radius: 3px;
+}
+
+
+.mapboxgl-ctrl-group button:focus:first-child,.maplibregl-ctrl-group button:focus:first-child {
+  border-radius: 3px 3px 0 0;
+}
+
+.mapboxgl-ctrl-group button:focus:last-child,.maplibregl-ctrl-group button:focus:last-child {
+  border-radius: 0 0 3px 3px;
+}
+
+/* We do not want opacity to be lowered when buttons are disabled */
+.maplibregl-ctrl button:disabled .maplibregl-ctrl-icon {
+  opacity: 1;
+}
+
+
+.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon
+{
+  background-image: url([src/style/svg/v5-zoom-plus.svg]);
+}
+
+
+.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon
+{
+  background-image: url([src/style/svg/v5-zoom-minus.svg]);
+}
+
+
+.mapboxgl-ctrl button.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-compass .maplibregl-ctrl-icon
+{
+  /* Custom based on Google compass icon but without the circle */
+  background-image: url([src/style/svg/v5.1-compass.svg]);
+}
+
+
+.mapboxgl-ctrl-group button,.maplibregl-ctrl-group button
+{
+  height: 33px;
+  width: 33px;
+}
+
+
+.mapboxgl-ctrl-group button+button,.maplibregl-ctrl-group button+button
+{
+  border-top: 1px solid #0000001c;
+}
+
+/* Geolocate button: default button state before being clicked */
+.mapboxgl-ctrl button.mapboxgl-ctrl-geolocate .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-geolocate .maplibregl-ctrl-icon
+{
+  background-image: url([src/style/svg/v5-geolocate-A.svg]);
+}
+
+/* Geolocate button: permission was not granted */
+.mapboxgl-ctrl button.mapboxgl-ctrl-geolocate:disabled .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-geolocate:disabled .maplibregl-ctrl-icon
+{
+  background-image: url([src/style/svg/v5-geolocate-disabled.svg]);
+}
+
+/* Geolocate button: location is active */
+.mapboxgl-ctrl button.mapboxgl-ctrl-geolocate.mapboxgl-ctrl-geolocate-active .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-geolocate.maplibregl-ctrl-geolocate-active .maplibregl-ctrl-icon
+{
+  background-image: url([src/style/svg/v5-geolocate-active.svg]);
+}
+
+/* Geolocate button: an error occured */
+.mapboxgl-ctrl button.mapboxgl-ctrl-geolocate.mapboxgl-ctrl-geolocate-active-error .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-geolocate.maplibregl-ctrl-geolocate-active-error .maplibregl-ctrl-icon
+{
+  background-image: url([src/style/svg/v5-geolocate-active-error.svg]);
+}
+
+/* Geolocate button: searching location */
+.mapboxgl-ctrl button.mapboxgl-ctrl-geolocate.mapboxgl-ctrl-geolocate-background .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-geolocate.maplibregl-ctrl-geolocate-background .maplibregl-ctrl-icon
+{
+  background-image: url([src/style/svg/v5-geolocate-A.svg]);
+}
+
+/* Geolocate button: an error occured while searching */
+.mapboxgl-ctrl button.mapboxgl-ctrl-geolocate.mapboxgl-ctrl-geolocate-background-error .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-geolocate.maplibregl-ctrl-geolocate-background-error .maplibregl-ctrl-icon
+{
+  background-image: url([src/style/svg/v5-geolocate-active-error.svg]);
+}
+
+/* Terrain control icon (disabled, to enable) */
+.mapboxgl-ctrl button.mapboxgl-ctrl-terrain .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-terrain .maplibregl-ctrl-icon
+{
+  background-image: url([src/style/svg/v5-terrain.svg]);
+}
+
+/* Terrain control icon (enabled, to disable) */
+.mapboxgl-ctrl button.mapboxgl-ctrl-terrain-enabled .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-terrain-enabled .maplibregl-ctrl-icon
+{
+  background-image: url([src/style/svg/v5-terrain-on.svg]);
+}
+
+/* Fullscreen control icon (disabled, to enable) */
+.maplibregl-ctrl button.maplibregl-ctrl-fullscreen .maplibregl-ctrl-icon 
+{
+  background-image: url([src/style/svg/v5-fullscreen.svg]);
+}
+
+/* Fullscreen control icon (enabled, to disable) */
+.maplibregl-ctrl button.maplibregl-ctrl-shrink .maplibregl-ctrl-icon {
+  background-image: url([src/style/svg/v5-fullscreen-off.svg]);
+}
+
+.maplibregl-ctrl-scale {
+  background-color: hsla(0,0%,100%,.75);
+  border: 1px solid #444952;
+  border-top: #444952;
+  box-sizing: border-box;
+  color: #444952;
+  font-size: 10px;
+  padding: 0 5px;
+  text-align: right;
+  line-height: 14px;
+}

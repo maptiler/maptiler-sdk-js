@@ -1,3 +1,5 @@
+import os from "os";
+import path from "path";
 import dts from "rollup-plugin-dts";
 import esbuild from "rollup-plugin-esbuild";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
@@ -5,16 +7,23 @@ import globals from "rollup-plugin-node-globals";
 import commonjs from "@rollup/plugin-commonjs";
 import copy from 'rollup-plugin-copy-merge'
 import json from '@rollup/plugin-json';
+import execute from "rollup-plugin-shell";
 
 const outputName = "maptiler-sdk";
+const externals = ["maplibre-gl", "@maptiler/client", "@mapbox/point-geometry", "uuid", "@mapbox/unitbezier", "events", "js-base64"];
 
-const externals = ["maplibre-gl", "@maptiler/client", "@mapbox/point-geometry", "uuid", "@mapbox/unitbezier", "events"];
+const cssMaplibreFilepath = "node_modules/maplibre-gl/dist/maplibre-gl.css";
+const cssTemplateFilepath = "src/style/style_template.css";
+const cssIntermatdiateFilepath = path.join(os.tmpdir(), `${outputName}-style.css`);
+const cssDistribution = `dist/${outputName}.css`;
+
+const replaceCssPath = execute({ commands: [`node scripts/replace-path-with-content.js ${cssTemplateFilepath} ${cssIntermatdiateFilepath}`], hook: "buildStart" })
 
 const copyCssPlugin = copy({
   targets: [
     {
-      src: ["node_modules/maplibre-gl/dist/maplibre-gl.css", "src/style/style.css"],
-      file: `dist/${outputName}.css`,
+      src: [cssMaplibreFilepath, cssIntermatdiateFilepath],
+      file: cssDistribution,
     },
   ],
 });
@@ -38,7 +47,12 @@ const copyUmdBundle = copy({
 const bundles = [ 
   // ES module, not minified + sourcemap
   {
-    plugins: [copyCssPlugin, json(), esbuild()],
+    plugins: [
+      replaceCssPath,
+      copyCssPlugin,
+      json(),
+      esbuild()
+    ],
     output: [
       {
         file: `dist/${outputName}.mjs`,
@@ -56,6 +70,7 @@ const bundles = [
   // UMD module, not minified
   {
     plugins: [
+      replaceCssPath,
       copyCssPlugin,
       nodeResolve({
         preferBuiltins: false,
@@ -96,6 +111,7 @@ if (process.env.NODE_ENV === "production") {
     // ES module, minified
     {
       plugins: [
+        replaceCssPath,
         copyCssPlugin,
         json(),
         esbuild({
@@ -114,6 +130,7 @@ if (process.env.NODE_ENV === "production") {
     },
     {
       plugins: [
+        replaceCssPath,
         copyCssPlugin,
         nodeResolve({
           preferBuiltins: false,
