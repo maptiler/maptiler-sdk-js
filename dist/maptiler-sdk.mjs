@@ -1,5 +1,6 @@
 import maplibregl__default from 'maplibre-gl';
 export * from 'maplibre-gl';
+import { Base64 } from 'js-base64';
 import { v4 } from 'uuid';
 import EventEmitter from 'events';
 import { config as config$1, geolocation } from '@maptiler/client';
@@ -789,7 +790,7 @@ class MaptilerNavigationControl extends maplibregl__default.NavigationControl {
       {
         const currentPitch = this._map.getPitch();
         if (currentPitch === 0) {
-          this._map.easeTo({ pitch: this._map.getMaxPitch() });
+          this._map.easeTo({ pitch: Math.min(this._map.getMaxPitch(), 80) });
         } else {
           if (this.options.visualizePitch) {
             this._map.resetNorthPitch({}, { originalEvent: e });
@@ -855,8 +856,8 @@ var __async = (__this, __arguments, generator) => {
 };
 const MAPTILER_SESSION_ID = v4();
 const GeolocationType = {
-  IP_POINT: "IP_POINT",
-  IP_COUNTRY: "IP_COUNTRY"
+  POINT: "POINT",
+  COUNTRY: "COUNTRY"
 };
 class Map extends maplibregl__default.Map {
   constructor(options) {
@@ -900,20 +901,42 @@ class Map extends maplibregl__default.Map {
         return;
       }
       try {
-        const result = yield geolocation.info();
-        if (options.geolocate === GeolocationType.IP_COUNTRY) {
-          this.fitBounds(
-            result.country_bounds,
-            {
-              duration: 0,
-              padding: 100
-            }
-          );
+        if (options.geolocate === GeolocationType.COUNTRY) {
+          yield this.fitToIpBounds();
           return;
         }
-        this.setCenter([result.longitude, result.latitude]);
-        this.setZoom(options.zoom || 13);
-      } catch (err) {
+      } catch (e) {
+        console.warn(e.message);
+      }
+      let ipLocatedCameraHash = null;
+      try {
+        yield this.centerOnIpPoint(options.zoom);
+        ipLocatedCameraHash = this.getCameraHash();
+      } catch (e) {
+        console.warn(e.message);
+      }
+      const locationResult = yield navigator.permissions.query({
+        name: "geolocation"
+      });
+      if (locationResult.state === "granted") {
+        navigator.geolocation.getCurrentPosition(
+          (data) => {
+            if (ipLocatedCameraHash !== this.getCameraHash()) {
+              return;
+            }
+            this.easeTo({
+              center: [data.coords.longitude, data.coords.latitude],
+              zoom: options.zoom || 12,
+              duration: 2e3
+            });
+          },
+          null,
+          {
+            maximumAge: 24 * 3600 * 1e3,
+            timeout: 5e3,
+            enableHighAccuracy: false
+          }
+        );
       }
     }));
     this.on("styledataloading", () => {
@@ -1215,6 +1238,37 @@ class Map extends maplibregl__default.Map {
         cb();
       });
     }
+  }
+  fitToIpBounds() {
+    return __async(this, null, function* () {
+      const ipGeolocateResult = yield geolocation.info();
+      this.fitBounds(
+        ipGeolocateResult.country_bounds,
+        {
+          duration: 0,
+          padding: 100
+        }
+      );
+    });
+  }
+  centerOnIpPoint(zoom) {
+    return __async(this, null, function* () {
+      const ipGeolocateResult = yield geolocation.info();
+      this.jumpTo({
+        center: [ipGeolocateResult.longitude, ipGeolocateResult.latitude],
+        zoom: zoom || 11
+      });
+    });
+  }
+  getCameraHash() {
+    const hashBin = new Float32Array(5);
+    const center = this.getCenter();
+    hashBin[0] = center.lng;
+    hashBin[1] = center.lat;
+    hashBin[2] = this.getZoom();
+    hashBin[3] = this.getPitch();
+    hashBin[4] = this.getBearing();
+    return Base64.fromUint8Array(new Uint8Array(hashBin.buffer));
   }
 }
 

@@ -380,8 +380,8 @@ declare type StyleSwapOptions = {
     transformStyle?: TransformStyleFunction;
 };
 declare const GeolocationType: {
-    IP_POINT: "IP_POINT";
-    IP_COUNTRY: "IP_COUNTRY";
+    POINT: "POINT";
+    COUNTRY: "COUNTRY";
 };
 /**
  * Options to provide to the `Map` constructor
@@ -431,11 +431,11 @@ declare type MapOptions = Omit<MapOptions$1, "style" | "maplibreLogo"> & {
      * - `hash` is `false`
      * - `center` is not provided
      *
-     * If the value is `true` of `"IP_POINT"` (given by `GeolocationType.IP_POINT`) then the positionning uses the MapTiler Cloud
+     * If the value is `true` of `"POINT"` (given by `GeolocationType.POINT`) then the positionning uses the MapTiler Cloud
      * Geolocation to find the non-GPS location point.
      * The zoom level can be provided in the `Map` constructor with the `zoom` option or will be `13` if not provided.
      *
-     * If the value is `"IP_COUNTRY"` (given by `GeolocationType.IP_COUNTRY`) then the map is centered around the bounding box of the country.
+     * If the value is `"COUNTRY"` (given by `GeolocationType.COUNTRY`) then the map is centered around the bounding box of the country.
      * In this case, the `zoom` option will be ignored.
      *
      * If the value is `false`, no geolocation is performed and the map centering and zooming depends on other options or on
@@ -516,6 +516,9 @@ declare class Map extends maplibre_gl__default.Map {
      * @param cb
      */
     private onStyleReady;
+    fitToIpBounds(): Promise<void>;
+    centerOnIpPoint(zoom: number | undefined): Promise<void>;
+    getCameraHash(): string;
 }
 
 /**
