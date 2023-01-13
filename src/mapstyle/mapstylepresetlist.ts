@@ -107,6 +107,10 @@ export type MapStyleType = {
     DARK: MapStyleVariant;
     LIGHT: MapStyleVariant;
   };
+
+  OCEAN: ReferenceMapStyle & {
+    DEFAULT: MapStyleVariant;
+  };
 };
 
 export const mapStylePresetList: MapStylePresetList = [
@@ -417,6 +421,21 @@ export const mapStylePresetList: MapStylePresetList = [
         id: "stage-light",
         name: "Light",
         variantType: "LIGHT",
+        description: "",
+        imageURL: "",
+      },
+    ],
+  },
+
+  {
+    referenceStyleID: "OCEAN",
+    name: "Ocean",
+    description: "",
+    variants: [
+      {
+        id: "ocean",
+        name: "Default",
+        variantType: "DEFAULT",
         description: "",
         imageURL: "",
       },

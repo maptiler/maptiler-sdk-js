@@ -77,7 +77,7 @@ Built-in languages values as strings
 
 #### Defined in
 
-[src/language.ts:110](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/language.ts#L110)
+[src/language.ts:110](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/language.ts#L110)
 
 ___
 
@@ -89,7 +89,7 @@ Options to provide to the `Map` constructor
 
 #### Defined in
 
-[src/Map.ts:53](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/Map.ts#L53)
+[src/Map.ts:53](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/Map.ts#L53)
 
 ___
 
@@ -106,6 +106,7 @@ All the styles and variants maintained by MapTiler.
 | `BASIC` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DARK`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `LIGHT`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | - |
 | `BRIGHT` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DARK`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `LIGHT`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `PASTEL`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | - |
 | `HYBRID` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | High resolution imagery with labels, political borders and roads. |
+| `OCEAN` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | - |
 | `OPENSTREETMAP` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | - |
 | `OUTDOOR` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | Suitable for outdoor activities. With elevation isolines and hillshading. |
 | `SATELLITE` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | High resolution imagery only, without any label. |
@@ -118,7 +119,7 @@ All the styles and variants maintained by MapTiler.
 
 #### Defined in
 
-[src/mapstyle/mapstylepresetlist.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/mapstyle/mapstylepresetlist.ts#L19)
+[src/mapstyle/mapstylepresetlist.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/mapstyle/mapstylepresetlist.ts#L19)
 
 ___
 
@@ -128,7 +129,7 @@ ___
 
 #### Defined in
 
-[src/unit.ts:1](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/unit.ts#L1)
+[src/unit.ts:1](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/unit.ts#L1)
 
 ## Variables
 
@@ -138,7 +139,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:71](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L71)
+[src/index.ts:71](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L71)
 
 ___
 
@@ -148,7 +149,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:59](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L59)
+[src/index.ts:59](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L59)
 
 ___
 
@@ -158,7 +159,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:72](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L72)
+[src/index.ts:72](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L72)
 
 ___
 
@@ -168,7 +169,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:70](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L70)
+[src/index.ts:70](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L70)
 
 ___
 
@@ -178,7 +179,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:62](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L62)
+[src/index.ts:62](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L62)
 
 ___
 
@@ -188,7 +189,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:73](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L73)
+[src/index.ts:73](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L73)
 
 ___
 
@@ -198,7 +199,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:58](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L58)
+[src/index.ts:58](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L58)
 
 ___
 
@@ -215,7 +216,7 @@ ___
 
 #### Defined in
 
-[src/Map.ts:42](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/Map.ts#L42)
+[src/Map.ts:42](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/Map.ts#L42)
 
 ___
 
@@ -225,7 +226,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:74](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L74)
+[src/index.ts:74](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L74)
 
 ___
 
@@ -316,7 +317,7 @@ Languages. Note that not all the languages of this list are available but the co
 
 #### Defined in
 
-[src/language.ts:4](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/language.ts#L4)
+[src/language.ts:4](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/language.ts#L4)
 
 ___
 
@@ -326,7 +327,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:67](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L67)
+[src/index.ts:67](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L67)
 
 ___
 
@@ -336,7 +337,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:68](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L68)
+[src/index.ts:68](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L68)
 
 ___
 
@@ -346,7 +347,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:60](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L60)
+[src/index.ts:60](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L60)
 
 ___
 
@@ -362,7 +363,7 @@ For example, `MapStyle.STREETS` and the variants:
 
 #### Defined in
 
-[src/mapstyle/mapstyle.ts:304](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/mapstyle/mapstyle.ts#L304)
+[src/mapstyle/mapstyle.ts:306](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/mapstyle/mapstyle.ts#L306)
 
 ___
 
@@ -372,7 +373,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:65](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L65)
+[src/index.ts:65](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L65)
 
 ___
 
@@ -382,7 +383,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:69](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L69)
+[src/index.ts:69](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L69)
 
 ___
 
@@ -392,7 +393,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:57](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L57)
+[src/index.ts:57](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L57)
 
 ___
 
@@ -402,7 +403,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:64](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L64)
+[src/index.ts:64](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L64)
 
 ___
 
@@ -412,7 +413,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:75](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L75)
+[src/index.ts:75](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L75)
 
 ___
 
@@ -422,7 +423,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:76](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L76)
+[src/index.ts:76](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L76)
 
 ___
 
@@ -432,7 +433,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:61](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L61)
+[src/index.ts:61](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L61)
 
 ___
 
@@ -442,7 +443,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:66](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L66)
+[src/index.ts:66](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L66)
 
 ___
 
@@ -452,7 +453,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:63](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L63)
+[src/index.ts:63](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L63)
 
 ___
 
@@ -462,7 +463,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:77](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L77)
+[src/index.ts:77](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L77)
 
 ___
 
@@ -472,7 +473,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:78](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L78)
+[src/index.ts:78](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L78)
 
 ___
 
@@ -482,7 +483,7 @@ ___
 
 #### Defined in
 
-[src/config.ts:81](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/config.ts#L81)
+[src/config.ts:81](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/config.ts#L81)
 
 ___
 
@@ -492,7 +493,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:83](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L83)
+[src/index.ts:83](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L83)
 
 ___
 
@@ -502,7 +503,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:81](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L81)
+[src/index.ts:81](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L81)
 
 ___
 
@@ -512,7 +513,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:82](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L82)
+[src/index.ts:82](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L82)
 
 ___
 
@@ -522,7 +523,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:85](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/index.ts#L85)
+[src/index.ts:85](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/index.ts#L85)
 
 ## Functions
 
@@ -552,7 +553,7 @@ var point = new Point(-77, 38);
 
 #### Defined in
 
-[src/Point.ts:17](https://github.com/maptiler/maptiler-sdk-js/blob/f3dbadd/src/Point.ts#L17)
+[src/Point.ts:17](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/Point.ts#L17)
 
 ___
 
