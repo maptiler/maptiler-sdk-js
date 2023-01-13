@@ -186,6 +186,9 @@ declare type MapStyleType = {
         DARK: MapStyleVariant;
         LIGHT: MapStyleVariant;
     };
+    OCEAN: ReferenceMapStyle & {
+        DEFAULT: MapStyleVariant;
+    };
 };
 
 /**
