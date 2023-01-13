@@ -40,4 +40,4 @@ constructed point, or passed-through value.
 
 #### Defined in
 
-[src/Point.ts:326](https://github.com/maptiler/maptiler-sdk-js/blob/ff91be4/src/Point.ts#L326)
+[src/Point.ts:326](https://github.com/maptiler/maptiler-sdk-js/blob/5ccea71/src/Point.ts#L326)
