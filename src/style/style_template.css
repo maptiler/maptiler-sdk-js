@@ -45,7 +45,7 @@
 .mapboxgl-ctrl button.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-compass .maplibregl-ctrl-icon
 {
   /* Custom based on Google compass icon but without the circle */
-  background-image: url([src/style/svg/v6.1-compass.svg]);
+  background-image: url([src/style/svg/v6-compass.svg]);
 }
 
 
