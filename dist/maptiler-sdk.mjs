@@ -4230,7 +4230,7 @@ class Map extends maplibregl__default.Map {
           position
         );
       }
-      if (options.terrainControl !== false) {
+      if (options.terrainControl) {
         const position = options.terrainControl === true || options.terrainControl === void 0 ? "top-right" : options.terrainControl;
         this.addControl(new TerrainControl$1(), position);
       }
