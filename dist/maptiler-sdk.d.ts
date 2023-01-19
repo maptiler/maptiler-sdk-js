@@ -97,6 +97,10 @@ declare const Language: {
     readonly UKRAINIAN: "uk";
     readonly WELSH: "cy";
 };
+/**
+ * Type representing the key of the Language object
+ */
+declare type LanguageKey = keyof typeof Language;
 declare type Values<T> = T[keyof T];
 /**
  * Built-in languages values as strings
@@ -108,20 +112,23 @@ declare type LanguageString = Values<typeof Language>;
  */
 declare type MapStyleType = {
     /**
-     * Suitable for navigation, with high level of detail on urban areas.
+     * Suitable for navigation, with high level of detail on urban areas, plenty of POIs and 3D buildings
      */
     STREETS: ReferenceMapStyle & {
+        /**
+         * Suitable for navigation, with high level of detail on urban areas, plenty of POIs and 3D buildings.
+         */
         DEFAULT: MapStyleVariant;
         /**
-         * Suitable for navigation, with high level of detail on urban areas, in dark mode.
+         * Suitable for navigation, with high level of detail on urban areas, plenty of POIs and 3D buildings, in dark mode.
          */
         DARK: MapStyleVariant;
         /**
-         * Suitable for navigation, with high level of detail on urban areas, in light mode.
+         * Suitable for navigation, with high level of detail on urban areas, plenty of POIs and 3D buildings, in light mode.
          */
         LIGHT: MapStyleVariant;
         /**
-         * Suitable for navigation, with high level of detail on urban areas, with a pastel color palette.
+         * Suitable for navigation, with high level of detail on urban areas, plenty of POIs and 3D buildings, with a pastel color palette.
          */
         PASTEL: MapStyleVariant;
     };
@@ -129,64 +136,169 @@ declare type MapStyleType = {
      * Suitable for outdoor activities. With elevation isolines and hillshading.
      */
     OUTDOOR: ReferenceMapStyle & {
+        /**
+         * Suitable for outdoor activities. With elevation isolines and hillshading.
+         */
         DEFAULT: MapStyleVariant;
     };
     /**
      * Suitabe for winter outdoor activities. With ski tracks, elevation isolines and hillshading.
      */
     WINTER: ReferenceMapStyle & {
+        /**
+         * Suitabe for winter outdoor activities. With ski tracks, elevation isolines and hillshading.
+         */
         DEFAULT: MapStyleVariant;
     };
     /**
      * High resolution imagery only, without any label.
      */
     SATELLITE: ReferenceMapStyle & {
+        /**
+         * High resolution imagery only, without any label.
+         */
         DEFAULT: MapStyleVariant;
     };
     /**
      * High resolution imagery with labels, political borders and roads.
      */
     HYBRID: ReferenceMapStyle & {
+        /**
+         * High resolution imagery with labels, political borders and roads.
+         */
         DEFAULT: MapStyleVariant;
     };
+    /**
+     * A minimalist street-oriented style without POI
+     */
     BASIC: ReferenceMapStyle & {
+        /**
+         * A minimalist street-oriented style without POI
+         */
         DEFAULT: MapStyleVariant;
+        /**
+         * A minimalist street-oriented style without POI, in dark mode
+         */
         DARK: MapStyleVariant;
+        /**
+         * A minimalist street-oriented style without POI, in light mode
+         */
         LIGHT: MapStyleVariant;
     };
+    /**
+     * A bright street-oriented style, a nice alternative to `streets`
+     */
     BRIGHT: ReferenceMapStyle & {
+        /**
+         * A bright street-oriented style, a nice alternative to `streets`
+         */
         DEFAULT: MapStyleVariant;
+        /**
+         * A bright street-oriented style, a nice alternative to `streets`, in dark mode
+         */
         DARK: MapStyleVariant;
+        /**
+         * A bright street-oriented style, a nice alternative to `streets`, in light mode
+         */
         LIGHT: MapStyleVariant;
+        /**
+         * A bright street-oriented style, a nice alternative to `streets`, with a soft pastel color palette
+         */
         PASTEL: MapStyleVariant;
     };
+    /**
+     * Classic OpenStreetMap style
+     */
     OPENSTREETMAP: ReferenceMapStyle & {
         DEFAULT: MapStyleVariant;
     };
+    /**
+     * A nice high-contrast, yet less saturated alternative to the `outdoor` style, with hillshading, 3D buildings and fairly high street details
+     */
     TOPO: ReferenceMapStyle & {
+        /**
+         * A nice high-contrast, yet less saturated alternative to the `outdoor` style, with hillshading, 3D buildings and fairly high street details
+         */
         DEFAULT: MapStyleVariant;
+        /**
+         * A nice high-contrast, and high saturation alternative to the `outdoor` style, with hillshading, 3D buildings and fairly high street details
+         */
         SHINY: MapStyleVariant;
+        /**
+         * A nice low-contrast, alternative to the `outdoor` style, with hillshading, 3D buildings and fairly high street details, using a soft pastel color palette
+         */
         PASTEL: MapStyleVariant;
+        /**
+         * A nice very high-contrast, yet less saturated alternative to the `outdoor` style, with hillshading, 3D buildings and fairly high street details
+         */
         TOPOGRAPHIQUE: MapStyleVariant;
     };
+    /**
+     * A nice alternative to `streets` with a soft color palette
+     */
     VOYAGER: ReferenceMapStyle & {
+        /**
+         * A nice alternative to `streets` with a soft color palette
+         */
         DEFAULT: MapStyleVariant;
+        /**
+         * A nice alternative to `streets`, in very dark mode
+         */
         DARK: MapStyleVariant;
+        /**
+         * A nice alternative to `streets`, in light mode
+         */
         LIGHT: MapStyleVariant;
+        /**
+         * A nice alternative to `streets` with a soft sepia color palette and vintage look
+         */
         VINTAGE: MapStyleVariant;
     };
+    /**
+     * A bold very high contrast black and white (no gray!) style for the city
+     */
     TONER: ReferenceMapStyle & {
+        /**
+         * A bold very high contrast black and white (no gray!) style for the city
+         */
         DEFAULT: MapStyleVariant;
+        /**
+         * A bold very high contrast black and white (no gray!) style for the city, without any label
+         */
         BACKGROUND: MapStyleVariant;
+        /**
+         * A bold very high contrast, yet faded, style for the city
+         */
         LITE: MapStyleVariant;
+        /**
+         * A bold very high contrast black and white (no gray!) style for the city, with no building, only roads!
+         */
         LINES: MapStyleVariant;
     };
+    /**
+     * Minimalist style, perfect for data visualization
+     */
     STAGE: ReferenceMapStyle & {
+        /**
+         *  Minimalist style, perfect for data visualization
+         */
         DEFAULT: MapStyleVariant;
+        /**
+         *  Minimalist style, perfect for data visualization in dark mode
+         */
         DARK: MapStyleVariant;
+        /**
+         *  Minimalist style, perfect for data visualization in light mode
+         */
         LIGHT: MapStyleVariant;
     };
+    /**
+     * Explore deep see trenches and mountains, with isolines and depth labels
+     */
     OCEAN: ReferenceMapStyle & {
+        /**
+         * Explore deep see trenches and mountains, with isolines and depth labels
+         */
         DEFAULT: MapStyleVariant;
     };
 };
@@ -414,7 +526,7 @@ declare type MapOptions = Omit<MapOptions$1, "style" | "maplibreLogo"> & {
      */
     navigationControl?: boolean | ControlPosition;
     /**
-     * Show the terrain control. (default: `true`, will hide if `false`)
+     * Show the terrain control. (default: `false`, will show if `true`)
      */
     terrainControl?: boolean | ControlPosition;
     /**
@@ -627,4 +739,4 @@ declare const workerUrl: string;
 declare const addProtocol: (customProtocol: string, loadFn: (requestParameters: maplibre_gl.RequestParameters, callback: maplibre_gl.ResponseCallback<any>) => maplibre_gl.Cancelable) => void;
 declare const removeProtocol: (customProtocol: string) => void;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, GeolocationType, ImageSource, Language, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MapStyle, MapStyleType, MapStyleVariant, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ReferenceMapStyle, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, GeolocationType, ImageSource, Language, LanguageKey, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MapStyle, MapStyleType, MapStyleVariant, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ReferenceMapStyle, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };

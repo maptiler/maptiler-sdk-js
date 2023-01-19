@@ -102,6 +102,11 @@ function isLanguageSupported(lang: string): boolean {
 
 const languageCodeSet = new Set(Object.values(Language));
 
+/**
+ * Type representing the key of the Language object
+ */
+type LanguageKey = keyof typeof Language;
+
 type Values<T> = T[keyof T];
 
 /**
@@ -125,4 +130,10 @@ function getBrowserLanguage(): LanguageString {
     : Language.LATIN;
 }
 
-export { Language, LanguageString, getBrowserLanguage, isLanguageSupported };
+export {
+  Language,
+  LanguageString,
+  LanguageKey,
+  getBrowserLanguage,
+  isLanguageSupported,
+};

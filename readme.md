@@ -251,7 +251,7 @@ The term "control" is commonly used for all sorts of buttons and information dis
   - a boolean or a corner position. Showing on the top-right by default. Hidden if `false`.
 - `terrainControl`
   - Shows a button to enable/disable the 3D terrain (does not tilt the map)
-  - a boolean or a corner position. Showing on the top-right by default. Hidden if `false`.
+  - a boolean or a corner position. Hidden by default, showing on top-right if `true`.
 - `scaleControl`
   - Shows a distance scale. The unit (`"metric"`, `"imperial"` or `"nautical"`) can be set in the config object `config.unit` (default: `"metric"`)
   - a boolean or a corner position. Hidden by default, showing on bottom-right if `true`.

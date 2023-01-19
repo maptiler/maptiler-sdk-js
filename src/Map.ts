@@ -80,7 +80,7 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   navigationControl?: boolean | ControlPosition;
 
   /**
-   * Show the terrain control. (default: `true`, will hide if `false`)
+   * Show the terrain control. (default: `false`, will show if `true`)
    */
   terrainControl?: boolean | ControlPosition;
 
@@ -361,7 +361,6 @@ export class Map extends maplibregl.Map {
             ? "top-right"
             : options.geolocateControl
         ) as ControlPosition;
-        // this.addControl(new TerrainControl(), position);
 
         this.addControl(
           new maplibregl.GeolocateControl({
@@ -381,7 +380,7 @@ export class Map extends maplibregl.Map {
         );
       }
 
-      if (options.terrainControl !== false) {
+      if (options.terrainControl) {
         // default position, if not provided, is top left corner
         const position = (
           options.terrainControl === true ||
