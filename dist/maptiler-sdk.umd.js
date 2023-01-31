@@ -70,11 +70,11 @@
 	 *
 	 * @author Dan Kogai (https://github.com/dankogai)
 	 */
-	const version$2 = '3.7.4';
+	const version$1 = '3.7.4';
 	/**
 	 * @deprecated use lowercase `version`.
 	 */
-	const VERSION = version$2;
+	const VERSION = version$1;
 	const _hasatob = typeof atob === 'function';
 	const _hasbtoa = typeof btoa === 'function';
 	const _hasBuffer = typeof Buffer === 'function';
@@ -311,7 +311,7 @@
 	    extendUint8Array();
 	};
 	const gBase64 = {
-	    version: version$2,
+	    version: version$1,
 	    VERSION: VERSION,
 	    atob: _atob,
 	    atobPolyfill: atobPolyfill,
@@ -976,18 +976,37 @@
 	}
 	class ClientConfig {
 	  constructor() {
+	    /**
+	     * MapTiler Cloud API key
+	     */
 	    this._apiKey = "";
+	    /**
+	     * The fetch function. To be set if in Node < 18, otherwise
+	     * will be automatically resolved.
+	     */
 	    this._fetch = tryGettingFetch();
 	  }
+	  /**
+	   * Set the MapTiler Cloud API key
+	   */
 	  set apiKey(k) {
 	    this._apiKey = k;
 	  }
+	  /**
+	   * Get the MapTiler Cloud API key
+	   */
 	  get apiKey() {
 	    return this._apiKey;
 	  }
+	  /**
+	   * Set a the custom fetch function to replace the default one
+	   */
 	  set fetch(f) {
 	    this._fetch = f;
 	  }
+	  /**
+	   * Get the fetch fucntion
+	   */
 	  get fetch() {
 	    return this._fetch;
 	  }
@@ -1405,417 +1424,173 @@
 	  get
 	};
 
-	function getSqSegDist(p, p1, p2) {
-	  let x = p1[0], y = p1[1], dx = p2[0] - x, dy = p2[1] - y;
-	  if (dx !== 0 || dy !== 0) {
-	    const t = ((p[0] - x) * dx + (p[1] - y) * dy) / (dx * dx + dy * dy);
-	    if (t > 1) {
-	      x = p2[0];
-	      y = p2[1];
-	    } else if (t > 0) {
-	      x += dx * t;
-	      y += dy * t;
-	    }
+	function expandMapStyle(style) {
+	  const maptilerDomainRegex = /^maptiler:\/\/(.*)/;
+	  let match;
+	  const trimmed = style.trim();
+	  let expandedStyle;
+	  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+	    expandedStyle = trimmed;
+	  } else if ((match = maptilerDomainRegex.exec(trimmed)) !== null) {
+	    expandedStyle = `https://api.maptiler.com/maps/${match[1]}/style.json`;
+	  } else {
+	    expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
 	  }
-	  dx = p[0] - x;
-	  dy = p[1] - y;
-	  return dx * dx + dy * dy;
+	  return expandedStyle;
 	}
-	function simplifyDPStep(points, first, last, sqTolerance, simplified) {
-	  let maxSqDist = sqTolerance, index;
-	  for (let i = first + 1; i < last; i++) {
-	    const sqDist = getSqSegDist(points[i], points[first], points[last]);
-	    if (sqDist > maxSqDist) {
-	      index = i;
-	      maxSqDist = sqDist;
-	    }
+	class MapStyleVariant {
+	  constructor(name, variantType, id, referenceStyle, description, imageURL) {
+	    this.name = name;
+	    this.variantType = variantType;
+	    this.id = id;
+	    this.referenceStyle = referenceStyle;
+	    this.description = description;
+	    this.imageURL = imageURL;
 	  }
-	  if (maxSqDist > sqTolerance) {
-	    if (index - first > 1) {
-	      simplifyDPStep(points, first, index, sqTolerance, simplified);
-	    }
-	    simplified.push(points[index]);
-	    if (last - index > 1) {
-	      simplifyDPStep(points, index, last, sqTolerance, simplified);
-	    }
+	  /**
+	   * Get the human-friendly name
+	   * @returns
+	   */
+	  getName() {
+	    return this.name;
 	  }
-	}
-	function simplifyDouglasPeucker(points, sqTolerance) {
-	  const last = points.length - 1;
-	  const simplified = [points[0]];
-	  simplifyDPStep(points, 0, last, sqTolerance, simplified);
-	  simplified.push(points[last]);
-	  return simplified;
-	}
-	function simplify(points, tolerance) {
-	  if (points.length <= 2) {
-	    return points;
+	  getFullName() {
+	    return `${this.referenceStyle.getName()} ${this.name}`;
 	  }
-	  const sqTolerance = tolerance !== void 0 ? tolerance * tolerance : 1;
-	  const simplePoints = simplifyDouglasPeucker(points, sqTolerance);
-	  return simplePoints;
-	}
-
-	function staticMapMarkerToString(marker, includeColor = true) {
-	  let str = `${marker[0]},${marker[1]}`;
-	  if (marker.length === 3 && includeColor) {
-	    str += `,${marker[2]}`;
+	  /**
+	   * Get the variant type (eg. "DEFAULT", "DARK", "PASTEL", etc.)
+	   * @returns
+	   */
+	  getType() {
+	    return this.variantType;
 	  }
-	  return str;
-	}
-	function simplifyAndStringify(path, maxNbChar = 3e3) {
-	  let str = path.map((point) => point.join(",")).join("|");
-	  let tolerance = 5e-6;
-	  const toleranceStep = 1e-5;
-	  while (str.length > maxNbChar) {
-	    const simplerPath = simplify(path, tolerance);
-	    str = simplerPath.map((point) => `${point[0]},${point[1]}`).join("|");
-	    tolerance += toleranceStep;
+	  /**
+	   * Get the MapTiler Cloud id
+	   * @returns
+	   */
+	  getId() {
+	    return this.id;
 	  }
-	  return str;
-	}
-	function centered(center, zoom, options = {}) {
-	  var _a, _b, _c, _d, _e, _f;
-	  const style = (_a = options.style) != null ? _a : defaults$1.mapStyle;
-	  const scale = options.hiDPI ? "@2x" : "";
-	  const format = (_b = options.format) != null ? _b : "png";
-	  let width = ~~((_c = options.width) != null ? _c : 1024);
-	  let height = ~~((_d = options.height) != null ? _d : 1024);
-	  if (options.hiDPI) {
-	    width = ~~(width / 2);
-	    height = ~~(height / 2);
+	  /**
+	   * Get the human-friendly description
+	   */
+	  getDescription() {
+	    return this.description;
 	  }
-	  const endpoint = new URL(
-	    `maps/${encodeURIComponent(style)}/static/${center[0]},${center[1]},${zoom}/${width}x${height}${scale}.${format}`,
-	    defaults$1.maptilerApiURL
-	  );
-	  if ("attribution" in options) {
-	    endpoint.searchParams.set("attribution", options.attribution.toString());
+	  /**
+	   * Get the reference style this variant belongs to
+	   * @returns
+	   */
+	  getReferenceStyle() {
+	    return this.referenceStyle;
 	  }
-	  if ("markers" in options) {
-	    let markerStr = "";
-	    const hasIcon = "markerIcon" in options;
-	    if (hasIcon) {
-	      markerStr += `icon:${options.markerIcon}|`;
-	    }
-	    if (hasIcon && "markerAnchor" in options) {
-	      markerStr += `anchor:${options.markerAnchor}|`;
-	    }
-	    if (hasIcon && options.hiDPI) {
-	      markerStr += `scale:2|`;
-	    }
-	    const markerList = Array.isArray(options.markers[0]) ? options.markers : [options.markers];
-	    markerStr += markerList.map((m) => staticMapMarkerToString(m, !hasIcon)).join("|");
-	    endpoint.searchParams.set("markers", markerStr);
+	  /**
+	   * Check if a variant of a given type exists for _this_ variants
+	   * (eg. if this is a "DARK", then we can check if there is a "LIGHT" variant of it)
+	   * @param variantType
+	   * @returns
+	   */
+	  hasVariant(variantType) {
+	    return this.referenceStyle.hasVariant(variantType);
 	  }
-	  if ("path" in options) {
-	    let pathStr = "";
-	    pathStr += `fill:${(_e = options.pathFillColor) != null ? _e : "none"}|`;
-	    if ("pathStrokeColor" in options) {
-	      pathStr += `stroke:${options.pathStrokeColor}|`;
-	    }
-	    if ("pathWidth" in options) {
-	      const pathWidth = options.pathWidth / (options.hiDPI ? 2 : 1);
-	      pathStr += `width:${pathWidth.toString()}|`;
-	    }
-	    pathStr += simplifyAndStringify(options.path);
-	    endpoint.searchParams.set("path", pathStr);
+	  /**
+	   * Retrieve the variant of a given type. If not found, will return the "DEFAULT" variant.
+	   * (eg. _this_ "DARK" variant does not have any "PASTEL" variant, then the "DEFAULT" is returned)
+	   * @param variantType
+	   * @returns
+	   */
+	  getVariant(variantType) {
+	    return this.referenceStyle.getVariant(variantType);
 	  }
-	  endpoint.searchParams.set("key", (_f = options.apiKey) != null ? _f : config$1.apiKey);
-	  return endpoint.toString();
-	}
-	function bounded(boundingBox, options = {}) {
-	  var _a, _b, _c, _d, _e, _f;
-	  const style = (_a = options.style) != null ? _a : defaults$1.mapStyle;
-	  const scale = options.hiDPI ? "@2x" : "";
-	  const format = (_b = options.format) != null ? _b : "png";
-	  let width = ~~((_c = options.width) != null ? _c : 1024);
-	  let height = ~~((_d = options.height) != null ? _d : 1024);
-	  if (options.hiDPI) {
-	    width = ~~(width / 2);
-	    height = ~~(height / 2);
+	  /**
+	   * Get all the variants for _this_ variants, except _this_ current one
+	   * @returns
+	   */
+	  getVariants() {
+	    return this.referenceStyle.getVariants().filter((v) => v !== this);
 	  }
-	  const endpoint = new URL(
-	    `maps/${encodeURIComponent(style)}/static/${boundingBox[0]},${boundingBox[1]},${boundingBox[2]},${boundingBox[3]}/${width}x${height}${scale}.${format}`,
-	    defaults$1.maptilerApiURL
-	  );
-	  if ("attribution" in options) {
-	    endpoint.searchParams.set("attribution", options.attribution.toString());
+	  /**
+	   * Get the image URL that represent _this_ variant
+	   * @returns
+	   */
+	  getImageURL() {
+	    return this.imageURL;
 	  }
-	  if ("padding" in options) {
-	    endpoint.searchParams.set("padding", options.padding.toString());
-	  }
-	  if ("markers" in options) {
-	    let markerStr = "";
-	    const hasIcon = "markerIcon" in options;
-	    if (hasIcon) {
-	      markerStr += `icon:${options.markerIcon}|`;
-	    }
-	    if (hasIcon && "markerAnchor" in options) {
-	      markerStr += `anchor:${options.markerAnchor}|`;
-	    }
-	    if (hasIcon && options.hiDPI) {
-	      markerStr += `scale:2|`;
-	    }
-	    const markerList = Array.isArray(options.markers[0]) ? options.markers : [options.markers];
-	    markerStr += markerList.map((m) => staticMapMarkerToString(m, !hasIcon)).join("|");
-	    endpoint.searchParams.set("markers", markerStr);
-	  }
-	  if ("path" in options) {
-	    let pathStr = "";
-	    pathStr += `fill:${(_e = options.pathFillColor) != null ? _e : "none"}|`;
-	    if ("pathStrokeColor" in options) {
-	      pathStr += `stroke:${options.pathStrokeColor}|`;
-	    }
-	    if ("pathWidth" in options) {
-	      const pathWidth = options.pathWidth / (options.hiDPI ? 2 : 1);
-	      pathStr += `width:${pathWidth.toString()}|`;
-	    }
-	    pathStr += simplifyAndStringify(options.path);
-	    endpoint.searchParams.set("path", pathStr);
-	  }
-	  endpoint.searchParams.set("key", (_f = options.apiKey) != null ? _f : config$1.apiKey);
-	  return endpoint.toString();
-	}
-	function automatic(options = {}) {
-	  var _a, _b, _c, _d, _e, _f;
-	  if (!("markers" in options) && !("path" in options)) {
-	    throw new Error(
-	      "Automatic static maps require markers and/or path to be created."
-	    );
-	  }
-	  const style = (_a = options.style) != null ? _a : defaults$1.mapStyle;
-	  const scale = options.hiDPI ? "@2x" : "";
-	  const format = (_b = options.format) != null ? _b : "png";
-	  let width = ~~((_c = options.width) != null ? _c : 1024);
-	  let height = ~~((_d = options.height) != null ? _d : 1024);
-	  if (options.hiDPI) {
-	    width = ~~(width / 2);
-	    height = ~~(height / 2);
-	  }
-	  const endpoint = new URL(
-	    `maps/${encodeURIComponent(
-      style
-    )}/static/auto/${width}x${height}${scale}.${format}`,
-	    defaults$1.maptilerApiURL
-	  );
-	  if ("attribution" in options) {
-	    endpoint.searchParams.set("attribution", options.attribution.toString());
-	  }
-	  if ("padding" in options) {
-	    endpoint.searchParams.set("padding", options.padding.toString());
-	  }
-	  if ("markers" in options) {
-	    let markerStr = "";
-	    const hasIcon = "markerIcon" in options;
-	    if (hasIcon) {
-	      markerStr += `icon:${options.markerIcon}|`;
-	    }
-	    if (hasIcon && "markerAnchor" in options) {
-	      markerStr += `anchor:${options.markerAnchor}|`;
-	    }
-	    if (hasIcon && options.hiDPI) {
-	      markerStr += `scale:2|`;
-	    }
-	    const markerList = Array.isArray(options.markers[0]) ? options.markers : [options.markers];
-	    markerStr += markerList.map((m) => staticMapMarkerToString(m, !hasIcon)).join("|");
-	    endpoint.searchParams.set("markers", markerStr);
-	  }
-	  if ("path" in options) {
-	    let pathStr = "";
-	    pathStr += `fill:${(_e = options.pathFillColor) != null ? _e : "none"}|`;
-	    if ("pathStrokeColor" in options) {
-	      pathStr += `stroke:${options.pathStrokeColor}|`;
-	    }
-	    if ("pathWidth" in options) {
-	      const pathWidth = options.pathWidth / (options.hiDPI ? 2 : 1);
-	      pathStr += `width:${pathWidth.toString()}|`;
-	    }
-	    pathStr += simplifyAndStringify(options.path);
-	    endpoint.searchParams.set("path", pathStr);
-	  }
-	  endpoint.searchParams.set("key", (_f = options.apiKey) != null ? _f : config$1.apiKey);
-	  return endpoint.toString();
-	}
-	const staticMaps = {
-	  centered,
-	  bounded,
-	  automatic
-	};
-
-	class SdkConfig extends events.exports {
-	  constructor() {
-	    super();
-	    this.primaryLanguage = Language.AUTO;
-	    this.secondaryLanguage = null;
-	    this._unit = "metric";
-	    this._apiKey = "";
-	  }
-	  set unit(u) {
-	    this._unit = u;
-	    this.emit("unit", u);
-	  }
-	  get unit() {
-	    return this._unit;
-	  }
-	  set apiKey(k) {
-	    this._apiKey = k;
-	    config$1.apiKey = k;
-	    this.emit("apiKey", k);
-	  }
-	  get apiKey() {
-	    return this._apiKey;
-	  }
-	  set fetch(f) {
-	    config$1.fetch = f;
-	  }
-	  get fetch() {
-	    return config$1.fetch;
+	  /**
+	   * Get the style as usable by MapLibre, a string (URL) or a plain style description (StyleSpecification)
+	   * @returns
+	   */
+	  getExpandedStyleURL() {
+	    return expandMapStyle(this.getId());
 	  }
 	}
-	const config = new SdkConfig();
-
-	const defaults = {
-	  maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
-	  maptilerURL: "https://www.maptiler.com/",
-	  maptilerApiHost: "api.maptiler.com",
-	  rtlPluginURL: "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
-	  primaryLanguage: Language.LATIN,
-	  secondaryLanguage: Language.NON_LATIN,
-	  terrainSourceURL: "https://api.maptiler.com/tiles/terrain-rgb/tiles.json",
-	  terrainSourceId: "maptiler-terrain"
-	};
-	Object.freeze(defaults);
-
-	class CustomLogoControl extends maplibregl.LogoControl {
-	  constructor(options = {}) {
-	    var _a, _b;
-	    super(options);
-	    this.logoURL = "";
-	    this.linkURL = "";
-	    this.logoURL = (_a = options.logoURL) != null ? _a : defaults.maptilerLogoURL;
-	    this.linkURL = (_b = options.linkURL) != null ? _b : defaults.maptilerURL;
+	class ReferenceMapStyle {
+	  constructor(name, id) {
+	    this.name = name;
+	    this.id = id;
+	    /**
+	     * Variants that belong to this reference style, key being the reference type
+	     */
+	    this.variants = {};
+	    /**
+	     * Variants that belong to this reference style, ordered by relevance
+	     */
+	    this.orderedVariants = [];
 	  }
-	  onAdd(map) {
-	    this._map = map;
-	    this._compact = this.options && this.options.compact;
-	    this._container = window.document.createElement("div");
-	    this._container.className = "maplibregl-ctrl";
-	    const anchor = window.document.createElement("a");
-	    anchor.style.backgroundRepeat = "no-repeat";
-	    anchor.style.cursor = "pointer";
-	    anchor.style.display = "block";
-	    anchor.style.height = "23px";
-	    anchor.style.margin = "0 0 -4px -4px";
-	    anchor.style.overflow = "hidden";
-	    anchor.style.width = "88px";
-	    anchor.style.backgroundImage = `url(${this.logoURL})`;
-	    anchor.style.backgroundSize = "100px 30px";
-	    anchor.style.width = "100px";
-	    anchor.style.height = "30px";
-	    anchor.target = "_blank";
-	    anchor.rel = "noopener nofollow";
-	    anchor.href = this.linkURL;
-	    anchor.setAttribute(
-	      "aria-label",
-	      this._map._getUIString("LogoControl.Title")
-	    );
-	    anchor.setAttribute("rel", "noopener nofollow");
-	    this._container.appendChild(anchor);
-	    this._container.style.display = "block";
-	    this._map.on("resize", this._updateCompact);
-	    this._updateCompact();
-	    return this._container;
+	  /**
+	   * Get the human-friendly name of this reference style
+	   * @returns
+	   */
+	  getName() {
+	    return this.name;
 	  }
-	}
-
-	function enableRTL() {
-	  if (maplibregl.getRTLTextPluginStatus() === "unavailable") {
-	    maplibregl.setRTLTextPlugin(
-	      defaults.rtlPluginURL,
-	      null,
-	      true
-	    );
+	  /**
+	   * Get the id of _this_ reference style
+	   * @returns
+	   */
+	  getId() {
+	    return this.id;
 	  }
-	}
-	function bindAll(fns, context) {
-	  fns.forEach((fn) => {
-	    if (!context[fn]) {
-	      return;
-	    }
-	    context[fn] = context[fn].bind(context);
-	  });
-	}
-	function DOMcreate(tagName, className, container) {
-	  const el = window.document.createElement(tagName);
-	  if (className !== void 0)
-	    el.className = className;
-	  if (container)
-	    container.appendChild(el);
-	  return el;
-	}
-	function DOMremove(node) {
-	  if (node.parentNode) {
-	    node.parentNode.removeChild(node);
+	  /**
+	   * Add a variant to _this_ reference style
+	   * @param v
+	   */
+	  addVariant(v) {
+	    this.variants[v.getType()] = v;
+	    this.orderedVariants.push(v);
+	  }
+	  /**
+	   * Check if a given variant type exists for this reference style
+	   * @param variantType
+	   * @returns
+	   */
+	  hasVariant(variantType) {
+	    return variantType in this.variants;
+	  }
+	  /**
+	   * Get a given variant. If the given type of variant does not exist for this reference style,
+	   * then the most relevant default variant is returned instead
+	   * @param variantType
+	   * @returns
+	   */
+	  getVariant(variantType) {
+	    return variantType in this.variants ? this.variants[variantType] : this.orderedVariants[0];
+	  }
+	  /**
+	   * Get the list of variants for this reference style
+	   * @returns
+	   */
+	  getVariants() {
+	    return Object.values(this.variants);
+	  }
+	  /**
+	   * Get the defualt variant for this reference style
+	   * @returns
+	   */
+	  getDefaultVariant() {
+	    return this.orderedVariants[0];
 	  }
 	}
-
-	var version$1 = 8;
-	var id = "f0e4ff8c-a9e4-414e-9f4d-7938762c948f";
-	var name = "Satellite no label";
-	var sources = {
-		satellite: {
-			url: "https://api.maptiler.com/tiles/satellite-v2/tiles.json",
-			tileSize: 512,
-			type: "raster"
-		},
-		maptiler_attribution: {
-			attribution: "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
-			type: "vector"
-		}
-	};
-	var layers = [
-		{
-			id: "satellite",
-			type: "raster",
-			source: "satellite",
-			minzoom: 0,
-			layout: {
-				visibility: "visible"
-			},
-			paint: {
-				"raster-opacity": 1
-			},
-			filter: [
-				"all"
-			]
-		}
-	];
-	var metadata = {
-		"maptiler:copyright": "This style was generated on MapTiler Cloud. Usage outside of MapTiler Cloud or MapTiler Server requires valid MapTiler Data package: https://www.maptiler.com/data/ -- please contact us."
-	};
-	var glyphs = "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?";
-	var bearing = 0;
-	var pitch = 0;
-	var center = [
-		-78.55323097748868,
-		24.03141891413972
-	];
-	var zoom = 5.066147709178387;
-	var satelliteBuiltin = {
-		version: version$1,
-		id: id,
-		name: name,
-		sources: sources,
-		layers: layers,
-		metadata: metadata,
-		glyphs: glyphs,
-		bearing: bearing,
-		pitch: pitch,
-		center: center,
-		zoom: zoom
-	};
-
 	const mapStylePresetList = [
 	  {
 	    referenceStyleID: "STREETS",
@@ -2133,24 +1908,6 @@
 	    ]
 	  }
 	];
-
-	const builtInStyles = {
-	  satellite: satelliteBuiltin
-	};
-	function expandMapStyle(style) {
-	  const maptilerDomainRegex = /^maptiler:\/\/(.*)/;
-	  let match;
-	  const trimmed = style.trim();
-	  let expandedStyle;
-	  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-	    expandedStyle = trimmed;
-	  } else if ((match = maptilerDomainRegex.exec(trimmed)) !== null) {
-	    expandedStyle = `https://api.maptiler.com/maps/${match[1]}/style.json`;
-	  } else {
-	    expandedStyle = `https://api.maptiler.com/maps/${trimmed}/style.json`;
-	  }
-	  return expandedStyle;
-	}
 	function makeReferenceStyleProxy(referenceStyle) {
 	  return new Proxy(referenceStyle, {
 	    get(target, prop, receiver) {
@@ -2164,82 +1921,6 @@
 	    }
 	  });
 	}
-	class MapStyleVariant {
-	  constructor(name, variantType, id, referenceStyle, description, imageURL) {
-	    this.name = name;
-	    this.variantType = variantType;
-	    this.id = id;
-	    this.referenceStyle = referenceStyle;
-	    this.description = description;
-	    this.imageURL = imageURL;
-	  }
-	  getName() {
-	    return this.name;
-	  }
-	  getFullName() {
-	    return `${this.referenceStyle.getName()} ${this.name}`;
-	  }
-	  getType() {
-	    return this.variantType;
-	  }
-	  getUsableStyle() {
-	    if (this.id in builtInStyles) {
-	      return builtInStyles[this.id];
-	    }
-	    return expandMapStyle(this.id);
-	  }
-	  getId() {
-	    return this.id;
-	  }
-	  getDescription() {
-	    return this.description;
-	  }
-	  getReferenceStyle() {
-	    return this.referenceStyle;
-	  }
-	  hasVariant(variantType) {
-	    return this.referenceStyle.hasVariant(variantType);
-	  }
-	  getVariant(variantType) {
-	    return this.referenceStyle.getVariant(variantType);
-	  }
-	  getVariants() {
-	    return this.referenceStyle.getVariants().filter((v) => v !== this);
-	  }
-	  getImageURL() {
-	    return this.imageURL;
-	  }
-	}
-	class ReferenceMapStyle {
-	  constructor(name, id) {
-	    this.name = name;
-	    this.id = id;
-	    this.variants = {};
-	    this.orderedVariants = [];
-	  }
-	  getName() {
-	    return this.name;
-	  }
-	  getId() {
-	    return this.id;
-	  }
-	  addVariant(v) {
-	    this.variants[v.getType()] = v;
-	    this.orderedVariants.push(v);
-	  }
-	  hasVariant(variantType) {
-	    return variantType in this.variants;
-	  }
-	  getVariant(variantType) {
-	    return variantType in this.variants ? this.variants[variantType] : this.orderedVariants[0];
-	  }
-	  getVariants() {
-	    return Object.values(this.variants);
-	  }
-	  getDefaultVariant() {
-	    return this.orderedVariants[0];
-	  }
-	}
 	function buildMapStyles() {
 	  const mapStyle = {};
 	  for (let i = 0; i < mapStylePresetList.length; i += 1) {
@@ -2251,11 +1932,16 @@
 	      const variantInfo = refStyleInfo.variants[j];
 	      const variant = new MapStyleVariant(
 	        variantInfo.name,
+	        // name
 	        variantInfo.variantType,
+	        // variantType
 	        variantInfo.id,
+	        // id
 	        refStyle,
+	        // referenceStyle
 	        variantInfo.description,
 	        variantInfo.imageURL
+	        // imageURL
 	      );
 	      refStyle.addVariant(variant);
 	    }
@@ -2263,22 +1949,389 @@
 	  }
 	  return mapStyle;
 	}
+	function styleToStyle$1(style) {
+	  if (!style) {
+	    return MapStyle[mapStylePresetList[0].referenceStyleID].getDefaultVariant().getId();
+	  }
+	  if (typeof style === "string" || style instanceof String) {
+	    return style.trim().toLowerCase();
+	  }
+	  if (style instanceof MapStyleVariant) {
+	    return style.getId();
+	  }
+	  if (style instanceof ReferenceMapStyle) {
+	    return style.getDefaultVariant().getId();
+	  }
+	}
 	const MapStyle = buildMapStyles();
+
+	function getSqSegDist(p, p1, p2) {
+	  let x = p1[0], y = p1[1], dx = p2[0] - x, dy = p2[1] - y;
+	  if (dx !== 0 || dy !== 0) {
+	    const t = ((p[0] - x) * dx + (p[1] - y) * dy) / (dx * dx + dy * dy);
+	    if (t > 1) {
+	      x = p2[0];
+	      y = p2[1];
+	    } else if (t > 0) {
+	      x += dx * t;
+	      y += dy * t;
+	    }
+	  }
+	  dx = p[0] - x;
+	  dy = p[1] - y;
+	  return dx * dx + dy * dy;
+	}
+	function simplifyDPStep(points, first, last, sqTolerance, simplified) {
+	  let maxSqDist = sqTolerance, index;
+	  for (let i = first + 1; i < last; i++) {
+	    const sqDist = getSqSegDist(points[i], points[first], points[last]);
+	    if (sqDist > maxSqDist) {
+	      index = i;
+	      maxSqDist = sqDist;
+	    }
+	  }
+	  if (maxSqDist > sqTolerance) {
+	    if (index - first > 1) {
+	      simplifyDPStep(points, first, index, sqTolerance, simplified);
+	    }
+	    simplified.push(points[index]);
+	    if (last - index > 1) {
+	      simplifyDPStep(points, index, last, sqTolerance, simplified);
+	    }
+	  }
+	}
+	function simplifyDouglasPeucker(points, sqTolerance) {
+	  const last = points.length - 1;
+	  const simplified = [points[0]];
+	  simplifyDPStep(points, 0, last, sqTolerance, simplified);
+	  simplified.push(points[last]);
+	  return simplified;
+	}
+	function simplify(points, tolerance) {
+	  if (points.length <= 2) {
+	    return points;
+	  }
+	  const sqTolerance = tolerance !== void 0 ? tolerance * tolerance : 1;
+	  const simplePoints = simplifyDouglasPeucker(points, sqTolerance);
+	  return simplePoints;
+	}
+
+	function staticMapMarkerToString(marker, includeColor = true) {
+	  let str = `${marker[0]},${marker[1]}`;
+	  if (marker.length === 3 && includeColor) {
+	    str += `,${marker[2]}`;
+	  }
+	  return str;
+	}
+	function simplifyAndStringify(path, maxNbChar = 3e3) {
+	  let str = path.map((point) => point.join(",")).join("|");
+	  let tolerance = 5e-6;
+	  const toleranceStep = 1e-5;
+	  while (str.length > maxNbChar) {
+	    const simplerPath = simplify(path, tolerance);
+	    str = simplerPath.map((point) => `${point[0]},${point[1]}`).join("|");
+	    tolerance += toleranceStep;
+	  }
+	  return str;
+	}
+	function centered(center, zoom, options = {}) {
+	  var _a, _b, _c, _d, _e;
+	  const style = styleToStyle$1(options.style);
+	  const scale = options.hiDPI ? "@2x" : "";
+	  const format = (_a = options.format) != null ? _a : "png";
+	  let width = ~~((_b = options.width) != null ? _b : 1024);
+	  let height = ~~((_c = options.height) != null ? _c : 1024);
+	  if (options.hiDPI) {
+	    width = ~~(width / 2);
+	    height = ~~(height / 2);
+	  }
+	  const endpoint = new URL(
+	    `maps/${encodeURIComponent(style)}/static/${center[0]},${center[1]},${zoom}/${width}x${height}${scale}.${format}`,
+	    defaults$1.maptilerApiURL
+	  );
+	  if ("attribution" in options) {
+	    endpoint.searchParams.set("attribution", options.attribution.toString());
+	  }
+	  if ("markers" in options) {
+	    let markerStr = "";
+	    const hasIcon = "markerIcon" in options;
+	    if (hasIcon) {
+	      markerStr += `icon:${options.markerIcon}|`;
+	    }
+	    if (hasIcon && "markerAnchor" in options) {
+	      markerStr += `anchor:${options.markerAnchor}|`;
+	    }
+	    if (hasIcon && options.hiDPI) {
+	      markerStr += `scale:2|`;
+	    }
+	    const markerList = Array.isArray(options.markers[0]) ? options.markers : [options.markers];
+	    markerStr += markerList.map((m) => staticMapMarkerToString(m, !hasIcon)).join("|");
+	    endpoint.searchParams.set("markers", markerStr);
+	  }
+	  if ("path" in options) {
+	    let pathStr = "";
+	    pathStr += `fill:${(_d = options.pathFillColor) != null ? _d : "none"}|`;
+	    if ("pathStrokeColor" in options) {
+	      pathStr += `stroke:${options.pathStrokeColor}|`;
+	    }
+	    if ("pathWidth" in options) {
+	      const pathWidth = options.pathWidth / (options.hiDPI ? 2 : 1);
+	      pathStr += `width:${pathWidth.toString()}|`;
+	    }
+	    pathStr += simplifyAndStringify(options.path);
+	    endpoint.searchParams.set("path", pathStr);
+	  }
+	  endpoint.searchParams.set("key", (_e = options.apiKey) != null ? _e : config$1.apiKey);
+	  return endpoint.toString();
+	}
+	function bounded(boundingBox, options = {}) {
+	  var _a, _b, _c, _d, _e;
+	  const style = styleToStyle$1(options.style);
+	  const scale = options.hiDPI ? "@2x" : "";
+	  const format = (_a = options.format) != null ? _a : "png";
+	  let width = ~~((_b = options.width) != null ? _b : 1024);
+	  let height = ~~((_c = options.height) != null ? _c : 1024);
+	  if (options.hiDPI) {
+	    width = ~~(width / 2);
+	    height = ~~(height / 2);
+	  }
+	  const endpoint = new URL(
+	    `maps/${encodeURIComponent(style)}/static/${boundingBox[0]},${boundingBox[1]},${boundingBox[2]},${boundingBox[3]}/${width}x${height}${scale}.${format}`,
+	    defaults$1.maptilerApiURL
+	  );
+	  if ("attribution" in options) {
+	    endpoint.searchParams.set("attribution", options.attribution.toString());
+	  }
+	  if ("padding" in options) {
+	    endpoint.searchParams.set("padding", options.padding.toString());
+	  }
+	  if ("markers" in options) {
+	    let markerStr = "";
+	    const hasIcon = "markerIcon" in options;
+	    if (hasIcon) {
+	      markerStr += `icon:${options.markerIcon}|`;
+	    }
+	    if (hasIcon && "markerAnchor" in options) {
+	      markerStr += `anchor:${options.markerAnchor}|`;
+	    }
+	    if (hasIcon && options.hiDPI) {
+	      markerStr += `scale:2|`;
+	    }
+	    const markerList = Array.isArray(options.markers[0]) ? options.markers : [options.markers];
+	    markerStr += markerList.map((m) => staticMapMarkerToString(m, !hasIcon)).join("|");
+	    endpoint.searchParams.set("markers", markerStr);
+	  }
+	  if ("path" in options) {
+	    let pathStr = "";
+	    pathStr += `fill:${(_d = options.pathFillColor) != null ? _d : "none"}|`;
+	    if ("pathStrokeColor" in options) {
+	      pathStr += `stroke:${options.pathStrokeColor}|`;
+	    }
+	    if ("pathWidth" in options) {
+	      const pathWidth = options.pathWidth / (options.hiDPI ? 2 : 1);
+	      pathStr += `width:${pathWidth.toString()}|`;
+	    }
+	    pathStr += simplifyAndStringify(options.path);
+	    endpoint.searchParams.set("path", pathStr);
+	  }
+	  endpoint.searchParams.set("key", (_e = options.apiKey) != null ? _e : config$1.apiKey);
+	  return endpoint.toString();
+	}
+	function automatic(options = {}) {
+	  var _a, _b, _c, _d, _e;
+	  if (!("markers" in options) && !("path" in options)) {
+	    throw new Error(
+	      "Automatic static maps require markers and/or path to be created."
+	    );
+	  }
+	  const style = styleToStyle$1(options.style);
+	  const scale = options.hiDPI ? "@2x" : "";
+	  const format = (_a = options.format) != null ? _a : "png";
+	  let width = ~~((_b = options.width) != null ? _b : 1024);
+	  let height = ~~((_c = options.height) != null ? _c : 1024);
+	  if (options.hiDPI) {
+	    width = ~~(width / 2);
+	    height = ~~(height / 2);
+	  }
+	  const endpoint = new URL(
+	    `maps/${encodeURIComponent(
+      style
+    )}/static/auto/${width}x${height}${scale}.${format}`,
+	    defaults$1.maptilerApiURL
+	  );
+	  if ("attribution" in options) {
+	    endpoint.searchParams.set("attribution", options.attribution.toString());
+	  }
+	  if ("padding" in options) {
+	    endpoint.searchParams.set("padding", options.padding.toString());
+	  }
+	  if ("markers" in options) {
+	    let markerStr = "";
+	    const hasIcon = "markerIcon" in options;
+	    if (hasIcon) {
+	      markerStr += `icon:${options.markerIcon}|`;
+	    }
+	    if (hasIcon && "markerAnchor" in options) {
+	      markerStr += `anchor:${options.markerAnchor}|`;
+	    }
+	    if (hasIcon && options.hiDPI) {
+	      markerStr += `scale:2|`;
+	    }
+	    const markerList = Array.isArray(options.markers[0]) ? options.markers : [options.markers];
+	    markerStr += markerList.map((m) => staticMapMarkerToString(m, !hasIcon)).join("|");
+	    endpoint.searchParams.set("markers", markerStr);
+	  }
+	  if ("path" in options) {
+	    let pathStr = "";
+	    pathStr += `fill:${(_d = options.pathFillColor) != null ? _d : "none"}|`;
+	    if ("pathStrokeColor" in options) {
+	      pathStr += `stroke:${options.pathStrokeColor}|`;
+	    }
+	    if ("pathWidth" in options) {
+	      const pathWidth = options.pathWidth / (options.hiDPI ? 2 : 1);
+	      pathStr += `width:${pathWidth.toString()}|`;
+	    }
+	    pathStr += simplifyAndStringify(options.path);
+	    endpoint.searchParams.set("path", pathStr);
+	  }
+	  endpoint.searchParams.set("key", (_e = options.apiKey) != null ? _e : config$1.apiKey);
+	  return endpoint.toString();
+	}
+	const staticMaps = {
+	  centered,
+	  bounded,
+	  automatic
+	};
+
+	class SdkConfig extends events.exports {
+	  constructor() {
+	    super();
+	    this.primaryLanguage = Language.AUTO;
+	    this.secondaryLanguage = null;
+	    this._unit = "metric";
+	    this._apiKey = "";
+	  }
+	  set unit(u) {
+	    this._unit = u;
+	    this.emit("unit", u);
+	  }
+	  get unit() {
+	    return this._unit;
+	  }
+	  set apiKey(k) {
+	    this._apiKey = k;
+	    config$1.apiKey = k;
+	    this.emit("apiKey", k);
+	  }
+	  get apiKey() {
+	    return this._apiKey;
+	  }
+	  set fetch(f) {
+	    config$1.fetch = f;
+	  }
+	  get fetch() {
+	    return config$1.fetch;
+	  }
+	}
+	const config = new SdkConfig();
+
+	const defaults = {
+	  maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
+	  maptilerURL: "https://www.maptiler.com/",
+	  maptilerApiHost: "api.maptiler.com",
+	  rtlPluginURL: "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
+	  primaryLanguage: Language.LATIN,
+	  secondaryLanguage: Language.NON_LATIN,
+	  terrainSourceURL: "https://api.maptiler.com/tiles/terrain-rgb/tiles.json",
+	  terrainSourceId: "maptiler-terrain"
+	};
+	Object.freeze(defaults);
+
+	class CustomLogoControl extends maplibregl.LogoControl {
+	  constructor(options = {}) {
+	    var _a, _b;
+	    super(options);
+	    this.logoURL = "";
+	    this.linkURL = "";
+	    this.logoURL = (_a = options.logoURL) != null ? _a : defaults.maptilerLogoURL;
+	    this.linkURL = (_b = options.linkURL) != null ? _b : defaults.maptilerURL;
+	  }
+	  onAdd(map) {
+	    this._map = map;
+	    this._compact = this.options && this.options.compact;
+	    this._container = window.document.createElement("div");
+	    this._container.className = "maplibregl-ctrl";
+	    const anchor = window.document.createElement("a");
+	    anchor.style.backgroundRepeat = "no-repeat";
+	    anchor.style.cursor = "pointer";
+	    anchor.style.display = "block";
+	    anchor.style.height = "23px";
+	    anchor.style.margin = "0 0 -4px -4px";
+	    anchor.style.overflow = "hidden";
+	    anchor.style.width = "88px";
+	    anchor.style.backgroundImage = `url(${this.logoURL})`;
+	    anchor.style.backgroundSize = "100px 30px";
+	    anchor.style.width = "100px";
+	    anchor.style.height = "30px";
+	    anchor.target = "_blank";
+	    anchor.rel = "noopener nofollow";
+	    anchor.href = this.linkURL;
+	    anchor.setAttribute(
+	      "aria-label",
+	      this._map._getUIString("LogoControl.Title")
+	    );
+	    anchor.setAttribute("rel", "noopener nofollow");
+	    this._container.appendChild(anchor);
+	    this._container.style.display = "block";
+	    this._map.on("resize", this._updateCompact);
+	    this._updateCompact();
+	    return this._container;
+	  }
+	}
+
+	function enableRTL() {
+	  if (maplibregl.getRTLTextPluginStatus() === "unavailable") {
+	    maplibregl.setRTLTextPlugin(
+	      defaults.rtlPluginURL,
+	      null,
+	      true
+	    );
+	  }
+	}
+	function bindAll(fns, context) {
+	  fns.forEach((fn) => {
+	    if (!context[fn]) {
+	      return;
+	    }
+	    context[fn] = context[fn].bind(context);
+	  });
+	}
+	function DOMcreate(tagName, className, container) {
+	  const el = window.document.createElement(tagName);
+	  if (className !== void 0)
+	    el.className = className;
+	  if (container)
+	    container.appendChild(el);
+	  return el;
+	}
+	function DOMremove(node) {
+	  if (node.parentNode) {
+	    node.parentNode.removeChild(node);
+	  }
+	}
+
 	function styleToStyle(style) {
 	  if (!style) {
-	    return MapStyle[mapStylePresetList[0].referenceStyleID].getDefaultVariant().getUsableStyle();
-	  }
-	  if (typeof style === "string" && style.toLowerCase() in builtInStyles) {
-	    return builtInStyles[style.toLowerCase()];
+	    return MapStyle[mapStylePresetList[0].referenceStyleID].getDefaultVariant().getExpandedStyleURL();
 	  }
 	  if (typeof style === "string" || style instanceof String) {
 	    return expandMapStyle(style);
 	  }
 	  if (style instanceof MapStyleVariant) {
-	    return style.getUsableStyle();
+	    return style.getExpandedStyleURL();
 	  }
 	  if (style instanceof ReferenceMapStyle) {
-	    return style.getDefaultVariant().getUsableStyle();
+	    return style.getDefaultVariant().getExpandedStyleURL();
 	  }
 	  return style;
 	}
@@ -2423,6 +2476,7 @@
 	  constructor(options) {
 	    var _a;
 	    const style = styleToStyle(options.style);
+	    console.log(style);
 	    const hashPreConstructor = location.hash;
 	    if (!config.apiKey) {
 	      console.warn(

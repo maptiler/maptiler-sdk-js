@@ -1,5 +1,4 @@
 import { Language } from "./language";
-import { MapStyle } from "./mapstyle/mapstyle";
 
 /**
  * Some default settings for the SDK

@@ -7,6 +7,7 @@ import type {
   StyleOptions,
 } from "maplibre-gl";
 import { v4 as uuidv4 } from "uuid";
+import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config } from "./config";
 import { defaults } from "./defaults";
 import { CustomLogoControl } from "./CustomLogoControl";
@@ -17,11 +18,7 @@ import {
   Language,
   LanguageString,
 } from "./language";
-import {
-  MapStyleVariant,
-  ReferenceMapStyle,
-  styleToStyle,
-} from "./mapstyle/mapstyle";
+import { styleToStyle } from "./mapstyle";
 import { TerrainControl } from "./terraincontrol";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
 import { geolocation } from "@maptiler/client";
@@ -132,6 +129,8 @@ export class Map extends maplibregl.Map {
 
   constructor(options: MapOptions) {
     const style = styleToStyle(options.style);
+    console.log(style);
+
     const hashPreConstructor = location.hash;
 
     if (!config.apiKey) {
