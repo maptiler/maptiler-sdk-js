@@ -1,10 +1,8 @@
 import satelliteBuiltin from "./builtinMapStyles/satellite.json";
-import stageDarkCustomBuiltin from "./builtinMapStyles/stage-dark-custom.json";
 import { mapStylePresetList, MapStyleType } from "./mapstylepresetlist";
 
 const builtInStyles = {
   satellite: satelliteBuiltin,
-  "stage-dark-custom": stageDarkCustomBuiltin,
 };
 
 /**
