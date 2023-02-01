@@ -102,6 +102,7 @@ class SdkConfig extends EventEmitter {
     super();
     this.primaryLanguage = Language.AUTO;
     this.secondaryLanguage = null;
+    this.sessionBasedBilling = true;
     this._unit = "metric";
     this._apiKey = "";
   }
@@ -386,7 +387,9 @@ class Map extends maplibregl__default.Map {
           if (!reqUrl.searchParams.has("key")) {
             reqUrl.searchParams.append("key", config.apiKey);
           }
-          reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
+          if (config.sessionBasedBilling) {
+            reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
+          }
         }
         return {
           url: reqUrl.href,

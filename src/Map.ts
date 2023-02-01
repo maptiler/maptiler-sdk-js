@@ -153,7 +153,9 @@ export class Map extends maplibregl.Map {
             reqUrl.searchParams.append("key", config.apiKey);
           }
 
-          reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
+          if (config.sessionBasedBilling) {
+            reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
+          }
         }
 
         return {

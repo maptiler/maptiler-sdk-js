@@ -19,6 +19,11 @@ class SdkConfig extends EventEmitter {
   secondaryLanguage: LanguageString | null = null;
 
   /**
+   * Setting on whether of not the SDK runs with session based billing flag
+   */
+  sessionBasedBilling = true;
+
+  /**
    * Unit to be used
    */
   private _unit: Unit = "metric";
