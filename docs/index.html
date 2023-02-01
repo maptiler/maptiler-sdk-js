@@ -97,17 +97,12 @@
 <tbody><tr>
 <td align="center"><code>MapStyle.STREETS</code></td>
 <td align="center"><a href="https://www.maptiler.com/maps/#style=streets-v2&amp;mode=2d&amp;position=12.52/40.73676/-73.98418"><img src="images/screenshots/style-streets-v2.png" alt=""></a></td>
-<td align="center">The classic default style, perfect for urban areas</td>
+<td align="center">The classic default style, perfect for urban areas.<p>Also available in <strong>dark</strong> and <strong>light</strong> mode.</p></td>
 </tr>
 <tr>
-<td align="center"><code>MapStyle.STREETS.DARK</code></td>
-<td align="center"><a href="https://www.maptiler.com/maps/#style=streets-v2-dark&amp;mode=2d&amp;position=3.71/39.66/-99.05"><img src="images/screenshots/style-streets-v2-dark.png" alt=""></a></td>
-<td align="center">A dark theme perfect for eye-fiendly street navigation in a low light</td>
-</tr>
-<tr>
-<td align="center"><code>MapStyle.STAGE.DARK</code></td>
-<td align="center">MISSING IMAGE</td>
-<td align="center">A minimalist style for data visualization</td>
+<td align="center"><code>MapStyle.DATAVIZ.DARK</code></td>
+<td align="center"><a href="https://www.maptiler.com/maps/#style=streets-v2-dark&amp;mode=2d&amp;position=3.71/39.66/-99.05"><img src="images/screenshots/style-dataviz-dark.png" alt=""></a></td>
+<td align="center">A minimalist style for data visualization.<p>Also available in <strong>color</strong> and <strong>light</strong> mode</p></td>
 </tr>
 <tr>
 <td align="center"><code>MapStyle.SATELLITE</code></td>
@@ -127,7 +122,7 @@
 <tr>
 <td align="center"><code>MapStyle.BASIC</code></td>
 <td align="center"><a href="https://www.maptiler.com/maps/#style=basic-v2&amp;mode=2d&amp;position=13.09/37.78734/-122.42025"><img src="images/screenshots/style-basic-v2.png" alt=""></a></td>
-<td align="center">A minimalist alternative to <code>STREETS</code>, with a touch of flat design</td>
+<td align="center">A minimalist alternative to <code>STREETS</code>, with a touch of flat design.<p>Also available in <strong>dark</strong> and <strong>light</strong> and <strong>pastel</strong> mode.</p></td>
 </tr>
 </tbody></table>
 <details>
@@ -176,9 +171,9 @@
 </ul>
 </li>
 <li><code>MapStyle.OPENSTREETMAP</code> (reference style, this one does not have any variants)</li>
-<li><code>MapStyle.STAGE</code>, the perfect style for data visualization, with very little noise<ul>
-<li><code>MapStyle.STAGE.DARK</code> (variant)</li>
-<li><code>MapStyle.STAGE.LIGHT</code> (variant)</li>
+<li><code>MapStyle.DATAVIZ</code>, the perfect style for data visualization, with very little noise<ul>
+<li><code>MapStyle.DATAVIZ.DARK</code> (variant)</li>
+<li><code>MapStyle.DATAVIZ.LIGHT</code> (variant)</li>
 </ul>
 </li>
 </ul>
@@ -302,18 +297,16 @@
 <p>The language generally depends on the style but we made it possible to easily update it with a single function and from a built-in list of languages:</p>
 <pre><code class="language-ts"><span class="hl-3">map</span><span class="hl-0">.</span><span class="hl-7">setLanguage</span><span class="hl-0">(</span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">Language</span><span class="hl-0">.</span><span class="hl-6">ENGLISH</span><span class="hl-0">);</span>
 </code></pre>
-<p>The special languages <code>maptilersdk.Language.LATIN</code> and <code>maptilersdk.Language.NON_LATIN</code> are generally the default ones in the styles developped by the MapTiler team and they are generaly safe all-around fallbacks.  </p>
-<p>Some style, developped in-house as well as by the community, may support a secondary language. In this case, you can also update it:</p>
-<pre><code class="language-ts"><span class="hl-3">map</span><span class="hl-0">.</span><span class="hl-7">setSecondaryLanguage</span><span class="hl-0">(</span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">Language</span><span class="hl-0">.</span><span class="hl-6">NON_LATIN</span><span class="hl-0">);</span>
-</code></pre>
+<p>The list of supported languages is built-in and can be found <a href="src/language.ts">here</a>. In addition, there are spacial language <em>flags</em>:</p>
+<ul>
+<li><code>maptilersdk.Language.AUTO</code> <strong>[DEFAULT]</strong> uses the language defined in the web browser</li>
+<li><code>maptilersdk.Language.LOCAL</code> uses the language local to each country</li>
+<li><code>maptilersdk.Language.LATIN</code> uses a default with latin characters</li>
+<li><code>maptilersdk.Language.NON_LATIN</code> uses a default with non-latin characters</li>
+</ul>
+<p>Whenever a label is not supported in the defined language, it falls back to <code>maptilersdk.Language.LATIN</code>.</p>
 <p>Here is a sample of some compatible languages:
 <img src="images/screenshots/multilang.gif" alt=""></p>
-<blockquote>
-<p>📣 <em><strong>Note:</strong></em> the <code>Map</code> method <code>.setLanguage()</code> is shorthand for <code>.setPrimaryLanguage()</code>. Use the one that makes more sense to your usage.</p>
-</blockquote>
-<blockquote>
-<p>📣 <em><strong>Note 2:</strong></em> Not all the labels are available in every languages. Depending on the style settings, a fallback to <code>maptilersdk.Language.LATIN</code> is likely tro happen.</p>
-</blockquote>
 
 <a href="#built-in-support-for-right-to-left-languages" id="built-in-support-for-right-to-left-languages" style="color: inherit; text-decoration: none;">
   <h1>Built-in support for right-to-left languages</h1>
@@ -330,18 +323,21 @@
 </a>
 <p>Our map SDK is not only about maps! We also provide plenty of wrapper to our API calls!</p>
 <blockquote>
-<p>📣 <em><strong>Note:</strong></em> If you need <ins>only the API Client library</ins> to use in a headless fashion and without any map display, check out <a href="https://github.com/maptiler/maptiler-client-js">MapTiler Client JS</a> library for browser and NodeJS.</p>
+<p>📣 <em><strong>Note:</strong></em> If you need <ins>only the API Client library</ins> to use in a headless fashion and without any map display, check out out <a href="https://docs.maptiler.com/client-js/">API Client library</a> for browser and NodeJS. It&#39;s exactely what is down below and only that, in a minimalistic <a href="https://github.com/maptiler/maptiler-client-js">TypeScript package</a> 🐙.</p>
 </blockquote>
 
 <a href="#🔍-geocoding" id="🔍-geocoding" style="color: inherit; text-decoration: none;">
   <h2>🔍 Geocoding</h2>
 </a>
+<blockquote>
+<p>✅ Please, use geocoding functions only from client-side (browser) and do not 🚫 <strong>store</strong> or <strong>redistribute</strong> MapTiler Cloud API data. In case of doubt, consult the <a href="https://www.maptiler.com/cloud/terms/#explicitly-prohibited-use">terms</a> ⚖️</p>
+</blockquote>
 
 <a href="#forward" id="forward" style="color: inherit; text-decoration: none;">
   <h3>Forward</h3>
 </a>
 <p>You want to know the longitude and latitude of a specific place, use the forward geocoding:</p>
-<pre><code class="language-ts"><span class="hl-5">// in an async function, or as a &#39;thenable&#39;:</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">result</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">geocoding</span><span class="hl-0">.</span><span class="hl-7">forward</span><span class="hl-0">(</span><span class="hl-4">&#39;paris&#39;</span><span class="hl-0">);</span>
+<pre><code class="language-ts"><span class="hl-5">// in an async function, or as a &#39;thenable&#39;:</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">result</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">geocoding</span><span class="hl-0">.</span><span class="hl-7">forward</span><span class="hl-0">(</span><span class="hl-4">&#39;paris&#39;</span><span class="hl-0">);</span>
 </code></pre>
 <p>You can provide some options such as:</p>
 <ul>
@@ -349,36 +345,34 @@
 <li>one of more languages to get the results into</li>
 <li>a bounding geo box, to restrict the search to a given window</li>
 </ul>
-<p>Read more about forward geocoding on our official <a href="https://docs.maptiler.com/cloud/api/geocoding/#search-by-name-forward">API documentation</a>.</p>
+<p>Read more about forward geocoding on our <a href="https://docs.maptiler.com/client-js/geocoding/#forward">official documentation</a>.</p>
 
 <a href="#reverse" id="reverse" style="color: inherit; text-decoration: none;">
   <h3>Reverse</h3>
 </a>
 <p>You wan to tknow the name of a place, given a longitude-latitude? Use the reverse geocoding:</p>
-<pre><code class="language-ts"><span class="hl-5">// in an async function, or as a &#39;thenable&#39;:</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">result</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">geocoding</span><span class="hl-0">.</span><span class="hl-7">reverse</span><span class="hl-0">({ </span><span class="hl-3">lng:</span><span class="hl-0"> </span><span class="hl-13">6.249638</span><span class="hl-0">, </span><span class="hl-3">lat:</span><span class="hl-0"> </span><span class="hl-13">46.402056</span><span class="hl-0"> });</span>
+<pre><code class="language-ts"><span class="hl-5">// in an async function, or as a &#39;thenable&#39;:</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">result</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">geocoding</span><span class="hl-0">.</span><span class="hl-7">reverse</span><span class="hl-0">([</span><span class="hl-13">6.249638</span><span class="hl-0">, </span><span class="hl-13">46.402056</span><span class="hl-0">]);</span>
 </code></pre>
 <p>The same option object as the forward geocoding can be provided.</p>
-<p>Read more about reverse geocoding on our official <a href="https://docs.maptiler.com/cloud/api/geocoding/#search-by-coordinates-reverse">API documentation</a>.</p>
+<p>Read more about reverse geocoding on our <a href="https://docs.maptiler.com/client-js/geocoding/#reverse">official documentation</a>.</p>
 
 <a href="#language" id="language" style="color: inherit; text-decoration: none;">
   <h3>Language</h3>
 </a>
 <p>For both <em>forward</em> and <em>reverse</em> geocoding, this library provides a list of supported languages as shorthands to <a href="https://en.wikipedia.org/wiki/ISO_639-1">ISO language codes</a>. The result will be provided in multiple languages if the <code>language</code> options is an array:</p>
-<pre><code class="language-ts"><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">result</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">geocoding</span><span class="hl-0">.</span><span class="hl-7">forward</span><span class="hl-0">(</span><span class="hl-4">&#39;paris&#39;</span><span class="hl-0">, {</span><span class="hl-3">language:</span><span class="hl-0"> [</span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">LanguageGeocoding</span><span class="hl-0">.</span><span class="hl-6">SPANISH</span><span class="hl-0">, </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">LanguageGeocoding</span><span class="hl-0">.</span><span class="hl-6">KOREAN</span><span class="hl-0">]});</span>
+<pre><code class="language-ts"><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">result</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">geocoding</span><span class="hl-0">.</span><span class="hl-7">forward</span><span class="hl-0">(</span><span class="hl-4">&#39;paris&#39;</span><span class="hl-0">, {</span><span class="hl-3">language:</span><span class="hl-0"> [</span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">geocoding</span><span class="hl-0">.</span><span class="hl-3">languages</span><span class="hl-0">.</span><span class="hl-6">SPANISH</span><span class="hl-0">, </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">geocoding</span><span class="hl-0">.</span><span class="hl-3">languages</span><span class="hl-0">.</span><span class="hl-6">KOREAN</span><span class="hl-0">]})</span>
 </code></pre>
-<p>The special language <code>AUTO</code> will detect the plateform of browser prefered language.</p>
-<blockquote>
-<p>📣 <em><strong>Note:</strong></em> thie SDK provides two lists of languages. <code>maptilersdk.Language</code> contains the list of languages available for map labels, while <code>maptilersdk.LanguageGeocoding</code> contains a slightly smaller subset of languages.</p>
-</blockquote>
+<p>The special language <code>AUTO</code> will detect the platform/browser preferred language.</p>
 
 <a href="#🕵️♂️-geolocation" id="🕵️♂️-geolocation" style="color: inherit; text-decoration: none;">
   <h2>🕵️‍♂️ Geolocation</h2>
 </a>
-<p>The geolocation service provides an accurate location insight of a website visitor using its IP address.</p>
+<p>The geolocation service provides location informations of a visitor using its IP address.</p>
+<p>The geolocation uses the IP address of a visitors to provide informations about their location, such as city, region, country, timezone, etc. The precision is lower than GPS but does not require visitors to explicitely enable the location service from their web browser.</p>
 <p>There is only a single function:</p>
-<pre><code class="language-ts"><span class="hl-5">// in an async function, or as a &#39;thenable&#39;:</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">result</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">geolocation</span><span class="hl-0">.</span><span class="hl-7">info</span><span class="hl-0">();</span>
+<pre><code class="language-ts"><span class="hl-5">// in an async function, or as a &#39;thenable&#39;:</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">result</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">geolocation</span><span class="hl-0">.</span><span class="hl-7">info</span><span class="hl-0">();</span>
 </code></pre>
-<p>Read more about geolocation on our official <a href="https://docs.maptiler.com/cloud/api/geolocation/">API documentation</a>.</p>
+<p>Read more about geolocation on our <a href="https://docs.maptiler.com/client-js/geolocation/">official documentation</a>.</p>
 
 <a href="#🌐-coordinates" id="🌐-coordinates" style="color: inherit; text-decoration: none;">
   <h2>🌐 Coordinates</h2>
@@ -389,31 +383,35 @@
   <h3>Search</h3>
 </a>
 <p>The <code>search</code> lets you perform a query in a free form fashion. Here are some examples:</p>
-<pre><code class="language-ts"><span class="hl-5">// in an async function, or as a &#39;thenable&#39;:</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">resultA</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">coordinates</span><span class="hl-0">.</span><span class="hl-7">search</span><span class="hl-0">(</span><span class="hl-4">&#39;mercator&#39;</span><span class="hl-0">);</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">resultB</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">coordinates</span><span class="hl-0">.</span><span class="hl-7">search</span><span class="hl-0">(</span><span class="hl-4">&#39;plate carree&#39;</span><span class="hl-0">);</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">resultC</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">coordinates</span><span class="hl-0">.</span><span class="hl-7">search</span><span class="hl-0">(</span><span class="hl-4">&#39;france&#39;</span><span class="hl-0">);</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">resultD</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">coordinates</span><span class="hl-0">.</span><span class="hl-7">search</span><span class="hl-0">(</span><span class="hl-4">&#39;code:4326&#39;</span><span class="hl-0">, {</span><span class="hl-3">transformations:</span><span class="hl-0"> </span><span class="hl-2">true</span><span class="hl-0">});</span>
+<pre><code class="language-ts"><span class="hl-5">// in an async function, or as a &#39;thenable&#39;:</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">resultA</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">coordinates</span><span class="hl-0">.</span><span class="hl-7">search</span><span class="hl-0">(</span><span class="hl-4">&#39;mercator&#39;</span><span class="hl-0">);</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">resultB</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">coordinates</span><span class="hl-0">.</span><span class="hl-7">search</span><span class="hl-0">(</span><span class="hl-4">&#39;plate carree&#39;</span><span class="hl-0">);</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">resultC</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">coordinates</span><span class="hl-0">.</span><span class="hl-7">search</span><span class="hl-0">(</span><span class="hl-4">&#39;france&#39;</span><span class="hl-0">);</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">resultD</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">coordinates</span><span class="hl-0">.</span><span class="hl-7">search</span><span class="hl-0">(</span><span class="hl-4">&#39;code:4326&#39;</span><span class="hl-0">, {</span><span class="hl-3">transformations:</span><span class="hl-0"> </span><span class="hl-2">true</span><span class="hl-0">}));</span>
 </code></pre>
 <p>The <code>transformations</code> options retrieves a lot more details about the CRS that MapTiler API is able to transform to/from than just their IDs.</p>
-<p>Read more about searching coordinate systems on our official <a href="https://docs.maptiler.com/cloud/api/coordinates/#search-coordinate-systems">API documentation</a>.</p>
+<p>Read more about searching coordinate systems on our <a href="https://docs.maptiler.com/client-js/coordinates/#search">official documentation</a>.</p>
 
 <a href="#transform" id="transform" style="color: inherit; text-decoration: none;">
   <h3>Transform</h3>
 </a>
 <p>Transforming a couple of coordinates from one system to another can be challenging, for example, most countries have their own official system, yet web mapping tools are more often than not exclusive to <a href="https://epsg.io/4326">WGS84</a>.</p>
 <p>If not provided, both the source (<code>sourceCrs</code>) and the destination (<code>targetCrs</code>) are default to <strong>EPSG:4326</strong> (in other words, <a href="https://epsg.io/4326">WGS84</a>). Here is how to use this feature:</p>
-<pre><code class="language-ts"><span class="hl-5">// in an async function, or as a &#39;thenable&#39;:</span><br/><br/><span class="hl-5">// Providing one coordinate to transform, with a target CRS being EPSG:9793 (RGF93 v2 / Lambert-93, France official CRS)</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">resultA</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">coordinates</span><span class="hl-0">.</span><span class="hl-7">transform</span><span class="hl-0">({</span><span class="hl-3">lng:</span><span class="hl-0"> </span><span class="hl-13">1</span><span class="hl-0">, </span><span class="hl-3">lat:</span><span class="hl-0"> </span><span class="hl-13">45</span><span class="hl-0">}, {</span><span class="hl-3">targetCrs:</span><span class="hl-0"> </span><span class="hl-13">9793</span><span class="hl-0">});</span><br/><br/><span class="hl-5">// Using the same logic, we can pass up to 50 coordinates to be transformed</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">resultB</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">coordinates</span><span class="hl-0">.</span><span class="hl-7">transform</span><span class="hl-0">([{</span><span class="hl-3">lng:</span><span class="hl-0"> </span><span class="hl-13">10</span><span class="hl-0">, </span><span class="hl-3">lat:</span><span class="hl-0"> </span><span class="hl-13">48</span><span class="hl-0">}, {</span><span class="hl-3">lng:</span><span class="hl-0"> </span><span class="hl-13">1</span><span class="hl-0">, </span><span class="hl-3">lat:</span><span class="hl-0"> </span><span class="hl-13">45</span><span class="hl-0">}], {</span><span class="hl-3">targetCrs:</span><span class="hl-0"> </span><span class="hl-13">9793</span><span class="hl-0">});</span>
+<pre><code class="language-ts"><span class="hl-5">// in an async function, or as a &#39;thenable&#39;:</span><br/><br/><span class="hl-5">// Providing one coordinate to transform, with a target CRS being EPSG:9793 (RGF93 v2 / Lambert-93, France official CRS)</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">resultA</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">coordinates</span><span class="hl-0">.</span><span class="hl-7">transform</span><span class="hl-0">([</span><span class="hl-13">1</span><span class="hl-0">, </span><span class="hl-13">45</span><span class="hl-0">], {</span><span class="hl-3">targetCrs:</span><span class="hl-0"> </span><span class="hl-13">9793</span><span class="hl-0">})</span><br/><br/><span class="hl-5">// Using the same logic, we can pass up to 50 coordinates to be transformed</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">resultB</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">coordinates</span><span class="hl-0">.</span><span class="hl-7">transform</span><span class="hl-0">([[</span><span class="hl-13">10</span><span class="hl-0">, </span><span class="hl-13">48</span><span class="hl-0">], [</span><span class="hl-13">1</span><span class="hl-0">, </span><span class="hl-13">45</span><span class="hl-0">]], {</span><span class="hl-3">targetCrs:</span><span class="hl-0"> </span><span class="hl-13">9793</span><span class="hl-0">})</span>
 </code></pre>
-<p>Read more about transforming coordinates on our official <a href="https://docs.maptiler.com/cloud/api/coordinates/#transform-coordinates">API documentation</a>.</p>
+<p>Read more about transforming coordinates on our <a href="https://docs.maptiler.com/client-js/coordinates/#transform">official documentation</a>.</p>
 
 <a href="#💽-data" id="💽-data" style="color: inherit; text-decoration: none;">
   <h2>💽 Data</h2>
 </a>
 <p>MapTiler Cloud give its users the possibility to <a href="https://cloud.maptiler.com/data/">upload and create data</a>, manually with a user interface or by uploading a GPX, GeoJSON, KML or shp file. A unique ID is associated to each dataset so that we can later on access it programmatically to retrieve a GeoJSON equivalent of it:</p>
-<pre><code class="language-ts"><span class="hl-5">// in an async function, or as a &#39;thenable&#39;:</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">result</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">data</span><span class="hl-0">.</span><span class="hl-7">get</span><span class="hl-0">(</span><span class="hl-4">&#39;my-dataset-unique-id&#39;</span><span class="hl-0">);</span>
+<pre><code class="language-ts"><span class="hl-5">// in an async function, or as a &#39;thenable&#39;:</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">result</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">data</span><span class="hl-0">.</span><span class="hl-7">get</span><span class="hl-0">(</span><span class="hl-4">&#39;my-dataset-unique-id&#39;</span><span class="hl-0">)</span>
 </code></pre>
 <p>Since the result is a GeoJSON, it can easily be added to a <code>map</code> with <code>.addSource()</code> and <code>.addLayer()</code>.</p>
+<p>Read more about fetching your own data on our <a href="https://docs.maptiler.com/client-js/data/">official documentation</a>.</p>
 
 <a href="#🗺️-static-maps" id="🗺️-static-maps" style="color: inherit; text-decoration: none;">
   <h2>🗺️ Static maps</h2>
 </a>
+<blockquote>
+<p>✅ Please, use static maps URLs only from client side <code>&lt;img&gt;</code> elements, and do not 🚫 store or redistribute the static map files. In case of doubt, consult the <a href="https://www.maptiler.com/cloud/terms/#explicitly-prohibited-use">terms</a> ⚖️</p>
+</blockquote>
 <p>Maptiler Cloud provides many possibilities for creating static maps as PNG, JPEG or WebP images. They all offer the possibilities to:</p>
 <ul>
 <li>Choose from one of the MapTiler style or your own</li>
@@ -422,14 +420,66 @@
 </ul>
 <p>Three modes are available: <code>centered</code>, <code>bounded</code> and <code>automatic</code>.</p>
 <blockquote>
-<p>📣 <em><strong>important:</strong></em> Contrary to the geolocation/geocoding/coordinates/data service wrappers, the static maps function <strong>does not</strong> perform any query to the MapTiler API, instead they build the image URL. We took this decision because images are most likely going to be displayed  in <code>&lt;img src=&quot;path.png&quot;&gt;&lt;/img&gt;</code> markups and will naturaly be fetched by the web browser.</p>
+<p>📣 <em><strong>important:</strong></em> <span style="text-decoration: underline">only image <strong>URLs</strong> are returned.</span><br>Contrary to the other functions of this library, the static map functions <strong>do not</strong> perform any query to MapTiler Cloud API, instead they build the image URL for you to use in <code>&lt;img&gt;</code> elements.</p>
 </blockquote>
+
+<a href="#map-styles" id="map-styles" style="color: inherit; text-decoration: none;">
+  <h3>Map Styles</h3>
+</a>
+<p>In the following static map functions, the <code>option</code> object features a <code>style</code> property that can be a string or one of the built-in style shorthand. Here is the full list:</p>
+<ul>
+<li><code>MapStyle.STREETS</code>, reference style for navigation and city exploration<ul>
+<li><code>MapStyle.STREETS.DARK</code> (variant)</li>
+<li><code>MapStyle.STREETS.LIGHT</code> (variant)</li>
+<li><code>MapStyle.STREETS.PASTEL</code> (variant)</li>
+</ul>
+</li>
+<li><code>MapStyle.OUTDOOR</code> reference style for adventure</li>
+<li><code>MapStyle.WINTER</code> reference style for winter adventure</li>
+<li><code>MapStyle.SATELLITE</code> reference style satellite and airborne imagery (no variants)</li>
+<li><code>MapStyle.HYBRID</code> reference style satellite and airborne imagery with labels (no variants)</li>
+<li><code>MapStyle.BASIC</code> reference style for minimalist design and general purpose<ul>
+<li><code>MapStyle.BASIC.DARK</code> (variant)</li>
+<li><code>MapStyle.BASIC.LIGHT</code> (variant)</li>
+</ul>
+</li>
+<li><code>MapStyle.BRIGHT</code> reference style for high contrast navigation<ul>
+<li><code>MapStyle.BRIGHT.DARK</code> (variant)</li>
+<li><code>MapStyle.BRIGHT.LIGHT</code> (variant)</li>
+<li><code>MapStyle.BRIGHT.PASTEL</code> (variant)</li>
+</ul>
+</li>
+<li><code>MapStyle.TOPO</code> reference style for topographic study<ul>
+<li><code>MapStyle.TOPO.SHINY</code> (variant)</li>
+<li><code>MapStyle.TOPO.PASTEL</code> (variant)</li>
+<li><code>MapStyle.TOPO.TOPOGRAPHIQUE</code> (variant)</li>
+</ul>
+</li>
+<li><code>MapStyle.VOYAGER</code> reference style for stylish yet minimalist maps<ul>
+<li><code>MapStyle.VOYAGER.DARK</code> (variant)</li>
+<li><code>MapStyle.VOYAGER.LIGHT</code> (variant)</li>
+<li><code>MapStyle.VOYAGER.VINTAGE</code> (variant)</li>
+</ul>
+</li>
+<li><code>MapStyle.TONER</code> reference style for very high contrast stylish maps <ul>
+<li><code>MapStyle.TONER.BACKGROUND</code> (variant)</li>
+<li><code>MapStyle.TONER.LITE</code> (variant)</li>
+<li><code>MapStyle.TONER.LINES</code> (variant)</li>
+</ul>
+</li>
+<li><code>MapStyle.OPENSTREETMAP</code> (reference style, this one does not have any variants)</li>
+<li><code>MapStyle.STAGE</code>, the perfect style for data visualization, with very little noise<ul>
+<li><code>MapStyle.STAGE.DARK</code> (variant)</li>
+<li><code>MapStyle.STAGE.LIGHT</code> (variant)</li>
+</ul>
+</li>
+</ul>
 
 <a href="#centered-static-maps" id="centered-static-maps" style="color: inherit; text-decoration: none;">
   <h3>Centered static maps</h3>
 </a>
 <p>This type of map is centered on a longitude-latitude coordinate and the zoom level must also be provided (from <code>0</code>: very zoomed out, to <code>22</code>: very zoomed in).<br>Note that if a path or markers are provided, the framing of the map will not automatically adapt to include those (use the <code>automatic</code> mode for that).</p>
-<pre><code class="language-ts"><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">imageLink</span><span class="hl-0"> = </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">staticMaps</span><span class="hl-0">.</span><span class="hl-7">centered</span><span class="hl-0">(</span><br/><span class="hl-0">  </span><span class="hl-5">// center position (Boston)</span><br/><span class="hl-0">  {</span><span class="hl-3">lng:</span><span class="hl-0"> -</span><span class="hl-13">71.06080</span><span class="hl-0">, </span><span class="hl-3">lat:</span><span class="hl-0"> </span><span class="hl-13">42.362114</span><span class="hl-0">}, </span><br/><br/><span class="hl-0">  </span><span class="hl-5">// zoom level</span><br/><span class="hl-0">  </span><span class="hl-13">12.5</span><span class="hl-0">, </span><br/><span class="hl-0">  </span><br/><span class="hl-0">  </span><span class="hl-5">// Options</span><br/><span class="hl-0">  {</span><br/><span class="hl-0">    </span><span class="hl-5">// Request a hiDPI/Retina image</span><br/><span class="hl-0">    </span><span class="hl-3">hiDPI:</span><span class="hl-0"> </span><span class="hl-2">true</span><span class="hl-0">,</span><br/><br/><span class="hl-0">    </span><span class="hl-5">// Output image size</span><br/><span class="hl-0">    </span><span class="hl-3">width:</span><span class="hl-0"> </span><span class="hl-13">1000</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-3">height:</span><span class="hl-0"> </span><span class="hl-13">1000</span><span class="hl-0">,</span><br/><br/><span class="hl-0">    </span><span class="hl-5">// Map style</span><br/><span class="hl-0">    </span><span class="hl-3">style:</span><span class="hl-0"> </span><span class="hl-4">&#39;streets-v2&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">  });</span>
+<pre><code class="language-ts"><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">imageLink</span><span class="hl-0"> = </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">staticMaps</span><span class="hl-0">.</span><span class="hl-7">centered</span><span class="hl-0">(</span><br/><span class="hl-0">  </span><span class="hl-5">// center position (Boston)</span><br/><span class="hl-0">  [-</span><span class="hl-13">71.06080</span><span class="hl-0">, </span><span class="hl-13">42.362114</span><span class="hl-0">], </span><br/><br/><span class="hl-0">  </span><span class="hl-5">// zoom level</span><br/><span class="hl-0">  </span><span class="hl-13">12.5</span><span class="hl-0">, </span><br/><span class="hl-0">  </span><br/><span class="hl-0">  </span><span class="hl-5">// Options</span><br/><span class="hl-0">  {</span><br/><span class="hl-0">    </span><span class="hl-5">// Request a hiDPI/Retina image</span><br/><span class="hl-0">    </span><span class="hl-3">hiDPI:</span><span class="hl-0"> </span><span class="hl-2">true</span><span class="hl-0">,</span><br/><br/><span class="hl-0">    </span><span class="hl-5">// Output image size</span><br/><span class="hl-0">    </span><span class="hl-3">width:</span><span class="hl-0"> </span><span class="hl-13">1000</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-3">height:</span><span class="hl-0"> </span><span class="hl-13">1000</span><span class="hl-0">,</span><br/><br/><span class="hl-0">    </span><span class="hl-5">// Map style</span><br/><span class="hl-0">    </span><span class="hl-3">style:</span><span class="hl-0"> </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">MapStyle</span><span class="hl-0">.</span><span class="hl-6">OUTDOOR</span><span class="hl-0">,</span><br/><span class="hl-0">  });</span>
 </code></pre>
 <p>Read more about centered static maps on our official <a href="https://docs.maptiler.com/cloud/api/static-maps/#center-based-image">API documentation</a>.</p>
 
@@ -437,7 +487,7 @@
   <h3>Bounded static maps</h3>
 </a>
 <p>This type of map requires a bounding box made of two points: the south-west bound and the north-east bound. The zoom level cannot be provided and is automatically deduced from the size of the bounding box.</p>
-<pre><code class="language-ts"><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">imageLink</span><span class="hl-0"> = </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">staticMaps</span><span class="hl-0">.</span><span class="hl-7">bounded</span><span class="hl-0">(</span><br/><span class="hl-0">  </span><span class="hl-5">// The bounding box on Europe</span><br/><span class="hl-0">  {</span><br/><span class="hl-0">    </span><span class="hl-3">southWest:</span><span class="hl-0"> { </span><span class="hl-3">lng:</span><span class="hl-0"> -</span><span class="hl-13">24</span><span class="hl-0">, </span><span class="hl-3">lat:</span><span class="hl-0"> </span><span class="hl-13">34.5</span><span class="hl-0"> },</span><br/><span class="hl-0">    </span><span class="hl-3">northEast:</span><span class="hl-0"> { </span><span class="hl-3">lng:</span><span class="hl-0"> </span><span class="hl-13">32</span><span class="hl-0">, </span><span class="hl-3">lat:</span><span class="hl-0"> </span><span class="hl-13">71</span><span class="hl-0"> },</span><br/><span class="hl-0">  },</span><br/><br/><span class="hl-0">  </span><span class="hl-5">// Options</span><br/><span class="hl-0">  {</span><br/><span class="hl-0">    </span><span class="hl-3">hiDPI:</span><span class="hl-0"> </span><span class="hl-2">true</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-3">width:</span><span class="hl-0"> </span><span class="hl-13">2048</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-3">height:</span><span class="hl-0"> </span><span class="hl-13">2048</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-3">style:</span><span class="hl-0"> </span><span class="hl-4">&#39;streets-v2&#39;</span><span class="hl-0">,</span><br/><br/><span class="hl-0">    </span><span class="hl-5">// Extra space that will add around the bounding box, in percentage</span><br/><span class="hl-0">    </span><span class="hl-5">// (0.1 = 10% is actually the dafault)</span><br/><span class="hl-0">    </span><span class="hl-3">padding:</span><span class="hl-0"> </span><span class="hl-13">0.1</span><br/><span class="hl-0">  });</span>
+<pre><code class="language-ts"><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">imageLink</span><span class="hl-0"> = </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">staticMaps</span><span class="hl-0">.</span><span class="hl-7">bounded</span><span class="hl-0">(</span><br/><span class="hl-0">  </span><span class="hl-5">// The bounding box on Europe</span><br/><span class="hl-0">  [</span><br/><span class="hl-0">    -</span><span class="hl-13">24</span><span class="hl-0">,  </span><span class="hl-5">// west bound (min x)</span><br/><span class="hl-0">    </span><span class="hl-13">34.5</span><span class="hl-0">, </span><span class="hl-5">// south bound (min y)</span><br/><span class="hl-0">    </span><span class="hl-13">32</span><span class="hl-0">,   </span><span class="hl-5">// east bound (max x)</span><br/><span class="hl-0">    </span><span class="hl-13">71</span><span class="hl-0">,   </span><span class="hl-5">// north bound (max y)</span><br/><span class="hl-0">  ],</span><br/><br/><span class="hl-0">  </span><span class="hl-5">// Options</span><br/><span class="hl-0">  {</span><br/><span class="hl-0">    </span><span class="hl-3">hiDPI:</span><span class="hl-0"> </span><span class="hl-2">true</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-3">width:</span><span class="hl-0"> </span><span class="hl-13">2048</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-3">height:</span><span class="hl-0"> </span><span class="hl-13">2048</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-3">style:</span><span class="hl-0"> </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">MapStyle</span><span class="hl-0">.</span><span class="hl-6">STREETS</span><span class="hl-0">.</span><span class="hl-6">DARK</span><span class="hl-0">,</span><br/><br/><span class="hl-0">    </span><span class="hl-5">// Extra space that will add around the bounding box, in percentage</span><br/><span class="hl-0">    </span><span class="hl-5">// (0.1 = 10% is actually the dafault)</span><br/><span class="hl-0">    </span><span class="hl-3">padding:</span><span class="hl-0"> </span><span class="hl-13">0.1</span><br/><span class="hl-0">  });</span>
 </code></pre>
 <p>Since the zoom level cannot be provided, the level of details is dictated by the size of the output image. here is an example:</p>
 <table>
@@ -452,7 +502,7 @@
 <td align="center"><img src="images/screenshots/static-bounded-europe-1024.png" alt=""></td>
 </tr>
 </tbody></table>
-<p>As you may notice, the geo bounding box could have very different proportions than the output image size. In the following example, we place the very same bounding box around Portugal, which has a this particular strip looking shape. We also add a <code>path</code> that repeats exactely the same bounding box to show the difference between the provided bounding box and the final image. We kept the default padding of 10%:</p>
+<p>As you may notice, the geo bounding box could have very different proportions than the output image size. In the following example, we place the very same bounding box around Portugal, which has a this particular strip looking shape. We also add a <code>path</code> that repeats exactly the same bounding box to show the difference between the provided bounding box and the final image. We kept the default padding of 10%:</p>
 <table>
 <thead>
 <tr>
@@ -471,13 +521,13 @@
   <h3>Automatic static maps</h3>
 </a>
 <p>As we have seen with centered and bounded maps, providing all the parameters is nice but can be cumbersome for the simplest use cases. This is why MapTiler Cloud also provides static maps that fits automatically whatever you need to place inside: path or markers.</p>
-<p>In the following example, we are going to load a cycling track recorded by one of our team members in Montreal, Canada. The track, originally a GPX file, was pushed to MapTiler Data and is now made avalable as a GeoJSON:</p>
-<pre><code class="language-ts"><span class="hl-5">// Fetching the GeoJSON</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">bikeTrack</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">data</span><span class="hl-0">.</span><span class="hl-7">get</span><span class="hl-0">(</span><span class="hl-4">&#39;the-id-of-a-bike-track-in-montreal&#39;</span><span class="hl-0">);</span><br/><br/><span class="hl-5">// Extracting the track points with the shape [[lng, lat], [lng, lat], ...]</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">trackPoints</span><span class="hl-0"> = </span><span class="hl-3">bikeTrack</span><span class="hl-0">.</span><span class="hl-3">features</span><span class="hl-0">[</span><span class="hl-13">0</span><span class="hl-0">].</span><span class="hl-3">geometry</span><span class="hl-0">.</span><span class="hl-3">coordinates</span><span class="hl-0">[</span><span class="hl-13">0</span><span class="hl-0">]</span><br/><span class="hl-0">  .</span><span class="hl-7">map</span><span class="hl-0">(</span><span class="hl-3">p</span><span class="hl-0"> </span><span class="hl-2">=&gt;</span><span class="hl-0"> </span><span class="hl-3">p</span><span class="hl-0">.</span><span class="hl-7">slice</span><span class="hl-0">(</span><span class="hl-13">0</span><span class="hl-0">, </span><span class="hl-13">2</span><span class="hl-0">));</span><br/><br/><span class="hl-5">// We will need the starting point to create a nice marker</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">departure</span><span class="hl-0"> = { </span><span class="hl-3">lng:</span><span class="hl-0"> </span><span class="hl-3">trackPoints</span><span class="hl-0">[</span><span class="hl-13">0</span><span class="hl-0">][</span><span class="hl-13">0</span><span class="hl-0">], </span><span class="hl-3">lat:</span><span class="hl-0"> </span><span class="hl-3">trackPoints</span><span class="hl-0">[</span><span class="hl-13">0</span><span class="hl-0">][</span><span class="hl-13">1</span><span class="hl-0">] };</span><br/><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">imageLink</span><span class="hl-0"> = </span><span class="hl-3">maptilersdk</span><span class="hl-0">.</span><span class="hl-3">staticMaps</span><span class="hl-0">.</span><span class="hl-7">automatic</span><span class="hl-0">({</span><br/><span class="hl-0">  </span><span class="hl-5">// hiDPI/Retina precision</span><br/><span class="hl-0">  </span><span class="hl-3">hiDPI:</span><span class="hl-0"> </span><span class="hl-2">true</span><span class="hl-0">,</span><br/><br/><span class="hl-0">  </span><span class="hl-5">// A farily large output image</span><br/><span class="hl-0">  </span><span class="hl-3">width:</span><span class="hl-0"> </span><span class="hl-13">2048</span><span class="hl-0">,</span><br/><span class="hl-0">  </span><span class="hl-3">height:</span><span class="hl-0"> </span><span class="hl-13">1024</span><span class="hl-0"> ,</span><br/><br/><span class="hl-0">  </span><span class="hl-5">// A grey style on which the track will pop!</span><br/><span class="hl-0">  </span><span class="hl-3">style:</span><span class="hl-0"> </span><span class="hl-4">&#39;streets-v2-light&#39;</span><span class="hl-0">,</span><br/><br/><span class="hl-0">  </span><span class="hl-5">// Draw a path with the trackpoints</span><br/><span class="hl-0">  </span><span class="hl-3">path:</span><span class="hl-0"> </span><span class="hl-3">trackPoints</span><span class="hl-0">,</span><br/><br/><span class="hl-0">  </span><span class="hl-5">// Adding a marker for the starting point, with a custom color</span><br/><span class="hl-0">  </span><span class="hl-3">marker:</span><span class="hl-0"> {</span><span class="hl-3">lng:</span><span class="hl-0"> </span><span class="hl-3">trackPoints</span><span class="hl-0">[</span><span class="hl-13">0</span><span class="hl-0">][</span><span class="hl-13">0</span><span class="hl-0">], </span><span class="hl-3">lat:</span><span class="hl-0"> </span><span class="hl-3">trackPoints</span><span class="hl-0">[</span><span class="hl-13">0</span><span class="hl-0">][</span><span class="hl-13">1</span><span class="hl-0">], </span><span class="hl-3">color:</span><span class="hl-0"> </span><span class="hl-4">&#39;#0a0&#39;</span><span class="hl-0">},</span><br/><br/><span class="hl-0">  </span><span class="hl-5">// Showing the track in red</span><br/><span class="hl-0">  </span><span class="hl-3">pathStrokeColor:</span><span class="hl-0"> </span><span class="hl-4">&#39;red&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">});</span>
+<p>In the following example, we are going to load a cycling track recorded by one of our team members in Montreal, Canada. The track, originally a GPX file, was pushed to MapTiler Data and is now made available as a GeoJSON:</p>
+<pre><code class="language-ts"><span class="hl-5">// Fetching the GeoJSON</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">bikeTrack</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">data</span><span class="hl-0">.</span><span class="hl-7">get</span><span class="hl-0">(</span><span class="hl-4">&#39;the-id-of-a-bike-track-in-montreal&#39;</span><span class="hl-0">);</span><br/><br/><span class="hl-5">// Extracting the track points with the shape [[lng, lat], [lng, lat], ...]</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">trackPoints</span><span class="hl-0"> = </span><span class="hl-3">bikeTrack</span><span class="hl-0">.</span><span class="hl-3">features</span><span class="hl-0">[</span><span class="hl-13">0</span><span class="hl-0">].</span><span class="hl-3">geometry</span><span class="hl-0">.</span><span class="hl-3">coordinates</span><span class="hl-0">[</span><span class="hl-13">0</span><span class="hl-0">]</span><br/><span class="hl-0">  .</span><span class="hl-7">map</span><span class="hl-0">(</span><span class="hl-3">p</span><span class="hl-0"> </span><span class="hl-2">=&gt;</span><span class="hl-0"> </span><span class="hl-3">p</span><span class="hl-0">.</span><span class="hl-7">slice</span><span class="hl-0">(</span><span class="hl-13">0</span><span class="hl-0">, </span><span class="hl-13">2</span><span class="hl-0">));</span><br/><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-6">imageLink</span><span class="hl-0"> = </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">staticMaps</span><span class="hl-0">.</span><span class="hl-7">automatic</span><span class="hl-0">({</span><br/><span class="hl-0">  </span><span class="hl-5">// hiDPI/Retina precision</span><br/><span class="hl-0">  </span><span class="hl-3">hiDPI:</span><span class="hl-0"> </span><span class="hl-2">true</span><span class="hl-0">,</span><br/><br/><span class="hl-0">  </span><span class="hl-5">// A fairly large output image</span><br/><span class="hl-0">  </span><span class="hl-3">width:</span><span class="hl-0"> </span><span class="hl-13">2048</span><span class="hl-0">,</span><br/><span class="hl-0">  </span><span class="hl-3">height:</span><span class="hl-0"> </span><span class="hl-13">1024</span><span class="hl-0"> ,</span><br/><br/><span class="hl-0">  </span><span class="hl-5">// A grey style on which the track will pop!</span><br/><span class="hl-0">  </span><span class="hl-3">style:</span><span class="hl-0"> </span><span class="hl-3">maptilerClient</span><span class="hl-0">.</span><span class="hl-3">MapStyle</span><span class="hl-0">.</span><span class="hl-6">STREETS</span><span class="hl-0">.</span><span class="hl-6">LIGHT</span><span class="hl-0">,</span><br/><br/><span class="hl-0">  </span><span class="hl-5">// Draw a path with the trackpoints</span><br/><span class="hl-0">  </span><span class="hl-3">path:</span><span class="hl-0"> </span><span class="hl-3">trackPoints</span><span class="hl-0">,</span><br/><br/><span class="hl-0">  </span><span class="hl-5">// Adding a marker for the starting point, with a custom color (array of shape [lng, lat, color])</span><br/><span class="hl-0">  </span><span class="hl-3">marker:</span><span class="hl-0"> [</span><span class="hl-3">trackPoints</span><span class="hl-0">[</span><span class="hl-13">0</span><span class="hl-0">][</span><span class="hl-13">0</span><span class="hl-0">], </span><span class="hl-3">trackPoints</span><span class="hl-0">[</span><span class="hl-13">0</span><span class="hl-0">][</span><span class="hl-13">1</span><span class="hl-0">], </span><span class="hl-4">&#39;#0a0&#39;</span><span class="hl-0">],</span><br/><br/><span class="hl-0">  </span><span class="hl-5">// Showing the track in red</span><br/><span class="hl-0">  </span><span class="hl-3">pathStrokeColor:</span><span class="hl-0"> </span><span class="hl-4">&#39;red&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">});</span>
 </code></pre>
 <p>And voila!</p>
 <p><img src="images/screenshots/static-with-path.png" alt="static map with bike path"></p>
 <blockquote>
-<p>📣 <em><strong>Note:</strong></em> The GeoJSON for this track contains 9380 couples of coordinates, which is a lot! In order to send the track to MapTiler Cloud static maps API, the SDK simplifies the long paths while keeing a high degree of precision using a very fast <a href="https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm">Ramer-Douglas-Peucker algorithm</a>.</p>
+<p>📣 <em><strong>Note:</strong></em> The GeoJSON for this track contains 9380 couples of coordinates, which is a lot! In order to send the track to MapTiler Cloud static maps API, the client simplifies the long paths while keeping a high degree of precision using a very fast <a href="https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm">Ramer-Douglas-Peucker algorithm</a>.</p>
 </blockquote>
 <p>Read more about bounded static maps on our official <a href="https://docs.maptiler.com/cloud/api/static-maps/#auto-fitted-image">API documentation</a>.</p>
 </div></div>

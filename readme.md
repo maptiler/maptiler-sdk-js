@@ -132,13 +132,12 @@ The styles with a shorthand provided by the SDK are the following:
 
 | ID | Screenshot | Comment |
 |:-:|:-:|:-:|
-|`MapStyle.STREETS`|[![](images/screenshots/style-streets-v2.png)](https://www.maptiler.com/maps/#style=streets-v2&mode=2d&position=12.52/40.73676/-73.98418)|The classic default style, perfect for urban areas|
-|`MapStyle.STREETS.DARK`|[![](images/screenshots/style-streets-v2-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A dark theme perfect for eye-fiendly street navigation in a low light|
-|`MapStyle.STAGE.DARK`| MISSING IMAGE|A minimalist style for data visualization|
+|`MapStyle.STREETS`|[![](images/screenshots/style-streets-v2.png)](https://www.maptiler.com/maps/#style=streets-v2&mode=2d&position=12.52/40.73676/-73.98418)|The classic default style, perfect for urban areas.<p>Also available in **dark** and **light** mode.</p>|
+|`MapStyle.DATAVIZ.DARK`| [![](images/screenshots/style-dataviz-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A minimalist style for data visualization.<p>Also available in **color** and **light** mode</p> |
 |`MapStyle.SATELLITE`|[![](images/screenshots/style-satellite.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=7.87/24.518/-77.411)|Only high resolution satellite raster tiles without any labels|
 |`MapStyle.HYBRID`|[![](images/screenshots/style-hybrid.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)|Satellite tile with labels, landmarks, roads ways and political borders|
 |`MapStyle.OUTDOOR`|[![](images/screenshots/style-outdoor.png)](https://www.maptiler.com/maps/#style=outdoor&mode=2d&position=11.96/46.02591/7.7273)|A solid hiking companion, with peaks, parks, isolines and more|
-|`MapStyle.BASIC`|[![](images/screenshots/style-basic-v2.png)](https://www.maptiler.com/maps/#style=basic-v2&mode=2d&position=13.09/37.78734/-122.42025)|A minimalist alternative to `STREETS`, with a touch of flat design|
+|`MapStyle.BASIC`|[![](images/screenshots/style-basic-v2.png)](https://www.maptiler.com/maps/#style=basic-v2&mode=2d&position=13.09/37.78734/-122.42025)|A minimalist alternative to `STREETS`, with a touch of flat design.<p>Also available in **dark** and **light** and **pastel** mode.</p>|
 
 
 <details>
@@ -175,9 +174,9 @@ Here is the full list:
   - `MapStyle.TONER.LITE` (variant)
   - `MapStyle.TONER.LINES` (variant)
 - `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variants)
-- `MapStyle.STAGE`, the perfect style for data visualization, with very little noise
-  - `MapStyle.STAGE.DARK` (variant)
-  - `MapStyle.STAGE.LIGHT` (variant)
+- `MapStyle.DATAVIZ`, the perfect style for data visualization, with very little noise
+  - `MapStyle.DATAVIZ.DARK` (variant)
+  - `MapStyle.DATAVIZ.LIGHT` (variant)
 
 All reference styles (instances of `ReferenceMapStyle`) and style variants (instances of `MapStyleVariant`) have methods to know the alternative styles and variant that belong to the same reference style (`.getVariants()`). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style. Read more about about [ReferenceMapStyle](docsmd/classes/ReferenceMapStyle.md) and [MapStyleVariant](docsmd/classes/MapStyleVariant.md).
 </details>  
@@ -327,21 +326,16 @@ The language generally depends on the style but we made it possible to easily up
 map.setLanguage(maptilersdk.Language.ENGLISH);
 ```
 
-The special languages `maptilersdk.Language.LATIN` and `maptilersdk.Language.NON_LATIN` are generally the default ones in the styles developped by the MapTiler team and they are generaly safe all-around fallbacks.  
+The list of supported languages is built-in and can be found [here](src/language.ts). In addition, there are spacial language *flags*:
+- `maptilersdk.Language.AUTO` **[DEFAULT]** uses the language defined in the web browser
+- `maptilersdk.Language.LOCAL` uses the language local to each country
+- `maptilersdk.Language.LATIN` uses a default with latin characters
+- `maptilersdk.Language.NON_LATIN` uses a default with non-latin characters
 
-Some style, developped in-house as well as by the community, may support a secondary language. In this case, you can also update it:
-
-```ts
-map.setSecondaryLanguage(maptilersdk.Language.NON_LATIN);
-```
+Whenever a label is not supported in the defined language, it falls back to `maptilersdk.Language.LATIN`.
 
 Here is a sample of some compatible languages:
 ![](images/screenshots/multilang.gif)
-
-> 📣 *__Note:__* the `Map` method `.setLanguage()` is shorthand for `.setPrimaryLanguage()`. Use the one that makes more sense to your usage.
-
-> 📣 *__Note 2:__* Not all the labels are available in every languages. Depending on the style settings, a fallback to `maptilersdk.Language.LATIN` is likely tro happen.
-
 
 # Built-in support for right-to-left languages
 Languages that are written right-to-left such as arabic and hebrew are fully supported by default. No need to install any plugin!
@@ -354,54 +348,56 @@ Languages that are written right-to-left such as arabic and hebrew are fully sup
 # Easy access to MapTiler Cloud API
 Our map SDK is not only about maps! We also provide plenty of wrapper to our API calls!
 
-> 📣 *__Note:__* If you need <ins>only the API Client library</ins> to use in a headless fashion and without any map display, check out [MapTiler Client JS](https://github.com/maptiler/maptiler-client-js) library for browser and NodeJS.
+> 📣 *__Note:__* If you need <ins>only the API Client library</ins> to use in a headless fashion and without any map display, check out out [API Client library](https://docs.maptiler.com/client-js/) for browser and NodeJS. It's exactely what is down below and only that, in a minimalistic [TypeScript package](https://github.com/maptiler/maptiler-client-js) 🐙.
 
 
 ## 🔍 Geocoding
+> ✅ Please, use geocoding functions only from client-side (browser) and do not 🚫 **store** or **redistribute** MapTiler Cloud API data. In case of doubt, consult the [terms](https://www.maptiler.com/cloud/terms/#explicitly-prohibited-use) ⚖️
+
 ### Forward
 You want to know the longitude and latitude of a specific place, use the forward geocoding:
 ```ts
 // in an async function, or as a 'thenable':
-const result = await maptilersdk.geocoding.forward('paris');
+const result = await maptilerClient.geocoding.forward('paris');
 ```
 You can provide some options such as:
 - the proximity, given a lon-lat position, to sort the results
 - one of more languages to get the results into
 - a bounding geo box, to restrict the search to a given window
 
-Read more about forward geocoding on our official [API documentation](https://docs.maptiler.com/cloud/api/geocoding/#search-by-name-forward).
+Read more about forward geocoding on our [official documentation](https://docs.maptiler.com/client-js/geocoding/#forward).
 
 ### Reverse
 You wan to tknow the name of a place, given a longitude-latitude? Use the reverse geocoding:
 ```ts
 // in an async function, or as a 'thenable':
-const result = await maptilersdk.geocoding.reverse({ lng: 6.249638, lat: 46.402056 });
+const result = await maptilerClient.geocoding.reverse([6.249638, 46.402056]);
 ```
 The same option object as the forward geocoding can be provided.
 
-Read more about reverse geocoding on our official [API documentation](https://docs.maptiler.com/cloud/api/geocoding/#search-by-coordinates-reverse).
+Read more about reverse geocoding on our [official documentation](https://docs.maptiler.com/client-js/geocoding/#reverse).
 
 ### Language
 For both *forward* and *reverse* geocoding, this library provides a list of supported languages as shorthands to [ISO language codes](https://en.wikipedia.org/wiki/ISO_639-1). The result will be provided in multiple languages if the `language` options is an array:
 
 ```ts
-const result = await maptilersdk.geocoding.forward('paris', {language: [maptilersdk.LanguageGeocoding.SPANISH, maptilersdk.LanguageGeocoding.KOREAN]});
+const result = await maptilerClient.geocoding.forward('paris', {language: [maptilerClient.geocoding.languages.SPANISH, maptilerClient.geocoding.languages.KOREAN]})
 ```
 
-The special language `AUTO` will detect the plateform of browser prefered language.
-
-> 📣 *__Note:__* thie SDK provides two lists of languages. `maptilersdk.Language` contains the list of languages available for map labels, while `maptilersdk.LanguageGeocoding` contains a slightly smaller subset of languages.
+The special language `AUTO` will detect the platform/browser preferred language.
 
 ## 🕵️‍♂️ Geolocation
-The geolocation service provides an accurate location insight of a website visitor using its IP address.
+The geolocation service provides location informations of a visitor using its IP address.
+
+The geolocation uses the IP address of a visitors to provide informations about their location, such as city, region, country, timezone, etc. The precision is lower than GPS but does not require visitors to explicitely enable the location service from their web browser.
 
 There is only a single function:
 ```ts
 // in an async function, or as a 'thenable':
-const result = await maptilersdk.geolocation.info();
+const result = await maptilerClient.geolocation.info();
 ```
 
-Read more about geolocation on our official [API documentation](https://docs.maptiler.com/cloud/api/geolocation/).
+Read more about geolocation on our [official documentation](https://docs.maptiler.com/client-js/geolocation/).
 
 ## 🌐 Coordinates
 If you are already familiar with [epsg.io](https://epsg.io/) (created by MapTiler), then you may find convenient to access the details of more than 10 thousands of coordinate reference systems (CRS) programmatically, as well as transforming coordinates from one system to another!
@@ -410,15 +406,15 @@ If you are already familiar with [epsg.io](https://epsg.io/) (created by MapTile
 The `search` lets you perform a query in a free form fashion. Here are some examples:
 ```ts
 // in an async function, or as a 'thenable':
-const resultA = await maptilersdk.coordinates.search('mercator');
-const resultB = await maptilersdk.coordinates.search('plate carree');
-const resultC = await maptilersdk.coordinates.search('france');
-const resultD = await maptilersdk.coordinates.search('code:4326', {transformations: true});
+const resultA = await maptilerClient.coordinates.search('mercator');
+const resultB = await maptilerClient.coordinates.search('plate carree');
+const resultC = await maptilerClient.coordinates.search('france');
+const resultD = await maptilerClient.coordinates.search('code:4326', {transformations: true}));
 ```
 
 The `transformations` options retrieves a lot more details about the CRS that MapTiler API is able to transform to/from than just their IDs.
 
-Read more about searching coordinate systems on our official [API documentation](https://docs.maptiler.com/cloud/api/coordinates/#search-coordinate-systems).
+Read more about searching coordinate systems on our [official documentation](https://docs.maptiler.com/client-js/coordinates/#search).
 
 ### Transform
 Transforming a couple of coordinates from one system to another can be challenging, for example, most countries have their own official system, yet web mapping tools are more often than not exclusive to [WGS84](https://epsg.io/4326).
@@ -429,25 +425,29 @@ If not provided, both the source (`sourceCrs`) and the destination (`targetCrs`)
 // in an async function, or as a 'thenable':
 
 // Providing one coordinate to transform, with a target CRS being EPSG:9793 (RGF93 v2 / Lambert-93, France official CRS)
-const resultA = await maptilersdk.coordinates.transform({lng: 1, lat: 45}, {targetCrs: 9793});
+const resultA = await maptilerClient.coordinates.transform([1, 45], {targetCrs: 9793})
 
 // Using the same logic, we can pass up to 50 coordinates to be transformed
-const resultB = await maptilersdk.coordinates.transform([{lng: 10, lat: 48}, {lng: 1, lat: 45}], {targetCrs: 9793});
+const resultB = await maptilerClient.coordinates.transform([[10, 48], [1, 45]], {targetCrs: 9793})
 ```
 
-Read more about transforming coordinates on our official [API documentation](https://docs.maptiler.com/cloud/api/coordinates/#transform-coordinates).
+Read more about transforming coordinates on our [official documentation](https://docs.maptiler.com/client-js/coordinates/#transform).
 
 ## 💽 Data
 MapTiler Cloud give its users the possibility to [upload and create data](https://cloud.maptiler.com/data/), manually with a user interface or by uploading a GPX, GeoJSON, KML or shp file. A unique ID is associated to each dataset so that we can later on access it programmatically to retrieve a GeoJSON equivalent of it:
 
 ```ts
 // in an async function, or as a 'thenable':
-const result = await maptilersdk.data.get('my-dataset-unique-id');
+const result = await maptilerClient.data.get('my-dataset-unique-id')
 ```
 
 Since the result is a GeoJSON, it can easily be added to a `map` with `.addSource()` and `.addLayer()`.
 
+Read more about fetching your own data on our [official documentation](https://docs.maptiler.com/client-js/data/).
+
 ## 🗺️ Static maps
+> ✅ Please, use static maps URLs only from client side `<img>` elements, and do not 🚫 store or redistribute the static map files. In case of doubt, consult the [terms](https://www.maptiler.com/cloud/terms/#explicitly-prohibited-use) ⚖️
+
 Maptiler Cloud provides many possibilities for creating static maps as PNG, JPEG or WebP images. They all offer the possibilities to:
 - Choose from one of the MapTiler style or your own
 - Add markers with a custom icon (or default icon with custom color)
@@ -455,16 +455,53 @@ Maptiler Cloud provides many possibilities for creating static maps as PNG, JPEG
 
 Three modes are available: `centered`, `bounded` and `automatic`.
 
-> 📣 *__important:__* Contrary to the geolocation/geocoding/coordinates/data service wrappers, the static maps function **does not** perform any query to the MapTiler API, instead they build the image URL. We took this decision because images are most likely going to be displayed  in `<img src="path.png"></img>` markups and will naturaly be fetched by the web browser.
+> 📣 *__important:__* <span style="text-decoration: underline">only image **URLs** are returned.</span>   
+> Contrary to the other functions of this library, the static map functions **do not** perform any query to MapTiler Cloud API, instead they build the image URL for you to use in `<img>` elements.
+
+
+### Map Styles
+In the following static map functions, the `option` object features a `style` property that can be a string or one of the built-in style shorthand. Here is the full list:
+
+- `MapStyle.STREETS`, reference style for navigation and city exploration
+  - `MapStyle.STREETS.DARK` (variant)
+  - `MapStyle.STREETS.LIGHT` (variant)
+  - `MapStyle.STREETS.PASTEL` (variant)
+- `MapStyle.OUTDOOR` reference style for adventure
+- `MapStyle.WINTER` reference style for winter adventure
+- `MapStyle.SATELLITE` reference style satellite and airborne imagery (no variants)
+- `MapStyle.HYBRID` reference style satellite and airborne imagery with labels (no variants)
+- `MapStyle.BASIC` reference style for minimalist design and general purpose
+  - `MapStyle.BASIC.DARK` (variant)
+  - `MapStyle.BASIC.LIGHT` (variant)
+- `MapStyle.BRIGHT` reference style for high contrast navigation
+  - `MapStyle.BRIGHT.DARK` (variant)
+  - `MapStyle.BRIGHT.LIGHT` (variant)
+  - `MapStyle.BRIGHT.PASTEL` (variant)
+- `MapStyle.TOPO` reference style for topographic study
+  - `MapStyle.TOPO.SHINY` (variant)
+  - `MapStyle.TOPO.PASTEL` (variant)
+  - `MapStyle.TOPO.TOPOGRAPHIQUE` (variant)
+- `MapStyle.VOYAGER` reference style for stylish yet minimalist maps
+  - `MapStyle.VOYAGER.DARK` (variant)
+  - `MapStyle.VOYAGER.LIGHT` (variant)
+  - `MapStyle.VOYAGER.VINTAGE` (variant)
+- `MapStyle.TONER` reference style for very high contrast stylish maps 
+  - `MapStyle.TONER.BACKGROUND` (variant)
+  - `MapStyle.TONER.LITE` (variant)
+  - `MapStyle.TONER.LINES` (variant)
+- `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variants)
+- `MapStyle.STAGE`, the perfect style for data visualization, with very little noise
+  - `MapStyle.STAGE.DARK` (variant)
+  - `MapStyle.STAGE.LIGHT` (variant)
 
 ### Centered static maps
 This type of map is centered on a longitude-latitude coordinate and the zoom level must also be provided (from `0`: very zoomed out, to `22`: very zoomed in).  
 Note that if a path or markers are provided, the framing of the map will not automatically adapt to include those (use the `automatic` mode for that).
 
 ```ts
-const imageLink = maptilersdk.staticMaps.centered(
+const imageLink = maptilerClient.staticMaps.centered(
   // center position (Boston)
-  {lng: -71.06080, lat: 42.362114}, 
+  [-71.06080, 42.362114], 
 
   // zoom level
   12.5, 
@@ -479,7 +516,7 @@ const imageLink = maptilersdk.staticMaps.centered(
     height: 1000,
 
     // Map style
-    style: 'streets-v2',
+    style: maptilerClient.MapStyle.OUTDOOR,
   });
 ```
 
@@ -490,19 +527,21 @@ Read more about centered static maps on our official [API documentation](https:/
 This type of map requires a bounding box made of two points: the south-west bound and the north-east bound. The zoom level cannot be provided and is automatically deduced from the size of the bounding box.
 
 ```ts
-const imageLink = maptilersdk.staticMaps.bounded(
+const imageLink = maptilerClient.staticMaps.bounded(
   // The bounding box on Europe
-  {
-    southWest: { lng: -24, lat: 34.5 },
-    northEast: { lng: 32, lat: 71 },
-  },
+  [
+    -24,  // west bound (min x)
+    34.5, // south bound (min y)
+    32,   // east bound (max x)
+    71,   // north bound (max y)
+  ],
 
   // Options
   {
     hiDPI: true,
     width: 2048,
     height: 2048,
-    style: 'streets-v2',
+    style: maptilerClient.MapStyle.STREETS.DARK,
 
     // Extra space that will add around the bounding box, in percentage
     // (0.1 = 10% is actually the dafault)
@@ -516,7 +555,7 @@ Since the zoom level cannot be provided, the level of details is dictated by the
 | :-----------: | :-----------: |
 | ![](images/screenshots/static-bounded-europe-2048.png)      | ![](images/screenshots/static-bounded-europe-1024.png)       |
 
-As you may notice, the geo bounding box could have very different proportions than the output image size. In the following example, we place the very same bounding box around Portugal, which has a this particular strip looking shape. We also add a `path` that repeats exactely the same bounding box to show the difference between the provided bounding box and the final image. We kept the default padding of 10%:
+As you may notice, the geo bounding box could have very different proportions than the output image size. In the following example, we place the very same bounding box around Portugal, which has a this particular strip looking shape. We also add a `path` that repeats exactly the same bounding box to show the difference between the provided bounding box and the final image. We kept the default padding of 10%:
 
 
 | `2048 x 2048`      | `1024 x 2048` |
@@ -529,35 +568,32 @@ Read more about bounded static maps on our official [API documentation](https://
 ### Automatic static maps
 As we have seen with centered and bounded maps, providing all the parameters is nice but can be cumbersome for the simplest use cases. This is why MapTiler Cloud also provides static maps that fits automatically whatever you need to place inside: path or markers.
 
-In the following example, we are going to load a cycling track recorded by one of our team members in Montreal, Canada. The track, originally a GPX file, was pushed to MapTiler Data and is now made avalable as a GeoJSON:
+In the following example, we are going to load a cycling track recorded by one of our team members in Montreal, Canada. The track, originally a GPX file, was pushed to MapTiler Data and is now made available as a GeoJSON:
 
 ```ts
 // Fetching the GeoJSON
-const bikeTrack = await maptilersdk.data.get('the-id-of-a-bike-track-in-montreal');
+const bikeTrack = await maptilerClient.data.get('the-id-of-a-bike-track-in-montreal');
 
 // Extracting the track points with the shape [[lng, lat], [lng, lat], ...]
 const trackPoints = bikeTrack.features[0].geometry.coordinates[0]
   .map(p => p.slice(0, 2));
 
-// We will need the starting point to create a nice marker
-const departure = { lng: trackPoints[0][0], lat: trackPoints[0][1] };
-
-const imageLink = maptilersdk.staticMaps.automatic({
+const imageLink = maptilerClient.staticMaps.automatic({
   // hiDPI/Retina precision
   hiDPI: true,
 
-  // A farily large output image
+  // A fairly large output image
   width: 2048,
   height: 1024 ,
 
   // A grey style on which the track will pop!
-  style: 'streets-v2-light',
+  style: maptilerClient.MapStyle.STREETS.LIGHT,
 
   // Draw a path with the trackpoints
   path: trackPoints,
 
-  // Adding a marker for the starting point, with a custom color
-  marker: {lng: trackPoints[0][0], lat: trackPoints[0][1], color: '#0a0'},
+  // Adding a marker for the starting point, with a custom color (array of shape [lng, lat, color])
+  marker: [trackPoints[0][0], trackPoints[0][1], '#0a0'],
 
   // Showing the track in red
   pathStrokeColor: 'red',
@@ -568,6 +604,6 @@ And voila!
 
 ![static map with bike path](images/screenshots/static-with-path.png)
 
-> 📣 *__Note:__* The GeoJSON for this track contains 9380 couples of coordinates, which is a lot! In order to send the track to MapTiler Cloud static maps API, the SDK simplifies the long paths while keeing a high degree of precision using a very fast [Ramer-Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
+> 📣 *__Note:__* The GeoJSON for this track contains 9380 couples of coordinates, which is a lot! In order to send the track to MapTiler Cloud static maps API, the client simplifies the long paths while keeping a high degree of precision using a very fast [Ramer-Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
 
 Read more about bounded static maps on our official [API documentation](https://docs.maptiler.com/cloud/api/static-maps/#auto-fitted-image).
