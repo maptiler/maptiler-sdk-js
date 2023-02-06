@@ -2208,7 +2208,7 @@
 	    super();
 	    this.primaryLanguage = Language.AUTO;
 	    this.secondaryLanguage = null;
-	    this.sessionBasedBilling = true;
+	    this.session = true;
 	    this._unit = "metric";
 	    this._apiKey = "";
 	  }
@@ -2429,6 +2429,74 @@
 	  }
 	}
 
+	class CustomGeolocateControl extends maplibreGl.exports.GeolocateControl {
+	  _setupUI(supported) {
+	    this._container.addEventListener(
+	      "contextmenu",
+	      (e) => e.preventDefault()
+	    );
+	    this._geolocateButton = DOMcreate(
+	      "button",
+	      "maplibregl-ctrl-geolocate",
+	      this._container
+	    );
+	    DOMcreate(
+	      "span",
+	      "maplibregl-ctrl-icon",
+	      this._geolocateButton
+	    ).setAttribute("aria-hidden", "true");
+	    this._geolocateButton.type = "button";
+	    if (supported === false) {
+	      const title = this._map._getUIString(
+	        "GeolocateControl.LocationNotAvailable"
+	      );
+	      this._geolocateButton.disabled = true;
+	      this._geolocateButton.title = title;
+	      this._geolocateButton.setAttribute("aria-label", title);
+	    } else {
+	      const title = this._map._getUIString("GeolocateControl.FindMyLocation");
+	      this._geolocateButton.title = title;
+	      this._geolocateButton.setAttribute("aria-label", title);
+	    }
+	    if (this.options.trackUserLocation) {
+	      this._geolocateButton.setAttribute("aria-pressed", "false");
+	      this._watchState = "OFF";
+	    }
+	    if (this.options.showUserLocation) {
+	      this._dotElement = DOMcreate("div", "maplibregl-user-location-dot");
+	      this._userLocationDotMarker = new maplibreGl.exports.Marker(this._dotElement);
+	      this._circleElement = DOMcreate(
+	        "div",
+	        "maplibregl-user-location-accuracy-circle"
+	      );
+	      this._accuracyCircleMarker = new maplibreGl.exports.Marker({
+	        element: this._circleElement,
+	        pitchAlignment: "map"
+	      });
+	      if (this.options.trackUserLocation)
+	        this._watchState = "OFF";
+	      this._map.on("zoom", this._onZoom);
+	    }
+	    this._geolocateButton.addEventListener("click", this.trigger.bind(this));
+	    this._setup = true;
+	    if (this.options.trackUserLocation) {
+	      this._map.on("movestart", (event) => {
+	        const fromResize = event.originalEvent && event.originalEvent.type === "resize";
+	        if (!event.geolocateSource && this._watchState === "ACTIVE_LOCK" && !fromResize) {
+	          this._watchState = "BACKGROUND";
+	          this._geolocateButton.classList.add(
+	            "maplibregl-ctrl-geolocate-background"
+	          );
+	          this._geolocateButton.classList.remove(
+	            "maplibregl-ctrl-geolocate-active"
+	          );
+	          this.fire(new Event("trackuserlocationend"));
+	        }
+	      });
+	    }
+	  }
+	}
+
 	var __defProp = Object.defineProperty;
 	var __defProps = Object.defineProperties;
 	var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
@@ -2493,7 +2561,7 @@
 	          if (!reqUrl.searchParams.has("key")) {
 	            reqUrl.searchParams.append("key", config.apiKey);
 	          }
-	          if (config.sessionBasedBilling) {
+	          if (config.session) {
 	            reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
 	          }
 	        }
@@ -2620,7 +2688,7 @@
 	      if (options.geolocateControl !== false) {
 	        const position = options.geolocateControl === true || options.geolocateControl === void 0 ? "top-right" : options.geolocateControl;
 	        this.addControl(
-	          new maplibregl.GeolocateControl({
+	          new CustomGeolocateControl({
 	            positionOptions: {
 	              enableHighAccuracy: true,
 	              maximumAge: 0,
@@ -2889,148 +2957,156 @@
 	  }
 	}
 
-	function Point(x, y) {
-	  this.x = x;
-	  this.y = y;
-	}
-	Point.prototype = {
-	  clone: function() {
-	    return new Point(this.x, this.y);
-	  },
-	  add: function(p) {
-	    return this.clone()._add(p);
-	  },
-	  sub: function(p) {
-	    return this.clone()._sub(p);
-	  },
-	  multByPoint: function(p) {
-	    return this.clone()._multByPoint(p);
-	  },
-	  divByPoint: function(p) {
-	    return this.clone()._divByPoint(p);
-	  },
-	  mult: function(k) {
-	    return this.clone()._mult(k);
-	  },
-	  div: function(k) {
-	    return this.clone()._div(k);
-	  },
-	  rotate: function(a) {
-	    return this.clone()._rotate(a);
-	  },
-	  rotateAround: function(a, p) {
-	    return this.clone()._rotateAround(a, p);
-	  },
-	  matMult: function(m) {
-	    return this.clone()._matMult(m);
-	  },
-	  unit: function() {
-	    return this.clone()._unit();
-	  },
-	  perp: function() {
-	    return this.clone()._perp();
-	  },
-	  round: function() {
-	    return this.clone()._round();
-	  },
-	  mag: function() {
-	    return Math.sqrt(this.x * this.x + this.y * this.y);
-	  },
-	  equals: function(other) {
-	    return this.x === other.x && this.y === other.y;
-	  },
-	  dist: function(p) {
-	    return Math.sqrt(this.distSqr(p));
-	  },
-	  distSqr: function(p) {
-	    const dx = p.x - this.x, dy = p.y - this.y;
-	    return dx * dx + dy * dy;
-	  },
-	  angle: function() {
-	    return Math.atan2(this.y, this.x);
-	  },
-	  angleTo: function(b) {
-	    return Math.atan2(this.y - b.y, this.x - b.x);
-	  },
-	  angleWith: function(b) {
-	    return this.angleWithSep(b.x, b.y);
-	  },
-	  angleWithSep: function(x, y) {
-	    return Math.atan2(this.x * y - this.y * x, this.x * x + this.y * y);
-	  },
-	  _matMult: function(m) {
-	    const x = m[0] * this.x + m[1] * this.y, y = m[2] * this.x + m[3] * this.y;
+	class Point {
+	  constructor(x, y) {
+	    this.x = x;
+	    this.y = y;
+	  }
+	  _matMult(m) {
+	    const x = m[0] * this.x + m[1] * this.y;
+	    const y = m[2] * this.x + m[3] * this.y;
 	    this.x = x;
 	    this.y = y;
 	    return this;
-	  },
-	  _add: function(p) {
+	  }
+	  _add(p) {
 	    this.x += p.x;
 	    this.y += p.y;
 	    return this;
-	  },
-	  _sub: function(p) {
+	  }
+	  _sub(p) {
 	    this.x -= p.x;
 	    this.y -= p.y;
 	    return this;
-	  },
-	  _mult: function(k) {
+	  }
+	  _mult(k) {
 	    this.x *= k;
 	    this.y *= k;
 	    return this;
-	  },
-	  _div: function(k) {
+	  }
+	  _div(k) {
 	    this.x /= k;
 	    this.y /= k;
 	    return this;
-	  },
-	  _multByPoint: function(p) {
+	  }
+	  _multByPoint(p) {
 	    this.x *= p.x;
 	    this.y *= p.y;
 	    return this;
-	  },
-	  _divByPoint: function(p) {
+	  }
+	  _divByPoint(p) {
 	    this.x /= p.x;
 	    this.y /= p.y;
 	    return this;
-	  },
-	  _unit: function() {
+	  }
+	  _unit() {
 	    this._div(this.mag());
 	    return this;
-	  },
-	  _perp: function() {
+	  }
+	  _perp() {
 	    const y = this.y;
 	    this.y = this.x;
 	    this.x = -y;
 	    return this;
-	  },
-	  _rotate: function(angle) {
-	    const cos = Math.cos(angle), sin = Math.sin(angle), x = cos * this.x - sin * this.y, y = sin * this.x + cos * this.y;
+	  }
+	  _rotate(angle) {
+	    const cos = Math.cos(angle);
+	    const sin = Math.sin(angle);
+	    const x = cos * this.x - sin * this.y;
+	    const y = sin * this.x + cos * this.y;
 	    this.x = x;
 	    this.y = y;
 	    return this;
-	  },
-	  _rotateAround: function(angle, p) {
-	    const cos = Math.cos(angle), sin = Math.sin(angle), x = p.x + cos * (this.x - p.x) - sin * (this.y - p.y), y = p.y + sin * (this.x - p.x) + cos * (this.y - p.y);
+	  }
+	  _rotateAround(angle, p) {
+	    const cos = Math.cos(angle);
+	    const sin = Math.sin(angle);
+	    const x = p.x + cos * (this.x - p.x) - sin * (this.y - p.y);
+	    const y = p.y + sin * (this.x - p.x) + cos * (this.y - p.y);
 	    this.x = x;
 	    this.y = y;
 	    return this;
-	  },
-	  _round: function() {
+	  }
+	  _round() {
 	    this.x = Math.round(this.x);
 	    this.y = Math.round(this.y);
 	    return this;
 	  }
-	};
-	Point.convert = function(a) {
-	  if (a instanceof Point) {
+	  clone() {
+	    return new Point(this.x, this.y);
+	  }
+	  add(p) {
+	    return this.clone()._add(p);
+	  }
+	  sub(p) {
+	    return this.clone()._sub(p);
+	  }
+	  multByPoint(p) {
+	    return this.clone()._multByPoint(p);
+	  }
+	  divByPoint(p) {
+	    return this.clone()._divByPoint(p);
+	  }
+	  mult(k) {
+	    return this.clone()._mult(k);
+	  }
+	  div(k) {
+	    return this.clone()._div(k);
+	  }
+	  rotate(a) {
+	    return this.clone()._rotate(a);
+	  }
+	  rotateAround(a, p) {
+	    return this.clone()._rotateAround(a, p);
+	  }
+	  matMult(m) {
+	    return this.clone()._matMult(m);
+	  }
+	  unit() {
+	    return this.clone()._unit();
+	  }
+	  perp() {
+	    return this.clone()._perp();
+	  }
+	  round() {
+	    return this.clone()._round();
+	  }
+	  mag() {
+	    return Math.sqrt(this.x * this.x + this.y * this.y);
+	  }
+	  equals(other) {
+	    return this.x === other.x && this.y === other.y;
+	  }
+	  dist(p) {
+	    return Math.sqrt(this.distSqr(p));
+	  }
+	  distSqr(p) {
+	    const dx = p.x - this.x;
+	    const dy = p.y - this.y;
+	    return dx * dx + dy * dy;
+	  }
+	  angle() {
+	    return Math.atan2(this.y, this.x);
+	  }
+	  angleTo(b) {
+	    return Math.atan2(this.y - b.y, this.x - b.x);
+	  }
+	  angleWith(b) {
+	    return this.angleWithSep(b.x, b.y);
+	  }
+	  angleWithSep(x, y) {
+	    return Math.atan2(this.x * y - this.y * x, this.x * x + this.y * y);
+	  }
+	  static convert(a) {
+	    if (a instanceof Point) {
+	      return a;
+	    }
+	    if (Array.isArray(a)) {
+	      return new Point(a[0], a[1]);
+	    }
 	    return a;
 	  }
-	  if (Array.isArray(a)) {
-	    return new Point(a[0], a[1]);
-	  }
-	  return a;
-	};
+	}
 
 	const {
 	  supported,

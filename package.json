@@ -34,7 +34,7 @@
     "format": "prettier --write \"src/**/*.{js,ts,tsx}\"",
     "lint": "eslint --fix \"src/**/*.{js,ts}\"",
     "docmd": "rm -rf docsmd/*; typedoc --readme none --plugin typedoc-plugin-markdown --out docsmd src/index.ts; cp -r images docsmd/",
-    "dochtml": "rm -rf docs/*; typedoc --plugin none --out docs src/index.ts; cp -r images docs/",
+    "dochtml": "rm -rf docs/*; typedoc --plugin none --out docs; cp -r images docs/",
     "doc": "npm run docmd; npm run dochtml",
     "prepare": "npm run format; npm run lint; npm run build; npm run doc; cp -r demos docs/"
   },

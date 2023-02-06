@@ -19,9 +19,13 @@ class SdkConfig extends EventEmitter {
   secondaryLanguage: LanguageString | null = null;
 
   /**
-   * Setting on whether of not the SDK runs with session based billing flag
+   * Setting on whether of not the SDK runs with a session logic.
+   * A "session" is started at the initialization of the SDK and finished when the browser
+   * page is being refreshed.
+   * When `session` is enabled (default: true), the extra URL param `mtsid` is added to queries
+   * on the MapTiler Cloud API. This allows MapTiler to enable "session based billing".
    */
-  sessionBasedBilling = true;
+  session = true;
 
   /**
    * Unit to be used
