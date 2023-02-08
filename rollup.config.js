@@ -26,8 +26,7 @@ const copyCssPlugin = copy({
       file: cssDistribution,
     },
   ],
-}); 
-
+});
 
 const copyUmdBundle = copy({
   targets: [

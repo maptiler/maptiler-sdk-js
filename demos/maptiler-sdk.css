@@ -63,10 +63,22 @@
 }
 
 
+@keyframes blinker {
+  50% {
+    opacity: 0.3;
+  }
+}
+
 /* Geolocate button: default button state before being clicked */
 .mapboxgl-ctrl button.mapboxgl-ctrl-geolocate .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-geolocate .maplibregl-ctrl-icon
 {
   background-image: url("data:image/svg+xml;charset=utf-8,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%20standalone%3D%22no%22%3F%3E%0A%3C!DOCTYPE%20svg%20PUBLIC%20%22-%2F%2FW3C%2F%2FDTD%20SVG%201.1%2F%2FEN%22%20%22http%3A%2F%2Fwww.w3.org%2FGraphics%2FSVG%2F1.1%2FDTD%2Fsvg11.dtd%22%3E%0A%3Csvg%20width%3D%22100%25%22%20height%3D%22100%25%22%20viewBox%3D%220%200%2033%2033%22%20version%3D%221.1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20xml%3Aspace%3D%22preserve%22%20xmlns%3Aserif%3D%22http%3A%2F%2Fwww.serif.com%2F%22%20style%3D%22fill-rule%3Aevenodd%3Bclip-rule%3Aevenodd%3Bstroke-linejoin%3Around%3Bstroke-miterlimit%3A2%3B%22%3E%0A%20%20%20%20%3Cg%20transform%3D%22matrix(1%2C0%2C0%2C1%2C9.50001%2C9.25)%22%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20d%3D%22M5.673%2C8.577L0.567%2C6.51C0.391%2C6.443%200.253%2C6.335%200.152%2C6.186C0.051%2C6.037%200%2C5.868%200%2C5.68C0%2C5.49%200.051%2C5.325%200.152%2C5.183C0.253%2C5.041%200.391%2C4.936%200.567%2C4.869L12.846%2C0.31C13.021%2C0.242%2013.187%2C0.232%2013.343%2C0.279C13.498%2C0.326%2013.629%2C0.404%2013.738%2C0.513C13.846%2C0.621%2013.924%2C0.752%2013.971%2C0.907C14.018%2C1.063%2014.008%2C1.229%2013.94%2C1.404L9.381%2C13.703C9.3%2C13.892%209.186%2C14.031%209.037%2C14.119C8.888%2C14.206%208.732%2C14.25%208.57%2C14.25C8.408%2C14.25%208.253%2C14.203%208.104%2C14.108C7.956%2C14.013%207.841%2C13.879%207.76%2C13.703L5.673%2C8.577ZM8.53%2C11.11L11.691%2C2.559L3.14%2C5.72L6.991%2C7.259L8.53%2C11.11Z%22%20style%3D%22fill%3Argb(68%2C73%2C82)%3Bfill-rule%3Anonzero%3B%22%2F%3E%0A%20%20%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A");
+}
+
+
+/* Geolocate button: searching for location */
+.maplibregl-ctrl button.maplibregl-ctrl-geolocate.maplibregl-ctrl-geolocate-waiting .maplibregl-ctrl-icon {
+  animation: blinker 1s linear infinite;
 }
 
 /* Geolocate button: permission was not granted */
@@ -90,7 +102,7 @@
 /* Geolocate button: searching location */
 .mapboxgl-ctrl button.mapboxgl-ctrl-geolocate.mapboxgl-ctrl-geolocate-background .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-geolocate.maplibregl-ctrl-geolocate-background .maplibregl-ctrl-icon
 {
-  background-image: url("data:image/svg+xml;charset=utf-8,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%20standalone%3D%22no%22%3F%3E%0A%3C!DOCTYPE%20svg%20PUBLIC%20%22-%2F%2FW3C%2F%2FDTD%20SVG%201.1%2F%2FEN%22%20%22http%3A%2F%2Fwww.w3.org%2FGraphics%2FSVG%2F1.1%2FDTD%2Fsvg11.dtd%22%3E%0A%3Csvg%20width%3D%22100%25%22%20height%3D%22100%25%22%20viewBox%3D%220%200%2033%2033%22%20version%3D%221.1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20xml%3Aspace%3D%22preserve%22%20xmlns%3Aserif%3D%22http%3A%2F%2Fwww.serif.com%2F%22%20style%3D%22fill-rule%3Aevenodd%3Bclip-rule%3Aevenodd%3Bstroke-linejoin%3Around%3Bstroke-miterlimit%3A2%3B%22%3E%0A%20%20%20%20%3Cg%20transform%3D%22matrix(1%2C0%2C0%2C1%2C9.50001%2C9.25)%22%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20d%3D%22M5.673%2C8.577L0.567%2C6.51C0.391%2C6.443%200.253%2C6.335%200.152%2C6.186C0.051%2C6.037%200%2C5.868%200%2C5.68C0%2C5.49%200.051%2C5.325%200.152%2C5.183C0.253%2C5.041%200.391%2C4.936%200.567%2C4.869L12.846%2C0.31C13.021%2C0.242%2013.187%2C0.232%2013.343%2C0.279C13.498%2C0.326%2013.629%2C0.404%2013.738%2C0.513C13.846%2C0.621%2013.924%2C0.752%2013.971%2C0.907C14.018%2C1.063%2014.008%2C1.229%2013.94%2C1.404L9.381%2C13.703C9.3%2C13.892%209.186%2C14.031%209.037%2C14.119C8.888%2C14.206%208.732%2C14.25%208.57%2C14.25C8.408%2C14.25%208.253%2C14.203%208.104%2C14.108C7.956%2C14.013%207.841%2C13.879%207.76%2C13.703L5.673%2C8.577ZM8.53%2C11.11L11.691%2C2.559L3.14%2C5.72L6.991%2C7.259L8.53%2C11.11Z%22%20style%3D%22fill%3Argb(68%2C73%2C82)%3Bfill-rule%3Anonzero%3B%22%2F%3E%0A%20%20%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A");
+  background-image: url("data:image/svg+xml;charset=utf-8,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%20standalone%3D%22no%22%3F%3E%0A%3C!DOCTYPE%20svg%20PUBLIC%20%22-%2F%2FW3C%2F%2FDTD%20SVG%201.1%2F%2FEN%22%20%22http%3A%2F%2Fwww.w3.org%2FGraphics%2FSVG%2F1.1%2FDTD%2Fsvg11.dtd%22%3E%0A%3Csvg%20width%3D%22100%25%22%20height%3D%22100%25%22%20viewBox%3D%220%200%2033%2033%22%20version%3D%221.1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20xml%3Aspace%3D%22preserve%22%20xmlns%3Aserif%3D%22http%3A%2F%2Fwww.serif.com%2F%22%20style%3D%22fill-rule%3Aevenodd%3Bclip-rule%3Aevenodd%3Bstroke-linejoin%3Around%3Bstroke-miterlimit%3A2%3B%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M10.685%2C14.817L22.511%2C10.669L18.217%2C22.082L15.824%2C17.233L10.685%2C14.817Z%22%20style%3D%22fill%3Argb(29%2C50%2C98)%3Bfill-opacity%3A0.2%3B%22%2F%3E%0A%20%20%20%20%3Cg%20transform%3D%22matrix(1%2C0%2C0%2C1%2C9.50001%2C9.25)%22%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20d%3D%22M5.673%2C8.577L0.567%2C6.51C0.391%2C6.443%200.253%2C6.335%200.152%2C6.186C0.051%2C6.037%200%2C5.868%200%2C5.68C0%2C5.49%200.051%2C5.325%200.152%2C5.183C0.253%2C5.041%200.391%2C4.936%200.567%2C4.869L12.846%2C0.31C13.021%2C0.242%2013.187%2C0.232%2013.343%2C0.279C13.498%2C0.326%2013.629%2C0.404%2013.738%2C0.513C13.846%2C0.621%2013.924%2C0.752%2013.971%2C0.907C14.018%2C1.063%2014.008%2C1.229%2013.94%2C1.404L9.381%2C13.703C9.3%2C13.892%209.186%2C14.031%209.037%2C14.119C8.888%2C14.206%208.732%2C14.25%208.57%2C14.25C8.408%2C14.25%208.253%2C14.203%208.104%2C14.108C7.956%2C14.013%207.841%2C13.879%207.76%2C13.703L5.673%2C8.577ZM8.53%2C11.11L11.691%2C2.559L3.14%2C5.72L6.991%2C7.259L8.53%2C11.11Z%22%20style%3D%22fill%3Argb(68%2C73%2C82)%3Bfill-rule%3Anonzero%3B%22%2F%3E%0A%20%20%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A");
 }
 
 /* Geolocate button: an error occured while searching */

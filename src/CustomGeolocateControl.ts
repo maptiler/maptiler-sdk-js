@@ -1,8 +1,70 @@
-import { GeolocateControl, Marker } from "maplibre-gl";
+import { GeolocateControl, LngLat, Marker, } from "maplibre-gl";
 import { DOMcreate } from "./tools";
 
+
 export class CustomGeolocateControl extends GeolocateControl {
+  private lastUpdatedCenter: LngLat;
+  private lastUpdatedZoom: number;
+
+    /**
+     * Update the camera location to center on the current position
+     *
+     * @param {Position} position the Geolocation API Position
+     * @private
+     */
+  _updateCamera(position: GeolocationPosition) {
+    const center = new LngLat(position.coords.longitude, position.coords.latitude);
+    const radius = position.coords.accuracy;
+    const bearing = this._map.getBearing();
+    const options = {
+      bearing,
+      ...this.options.fitBoundsOptions,
+    };
+
+    console.log('moving camera');
+    
+    this._map.fitBounds(center.toBounds(radius), options, {
+      geolocateSource: true // tag this camera change so it won't cause the control to change to background state
+    });
+
+    let hasFittingBeenDisrupted = false;
+
+    const flagFittingDisruption = () => {
+      console.log("DISRUPTED FITTING!");      
+      hasFittingBeenDisrupted = true;
+    }
+
+    this._map.once("click", flagFittingDisruption);
+    this._map.once("dblclick", flagFittingDisruption);
+    this._map.once("dragstart", flagFittingDisruption);
+    this._map.once("mousedown", flagFittingDisruption);
+    this._map.once("touchstart", flagFittingDisruption);
+    this._map.once("wheel", flagFittingDisruption);
+
+    this._map.once("moveend", () => {
+      console.log("done moving, with disruption:", hasFittingBeenDisrupted);
+      
+      // Removing the events if not used
+      this._map.off("click", flagFittingDisruption);
+      this._map.off("dblclick", flagFittingDisruption);
+      this._map.off("dragstart", flagFittingDisruption);
+      this._map.off("mousedown", flagFittingDisruption);
+      this._map.off("touchstart", flagFittingDisruption);
+      this._map.off("wheel", flagFittingDisruption);
+
+      if (hasFittingBeenDisrupted) {
+        return;
+      }
+
+      this.lastUpdatedCenter = this._map.getCenter();
+      this.lastUpdatedZoom = this._map.getZoom();
+    })
+  }
+
   _setupUI(supported: boolean) {
+    this.lastUpdatedCenter = this._map.getCenter();
+    this.lastUpdatedZoom = this._map.getZoom();
+    
     this._container.addEventListener("contextmenu", (e: MouseEvent) =>
       e.preventDefault()
     );
@@ -65,8 +127,9 @@ export class CustomGeolocateControl extends GeolocateControl {
     // the watch mode to background watch, so that the marker is updated but not the camera.
     if (this.options.trackUserLocation) {
       this._map.on("movestart", (event: any) => {
-        const fromResize =
-          event.originalEvent && event.originalEvent.type === "resize";
+        const fromResize = event.originalEvent && event.originalEvent.type === "resize";
+        console.log(this._map.getZoom());
+        
         if (
           !event.geolocateSource &&
           this._watchState === "ACTIVE_LOCK" &&

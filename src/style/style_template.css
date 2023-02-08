@@ -62,10 +62,22 @@
 }
 
 
+@keyframes blinker {
+  50% {
+    opacity: 0.3;
+  }
+}
+
 /* Geolocate button: default button state before being clicked */
 .mapboxgl-ctrl button.mapboxgl-ctrl-geolocate .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-geolocate .maplibregl-ctrl-icon
 {
   background-image: url([src/style/svg/v6-geolocate.svg]);
+}
+
+
+/* Geolocate button: searching for location */
+.maplibregl-ctrl button.maplibregl-ctrl-geolocate.maplibregl-ctrl-geolocate-waiting .maplibregl-ctrl-icon {
+  animation: blinker 1s linear infinite;
 }
 
 /* Geolocate button: permission was not granted */
@@ -89,7 +101,7 @@
 /* Geolocate button: searching location */
 .mapboxgl-ctrl button.mapboxgl-ctrl-geolocate.mapboxgl-ctrl-geolocate-background .mapboxgl-ctrl-icon,.maplibregl-ctrl button.maplibregl-ctrl-geolocate.maplibregl-ctrl-geolocate-background .maplibregl-ctrl-icon
 {
-  background-image: url([src/style/svg/v6-geolocate.svg]);
+  background-image: url([src/style/svg/v6-geolocate-background.svg]);
 }
 
 /* Geolocate button: an error occured while searching */
