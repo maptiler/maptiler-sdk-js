@@ -2429,8 +2429,66 @@
 	  }
 	}
 
+	var __defProp$1 = Object.defineProperty;
+	var __getOwnPropSymbols$1 = Object.getOwnPropertySymbols;
+	var __hasOwnProp$1 = Object.prototype.hasOwnProperty;
+	var __propIsEnum$1 = Object.prototype.propertyIsEnumerable;
+	var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+	var __spreadValues$1 = (a, b) => {
+	  for (var prop in b || (b = {}))
+	    if (__hasOwnProp$1.call(b, prop))
+	      __defNormalProp$1(a, prop, b[prop]);
+	  if (__getOwnPropSymbols$1)
+	    for (var prop of __getOwnPropSymbols$1(b)) {
+	      if (__propIsEnum$1.call(b, prop))
+	        __defNormalProp$1(a, prop, b[prop]);
+	    }
+	  return a;
+	};
 	class CustomGeolocateControl extends maplibreGl.exports.GeolocateControl {
+	  _updateCamera(position) {
+	    const center = new maplibreGl.exports.LngLat(
+	      position.coords.longitude,
+	      position.coords.latitude
+	    );
+	    const radius = position.coords.accuracy;
+	    const bearing = this._map.getBearing();
+	    const options = __spreadValues$1({
+	      bearing
+	    }, this.options.fitBoundsOptions);
+	    console.log("moving camera");
+	    this._map.fitBounds(center.toBounds(radius), options, {
+	      geolocateSource: true
+	    });
+	    let hasFittingBeenDisrupted = false;
+	    const flagFittingDisruption = () => {
+	      console.log("DISRUPTED FITTING!");
+	      hasFittingBeenDisrupted = true;
+	    };
+	    this._map.once("click", flagFittingDisruption);
+	    this._map.once("dblclick", flagFittingDisruption);
+	    this._map.once("dragstart", flagFittingDisruption);
+	    this._map.once("mousedown", flagFittingDisruption);
+	    this._map.once("touchstart", flagFittingDisruption);
+	    this._map.once("wheel", flagFittingDisruption);
+	    this._map.once("moveend", () => {
+	      console.log("done moving, with disruption:", hasFittingBeenDisrupted);
+	      this._map.off("click", flagFittingDisruption);
+	      this._map.off("dblclick", flagFittingDisruption);
+	      this._map.off("dragstart", flagFittingDisruption);
+	      this._map.off("mousedown", flagFittingDisruption);
+	      this._map.off("touchstart", flagFittingDisruption);
+	      this._map.off("wheel", flagFittingDisruption);
+	      if (hasFittingBeenDisrupted) {
+	        return;
+	      }
+	      this.lastUpdatedCenter = this._map.getCenter();
+	      this.lastUpdatedZoom = this._map.getZoom();
+	    });
+	  }
 	  _setupUI(supported) {
+	    this.lastUpdatedCenter = this._map.getCenter();
+	    this.lastUpdatedZoom = this._map.getZoom();
 	    this._container.addEventListener(
 	      "contextmenu",
 	      (e) => e.preventDefault()
@@ -2475,14 +2533,17 @@
 	      });
 	      if (this.options.trackUserLocation)
 	        this._watchState = "OFF";
-	      this._map.on("zoom", this._onZoom);
+	      this._map.on("move", this._onZoom);
 	    }
 	    this._geolocateButton.addEventListener("click", this.trigger.bind(this));
 	    this._setup = true;
 	    if (this.options.trackUserLocation) {
-	      this._map.on("movestart", (event) => {
+	      this._map.on("moveend", (event) => {
 	        const fromResize = event.originalEvent && event.originalEvent.type === "resize";
-	        if (!event.geolocateSource && this._watchState === "ACTIVE_LOCK" && !fromResize) {
+	        const movingDistance = this.lastUpdatedCenter.distanceTo(
+	          this._map.getCenter()
+	        );
+	        if (!event.geolocateSource && this._watchState === "ACTIVE_LOCK" && !fromResize && movingDistance > 1) {
 	          this._watchState = "BACKGROUND";
 	          this._geolocateButton.classList.add(
 	            "maplibregl-ctrl-geolocate-background"
@@ -2493,6 +2554,30 @@
 	          this.fire(new Event("trackuserlocationend"));
 	        }
 	      });
+	    }
+	  }
+	  _updateCircleRadius() {
+	    if (this._watchState !== "BACKGROUND" && this._watchState !== "ACTIVE_LOCK") {
+	      return;
+	    }
+	    const lastKnownLocation = [
+	      this._lastKnownPosition.coords.longitude,
+	      this._lastKnownPosition.coords.latitude
+	    ];
+	    const projectedLocation = this._map.project(lastKnownLocation);
+	    const a = this._map.unproject([projectedLocation.x, projectedLocation.y]);
+	    const b = this._map.unproject([
+	      projectedLocation.x + 20,
+	      projectedLocation.y
+	    ]);
+	    const metersPerPixel = a.distanceTo(b) / 20;
+	    const circleDiameter = Math.ceil(2 * this._accuracy / metersPerPixel);
+	    this._circleElement.style.width = `${circleDiameter}px`;
+	    this._circleElement.style.height = `${circleDiameter}px`;
+	  }
+	  _onZoom() {
+	    if (this.options.showUserLocation && this.options.showAccuracyCircle) {
+	      this._updateCircleRadius();
 	    }
 	  }
 	}

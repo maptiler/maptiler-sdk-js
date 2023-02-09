@@ -341,7 +341,10 @@ var __spreadValues$1 = (a, b) => {
 };
 class CustomGeolocateControl extends GeolocateControl$1 {
   _updateCamera(position) {
-    const center = new LngLat$1(position.coords.longitude, position.coords.latitude);
+    const center = new LngLat$1(
+      position.coords.longitude,
+      position.coords.latitude
+    );
     const radius = position.coords.accuracy;
     const bearing = this._map.getBearing();
     const options = __spreadValues$1({
@@ -424,15 +427,17 @@ class CustomGeolocateControl extends GeolocateControl$1 {
       });
       if (this.options.trackUserLocation)
         this._watchState = "OFF";
-      this._map.on("zoom", this._onZoom);
+      this._map.on("move", this._onZoom);
     }
     this._geolocateButton.addEventListener("click", this.trigger.bind(this));
     this._setup = true;
     if (this.options.trackUserLocation) {
-      this._map.on("movestart", (event) => {
+      this._map.on("moveend", (event) => {
         const fromResize = event.originalEvent && event.originalEvent.type === "resize";
-        console.log(this._map.getZoom());
-        if (!event.geolocateSource && this._watchState === "ACTIVE_LOCK" && !fromResize) {
+        const movingDistance = this.lastUpdatedCenter.distanceTo(
+          this._map.getCenter()
+        );
+        if (!event.geolocateSource && this._watchState === "ACTIVE_LOCK" && !fromResize && movingDistance > 1) {
           this._watchState = "BACKGROUND";
           this._geolocateButton.classList.add(
             "maplibregl-ctrl-geolocate-background"
@@ -443,6 +448,30 @@ class CustomGeolocateControl extends GeolocateControl$1 {
           this.fire(new Event("trackuserlocationend"));
         }
       });
+    }
+  }
+  _updateCircleRadius() {
+    if (this._watchState !== "BACKGROUND" && this._watchState !== "ACTIVE_LOCK") {
+      return;
+    }
+    const lastKnownLocation = [
+      this._lastKnownPosition.coords.longitude,
+      this._lastKnownPosition.coords.latitude
+    ];
+    const projectedLocation = this._map.project(lastKnownLocation);
+    const a = this._map.unproject([projectedLocation.x, projectedLocation.y]);
+    const b = this._map.unproject([
+      projectedLocation.x + 20,
+      projectedLocation.y
+    ]);
+    const metersPerPixel = a.distanceTo(b) / 20;
+    const circleDiameter = Math.ceil(2 * this._accuracy / metersPerPixel);
+    this._circleElement.style.width = `${circleDiameter}px`;
+    this._circleElement.style.height = `${circleDiameter}px`;
+  }
+  _onZoom() {
+    if (this.options.showUserLocation && this.options.showAccuracyCircle) {
+      this._updateCircleRadius();
     }
   }
 }
