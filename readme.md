@@ -133,7 +133,7 @@ The styles with a shorthand provided by the SDK are the following:
 | ID | Screenshot | Comment |
 |:-:|:-:|:-:|
 |`MapStyle.STREETS`|[![](images/screenshots/style-streets-v2.png)](https://www.maptiler.com/maps/#style=streets-v2&mode=2d&position=12.52/40.73676/-73.98418)|The classic default style, perfect for urban areas.<p>Also available in **dark** and **light** mode.</p>|
-|`MapStyle.DATAVIZ.DARK`| [![](images/screenshots/style-dataviz-dark.png)](https://www.maptiler.com/maps/#style=streets-v2-dark&mode=2d&position=3.71/39.66/-99.05)|A minimalist style for data visualization.<p>Also available in **color** and **light** mode</p> |
+|`MapStyle.DATAVIZ.DARK`| [![](images/screenshots/style-dataviz-dark.png)](https://www.maptiler.com/maps/#style=dataviz-dark&mode=2d&position=3.71/39.66/-99.05)|A minimalist style for data visualization.<p>Also available in **color** and **light** mode</p> |
 |`MapStyle.SATELLITE`|[![](images/screenshots/style-satellite.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=7.87/24.518/-77.411)|Only high resolution satellite raster tiles without any labels|
 |`MapStyle.HYBRID`|[![](images/screenshots/style-hybrid.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)|Satellite tile with labels, landmarks, roads ways and political borders|
 |`MapStyle.OUTDOOR`|[![](images/screenshots/style-outdoor.png)](https://www.maptiler.com/maps/#style=outdoor&mode=2d&position=11.96/46.02591/7.7273)|A solid hiking companion, with peaks, parks, isolines and more|
