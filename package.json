@@ -34,11 +34,11 @@
     "format": "prettier --write \"src/**/*.{js,ts,tsx}\"",
     "lint": "eslint --fix \"src/**/*.{js,ts}\"",
     "docmd": "rm -rf docsmd/*; typedoc --readme none --plugin typedoc-plugin-markdown --out docsmd src/index.ts; cp -r images docsmd/",
-    "dochtml": "rm -rf docs/*; typedoc --plugin none --out docs src/index.ts; cp -r images docs/",
+    "dochtml": "rm -rf docs/*; typedoc --plugin none --out docs; cp -r images docs/",
     "doc": "npm run docmd; npm run dochtml",
     "prepare": "npm run format; npm run lint; npm run build; npm run doc; cp -r demos docs/"
   },
-  "author": "",
+  "author": "MapTiler",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-json": "^5.0.1",
@@ -52,20 +52,20 @@
     "rollup-plugin-dts": "^4.2.2",
     "rollup-plugin-esbuild": "^4.10.1",
     "rollup-plugin-node-globals": "^1.4.0",
+    "rollup-plugin-shell": "^1.0.9",
     "rollup-plugin-string": "^3.0.0",
     "rollup-plugin-swc": "^0.2.1",
     "serve": "^14.0.1",
     "terser": "^5.15.0",
     "typedoc": "^0.23.21",
     "typedoc-plugin-markdown": "^3.13.6",
-    "typescript": "^4.8.4",
-    "rollup-plugin-shell": "^1.0.9"
+    "typescript": "^4.8.4"
   },
   "dependencies": {
-    "@maptiler/client": "^1.0.2",
+    "@maptiler/client": "^1.1.3",
     "events": "^3.3.0",
     "js-base64": "^3.7.4",
-    "maplibre-gl": "^3.0.0-pre.2",
+    "maplibre-gl": "^3.0.0-pre.3",
     "uuid": "^9.0.0"
   }
 }

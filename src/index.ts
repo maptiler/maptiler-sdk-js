@@ -117,21 +117,20 @@ import {
   ServiceError,
   LanguageGeocoding,
   LanguageGeocodingString,
+  ReferenceMapStyle,
+  MapStyle,
+  MapStyleVariant,
 } from "@maptiler/client";
 
+import type { MapStyleType } from "@maptiler/client";
+
 import { Point } from "./Point";
+import type { Matrix2 } from "./Point";
 
 // Importing enums and configs
 import { config, SdkConfig } from "./config";
 import { Language, LanguageString, LanguageKey } from "./language";
 import type { Unit } from "./unit";
-import {
-  MapStyle,
-  ReferenceMapStyle,
-  MapStyleVariant,
-} from "./mapstyle/mapstyle";
-
-import type { MapStyleType } from "./mapstyle/mapstylepresetlist";
 
 // Exporting types
 export type {
@@ -148,6 +147,7 @@ export type {
   LanguageGeocodingString,
   Unit,
   MapStyleType,
+  Matrix2,
 };
 
 // Exporting classes, objects, functions, etc.

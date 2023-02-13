@@ -1,18 +1,13 @@
-MapTiler SDK
+MapTiler SDK - v1.0.0
 
-# MapTiler SDK
+# MapTiler SDK - v1.0.0
 
 ## Table of contents
-
-### Namespaces
-
-- [Point](modules/Point.md)
 
 ### Classes
 
 - [Map](classes/Map.md)
-- [MapStyleVariant](classes/MapStyleVariant.md)
-- [ReferenceMapStyle](classes/ReferenceMapStyle.md)
+- [Point](classes/Point.md)
 - [SdkConfig](classes/SdkConfig.md)
 
 ### Type Aliases
@@ -20,7 +15,7 @@ MapTiler SDK
 - [LanguageKey](README.md#languagekey)
 - [LanguageString](README.md#languagestring)
 - [MapOptions](README.md#mapoptions)
-- [MapStyleType](README.md#mapstyletype)
+- [Matrix2](README.md#matrix2)
 - [Unit](README.md#unit)
 
 ### Variables
@@ -38,7 +33,6 @@ MapTiler SDK
 - [LngLat](README.md#lnglat)
 - [LngLatBounds](README.md#lnglatbounds)
 - [LogoControl](README.md#logocontrol)
-- [MapStyle](README.md#mapstyle)
 - [Marker](README.md#marker)
 - [MercatorCoordinate](README.md#mercatorcoordinate)
 - [NavigationControl](README.md#navigationcontrol)
@@ -58,7 +52,6 @@ MapTiler SDK
 
 ### Functions
 
-- [Point](README.md#point)
 - [addProtocol](README.md#addprotocol)
 - [clearPrewarmedResources](README.md#clearprewarmedresources)
 - [clearStorage](README.md#clearstorage)
@@ -78,7 +71,7 @@ Type representing the key of the Language object
 
 #### Defined in
 
-[src/language.ts:108](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/language.ts#L108)
+[src/language.ts:108](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/language.ts#L108)
 
 ___
 
@@ -90,49 +83,31 @@ Built-in languages values as strings
 
 #### Defined in
 
-[src/language.ts:115](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/language.ts#L115)
+[src/language.ts:115](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/language.ts#L115)
 
 ___
 
 ### MapOptions
 
-Ƭ **MapOptions**: `Omit`<`MapOptionsML`, ``"style"`` \| ``"maplibreLogo"``\> & { `fullscreenControl?`: `boolean` \| `ControlPosition` ; `geolocate?`: typeof [`GeolocationType`](README.md#geolocationtype)[keyof typeof [`GeolocationType`](README.md#geolocationtype)] \| `boolean` ; `geolocateControl?`: `boolean` \| `ControlPosition` ; `maptilerLogo?`: `boolean` ; `navigationControl?`: `boolean` \| `ControlPosition` ; `scaleControl?`: `boolean` \| `ControlPosition` ; `style?`: [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) \| [`MapStyleVariant`](classes/MapStyleVariant.md) \| `StyleSpecification` \| `string` ; `terrain?`: `boolean` ; `terrainControl?`: `boolean` \| `ControlPosition` ; `terrainExaggeration?`: `number`  }
+Ƭ **MapOptions**: `Omit`<`MapOptionsML`, ``"style"`` \| ``"maplibreLogo"``\> & { `fullscreenControl?`: `boolean` \| `ControlPosition` ; `geolocate?`: typeof [`GeolocationType`](README.md#geolocationtype)[keyof typeof [`GeolocationType`](README.md#geolocationtype)] \| `boolean` ; `geolocateControl?`: `boolean` \| `ControlPosition` ; `maptilerLogo?`: `boolean` ; `navigationControl?`: `boolean` \| `ControlPosition` ; `scaleControl?`: `boolean` \| `ControlPosition` ; `style?`: `ReferenceMapStyle` \| `MapStyleVariant` \| `StyleSpecification` \| `string` ; `terrain?`: `boolean` ; `terrainControl?`: `boolean` \| `ControlPosition` ; `terrainExaggeration?`: `number`  }
 
 Options to provide to the `Map` constructor
 
 #### Defined in
 
-[src/Map.ts:53](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/Map.ts#L53)
+[src/Map.ts:51](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/Map.ts#L51)
 
 ___
 
-### MapStyleType
+### Matrix2
 
-Ƭ **MapStyleType**: `Object`
+Ƭ **Matrix2**: [`number`, `number`, `number`, `number`]
 
-All the styles and variants maintained by MapTiler.
-
-#### Type declaration
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `BASIC` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DARK`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `LIGHT`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | A minimalist street-oriented style without POI |
-| `BRIGHT` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DARK`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `LIGHT`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `PASTEL`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | A bright street-oriented style, a nice alternative to `streets` |
-| `HYBRID` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | High resolution imagery with labels, political borders and roads. |
-| `OCEAN` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | Explore deep see trenches and mountains, with isolines and depth labels |
-| `OPENSTREETMAP` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | Classic OpenStreetMap style |
-| `OUTDOOR` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | Suitable for outdoor activities. With elevation isolines and hillshading. |
-| `SATELLITE` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | High resolution imagery only, without any label. |
-| `STAGE` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DARK`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `LIGHT`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | Minimalist style, perfect for data visualization |
-| `STREETS` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DARK`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `LIGHT`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `PASTEL`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | Suitable for navigation, with high level of detail on urban areas, plenty of POIs and 3D buildings |
-| `TONER` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `BACKGROUND`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `LINES`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `LITE`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | A bold very high contrast black and white (no gray!) style for the city |
-| `TOPO` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `PASTEL`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `SHINY`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `TOPOGRAPHIQUE`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | A nice high-contrast, yet less saturated alternative to the `outdoor` style, with hillshading, 3D buildings and fairly high street details |
-| `VOYAGER` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DARK`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `LIGHT`: [`MapStyleVariant`](classes/MapStyleVariant.md) ; `VINTAGE`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | A nice alternative to `streets` with a soft color palette |
-| `WINTER` | [`ReferenceMapStyle`](classes/ReferenceMapStyle.md) & { `DEFAULT`: [`MapStyleVariant`](classes/MapStyleVariant.md)  } | Suitabe for winter outdoor activities. With ski tracks, elevation isolines and hillshading. |
+Row major 2x2 matrix
 
 #### Defined in
 
-[src/mapstyle/mapstylepresetlist.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/mapstyle/mapstylepresetlist.ts#L19)
+[src/Point.ts:9](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/Point.ts#L9)
 
 ___
 
@@ -142,7 +117,7 @@ ___
 
 #### Defined in
 
-[src/unit.ts:1](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/unit.ts#L1)
+[src/unit.ts:1](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/unit.ts#L1)
 
 ## Variables
 
@@ -152,7 +127,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:31](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L31)
+[src/index.ts:31](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L31)
 
 ___
 
@@ -162,7 +137,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L19)
+[src/index.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L19)
 
 ___
 
@@ -172,7 +147,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:32](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L32)
+[src/index.ts:32](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L32)
 
 ___
 
@@ -182,7 +157,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:30](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L30)
+[src/index.ts:30](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L30)
 
 ___
 
@@ -192,7 +167,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:22](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L22)
+[src/index.ts:22](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L22)
 
 ___
 
@@ -202,7 +177,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:33](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L33)
+[src/index.ts:33](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L33)
 
 ___
 
@@ -212,7 +187,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:18](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L18)
+[src/index.ts:18](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L18)
 
 ___
 
@@ -229,7 +204,7 @@ ___
 
 #### Defined in
 
-[src/Map.ts:42](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/Map.ts#L42)
+[src/Map.ts:40](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/Map.ts#L40)
 
 ___
 
@@ -239,7 +214,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:34](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L34)
+[src/index.ts:34](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L34)
 
 ___
 
@@ -330,7 +305,7 @@ Languages. Note that not all the languages of this list are available but the co
 
 #### Defined in
 
-[src/language.ts:4](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/language.ts#L4)
+[src/language.ts:4](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/language.ts#L4)
 
 ___
 
@@ -340,7 +315,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:27](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L27)
+[src/index.ts:27](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L27)
 
 ___
 
@@ -350,7 +325,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:28](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L28)
+[src/index.ts:28](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L28)
 
 ___
 
@@ -360,23 +335,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:20](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L20)
-
-___
-
-### MapStyle
-
-• `Const` **MapStyle**: [`MapStyleType`](README.md#mapstyletype)
-
-Contains all the reference map style created by MapTiler team as well as all the variants.
-For example, `MapStyle.STREETS` and the variants:
-- `MapStyle.STREETS.DARK`
-- `MapStyle.STREETS.LIGHT`
-- `MapStyle.STREETS.PASTEL`
-
-#### Defined in
-
-[src/mapstyle/mapstyle.ts:306](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/mapstyle/mapstyle.ts#L306)
+[src/index.ts:20](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L20)
 
 ___
 
@@ -386,7 +345,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:25](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L25)
+[src/index.ts:25](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L25)
 
 ___
 
@@ -396,7 +355,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:29](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L29)
+[src/index.ts:29](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L29)
 
 ___
 
@@ -406,7 +365,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:17](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L17)
+[src/index.ts:17](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L17)
 
 ___
 
@@ -416,7 +375,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:24](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L24)
+[src/index.ts:24](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L24)
 
 ___
 
@@ -426,7 +385,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:35](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L35)
+[src/index.ts:35](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L35)
 
 ___
 
@@ -436,7 +395,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:36](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L36)
+[src/index.ts:36](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L36)
 
 ___
 
@@ -446,7 +405,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:21](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L21)
+[src/index.ts:21](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L21)
 
 ___
 
@@ -456,7 +415,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:26](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L26)
+[src/index.ts:26](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L26)
 
 ___
 
@@ -466,7 +425,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:23](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L23)
+[src/index.ts:23](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L23)
 
 ___
 
@@ -476,7 +435,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:37](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L37)
+[src/index.ts:37](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L37)
 
 ___
 
@@ -486,7 +445,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:38](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L38)
+[src/index.ts:38](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L38)
 
 ___
 
@@ -496,7 +455,7 @@ ___
 
 #### Defined in
 
-[src/config.ts:81](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/config.ts#L81)
+[src/config.ts:90](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/config.ts#L90)
 
 ___
 
@@ -506,7 +465,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:43](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L43)
+[src/index.ts:43](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L43)
 
 ___
 
@@ -516,7 +475,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:41](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L41)
+[src/index.ts:41](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L41)
 
 ___
 
@@ -526,7 +485,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:42](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L42)
+[src/index.ts:42](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L42)
 
 ___
 
@@ -536,39 +495,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:45](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/index.ts#L45)
+[src/index.ts:45](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/index.ts#L45)
 
 ## Functions
-
-### Point
-
-▸ **Point**(`x`, `y`): `void`
-
-A standalone point geometry with useful accessor, comparison, and
-modification methods.
-
-**`Example`**
-
-```ts
-var point = new Point(-77, 38);
-```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `x` | `any` | the x-coordinate. this could be longitude or screen pixels, or any other sort of unit. |
-| `y` | `any` | the y-coordinate. this could be latitude or screen pixels, or any other sort of unit. |
-
-#### Returns
-
-`void`
-
-#### Defined in
-
-[src/Point.ts:17](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/Point.ts#L17)
-
-___
 
 ### addProtocol
 
@@ -621,7 +550,7 @@ maplibre.addProtocol('custom2', (params, callback) => {
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11899
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:12026
 
 ___
 
@@ -635,7 +564,7 @@ ___
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11687
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11814
 
 ___
 
@@ -676,7 +605,7 @@ maplibregl.clearStorage();
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11864
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11991
 
 ___
 
@@ -690,7 +619,7 @@ ___
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11757
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11884
 
 ___
 
@@ -704,7 +633,7 @@ ___
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11686
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11813
 
 ___
 
@@ -736,7 +665,7 @@ maplibregl.removeProtocol('custom');
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11908
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:12035
 
 ___
 
@@ -758,7 +687,7 @@ ___
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11756
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11883
 
 ___
 

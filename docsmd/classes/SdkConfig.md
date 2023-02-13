@@ -1,4 +1,4 @@
-[MapTiler SDK](../README.md) / SdkConfig
+[MapTiler SDK - v1.0.0](../README.md) / SdkConfig
 
 # Class: SdkConfig
 
@@ -20,6 +20,7 @@ Configuration class for the SDK
 
 - [primaryLanguage](SdkConfig.md#primarylanguage)
 - [secondaryLanguage](SdkConfig.md#secondarylanguage)
+- [session](SdkConfig.md#session)
 
 ### Accessors
 
@@ -39,7 +40,7 @@ EventEmitter.constructor
 
 #### Defined in
 
-[src/config.ts:31](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/config.ts#L31)
+[src/config.ts:40](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/config.ts#L40)
 
 ## Properties
 
@@ -51,7 +52,7 @@ The primary language. By default, the language of the web browser is used.
 
 #### Defined in
 
-[src/config.ts:13](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/config.ts#L13)
+[src/config.ts:13](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/config.ts#L13)
 
 ___
 
@@ -64,7 +65,23 @@ This settings is highly dependant on the style compatibility and may not work in
 
 #### Defined in
 
-[src/config.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/config.ts#L19)
+[src/config.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/config.ts#L19)
+
+___
+
+### session
+
+• **session**: `boolean` = `true`
+
+Setting on whether of not the SDK runs with a session logic.
+A "session" is started at the initialization of the SDK and finished when the browser
+page is being refreshed.
+When `session` is enabled (default: true), the extra URL param `mtsid` is added to queries
+on the MapTiler Cloud API. This allows MapTiler to enable "session based billing".
+
+#### Defined in
+
+[src/config.ts:28](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/config.ts#L28)
 
 ## Accessors
 
@@ -80,7 +97,7 @@ Get the MapTiler Cloud API key
 
 #### Defined in
 
-[src/config.ts:62](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/config.ts#L62)
+[src/config.ts:71](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/config.ts#L71)
 
 • `set` **apiKey**(`k`): `void`
 
@@ -98,7 +115,7 @@ Set the MapTiler Cloud API key
 
 #### Defined in
 
-[src/config.ts:53](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/config.ts#L53)
+[src/config.ts:62](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/config.ts#L62)
 
 ___
 
@@ -114,7 +131,7 @@ Get the fetch fucntion
 
 #### Defined in
 
-[src/config.ts:76](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/config.ts#L76)
+[src/config.ts:85](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/config.ts#L85)
 
 • `set` **fetch**(`f`): `void`
 
@@ -132,7 +149,7 @@ Set a the custom fetch function to replace the default one
 
 #### Defined in
 
-[src/config.ts:69](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/config.ts#L69)
+[src/config.ts:78](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/config.ts#L78)
 
 ___
 
@@ -148,7 +165,7 @@ Get the unit system
 
 #### Defined in
 
-[src/config.ts:46](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/config.ts#L46)
+[src/config.ts:55](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/config.ts#L55)
 
 • `set` **unit**(`u`): `void`
 
@@ -166,4 +183,4 @@ Set the unit system
 
 #### Defined in
 
-[src/config.ts:38](https://github.com/maptiler/maptiler-sdk-js/blob/74b2185/src/config.ts#L38)
+[src/config.ts:47](https://github.com/maptiler/maptiler-sdk-js/blob/4f983e8/src/config.ts#L47)

@@ -7,6 +7,7 @@ import type {
   StyleOptions,
 } from "maplibre-gl";
 import { v4 as uuidv4 } from "uuid";
+import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config } from "./config";
 import { defaults } from "./defaults";
 import { CustomLogoControl } from "./CustomLogoControl";
@@ -17,14 +18,11 @@ import {
   Language,
   LanguageString,
 } from "./language";
-import {
-  MapStyleVariant,
-  ReferenceMapStyle,
-  styleToStyle,
-} from "./mapstyle/mapstyle";
+import { styleToStyle } from "./mapstyle";
 import { TerrainControl } from "./terraincontrol";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
 import { geolocation } from "@maptiler/client";
+import { CustomGeolocateControl } from "./CustomGeolocateControl";
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (
@@ -132,6 +130,8 @@ export class Map extends maplibregl.Map {
 
   constructor(options: MapOptions) {
     const style = styleToStyle(options.style);
+    console.log(style);
+
     const hashPreConstructor = location.hash;
 
     if (!config.apiKey) {
@@ -154,7 +154,9 @@ export class Map extends maplibregl.Map {
             reqUrl.searchParams.append("key", config.apiKey);
           }
 
-          reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
+          if (config.session) {
+            reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
+          }
         }
 
         return {
@@ -363,7 +365,8 @@ export class Map extends maplibregl.Map {
         ) as ControlPosition;
 
         this.addControl(
-          new maplibregl.GeolocateControl({
+          // new maplibregl.GeolocateControl({
+          new CustomGeolocateControl({
             positionOptions: {
               enableHighAccuracy: true,
               maximumAge: 0,
