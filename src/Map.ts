@@ -19,7 +19,7 @@ import {
   LanguageString,
 } from "./language";
 import { styleToStyle } from "./mapstyle";
-import { TerrainControl } from "./terraincontrol";
+import { TerrainControl } from "./TerrainControl";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
 import { geolocation } from "@maptiler/client";
 import { CustomGeolocateControl } from "./CustomGeolocateControl";
