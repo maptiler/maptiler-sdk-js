@@ -1,6 +1,6 @@
 import { bindAll, DOMcreate, DOMremove } from "./tools";
 
-import { Map } from "./map";
+import { Map } from "./Map";
 import maplibregl from "maplibre-gl";
 
 /**
