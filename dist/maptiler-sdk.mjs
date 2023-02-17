@@ -1,4 +1,4 @@
-import maplibregl__default, { GeolocateControl as GeolocateControl$1, LngLat as LngLat$1, Marker as Marker$1 } from 'maplibre-gl';
+import maplibregl__default from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { Base64 } from 'js-base64';
 import { v4 } from 'uuid';
@@ -339,7 +339,14 @@ var __spreadValues$1 = (a, b) => {
     }
   return a;
 };
+const GeolocateControl$1 = maplibregl__default.GeolocateControl;
+const Marker$1 = maplibregl__default.Marker;
+const LngLat$1 = maplibregl__default.LngLat;
 class CustomGeolocateControl extends GeolocateControl$1 {
+  constructor() {
+    super(...arguments);
+    this.lastUpdatedCenter = new LngLat$1(0, 0);
+  }
   _updateCamera(position) {
     const center = new LngLat$1(
       position.coords.longitude,
@@ -377,12 +384,10 @@ class CustomGeolocateControl extends GeolocateControl$1 {
         return;
       }
       this.lastUpdatedCenter = this._map.getCenter();
-      this.lastUpdatedZoom = this._map.getZoom();
     });
   }
   _setupUI(supported) {
     this.lastUpdatedCenter = this._map.getCenter();
-    this.lastUpdatedZoom = this._map.getZoom();
     this._container.addEventListener(
       "contextmenu",
       (e) => e.preventDefault()

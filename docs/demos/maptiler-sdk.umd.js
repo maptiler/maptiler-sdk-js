@@ -2445,9 +2445,16 @@
 	    }
 	  return a;
 	};
-	class CustomGeolocateControl extends maplibreGl.exports.GeolocateControl {
+	const GeolocateControl$1 = maplibregl.GeolocateControl;
+	const Marker$1 = maplibregl.Marker;
+	const LngLat$1 = maplibregl.LngLat;
+	class CustomGeolocateControl extends GeolocateControl$1 {
+	  constructor() {
+	    super(...arguments);
+	    this.lastUpdatedCenter = new LngLat$1(0, 0);
+	  }
 	  _updateCamera(position) {
-	    const center = new maplibreGl.exports.LngLat(
+	    const center = new LngLat$1(
 	      position.coords.longitude,
 	      position.coords.latitude
 	    );
@@ -2483,12 +2490,10 @@
 	        return;
 	      }
 	      this.lastUpdatedCenter = this._map.getCenter();
-	      this.lastUpdatedZoom = this._map.getZoom();
 	    });
 	  }
 	  _setupUI(supported) {
 	    this.lastUpdatedCenter = this._map.getCenter();
-	    this.lastUpdatedZoom = this._map.getZoom();
 	    this._container.addEventListener(
 	      "contextmenu",
 	      (e) => e.preventDefault()
@@ -2522,12 +2527,12 @@
 	    }
 	    if (this.options.showUserLocation) {
 	      this._dotElement = DOMcreate("div", "maplibregl-user-location-dot");
-	      this._userLocationDotMarker = new maplibreGl.exports.Marker(this._dotElement);
+	      this._userLocationDotMarker = new Marker$1(this._dotElement);
 	      this._circleElement = DOMcreate(
 	        "div",
 	        "maplibregl-user-location-accuracy-circle"
 	      );
-	      this._accuracyCircleMarker = new maplibreGl.exports.Marker({
+	      this._accuracyCircleMarker = new Marker$1({
 	        element: this._circleElement,
 	        pitchAlignment: "map"
 	      });
