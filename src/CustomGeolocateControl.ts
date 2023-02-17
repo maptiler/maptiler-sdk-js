@@ -1,9 +1,13 @@
-import { GeolocateControl, LngLat, LngLatLike, Marker } from "maplibre-gl";
+import type { LngLatLike } from "maplibre-gl";
+import maplibregl from "maplibre-gl";
 import { DOMcreate } from "./tools";
 
+const GeolocateControl = maplibregl.GeolocateControl;
+const Marker = maplibregl.Marker;
+const LngLat = maplibregl.LngLat;
+
 export class CustomGeolocateControl extends GeolocateControl {
-  private lastUpdatedCenter: LngLat;
-  private lastUpdatedZoom: number;
+  private lastUpdatedCenter = new LngLat(0, 0);
 
   /**
    * Update the camera location to center on the current position
@@ -59,13 +63,11 @@ export class CustomGeolocateControl extends GeolocateControl {
       }
 
       this.lastUpdatedCenter = this._map.getCenter();
-      this.lastUpdatedZoom = this._map.getZoom();
     });
   }
 
   _setupUI(supported: boolean) {
     this.lastUpdatedCenter = this._map.getCenter();
-    this.lastUpdatedZoom = this._map.getZoom();
 
     this._container.addEventListener("contextmenu", (e: MouseEvent) =>
       e.preventDefault()
