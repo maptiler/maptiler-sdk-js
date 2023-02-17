@@ -132,12 +132,12 @@ The styles with a shorthand provided by the SDK are the following:
 
 | ID | Screenshot | Comment |
 |:-:|:-:|:-:|
-|`MapStyle.STREETS`|[![](images/screenshots/style-streets-v2.png)](https://www.maptiler.com/maps/#style=streets-v2&mode=2d&position=12.52/40.73676/-73.98418)|The classic default style, perfect for urban areas.<p>Also available in **dark** and **light** mode.</p>|
-|`MapStyle.DATAVIZ.DARK`| [![](images/screenshots/style-dataviz-dark.png)](https://www.maptiler.com/maps/#style=dataviz-dark&mode=2d&position=2.01/38.7/-27.0)|A minimalist style for data visualization.<p>Also available in **color** and **light** mode</p> |
-|`MapStyle.SATELLITE`|[![](images/screenshots/style-satellite.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=7.87/24.518/-77.411)|Only high resolution satellite raster tiles without any labels|
-|`MapStyle.HYBRID`|[![](images/screenshots/style-hybrid.png)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)|Satellite tile with labels, landmarks, roads ways and political borders|
-|`MapStyle.OUTDOOR`|[![](images/screenshots/style-outdoor.png)](https://www.maptiler.com/maps/#style=outdoor&mode=2d&position=11.96/46.02591/7.7273)|A solid hiking companion, with peaks, parks, isolines and more|
-|`MapStyle.BASIC`|[![](images/screenshots/style-basic-v2.png)](https://www.maptiler.com/maps/#style=basic-v2&mode=2d&position=13.09/37.78734/-122.42025)|A minimalist alternative to `STREETS`, with a touch of flat design.<p>Also available in **dark** and **light** and **pastel** mode.</p>|
+|`MapStyle.STREETS`|[![](images/screenshots/style-streets-v2.jpeg)](https://www.maptiler.com/maps/#style=streets-v2&mode=2d&position=12.52/40.73676/-73.98418)|The classic default style, perfect for urban areas.<p>Also available in **dark** and **light** mode.</p>|
+|`MapStyle.DATAVIZ.DARK`| [![](images/screenshots/style-dataviz-dark.jpeg)](https://www.maptiler.com/maps/#style=dataviz-dark&mode=2d&position=2.01/38.7/-27.0)|A minimalist style for data visualization.<p>Also available in **color** and **light** mode</p> |
+|`MapStyle.SATELLITE`|[![](images/screenshots/style-satellite.jpeg)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=7.87/24.518/-77.411)|Only high resolution satellite raster tiles without any labels|
+|`MapStyle.HYBRID`|[![](images/screenshots/style-hybrid.jpeg)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)|Satellite tile with labels, landmarks, roads ways and political borders|
+|`MapStyle.OUTDOOR`|[![](images/screenshots/style-outdoor.jpeg)](https://www.maptiler.com/maps/#style=outdoor&mode=2d&position=11.96/46.02591/7.7273)|A solid hiking companion, with peaks, parks, isolines and more|
+|`MapStyle.BASIC`|[![](images/screenshots/style-basic-v2.jpeg)](https://www.maptiler.com/maps/#style=basic-v2&mode=2d&position=13.09/37.78734/-122.42025)|A minimalist alternative to `STREETS`, with a touch of flat design.<p>Also available in **dark** and **light** and **pastel** mode.</p>|
 
 
 <details>
@@ -341,8 +341,8 @@ Here is a sample of some compatible languages:
 Languages that are written right-to-left such as arabic and hebrew are fully supported by default. No need to install any plugin!
 
 <p align="center">
-  <img src="images/screenshots/lang-arabic.png" width="48%"></img>
-  <img src="images/screenshots/lang-hebrew.png" width="48%"></img>
+  <img src="images/screenshots/lang-arabic.jpeg" width="48%"></img>
+  <img src="images/screenshots/lang-hebrew.jpeg" width="48%"></img>
 </p>
 
 # Easy access to MapTiler Cloud API
@@ -553,14 +553,14 @@ Since the zoom level cannot be provided, the level of details is dictated by the
 
 | `2048 x 2048`      | `1024 x 1024` |
 | :-----------: | :-----------: |
-| ![](images/screenshots/static-bounded-europe-2048.png)      | ![](images/screenshots/static-bounded-europe-1024.png)       |
+| ![](images/screenshots/static-bounded-europe-2048.jpeg)      | ![](images/screenshots/static-bounded-europe-1024.jpeg)       |
 
 As you may notice, the geo bounding box could have very different proportions than the output image size. In the following example, we place the very same bounding box around Portugal, which has a this particular strip looking shape. We also add a `path` that repeats exactly the same bounding box to show the difference between the provided bounding box and the final image. We kept the default padding of 10%:
 
 
 | `2048 x 2048`      | `1024 x 2048` |
 | :-----------: | :-----------: |
-| ![](images/screenshots/static-bounded-portugal-2048x2048.png)      | ![](images/screenshots/static-bounded-portugal-1024x2048.png)       |
+| ![](images/screenshots/static-bounded-portugal-2048x2048.jpeg)      | ![](images/screenshots/static-bounded-portugal-1024x2048.jpeg)       |
 
 
 Read more about bounded static maps on our official [API documentation](https://docs.maptiler.com/cloud/api/static-maps/#bounds-based-image).
@@ -602,7 +602,7 @@ const imageLink = maptilerClient.staticMaps.automatic({
 
 And voila!
 
-![static map with bike path](images/screenshots/static-with-path.png)
+![static map with bike path](images/screenshots/static-with-path.jpeg)
 
 > 📣 *__Note:__* The GeoJSON for this track contains 9380 couples of coordinates, which is a lot! In order to send the track to MapTiler Cloud static maps API, the client simplifies the long paths while keeping a high degree of precision using a very fast [Ramer-Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
 
