@@ -59,7 +59,7 @@ a point
 
 #### Defined in
 
-[src/Point.ts:20](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L20)
+[src/Point.ts:20](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L20)
 
 ## Properties
 
@@ -69,7 +69,7 @@ a point
 
 #### Defined in
 
-[src/Point.ts:17](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L17)
+[src/Point.ts:17](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L17)
 
 ___
 
@@ -79,7 +79,7 @@ ___
 
 #### Defined in
 
-[src/Point.ts:18](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L18)
+[src/Point.ts:18](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L18)
 
 ## Methods
 
@@ -104,7 +104,7 @@ output point
 
 #### Defined in
 
-[src/Point.ts:122](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L122)
+[src/Point.ts:122](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L122)
 
 ___
 
@@ -123,7 +123,7 @@ angle
 
 #### Defined in
 
-[src/Point.ts:283](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L283)
+[src/Point.ts:283](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L283)
 
 ___
 
@@ -147,7 +147,7 @@ angle
 
 #### Defined in
 
-[src/Point.ts:292](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L292)
+[src/Point.ts:292](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L292)
 
 ___
 
@@ -171,7 +171,7 @@ angle
 
 #### Defined in
 
-[src/Point.ts:301](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L301)
+[src/Point.ts:301](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L301)
 
 ___
 
@@ -192,7 +192,7 @@ ___
 
 #### Defined in
 
-[src/Point.ts:312](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L312)
+[src/Point.ts:312](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L312)
 
 ___
 
@@ -211,7 +211,7 @@ the clone
 
 #### Defined in
 
-[src/Point.ts:112](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L112)
+[src/Point.ts:112](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L112)
 
 ___
 
@@ -235,7 +235,7 @@ distance
 
 #### Defined in
 
-[src/Point.ts:261](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L261)
+[src/Point.ts:261](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L261)
 
 ___
 
@@ -261,7 +261,7 @@ distance
 
 #### Defined in
 
-[src/Point.ts:272](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L272)
+[src/Point.ts:272](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L272)
 
 ___
 
@@ -286,7 +286,7 @@ output point
 
 #### Defined in
 
-[src/Point.ts:172](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L172)
+[src/Point.ts:172](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L172)
 
 ___
 
@@ -311,7 +311,7 @@ output point
 
 #### Defined in
 
-[src/Point.ts:152](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L152)
+[src/Point.ts:152](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L152)
 
 ___
 
@@ -336,7 +336,7 @@ whether the points are equal
 
 #### Defined in
 
-[src/Point.ts:252](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L252)
+[src/Point.ts:252](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L252)
 
 ___
 
@@ -356,7 +356,7 @@ magnitude
 
 #### Defined in
 
-[src/Point.ts:242](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L242)
+[src/Point.ts:242](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L242)
 
 ___
 
@@ -380,7 +380,7 @@ output point
 
 #### Defined in
 
-[src/Point.ts:202](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L202)
+[src/Point.ts:202](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L202)
 
 ___
 
@@ -405,7 +405,7 @@ output point
 
 #### Defined in
 
-[src/Point.ts:162](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L162)
+[src/Point.ts:162](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L162)
 
 ___
 
@@ -430,7 +430,7 @@ output point
 
 #### Defined in
 
-[src/Point.ts:142](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L142)
+[src/Point.ts:142](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L142)
 
 ___
 
@@ -450,7 +450,7 @@ perpendicular point
 
 #### Defined in
 
-[src/Point.ts:223](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L223)
+[src/Point.ts:223](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L223)
 
 ___
 
@@ -475,7 +475,7 @@ output point
 
 #### Defined in
 
-[src/Point.ts:182](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L182)
+[src/Point.ts:182](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L182)
 
 ___
 
@@ -501,7 +501,7 @@ output point
 
 #### Defined in
 
-[src/Point.ts:193](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L193)
+[src/Point.ts:193](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L193)
 
 ___
 
@@ -520,7 +520,7 @@ rounded point
 
 #### Defined in
 
-[src/Point.ts:232](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L232)
+[src/Point.ts:232](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L232)
 
 ___
 
@@ -545,7 +545,7 @@ output point
 
 #### Defined in
 
-[src/Point.ts:132](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L132)
+[src/Point.ts:132](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L132)
 
 ___
 
@@ -566,7 +566,7 @@ unit vector point
 
 #### Defined in
 
-[src/Point.ts:213](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L213)
+[src/Point.ts:213](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L213)
 
 ___
 
@@ -600,4 +600,4 @@ constructed point, or passed-through value.
 
 #### Defined in
 
-[src/Point.ts:327](https://github.com/maptiler/maptiler-sdk-js/blob/691fee3/src/Point.ts#L327)
+[src/Point.ts:327](https://github.com/maptiler/maptiler-sdk-js/blob/0e55972/src/Point.ts#L327)
