@@ -130,8 +130,6 @@ export class Map extends maplibregl.Map {
 
   constructor(options: MapOptions) {
     const style = styleToStyle(options.style);
-    console.log(style);
-
     const hashPreConstructor = location.hash;
 
     if (!config.apiKey) {
@@ -147,7 +145,19 @@ export class Map extends maplibregl.Map {
       maplibreLogo: false,
 
       transformRequest: (url: string) => {
-        const reqUrl = new URL(url);
+        let reqUrl = null;
+
+        try {
+          // The URL is expected to be absolute.
+          // Yet, if it's local we just return it without assuming a 'base' url (in the URL constructor)
+          // and we let the URL be locally resolved with a potential base path.
+          reqUrl = new URL(url);
+        } catch (e) {
+          return {
+            url,
+            headers: {},
+          };
+        }
 
         if (reqUrl.host === defaults.maptilerApiHost) {
           if (!reqUrl.searchParams.has("key")) {
