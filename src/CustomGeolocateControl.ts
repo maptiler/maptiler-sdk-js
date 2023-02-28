@@ -27,8 +27,6 @@ export class CustomGeolocateControl extends GeolocateControl {
       ...this.options.fitBoundsOptions,
     };
 
-    console.log("moving camera");
-
     this._map.fitBounds(center.toBounds(radius), options, {
       geolocateSource: true, // tag this camera change so it won't cause the control to change to background state
     });
@@ -36,7 +34,6 @@ export class CustomGeolocateControl extends GeolocateControl {
     let hasFittingBeenDisrupted = false;
 
     const flagFittingDisruption = () => {
-      console.log("DISRUPTED FITTING!");
       hasFittingBeenDisrupted = true;
     };
 
@@ -48,8 +45,6 @@ export class CustomGeolocateControl extends GeolocateControl {
     this._map.once("wheel", flagFittingDisruption);
 
     this._map.once("moveend", () => {
-      console.log("done moving, with disruption:", hasFittingBeenDisrupted);
-
       // Removing the events if not used
       this._map.off("click", flagFittingDisruption);
       this._map.off("dblclick", flagFittingDisruption);

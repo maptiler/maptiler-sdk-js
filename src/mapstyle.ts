@@ -23,7 +23,13 @@ export function styleToStyle(
 
   // If the provided style is a shorthand (eg. "streets-v2") or a full style URL
   if (typeof style === "string" || style instanceof String) {
-    return expandMapStyle(style);
+    if (!style.startsWith("http") && style.toLowerCase().includes(".json")) {
+      // If a style does not start by http but still contains the extension ".json"
+      // we assume it's a relative path to a style json file
+      return style as string;
+    } else {
+      return expandMapStyle(style);
+    }
   }
 
   if (style instanceof MapStyleVariant) {

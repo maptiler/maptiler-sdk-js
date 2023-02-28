@@ -220,7 +220,11 @@ function styleToStyle(style) {
     return MapStyle[mapStylePresetList[0].referenceStyleID].getDefaultVariant().getExpandedStyleURL();
   }
   if (typeof style === "string" || style instanceof String) {
-    return expandMapStyle(style);
+    if (!style.startsWith("http") && style.toLowerCase().includes(".json")) {
+      return style;
+    } else {
+      return expandMapStyle(style);
+    }
   }
   if (style instanceof MapStyleVariant) {
     return style.getExpandedStyleURL();
@@ -357,13 +361,11 @@ class CustomGeolocateControl extends GeolocateControl$1 {
     const options = __spreadValues$1({
       bearing
     }, this.options.fitBoundsOptions);
-    console.log("moving camera");
     this._map.fitBounds(center.toBounds(radius), options, {
       geolocateSource: true
     });
     let hasFittingBeenDisrupted = false;
     const flagFittingDisruption = () => {
-      console.log("DISRUPTED FITTING!");
       hasFittingBeenDisrupted = true;
     };
     this._map.once("click", flagFittingDisruption);
@@ -373,7 +375,6 @@ class CustomGeolocateControl extends GeolocateControl$1 {
     this._map.once("touchstart", flagFittingDisruption);
     this._map.once("wheel", flagFittingDisruption);
     this._map.once("moveend", () => {
-      console.log("done moving, with disruption:", hasFittingBeenDisrupted);
       this._map.off("click", flagFittingDisruption);
       this._map.off("dblclick", flagFittingDisruption);
       this._map.off("dragstart", flagFittingDisruption);
@@ -529,7 +530,6 @@ class Map extends maplibregl__default.Map {
   constructor(options) {
     var _a;
     const style = styleToStyle(options.style);
-    console.log(style);
     const hashPreConstructor = location.hash;
     if (!config.apiKey) {
       console.warn(
@@ -540,7 +540,15 @@ class Map extends maplibregl__default.Map {
       style,
       maplibreLogo: false,
       transformRequest: (url) => {
-        const reqUrl = new URL(url);
+        let reqUrl = null;
+        try {
+          reqUrl = new URL(url);
+        } catch (e) {
+          return {
+            url,
+            headers: {}
+          };
+        }
         if (reqUrl.host === defaults.maptilerApiHost) {
           if (!reqUrl.searchParams.has("key")) {
             reqUrl.searchParams.append("key", config.apiKey);

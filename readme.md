@@ -593,7 +593,7 @@ const imageLink = maptilerClient.staticMaps.automatic({
   path: trackPoints,
 
   // Adding a marker for the starting point, with a custom color (array of shape [lng, lat, color])
-  marker: [trackPoints[0][0], trackPoints[0][1], '#0a0'],
+  markers: [trackPoints[0][0], trackPoints[0][1], '#0a0'],
 
   // Showing the track in red
   pathStrokeColor: 'red',
