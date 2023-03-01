@@ -328,6 +328,8 @@ class MaptilerNavigationControl extends maplibregl__default.NavigationControl {
 }
 
 var __defProp$1 = Object.defineProperty;
+var __defProps$1 = Object.defineProperties;
+var __getOwnPropDescs$1 = Object.getOwnPropertyDescriptors;
 var __getOwnPropSymbols$1 = Object.getOwnPropertySymbols;
 var __hasOwnProp$1 = Object.prototype.hasOwnProperty;
 var __propIsEnum$1 = Object.prototype.propertyIsEnumerable;
@@ -343,6 +345,7 @@ var __spreadValues$1 = (a, b) => {
     }
   return a;
 };
+var __spreadProps$1 = (a, b) => __defProps$1(a, __getOwnPropDescs$1(b));
 const GeolocateControl$1 = maplibregl__default.GeolocateControl;
 const Marker$1 = maplibregl__default.Marker;
 const LngLat$1 = maplibregl__default.LngLat;
@@ -358,9 +361,15 @@ class CustomGeolocateControl extends GeolocateControl$1 {
     );
     const radius = position.coords.accuracy;
     const bearing = this._map.getBearing();
-    const options = __spreadValues$1({
+    const options = __spreadProps$1(__spreadValues$1({
       bearing
-    }, this.options.fitBoundsOptions);
+    }, this.options.fitBoundsOptions), {
+      linear: true
+    });
+    const currentMapZoom = this._map.getZoom();
+    if (currentMapZoom > this.options.fitBoundsOptions.maxZoom) {
+      options.zoom = currentMapZoom;
+    }
     this._map.fitBounds(center.toBounds(radius), options, {
       geolocateSource: true
     });
