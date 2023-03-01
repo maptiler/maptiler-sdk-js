@@ -2434,6 +2434,8 @@
 	}
 
 	var __defProp$1 = Object.defineProperty;
+	var __defProps$1 = Object.defineProperties;
+	var __getOwnPropDescs$1 = Object.getOwnPropertyDescriptors;
 	var __getOwnPropSymbols$1 = Object.getOwnPropertySymbols;
 	var __hasOwnProp$1 = Object.prototype.hasOwnProperty;
 	var __propIsEnum$1 = Object.prototype.propertyIsEnumerable;
@@ -2449,6 +2451,7 @@
 	    }
 	  return a;
 	};
+	var __spreadProps$1 = (a, b) => __defProps$1(a, __getOwnPropDescs$1(b));
 	const GeolocateControl$1 = maplibregl.GeolocateControl;
 	const Marker$1 = maplibregl.Marker;
 	const LngLat$1 = maplibregl.LngLat;
@@ -2464,9 +2467,15 @@
 	    );
 	    const radius = position.coords.accuracy;
 	    const bearing = this._map.getBearing();
-	    const options = __spreadValues$1({
+	    const options = __spreadProps$1(__spreadValues$1({
 	      bearing
-	    }, this.options.fitBoundsOptions);
+	    }, this.options.fitBoundsOptions), {
+	      linear: true
+	    });
+	    const currentMapZoom = this._map.getZoom();
+	    if (currentMapZoom > this.options.fitBoundsOptions.maxZoom) {
+	      options.zoom = currentMapZoom;
+	    }
 	    this._map.fitBounds(center.toBounds(radius), options, {
 	      geolocateSource: true
 	    });

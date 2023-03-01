@@ -53,12 +53,6 @@ export class TerrainControl implements maplibregl.IControl {
   }
 
   _toggleTerrain() {
-    // if (this._map.getTerrain()) {
-    //     this._map.setTerrain(null);
-    // } else {
-    //     this._map.setTerrain(this.options);
-    // }
-
     if (this._map.hasTerrain()) {
       this._map.disableTerrain();
     } else {

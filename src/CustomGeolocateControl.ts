@@ -25,7 +25,14 @@ export class CustomGeolocateControl extends GeolocateControl {
     const options = {
       bearing,
       ...this.options.fitBoundsOptions,
+      linear: true,
     };
+
+    const currentMapZoom = this._map.getZoom();
+
+    if (currentMapZoom > this.options.fitBoundsOptions.maxZoom) {
+      options.zoom = currentMapZoom;
+    }
 
     this._map.fitBounds(center.toBounds(radius), options, {
       geolocateSource: true, // tag this camera change so it won't cause the control to change to background state
