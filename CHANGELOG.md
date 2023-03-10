@@ -1,5 +1,8 @@
 # Changelog
 
+## [v1.0.5](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.5)
+- Terrain elevation is now using MapTiler's `terrain-rgb-v2`
+
 ## [v1.0.4](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.4)
 - Improved the geolocate control behavior by not zooming out
 
