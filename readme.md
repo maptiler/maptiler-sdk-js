@@ -215,19 +215,19 @@ It is sometimes handy to center map on the visitor's location, and there are mul
 
 Here is how the map gets centered on the visitor's location:
 ```js
-new maptiler.Map({
+new maptilersdk.Map({
   // ... other options
 
-  geolocate: maptiler.GeolocationType.POINT
+  geolocate: maptilersdk.GeolocationType.POINT
 })
 ```
 
 Here is how the map fits the visitor's country bounds:
 ```js
-new maptiler.Map({
+new maptilersdk.Map({
   // ... other options
 
-  geolocate: maptiler.GeolocationType.COUNTRY
+  geolocate: maptilersdk.GeolocationType.COUNTRY
 })
 ```
 
@@ -358,7 +358,7 @@ Our map SDK is not only about maps! We also provide plenty of wrapper to our API
 You want to know the longitude and latitude of a specific place, use the forward geocoding:
 ```ts
 // in an async function, or as a 'thenable':
-const result = await maptilerClient.geocoding.forward('paris');
+const result = await maptilersdk.geocoding.forward('paris');
 ```
 You can provide some options such as:
 - the proximity, given a lon-lat position, to sort the results
@@ -371,7 +371,7 @@ Read more about forward geocoding on our [official documentation](https://docs.m
 You wan to tknow the name of a place, given a longitude-latitude? Use the reverse geocoding:
 ```ts
 // in an async function, or as a 'thenable':
-const result = await maptilerClient.geocoding.reverse([6.249638, 46.402056]);
+const result = await maptilersdk.geocoding.reverse([6.249638, 46.402056]);
 ```
 The same option object as the forward geocoding can be provided.
 
@@ -381,7 +381,7 @@ Read more about reverse geocoding on our [official documentation](https://docs.m
 For both *forward* and *reverse* geocoding, this library provides a list of supported languages as shorthands to [ISO language codes](https://en.wikipedia.org/wiki/ISO_639-1). The result will be provided in multiple languages if the `language` options is an array:
 
 ```ts
-const result = await maptilerClient.geocoding.forward('paris', {language: [maptilerClient.geocoding.languages.SPANISH, maptilerClient.geocoding.languages.KOREAN]})
+const result = await maptilersdk.geocoding.forward('paris', {language: [maptilersdk.geocoding.languages.SPANISH, maptilersdk.geocoding.languages.KOREAN]})
 ```
 
 The special language `AUTO` will detect the platform/browser preferred language.
@@ -394,7 +394,7 @@ The geolocation uses the IP address of a visitors to provide informations about 
 There is only a single function:
 ```ts
 // in an async function, or as a 'thenable':
-const result = await maptilerClient.geolocation.info();
+const result = await maptilersdk.geolocation.info();
 ```
 
 Read more about geolocation on our [official documentation](https://docs.maptiler.com/client-js/geolocation/).
@@ -406,10 +406,10 @@ If you are already familiar with [epsg.io](https://epsg.io/) (created by MapTile
 The `search` lets you perform a query in a free form fashion. Here are some examples:
 ```ts
 // in an async function, or as a 'thenable':
-const resultA = await maptilerClient.coordinates.search('mercator');
-const resultB = await maptilerClient.coordinates.search('plate carree');
-const resultC = await maptilerClient.coordinates.search('france');
-const resultD = await maptilerClient.coordinates.search('code:4326', {transformations: true}));
+const resultA = await maptilersdk.coordinates.search('mercator');
+const resultB = await maptilersdk.coordinates.search('plate carree');
+const resultC = await maptilersdk.coordinates.search('france');
+const resultD = await maptilersdk.coordinates.search('code:4326', {transformations: true}));
 ```
 
 The `transformations` options retrieves a lot more details about the CRS that MapTiler API is able to transform to/from than just their IDs.
@@ -425,10 +425,10 @@ If not provided, both the source (`sourceCrs`) and the destination (`targetCrs`)
 // in an async function, or as a 'thenable':
 
 // Providing one coordinate to transform, with a target CRS being EPSG:9793 (RGF93 v2 / Lambert-93, France official CRS)
-const resultA = await maptilerClient.coordinates.transform([1, 45], {targetCrs: 9793})
+const resultA = await maptilersdk.coordinates.transform([1, 45], {targetCrs: 9793})
 
 // Using the same logic, we can pass up to 50 coordinates to be transformed
-const resultB = await maptilerClient.coordinates.transform([[10, 48], [1, 45]], {targetCrs: 9793})
+const resultB = await maptilersdk.coordinates.transform([[10, 48], [1, 45]], {targetCrs: 9793})
 ```
 
 Read more about transforming coordinates on our [official documentation](https://docs.maptiler.com/client-js/coordinates/#transform).
@@ -438,7 +438,7 @@ MapTiler Cloud give its users the possibility to [upload and create data](https:
 
 ```ts
 // in an async function, or as a 'thenable':
-const result = await maptilerClient.data.get('my-dataset-unique-id')
+const result = await maptilersdk.data.get('my-dataset-unique-id')
 ```
 
 Since the result is a GeoJSON, it can easily be added to a `map` with `.addSource()` and `.addLayer()`.
@@ -499,7 +499,7 @@ This type of map is centered on a longitude-latitude coordinate and the zoom lev
 Note that if a path or markers are provided, the framing of the map will not automatically adapt to include those (use the `automatic` mode for that).
 
 ```ts
-const imageLink = maptilerClient.staticMaps.centered(
+const imageLink = maptilersdk.staticMaps.centered(
   // center position (Boston)
   [-71.06080, 42.362114], 
 
@@ -516,7 +516,7 @@ const imageLink = maptilerClient.staticMaps.centered(
     height: 1000,
 
     // Map style
-    style: maptilerClient.MapStyle.OUTDOOR,
+    style: maptilersdk.MapStyle.OUTDOOR,
   });
 ```
 
@@ -527,7 +527,7 @@ Read more about centered static maps on our official [API documentation](https:/
 This type of map requires a bounding box made of two points: the south-west bound and the north-east bound. The zoom level cannot be provided and is automatically deduced from the size of the bounding box.
 
 ```ts
-const imageLink = maptilerClient.staticMaps.bounded(
+const imageLink = maptilersdk.staticMaps.bounded(
   // The bounding box on Europe
   [
     -24,  // west bound (min x)
@@ -541,7 +541,7 @@ const imageLink = maptilerClient.staticMaps.bounded(
     hiDPI: true,
     width: 2048,
     height: 2048,
-    style: maptilerClient.MapStyle.STREETS.DARK,
+    style: maptilersdk.MapStyle.STREETS.DARK,
 
     // Extra space that will add around the bounding box, in percentage
     // (0.1 = 10% is actually the dafault)
@@ -572,13 +572,13 @@ In the following example, we are going to load a cycling track recorded by one o
 
 ```ts
 // Fetching the GeoJSON
-const bikeTrack = await maptilerClient.data.get('the-id-of-a-bike-track-in-montreal');
+const bikeTrack = await maptilersdk.data.get('the-id-of-a-bike-track-in-montreal');
 
 // Extracting the track points with the shape [[lng, lat], [lng, lat], ...]
 const trackPoints = bikeTrack.features[0].geometry.coordinates[0]
   .map(p => p.slice(0, 2));
 
-const imageLink = maptilerClient.staticMaps.automatic({
+const imageLink = maptilersdk.staticMaps.automatic({
   // hiDPI/Retina precision
   hiDPI: true,
 
@@ -587,7 +587,7 @@ const imageLink = maptilerClient.staticMaps.automatic({
   height: 1024 ,
 
   // A grey style on which the track will pop!
-  style: maptilerClient.MapStyle.STREETS.LIGHT,
+  style: maptilersdk.MapStyle.STREETS.LIGHT,
 
   // Draw a path with the trackpoints
   path: trackPoints,
