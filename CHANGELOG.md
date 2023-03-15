@@ -1,5 +1,9 @@
 # Changelog
 
+## [v1.0.6](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.6)
+- Now exposing `MaptilerGeolocateControl` for external initialization if needed
+- Now exposing `MaptilerTerrain` for external initialization if needed
+
 ## [v1.0.5](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.5)
 - Terrain elevation is now using MapTiler's `terrain-rgb-v2`
 

@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config } from "./config";
 import { defaults } from "./defaults";
-import { CustomLogoControl } from "./CustomLogoControl";
+import { MaptilerLogoControl } from "./MaptilerLogoControl";
 import { enableRTL } from "./tools";
 import {
   getBrowserLanguage,
@@ -19,10 +19,10 @@ import {
   LanguageString,
 } from "./language";
 import { styleToStyle } from "./mapstyle";
-import { TerrainControl } from "./TerrainControl";
+import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
 import { geolocation } from "@maptiler/client";
-import { CustomGeolocateControl } from "./CustomGeolocateControl";
+import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (
@@ -323,7 +323,7 @@ export class Map extends maplibregl.Map {
         const logoURL: string = tileJsonContent.logo;
 
         this.addControl(
-          new CustomLogoControl({ logoURL }),
+          new MaptilerLogoControl({ logoURL }),
           options.logoPosition
         );
 
@@ -332,7 +332,7 @@ export class Map extends maplibregl.Map {
           this.addControl(new maplibregl.AttributionControl(options));
         }
       } else if (options.maptilerLogo) {
-        this.addControl(new CustomLogoControl(), options.logoPosition);
+        this.addControl(new MaptilerLogoControl(), options.logoPosition);
       }
 
       // the other controls at init time but be after
@@ -376,7 +376,7 @@ export class Map extends maplibregl.Map {
 
         this.addControl(
           // new maplibregl.GeolocateControl({
-          new CustomGeolocateControl({
+          new MaptilerGeolocateControl({
             positionOptions: {
               enableHighAccuracy: true,
               maximumAge: 0,
@@ -401,7 +401,7 @@ export class Map extends maplibregl.Map {
             ? "top-right"
             : options.terrainControl
         ) as ControlPosition;
-        this.addControl(new TerrainControl(), position);
+        this.addControl(new MaptilerTerrainControl(), position);
       }
 
       // By default, no fullscreen control

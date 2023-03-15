@@ -142,7 +142,7 @@ const defaults = {
 };
 Object.freeze(defaults);
 
-class CustomLogoControl extends maplibregl__default.LogoControl {
+class MaptilerLogoControl extends maplibregl__default.LogoControl {
   constructor(options = {}) {
     var _a, _b;
     super(options);
@@ -235,7 +235,7 @@ function styleToStyle(style) {
   return style;
 }
 
-class TerrainControl$1 {
+class MaptilerTerrainControl {
   constructor() {
     bindAll(["_toggleTerrain", "_updateTerrainIcon"], this);
   }
@@ -349,7 +349,7 @@ var __spreadProps$1 = (a, b) => __defProps$1(a, __getOwnPropDescs$1(b));
 const GeolocateControl$1 = maplibregl__default.GeolocateControl;
 const Marker$1 = maplibregl__default.Marker;
 const LngLat$1 = maplibregl__default.LngLat;
-class CustomGeolocateControl extends GeolocateControl$1 {
+class MaptilerGeolocateControl extends GeolocateControl$1 {
   constructor() {
     super(...arguments);
     this.lastUpdatedCenter = new LngLat$1(0, 0);
@@ -665,14 +665,14 @@ class Map extends maplibregl__default.Map {
       if ("logo" in tileJsonContent && tileJsonContent.logo) {
         const logoURL = tileJsonContent.logo;
         this.addControl(
-          new CustomLogoControl({ logoURL }),
+          new MaptilerLogoControl({ logoURL }),
           options.logoPosition
         );
         if (options.attributionControl === false) {
           this.addControl(new maplibregl__default.AttributionControl(options));
         }
       } else if (options.maptilerLogo) {
-        this.addControl(new CustomLogoControl(), options.logoPosition);
+        this.addControl(new MaptilerLogoControl(), options.logoPosition);
       }
       if (options.scaleControl) {
         const position = options.scaleControl === true || options.scaleControl === void 0 ? "bottom-right" : options.scaleControl;
@@ -689,7 +689,7 @@ class Map extends maplibregl__default.Map {
       if (options.geolocateControl !== false) {
         const position = options.geolocateControl === true || options.geolocateControl === void 0 ? "top-right" : options.geolocateControl;
         this.addControl(
-          new CustomGeolocateControl({
+          new MaptilerGeolocateControl({
             positionOptions: {
               enableHighAccuracy: true,
               maximumAge: 0,
@@ -707,7 +707,7 @@ class Map extends maplibregl__default.Map {
       }
       if (options.terrainControl) {
         const position = options.terrainControl === true || options.terrainControl === void 0 ? "top-right" : options.terrainControl;
-        this.addControl(new TerrainControl$1(), position);
+        this.addControl(new MaptilerTerrainControl(), position);
       }
       if (options.fullscreenControl) {
         const position = options.fullscreenControl === true || options.fullscreenControl === void 0 ? "top-right" : options.fullscreenControl;
@@ -1146,5 +1146,5 @@ const {
   removeProtocol
 } = maplibregl__default;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, GeolocationType, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, GeolocationType, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
 //# sourceMappingURL=maptiler-sdk.mjs.map

@@ -1,5 +1,5 @@
 import * as maplibre_gl from 'maplibre-gl';
-import maplibre_gl__default, { MapOptions as MapOptions$1, StyleSpecification, ControlPosition, StyleOptions } from 'maplibre-gl';
+import maplibre_gl__default, { MapOptions as MapOptions$1, StyleSpecification, ControlPosition, StyleOptions, LogoOptions as LogoOptions$1 } from 'maplibre-gl';
 export * from 'maplibre-gl';
 import * as _mapbox_mapbox_gl_supported from '@mapbox/mapbox-gl-supported';
 import { ReferenceMapStyle, MapStyleVariant, FetchFunction } from '@maptiler/client';
@@ -252,6 +252,57 @@ declare class Map extends maplibre_gl__default.Map {
     fitToIpBounds(): Promise<void>;
     centerOnIpPoint(zoom: number | undefined): Promise<void>;
     getCameraHash(): string;
+}
+
+declare const GeolocateControl$1: typeof maplibre_gl.GeolocateControl;
+/**
+ * The MaptilerGeolocateControl is an extension of the original GeolocateControl
+ * with a few changes. In this version, the active mode persists as long as the
+ * location is still centered. This means it's robust to rotation, pitch and zoom.
+ *
+ */
+declare class MaptilerGeolocateControl extends GeolocateControl$1 {
+    private lastUpdatedCenter;
+    /**
+     * Update the camera location to center on the current position
+     *
+     * @param {Position} position the Geolocation API Position
+     * @private
+     */
+    _updateCamera(position: GeolocationPosition): void;
+    _setupUI(supported: boolean): void;
+    _updateCircleRadius(): void;
+    _onZoom(): void;
+}
+
+declare type LogoOptions = LogoOptions$1 & {
+    logoURL?: string;
+    linkURL?: string;
+};
+/**
+ * This LogoControl extends the MapLibre LogoControl but instead can use any image URL and
+ * any link URL. By default this is using MapTiler logo and URL.
+ */
+declare class MaptilerLogoControl extends maplibre_gl__default.LogoControl {
+    private logoURL;
+    private linkURL;
+    constructor(options?: LogoOptions);
+    onAdd(map: Map): HTMLElement;
+}
+
+/**
+ * A `MaptilerTerrainControl` control adds a button to turn terrain on and off
+ * by triggering the terrain logic that is already deployed in the Map object.
+ */
+declare class MaptilerTerrainControl implements maplibregl.IControl {
+    _map: Map;
+    _container: HTMLElement;
+    _terrainButton: HTMLButtonElement;
+    constructor();
+    onAdd(map: Map): HTMLElement;
+    onRemove(): void;
+    _toggleTerrain(): void;
+    _updateTerrainIcon(): void;
 }
 
 /**
@@ -528,4 +579,4 @@ declare const workerUrl: string;
 declare const addProtocol: (customProtocol: string, loadFn: (requestParameters: maplibre_gl.RequestParameters, callback: maplibre_gl.ResponseCallback<any>) => maplibre_gl.Cancelable) => void;
 declare const removeProtocol: (customProtocol: string) => void;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, GeolocationType, ImageSource, Language, LanguageKey, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, Marker, Matrix2, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, GeolocationType, ImageSource, Language, LanguageKey, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapOptions, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, Matrix2, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
