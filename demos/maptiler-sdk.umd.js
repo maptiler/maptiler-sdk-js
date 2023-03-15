@@ -2248,7 +2248,7 @@
 	};
 	Object.freeze(defaults);
 
-	class CustomLogoControl extends maplibregl.LogoControl {
+	class MaptilerLogoControl extends maplibregl.LogoControl {
 	  constructor(options = {}) {
 	    var _a, _b;
 	    super(options);
@@ -2341,7 +2341,7 @@
 	  return style;
 	}
 
-	class TerrainControl$1 {
+	class MaptilerTerrainControl {
 	  constructor() {
 	    bindAll(["_toggleTerrain", "_updateTerrainIcon"], this);
 	  }
@@ -2455,7 +2455,7 @@
 	const GeolocateControl$1 = maplibregl.GeolocateControl;
 	const Marker$1 = maplibregl.Marker;
 	const LngLat$1 = maplibregl.LngLat;
-	class CustomGeolocateControl extends GeolocateControl$1 {
+	class MaptilerGeolocateControl extends GeolocateControl$1 {
 	  constructor() {
 	    super(...arguments);
 	    this.lastUpdatedCenter = new LngLat$1(0, 0);
@@ -2771,14 +2771,14 @@
 	      if ("logo" in tileJsonContent && tileJsonContent.logo) {
 	        const logoURL = tileJsonContent.logo;
 	        this.addControl(
-	          new CustomLogoControl({ logoURL }),
+	          new MaptilerLogoControl({ logoURL }),
 	          options.logoPosition
 	        );
 	        if (options.attributionControl === false) {
 	          this.addControl(new maplibregl.AttributionControl(options));
 	        }
 	      } else if (options.maptilerLogo) {
-	        this.addControl(new CustomLogoControl(), options.logoPosition);
+	        this.addControl(new MaptilerLogoControl(), options.logoPosition);
 	      }
 	      if (options.scaleControl) {
 	        const position = options.scaleControl === true || options.scaleControl === void 0 ? "bottom-right" : options.scaleControl;
@@ -2795,7 +2795,7 @@
 	      if (options.geolocateControl !== false) {
 	        const position = options.geolocateControl === true || options.geolocateControl === void 0 ? "top-right" : options.geolocateControl;
 	        this.addControl(
-	          new CustomGeolocateControl({
+	          new MaptilerGeolocateControl({
 	            positionOptions: {
 	              enableHighAccuracy: true,
 	              maximumAge: 0,
@@ -2813,7 +2813,7 @@
 	      }
 	      if (options.terrainControl) {
 	        const position = options.terrainControl === true || options.terrainControl === void 0 ? "top-right" : options.terrainControl;
-	        this.addControl(new TerrainControl$1(), position);
+	        this.addControl(new MaptilerTerrainControl(), position);
 	      }
 	      if (options.fullscreenControl) {
 	        const position = options.fullscreenControl === true || options.fullscreenControl === void 0 ? "top-right" : options.fullscreenControl;
@@ -3269,6 +3269,9 @@
 	exports.Map = Map$1;
 	exports.MapStyle = MapStyle;
 	exports.MapStyleVariant = MapStyleVariant;
+	exports.MaptilerGeolocateControl = MaptilerGeolocateControl;
+	exports.MaptilerLogoControl = MaptilerLogoControl;
+	exports.MaptilerTerrainControl = MaptilerTerrainControl;
 	exports.Marker = Marker;
 	exports.MercatorCoordinate = MercatorCoordinate;
 	exports.NavigationControl = NavigationControl;

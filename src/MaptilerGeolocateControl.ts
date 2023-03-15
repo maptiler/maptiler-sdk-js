@@ -6,7 +6,13 @@ const GeolocateControl = maplibregl.GeolocateControl;
 const Marker = maplibregl.Marker;
 const LngLat = maplibregl.LngLat;
 
-export class CustomGeolocateControl extends GeolocateControl {
+/**
+ * The MaptilerGeolocateControl is an extension of the original GeolocateControl
+ * with a few changes. In this version, the active mode persists as long as the
+ * location is still centered. This means it's robust to rotation, pitch and zoom.
+ *
+ */
+export class MaptilerGeolocateControl extends GeolocateControl {
   private lastUpdatedCenter = new LngLat(0, 0);
 
   /**

@@ -97,6 +97,10 @@ export {
 import { Map, GeolocationType } from "./Map";
 import type { MapOptions } from "./Map";
 
+import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
+import { MaptilerLogoControl } from "./MaptilerLogoControl";
+import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
+
 // importing client functions to expose them as part of the SDK
 import type {
   BBox,
@@ -168,4 +172,7 @@ export {
   Point,
   ReferenceMapStyle,
   MapStyleVariant,
+  MaptilerGeolocateControl,
+  MaptilerLogoControl,
+  MaptilerTerrainControl,
 };

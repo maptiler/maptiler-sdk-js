@@ -4,20 +4,10 @@ import { Map } from "./Map";
 import maplibregl from "maplibre-gl";
 
 /**
- * An `TerrainControl` control adds a button to turn terrain on and off.
- *
- * @implements {IControl}
- * @param {Object} [options]
- * @param {string} [options.id] The ID of the raster-dem source to use.
- * @param {Object} [options.options]
- * @param {number} [options.options.exaggeration]
- * @example
- * var map = new maplibregl.Map({TerrainControl: false})
- *     .addControl(new maplibregl.TerrainControl({
- *         source: "terrain"
- *     }));
+ * A `MaptilerTerrainControl` control adds a button to turn terrain on and off
+ * by triggering the terrain logic that is already deployed in the Map object.
  */
-export class TerrainControl implements maplibregl.IControl {
+export class MaptilerTerrainControl implements maplibregl.IControl {
   _map: Map;
   _container: HTMLElement;
   _terrainButton: HTMLButtonElement;
