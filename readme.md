@@ -150,10 +150,13 @@ Here is the full list:
   - `MapStyle.STREETS.DARK` (variant)
   - `MapStyle.STREETS.LIGHT` (variant)
   - `MapStyle.STREETS.PASTEL` (variant)
-- `MapStyle.OUTDOOR` reference style for adventure
-- `MapStyle.WINTER` reference style for winter adventure
 - `MapStyle.SATELLITE` reference style satellite and airborne imagery (no variants)
 - `MapStyle.HYBRID` reference style satellite and airborne imagery with labels (no variants)
+- `MapStyle.OUTDOOR` reference style for adventure
+- `MapStyle.WINTER` reference style for winter adventure
+- `MapStyle.DATAVIZ`, the perfect style for data visualization, with very little noise
+  - `MapStyle.DATAVIZ.DARK` (variant)
+  - `MapStyle.DATAVIZ.LIGHT` (variant)
 - `MapStyle.BASIC` reference style for minimalist design and general purpose
   - `MapStyle.BASIC.DARK` (variant)
   - `MapStyle.BASIC.LIGHT` (variant)
@@ -174,9 +177,7 @@ Here is the full list:
   - `MapStyle.TONER.LITE` (variant)
   - `MapStyle.TONER.LINES` (variant)
 - `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variants)
-- `MapStyle.DATAVIZ`, the perfect style for data visualization, with very little noise
-  - `MapStyle.DATAVIZ.DARK` (variant)
-  - `MapStyle.DATAVIZ.LIGHT` (variant)
+
 
 All reference styles (instances of `ReferenceMapStyle`) and style variants (instances of `MapStyleVariant`) have methods to know the alternative styles and variant that belong to the same reference style (`.getVariants()`). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style. Read more about about [ReferenceMapStyle](docsmd/classes/ReferenceMapStyle.md) and [MapStyleVariant](docsmd/classes/MapStyleVariant.md).
 </details>  
