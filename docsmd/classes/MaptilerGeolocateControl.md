@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.6](../README.md) / MaptilerGeolocateControl
+[MapTiler SDK - v1.0.7](../README.md) / MaptilerGeolocateControl
 
 # Class: MaptilerGeolocateControl
 
@@ -60,7 +60,7 @@ GeolocateControl.\_onZoom
 
 #### Defined in
 
-[src/MaptilerGeolocateControl.ts:198](https://github.com/maptiler/maptiler-sdk-js/blob/aac8b82/src/MaptilerGeolocateControl.ts#L198)
+[src/MaptilerGeolocateControl.ts:198](https://github.com/maptiler/maptiler-sdk-js/blob/477d058/src/MaptilerGeolocateControl.ts#L198)
 
 ___
 
@@ -84,7 +84,7 @@ GeolocateControl.\_setupUI
 
 #### Defined in
 
-[src/MaptilerGeolocateControl.ts:77](https://github.com/maptiler/maptiler-sdk-js/blob/aac8b82/src/MaptilerGeolocateControl.ts#L77)
+[src/MaptilerGeolocateControl.ts:77](https://github.com/maptiler/maptiler-sdk-js/blob/477d058/src/MaptilerGeolocateControl.ts#L77)
 
 ___
 
@@ -102,4 +102,4 @@ GeolocateControl.\_updateCircleRadius
 
 #### Defined in
 
-[src/MaptilerGeolocateControl.ts:172](https://github.com/maptiler/maptiler-sdk-js/blob/aac8b82/src/MaptilerGeolocateControl.ts#L172)
+[src/MaptilerGeolocateControl.ts:172](https://github.com/maptiler/maptiler-sdk-js/blob/477d058/src/MaptilerGeolocateControl.ts#L172)

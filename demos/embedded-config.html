@@ -36,10 +36,10 @@
     <script src ="maptiler-sdk.umd.js"></script>
     
     <script>
-      // maptilersdk.config.apiKey = "ZFEK2gQSwT4Jcimbtcy7";
-
       const map = new maptilersdk.Map({
         container: document.getElementById("map-container"),
+        apiKey: "ZFEK2gQSwT4Jcimbtcy7",
+        language: maptilersdk.Language.GERMAN,
         hash: true,
         maxPitch: 85,
         scaleControl: true,
