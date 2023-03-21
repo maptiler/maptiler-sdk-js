@@ -538,6 +538,9 @@ const GeolocationType = {
 class Map extends maplibregl__default.Map {
   constructor(options) {
     var _a;
+    if (options.apiKey) {
+      config.apiKey = options.apiKey;
+    }
     const style = styleToStyle(options.style);
     const hashPreConstructor = location.hash;
     if (!config.apiKey) {
@@ -628,8 +631,11 @@ class Map extends maplibregl__default.Map {
     this.on("styledataloading", () => {
       this.languageShouldUpdate = !!config.primaryLanguage || !!config.secondaryLanguage;
     });
+    let initLanguageFromConstructor = true;
     this.on("styledata", () => {
-      if (config.primaryLanguage && (this.languageShouldUpdate || !this.isStyleInitialized)) {
+      if (options.language && initLanguageFromConstructor) {
+        this.setPrimaryLanguage(options.language);
+      } else if (config.primaryLanguage && (this.languageShouldUpdate || !this.isStyleInitialized)) {
         this.setPrimaryLanguage(config.primaryLanguage);
       }
       if (config.secondaryLanguage && (this.languageShouldUpdate || !this.isStyleInitialized)) {
@@ -637,6 +643,7 @@ class Map extends maplibregl__default.Map {
       }
       this.languageShouldUpdate = false;
       this.isStyleInitialized = true;
+      initLanguageFromConstructor = false;
     });
     this.on("styledata", () => {
       if (this.getTerrain() === null && this.isTerrainEnabled) {
@@ -737,7 +744,6 @@ class Map extends maplibregl__default.Map {
       if (language === Language.AUTO) {
         return this.setPrimaryLanguage(getBrowserLanguage());
       }
-      config.primaryLanguage = language;
       const layers = this.getStyle().layers;
       const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
       const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
@@ -811,7 +817,6 @@ class Map extends maplibregl__default.Map {
       if (language === Language.AUTO) {
         return this.setSecondaryLanguage(getBrowserLanguage());
       }
-      config.secondaryLanguage = language;
       const layers = this.getStyle().layers;
       const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
       const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
@@ -955,6 +960,12 @@ class Map extends maplibregl__default.Map {
     hashBin[3] = this.getPitch();
     hashBin[4] = this.getBearing();
     return Base64.fromUint8Array(new Uint8Array(hashBin.buffer));
+  }
+  getSdkConfig() {
+    return config;
+  }
+  getMaptilerSessionId() {
+    return MAPTILER_SESSION_ID;
   }
 }
 

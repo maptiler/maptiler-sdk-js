@@ -2,7 +2,7 @@ import * as maplibre_gl from 'maplibre-gl';
 import maplibre_gl__default, { MapOptions as MapOptions$1, StyleSpecification, ControlPosition, StyleOptions, LogoOptions as LogoOptions$1 } from 'maplibre-gl';
 export * from 'maplibre-gl';
 import * as _mapbox_mapbox_gl_supported from '@mapbox/mapbox-gl-supported';
-import { ReferenceMapStyle, MapStyleVariant, FetchFunction } from '@maptiler/client';
+import { FetchFunction, ReferenceMapStyle, MapStyleVariant } from '@maptiler/client';
 export { AutomaticStaticMapOptions, BBox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, LanguageGeocoding, LanguageGeocodingString, MapStyle, MapStyleType, MapStyleVariant, Position, ReferenceMapStyle, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
 import EventEmitter from 'events';
 
@@ -107,6 +107,65 @@ declare type Values<T> = T[keyof T];
  */
 declare type LanguageString = Values<typeof Language>;
 
+declare type Unit = "imperial" | "metric" | "nautical";
+
+/**
+ * Configuration class for the SDK
+ */
+declare class SdkConfig extends EventEmitter {
+    /**
+     * The primary language. By default, the language of the web browser is used.
+     */
+    primaryLanguage: LanguageString | null;
+    /**
+     * The secondary language, to overwrite the default language defined in the map style.
+     * This settings is highly dependant on the style compatibility and may not work in most cases.
+     */
+    secondaryLanguage: LanguageString | null;
+    /**
+     * Setting on whether of not the SDK runs with a session logic.
+     * A "session" is started at the initialization of the SDK and finished when the browser
+     * page is being refreshed.
+     * When `session` is enabled (default: true), the extra URL param `mtsid` is added to queries
+     * on the MapTiler Cloud API. This allows MapTiler to enable "session based billing".
+     */
+    session: boolean;
+    /**
+     * Unit to be used
+     */
+    private _unit;
+    /**
+     * MapTiler Cloud API key
+     */
+    private _apiKey;
+    constructor();
+    /**
+     * Set the unit system
+     */
+    set unit(u: Unit);
+    /**
+     * Get the unit system
+     */
+    get unit(): Unit;
+    /**
+     * Set the MapTiler Cloud API key
+     */
+    set apiKey(k: string);
+    /**
+     * Get the MapTiler Cloud API key
+     */
+    get apiKey(): string;
+    /**
+     * Set a the custom fetch function to replace the default one
+     */
+    set fetch(f: FetchFunction);
+    /**
+     * Get the fetch fucntion
+     */
+    get fetch(): FetchFunction | null;
+}
+declare const config: SdkConfig;
+
 declare type TransformStyleFunction = (previous: StyleSpecification, next: StyleSpecification) => StyleSpecification;
 declare type StyleSwapOptions = {
     diff?: boolean;
@@ -127,6 +186,17 @@ declare type MapOptions = Omit<MapOptions$1, "style" | "maplibreLogo"> & {
      * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
      */
     style?: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string;
+    /**
+     * Define the language of the map. This can be done directly with a language ISO code (eg. "en")
+     * or with a built-in shorthand (eg. Language.ENGLISH).
+     * Note that this is equivalent to setting the `config.primaryLanguage` and will overwrite it.
+     */
+    language?: LanguageString;
+    /**
+     * Define the MapTiler Cloud API key to be used. This is strictly equivalent to setting
+     * `config.apiKey` and will overwrite it.
+     */
+    apiKey?: string;
     /**
      * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.
      */
@@ -252,6 +322,19 @@ declare class Map extends maplibre_gl__default.Map {
     fitToIpBounds(): Promise<void>;
     centerOnIpPoint(zoom: number | undefined): Promise<void>;
     getCameraHash(): string;
+    /**
+     * Get the SDK config object.
+     * This is convenient to dispatch the SDK configuration to externally built layers
+     * that do not directly have access to the SDK configuration but do have access to a Map instance.
+     * @returns
+     */
+    getSdkConfig(): SdkConfig;
+    /**
+     * Get the MapTiler session ID. Convenient to dispatch to externaly built component
+     * that do not directly have access to the SDK configuration but do have access to a Map instance.
+     * @returns
+     */
+    getMaptilerSessionId(): string;
 }
 
 declare const GeolocateControl$1: typeof maplibre_gl.GeolocateControl;
@@ -484,65 +567,6 @@ declare class Point {
      */
     static convert(a: Point | Array<number>): Point;
 }
-
-declare type Unit = "imperial" | "metric" | "nautical";
-
-/**
- * Configuration class for the SDK
- */
-declare class SdkConfig extends EventEmitter {
-    /**
-     * The primary language. By default, the language of the web browser is used.
-     */
-    primaryLanguage: LanguageString | null;
-    /**
-     * The secondary language, to overwrite the default language defined in the map style.
-     * This settings is highly dependant on the style compatibility and may not work in most cases.
-     */
-    secondaryLanguage: LanguageString | null;
-    /**
-     * Setting on whether of not the SDK runs with a session logic.
-     * A "session" is started at the initialization of the SDK and finished when the browser
-     * page is being refreshed.
-     * When `session` is enabled (default: true), the extra URL param `mtsid` is added to queries
-     * on the MapTiler Cloud API. This allows MapTiler to enable "session based billing".
-     */
-    session: boolean;
-    /**
-     * Unit to be used
-     */
-    private _unit;
-    /**
-     * MapTiler Cloud API key
-     */
-    private _apiKey;
-    constructor();
-    /**
-     * Set the unit system
-     */
-    set unit(u: Unit);
-    /**
-     * Get the unit system
-     */
-    get unit(): Unit;
-    /**
-     * Set the MapTiler Cloud API key
-     */
-    set apiKey(k: string);
-    /**
-     * Get the MapTiler Cloud API key
-     */
-    get apiKey(): string;
-    /**
-     * Set a the custom fetch function to replace the default one
-     */
-    set fetch(f: FetchFunction);
-    /**
-     * Get the fetch fucntion
-     */
-    get fetch(): FetchFunction | null;
-}
-declare const config: SdkConfig;
 
 declare const supported: _mapbox_mapbox_gl_supported.IsSupported;
 declare const setRTLTextPlugin: (url: string, callback: (error?: Error) => void, deferred?: boolean) => void;

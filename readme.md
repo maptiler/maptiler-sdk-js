@@ -50,6 +50,21 @@ const map = new maptilersdk.Map({
   container: mapContainer,
 });
 ```
+
+Alternativelly, the `apiKey` can be set as Map option intead of in the `config` object. Yet, this will still internally propagate to the `config` obejct:
+```ts
+import * as maptilersdk from '@maptiler/sdk';
+
+// Let's say you have a DIV ready to receive a map
+const mapContainer = document.getElementById('my-container-div');
+
+// Instanciate the map
+const map = new maptilersdk.Map({
+  container: mapContainer,
+  apiKey: 'YOUR_API_KEY';
+});
+```
+
 By default, the map will be initialized with the style [streets-v2](https://www.maptiler.com/maps/#style=streets-v2).
 
 Depending on the framework and environment your are using for your application, you will have to also include the CSS file. 
@@ -320,19 +335,47 @@ map.disableTerrain()
 
 
 # Easy language switching
-The language generally depends on the style but we made it possible to easily update it with a single function and from a built-in list of languages:
+The language generally depends on the style but we made it possible to easily set and update from a built-in list of languages.
 
+The builtin list of supported languages is accessible from the `Language` object:
 ```ts
-map.setLanguage(maptilersdk.Language.ENGLISH);
+import { Language } from "@maptiler/sdk";
 ```
+In the UMD bundle, it will be directly at `maptilersdk.Language`.
+
+There three distinct ways to set the language of a map:
+
+1. **Global way, using the config object:**
+```ts
+import { config } from "@maptiler/sdk";
+
+config.primaryLanguage = Language.ENGLISH;
+```
+Then, the if any further language is setting is applied, all the map instances created afterward will use this language. 
+
+2. **Set the language at instanciation time:**
+```ts
+const map = new Map({
+  // some options...
+  language: Language.ENGLISH, // the ISO codes can also be used (eg. "en")
+})
+```
+It will only apply `ENGLISH` as the language of this specific map instance (and will not alter the global `config`).
+
+3. **Set the language after the map has been instanciated:**
+```ts
+map.setLanguage(Language.ENGLISH);
+```
+Again, it will only apply `ENGLISH` as the language of this specific map instance (and will not alter the global `config`).
+
 
 The list of supported languages is built-in and can be found [here](src/language.ts). In addition, there are spacial language *flags*:
-- `maptilersdk.Language.AUTO` **[DEFAULT]** uses the language defined in the web browser
-- `maptilersdk.Language.LOCAL` uses the language local to each country
-- `maptilersdk.Language.LATIN` uses a default with latin characters
-- `maptilersdk.Language.NON_LATIN` uses a default with non-latin characters
+- `Language.AUTO` **[DEFAULT]** uses the language defined in the web browser
+- `Language.LOCAL` uses the language local to each country
+- `Language.LATIN` uses a default with latin characters
+- `Language.NON_LATIN` uses a default with non-latin characters
 
-Whenever a label is not supported in the defined language, it falls back to `maptilersdk.Language.LATIN`.
+Whenever a label is not supported in the defined language, it falls back to `Language.LATIN`.
 
 Here is a sample of some compatible languages:
 ![](images/screenshots/multilang.gif)

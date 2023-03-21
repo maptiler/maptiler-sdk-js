@@ -8,7 +8,7 @@ import type {
 } from "maplibre-gl";
 import { v4 as uuidv4 } from "uuid";
 import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
-import { config } from "./config";
+import { config, SdkConfig } from "./config";
 import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
 import { enableRTL } from "./tools";
@@ -56,6 +56,19 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
    */
   style?: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string;
+
+  /**
+   * Define the language of the map. This can be done directly with a language ISO code (eg. "en")
+   * or with a built-in shorthand (eg. Language.ENGLISH).
+   * Note that this is equivalent to setting the `config.primaryLanguage` and will overwrite it.
+   */
+  language?: LanguageString;
+
+  /**
+   * Define the MapTiler Cloud API key to be used. This is strictly equivalent to setting
+   * `config.apiKey` and will overwrite it.
+   */
+  apiKey?: string;
 
   /**
    * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.
@@ -129,6 +142,14 @@ export class Map extends maplibregl.Map {
   private terrainExaggeration = 1;
 
   constructor(options: MapOptions) {
+    // if (options.language) {
+    //   config.primaryLanguage = options.language;
+    // }
+
+    if (options.apiKey) {
+      config.apiKey = options.apiKey;
+    }
+
     const style = styleToStyle(options.style);
     const hashPreConstructor = location.hash;
 
@@ -256,9 +277,18 @@ export class Map extends maplibregl.Map {
         !!config.primaryLanguage || !!config.secondaryLanguage;
     });
 
+    // To flag if the language was already initialized at build time
+    // so that the language optionnaly passed in constructor is
+    // considered only once and at instanciation time.
+    let initLanguageFromConstructor = true;
+
     // If the config includes language changing, we must update the map language
     this.on("styledata", () => {
-      if (
+      // If the language is set as a constructor options,
+      // This prevails on the language from the config.
+      if (options.language && initLanguageFromConstructor) {
+        this.setPrimaryLanguage(options.language);
+      } else if (
         config.primaryLanguage &&
         (this.languageShouldUpdate || !this.isStyleInitialized)
       ) {
@@ -274,6 +304,7 @@ export class Map extends maplibregl.Map {
 
       this.languageShouldUpdate = false;
       this.isStyleInitialized = true;
+      initLanguageFromConstructor = false;
     });
 
     // this even is in charge of reaplying the terrain elevation after the
@@ -469,9 +500,6 @@ export class Map extends maplibregl.Map {
         return this.setPrimaryLanguage(getBrowserLanguage());
       }
 
-      // We want to keep track of it to apply the language again when changing the style
-      config.primaryLanguage = language;
-
       const layers = this.getStyle().layers;
 
       // detects pattern like "{name:somelanguage}" with loose spacing
@@ -634,9 +662,6 @@ export class Map extends maplibregl.Map {
       if (language === Language.AUTO) {
         return this.setSecondaryLanguage(getBrowserLanguage());
       }
-
-      // We want to keep track of it to apply the language again when changing the style
-      config.secondaryLanguage = language;
 
       const layers = this.getStyle().layers;
 
@@ -903,5 +928,24 @@ export class Map extends maplibregl.Map {
     hashBin[3] = this.getPitch();
     hashBin[4] = this.getBearing();
     return Base64.fromUint8Array(new Uint8Array(hashBin.buffer));
+  }
+
+  /**
+   * Get the SDK config object.
+   * This is convenient to dispatch the SDK configuration to externally built layers
+   * that do not directly have access to the SDK configuration but do have access to a Map instance.
+   * @returns
+   */
+  getSdkConfig(): SdkConfig {
+    return config;
+  }
+
+  /**
+   * Get the MapTiler session ID. Convenient to dispatch to externaly built component
+   * that do not directly have access to the SDK configuration but do have access to a Map instance.
+   * @returns
+   */
+  getMaptilerSessionId(): string {
+    return MAPTILER_SESSION_ID;
   }
 }

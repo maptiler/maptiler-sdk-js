@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.6](../README.md) / MaptilerTerrainControl
+[MapTiler SDK - v1.0.7](../README.md) / MaptilerTerrainControl
 
 # Class: MaptilerTerrainControl
 
@@ -36,7 +36,7 @@ by triggering the terrain logic that is already deployed in the Map object.
 
 #### Defined in
 
-[src/MaptilerTerrainControl.ts:15](https://github.com/maptiler/maptiler-sdk-js/blob/aac8b82/src/MaptilerTerrainControl.ts#L15)
+[src/MaptilerTerrainControl.ts:15](https://github.com/maptiler/maptiler-sdk-js/blob/477d058/src/MaptilerTerrainControl.ts#L15)
 
 ## Properties
 
@@ -46,7 +46,7 @@ by triggering the terrain logic that is already deployed in the Map object.
 
 #### Defined in
 
-[src/MaptilerTerrainControl.ts:12](https://github.com/maptiler/maptiler-sdk-js/blob/aac8b82/src/MaptilerTerrainControl.ts#L12)
+[src/MaptilerTerrainControl.ts:12](https://github.com/maptiler/maptiler-sdk-js/blob/477d058/src/MaptilerTerrainControl.ts#L12)
 
 ___
 
@@ -56,7 +56,7 @@ ___
 
 #### Defined in
 
-[src/MaptilerTerrainControl.ts:11](https://github.com/maptiler/maptiler-sdk-js/blob/aac8b82/src/MaptilerTerrainControl.ts#L11)
+[src/MaptilerTerrainControl.ts:11](https://github.com/maptiler/maptiler-sdk-js/blob/477d058/src/MaptilerTerrainControl.ts#L11)
 
 ___
 
@@ -66,7 +66,7 @@ ___
 
 #### Defined in
 
-[src/MaptilerTerrainControl.ts:13](https://github.com/maptiler/maptiler-sdk-js/blob/aac8b82/src/MaptilerTerrainControl.ts#L13)
+[src/MaptilerTerrainControl.ts:13](https://github.com/maptiler/maptiler-sdk-js/blob/477d058/src/MaptilerTerrainControl.ts#L13)
 
 ## Methods
 
@@ -80,7 +80,7 @@ ___
 
 #### Defined in
 
-[src/MaptilerTerrainControl.ts:45](https://github.com/maptiler/maptiler-sdk-js/blob/aac8b82/src/MaptilerTerrainControl.ts#L45)
+[src/MaptilerTerrainControl.ts:45](https://github.com/maptiler/maptiler-sdk-js/blob/477d058/src/MaptilerTerrainControl.ts#L45)
 
 ___
 
@@ -94,7 +94,7 @@ ___
 
 #### Defined in
 
-[src/MaptilerTerrainControl.ts:55](https://github.com/maptiler/maptiler-sdk-js/blob/aac8b82/src/MaptilerTerrainControl.ts#L55)
+[src/MaptilerTerrainControl.ts:55](https://github.com/maptiler/maptiler-sdk-js/blob/477d058/src/MaptilerTerrainControl.ts#L55)
 
 ___
 
@@ -118,7 +118,7 @@ maplibregl.IControl.onAdd
 
 #### Defined in
 
-[src/MaptilerTerrainControl.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/aac8b82/src/MaptilerTerrainControl.ts#L19)
+[src/MaptilerTerrainControl.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/477d058/src/MaptilerTerrainControl.ts#L19)
 
 ___
 
@@ -136,4 +136,4 @@ maplibregl.IControl.onRemove
 
 #### Defined in
 
-[src/MaptilerTerrainControl.ts:39](https://github.com/maptiler/maptiler-sdk-js/blob/aac8b82/src/MaptilerTerrainControl.ts#L39)
+[src/MaptilerTerrainControl.ts:39](https://github.com/maptiler/maptiler-sdk-js/blob/477d058/src/MaptilerTerrainControl.ts#L39)
