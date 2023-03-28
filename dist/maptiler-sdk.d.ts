@@ -258,6 +258,8 @@ declare class Map extends maplibre_gl__default.Map {
     private isStyleInitialized;
     private isTerrainEnabled;
     private terrainExaggeration;
+    private primaryLanguage;
+    private secondaryLanguage;
     constructor(options: MapOptions);
     /**
      * Update the style of the map.
@@ -282,11 +284,21 @@ declare class Map extends maplibre_gl__default.Map {
      */
     setPrimaryLanguage(language?: LanguageString): void;
     /**
-     * Define the secondary language of the map.
+     * Define the secondary language of the map. Note that this is not supported by all the map styles
      * Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)
      * @param language
      */
     setSecondaryLanguage(language?: LanguageString): void;
+    /**
+     * Get the primary language
+     * @returns
+     */
+    getPrimaryLanguage(): LanguageString;
+    /**
+     * Get the secondary language
+     * @returns
+     */
+    getSecondaryLanguage(): LanguageString;
     /**
      * Get the exaggeration factor applied to the terrain
      * @returns

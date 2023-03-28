@@ -1,4 +1,7 @@
 # Changelog
+## [v1.0.8](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.8)
+- FIX: Since v1.0.7, the `Map` primary language (when custom) was no longer persistant on style update.
+
 ## [v1.0.7](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.7)
 - The `apiKey` can now be specified in the `Map` constructor (will propagate to `config`)
 - The `language` can now be speficifed in the `Map` constructo (will **not** propagete to `config` and will apply only to this specific instance)
