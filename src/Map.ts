@@ -140,6 +140,8 @@ export class Map extends maplibregl.Map {
   private isStyleInitialized = false;
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
+  private primaryLanguage: LanguageString | null = null;
+  private secondaryLanguage: LanguageString | null = null;
 
   constructor(options: MapOptions) {
     // if (options.language) {
@@ -196,6 +198,9 @@ export class Map extends maplibregl.Map {
         };
       },
     });
+
+    this.primaryLanguage = options.language ?? config.primaryLanguage;
+    this.secondaryLanguage = config.secondaryLanguage;
 
     // Map centering and geolocation
     this.once("styledata", async () => {
@@ -271,40 +276,10 @@ export class Map extends maplibregl.Map {
       }
     });
 
-    // Check if language has been modified and. If so, it will be updated during the next lifecycle step
-    this.on("styledataloading", () => {
-      this.languageShouldUpdate =
-        !!config.primaryLanguage || !!config.secondaryLanguage;
-    });
-
-    // To flag if the language was already initialized at build time
-    // so that the language optionnaly passed in constructor is
-    // considered only once and at instanciation time.
-    let initLanguageFromConstructor = true;
-
     // If the config includes language changing, we must update the map language
     this.on("styledata", () => {
-      // If the language is set as a constructor options,
-      // This prevails on the language from the config.
-      if (options.language && initLanguageFromConstructor) {
-        this.setPrimaryLanguage(options.language);
-      } else if (
-        config.primaryLanguage &&
-        (this.languageShouldUpdate || !this.isStyleInitialized)
-      ) {
-        this.setPrimaryLanguage(config.primaryLanguage);
-      }
-
-      if (
-        config.secondaryLanguage &&
-        (this.languageShouldUpdate || !this.isStyleInitialized)
-      ) {
-        this.setSecondaryLanguage(config.secondaryLanguage);
-      }
-
-      this.languageShouldUpdate = false;
-      this.isStyleInitialized = true;
-      initLanguageFromConstructor = false;
+      this.setPrimaryLanguage(this.primaryLanguage);
+      this.setSecondaryLanguage(this.secondaryLanguage);
     });
 
     // this even is in charge of reaplying the terrain elevation after the
@@ -495,6 +470,8 @@ export class Map extends maplibregl.Map {
       return;
     }
 
+    this.primaryLanguage = language;
+
     this.onStyleReady(() => {
       if (language === Language.AUTO) {
         return this.setPrimaryLanguage(getBrowserLanguage());
@@ -649,7 +626,7 @@ export class Map extends maplibregl.Map {
   }
 
   /**
-   * Define the secondary language of the map.
+   * Define the secondary language of the map. Note that this is not supported by all the map styles
    * Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)
    * @param language
    */
@@ -657,6 +634,8 @@ export class Map extends maplibregl.Map {
     if (!isLanguageSupported(language as string)) {
       return;
     }
+
+    this.secondaryLanguage = language;
 
     this.onStyleReady(() => {
       if (language === Language.AUTO) {
@@ -778,6 +757,22 @@ export class Map extends maplibregl.Map {
         }
       }
     });
+  }
+
+  /**
+   * Get the primary language
+   * @returns
+   */
+  getPrimaryLanguage(): LanguageString {
+    return this.primaryLanguage;
+  }
+
+  /**
+   * Get the secondary language
+   * @returns
+   */
+  getSecondaryLanguage(): LanguageString {
+    return this.secondaryLanguage;
   }
 
   /**

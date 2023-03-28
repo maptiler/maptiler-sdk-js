@@ -537,7 +537,7 @@ const GeolocationType = {
 };
 class Map extends maplibregl__default.Map {
   constructor(options) {
-    var _a;
+    var _a, _b;
     if (options.apiKey) {
       config.apiKey = options.apiKey;
     }
@@ -579,6 +579,10 @@ class Map extends maplibregl__default.Map {
     this.isStyleInitialized = false;
     this.isTerrainEnabled = false;
     this.terrainExaggeration = 1;
+    this.primaryLanguage = null;
+    this.secondaryLanguage = null;
+    this.primaryLanguage = (_a = options.language) != null ? _a : config.primaryLanguage;
+    this.secondaryLanguage = config.secondaryLanguage;
     this.once("styledata", () => __async(this, null, function* () {
       if (options.geolocate === false) {
         return;
@@ -628,22 +632,9 @@ class Map extends maplibregl__default.Map {
         );
       }
     }));
-    this.on("styledataloading", () => {
-      this.languageShouldUpdate = !!config.primaryLanguage || !!config.secondaryLanguage;
-    });
-    let initLanguageFromConstructor = true;
     this.on("styledata", () => {
-      if (options.language && initLanguageFromConstructor) {
-        this.setPrimaryLanguage(options.language);
-      } else if (config.primaryLanguage && (this.languageShouldUpdate || !this.isStyleInitialized)) {
-        this.setPrimaryLanguage(config.primaryLanguage);
-      }
-      if (config.secondaryLanguage && (this.languageShouldUpdate || !this.isStyleInitialized)) {
-        this.setSecondaryLanguage(config.secondaryLanguage);
-      }
-      this.languageShouldUpdate = false;
-      this.isStyleInitialized = true;
-      initLanguageFromConstructor = false;
+      this.setPrimaryLanguage(this.primaryLanguage);
+      this.setSecondaryLanguage(this.secondaryLanguage);
     });
     this.on("styledata", () => {
       if (this.getTerrain() === null && this.isTerrainEnabled) {
@@ -723,7 +714,7 @@ class Map extends maplibregl__default.Map {
     }));
     if (options.terrain) {
       this.enableTerrain(
-        (_a = options.terrainExaggeration) != null ? _a : this.terrainExaggeration
+        (_b = options.terrainExaggeration) != null ? _b : this.terrainExaggeration
       );
     }
   }
@@ -740,6 +731,7 @@ class Map extends maplibregl__default.Map {
     if (!isLanguageSupported(language)) {
       return;
     }
+    this.primaryLanguage = language;
     this.onStyleReady(() => {
       if (language === Language.AUTO) {
         return this.setPrimaryLanguage(getBrowserLanguage());
@@ -813,6 +805,7 @@ class Map extends maplibregl__default.Map {
     if (!isLanguageSupported(language)) {
       return;
     }
+    this.secondaryLanguage = language;
     this.onStyleReady(() => {
       if (language === Language.AUTO) {
         return this.setSecondaryLanguage(getBrowserLanguage());
@@ -871,6 +864,12 @@ class Map extends maplibregl__default.Map {
         }
       }
     });
+  }
+  getPrimaryLanguage() {
+    return this.primaryLanguage;
+  }
+  getSecondaryLanguage() {
+    return this.secondaryLanguage;
   }
   getTerrainExaggeration() {
     return this.terrainExaggeration;
