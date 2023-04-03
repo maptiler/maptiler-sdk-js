@@ -45,12 +45,14 @@ const {
   workerUrl,
   addProtocol,
   removeProtocol,
-
   // isSafari,
   // getPerformanceMetrics,
   // config,
   // Point,
 } = maplibregl;
+
+// We still want to export maplibregl.Map, but as a different name
+const MapMLGL = maplibregl.Map;
 
 export {
   supported,
@@ -90,10 +92,37 @@ export {
   workerUrl,
   addProtocol,
   removeProtocol,
+  MapMLGL,
   // isSafari,
   // getPerformanceMetrics
 };
 
+// Exporting types of class instances from MapLibre:
+export type NavigationControl = InstanceType<typeof NavigationControl>;
+export type GeolocateControl = InstanceType<typeof GeolocateControl>;
+export type AttributionControl = InstanceType<typeof AttributionControl>;
+export type LogoControl = InstanceType<typeof LogoControl>;
+export type ScaleControl = InstanceType<typeof ScaleControl>;
+export type FullscreenControl = InstanceType<typeof FullscreenControl>;
+export type TerrainControl = InstanceType<typeof TerrainControl>;
+export type Popup = InstanceType<typeof Popup>;
+export type Marker = InstanceType<typeof Marker>;
+export type Style = InstanceType<typeof Style>;
+export type LngLat = InstanceType<typeof LngLat>;
+export type LngLatBounds = InstanceType<typeof LngLatBounds>;
+export type MercatorCoordinate = InstanceType<typeof MercatorCoordinate>;
+export type Evented = InstanceType<typeof Evented>;
+export type AJAXError = InstanceType<typeof AJAXError>;
+export type CanvasSource = InstanceType<typeof CanvasSource>;
+export type GeoJSONSource = InstanceType<typeof GeoJSONSource>;
+export type ImageSource = InstanceType<typeof ImageSource>;
+export type RasterDEMTileSource = InstanceType<typeof RasterDEMTileSource>;
+export type RasterTileSource = InstanceType<typeof RasterTileSource>;
+export type VectorTileSource = InstanceType<typeof VectorTileSource>;
+export type VideoSource = InstanceType<typeof VideoSource>;
+export type MapMLGL = InstanceType<typeof MapMLGL>;
+
+// SDK specific
 import { Map, GeolocationType } from "./Map";
 import type { MapOptions } from "./Map";
 

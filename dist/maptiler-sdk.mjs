@@ -575,8 +575,6 @@ class Map extends maplibregl__default.Map {
         };
       }
     }));
-    this.languageShouldUpdate = false;
-    this.isStyleInitialized = false;
     this.isTerrainEnabled = false;
     this.terrainExaggeration = 1;
     this.primaryLanguage = null;
@@ -1155,6 +1153,7 @@ const {
   addProtocol,
   removeProtocol
 } = maplibregl__default;
+const MapMLGL = maplibregl__default.Map;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, GeolocationType, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, GeolocationType, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MapMLGL, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
 //# sourceMappingURL=maptiler-sdk.mjs.map

@@ -1,4 +1,30 @@
 # Changelog
+## [v1.0.9](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.9)
+- FIX: The instance types for the following MapLibre classes are now fully exported:
+  - `NavigationControl`
+  - `GeolocateControl`
+  - `AttributionControl`
+  - `LogoControl`
+  - `ScaleControl`
+  - `FullscreenControl`
+  - `TerrainControl`
+  - `Popup`
+  - `Marker`
+  - `Style`
+  - `LngLat`
+  - `LngLatBounds`
+  - `MercatorCoordinate`
+  - `Evented`
+  - `AJAXError`
+  - `CanvasSource`
+  - `GeoJSONSource`
+  - `ImageSource`
+  - `RasterDEMTileSource`
+  - `RasterTileSource`
+  - `VectorTileSource`
+  - `VideoSource`
+  - `MapMLGL`
+
 ## [v1.0.8](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.8)
 - FIX: Since v1.0.7, the `Map` primary language (when custom) was no longer persistant on style update.
 

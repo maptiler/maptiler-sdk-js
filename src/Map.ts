@@ -136,18 +136,12 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
  * The Map class can be instanciated to display a map in a `<div>`
  */
 export class Map extends maplibregl.Map {
-  private languageShouldUpdate = false;
-  private isStyleInitialized = false;
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
   private primaryLanguage: LanguageString | null = null;
   private secondaryLanguage: LanguageString | null = null;
 
   constructor(options: MapOptions) {
-    // if (options.language) {
-    //   config.primaryLanguage = options.language;
-    // }
-
     if (options.apiKey) {
       config.apiKey = options.apiKey;
     }

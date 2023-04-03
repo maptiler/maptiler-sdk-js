@@ -2681,8 +2681,6 @@
 	        };
 	      }
 	    }));
-	    this.languageShouldUpdate = false;
-	    this.isStyleInitialized = false;
 	    this.isTerrainEnabled = false;
 	    this.terrainExaggeration = 1;
 	    this.primaryLanguage = null;
@@ -3261,6 +3259,7 @@
 	  addProtocol,
 	  removeProtocol
 	} = maplibregl;
+	const MapMLGL = maplibregl.Map;
 
 	exports.AJAXError = AJAXError;
 	exports.AttributionControl = AttributionControl;
@@ -3277,6 +3276,7 @@
 	exports.LngLatBounds = LngLatBounds;
 	exports.LogoControl = LogoControl;
 	exports.Map = Map$1;
+	exports.MapMLGL = MapMLGL;
 	exports.MapStyle = MapStyle;
 	exports.MapStyleVariant = MapStyleVariant;
 	exports.MaptilerGeolocateControl = MaptilerGeolocateControl;
