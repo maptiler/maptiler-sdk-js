@@ -21,21 +21,21 @@ const {
   ScaleControl,
   FullscreenControl,
   TerrainControl,
-  Popup,
-  Marker,
-  Style,
+  // Popup,
+  // Marker,
+  // Style,
   LngLat,
   LngLatBounds,
   MercatorCoordinate,
   Evented,
   AJAXError,
-  CanvasSource,
-  GeoJSONSource,
-  ImageSource,
-  RasterDEMTileSource,
-  RasterTileSource,
-  VectorTileSource,
-  VideoSource,
+  // CanvasSource,
+  // GeoJSONSource,
+  // ImageSource,
+  // RasterDEMTileSource,
+  // RasterTileSource,
+  // VectorTileSource,
+  // VideoSource,
   prewarm,
   clearPrewarmedResources,
   version,
@@ -53,6 +53,16 @@ const {
 
 // We still want to export maplibregl.Map, but as a different name
 const MapMLGL = maplibregl.Map;
+const MarkerMLGL = maplibregl.Marker;
+const PopupMLGL = maplibregl.Popup;
+const StyleMLGL = maplibregl.Style;
+const CanvasSourceMLGL = maplibregl.CanvasSource;
+const GeoJSONSourceMLGL = maplibregl.GeoJSONSource;
+const ImageSourceMLGL = maplibregl.ImageSource;
+const RasterTileSourceMLGL = maplibregl.RasterTileSource;
+const RasterDEMTileSourceMLGL = maplibregl.RasterDEMTileSource;
+const VectorTileSourceMLGL = maplibregl.VectorTileSource;
+const VideoSourceMLGL = maplibregl.VideoSource;
 
 export {
   supported,
@@ -66,9 +76,9 @@ export {
   ScaleControl,
   FullscreenControl,
   TerrainControl,
-  Popup,
-  Marker,
-  Style,
+  PopupMLGL,
+  MarkerMLGL,
+  StyleMLGL,
   LngLat,
   LngLatBounds,
   // Point,
@@ -76,13 +86,13 @@ export {
   Evented,
   AJAXError,
   // config,
-  CanvasSource,
-  GeoJSONSource,
-  ImageSource,
-  RasterDEMTileSource,
-  RasterTileSource,
-  VectorTileSource,
-  VideoSource,
+  CanvasSourceMLGL,
+  GeoJSONSourceMLGL,
+  ImageSourceMLGL,
+  RasterDEMTileSourceMLGL,
+  RasterTileSourceMLGL,
+  VectorTileSourceMLGL,
+  VideoSourceMLGL,
   prewarm,
   clearPrewarmedResources,
   version,
@@ -105,26 +115,41 @@ export type LogoControl = InstanceType<typeof LogoControl>;
 export type ScaleControl = InstanceType<typeof ScaleControl>;
 export type FullscreenControl = InstanceType<typeof FullscreenControl>;
 export type TerrainControl = InstanceType<typeof TerrainControl>;
-export type Popup = InstanceType<typeof Popup>;
-export type Marker = InstanceType<typeof Marker>;
-export type Style = InstanceType<typeof Style>;
+
+export type MarkerMLGL = InstanceType<typeof MarkerMLGL>;
+export type PopupMLGL = InstanceType<typeof PopupMLGL>;
+export type StyleMLGL = InstanceType<typeof StyleMLGL>;
+
 export type LngLat = InstanceType<typeof LngLat>;
 export type LngLatBounds = InstanceType<typeof LngLatBounds>;
 export type MercatorCoordinate = InstanceType<typeof MercatorCoordinate>;
 export type Evented = InstanceType<typeof Evented>;
 export type AJAXError = InstanceType<typeof AJAXError>;
-export type CanvasSource = InstanceType<typeof CanvasSource>;
-export type GeoJSONSource = InstanceType<typeof GeoJSONSource>;
-export type ImageSource = InstanceType<typeof ImageSource>;
-export type RasterDEMTileSource = InstanceType<typeof RasterDEMTileSource>;
-export type RasterTileSource = InstanceType<typeof RasterTileSource>;
-export type VectorTileSource = InstanceType<typeof VectorTileSource>;
-export type VideoSource = InstanceType<typeof VideoSource>;
+export type CanvasSourceMLGL = InstanceType<typeof CanvasSourceMLGL>;
+export type GeoJSONSourceMLGL = InstanceType<typeof GeoJSONSourceMLGL>;
+export type ImageSourceMLGL = InstanceType<typeof ImageSourceMLGL>;
+export type RasterDEMTileSourceMLGL = InstanceType<
+  typeof RasterDEMTileSourceMLGL
+>;
+export type RasterTileSourceMLGL = InstanceType<typeof RasterTileSourceMLGL>;
+export type VectorTileSourceMLGL = InstanceType<typeof VectorTileSourceMLGL>;
+export type VideoSourceMLGL = InstanceType<typeof VideoSourceMLGL>;
 export type MapMLGL = InstanceType<typeof MapMLGL>;
 
 // SDK specific
 import { Map, GeolocationType } from "./Map";
 import type { MapOptions } from "./Map";
+
+import { Marker } from "./Marker";
+import { Popup } from "./Popup";
+import { Style } from "./Style";
+import { CanvasSource } from "./CanvasSource";
+import { GeoJSONSource } from "./GeoJSONSource";
+import { ImageSource } from "./ImageSource";
+import { RasterTileSource } from "./RasterTileSource";
+import { RasterDEMTileSource } from "./RasterDEMTileSource";
+import { VectorTileSource } from "./VectorTileSource";
+import { VideoSource } from "./VideoSource";
 
 import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
@@ -186,6 +211,16 @@ export type {
 // Exporting classes, objects, functions, etc.
 export {
   Map,
+  Marker,
+  Popup,
+  Style,
+  CanvasSource,
+  GeoJSONSource,
+  ImageSource,
+  RasterTileSource,
+  RasterDEMTileSource,
+  VideoSource,
+  VectorTileSource,
   GeolocationType,
   SdkConfig,
   config,

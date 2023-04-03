@@ -3072,6 +3072,66 @@
 	  }
 	}
 
+	class Marker extends maplibregl.Marker {
+	  addTo(map) {
+	    return super.addTo(map);
+	  }
+	}
+
+	class Popup extends maplibregl.Popup {
+	  addTo(map) {
+	    return super.addTo(map);
+	  }
+	}
+
+	class Style extends maplibregl.Style {
+	  constructor(map, options = {}) {
+	    super(map, options);
+	  }
+	}
+
+	class CanvasSource extends maplibregl.CanvasSource {
+	  onAdd(map) {
+	    super.onAdd(map);
+	  }
+	}
+
+	class GeoJSONSource extends maplibregl.GeoJSONSource {
+	  onAdd(map) {
+	    super.onAdd(map);
+	  }
+	}
+
+	class ImageSource extends maplibregl.ImageSource {
+	  onAdd(map) {
+	    super.onAdd(map);
+	  }
+	}
+
+	class RasterTileSource extends maplibregl.RasterTileSource {
+	  onAdd(map) {
+	    super.onAdd(map);
+	  }
+	}
+
+	class RasterDEMTileSource extends maplibregl.RasterDEMTileSource {
+	  onAdd(map) {
+	    super.onAdd(map);
+	  }
+	}
+
+	class VectorTileSource extends maplibregl.VectorTileSource {
+	  onAdd(map) {
+	    super.onAdd(map);
+	  }
+	}
+
+	class VideoSource extends maplibregl.VideoSource {
+	  onAdd(map) {
+	    super.onAdd(map);
+	  }
+	}
+
 	class Point {
 	  constructor(x, y) {
 	    this.x = x;
@@ -3234,21 +3294,11 @@
 	  ScaleControl,
 	  FullscreenControl,
 	  TerrainControl,
-	  Popup,
-	  Marker,
-	  Style,
 	  LngLat,
 	  LngLatBounds,
 	  MercatorCoordinate,
 	  Evented,
 	  AJAXError,
-	  CanvasSource,
-	  GeoJSONSource,
-	  ImageSource,
-	  RasterDEMTileSource,
-	  RasterTileSource,
-	  VectorTileSource,
-	  VideoSource,
 	  prewarm,
 	  clearPrewarmedResources,
 	  version,
@@ -3260,16 +3310,29 @@
 	  removeProtocol
 	} = maplibregl;
 	const MapMLGL = maplibregl.Map;
+	const MarkerMLGL = maplibregl.Marker;
+	const PopupMLGL = maplibregl.Popup;
+	const StyleMLGL = maplibregl.Style;
+	const CanvasSourceMLGL = maplibregl.CanvasSource;
+	const GeoJSONSourceMLGL = maplibregl.GeoJSONSource;
+	const ImageSourceMLGL = maplibregl.ImageSource;
+	const RasterTileSourceMLGL = maplibregl.RasterTileSource;
+	const RasterDEMTileSourceMLGL = maplibregl.RasterDEMTileSource;
+	const VectorTileSourceMLGL = maplibregl.VectorTileSource;
+	const VideoSourceMLGL = maplibregl.VideoSource;
 
 	exports.AJAXError = AJAXError;
 	exports.AttributionControl = AttributionControl;
 	exports.CanvasSource = CanvasSource;
+	exports.CanvasSourceMLGL = CanvasSourceMLGL;
 	exports.Evented = Evented;
 	exports.FullscreenControl = FullscreenControl;
 	exports.GeoJSONSource = GeoJSONSource;
+	exports.GeoJSONSourceMLGL = GeoJSONSourceMLGL;
 	exports.GeolocateControl = GeolocateControl;
 	exports.GeolocationType = GeolocationType;
 	exports.ImageSource = ImageSource;
+	exports.ImageSourceMLGL = ImageSourceMLGL;
 	exports.Language = Language;
 	exports.LanguageGeocoding = LanguageGeocoding;
 	exports.LngLat = LngLat;
@@ -3283,20 +3346,27 @@
 	exports.MaptilerLogoControl = MaptilerLogoControl;
 	exports.MaptilerTerrainControl = MaptilerTerrainControl;
 	exports.Marker = Marker;
+	exports.MarkerMLGL = MarkerMLGL;
 	exports.MercatorCoordinate = MercatorCoordinate;
 	exports.NavigationControl = NavigationControl;
 	exports.Point = Point;
 	exports.Popup = Popup;
+	exports.PopupMLGL = PopupMLGL;
 	exports.RasterDEMTileSource = RasterDEMTileSource;
+	exports.RasterDEMTileSourceMLGL = RasterDEMTileSourceMLGL;
 	exports.RasterTileSource = RasterTileSource;
+	exports.RasterTileSourceMLGL = RasterTileSourceMLGL;
 	exports.ReferenceMapStyle = ReferenceMapStyle;
 	exports.ScaleControl = ScaleControl;
 	exports.SdkConfig = SdkConfig;
 	exports.ServiceError = ServiceError;
 	exports.Style = Style;
+	exports.StyleMLGL = StyleMLGL;
 	exports.TerrainControl = TerrainControl;
 	exports.VectorTileSource = VectorTileSource;
+	exports.VectorTileSourceMLGL = VectorTileSourceMLGL;
 	exports.VideoSource = VideoSource;
+	exports.VideoSourceMLGL = VideoSourceMLGL;
 	exports.addProtocol = addProtocol;
 	exports.clearPrewarmedResources = clearPrewarmedResources;
 	exports.clearStorage = clearStorage;

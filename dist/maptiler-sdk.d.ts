@@ -1,5 +1,5 @@
 import * as maplibre_gl from 'maplibre-gl';
-import maplibre_gl__default, { MapOptions as MapOptions$1, StyleSpecification, ControlPosition, StyleOptions, LogoOptions as LogoOptions$1 } from 'maplibre-gl';
+import maplibre_gl__default, { MapOptions as MapOptions$1, StyleSpecification, ControlPosition, StyleOptions, Map as Map$1, LogoOptions as LogoOptions$1 } from 'maplibre-gl';
 export * from 'maplibre-gl';
 import * as _mapbox_mapbox_gl_supported from '@mapbox/mapbox-gl-supported';
 import { FetchFunction, ReferenceMapStyle, MapStyleVariant } from '@maptiler/client';
@@ -347,6 +347,86 @@ declare class Map extends maplibre_gl__default.Map {
     getMaptilerSessionId(): string;
 }
 
+/**
+ * This is an extension of MapLibre Marker to make it fully type compatible with the SDK
+ */
+
+declare class Marker extends maplibre_gl__default.Marker {
+    addTo(map: Map | Map$1): this;
+}
+
+/**
+ * This is an extension of MapLibre Popup to make it fully type compatible with the SDK
+ */
+
+declare class Popup extends maplibre_gl__default.Popup {
+    addTo(map: Map | Map$1): this;
+}
+
+/**
+ * This is an extension of MapLibre Style to make it fully type compatible with the SDK
+ */
+
+declare class Style extends maplibre_gl__default.Style {
+    constructor(map: Map, options?: StyleOptions);
+}
+
+/**
+ * This is an extension of MapLibre CanvasSource to make it fully type compatible with the SDK
+ */
+
+declare class CanvasSource extends maplibre_gl__default.CanvasSource {
+    onAdd(map: Map | Map$1): void;
+}
+
+/**
+ * This is an extension of MapLibre GeoJSONSource to make it fully type compatible with the SDK
+ */
+
+declare class GeoJSONSource extends maplibre_gl__default.GeoJSONSource {
+    onAdd(map: Map | Map$1): void;
+}
+
+/**
+ * This is an extension of MapLibre ImageSource to make it fully type compatible with the SDK
+ */
+
+declare class ImageSource extends maplibre_gl__default.ImageSource {
+    onAdd(map: Map | Map$1): void;
+}
+
+/**
+ * This is an extension of MapLibre RasterTileSource to make it fully type compatible with the SDK
+ */
+
+declare class RasterTileSource extends maplibre_gl__default.RasterTileSource {
+    onAdd(map: Map | Map$1): void;
+}
+
+/**
+ * This is an extension of MapLibre RasterDEMTileSource to make it fully type compatible with the SDK
+ */
+
+declare class RasterDEMTileSource extends maplibre_gl__default.RasterDEMTileSource {
+    onAdd(map: Map | Map$1): void;
+}
+
+/**
+ * This is an extension of MapLibre VectorTileSource to make it fully type compatible with the SDK
+ */
+
+declare class VectorTileSource extends maplibre_gl__default.VectorTileSource {
+    onAdd(map: Map | Map$1): void;
+}
+
+/**
+ * This is an extension of MapLibre VideoSource to make it fully type compatible with the SDK
+ */
+
+declare class VideoSource extends maplibre_gl__default.VideoSource {
+    onAdd(map: Map | Map$1): void;
+}
+
 declare const GeolocateControl$1: typeof maplibre_gl.GeolocateControl;
 /**
  * The MaptilerGeolocateControl is an extension of the original GeolocateControl
@@ -605,12 +685,12 @@ declare const FullscreenControl: typeof maplibre_gl.FullscreenControl;
 declare type FullscreenControl = InstanceType<typeof FullscreenControl>;
 declare const TerrainControl: typeof maplibre_gl.TerrainControl;
 declare type TerrainControl = InstanceType<typeof TerrainControl>;
-declare const Popup: typeof maplibre_gl.Popup;
-declare type Popup = InstanceType<typeof Popup>;
-declare const Marker: typeof maplibre_gl.Marker;
-declare type Marker = InstanceType<typeof Marker>;
-declare const Style: typeof maplibre_gl.Style;
-declare type Style = InstanceType<typeof Style>;
+declare const MarkerMLGL: typeof maplibre_gl.Marker;
+declare type MarkerMLGL = InstanceType<typeof MarkerMLGL>;
+declare const PopupMLGL: typeof maplibre_gl.Popup;
+declare type PopupMLGL = InstanceType<typeof PopupMLGL>;
+declare const StyleMLGL: typeof maplibre_gl.Style;
+declare type StyleMLGL = InstanceType<typeof StyleMLGL>;
 declare const LngLat: typeof maplibre_gl.LngLat;
 declare type LngLat = InstanceType<typeof LngLat>;
 declare const LngLatBounds: typeof maplibre_gl.LngLatBounds;
@@ -621,21 +701,21 @@ declare const Evented: typeof maplibre_gl.Evented;
 declare type Evented = InstanceType<typeof Evented>;
 declare const AJAXError: typeof maplibre_gl.AJAXError;
 declare type AJAXError = InstanceType<typeof AJAXError>;
-declare const CanvasSource: typeof maplibre_gl.CanvasSource;
-declare type CanvasSource = InstanceType<typeof CanvasSource>;
-declare const GeoJSONSource: typeof maplibre_gl.GeoJSONSource;
-declare type GeoJSONSource = InstanceType<typeof GeoJSONSource>;
-declare const ImageSource: typeof maplibre_gl.ImageSource;
-declare type ImageSource = InstanceType<typeof ImageSource>;
-declare const RasterDEMTileSource: typeof maplibre_gl.RasterDEMTileSource;
-declare type RasterDEMTileSource = InstanceType<typeof RasterDEMTileSource>;
-declare const RasterTileSource: typeof maplibre_gl.RasterTileSource;
-declare type RasterTileSource = InstanceType<typeof RasterTileSource>;
-declare const VectorTileSource: typeof maplibre_gl.VectorTileSource;
-declare type VectorTileSource = InstanceType<typeof VectorTileSource>;
-declare const VideoSource: typeof maplibre_gl.VideoSource;
-declare type VideoSource = InstanceType<typeof VideoSource>;
+declare const CanvasSourceMLGL: typeof maplibre_gl.CanvasSource;
+declare type CanvasSourceMLGL = InstanceType<typeof CanvasSourceMLGL>;
+declare const GeoJSONSourceMLGL: typeof maplibre_gl.GeoJSONSource;
+declare type GeoJSONSourceMLGL = InstanceType<typeof GeoJSONSourceMLGL>;
+declare const ImageSourceMLGL: typeof maplibre_gl.ImageSource;
+declare type ImageSourceMLGL = InstanceType<typeof ImageSourceMLGL>;
+declare const RasterDEMTileSourceMLGL: typeof maplibre_gl.RasterDEMTileSource;
+declare type RasterDEMTileSourceMLGL = InstanceType<typeof RasterDEMTileSourceMLGL>;
+declare const RasterTileSourceMLGL: typeof maplibre_gl.RasterTileSource;
+declare type RasterTileSourceMLGL = InstanceType<typeof RasterTileSourceMLGL>;
+declare const VectorTileSourceMLGL: typeof maplibre_gl.VectorTileSource;
+declare type VectorTileSourceMLGL = InstanceType<typeof VectorTileSourceMLGL>;
+declare const VideoSourceMLGL: typeof maplibre_gl.VideoSource;
+declare type VideoSourceMLGL = InstanceType<typeof VideoSourceMLGL>;
 declare const MapMLGL: typeof maplibre_gl.Map;
 declare type MapMLGL = InstanceType<typeof MapMLGL>;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, GeolocationType, ImageSource, Language, LanguageKey, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapMLGL, MapOptions, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, Matrix2, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, Unit, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocationType, ImageSource, ImageSourceMLGL, Language, LanguageKey, LanguageString, LngLat, LngLatBounds, LogoControl, Map, MapMLGL, MapOptions, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, MarkerMLGL, Matrix2, MercatorCoordinate, NavigationControl, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, SdkConfig, Style, StyleMLGL, TerrainControl, Unit, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };

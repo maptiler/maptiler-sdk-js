@@ -966,6 +966,66 @@ class Map extends maplibregl__default.Map {
   }
 }
 
+class Marker extends maplibregl__default.Marker {
+  addTo(map) {
+    return super.addTo(map);
+  }
+}
+
+class Popup extends maplibregl__default.Popup {
+  addTo(map) {
+    return super.addTo(map);
+  }
+}
+
+class Style extends maplibregl__default.Style {
+  constructor(map, options = {}) {
+    super(map, options);
+  }
+}
+
+class CanvasSource extends maplibregl__default.CanvasSource {
+  onAdd(map) {
+    super.onAdd(map);
+  }
+}
+
+class GeoJSONSource extends maplibregl__default.GeoJSONSource {
+  onAdd(map) {
+    super.onAdd(map);
+  }
+}
+
+class ImageSource extends maplibregl__default.ImageSource {
+  onAdd(map) {
+    super.onAdd(map);
+  }
+}
+
+class RasterTileSource extends maplibregl__default.RasterTileSource {
+  onAdd(map) {
+    super.onAdd(map);
+  }
+}
+
+class RasterDEMTileSource extends maplibregl__default.RasterDEMTileSource {
+  onAdd(map) {
+    super.onAdd(map);
+  }
+}
+
+class VectorTileSource extends maplibregl__default.VectorTileSource {
+  onAdd(map) {
+    super.onAdd(map);
+  }
+}
+
+class VideoSource extends maplibregl__default.VideoSource {
+  onAdd(map) {
+    super.onAdd(map);
+  }
+}
+
 class Point {
   constructor(x, y) {
     this.x = x;
@@ -1128,21 +1188,11 @@ const {
   ScaleControl,
   FullscreenControl,
   TerrainControl,
-  Popup,
-  Marker,
-  Style,
   LngLat,
   LngLatBounds,
   MercatorCoordinate,
   Evented,
   AJAXError,
-  CanvasSource,
-  GeoJSONSource,
-  ImageSource,
-  RasterDEMTileSource,
-  RasterTileSource,
-  VectorTileSource,
-  VideoSource,
   prewarm,
   clearPrewarmedResources,
   version,
@@ -1154,6 +1204,16 @@ const {
   removeProtocol
 } = maplibregl__default;
 const MapMLGL = maplibregl__default.Map;
+const MarkerMLGL = maplibregl__default.Marker;
+const PopupMLGL = maplibregl__default.Popup;
+const StyleMLGL = maplibregl__default.Style;
+const CanvasSourceMLGL = maplibregl__default.CanvasSource;
+const GeoJSONSourceMLGL = maplibregl__default.GeoJSONSource;
+const ImageSourceMLGL = maplibregl__default.ImageSource;
+const RasterTileSourceMLGL = maplibregl__default.RasterTileSource;
+const RasterDEMTileSourceMLGL = maplibregl__default.RasterDEMTileSource;
+const VectorTileSourceMLGL = maplibregl__default.VectorTileSource;
+const VideoSourceMLGL = maplibregl__default.VideoSource;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, GeolocationType, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MapMLGL, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocationType, ImageSource, ImageSourceMLGL, Language, LngLat, LngLatBounds, LogoControl, Map, MapMLGL, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, MarkerMLGL, MercatorCoordinate, NavigationControl, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, SdkConfig, Style, StyleMLGL, TerrainControl, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
 //# sourceMappingURL=maptiler-sdk.mjs.map

@@ -39,7 +39,7 @@ maplibregl.LogoControl.constructor
 
 #### Defined in
 
-[src/MaptilerLogoControl.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/6e526f0/src/MaptilerLogoControl.ts#L19)
+[src/MaptilerLogoControl.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/b764e92/src/MaptilerLogoControl.ts#L19)
 
 ## Methods
 
@@ -63,4 +63,4 @@ maplibregl.LogoControl.onAdd
 
 #### Defined in
 
-[src/MaptilerLogoControl.ts:26](https://github.com/maptiler/maptiler-sdk-js/blob/6e526f0/src/MaptilerLogoControl.ts#L26)
+[src/MaptilerLogoControl.ts:26](https://github.com/maptiler/maptiler-sdk-js/blob/b764e92/src/MaptilerLogoControl.ts#L26)
