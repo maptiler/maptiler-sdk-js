@@ -63,4 +63,4 @@ maplibregl.RasterDEMTileSource.onAdd
 
 #### Defined in
 
-src/RasterDEMTileSource.ts:10
+[src/RasterDEMTileSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/RasterDEMTileSource.ts#L10)

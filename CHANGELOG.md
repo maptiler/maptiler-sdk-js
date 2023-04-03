@@ -25,6 +25,25 @@
   - `VideoSource`
   - `MapMLGL`
 
+- FIX: The following class have been extended to provide greater compatibility with SDK,s MapL
+  - `Popup`
+  - `Marker`
+  - `Style`
+  - `CanvasSource`
+  - `GeoJSONSource`
+  - `ImageSource`
+  - `RasterDEMTileSource`
+  - `RasterTileSource`
+  - `VectorTileSource`
+  - `VideoSource`
+  - `NavigationControl`
+  - `GeolocateControl`
+  - `AttributionControl`
+  - `LogoControl`
+  - `ScaleControl`
+  - `FullscreenControl`
+  - `TerrainControl`
+
 ## [v1.0.8](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.8)
 - FIX: Since v1.0.7, the `Map` primary language (when custom) was no longer persistant on style update.
 

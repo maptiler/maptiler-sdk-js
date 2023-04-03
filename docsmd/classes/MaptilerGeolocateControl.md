@@ -8,7 +8,7 @@ location is still centered. This means it's robust to rotation, pitch and zoom.
 
 ## Hierarchy
 
-- `GeolocateControl`
+- [`GeolocateControl`](GeolocateControl.md)
 
   ↳ **`MaptilerGeolocateControl`**
 
@@ -23,6 +23,7 @@ location is still centered. This means it's robust to rotation, pitch and zoom.
 - [\_onZoom](MaptilerGeolocateControl.md#_onzoom)
 - [\_setupUI](MaptilerGeolocateControl.md#_setupui)
 - [\_updateCircleRadius](MaptilerGeolocateControl.md#_updatecircleradius)
+- [onAdd](MaptilerGeolocateControl.md#onadd)
 
 ## Constructors
 
@@ -38,7 +39,7 @@ location is still centered. This means it's robust to rotation, pitch and zoom.
 
 #### Inherited from
 
-GeolocateControl.constructor
+[GeolocateControl](GeolocateControl.md).[constructor](GeolocateControl.md#constructor)
 
 #### Defined in
 
@@ -60,7 +61,7 @@ GeolocateControl.\_onZoom
 
 #### Defined in
 
-[src/MaptilerGeolocateControl.ts:198](https://github.com/maptiler/maptiler-sdk-js/blob/b764e92/src/MaptilerGeolocateControl.ts#L198)
+[src/MaptilerGeolocateControl.ts:198](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/MaptilerGeolocateControl.ts#L198)
 
 ___
 
@@ -84,7 +85,7 @@ GeolocateControl.\_setupUI
 
 #### Defined in
 
-[src/MaptilerGeolocateControl.ts:77](https://github.com/maptiler/maptiler-sdk-js/blob/b764e92/src/MaptilerGeolocateControl.ts#L77)
+[src/MaptilerGeolocateControl.ts:77](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/MaptilerGeolocateControl.ts#L77)
 
 ___
 
@@ -102,4 +103,28 @@ GeolocateControl.\_updateCircleRadius
 
 #### Defined in
 
-[src/MaptilerGeolocateControl.ts:172](https://github.com/maptiler/maptiler-sdk-js/blob/b764e92/src/MaptilerGeolocateControl.ts#L172)
+[src/MaptilerGeolocateControl.ts:172](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/MaptilerGeolocateControl.ts#L172)
+
+___
+
+### onAdd
+
+▸ **onAdd**(`map`): `HTMLElement`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `map` | `Map` \| [`Map`](Map.md) |
+
+#### Returns
+
+`HTMLElement`
+
+#### Inherited from
+
+[GeolocateControl](GeolocateControl.md).[onAdd](GeolocateControl.md#onadd)
+
+#### Defined in
+
+src/GeolocateControl.ts:10

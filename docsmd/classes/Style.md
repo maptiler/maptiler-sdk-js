@@ -33,4 +33,4 @@ maplibregl.Style.constructor
 
 #### Defined in
 
-src/Style.ts:10
+[src/Style.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/Style.ts#L10)

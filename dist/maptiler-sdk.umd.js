@@ -2248,7 +2248,13 @@
 	};
 	Object.freeze(defaults);
 
-	class MaptilerLogoControl extends maplibregl.LogoControl {
+	class LogoControl extends maplibregl.LogoControl {
+	  onAdd(map) {
+	    return super.onAdd(map);
+	  }
+	}
+
+	class MaptilerLogoControl extends LogoControl {
 	  constructor(options = {}) {
 	    var _a, _b;
 	    super(options);
@@ -2393,7 +2399,13 @@
 	  }
 	}
 
-	class MaptilerNavigationControl extends maplibregl.NavigationControl {
+	class NavigationControl extends maplibregl.NavigationControl {
+	  onAdd(map) {
+	    return super.onAdd(map);
+	  }
+	}
+
+	class MaptilerNavigationControl extends NavigationControl {
 	  constructor() {
 	    super({
 	      showCompass: true,
@@ -2433,6 +2445,12 @@
 	  }
 	}
 
+	class GeolocateControl extends maplibregl.GeolocateControl {
+	  onAdd(map) {
+	    return super.onAdd(map);
+	  }
+	}
+
 	var __defProp$1 = Object.defineProperty;
 	var __defProps$1 = Object.defineProperties;
 	var __getOwnPropDescs$1 = Object.getOwnPropertyDescriptors;
@@ -2452,10 +2470,9 @@
 	  return a;
 	};
 	var __spreadProps$1 = (a, b) => __defProps$1(a, __getOwnPropDescs$1(b));
-	const GeolocateControl$1 = maplibregl.GeolocateControl;
 	const Marker$1 = maplibregl.Marker;
 	const LngLat$1 = maplibregl.LngLat;
-	class MaptilerGeolocateControl extends GeolocateControl$1 {
+	class MaptilerGeolocateControl extends GeolocateControl {
 	  constructor() {
 	    super(...arguments);
 	    this.lastUpdatedCenter = new LngLat$1(0, 0);
@@ -2594,6 +2611,24 @@
 	    if (this.options.showUserLocation && this.options.showAccuracyCircle) {
 	      this._updateCircleRadius();
 	    }
+	  }
+	}
+
+	class AttributionControl extends maplibregl.AttributionControl {
+	  onAdd(map) {
+	    return super.onAdd(map);
+	  }
+	}
+
+	class ScaleControl extends maplibregl.ScaleControl {
+	  onAdd(map) {
+	    return super.onAdd(map);
+	  }
+	}
+
+	class FullscreenControl extends maplibregl.FullscreenControl {
+	  onAdd(map) {
+	    return super.onAdd(map);
 	  }
 	}
 
@@ -2771,14 +2806,14 @@
 	          options.logoPosition
 	        );
 	        if (options.attributionControl === false) {
-	          this.addControl(new maplibregl.AttributionControl(options));
+	          this.addControl(new AttributionControl(options));
 	        }
 	      } else if (options.maptilerLogo) {
 	        this.addControl(new MaptilerLogoControl(), options.logoPosition);
 	      }
 	      if (options.scaleControl) {
 	        const position = options.scaleControl === true || options.scaleControl === void 0 ? "bottom-right" : options.scaleControl;
-	        const scaleControl = new maplibregl.ScaleControl({ unit: config.unit });
+	        const scaleControl = new ScaleControl({ unit: config.unit });
 	        this.addControl(scaleControl, position);
 	        config.on("unit", (unit) => {
 	          scaleControl.setUnit(unit);
@@ -2813,7 +2848,7 @@
 	      }
 	      if (options.fullscreenControl) {
 	        const position = options.fullscreenControl === true || options.fullscreenControl === void 0 ? "top-right" : options.fullscreenControl;
-	        this.addControl(new maplibregl.FullscreenControl({}), position);
+	        this.addControl(new FullscreenControl({}), position);
 	      }
 	    }));
 	    if (options.terrain) {
@@ -3132,6 +3167,12 @@
 	  }
 	}
 
+	class TerrainControl extends maplibregl.TerrainControl {
+	  onAdd(map) {
+	    return super.onAdd(map);
+	  }
+	}
+
 	class Point {
 	  constructor(x, y) {
 	    this.x = x;
@@ -3287,13 +3328,6 @@
 	  supported,
 	  setRTLTextPlugin,
 	  getRTLTextPluginStatus,
-	  NavigationControl,
-	  GeolocateControl,
-	  AttributionControl,
-	  LogoControl,
-	  ScaleControl,
-	  FullscreenControl,
-	  TerrainControl,
 	  LngLat,
 	  LngLatBounds,
 	  MercatorCoordinate,
@@ -3320,6 +3354,13 @@
 	const RasterDEMTileSourceMLGL = maplibregl.RasterDEMTileSource;
 	const VectorTileSourceMLGL = maplibregl.VectorTileSource;
 	const VideoSourceMLGL = maplibregl.VideoSource;
+	maplibregl.NavigationControl;
+	maplibregl.GeolocateControl;
+	maplibregl.AttributionControl;
+	maplibregl.LogoControl;
+	maplibregl.ScaleControl;
+	maplibregl.FullscreenControl;
+	maplibregl.TerrainControl;
 
 	exports.AJAXError = AJAXError;
 	exports.AttributionControl = AttributionControl;

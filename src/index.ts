@@ -14,28 +14,18 @@ const {
   supported,
   setRTLTextPlugin,
   getRTLTextPluginStatus,
-  NavigationControl,
-  GeolocateControl,
-  AttributionControl,
-  LogoControl,
-  ScaleControl,
-  FullscreenControl,
-  TerrainControl,
-  // Popup,
-  // Marker,
-  // Style,
+  // NavigationControl,
+  // GeolocateControl,
+  // AttributionControl,
+  // LogoControl,
+  // ScaleControl,
+  // FullscreenControl,
+  // TerrainControl,
   LngLat,
   LngLatBounds,
   MercatorCoordinate,
   Evented,
   AJAXError,
-  // CanvasSource,
-  // GeoJSONSource,
-  // ImageSource,
-  // RasterDEMTileSource,
-  // RasterTileSource,
-  // VectorTileSource,
-  // VideoSource,
   prewarm,
   clearPrewarmedResources,
   version,
@@ -63,19 +53,26 @@ const RasterTileSourceMLGL = maplibregl.RasterTileSource;
 const RasterDEMTileSourceMLGL = maplibregl.RasterDEMTileSource;
 const VectorTileSourceMLGL = maplibregl.VectorTileSource;
 const VideoSourceMLGL = maplibregl.VideoSource;
+const NavigationControlMLGL = maplibregl.NavigationControl;
+const GeolocateControlMLGL = maplibregl.GeolocateControl;
+const AttributionControlMLGL = maplibregl.AttributionControl;
+const LogoControlMLGL = maplibregl.LogoControl;
+const ScaleControlMLGL = maplibregl.ScaleControl;
+const FullscreenControlMLGL = maplibregl.FullscreenControl;
+const TerrainControlMLGL = maplibregl.TerrainControl;
 
 export {
   supported,
   setRTLTextPlugin,
   getRTLTextPluginStatus,
   // Map,
-  NavigationControl,
-  GeolocateControl,
-  AttributionControl,
-  LogoControl,
-  ScaleControl,
-  FullscreenControl,
-  TerrainControl,
+  // NavigationControl,
+  // GeolocateControl,
+  // AttributionControl,
+  // LogoControl,
+  // ScaleControl,
+  // FullscreenControl,
+  // TerrainControl,
   PopupMLGL,
   MarkerMLGL,
   StyleMLGL,
@@ -108,18 +105,18 @@ export {
 };
 
 // Exporting types of class instances from MapLibre:
-export type NavigationControl = InstanceType<typeof NavigationControl>;
-export type GeolocateControl = InstanceType<typeof GeolocateControl>;
-export type AttributionControl = InstanceType<typeof AttributionControl>;
-export type LogoControl = InstanceType<typeof LogoControl>;
-export type ScaleControl = InstanceType<typeof ScaleControl>;
-export type FullscreenControl = InstanceType<typeof FullscreenControl>;
-export type TerrainControl = InstanceType<typeof TerrainControl>;
-
+export type NavigationControlMLGL = InstanceType<typeof NavigationControlMLGL>;
+export type GeolocateControlMLGL = InstanceType<typeof GeolocateControlMLGL>;
+export type AttributionControlMLGL = InstanceType<
+  typeof AttributionControlMLGL
+>;
+export type LogoControlMLGL = InstanceType<typeof LogoControlMLGL>;
+export type ScaleControlMLGL = InstanceType<typeof ScaleControlMLGL>;
+export type FullscreenControlMLGL = InstanceType<typeof FullscreenControlMLGL>;
+export type TerrainControlMLGL = InstanceType<typeof TerrainControlMLGL>;
 export type MarkerMLGL = InstanceType<typeof MarkerMLGL>;
 export type PopupMLGL = InstanceType<typeof PopupMLGL>;
 export type StyleMLGL = InstanceType<typeof StyleMLGL>;
-
 export type LngLat = InstanceType<typeof LngLat>;
 export type LngLatBounds = InstanceType<typeof LngLatBounds>;
 export type MercatorCoordinate = InstanceType<typeof MercatorCoordinate>;
@@ -150,7 +147,15 @@ import { RasterTileSource } from "./RasterTileSource";
 import { RasterDEMTileSource } from "./RasterDEMTileSource";
 import { VectorTileSource } from "./VectorTileSource";
 import { VideoSource } from "./VideoSource";
+import { NavigationControl } from "./NavigationControl";
+import { GeolocateControl } from "./GeolocateControl";
+import { AttributionControl } from "./AttributionControl";
+import { LogoControl } from "./LogoControl";
+import { ScaleControl } from "./ScaleControl";
+import { FullscreenControl } from "./FullscreenControl";
+import { TerrainControl } from "./TerrainControl";
 
+// Import of modified versions of the controls
 import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
 import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
@@ -220,6 +225,13 @@ export {
   RasterTileSource,
   RasterDEMTileSource,
   VideoSource,
+  NavigationControl,
+  GeolocateControl,
+  AttributionControl,
+  LogoControl,
+  ScaleControl,
+  FullscreenControl,
+  TerrainControl,
   VectorTileSource,
   GeolocationType,
   SdkConfig,

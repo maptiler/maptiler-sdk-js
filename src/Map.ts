@@ -23,6 +23,9 @@ import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
 import { geolocation } from "@maptiler/client";
 import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
+import { AttributionControl } from "./AttributionControl";
+import { ScaleControl } from "./ScaleControl";
+import { FullscreenControl } from "./FullscreenControl";
 
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (
@@ -329,7 +332,7 @@ export class Map extends maplibregl.Map {
 
         // if attribution in option is `false` but the the logo shows up in the tileJson, then the attribution must show anyways
         if (options.attributionControl === false) {
-          this.addControl(new maplibregl.AttributionControl(options));
+          this.addControl(new AttributionControl(options));
         }
       } else if (options.maptilerLogo) {
         this.addControl(new MaptilerLogoControl(), options.logoPosition);
@@ -347,7 +350,7 @@ export class Map extends maplibregl.Map {
             : options.scaleControl
         ) as ControlPosition;
 
-        const scaleControl = new maplibregl.ScaleControl({ unit: config.unit });
+        const scaleControl = new ScaleControl({ unit: config.unit });
         this.addControl(scaleControl, position);
         config.on("unit", (unit) => {
           scaleControl.setUnit(unit);
@@ -414,7 +417,7 @@ export class Map extends maplibregl.Map {
             : options.fullscreenControl
         ) as ControlPosition;
 
-        this.addControl(new maplibregl.FullscreenControl({}), position);
+        this.addControl(new FullscreenControl({}), position);
       }
     });
 

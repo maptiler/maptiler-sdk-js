@@ -63,4 +63,4 @@ maplibregl.RasterTileSource.onAdd
 
 #### Defined in
 
-src/RasterTileSource.ts:10
+[src/RasterTileSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/RasterTileSource.ts#L10)
