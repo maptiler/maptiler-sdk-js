@@ -1,52 +1,86 @@
-MapTiler SDK - v1.0.8
+MapTiler SDK - v1.0.9
 
-# MapTiler SDK - v1.0.8
+# MapTiler SDK - v1.0.9
 
 ## Table of contents
 
 ### Classes
 
+- [AttributionControl](classes/AttributionControl.md)
+- [CanvasSource](classes/CanvasSource.md)
+- [FullscreenControl](classes/FullscreenControl.md)
+- [GeoJSONSource](classes/GeoJSONSource.md)
+- [GeolocateControl](classes/GeolocateControl.md)
+- [ImageSource](classes/ImageSource.md)
+- [LogoControl](classes/LogoControl.md)
 - [Map](classes/Map.md)
 - [MaptilerGeolocateControl](classes/MaptilerGeolocateControl.md)
 - [MaptilerLogoControl](classes/MaptilerLogoControl.md)
 - [MaptilerTerrainControl](classes/MaptilerTerrainControl.md)
+- [Marker](classes/Marker.md)
+- [NavigationControl](classes/NavigationControl.md)
 - [Point](classes/Point.md)
+- [Popup](classes/Popup.md)
+- [RasterDEMTileSource](classes/RasterDEMTileSource.md)
+- [RasterTileSource](classes/RasterTileSource.md)
+- [ScaleControl](classes/ScaleControl.md)
 - [SdkConfig](classes/SdkConfig.md)
+- [Style](classes/Style.md)
+- [TerrainControl](classes/TerrainControl.md)
+- [VectorTileSource](classes/VectorTileSource.md)
+- [VideoSource](classes/VideoSource.md)
 
 ### Type Aliases
 
+- [AJAXError](README.md#ajaxerror)
+- [AttributionControlMLGL](README.md#attributioncontrolmlgl)
+- [CanvasSourceMLGL](README.md#canvassourcemlgl)
+- [Evented](README.md#evented)
+- [FullscreenControlMLGL](README.md#fullscreencontrolmlgl)
+- [GeoJSONSourceMLGL](README.md#geojsonsourcemlgl)
+- [GeolocateControlMLGL](README.md#geolocatecontrolmlgl)
+- [ImageSourceMLGL](README.md#imagesourcemlgl)
 - [LanguageKey](README.md#languagekey)
 - [LanguageString](README.md#languagestring)
+- [LngLat](README.md#lnglat)
+- [LngLatBounds](README.md#lnglatbounds)
+- [LogoControlMLGL](README.md#logocontrolmlgl)
+- [MapMLGL](README.md#mapmlgl)
 - [MapOptions](README.md#mapoptions)
+- [MarkerMLGL](README.md#markermlgl)
 - [Matrix2](README.md#matrix2)
+- [MercatorCoordinate](README.md#mercatorcoordinate)
+- [NavigationControlMLGL](README.md#navigationcontrolmlgl)
+- [PopupMLGL](README.md#popupmlgl)
+- [RasterDEMTileSourceMLGL](README.md#rasterdemtilesourcemlgl)
+- [RasterTileSourceMLGL](README.md#rastertilesourcemlgl)
+- [ScaleControlMLGL](README.md#scalecontrolmlgl)
+- [StyleMLGL](README.md#stylemlgl)
+- [TerrainControlMLGL](README.md#terraincontrolmlgl)
 - [Unit](README.md#unit)
+- [VectorTileSourceMLGL](README.md#vectortilesourcemlgl)
+- [VideoSourceMLGL](README.md#videosourcemlgl)
 
 ### Variables
 
-- [AJAXError](README.md#ajaxerror)
-- [AttributionControl](README.md#attributioncontrol)
-- [CanvasSource](README.md#canvassource)
-- [Evented](README.md#evented)
-- [FullscreenControl](README.md#fullscreencontrol)
-- [GeoJSONSource](README.md#geojsonsource)
-- [GeolocateControl](README.md#geolocatecontrol)
+- [AJAXError](README.md#ajaxerror-1)
+- [CanvasSourceMLGL](README.md#canvassourcemlgl-1)
+- [Evented](README.md#evented-1)
+- [GeoJSONSourceMLGL](README.md#geojsonsourcemlgl-1)
 - [GeolocationType](README.md#geolocationtype)
-- [ImageSource](README.md#imagesource)
+- [ImageSourceMLGL](README.md#imagesourcemlgl-1)
 - [Language](README.md#language)
-- [LngLat](README.md#lnglat)
-- [LngLatBounds](README.md#lnglatbounds)
-- [LogoControl](README.md#logocontrol)
-- [Marker](README.md#marker)
-- [MercatorCoordinate](README.md#mercatorcoordinate)
-- [NavigationControl](README.md#navigationcontrol)
-- [Popup](README.md#popup)
-- [RasterDEMTileSource](README.md#rasterdemtilesource)
-- [RasterTileSource](README.md#rastertilesource)
-- [ScaleControl](README.md#scalecontrol)
-- [Style](README.md#style)
-- [TerrainControl](README.md#terraincontrol)
-- [VectorTileSource](README.md#vectortilesource)
-- [VideoSource](README.md#videosource)
+- [LngLat](README.md#lnglat-1)
+- [LngLatBounds](README.md#lnglatbounds-1)
+- [MapMLGL](README.md#mapmlgl-1)
+- [MarkerMLGL](README.md#markermlgl-1)
+- [MercatorCoordinate](README.md#mercatorcoordinate-1)
+- [PopupMLGL](README.md#popupmlgl-1)
+- [RasterDEMTileSourceMLGL](README.md#rasterdemtilesourcemlgl-1)
+- [RasterTileSourceMLGL](README.md#rastertilesourcemlgl-1)
+- [StyleMLGL](README.md#stylemlgl-1)
+- [VectorTileSourceMLGL](README.md#vectortilesourcemlgl-1)
+- [VideoSourceMLGL](README.md#videosourcemlgl-1)
 - [config](README.md#config)
 - [maxParallelImageRequests](README.md#maxparallelimagerequests)
 - [version](README.md#version)
@@ -66,6 +100,96 @@ MapTiler SDK - v1.0.8
 
 ## Type Aliases
 
+### AJAXError
+
+Ƭ **AJAXError**: `InstanceType`<typeof [`AJAXError`](README.md#ajaxerror-1)\>
+
+#### Defined in
+
+[src/index.ts:84](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L84)
+
+[src/index.ts:124](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L124)
+
+___
+
+### AttributionControlMLGL
+
+Ƭ **AttributionControlMLGL**: `InstanceType`<typeof `AttributionControlMLGL`\>
+
+#### Defined in
+
+[src/index.ts:110](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L110)
+
+___
+
+### CanvasSourceMLGL
+
+Ƭ **CanvasSourceMLGL**: `InstanceType`<typeof [`CanvasSourceMLGL`](README.md#canvassourcemlgl-1)\>
+
+#### Defined in
+
+[src/index.ts:86](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L86)
+
+[src/index.ts:125](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L125)
+
+___
+
+### Evented
+
+Ƭ **Evented**: `InstanceType`<typeof [`Evented`](README.md#evented-1)\>
+
+#### Defined in
+
+[src/index.ts:83](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L83)
+
+[src/index.ts:123](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L123)
+
+___
+
+### FullscreenControlMLGL
+
+Ƭ **FullscreenControlMLGL**: `InstanceType`<typeof `FullscreenControlMLGL`\>
+
+#### Defined in
+
+[src/index.ts:115](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L115)
+
+___
+
+### GeoJSONSourceMLGL
+
+Ƭ **GeoJSONSourceMLGL**: `InstanceType`<typeof [`GeoJSONSourceMLGL`](README.md#geojsonsourcemlgl-1)\>
+
+#### Defined in
+
+[src/index.ts:87](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L87)
+
+[src/index.ts:126](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L126)
+
+___
+
+### GeolocateControlMLGL
+
+Ƭ **GeolocateControlMLGL**: `InstanceType`<typeof `GeolocateControlMLGL`\>
+
+#### Defined in
+
+[src/index.ts:109](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L109)
+
+___
+
+### ImageSourceMLGL
+
+Ƭ **ImageSourceMLGL**: `InstanceType`<typeof [`ImageSourceMLGL`](README.md#imagesourcemlgl-1)\>
+
+#### Defined in
+
+[src/index.ts:88](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L88)
+
+[src/index.ts:127](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L127)
+
+___
+
 ### LanguageKey
 
 Ƭ **LanguageKey**: keyof typeof [`Language`](README.md#language)
@@ -74,7 +198,7 @@ Type representing the key of the Language object
 
 #### Defined in
 
-[src/language.ts:108](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/language.ts#L108)
+[src/language.ts:108](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/language.ts#L108)
 
 ___
 
@@ -86,7 +210,53 @@ Built-in languages values as strings
 
 #### Defined in
 
-[src/language.ts:115](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/language.ts#L115)
+[src/language.ts:115](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/language.ts#L115)
+
+___
+
+### LngLat
+
+Ƭ **LngLat**: `InstanceType`<typeof [`LngLat`](README.md#lnglat-1)\>
+
+#### Defined in
+
+[src/index.ts:79](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L79)
+
+[src/index.ts:120](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L120)
+
+___
+
+### LngLatBounds
+
+Ƭ **LngLatBounds**: `InstanceType`<typeof [`LngLatBounds`](README.md#lnglatbounds-1)\>
+
+#### Defined in
+
+[src/index.ts:80](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L80)
+
+[src/index.ts:121](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L121)
+
+___
+
+### LogoControlMLGL
+
+Ƭ **LogoControlMLGL**: `InstanceType`<typeof `LogoControlMLGL`\>
+
+#### Defined in
+
+[src/index.ts:113](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L113)
+
+___
+
+### MapMLGL
+
+Ƭ **MapMLGL**: `InstanceType`<typeof [`MapMLGL`](README.md#mapmlgl-1)\>
+
+#### Defined in
+
+[src/index.ts:102](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L102)
+
+[src/index.ts:134](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L134)
 
 ___
 
@@ -98,7 +268,19 @@ Options to provide to the `Map` constructor
 
 #### Defined in
 
-[src/Map.ts:51](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/Map.ts#L51)
+[src/Map.ts:54](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/Map.ts#L54)
+
+___
+
+### MarkerMLGL
+
+Ƭ **MarkerMLGL**: `InstanceType`<typeof [`MarkerMLGL`](README.md#markermlgl-1)\>
+
+#### Defined in
+
+[src/index.ts:77](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L77)
+
+[src/index.ts:117](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L117)
 
 ___
 
@@ -110,7 +292,97 @@ Row major 2x2 matrix
 
 #### Defined in
 
-[src/Point.ts:9](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/Point.ts#L9)
+[src/Point.ts:9](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/Point.ts#L9)
+
+___
+
+### MercatorCoordinate
+
+Ƭ **MercatorCoordinate**: `InstanceType`<typeof [`MercatorCoordinate`](README.md#mercatorcoordinate-1)\>
+
+#### Defined in
+
+[src/index.ts:82](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L82)
+
+[src/index.ts:122](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L122)
+
+___
+
+### NavigationControlMLGL
+
+Ƭ **NavigationControlMLGL**: `InstanceType`<typeof `NavigationControlMLGL`\>
+
+#### Defined in
+
+[src/index.ts:108](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L108)
+
+___
+
+### PopupMLGL
+
+Ƭ **PopupMLGL**: `InstanceType`<typeof [`PopupMLGL`](README.md#popupmlgl-1)\>
+
+#### Defined in
+
+[src/index.ts:76](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L76)
+
+[src/index.ts:118](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L118)
+
+___
+
+### RasterDEMTileSourceMLGL
+
+Ƭ **RasterDEMTileSourceMLGL**: `InstanceType`<typeof [`RasterDEMTileSourceMLGL`](README.md#rasterdemtilesourcemlgl-1)\>
+
+#### Defined in
+
+[src/index.ts:89](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L89)
+
+[src/index.ts:128](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L128)
+
+___
+
+### RasterTileSourceMLGL
+
+Ƭ **RasterTileSourceMLGL**: `InstanceType`<typeof [`RasterTileSourceMLGL`](README.md#rastertilesourcemlgl-1)\>
+
+#### Defined in
+
+[src/index.ts:90](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L90)
+
+[src/index.ts:131](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L131)
+
+___
+
+### ScaleControlMLGL
+
+Ƭ **ScaleControlMLGL**: `InstanceType`<typeof `ScaleControlMLGL`\>
+
+#### Defined in
+
+[src/index.ts:114](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L114)
+
+___
+
+### StyleMLGL
+
+Ƭ **StyleMLGL**: `InstanceType`<typeof [`StyleMLGL`](README.md#stylemlgl-1)\>
+
+#### Defined in
+
+[src/index.ts:78](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L78)
+
+[src/index.ts:119](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L119)
+
+___
+
+### TerrainControlMLGL
+
+Ƭ **TerrainControlMLGL**: `InstanceType`<typeof `TerrainControlMLGL`\>
+
+#### Defined in
+
+[src/index.ts:116](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L116)
 
 ___
 
@@ -120,7 +392,31 @@ ___
 
 #### Defined in
 
-[src/unit.ts:1](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/unit.ts#L1)
+[src/unit.ts:1](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/unit.ts#L1)
+
+___
+
+### VectorTileSourceMLGL
+
+Ƭ **VectorTileSourceMLGL**: `InstanceType`<typeof [`VectorTileSourceMLGL`](README.md#vectortilesourcemlgl-1)\>
+
+#### Defined in
+
+[src/index.ts:91](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L91)
+
+[src/index.ts:132](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L132)
+
+___
+
+### VideoSourceMLGL
+
+Ƭ **VideoSourceMLGL**: `InstanceType`<typeof [`VideoSourceMLGL`](README.md#videosourcemlgl-1)\>
+
+#### Defined in
+
+[src/index.ts:92](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L92)
+
+[src/index.ts:133](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L133)
 
 ## Variables
 
@@ -130,27 +426,21 @@ ___
 
 #### Defined in
 
-[src/index.ts:31](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L31)
+[src/index.ts:28](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L28)
+
+[src/index.ts:124](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L124)
 
 ___
 
-### AttributionControl
+### CanvasSourceMLGL
 
-• **AttributionControl**: typeof `AttributionControl`
-
-#### Defined in
-
-[src/index.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L19)
-
-___
-
-### CanvasSource
-
-• **CanvasSource**: typeof `CanvasSource`
+• `Const` **CanvasSourceMLGL**: typeof `CanvasSource` = `maplibregl.CanvasSource`
 
 #### Defined in
 
-[src/index.ts:32](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L32)
+[src/index.ts:49](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L49)
+
+[src/index.ts:125](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L125)
 
 ___
 
@@ -160,37 +450,21 @@ ___
 
 #### Defined in
 
-[src/index.ts:30](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L30)
+[src/index.ts:27](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L27)
+
+[src/index.ts:123](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L123)
 
 ___
 
-### FullscreenControl
+### GeoJSONSourceMLGL
 
-• **FullscreenControl**: typeof `FullscreenControl`
-
-#### Defined in
-
-[src/index.ts:22](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L22)
-
-___
-
-### GeoJSONSource
-
-• **GeoJSONSource**: typeof `GeoJSONSource`
+• `Const` **GeoJSONSourceMLGL**: typeof `GeoJSONSource` = `maplibregl.GeoJSONSource`
 
 #### Defined in
 
-[src/index.ts:33](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L33)
+[src/index.ts:50](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L50)
 
-___
-
-### GeolocateControl
-
-• **GeolocateControl**: typeof `GeolocateControl`
-
-#### Defined in
-
-[src/index.ts:18](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L18)
+[src/index.ts:126](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L126)
 
 ___
 
@@ -207,17 +481,19 @@ ___
 
 #### Defined in
 
-[src/Map.ts:40](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/Map.ts#L40)
+[src/Map.ts:43](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/Map.ts#L43)
 
 ___
 
-### ImageSource
+### ImageSourceMLGL
 
-• **ImageSource**: typeof `ImageSource`
+• `Const` **ImageSourceMLGL**: typeof `ImageSource` = `maplibregl.ImageSource`
 
 #### Defined in
 
-[src/index.ts:34](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L34)
+[src/index.ts:51](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L51)
+
+[src/index.ts:127](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L127)
 
 ___
 
@@ -308,7 +584,7 @@ Languages. Note that not all the languages of this list are available but the co
 
 #### Defined in
 
-[src/language.ts:4](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/language.ts#L4)
+[src/language.ts:4](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/language.ts#L4)
 
 ___
 
@@ -318,7 +594,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:27](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L27)
+[src/index.ts:24](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L24)
+
+[src/index.ts:120](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L120)
 
 ___
 
@@ -328,27 +606,33 @@ ___
 
 #### Defined in
 
-[src/index.ts:28](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L28)
+[src/index.ts:25](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L25)
+
+[src/index.ts:121](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L121)
 
 ___
 
-### LogoControl
+### MapMLGL
 
-• **LogoControl**: typeof `LogoControl`
+• `Const` **MapMLGL**: typeof `Map` = `maplibregl.Map`
 
 #### Defined in
 
-[src/index.ts:20](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L20)
+[src/index.ts:45](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L45)
+
+[src/index.ts:134](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L134)
 
 ___
 
-### Marker
+### MarkerMLGL
 
-• **Marker**: typeof `Marker`
+• `Const` **MarkerMLGL**: typeof `Marker` = `maplibregl.Marker`
 
 #### Defined in
 
-[src/index.ts:25](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L25)
+[src/index.ts:46](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L46)
+
+[src/index.ts:117](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L117)
 
 ___
 
@@ -358,97 +642,81 @@ ___
 
 #### Defined in
 
-[src/index.ts:29](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L29)
+[src/index.ts:26](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L26)
+
+[src/index.ts:122](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L122)
 
 ___
 
-### NavigationControl
+### PopupMLGL
 
-• **NavigationControl**: typeof `NavigationControl`
+• `Const` **PopupMLGL**: typeof `Popup` = `maplibregl.Popup`
 
 #### Defined in
 
-[src/index.ts:17](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L17)
+[src/index.ts:47](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L47)
+
+[src/index.ts:118](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L118)
 
 ___
 
-### Popup
+### RasterDEMTileSourceMLGL
 
-• **Popup**: typeof `Popup`
+• `Const` **RasterDEMTileSourceMLGL**: typeof `RasterDEMTileSource` = `maplibregl.RasterDEMTileSource`
 
 #### Defined in
 
-[src/index.ts:24](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L24)
+[src/index.ts:53](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L53)
+
+[src/index.ts:128](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L128)
 
 ___
 
-### RasterDEMTileSource
+### RasterTileSourceMLGL
 
-• **RasterDEMTileSource**: typeof `RasterDEMTileSource`
+• `Const` **RasterTileSourceMLGL**: typeof `RasterTileSource` = `maplibregl.RasterTileSource`
 
 #### Defined in
 
-[src/index.ts:35](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L35)
+[src/index.ts:52](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L52)
+
+[src/index.ts:131](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L131)
 
 ___
 
-### RasterTileSource
+### StyleMLGL
 
-• **RasterTileSource**: typeof `RasterTileSource`
+• `Const` **StyleMLGL**: typeof `Style` = `maplibregl.Style`
 
 #### Defined in
 
-[src/index.ts:36](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L36)
+[src/index.ts:48](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L48)
+
+[src/index.ts:119](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L119)
 
 ___
 
-### ScaleControl
+### VectorTileSourceMLGL
 
-• **ScaleControl**: typeof `ScaleControl`
+• `Const` **VectorTileSourceMLGL**: typeof `VectorTileSource` = `maplibregl.VectorTileSource`
 
 #### Defined in
 
-[src/index.ts:21](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L21)
+[src/index.ts:54](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L54)
+
+[src/index.ts:132](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L132)
 
 ___
 
-### Style
+### VideoSourceMLGL
 
-• **Style**: typeof `Style`
-
-#### Defined in
-
-[src/index.ts:26](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L26)
-
-___
-
-### TerrainControl
-
-• **TerrainControl**: typeof `TerrainControl`
+• `Const` **VideoSourceMLGL**: typeof `VideoSource` = `maplibregl.VideoSource`
 
 #### Defined in
 
-[src/index.ts:23](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L23)
+[src/index.ts:55](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L55)
 
-___
-
-### VectorTileSource
-
-• **VectorTileSource**: typeof `VectorTileSource`
-
-#### Defined in
-
-[src/index.ts:37](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L37)
-
-___
-
-### VideoSource
-
-• **VideoSource**: typeof `VideoSource`
-
-#### Defined in
-
-[src/index.ts:38](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L38)
+[src/index.ts:133](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L133)
 
 ___
 
@@ -458,7 +726,7 @@ ___
 
 #### Defined in
 
-[src/config.ts:90](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/config.ts#L90)
+[src/config.ts:90](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/config.ts#L90)
 
 ___
 
@@ -468,7 +736,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:43](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L43)
+[src/index.ts:33](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L33)
 
 ___
 
@@ -478,7 +746,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:41](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L41)
+[src/index.ts:31](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L31)
 
 ___
 
@@ -488,7 +756,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:42](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L42)
+[src/index.ts:32](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L32)
 
 ___
 
@@ -498,7 +766,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:45](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/index.ts#L45)
+[src/index.ts:35](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/index.ts#L35)
 
 ## Functions
 

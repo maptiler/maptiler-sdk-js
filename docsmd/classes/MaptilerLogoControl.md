@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.8](../README.md) / MaptilerLogoControl
+[MapTiler SDK - v1.0.9](../README.md) / MaptilerLogoControl
 
 # Class: MaptilerLogoControl
 
@@ -7,7 +7,7 @@ any link URL. By default this is using MapTiler logo and URL.
 
 ## Hierarchy
 
-- `LogoControl`
+- [`LogoControl`](LogoControl.md)
 
   ↳ **`MaptilerLogoControl`**
 
@@ -35,11 +35,11 @@ any link URL. By default this is using MapTiler logo and URL.
 
 #### Overrides
 
-maplibregl.LogoControl.constructor
+[LogoControl](LogoControl.md).[constructor](LogoControl.md#constructor)
 
 #### Defined in
 
-[src/MaptilerLogoControl.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/MaptilerLogoControl.ts#L19)
+[src/MaptilerLogoControl.ts:20](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/MaptilerLogoControl.ts#L20)
 
 ## Methods
 
@@ -59,8 +59,8 @@ maplibregl.LogoControl.constructor
 
 #### Overrides
 
-maplibregl.LogoControl.onAdd
+[LogoControl](LogoControl.md).[onAdd](LogoControl.md#onadd)
 
 #### Defined in
 
-[src/MaptilerLogoControl.ts:26](https://github.com/maptiler/maptiler-sdk-js/blob/6811710/src/MaptilerLogoControl.ts#L26)
+[src/MaptilerLogoControl.ts:27](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/MaptilerLogoControl.ts#L27)

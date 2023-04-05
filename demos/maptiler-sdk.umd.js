@@ -2248,7 +2248,13 @@
 	};
 	Object.freeze(defaults);
 
-	class MaptilerLogoControl extends maplibregl.LogoControl {
+	class LogoControl extends maplibregl.LogoControl {
+	  onAdd(map) {
+	    return super.onAdd(map);
+	  }
+	}
+
+	class MaptilerLogoControl extends LogoControl {
 	  constructor(options = {}) {
 	    var _a, _b;
 	    super(options);
@@ -2393,7 +2399,13 @@
 	  }
 	}
 
-	class MaptilerNavigationControl extends maplibregl.NavigationControl {
+	class NavigationControl extends maplibregl.NavigationControl {
+	  onAdd(map) {
+	    return super.onAdd(map);
+	  }
+	}
+
+	class MaptilerNavigationControl extends NavigationControl {
 	  constructor() {
 	    super({
 	      showCompass: true,
@@ -2433,6 +2445,12 @@
 	  }
 	}
 
+	class GeolocateControl extends maplibregl.GeolocateControl {
+	  onAdd(map) {
+	    return super.onAdd(map);
+	  }
+	}
+
 	var __defProp$1 = Object.defineProperty;
 	var __defProps$1 = Object.defineProperties;
 	var __getOwnPropDescs$1 = Object.getOwnPropertyDescriptors;
@@ -2452,10 +2470,9 @@
 	  return a;
 	};
 	var __spreadProps$1 = (a, b) => __defProps$1(a, __getOwnPropDescs$1(b));
-	const GeolocateControl$1 = maplibregl.GeolocateControl;
 	const Marker$1 = maplibregl.Marker;
 	const LngLat$1 = maplibregl.LngLat;
-	class MaptilerGeolocateControl extends GeolocateControl$1 {
+	class MaptilerGeolocateControl extends GeolocateControl {
 	  constructor() {
 	    super(...arguments);
 	    this.lastUpdatedCenter = new LngLat$1(0, 0);
@@ -2597,6 +2614,24 @@
 	  }
 	}
 
+	class AttributionControl extends maplibregl.AttributionControl {
+	  onAdd(map) {
+	    return super.onAdd(map);
+	  }
+	}
+
+	class ScaleControl extends maplibregl.ScaleControl {
+	  onAdd(map) {
+	    return super.onAdd(map);
+	  }
+	}
+
+	class FullscreenControl extends maplibregl.FullscreenControl {
+	  onAdd(map) {
+	    return super.onAdd(map);
+	  }
+	}
+
 	var __defProp = Object.defineProperty;
 	var __defProps = Object.defineProperties;
 	var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
@@ -2681,8 +2716,6 @@
 	        };
 	      }
 	    }));
-	    this.languageShouldUpdate = false;
-	    this.isStyleInitialized = false;
 	    this.isTerrainEnabled = false;
 	    this.terrainExaggeration = 1;
 	    this.primaryLanguage = null;
@@ -2773,14 +2806,14 @@
 	          options.logoPosition
 	        );
 	        if (options.attributionControl === false) {
-	          this.addControl(new maplibregl.AttributionControl(options));
+	          this.addControl(new AttributionControl(options));
 	        }
 	      } else if (options.maptilerLogo) {
 	        this.addControl(new MaptilerLogoControl(), options.logoPosition);
 	      }
 	      if (options.scaleControl) {
 	        const position = options.scaleControl === true || options.scaleControl === void 0 ? "bottom-right" : options.scaleControl;
-	        const scaleControl = new maplibregl.ScaleControl({ unit: config.unit });
+	        const scaleControl = new ScaleControl({ unit: config.unit });
 	        this.addControl(scaleControl, position);
 	        config.on("unit", (unit) => {
 	          scaleControl.setUnit(unit);
@@ -2815,7 +2848,7 @@
 	      }
 	      if (options.fullscreenControl) {
 	        const position = options.fullscreenControl === true || options.fullscreenControl === void 0 ? "top-right" : options.fullscreenControl;
-	        this.addControl(new maplibregl.FullscreenControl({}), position);
+	        this.addControl(new FullscreenControl({}), position);
 	      }
 	    }));
 	    if (options.terrain) {
@@ -3074,6 +3107,72 @@
 	  }
 	}
 
+	class Marker extends maplibregl.Marker {
+	  addTo(map) {
+	    return super.addTo(map);
+	  }
+	}
+
+	class Popup extends maplibregl.Popup {
+	  addTo(map) {
+	    return super.addTo(map);
+	  }
+	}
+
+	class Style extends maplibregl.Style {
+	  constructor(map, options = {}) {
+	    super(map, options);
+	  }
+	}
+
+	class CanvasSource extends maplibregl.CanvasSource {
+	  onAdd(map) {
+	    super.onAdd(map);
+	  }
+	}
+
+	class GeoJSONSource extends maplibregl.GeoJSONSource {
+	  onAdd(map) {
+	    super.onAdd(map);
+	  }
+	}
+
+	class ImageSource extends maplibregl.ImageSource {
+	  onAdd(map) {
+	    super.onAdd(map);
+	  }
+	}
+
+	class RasterTileSource extends maplibregl.RasterTileSource {
+	  onAdd(map) {
+	    super.onAdd(map);
+	  }
+	}
+
+	class RasterDEMTileSource extends maplibregl.RasterDEMTileSource {
+	  onAdd(map) {
+	    super.onAdd(map);
+	  }
+	}
+
+	class VectorTileSource extends maplibregl.VectorTileSource {
+	  onAdd(map) {
+	    super.onAdd(map);
+	  }
+	}
+
+	class VideoSource extends maplibregl.VideoSource {
+	  onAdd(map) {
+	    super.onAdd(map);
+	  }
+	}
+
+	class TerrainControl extends maplibregl.TerrainControl {
+	  onAdd(map) {
+	    return super.onAdd(map);
+	  }
+	}
+
 	class Point {
 	  constructor(x, y) {
 	    this.x = x;
@@ -3229,28 +3328,11 @@
 	  supported,
 	  setRTLTextPlugin,
 	  getRTLTextPluginStatus,
-	  NavigationControl,
-	  GeolocateControl,
-	  AttributionControl,
-	  LogoControl,
-	  ScaleControl,
-	  FullscreenControl,
-	  TerrainControl,
-	  Popup,
-	  Marker,
-	  Style,
 	  LngLat,
 	  LngLatBounds,
 	  MercatorCoordinate,
 	  Evented,
 	  AJAXError,
-	  CanvasSource,
-	  GeoJSONSource,
-	  ImageSource,
-	  RasterDEMTileSource,
-	  RasterTileSource,
-	  VectorTileSource,
-	  VideoSource,
 	  prewarm,
 	  clearPrewarmedResources,
 	  version,
@@ -3261,42 +3343,71 @@
 	  addProtocol,
 	  removeProtocol
 	} = maplibregl;
+	const MapMLGL = maplibregl.Map;
+	const MarkerMLGL = maplibregl.Marker;
+	const PopupMLGL = maplibregl.Popup;
+	const StyleMLGL = maplibregl.Style;
+	const CanvasSourceMLGL = maplibregl.CanvasSource;
+	const GeoJSONSourceMLGL = maplibregl.GeoJSONSource;
+	const ImageSourceMLGL = maplibregl.ImageSource;
+	const RasterTileSourceMLGL = maplibregl.RasterTileSource;
+	const RasterDEMTileSourceMLGL = maplibregl.RasterDEMTileSource;
+	const VectorTileSourceMLGL = maplibregl.VectorTileSource;
+	const VideoSourceMLGL = maplibregl.VideoSource;
+	maplibregl.NavigationControl;
+	maplibregl.GeolocateControl;
+	maplibregl.AttributionControl;
+	maplibregl.LogoControl;
+	maplibregl.ScaleControl;
+	maplibregl.FullscreenControl;
+	maplibregl.TerrainControl;
 
 	exports.AJAXError = AJAXError;
 	exports.AttributionControl = AttributionControl;
 	exports.CanvasSource = CanvasSource;
+	exports.CanvasSourceMLGL = CanvasSourceMLGL;
 	exports.Evented = Evented;
 	exports.FullscreenControl = FullscreenControl;
 	exports.GeoJSONSource = GeoJSONSource;
+	exports.GeoJSONSourceMLGL = GeoJSONSourceMLGL;
 	exports.GeolocateControl = GeolocateControl;
 	exports.GeolocationType = GeolocationType;
 	exports.ImageSource = ImageSource;
+	exports.ImageSourceMLGL = ImageSourceMLGL;
 	exports.Language = Language;
 	exports.LanguageGeocoding = LanguageGeocoding;
 	exports.LngLat = LngLat;
 	exports.LngLatBounds = LngLatBounds;
 	exports.LogoControl = LogoControl;
 	exports.Map = Map$1;
+	exports.MapMLGL = MapMLGL;
 	exports.MapStyle = MapStyle;
 	exports.MapStyleVariant = MapStyleVariant;
 	exports.MaptilerGeolocateControl = MaptilerGeolocateControl;
 	exports.MaptilerLogoControl = MaptilerLogoControl;
 	exports.MaptilerTerrainControl = MaptilerTerrainControl;
 	exports.Marker = Marker;
+	exports.MarkerMLGL = MarkerMLGL;
 	exports.MercatorCoordinate = MercatorCoordinate;
 	exports.NavigationControl = NavigationControl;
 	exports.Point = Point;
 	exports.Popup = Popup;
+	exports.PopupMLGL = PopupMLGL;
 	exports.RasterDEMTileSource = RasterDEMTileSource;
+	exports.RasterDEMTileSourceMLGL = RasterDEMTileSourceMLGL;
 	exports.RasterTileSource = RasterTileSource;
+	exports.RasterTileSourceMLGL = RasterTileSourceMLGL;
 	exports.ReferenceMapStyle = ReferenceMapStyle;
 	exports.ScaleControl = ScaleControl;
 	exports.SdkConfig = SdkConfig;
 	exports.ServiceError = ServiceError;
 	exports.Style = Style;
+	exports.StyleMLGL = StyleMLGL;
 	exports.TerrainControl = TerrainControl;
 	exports.VectorTileSource = VectorTileSource;
+	exports.VectorTileSourceMLGL = VectorTileSourceMLGL;
 	exports.VideoSource = VideoSource;
+	exports.VideoSourceMLGL = VideoSourceMLGL;
 	exports.addProtocol = addProtocol;
 	exports.clearPrewarmedResources = clearPrewarmedResources;
 	exports.clearStorage = clearStorage;

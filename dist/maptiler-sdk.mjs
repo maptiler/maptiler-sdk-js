@@ -142,7 +142,13 @@ const defaults = {
 };
 Object.freeze(defaults);
 
-class MaptilerLogoControl extends maplibregl__default.LogoControl {
+class LogoControl extends maplibregl__default.LogoControl {
+  onAdd(map) {
+    return super.onAdd(map);
+  }
+}
+
+class MaptilerLogoControl extends LogoControl {
   constructor(options = {}) {
     var _a, _b;
     super(options);
@@ -287,7 +293,13 @@ class MaptilerTerrainControl {
   }
 }
 
-class MaptilerNavigationControl extends maplibregl__default.NavigationControl {
+class NavigationControl extends maplibregl__default.NavigationControl {
+  onAdd(map) {
+    return super.onAdd(map);
+  }
+}
+
+class MaptilerNavigationControl extends NavigationControl {
   constructor() {
     super({
       showCompass: true,
@@ -327,6 +339,12 @@ class MaptilerNavigationControl extends maplibregl__default.NavigationControl {
   }
 }
 
+class GeolocateControl extends maplibregl__default.GeolocateControl {
+  onAdd(map) {
+    return super.onAdd(map);
+  }
+}
+
 var __defProp$1 = Object.defineProperty;
 var __defProps$1 = Object.defineProperties;
 var __getOwnPropDescs$1 = Object.getOwnPropertyDescriptors;
@@ -346,10 +364,9 @@ var __spreadValues$1 = (a, b) => {
   return a;
 };
 var __spreadProps$1 = (a, b) => __defProps$1(a, __getOwnPropDescs$1(b));
-const GeolocateControl$1 = maplibregl__default.GeolocateControl;
 const Marker$1 = maplibregl__default.Marker;
 const LngLat$1 = maplibregl__default.LngLat;
-class MaptilerGeolocateControl extends GeolocateControl$1 {
+class MaptilerGeolocateControl extends GeolocateControl {
   constructor() {
     super(...arguments);
     this.lastUpdatedCenter = new LngLat$1(0, 0);
@@ -491,6 +508,24 @@ class MaptilerGeolocateControl extends GeolocateControl$1 {
   }
 }
 
+class AttributionControl extends maplibregl__default.AttributionControl {
+  onAdd(map) {
+    return super.onAdd(map);
+  }
+}
+
+class ScaleControl extends maplibregl__default.ScaleControl {
+  onAdd(map) {
+    return super.onAdd(map);
+  }
+}
+
+class FullscreenControl extends maplibregl__default.FullscreenControl {
+  onAdd(map) {
+    return super.onAdd(map);
+  }
+}
+
 var __defProp = Object.defineProperty;
 var __defProps = Object.defineProperties;
 var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
@@ -575,8 +610,6 @@ class Map extends maplibregl__default.Map {
         };
       }
     }));
-    this.languageShouldUpdate = false;
-    this.isStyleInitialized = false;
     this.isTerrainEnabled = false;
     this.terrainExaggeration = 1;
     this.primaryLanguage = null;
@@ -667,14 +700,14 @@ class Map extends maplibregl__default.Map {
           options.logoPosition
         );
         if (options.attributionControl === false) {
-          this.addControl(new maplibregl__default.AttributionControl(options));
+          this.addControl(new AttributionControl(options));
         }
       } else if (options.maptilerLogo) {
         this.addControl(new MaptilerLogoControl(), options.logoPosition);
       }
       if (options.scaleControl) {
         const position = options.scaleControl === true || options.scaleControl === void 0 ? "bottom-right" : options.scaleControl;
-        const scaleControl = new maplibregl__default.ScaleControl({ unit: config.unit });
+        const scaleControl = new ScaleControl({ unit: config.unit });
         this.addControl(scaleControl, position);
         config.on("unit", (unit) => {
           scaleControl.setUnit(unit);
@@ -709,7 +742,7 @@ class Map extends maplibregl__default.Map {
       }
       if (options.fullscreenControl) {
         const position = options.fullscreenControl === true || options.fullscreenControl === void 0 ? "top-right" : options.fullscreenControl;
-        this.addControl(new maplibregl__default.FullscreenControl({}), position);
+        this.addControl(new FullscreenControl({}), position);
       }
     }));
     if (options.terrain) {
@@ -968,6 +1001,72 @@ class Map extends maplibregl__default.Map {
   }
 }
 
+class Marker extends maplibregl__default.Marker {
+  addTo(map) {
+    return super.addTo(map);
+  }
+}
+
+class Popup extends maplibregl__default.Popup {
+  addTo(map) {
+    return super.addTo(map);
+  }
+}
+
+class Style extends maplibregl__default.Style {
+  constructor(map, options = {}) {
+    super(map, options);
+  }
+}
+
+class CanvasSource extends maplibregl__default.CanvasSource {
+  onAdd(map) {
+    super.onAdd(map);
+  }
+}
+
+class GeoJSONSource extends maplibregl__default.GeoJSONSource {
+  onAdd(map) {
+    super.onAdd(map);
+  }
+}
+
+class ImageSource extends maplibregl__default.ImageSource {
+  onAdd(map) {
+    super.onAdd(map);
+  }
+}
+
+class RasterTileSource extends maplibregl__default.RasterTileSource {
+  onAdd(map) {
+    super.onAdd(map);
+  }
+}
+
+class RasterDEMTileSource extends maplibregl__default.RasterDEMTileSource {
+  onAdd(map) {
+    super.onAdd(map);
+  }
+}
+
+class VectorTileSource extends maplibregl__default.VectorTileSource {
+  onAdd(map) {
+    super.onAdd(map);
+  }
+}
+
+class VideoSource extends maplibregl__default.VideoSource {
+  onAdd(map) {
+    super.onAdd(map);
+  }
+}
+
+class TerrainControl extends maplibregl__default.TerrainControl {
+  onAdd(map) {
+    return super.onAdd(map);
+  }
+}
+
 class Point {
   constructor(x, y) {
     this.x = x;
@@ -1123,28 +1222,11 @@ const {
   supported,
   setRTLTextPlugin,
   getRTLTextPluginStatus,
-  NavigationControl,
-  GeolocateControl,
-  AttributionControl,
-  LogoControl,
-  ScaleControl,
-  FullscreenControl,
-  TerrainControl,
-  Popup,
-  Marker,
-  Style,
   LngLat,
   LngLatBounds,
   MercatorCoordinate,
   Evented,
   AJAXError,
-  CanvasSource,
-  GeoJSONSource,
-  ImageSource,
-  RasterDEMTileSource,
-  RasterTileSource,
-  VectorTileSource,
-  VideoSource,
   prewarm,
   clearPrewarmedResources,
   version,
@@ -1155,6 +1237,24 @@ const {
   addProtocol,
   removeProtocol
 } = maplibregl__default;
+const MapMLGL = maplibregl__default.Map;
+const MarkerMLGL = maplibregl__default.Marker;
+const PopupMLGL = maplibregl__default.Popup;
+const StyleMLGL = maplibregl__default.Style;
+const CanvasSourceMLGL = maplibregl__default.CanvasSource;
+const GeoJSONSourceMLGL = maplibregl__default.GeoJSONSource;
+const ImageSourceMLGL = maplibregl__default.ImageSource;
+const RasterTileSourceMLGL = maplibregl__default.RasterTileSource;
+const RasterDEMTileSourceMLGL = maplibregl__default.RasterDEMTileSource;
+const VectorTileSourceMLGL = maplibregl__default.VectorTileSource;
+const VideoSourceMLGL = maplibregl__default.VideoSource;
+maplibregl__default.NavigationControl;
+maplibregl__default.GeolocateControl;
+maplibregl__default.AttributionControl;
+maplibregl__default.LogoControl;
+maplibregl__default.ScaleControl;
+maplibregl__default.FullscreenControl;
+maplibregl__default.TerrainControl;
 
-export { AJAXError, AttributionControl, CanvasSource, Evented, FullscreenControl, GeoJSONSource, GeolocateControl, GeolocationType, ImageSource, Language, LngLat, LngLatBounds, LogoControl, Map, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, MercatorCoordinate, NavigationControl, Point, Popup, RasterDEMTileSource, RasterTileSource, ScaleControl, SdkConfig, Style, TerrainControl, VectorTileSource, VideoSource, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocationType, ImageSource, ImageSourceMLGL, Language, LngLat, LngLatBounds, LogoControl, Map, MapMLGL, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, MarkerMLGL, MercatorCoordinate, NavigationControl, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, SdkConfig, Style, StyleMLGL, TerrainControl, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
 //# sourceMappingURL=maptiler-sdk.mjs.map

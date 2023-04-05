@@ -14,28 +14,18 @@ const {
   supported,
   setRTLTextPlugin,
   getRTLTextPluginStatus,
-  NavigationControl,
-  GeolocateControl,
-  AttributionControl,
-  LogoControl,
-  ScaleControl,
-  FullscreenControl,
-  TerrainControl,
-  Popup,
-  Marker,
-  Style,
+  // NavigationControl,
+  // GeolocateControl,
+  // AttributionControl,
+  // LogoControl,
+  // ScaleControl,
+  // FullscreenControl,
+  // TerrainControl,
   LngLat,
   LngLatBounds,
   MercatorCoordinate,
   Evented,
   AJAXError,
-  CanvasSource,
-  GeoJSONSource,
-  ImageSource,
-  RasterDEMTileSource,
-  RasterTileSource,
-  VectorTileSource,
-  VideoSource,
   prewarm,
   clearPrewarmedResources,
   version,
@@ -45,28 +35,47 @@ const {
   workerUrl,
   addProtocol,
   removeProtocol,
-
   // isSafari,
   // getPerformanceMetrics,
   // config,
   // Point,
 } = maplibregl;
 
+// We still want to export maplibregl.Map, but as a different name
+const MapMLGL = maplibregl.Map;
+const MarkerMLGL = maplibregl.Marker;
+const PopupMLGL = maplibregl.Popup;
+const StyleMLGL = maplibregl.Style;
+const CanvasSourceMLGL = maplibregl.CanvasSource;
+const GeoJSONSourceMLGL = maplibregl.GeoJSONSource;
+const ImageSourceMLGL = maplibregl.ImageSource;
+const RasterTileSourceMLGL = maplibregl.RasterTileSource;
+const RasterDEMTileSourceMLGL = maplibregl.RasterDEMTileSource;
+const VectorTileSourceMLGL = maplibregl.VectorTileSource;
+const VideoSourceMLGL = maplibregl.VideoSource;
+const NavigationControlMLGL = maplibregl.NavigationControl;
+const GeolocateControlMLGL = maplibregl.GeolocateControl;
+const AttributionControlMLGL = maplibregl.AttributionControl;
+const LogoControlMLGL = maplibregl.LogoControl;
+const ScaleControlMLGL = maplibregl.ScaleControl;
+const FullscreenControlMLGL = maplibregl.FullscreenControl;
+const TerrainControlMLGL = maplibregl.TerrainControl;
+
 export {
   supported,
   setRTLTextPlugin,
   getRTLTextPluginStatus,
   // Map,
-  NavigationControl,
-  GeolocateControl,
-  AttributionControl,
-  LogoControl,
-  ScaleControl,
-  FullscreenControl,
-  TerrainControl,
-  Popup,
-  Marker,
-  Style,
+  // NavigationControl,
+  // GeolocateControl,
+  // AttributionControl,
+  // LogoControl,
+  // ScaleControl,
+  // FullscreenControl,
+  // TerrainControl,
+  PopupMLGL,
+  MarkerMLGL,
+  StyleMLGL,
   LngLat,
   LngLatBounds,
   // Point,
@@ -74,13 +83,13 @@ export {
   Evented,
   AJAXError,
   // config,
-  CanvasSource,
-  GeoJSONSource,
-  ImageSource,
-  RasterDEMTileSource,
-  RasterTileSource,
-  VectorTileSource,
-  VideoSource,
+  CanvasSourceMLGL,
+  GeoJSONSourceMLGL,
+  ImageSourceMLGL,
+  RasterDEMTileSourceMLGL,
+  RasterTileSourceMLGL,
+  VectorTileSourceMLGL,
+  VideoSourceMLGL,
   prewarm,
   clearPrewarmedResources,
   version,
@@ -90,13 +99,63 @@ export {
   workerUrl,
   addProtocol,
   removeProtocol,
+  MapMLGL,
   // isSafari,
   // getPerformanceMetrics
 };
 
+// Exporting types of class instances from MapLibre:
+export type NavigationControlMLGL = InstanceType<typeof NavigationControlMLGL>;
+export type GeolocateControlMLGL = InstanceType<typeof GeolocateControlMLGL>;
+export type AttributionControlMLGL = InstanceType<
+  typeof AttributionControlMLGL
+>;
+export type LogoControlMLGL = InstanceType<typeof LogoControlMLGL>;
+export type ScaleControlMLGL = InstanceType<typeof ScaleControlMLGL>;
+export type FullscreenControlMLGL = InstanceType<typeof FullscreenControlMLGL>;
+export type TerrainControlMLGL = InstanceType<typeof TerrainControlMLGL>;
+export type MarkerMLGL = InstanceType<typeof MarkerMLGL>;
+export type PopupMLGL = InstanceType<typeof PopupMLGL>;
+export type StyleMLGL = InstanceType<typeof StyleMLGL>;
+export type LngLat = InstanceType<typeof LngLat>;
+export type LngLatBounds = InstanceType<typeof LngLatBounds>;
+export type MercatorCoordinate = InstanceType<typeof MercatorCoordinate>;
+export type Evented = InstanceType<typeof Evented>;
+export type AJAXError = InstanceType<typeof AJAXError>;
+export type CanvasSourceMLGL = InstanceType<typeof CanvasSourceMLGL>;
+export type GeoJSONSourceMLGL = InstanceType<typeof GeoJSONSourceMLGL>;
+export type ImageSourceMLGL = InstanceType<typeof ImageSourceMLGL>;
+export type RasterDEMTileSourceMLGL = InstanceType<
+  typeof RasterDEMTileSourceMLGL
+>;
+export type RasterTileSourceMLGL = InstanceType<typeof RasterTileSourceMLGL>;
+export type VectorTileSourceMLGL = InstanceType<typeof VectorTileSourceMLGL>;
+export type VideoSourceMLGL = InstanceType<typeof VideoSourceMLGL>;
+export type MapMLGL = InstanceType<typeof MapMLGL>;
+
+// SDK specific
 import { Map, GeolocationType } from "./Map";
 import type { MapOptions } from "./Map";
 
+import { Marker } from "./Marker";
+import { Popup } from "./Popup";
+import { Style } from "./Style";
+import { CanvasSource } from "./CanvasSource";
+import { GeoJSONSource } from "./GeoJSONSource";
+import { ImageSource } from "./ImageSource";
+import { RasterTileSource } from "./RasterTileSource";
+import { RasterDEMTileSource } from "./RasterDEMTileSource";
+import { VectorTileSource } from "./VectorTileSource";
+import { VideoSource } from "./VideoSource";
+import { NavigationControl } from "./NavigationControl";
+import { GeolocateControl } from "./GeolocateControl";
+import { AttributionControl } from "./AttributionControl";
+import { LogoControl } from "./LogoControl";
+import { ScaleControl } from "./ScaleControl";
+import { FullscreenControl } from "./FullscreenControl";
+import { TerrainControl } from "./TerrainControl";
+
+// Import of modified versions of the controls
 import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
 import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
@@ -157,6 +216,23 @@ export type {
 // Exporting classes, objects, functions, etc.
 export {
   Map,
+  Marker,
+  Popup,
+  Style,
+  CanvasSource,
+  GeoJSONSource,
+  ImageSource,
+  RasterTileSource,
+  RasterDEMTileSource,
+  VideoSource,
+  NavigationControl,
+  GeolocateControl,
+  AttributionControl,
+  LogoControl,
+  ScaleControl,
+  FullscreenControl,
+  TerrainControl,
+  VectorTileSource,
   GeolocationType,
   SdkConfig,
   config,
