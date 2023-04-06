@@ -203,7 +203,8 @@ export class Map extends maplibregl.Map {
     this.once("styledata", async () => {
       // Not using geolocation centering if...
 
-      if (options.geolocate === false) {
+      // the geolcoate option is not provided or is falsy
+      if (!options.geolocate) {
         return;
       }
 

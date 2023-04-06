@@ -60,4 +60,4 @@ maplibregl.FullscreenControl.onAdd
 
 #### Defined in
 
-src/FullscreenControl.ts:10
+[src/FullscreenControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/FullscreenControl.ts#L10)

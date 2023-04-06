@@ -60,4 +60,4 @@ maplibregl.Popup.addTo
 
 #### Defined in
 
-[src/Popup.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/Popup.ts#L10)
+[src/Popup.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/Popup.ts#L10)

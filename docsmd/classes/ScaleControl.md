@@ -60,4 +60,4 @@ maplibregl.ScaleControl.onAdd
 
 #### Defined in
 
-src/ScaleControl.ts:10
+[src/ScaleControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/ScaleControl.ts#L10)

@@ -62,4 +62,4 @@ maplibregl.LogoControl.onAdd
 
 #### Defined in
 
-src/LogoControl.ts:10
+[src/LogoControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/LogoControl.ts#L10)

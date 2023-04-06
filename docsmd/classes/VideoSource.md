@@ -36,4 +36,4 @@ maplibregl.VideoSource.onAdd
 
 #### Defined in
 
-[src/VideoSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/VideoSource.ts#L10)
+[src/VideoSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/VideoSource.ts#L10)

@@ -60,4 +60,4 @@ maplibregl.AttributionControl.onAdd
 
 #### Defined in
 
-src/AttributionControl.ts:10
+[src/AttributionControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/AttributionControl.ts#L10)

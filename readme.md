@@ -509,9 +509,12 @@ In the following static map functions, the `option` object features a `style` pr
 - `MapStyle.STREETS`, reference style for navigation and city exploration
   - `MapStyle.STREETS.DARK` (variant)
   - `MapStyle.STREETS.LIGHT` (variant)
+  - `MapStyle.STREETS.NIGHT` (variant)
   - `MapStyle.STREETS.PASTEL` (variant)
 - `MapStyle.OUTDOOR` reference style for adventure
+  - `MapStyle.OUTDOOR.DARK` (variant)
 - `MapStyle.WINTER` reference style for winter adventure
+  - `MapStyle.WINTER.DARK` (variant)
 - `MapStyle.SATELLITE` reference style satellite and airborne imagery (no variants)
 - `MapStyle.HYBRID` reference style satellite and airborne imagery with labels (no variants)
 - `MapStyle.BASIC` reference style for minimalist design and general purpose

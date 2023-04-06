@@ -617,7 +617,7 @@ class Map extends maplibregl__default.Map {
     this.primaryLanguage = (_a = options.language) != null ? _a : config.primaryLanguage;
     this.secondaryLanguage = config.secondaryLanguage;
     this.once("styledata", () => __async(this, null, function* () {
-      if (options.geolocate === false) {
+      if (!options.geolocate) {
         return;
       }
       if (options.center) {

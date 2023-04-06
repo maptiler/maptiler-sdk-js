@@ -63,4 +63,4 @@ maplibregl.VectorTileSource.onAdd
 
 #### Defined in
 
-[src/VectorTileSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/VectorTileSource.ts#L10)
+[src/VectorTileSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/VectorTileSource.ts#L10)

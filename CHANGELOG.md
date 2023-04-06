@@ -1,5 +1,7 @@
 # Changelog
 ## [v1.0.9](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.9)
+- FIX: if the geolocate option is missing from `Map` constructor, then it's considered `false`
+
 - FIX: The instance types for the following MapLibre classes are now fully exported:
   - `NavigationControl`
   - `GeolocateControl`
@@ -43,6 +45,11 @@
   - `ScaleControl`
   - `FullscreenControl`
   - `TerrainControl`
+
+- ADD: new styles:
+  - `MapStyle.STREETS.NIGHT`
+  - `MapStyle.WINTER.DARK`
+  - `MapStyle.OUTDOOR.DARK`
 
 ## [v1.0.8](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.8)
 - FIX: Since v1.0.7, the `Map` primary language (when custom) was no longer persistant on style update.
