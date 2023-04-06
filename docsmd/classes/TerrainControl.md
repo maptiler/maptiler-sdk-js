@@ -60,4 +60,4 @@ maplibregl.TerrainControl.onAdd
 
 #### Defined in
 
-src/TerrainControl.ts:10
+[src/TerrainControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/TerrainControl.ts#L10)

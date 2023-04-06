@@ -36,15 +36,16 @@
     <script src ="maptiler-sdk.umd.js"></script>
     
     <script>
-      // maptilersdk.config.apiKey = "ZFEK2gQSwT4Jcimbtcy7";
+      maptilersdk.config.apiKey = "YOUR_API_KEY";
 
       const map = new maptilersdk.Map({
         container: document.getElementById("map-container"),
+        style: maptilersdk.MapStyle.OUTDOOR.DARK,
         hash: true,
-        maxPitch: 85,
         scaleControl: true,
         fullscreenControl: true,
         terrainControl: true,
+        geolocate: true,
       })
 
       const styleDropDown = document.getElementById("mapstyles-picker")

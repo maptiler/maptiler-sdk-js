@@ -60,4 +60,4 @@ maplibregl.NavigationControl.onAdd
 
 #### Defined in
 
-src/NavigationControl.ts:10
+[src/NavigationControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/NavigationControl.ts#L10)

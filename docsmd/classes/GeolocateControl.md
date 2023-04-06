@@ -62,4 +62,4 @@ maplibregl.GeolocateControl.onAdd
 
 #### Defined in
 
-src/GeolocateControl.ts:10
+[src/GeolocateControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/GeolocateControl.ts#L10)

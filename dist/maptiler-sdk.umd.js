@@ -1156,6 +1156,30 @@
 	  400: "Query too long / Invalid parameters",
 	  403: "Key is missing, invalid or restricted"
 	};
+	function addLanguageGeocodingOptions(searchParams, options) {
+	  if (options.language == void 0) {
+	    return;
+	  }
+	  const languages = Array.from(
+	    new Set(
+	      (Array.isArray(options.language) ? options.language : [options.language]).map(
+	        (lang) => lang === LanguageGeocoding.AUTO ? getAutoLanguageGeocoding() : lang
+	      )
+	    )
+	  ).join(",");
+	  searchParams.set("language", languages);
+	}
+	function addCommonForwardAndReverseGeocodingOptions(searchParams, options) {
+	  var _a;
+	  searchParams.set("key", (_a = options.apiKey) != null ? _a : config$1.apiKey);
+	  if (options.limit != void 0) {
+	    searchParams.set("limit", String(options.limit));
+	  }
+	  if (options.types != void 0) {
+	    searchParams.set("types", options.types.join(","));
+	  }
+	  addLanguageGeocodingOptions(searchParams, options);
+	}
 	function forward(_0) {
 	  return __async$3(this, arguments, function* (query, options = {}) {
 	    var _a;
@@ -1166,30 +1190,27 @@
 	      `geocoding/${encodeURIComponent(query)}.json`,
 	      defaults$1.maptilerApiURL
 	    );
-	    endpoint.searchParams.set("key", (_a = options.apiKey) != null ? _a : config$1.apiKey);
-	    if ("bbox" in options) {
-	      endpoint.searchParams.set("bbox", options.bbox.join(","));
+	    const { searchParams } = endpoint;
+	    addCommonForwardAndReverseGeocodingOptions(searchParams, options);
+	    if (options.bbox != void 0) {
+	      searchParams.set("bbox", options.bbox.join(","));
 	    }
-	    if ("proximity" in options) {
-	      endpoint.searchParams.set("proximity", options.proximity.join(","));
+	    if (options.proximity != void 0) {
+	      searchParams.set("proximity", options.proximity.join(","));
 	    }
-	    if ("language" in options) {
-	      const languages = Array.from(
-	        new Set(
-	          (Array.isArray(options.language) ? options.language : [options.language]).map(
-	            (lang) => lang === LanguageGeocoding.AUTO ? getAutoLanguageGeocoding() : lang
-	          )
-	        )
-	      ).join(",");
-	      endpoint.searchParams.set("language", languages);
+	    if (options.country != void 0) {
+	      searchParams.set("country", options.country.join(","));
+	    }
+	    if (options.fuzzyMatch != void 0) {
+	      searchParams.set("fuzzyMatch", options.fuzzyMatch ? "true" : "false");
+	    }
+	    if (options.autocomplete != void 0) {
+	      searchParams.set("autocomplete", options.autocomplete ? "true" : "false");
 	    }
 	    const urlWithParams = endpoint.toString();
 	    const res = yield callFetch(urlWithParams);
 	    if (!res.ok) {
-	      throw new ServiceError(
-	        res,
-	        res.status in customMessages$3 ? customMessages$3[res.status] : ""
-	      );
+	      throw new ServiceError(res, (_a = customMessages$3[res.status]) != null ? _a : "");
 	    }
 	    const obj = yield res.json();
 	    return obj;
@@ -1205,24 +1226,25 @@
 	      `geocoding/${position[0]},${position[1]}.json`,
 	      defaults$1.maptilerApiURL
 	    );
-	    endpoint.searchParams.set("key", (_a = options.apiKey) != null ? _a : config$1.apiKey);
-	    if ("language" in options) {
-	      const languages = Array.from(
-	        new Set(
-	          (Array.isArray(options.language) ? options.language : [options.language]).map(
-	            (lang) => lang === LanguageGeocoding.AUTO ? getAutoLanguageGeocoding() : lang
-	          )
-	        )
-	      ).join(",");
-	      endpoint.searchParams.set("language", languages);
-	    }
+	    addCommonForwardAndReverseGeocodingOptions(endpoint.searchParams, options);
 	    const urlWithParams = endpoint.toString();
 	    const res = yield callFetch(urlWithParams);
 	    if (!res.ok) {
-	      throw new ServiceError(
-	        res,
-	        res.status in customMessages$3 ? customMessages$3[res.status] : ""
-	      );
+	      throw new ServiceError(res, (_a = customMessages$3[res.status]) != null ? _a : "");
+	    }
+	    const obj = yield res.json();
+	    return obj;
+	  });
+	}
+	function byId(_0) {
+	  return __async$3(this, arguments, function* (id, options = {}) {
+	    var _a;
+	    const endpoint = new URL(`geocoding/${id}.json`, defaults$1.maptilerApiURL);
+	    addLanguageGeocodingOptions(endpoint.searchParams, options);
+	    const urlWithParams = endpoint.toString();
+	    const res = yield callFetch(urlWithParams);
+	    if (!res.ok) {
+	      throw new ServiceError(res, (_a = customMessages$3[res.status]) != null ? _a : "");
 	    }
 	    const obj = yield res.json();
 	    return obj;
@@ -1231,6 +1253,7 @@
 	const geocoding = {
 	  forward,
 	  reverse,
+	  byId,
 	  language: LanguageGeocoding
 	};
 
@@ -1619,6 +1642,13 @@
 	        imageURL: ""
 	      },
 	      {
+	        id: "streets-v2-night",
+	        name: "Night",
+	        variantType: "NIGHT",
+	        description: "",
+	        imageURL: ""
+	      },
+	      {
 	        id: "streets-v2-pastel",
 	        name: "Pastel",
 	        variantType: "PASTEL",
@@ -1638,6 +1668,13 @@
 	        variantType: "DEFAULT",
 	        description: "",
 	        imageURL: ""
+	      },
+	      {
+	        id: "outdoor-v2-dark",
+	        name: "Dark",
+	        variantType: "DARK",
+	        description: "",
+	        imageURL: ""
 	      }
 	    ]
 	  },
@@ -1648,8 +1685,15 @@
 	    variants: [
 	      {
 	        id: "winter-v2",
-	        name: "Winter",
+	        name: "Default",
 	        variantType: "DEFAULT",
+	        description: "",
+	        imageURL: ""
+	      },
+	      {
+	        id: "winter-v2-dark",
+	        name: "Dark",
+	        variantType: "DARK",
 	        description: "",
 	        imageURL: ""
 	      }
@@ -1769,6 +1813,13 @@
 	        id: "topo-v2",
 	        name: "Default",
 	        variantType: "DEFAULT",
+	        description: "",
+	        imageURL: ""
+	      },
+	      {
+	        id: "topo-v2-dark",
+	        name: "Dark",
+	        variantType: "DARK",
 	        description: "",
 	        imageURL: ""
 	      },
@@ -2723,7 +2774,7 @@
 	    this.primaryLanguage = (_a = options.language) != null ? _a : config.primaryLanguage;
 	    this.secondaryLanguage = config.secondaryLanguage;
 	    this.once("styledata", () => __async(this, null, function* () {
-	      if (options.geolocate === false) {
+	      if (!options.geolocate) {
 	        return;
 	      }
 	      if (options.center) {

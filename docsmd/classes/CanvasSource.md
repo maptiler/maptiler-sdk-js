@@ -36,4 +36,4 @@ maplibregl.CanvasSource.onAdd
 
 #### Defined in
 
-[src/CanvasSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/CanvasSource.ts#L10)
+[src/CanvasSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/CanvasSource.ts#L10)

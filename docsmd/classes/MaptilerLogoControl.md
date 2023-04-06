@@ -39,7 +39,7 @@ any link URL. By default this is using MapTiler logo and URL.
 
 #### Defined in
 
-[src/MaptilerLogoControl.ts:20](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/MaptilerLogoControl.ts#L20)
+[src/MaptilerLogoControl.ts:20](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/MaptilerLogoControl.ts#L20)
 
 ## Methods
 
@@ -63,4 +63,4 @@ any link URL. By default this is using MapTiler logo and URL.
 
 #### Defined in
 
-[src/MaptilerLogoControl.ts:27](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/MaptilerLogoControl.ts#L27)
+[src/MaptilerLogoControl.ts:27](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/MaptilerLogoControl.ts#L27)

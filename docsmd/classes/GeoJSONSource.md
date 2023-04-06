@@ -36,4 +36,4 @@ maplibregl.GeoJSONSource.onAdd
 
 #### Defined in
 
-[src/GeoJSONSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/ca6a5a1/src/GeoJSONSource.ts#L10)
+[src/GeoJSONSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/GeoJSONSource.ts#L10)
