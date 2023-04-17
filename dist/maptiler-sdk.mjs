@@ -572,7 +572,7 @@ const GeolocationType = {
 };
 class Map extends maplibregl__default.Map {
   constructor(options) {
-    var _a, _b;
+    var _a, _b, _c;
     if (options.apiKey) {
       config.apiKey = options.apiKey;
     }
@@ -616,6 +616,7 @@ class Map extends maplibregl__default.Map {
     this.secondaryLanguage = null;
     this.primaryLanguage = (_a = options.language) != null ? _a : config.primaryLanguage;
     this.secondaryLanguage = config.secondaryLanguage;
+    this.terrainExaggeration = (_b = options.terrainExaggeration) != null ? _b : this.terrainExaggeration;
     this.once("styledata", () => __async(this, null, function* () {
       if (!options.geolocate) {
         return;
@@ -747,7 +748,7 @@ class Map extends maplibregl__default.Map {
     }));
     if (options.terrain) {
       this.enableTerrain(
-        (_b = options.terrainExaggeration) != null ? _b : this.terrainExaggeration
+        (_c = options.terrainExaggeration) != null ? _c : this.terrainExaggeration
       );
     }
   }
@@ -915,17 +916,52 @@ class Map extends maplibregl__default.Map {
       console.warn("Terrain exaggeration cannot be negative.");
       return;
     }
+    console.log("exaggeration:", exaggeration);
+    let f = (evt) => __async(this, null, function* () {
+      console.log("DEBUG01");
+      if (evt.type !== "data" || evt.dataType !== "source" || !("source" in evt)) {
+        return;
+      }
+      if (evt.sourceId !== "maptiler-terrain") {
+        return;
+      }
+      const source = evt.source;
+      if (source.type !== "raster-dem") {
+        return;
+      }
+      if (!evt.isSourceLoaded) {
+        return;
+      }
+      this.off("data", f);
+      const animationLoopDuration = 1 * 1e3;
+      let startTime = performance.now();
+      const updateExaggeration = () => {
+        const msSinceStartTime = performance.now() - startTime;
+        const positionInLoop = msSinceStartTime % animationLoopDuration / animationLoopDuration;
+        const exaggerationFactor = 1 - Math.pow(1 - positionInLoop, 4);
+        const newExaggeration = exaggerationFactor * exaggeration;
+        this.setTerrain({
+          source: defaults.terrainSourceId,
+          exaggeration: newExaggeration
+        });
+        if (positionInLoop < 0.9) {
+          requestAnimationFrame(updateExaggeration);
+        }
+      };
+      requestAnimationFrame(updateExaggeration);
+    });
     const terrainInfo = this.getTerrain();
     const addTerrain = () => {
       this.isTerrainEnabled = true;
       this.terrainExaggeration = exaggeration;
+      this.on("data", f);
       this.addSource(defaults.terrainSourceId, {
         type: "raster-dem",
         url: defaults.terrainSourceURL
       });
       this.setTerrain({
         source: defaults.terrainSourceId,
-        exaggeration
+        exaggeration: 0
       });
     };
     if (terrainInfo) {

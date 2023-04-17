@@ -5,6 +5,9 @@ import type {
   MapOptions as MapOptionsML,
   ControlPosition,
   StyleOptions,
+  MapDataEvent,
+  Tile,
+  RasterDEMSourceSpecification,
 } from "maplibre-gl";
 import { v4 as uuidv4 } from "uuid";
 import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
@@ -27,6 +30,10 @@ import { AttributionControl } from "./AttributionControl";
 import { ScaleControl } from "./ScaleControl";
 import { FullscreenControl } from "./FullscreenControl";
 
+function sleepAsync(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (
   previous: StyleSpecification,
@@ -47,6 +54,14 @@ export const GeolocationType: {
   POINT: "POINT",
   COUNTRY: "COUNTRY",
 } as const;
+
+type MapTerrainDataEvent = MapDataEvent & {
+  isSourceLoaded: boolean,
+  tile: Tile,
+  sourceId: string,
+  source: RasterDEMSourceSpecification,
+}
+
 
 /**
  * Options to provide to the `Map` constructor
@@ -198,6 +213,7 @@ export class Map extends maplibregl.Map {
 
     this.primaryLanguage = options.language ?? config.primaryLanguage;
     this.secondaryLanguage = config.secondaryLanguage;
+    this.terrainExaggeration = options.terrainExaggeration ?? this.terrainExaggeration;
 
     // Map centering and geolocation
     this.once("styledata", async () => {
@@ -800,6 +816,77 @@ export class Map extends maplibregl.Map {
       return;
     }
 
+    console.log("exaggeration:", exaggeration);
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+    let f = async (evt: MapTerrainDataEvent) => {
+      console.log("DEBUG01");
+      if (evt.type !== "data" || evt.dataType !== "source" || !("source" in evt)) {
+        return;
+      }
+
+      if (evt.sourceId !== "maptiler-terrain") {
+        return;
+      }
+
+      const source = evt.source
+
+      if (source.type !== "raster-dem") {
+        return;
+      }
+
+      
+    
+      
+      
+      if (!evt.isSourceLoaded) {
+        return;
+      }
+
+      this.off("data", f);
+
+      const animationLoopDuration = 1 * 1000; // in ms
+      let startTime = performance.now();
+
+      const updateExaggeration = () => {
+
+        const msSinceStartTime = performance.now() - startTime;
+        // normalized value in interval [0, 1] of where we are currently in the animation loop
+        const positionInLoop = (msSinceStartTime % animationLoopDuration) / animationLoopDuration;
+        const exaggerationFactor = 1 - Math.pow(1 - positionInLoop, 4);
+        const newExaggeration = exaggerationFactor * exaggeration;
+
+        this.setTerrain({
+          source: defaults.terrainSourceId,
+          exaggeration: newExaggeration,
+        });
+  
+        if (positionInLoop < 0.9) {
+          requestAnimationFrame(updateExaggeration);
+        }
+      }
+
+      requestAnimationFrame(updateExaggeration);
+
+    }
+    
+
     const terrainInfo = this.getTerrain();
 
     const addTerrain = () => {
@@ -807,13 +894,16 @@ export class Map extends maplibregl.Map {
       this.isTerrainEnabled = true;
       this.terrainExaggeration = exaggeration;
 
+      this.on("data", f);
+
       this.addSource(defaults.terrainSourceId, {
         type: "raster-dem",
         url: defaults.terrainSourceURL,
       });
+
       this.setTerrain({
         source: defaults.terrainSourceId,
-        exaggeration: exaggeration,
+        exaggeration: 0,
       });
     };
 
