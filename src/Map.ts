@@ -816,27 +816,13 @@ export class Map extends maplibregl.Map {
       return;
     }
 
-    console.log("exaggeration:", exaggeration);
+    // This function is mapped to a map "data" event. It checks that the terrain 
+    // tiles are loaded and when so, it starts an animation to make the terrain grow
+    let dataEventTerrainGrow = async (evt: MapTerrainDataEvent) => {
+      if (!this.terrain) {
+        return;
+      }
 
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-    let f = async (evt: MapTerrainDataEvent) => {
-      console.log("DEBUG01");
       if (evt.type !== "data" || evt.dataType !== "source" || !("source" in evt)) {
         return;
       }
@@ -851,56 +837,70 @@ export class Map extends maplibregl.Map {
         return;
       }
 
-      
-    
-      
-      
       if (!evt.isSourceLoaded) {
         return;
       }
 
-      this.off("data", f);
+      console.log("DEBUG01");
+      
 
-      const animationLoopDuration = 1 * 1000; // in ms
+      // We shut this event off because we want it to happen only once.
+      // Yet, we cannot use the "once" method because only the last event of the series
+      // has `isSourceLoaded` true
+      this.off("data", dataEventTerrainGrow);
+
+      // Duration of the animation in millisec
+      const animationLoopDuration = 1 * 1000;
       let startTime = performance.now();
+      // This is supposedly 0, but it could be something else (e.g. already in the middle of growing, or user defined other)
+      const currentExaggeration = this.terrain.exaggeration;
+      const deltaExaggeration = exaggeration - currentExaggeration;
 
+      // This is again called in a requestAnimationFrame ~loop, until the terrain has grown enough
+      // that it has reached the target
       const updateExaggeration = () => {
+        if (!this.terrain) {
+          return;
+        }
 
-        const msSinceStartTime = performance.now() - startTime;
         // normalized value in interval [0, 1] of where we are currently in the animation loop
-        const positionInLoop = (msSinceStartTime % animationLoopDuration) / animationLoopDuration;
-        const exaggerationFactor = 1 - Math.pow(1 - positionInLoop, 4);
-        const newExaggeration = exaggerationFactor * exaggeration;
-
-        this.setTerrain({
-          source: defaults.terrainSourceId,
-          exaggeration: newExaggeration,
-        });
-  
-        if (positionInLoop < 0.9) {
+        const positionInLoop = (performance.now() - startTime) / animationLoopDuration;
+        
+        // The animation goes on until we reached 99% of the growing sequence duration
+        if (positionInLoop < 0.99) {
+          const exaggerationFactor = 1 - Math.pow(1 - positionInLoop, 4);
+          const newExaggeration = currentExaggeration + exaggerationFactor * deltaExaggeration;
+          this.terrain.exaggeration = newExaggeration;
           requestAnimationFrame(updateExaggeration);
+        } else {
+          this.terrain.exaggeration = exaggeration
         }
       }
 
       requestAnimationFrame(updateExaggeration);
-
     }
     
 
     const terrainInfo = this.getTerrain();
 
+    // This is put into a function so that it can be called regardless
+    // of the loading state of _this_ the map instance
     const addTerrain = () => {
       // When style is changed,
       this.isTerrainEnabled = true;
       this.terrainExaggeration = exaggeration;
 
-      this.on("data", f);
+      // Mapping it to the "data" event so that we can check that the terrain
+      // growing starts only when terrain tiles are loaded (to reduce glitching)
+      this.on("data", dataEventTerrainGrow);
 
       this.addSource(defaults.terrainSourceId, {
         type: "raster-dem",
         url: defaults.terrainSourceURL,
       });
 
+      // Setting up the terrain with a 0 exaggeration factor
+      // so it loads ~seamlessly and then can grow from there
       this.setTerrain({
         source: defaults.terrainSourceId,
         exaggeration: 0,

@@ -3069,9 +3069,10 @@
 	      console.warn("Terrain exaggeration cannot be negative.");
 	      return;
 	    }
-	    console.log("exaggeration:", exaggeration);
-	    let f = (evt) => __async(this, null, function* () {
-	      console.log("DEBUG01");
+	    let dataEventTerrainGrow = (evt) => __async(this, null, function* () {
+	      if (!this.terrain) {
+	        return;
+	      }
 	      if (evt.type !== "data" || evt.dataType !== "source" || !("source" in evt)) {
 	        return;
 	      }
@@ -3085,20 +3086,24 @@
 	      if (!evt.isSourceLoaded) {
 	        return;
 	      }
-	      this.off("data", f);
+	      console.log("DEBUG01");
+	      this.off("data", dataEventTerrainGrow);
 	      const animationLoopDuration = 1 * 1e3;
 	      let startTime = performance.now();
+	      const currentExaggeration = this.terrain.exaggeration;
+	      const deltaExaggeration = exaggeration - currentExaggeration;
 	      const updateExaggeration = () => {
-	        const msSinceStartTime = performance.now() - startTime;
-	        const positionInLoop = msSinceStartTime % animationLoopDuration / animationLoopDuration;
-	        const exaggerationFactor = 1 - Math.pow(1 - positionInLoop, 4);
-	        const newExaggeration = exaggerationFactor * exaggeration;
-	        this.setTerrain({
-	          source: defaults.terrainSourceId,
-	          exaggeration: newExaggeration
-	        });
-	        if (positionInLoop < 0.9) {
+	        if (!this.terrain) {
+	          return;
+	        }
+	        const positionInLoop = (performance.now() - startTime) / animationLoopDuration;
+	        if (positionInLoop < 0.99) {
+	          const exaggerationFactor = 1 - Math.pow(1 - positionInLoop, 4);
+	          const newExaggeration = currentExaggeration + exaggerationFactor * deltaExaggeration;
+	          this.terrain.exaggeration = newExaggeration;
 	          requestAnimationFrame(updateExaggeration);
+	        } else {
+	          this.terrain.exaggeration = exaggeration;
 	        }
 	      };
 	      requestAnimationFrame(updateExaggeration);
@@ -3107,7 +3112,7 @@
 	    const addTerrain = () => {
 	      this.isTerrainEnabled = true;
 	      this.terrainExaggeration = exaggeration;
-	      this.on("data", f);
+	      this.on("data", dataEventTerrainGrow);
 	      this.addSource(defaults.terrainSourceId, {
 	        type: "raster-dem",
 	        url: defaults.terrainSourceURL
