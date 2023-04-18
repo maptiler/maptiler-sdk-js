@@ -805,6 +805,45 @@ export class Map extends maplibregl.Map {
     return this.isTerrainEnabled;
   }
 
+
+  private growTerrain(exaggeration, durationMs = 1000) {
+    // This method assumes the terrain is already built
+    if (!this.terrain) {
+      return;
+    }
+
+    let startTime = performance.now();
+    // This is supposedly 0, but it could be something else (e.g. already in the middle of growing, or user defined other)
+    const currentExaggeration = this.terrain.exaggeration;
+    const deltaExaggeration = exaggeration - currentExaggeration;
+
+    // This is again called in a requestAnimationFrame ~loop, until the terrain has grown enough
+    // that it has reached the target
+    const updateExaggeration = () => {
+      if (!this.terrain) {
+        return;
+      }
+
+      // normalized value in interval [0, 1] of where we are currently in the animation loop
+      const positionInLoop = (performance.now() - startTime) / durationMs;
+      
+      // The animation goes on until we reached 99% of the growing sequence duration
+      if (positionInLoop < 0.99) {
+        const exaggerationFactor = 1 - Math.pow(1 - positionInLoop, 4);
+        const newExaggeration = currentExaggeration + exaggerationFactor * deltaExaggeration;
+        this.terrain.exaggeration = newExaggeration;
+        requestAnimationFrame(updateExaggeration);
+      } else {
+        this.terrain.exaggeration = exaggeration
+      }
+      this.triggerRepaint();
+    }
+
+    requestAnimationFrame(updateExaggeration);
+  }
+
+
+
   /**
    * Enables the 3D terrain visualization
    * @param exaggeration
@@ -841,47 +880,13 @@ export class Map extends maplibregl.Map {
         return;
       }
 
-      console.log("DEBUG01");
-      
-
       // We shut this event off because we want it to happen only once.
       // Yet, we cannot use the "once" method because only the last event of the series
       // has `isSourceLoaded` true
       this.off("data", dataEventTerrainGrow);
 
-      // Duration of the animation in millisec
-      const animationLoopDuration = 1 * 1000;
-      let startTime = performance.now();
-      // This is supposedly 0, but it could be something else (e.g. already in the middle of growing, or user defined other)
-      const currentExaggeration = this.terrain.exaggeration;
-      const deltaExaggeration = exaggeration - currentExaggeration;
-
-      // This is again called in a requestAnimationFrame ~loop, until the terrain has grown enough
-      // that it has reached the target
-      const updateExaggeration = () => {
-        if (!this.terrain) {
-          return;
-        }
-
-        // normalized value in interval [0, 1] of where we are currently in the animation loop
-        const positionInLoop = (performance.now() - startTime) / animationLoopDuration;
-        
-        // The animation goes on until we reached 99% of the growing sequence duration
-        if (positionInLoop < 0.99) {
-          const exaggerationFactor = 1 - Math.pow(1 - positionInLoop, 4);
-          const newExaggeration = currentExaggeration + exaggerationFactor * deltaExaggeration;
-          this.terrain.exaggeration = newExaggeration;
-          requestAnimationFrame(updateExaggeration);
-        } else {
-          this.terrain.exaggeration = exaggeration
-        }
-      }
-
-      requestAnimationFrame(updateExaggeration);
+      this.growTerrain(exaggeration);
     }
-    
-
-    const terrainInfo = this.getTerrain();
 
     // This is put into a function so that it can be called regardless
     // of the loading state of _this_ the map instance
@@ -909,8 +914,8 @@ export class Map extends maplibregl.Map {
 
     // The terrain has already been loaded,
     // we just update the exaggeration.
-    if (terrainInfo) {
-      this.setTerrain({ ...terrainInfo, exaggeration });
+    if (this.getTerrain()) {
+      this.growTerrain(exaggeration);
       return;
     }
 
@@ -930,11 +935,46 @@ export class Map extends maplibregl.Map {
    * Disable the 3D terrain visualization
    */
   disableTerrain() {
-    this.isTerrainEnabled = false;
-    this.setTerrain(null);
-    if (this.getSource(defaults.terrainSourceId)) {
-      this.removeSource(defaults.terrainSourceId);
+    // It could be disabled already
+    if (!this.terrain) {
+      return;
     }
+
+    // Duration of the animation in millisec
+    const animationLoopDuration = 1 * 1000;
+    let startTime = performance.now();
+    // This is supposedly 0, but it could be something else (e.g. already in the middle of growing, or user defined other)
+    const currentExaggeration = this.terrain.exaggeration;
+
+    // This is again called in a requestAnimationFrame ~loop, until the terrain has grown enough
+    // that it has reached the target
+    const updateExaggeration = () => {
+      if (!this.terrain) {
+        return;
+      }
+
+      // normalized value in interval [0, 1] of where we are currently in the animation loop
+      const positionInLoop = (performance.now() - startTime) / animationLoopDuration;
+      
+      // The animation goes on until we reached 99% of the growing sequence duration
+      if (positionInLoop < 0.99) {
+        const exaggerationFactor = Math.pow(1 - positionInLoop, 4);
+        const newExaggeration = currentExaggeration * exaggerationFactor;
+        this.terrain.exaggeration = newExaggeration;
+        requestAnimationFrame(updateExaggeration);
+      } else {
+        this.terrain.exaggeration = 0
+        this.isTerrainEnabled = false;
+        this.setTerrain(null);
+        if (this.getSource(defaults.terrainSourceId)) {
+          this.removeSource(defaults.terrainSourceId);
+        }
+      }
+
+      this.triggerRepaint();
+    }
+
+    requestAnimationFrame(updateExaggeration);
   }
 
   /**
@@ -942,31 +982,17 @@ export class Map extends maplibregl.Map {
    * Note: this is only a shortcut to `.enableTerrain()`
    * @param exaggeration
    */
-  setTerrainExaggeration(exaggeration: number) {
-    this.enableTerrain(exaggeration);
+  setTerrainExaggeration(exaggeration: number, animate = true) {
+    if (!animate && this.terrain) {
+      this.terrainExaggeration = exaggeration;
+      this.terrain.exaggeration = exaggeration;
+      this.triggerRepaint();
+    } else {
+      this.enableTerrain(exaggeration);
+    }
+    
   }
 
-  // getLanguages() {
-  //   const layers = this.getStyle().layers;
-
-  //   for (let i = 0; i < layers.length; i += 1) {
-  //     const layer = layers[i];
-  //     const layout = layer.layout;
-
-  //     if (!layout) {
-  //       continue;
-  //     }
-
-  //     if (!layout["text-field"]) {
-  //       continue;
-  //     }
-
-  //     const textFieldLayoutProp = this.getLayoutProperty(
-  //       layer.id,
-  //       "text-field"
-  //     );
-  //   }
-  // }
 
   /**
    * Perform an action when the style is ready. It could be at the moment of calling this method

@@ -307,6 +307,7 @@ declare class Map extends maplibre_gl__default.Map {
      * @returns
      */
     hasTerrain(): boolean;
+    private growTerrain;
     /**
      * Enables the 3D terrain visualization
      * @param exaggeration
@@ -322,7 +323,7 @@ declare class Map extends maplibre_gl__default.Map {
      * Note: this is only a shortcut to `.enableTerrain()`
      * @param exaggeration
      */
-    setTerrainExaggeration(exaggeration: number): void;
+    setTerrainExaggeration(exaggeration: number, animate?: boolean): void;
     /**
      * Perform an action when the style is ready. It could be at the moment of calling this method
      * or later.

@@ -911,6 +911,30 @@ class Map extends maplibregl__default.Map {
   hasTerrain() {
     return this.isTerrainEnabled;
   }
+  growTerrain(exaggeration, durationMs = 1e3) {
+    if (!this.terrain) {
+      return;
+    }
+    let startTime = performance.now();
+    const currentExaggeration = this.terrain.exaggeration;
+    const deltaExaggeration = exaggeration - currentExaggeration;
+    const updateExaggeration = () => {
+      if (!this.terrain) {
+        return;
+      }
+      const positionInLoop = (performance.now() - startTime) / durationMs;
+      if (positionInLoop < 0.99) {
+        const exaggerationFactor = 1 - Math.pow(1 - positionInLoop, 4);
+        const newExaggeration = currentExaggeration + exaggerationFactor * deltaExaggeration;
+        this.terrain.exaggeration = newExaggeration;
+        requestAnimationFrame(updateExaggeration);
+      } else {
+        this.terrain.exaggeration = exaggeration;
+      }
+      this.triggerRepaint();
+    };
+    requestAnimationFrame(updateExaggeration);
+  }
   enableTerrain(exaggeration = this.terrainExaggeration) {
     if (exaggeration < 0) {
       console.warn("Terrain exaggeration cannot be negative.");
@@ -933,29 +957,9 @@ class Map extends maplibregl__default.Map {
       if (!evt.isSourceLoaded) {
         return;
       }
-      console.log("DEBUG01");
       this.off("data", dataEventTerrainGrow);
-      const animationLoopDuration = 1 * 1e3;
-      let startTime = performance.now();
-      const currentExaggeration = this.terrain.exaggeration;
-      const deltaExaggeration = exaggeration - currentExaggeration;
-      const updateExaggeration = () => {
-        if (!this.terrain) {
-          return;
-        }
-        const positionInLoop = (performance.now() - startTime) / animationLoopDuration;
-        if (positionInLoop < 0.99) {
-          const exaggerationFactor = 1 - Math.pow(1 - positionInLoop, 4);
-          const newExaggeration = currentExaggeration + exaggerationFactor * deltaExaggeration;
-          this.terrain.exaggeration = newExaggeration;
-          requestAnimationFrame(updateExaggeration);
-        } else {
-          this.terrain.exaggeration = exaggeration;
-        }
-      };
-      requestAnimationFrame(updateExaggeration);
+      this.growTerrain(exaggeration);
     });
-    const terrainInfo = this.getTerrain();
     const addTerrain = () => {
       this.isTerrainEnabled = true;
       this.terrainExaggeration = exaggeration;
@@ -969,8 +973,8 @@ class Map extends maplibregl__default.Map {
         exaggeration: 0
       });
     };
-    if (terrainInfo) {
-      this.setTerrain(__spreadProps(__spreadValues({}, terrainInfo), { exaggeration }));
+    if (this.getTerrain()) {
+      this.growTerrain(exaggeration);
       return;
     }
     if (this.loaded() || this.isTerrainEnabled) {
@@ -985,14 +989,42 @@ class Map extends maplibregl__default.Map {
     }
   }
   disableTerrain() {
-    this.isTerrainEnabled = false;
-    this.setTerrain(null);
-    if (this.getSource(defaults.terrainSourceId)) {
-      this.removeSource(defaults.terrainSourceId);
+    if (!this.terrain) {
+      return;
     }
+    const animationLoopDuration = 1 * 1e3;
+    let startTime = performance.now();
+    const currentExaggeration = this.terrain.exaggeration;
+    const updateExaggeration = () => {
+      if (!this.terrain) {
+        return;
+      }
+      const positionInLoop = (performance.now() - startTime) / animationLoopDuration;
+      if (positionInLoop < 0.99) {
+        const exaggerationFactor = Math.pow(1 - positionInLoop, 4);
+        const newExaggeration = currentExaggeration * exaggerationFactor;
+        this.terrain.exaggeration = newExaggeration;
+        requestAnimationFrame(updateExaggeration);
+      } else {
+        this.terrain.exaggeration = 0;
+        this.isTerrainEnabled = false;
+        this.setTerrain(null);
+        if (this.getSource(defaults.terrainSourceId)) {
+          this.removeSource(defaults.terrainSourceId);
+        }
+      }
+      this.triggerRepaint();
+    };
+    requestAnimationFrame(updateExaggeration);
   }
-  setTerrainExaggeration(exaggeration) {
-    this.enableTerrain(exaggeration);
+  setTerrainExaggeration(exaggeration, animate = true) {
+    if (!animate && this.terrain) {
+      this.terrainExaggeration = exaggeration;
+      this.terrain.exaggeration = exaggeration;
+      this.triggerRepaint();
+    } else {
+      this.enableTerrain(exaggeration);
+    }
   }
   onStyleReady(cb) {
     if (this.isStyleLoaded()) {
