@@ -146,7 +146,7 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    *
    * Default: `false`
    */
-  geolocate?: typeof GeolocationType[keyof typeof GeolocationType] | boolean;
+  geolocate?: (typeof GeolocationType)[keyof typeof GeolocationType] | boolean;
 };
 
 /**
@@ -1022,9 +1022,10 @@ export class Map extends maplibregl.Map {
    * Sets the 3D terrain exageration factor.
    * If the terrain was not enabled prior to the call of this method,
    * the method `.enableTerrain()` will be called.
+   * If `animate` is `true`, the terrain transformation will be animated in the span of 1 second.
+   * If `animate` is `false`, no animated transition to the newly defined exaggeration.
    * @param exaggeration
-   * @param animate. If `true`, the terrain transformation will be animated in the span of 1 second.
-   * If `false`, no animated transition to the newly defined exaggeration.
+   * @param animate
    */
   setTerrainExaggeration(exaggeration: number, animate = true) {
     if (!animate && this.terrain) {
