@@ -270,8 +270,10 @@ class MaptilerTerrainControl {
   }
   _toggleTerrain() {
     if (this._map.hasTerrain()) {
+      console.log("button disables");
       this._map.disableTerrain();
     } else {
+      console.log("button enables");
       this._map.enableTerrain();
     }
     this._updateTerrainIcon();
@@ -614,6 +616,8 @@ class Map extends maplibregl__default.Map {
     this.terrainExaggeration = 1;
     this.primaryLanguage = null;
     this.secondaryLanguage = null;
+    this.terrainGrowing = false;
+    this.terrainFlattening = false;
     this.primaryLanguage = (_a = options.language) != null ? _a : config.primaryLanguage;
     this.secondaryLanguage = config.secondaryLanguage;
     this.terrainExaggeration = (_b = options.terrainExaggeration) != null ? _b : this.terrainExaggeration;
@@ -913,15 +917,22 @@ class Map extends maplibregl__default.Map {
   }
   growTerrain(exaggeration, durationMs = 1e3) {
     if (!this.terrain) {
+      console.log("DEBUG03");
       return;
     }
-    let startTime = performance.now();
+    console.log("DEBUG04");
+    const startTime = performance.now();
     const currentExaggeration = this.terrain.exaggeration;
     const deltaExaggeration = exaggeration - currentExaggeration;
     const updateExaggeration = () => {
       if (!this.terrain) {
+        console.log("DEBUG05");
         return;
       }
+      if (this.terrainFlattening) {
+        return;
+      }
+      console.log("growing");
       const positionInLoop = (performance.now() - startTime) / durationMs;
       if (positionInLoop < 0.99) {
         const exaggerationFactor = 1 - Math.pow(1 - positionInLoop, 4);
@@ -929,10 +940,14 @@ class Map extends maplibregl__default.Map {
         this.terrain.exaggeration = newExaggeration;
         requestAnimationFrame(updateExaggeration);
       } else {
+        this.terrainGrowing = false;
+        this.terrainFlattening = false;
         this.terrain.exaggeration = exaggeration;
       }
       this.triggerRepaint();
     };
+    this.terrainGrowing = true;
+    this.terrainFlattening = false;
     requestAnimationFrame(updateExaggeration);
   }
   enableTerrain(exaggeration = this.terrainExaggeration) {
@@ -940,7 +955,7 @@ class Map extends maplibregl__default.Map {
       console.warn("Terrain exaggeration cannot be negative.");
       return;
     }
-    let dataEventTerrainGrow = (evt) => __async(this, null, function* () {
+    const dataEventTerrainGrow = (evt) => __async(this, null, function* () {
       if (!this.terrain) {
         return;
       }
@@ -962,6 +977,7 @@ class Map extends maplibregl__default.Map {
     });
     const addTerrain = () => {
       this.isTerrainEnabled = true;
+      console.log("ENABLE!");
       this.terrainExaggeration = exaggeration;
       this.on("data", dataEventTerrainGrow);
       this.addSource(defaults.terrainSourceId, {
@@ -974,6 +990,8 @@ class Map extends maplibregl__default.Map {
       });
     };
     if (this.getTerrain()) {
+      console.log("DEBUG02");
+      this.isTerrainEnabled = true;
       this.growTerrain(exaggeration);
       return;
     }
@@ -992,13 +1010,18 @@ class Map extends maplibregl__default.Map {
     if (!this.terrain) {
       return;
     }
+    this.isTerrainEnabled = false;
     const animationLoopDuration = 1 * 1e3;
-    let startTime = performance.now();
+    const startTime = performance.now();
     const currentExaggeration = this.terrain.exaggeration;
     const updateExaggeration = () => {
       if (!this.terrain) {
         return;
       }
+      if (this.terrainGrowing) {
+        return;
+      }
+      console.log("flatten");
       const positionInLoop = (performance.now() - startTime) / animationLoopDuration;
       if (positionInLoop < 0.99) {
         const exaggerationFactor = Math.pow(1 - positionInLoop, 4);
@@ -1007,7 +1030,8 @@ class Map extends maplibregl__default.Map {
         requestAnimationFrame(updateExaggeration);
       } else {
         this.terrain.exaggeration = 0;
-        this.isTerrainEnabled = false;
+        this.terrainGrowing = false;
+        this.terrainFlattening = false;
         this.setTerrain(null);
         if (this.getSource(defaults.terrainSourceId)) {
           this.removeSource(defaults.terrainSourceId);
@@ -1015,6 +1039,8 @@ class Map extends maplibregl__default.Map {
       }
       this.triggerRepaint();
     };
+    this.terrainGrowing = false;
+    this.terrainFlattening = true;
     requestAnimationFrame(updateExaggeration);
   }
   setTerrainExaggeration(exaggeration, animate = true) {
@@ -1305,7 +1331,6 @@ const {
   version,
   workerCount,
   maxParallelImageRequests,
-  clearStorage,
   workerUrl,
   addProtocol,
   removeProtocol
@@ -1329,5 +1354,5 @@ maplibregl__default.ScaleControl;
 maplibregl__default.FullscreenControl;
 maplibregl__default.TerrainControl;
 
-export { AJAXError, AttributionControl, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocationType, ImageSource, ImageSourceMLGL, Language, LngLat, LngLatBounds, LogoControl, Map, MapMLGL, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, MarkerMLGL, MercatorCoordinate, NavigationControl, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, SdkConfig, Style, StyleMLGL, TerrainControl, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocationType, ImageSource, ImageSourceMLGL, Language, LngLat, LngLatBounds, LogoControl, Map, MapMLGL, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, MarkerMLGL, MercatorCoordinate, NavigationControl, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, SdkConfig, Style, StyleMLGL, TerrainControl, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
 //# sourceMappingURL=maptiler-sdk.mjs.map

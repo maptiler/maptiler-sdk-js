@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.9](../README.md) / Marker
+[MapTiler SDK - v1.0.10](../README.md) / Marker
 
 # Class: Marker
 
@@ -37,7 +37,7 @@ maplibregl.Marker.constructor
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11482
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11541
 
 ## Methods
 
@@ -61,4 +61,4 @@ maplibregl.Marker.addTo
 
 #### Defined in
 
-[src/Marker.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/Marker.ts#L10)
+[src/Marker.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/Marker.ts#L10)

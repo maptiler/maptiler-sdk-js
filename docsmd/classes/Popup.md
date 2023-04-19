@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.9](../README.md) / Popup
+[MapTiler SDK - v1.0.10](../README.md) / Popup
 
 # Class: Popup
 
@@ -36,7 +36,7 @@ maplibregl.Popup.constructor
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11265
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11324
 
 ## Methods
 
@@ -60,4 +60,4 @@ maplibregl.Popup.addTo
 
 #### Defined in
 
-[src/Popup.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/Popup.ts#L10)
+[src/Popup.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/Popup.ts#L10)

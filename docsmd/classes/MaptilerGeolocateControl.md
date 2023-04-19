@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.9](../README.md) / MaptilerGeolocateControl
+[MapTiler SDK - v1.0.10](../README.md) / MaptilerGeolocateControl
 
 # Class: MaptilerGeolocateControl
 
@@ -43,7 +43,7 @@ location is still centered. This means it's robust to rotation, pitch and zoom.
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11658
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11717
 
 ## Methods
 
@@ -61,7 +61,7 @@ GeolocateControl.\_onZoom
 
 #### Defined in
 
-[src/MaptilerGeolocateControl.ts:198](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/MaptilerGeolocateControl.ts#L198)
+[src/MaptilerGeolocateControl.ts:198](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/MaptilerGeolocateControl.ts#L198)
 
 ___
 
@@ -85,7 +85,7 @@ GeolocateControl.\_setupUI
 
 #### Defined in
 
-[src/MaptilerGeolocateControl.ts:77](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/MaptilerGeolocateControl.ts#L77)
+[src/MaptilerGeolocateControl.ts:77](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/MaptilerGeolocateControl.ts#L77)
 
 ___
 
@@ -103,7 +103,7 @@ GeolocateControl.\_updateCircleRadius
 
 #### Defined in
 
-[src/MaptilerGeolocateControl.ts:172](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/MaptilerGeolocateControl.ts#L172)
+[src/MaptilerGeolocateControl.ts:172](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/MaptilerGeolocateControl.ts#L172)
 
 ___
 
@@ -127,4 +127,4 @@ ___
 
 #### Defined in
 
-[src/GeolocateControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/GeolocateControl.ts#L10)
+[src/GeolocateControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/GeolocateControl.ts#L10)

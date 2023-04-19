@@ -44,8 +44,10 @@ export class MaptilerTerrainControl implements maplibregl.IControl {
 
   _toggleTerrain() {
     if (this._map.hasTerrain()) {
+      console.log("button disables");
       this._map.disableTerrain();
     } else {
+      console.log("button enables");
       this._map.enableTerrain();
     }
 

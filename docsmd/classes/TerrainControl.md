@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.9](../README.md) / TerrainControl
+[MapTiler SDK - v1.0.10](../README.md) / TerrainControl
 
 # Class: TerrainControl
 
@@ -36,7 +36,7 @@ maplibregl.TerrainControl.constructor
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11807
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11866
 
 ## Methods
 
@@ -60,4 +60,4 @@ maplibregl.TerrainControl.onAdd
 
 #### Defined in
 
-[src/TerrainControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/TerrainControl.ts#L10)
+[src/TerrainControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/TerrainControl.ts#L10)

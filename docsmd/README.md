@@ -1,6 +1,6 @@
-MapTiler SDK - v1.0.9
+MapTiler SDK - v1.0.10
 
-# MapTiler SDK - v1.0.9
+# MapTiler SDK - v1.0.10
 
 ## Table of contents
 
@@ -91,7 +91,6 @@ MapTiler SDK - v1.0.9
 
 - [addProtocol](README.md#addprotocol)
 - [clearPrewarmedResources](README.md#clearprewarmedresources)
-- [clearStorage](README.md#clearstorage)
 - [getRTLTextPluginStatus](README.md#getrtltextpluginstatus)
 - [prewarm](README.md#prewarm)
 - [removeProtocol](README.md#removeprotocol)
@@ -106,9 +105,9 @@ MapTiler SDK - v1.0.9
 
 #### Defined in
 
-[src/index.ts:84](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L84)
+[src/index.ts:63](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L63)
 
-[src/index.ts:124](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L124)
+[src/index.ts:99](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L99)
 
 ___
 
@@ -118,7 +117,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:110](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L110)
+[src/index.ts:85](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L85)
 
 ___
 
@@ -128,9 +127,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:86](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L86)
+[src/index.ts:64](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L64)
 
-[src/index.ts:125](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L125)
+[src/index.ts:100](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L100)
 
 ___
 
@@ -140,9 +139,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:83](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L83)
+[src/index.ts:62](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L62)
 
-[src/index.ts:123](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L123)
+[src/index.ts:98](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L98)
 
 ___
 
@@ -152,7 +151,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:115](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L115)
+[src/index.ts:90](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L90)
 
 ___
 
@@ -162,9 +161,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:87](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L87)
+[src/index.ts:65](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L65)
 
-[src/index.ts:126](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L126)
+[src/index.ts:101](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L101)
 
 ___
 
@@ -174,7 +173,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:109](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L109)
+[src/index.ts:84](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L84)
 
 ___
 
@@ -184,9 +183,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:88](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L88)
+[src/index.ts:66](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L66)
 
-[src/index.ts:127](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L127)
+[src/index.ts:102](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L102)
 
 ___
 
@@ -198,7 +197,7 @@ Type representing the key of the Language object
 
 #### Defined in
 
-[src/language.ts:108](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/language.ts#L108)
+[src/language.ts:108](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/language.ts#L108)
 
 ___
 
@@ -210,7 +209,7 @@ Built-in languages values as strings
 
 #### Defined in
 
-[src/language.ts:115](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/language.ts#L115)
+[src/language.ts:115](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/language.ts#L115)
 
 ___
 
@@ -220,9 +219,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:79](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L79)
+[src/index.ts:59](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L59)
 
-[src/index.ts:120](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L120)
+[src/index.ts:95](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L95)
 
 ___
 
@@ -232,9 +231,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:80](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L80)
+[src/index.ts:60](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L60)
 
-[src/index.ts:121](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L121)
+[src/index.ts:96](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L96)
 
 ___
 
@@ -244,7 +243,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:113](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L113)
+[src/index.ts:88](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L88)
 
 ___
 
@@ -254,9 +253,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:102](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L102)
+[src/index.ts:79](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L79)
 
-[src/index.ts:134](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L134)
+[src/index.ts:109](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L109)
 
 ___
 
@@ -268,7 +267,7 @@ Options to provide to the `Map` constructor
 
 #### Defined in
 
-[src/Map.ts:54](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/Map.ts#L54)
+[src/Map.ts:68](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/Map.ts#L68)
 
 ___
 
@@ -278,9 +277,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:77](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L77)
+[src/index.ts:57](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L57)
 
-[src/index.ts:117](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L117)
+[src/index.ts:92](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L92)
 
 ___
 
@@ -292,7 +291,7 @@ Row major 2x2 matrix
 
 #### Defined in
 
-[src/Point.ts:9](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/Point.ts#L9)
+[src/Point.ts:9](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/Point.ts#L9)
 
 ___
 
@@ -302,9 +301,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:82](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L82)
+[src/index.ts:61](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L61)
 
-[src/index.ts:122](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L122)
+[src/index.ts:97](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L97)
 
 ___
 
@@ -314,7 +313,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:108](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L108)
+[src/index.ts:83](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L83)
 
 ___
 
@@ -324,9 +323,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:76](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L76)
+[src/index.ts:56](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L56)
 
-[src/index.ts:118](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L118)
+[src/index.ts:93](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L93)
 
 ___
 
@@ -336,9 +335,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:89](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L89)
+[src/index.ts:67](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L67)
 
-[src/index.ts:128](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L128)
+[src/index.ts:103](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L103)
 
 ___
 
@@ -348,9 +347,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:90](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L90)
+[src/index.ts:68](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L68)
 
-[src/index.ts:131](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L131)
+[src/index.ts:106](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L106)
 
 ___
 
@@ -360,7 +359,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:114](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L114)
+[src/index.ts:89](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L89)
 
 ___
 
@@ -370,9 +369,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:78](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L78)
+[src/index.ts:58](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L58)
 
-[src/index.ts:119](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L119)
+[src/index.ts:94](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L94)
 
 ___
 
@@ -382,7 +381,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:116](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L116)
+[src/index.ts:91](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L91)
 
 ___
 
@@ -392,7 +391,7 @@ ___
 
 #### Defined in
 
-[src/unit.ts:1](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/unit.ts#L1)
+[src/unit.ts:1](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/unit.ts#L1)
 
 ___
 
@@ -402,9 +401,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:91](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L91)
+[src/index.ts:69](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L69)
 
-[src/index.ts:132](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L132)
+[src/index.ts:107](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L107)
 
 ___
 
@@ -414,9 +413,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:92](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L92)
+[src/index.ts:70](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L70)
 
-[src/index.ts:133](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L133)
+[src/index.ts:108](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L108)
 
 ## Variables
 
@@ -426,9 +425,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:28](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L28)
+[src/index.ts:21](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L21)
 
-[src/index.ts:124](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L124)
+[src/index.ts:99](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L99)
 
 ___
 
@@ -438,9 +437,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:49](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L49)
+[src/index.ts:37](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L37)
 
-[src/index.ts:125](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L125)
+[src/index.ts:100](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L100)
 
 ___
 
@@ -450,9 +449,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:27](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L27)
+[src/index.ts:20](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L20)
 
-[src/index.ts:123](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L123)
+[src/index.ts:98](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L98)
 
 ___
 
@@ -462,9 +461,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:50](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L50)
+[src/index.ts:38](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L38)
 
-[src/index.ts:126](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L126)
+[src/index.ts:101](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L101)
 
 ___
 
@@ -481,7 +480,7 @@ ___
 
 #### Defined in
 
-[src/Map.ts:43](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/Map.ts#L43)
+[src/Map.ts:50](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/Map.ts#L50)
 
 ___
 
@@ -491,9 +490,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:51](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L51)
+[src/index.ts:39](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L39)
 
-[src/index.ts:127](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L127)
+[src/index.ts:102](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L102)
 
 ___
 
@@ -584,7 +583,7 @@ Languages. Note that not all the languages of this list are available but the co
 
 #### Defined in
 
-[src/language.ts:4](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/language.ts#L4)
+[src/language.ts:4](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/language.ts#L4)
 
 ___
 
@@ -594,9 +593,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:24](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L24)
+[src/index.ts:17](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L17)
 
-[src/index.ts:120](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L120)
+[src/index.ts:95](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L95)
 
 ___
 
@@ -606,9 +605,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:25](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L25)
+[src/index.ts:18](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L18)
 
-[src/index.ts:121](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L121)
+[src/index.ts:96](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L96)
 
 ___
 
@@ -618,9 +617,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:45](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L45)
+[src/index.ts:33](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L33)
 
-[src/index.ts:134](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L134)
+[src/index.ts:109](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L109)
 
 ___
 
@@ -630,9 +629,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:46](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L46)
+[src/index.ts:34](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L34)
 
-[src/index.ts:117](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L117)
+[src/index.ts:92](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L92)
 
 ___
 
@@ -642,9 +641,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:26](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L26)
+[src/index.ts:19](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L19)
 
-[src/index.ts:122](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L122)
+[src/index.ts:97](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L97)
 
 ___
 
@@ -654,9 +653,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:47](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L47)
+[src/index.ts:35](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L35)
 
-[src/index.ts:118](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L118)
+[src/index.ts:93](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L93)
 
 ___
 
@@ -666,9 +665,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:53](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L53)
+[src/index.ts:41](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L41)
 
-[src/index.ts:128](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L128)
+[src/index.ts:103](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L103)
 
 ___
 
@@ -678,9 +677,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:52](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L52)
+[src/index.ts:40](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L40)
 
-[src/index.ts:131](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L131)
+[src/index.ts:106](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L106)
 
 ___
 
@@ -690,9 +689,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:48](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L48)
+[src/index.ts:36](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L36)
 
-[src/index.ts:119](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L119)
+[src/index.ts:94](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L94)
 
 ___
 
@@ -702,9 +701,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:54](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L54)
+[src/index.ts:42](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L42)
 
-[src/index.ts:132](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L132)
+[src/index.ts:107](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L107)
 
 ___
 
@@ -714,9 +713,9 @@ ___
 
 #### Defined in
 
-[src/index.ts:55](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L55)
+[src/index.ts:43](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L43)
 
-[src/index.ts:133](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L133)
+[src/index.ts:108](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L108)
 
 ___
 
@@ -726,7 +725,7 @@ ___
 
 #### Defined in
 
-[src/config.ts:90](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/config.ts#L90)
+[src/config.ts:90](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/config.ts#L90)
 
 ___
 
@@ -736,7 +735,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:33](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L33)
+[src/index.ts:26](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L26)
 
 ___
 
@@ -746,7 +745,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:31](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L31)
+[src/index.ts:24](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L24)
 
 ___
 
@@ -756,7 +755,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:32](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L32)
+[src/index.ts:25](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L25)
 
 ___
 
@@ -766,7 +765,7 @@ ___
 
 #### Defined in
 
-[src/index.ts:35](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/index.ts#L35)
+[src/index.ts:27](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/index.ts#L27)
 
 ## Functions
 
@@ -821,7 +820,7 @@ maplibre.addProtocol('custom2', (params, callback) => {
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:12026
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:12068
 
 ___
 
@@ -835,48 +834,7 @@ ___
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11814
-
-___
-
-### clearStorage
-
-▸ **clearStorage**(`callback?`): `void`
-
-Clears browser storage used by this library. Using this method flushes the MapLibre tile
-cache that is managed by this library. Tiles may still be cached by the browser
-in some cases.
-
-This API is supported on browsers where the [`Cache` API](https://developer.mozilla.org/en-US/docs/Web/API/Cache)
-is supported and enabled. This includes all major browsers when pages are served over
-`https://`, except Internet Explorer and Edge Mobile.
-
-When called in unsupported browsers or environments (private or incognito mode), the
-callback will be called with an error argument.
-
-**`Function`**
-
-clearStorage
-
-**`Example`**
-
-```ts
-maplibregl.clearStorage();
-```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `callback?` | (`err?`: `Error`) => `void` | Called with an error argument if there is an error. |
-
-#### Returns
-
-`void`
-
-#### Defined in
-
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11991
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11873
 
 ___
 
@@ -890,7 +848,7 @@ ___
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11884
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11943
 
 ___
 
@@ -904,7 +862,7 @@ ___
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11813
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11872
 
 ___
 
@@ -936,7 +894,7 @@ maplibregl.removeProtocol('custom');
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:12035
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:12077
 
 ___
 
@@ -958,7 +916,7 @@ ___
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11883
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11942
 
 ___
 

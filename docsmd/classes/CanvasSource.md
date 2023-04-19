@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.9](../README.md) / CanvasSource
+[MapTiler SDK - v1.0.10](../README.md) / CanvasSource
 
 # Class: CanvasSource
 
@@ -36,4 +36,4 @@ maplibregl.CanvasSource.onAdd
 
 #### Defined in
 
-[src/CanvasSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/CanvasSource.ts#L10)
+[src/CanvasSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/CanvasSource.ts#L10)

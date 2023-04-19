@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.9](../README.md) / GeoJSONSource
+[MapTiler SDK - v1.0.10](../README.md) / GeoJSONSource
 
 # Class: GeoJSONSource
 
@@ -36,4 +36,4 @@ maplibregl.GeoJSONSource.onAdd
 
 #### Defined in
 
-[src/GeoJSONSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/GeoJSONSource.ts#L10)
+[src/GeoJSONSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/GeoJSONSource.ts#L10)

@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.9](../README.md) / ScaleControl
+[MapTiler SDK - v1.0.10](../README.md) / ScaleControl
 
 # Class: ScaleControl
 
@@ -36,7 +36,7 @@ maplibregl.ScaleControl.constructor
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11766
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11825
 
 ## Methods
 
@@ -60,4 +60,4 @@ maplibregl.ScaleControl.onAdd
 
 #### Defined in
 
-[src/ScaleControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/ScaleControl.ts#L10)
+[src/ScaleControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/ScaleControl.ts#L10)

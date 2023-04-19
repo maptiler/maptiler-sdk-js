@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.9](../README.md) / GeolocateControl
+[MapTiler SDK - v1.0.10](../README.md) / GeolocateControl
 
 # Class: GeolocateControl
 
@@ -38,7 +38,7 @@ maplibregl.GeolocateControl.constructor
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11658
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11717
 
 ## Methods
 
@@ -62,4 +62,4 @@ maplibregl.GeolocateControl.onAdd
 
 #### Defined in
 
-[src/GeolocateControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/GeolocateControl.ts#L10)
+[src/GeolocateControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/GeolocateControl.ts#L10)

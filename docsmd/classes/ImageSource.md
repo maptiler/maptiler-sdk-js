@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.9](../README.md) / ImageSource
+[MapTiler SDK - v1.0.10](../README.md) / ImageSource
 
 # Class: ImageSource
 
@@ -36,4 +36,4 @@ maplibregl.ImageSource.onAdd
 
 #### Defined in
 
-[src/ImageSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/ImageSource.ts#L10)
+[src/ImageSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/ImageSource.ts#L10)

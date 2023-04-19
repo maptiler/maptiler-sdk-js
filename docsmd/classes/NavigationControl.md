@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.9](../README.md) / NavigationControl
+[MapTiler SDK - v1.0.10](../README.md) / NavigationControl
 
 # Class: NavigationControl
 
@@ -36,7 +36,7 @@ maplibregl.NavigationControl.constructor
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11208
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11267
 
 ## Methods
 
@@ -60,4 +60,4 @@ maplibregl.NavigationControl.onAdd
 
 #### Defined in
 
-[src/NavigationControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/NavigationControl.ts#L10)
+[src/NavigationControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/NavigationControl.ts#L10)

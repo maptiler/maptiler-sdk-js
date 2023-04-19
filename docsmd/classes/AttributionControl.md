@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.9](../README.md) / AttributionControl
+[MapTiler SDK - v1.0.10](../README.md) / AttributionControl
 
 # Class: AttributionControl
 
@@ -36,7 +36,7 @@ maplibregl.AttributionControl.constructor
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11732
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11791
 
 ## Methods
 
@@ -60,4 +60,4 @@ maplibregl.AttributionControl.onAdd
 
 #### Defined in
 
-[src/AttributionControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/AttributionControl.ts#L10)
+[src/AttributionControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/AttributionControl.ts#L10)

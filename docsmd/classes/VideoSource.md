@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.9](../README.md) / VideoSource
+[MapTiler SDK - v1.0.10](../README.md) / VideoSource
 
 # Class: VideoSource
 
@@ -36,4 +36,4 @@ maplibregl.VideoSource.onAdd
 
 #### Defined in
 
-[src/VideoSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/VideoSource.ts#L10)
+[src/VideoSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/VideoSource.ts#L10)

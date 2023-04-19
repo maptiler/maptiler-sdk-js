@@ -258,6 +258,8 @@ declare class Map extends maplibre_gl__default.Map {
     private terrainExaggeration;
     private primaryLanguage;
     private secondaryLanguage;
+    private terrainGrowing;
+    private terrainFlattening;
     constructor(options: MapOptions);
     /**
      * Update the style of the map.
@@ -320,8 +322,11 @@ declare class Map extends maplibre_gl__default.Map {
     disableTerrain(): void;
     /**
      * Sets the 3D terrain exageration factor.
-     * Note: this is only a shortcut to `.enableTerrain()`
+     * If the terrain was not enabled prior to the call of this method,
+     * the method `.enableTerrain()` will be called.
      * @param exaggeration
+     * @param animate. If `true`, the terrain transformation will be animated in the span of 1 second.
+     * If `false`, no animated transition to the newly defined exaggeration.
      */
     setTerrainExaggeration(exaggeration: number, animate?: boolean): void;
     /**
@@ -722,7 +727,6 @@ declare const clearPrewarmedResources: () => void;
 declare const version: string;
 declare const workerCount: number;
 declare const maxParallelImageRequests: number;
-declare const clearStorage: (callback?: (err?: Error) => void) => void;
 declare const workerUrl: string;
 declare const addProtocol: (customProtocol: string, loadFn: (requestParameters: maplibre_gl.RequestParameters, callback: maplibre_gl.ResponseCallback<any>) => maplibre_gl.Cancelable) => void;
 declare const removeProtocol: (customProtocol: string) => void;
@@ -774,4 +778,4 @@ declare type VideoSourceMLGL = InstanceType<typeof VideoSourceMLGL>;
 declare const MapMLGL: typeof maplibre_gl.Map;
 declare type MapMLGL = InstanceType<typeof MapMLGL>;
 
-export { AJAXError, AttributionControl, AttributionControlMLGL, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, FullscreenControlMLGL, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocateControlMLGL, GeolocationType, ImageSource, ImageSourceMLGL, Language, LanguageKey, LanguageString, LngLat, LngLatBounds, LogoControl, LogoControlMLGL, Map, MapMLGL, MapOptions, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, MarkerMLGL, Matrix2, MercatorCoordinate, NavigationControl, NavigationControlMLGL, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, ScaleControlMLGL, SdkConfig, Style, StyleMLGL, TerrainControl, TerrainControlMLGL, Unit, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, AttributionControlMLGL, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, FullscreenControlMLGL, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocateControlMLGL, GeolocationType, ImageSource, ImageSourceMLGL, Language, LanguageKey, LanguageString, LngLat, LngLatBounds, LogoControl, LogoControlMLGL, Map, MapMLGL, MapOptions, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, MarkerMLGL, Matrix2, MercatorCoordinate, NavigationControl, NavigationControlMLGL, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, ScaleControlMLGL, SdkConfig, Style, StyleMLGL, TerrainControl, TerrainControlMLGL, Unit, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };

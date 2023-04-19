@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.9](../README.md) / VectorTileSource
+[MapTiler SDK - v1.0.10](../README.md) / VectorTileSource
 
 # Class: VectorTileSource
 
@@ -39,7 +39,7 @@ maplibregl.VectorTileSource.constructor
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:3345
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:3355
 
 ## Methods
 
@@ -63,4 +63,4 @@ maplibregl.VectorTileSource.onAdd
 
 #### Defined in
 
-[src/VectorTileSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/VectorTileSource.ts#L10)
+[src/VectorTileSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/VectorTileSource.ts#L10)

@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.9](../README.md) / LogoControl
+[MapTiler SDK - v1.0.10](../README.md) / LogoControl
 
 # Class: LogoControl
 
@@ -38,7 +38,7 @@ maplibregl.LogoControl.constructor
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11751
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11810
 
 ## Methods
 
@@ -62,4 +62,4 @@ maplibregl.LogoControl.onAdd
 
 #### Defined in
 
-[src/LogoControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/LogoControl.ts#L10)
+[src/LogoControl.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/LogoControl.ts#L10)

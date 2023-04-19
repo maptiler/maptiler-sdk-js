@@ -1,4 +1,4 @@
-[MapTiler SDK - v1.0.9](../README.md) / RasterDEMTileSource
+[MapTiler SDK - v1.0.10](../README.md) / RasterDEMTileSource
 
 # Class: RasterDEMTileSource
 
@@ -39,7 +39,7 @@ maplibregl.RasterDEMTileSource.constructor
 
 #### Defined in
 
-node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11817
+node_modules/maplibre-gl/dist/maplibre-gl.d.ts:11876
 
 ## Methods
 
@@ -63,4 +63,4 @@ maplibregl.RasterDEMTileSource.onAdd
 
 #### Defined in
 
-[src/RasterDEMTileSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/e427428/src/RasterDEMTileSource.ts#L10)
+[src/RasterDEMTileSource.ts:10](https://github.com/maptiler/maptiler-sdk-js/blob/a5b1980/src/RasterDEMTileSource.ts#L10)
