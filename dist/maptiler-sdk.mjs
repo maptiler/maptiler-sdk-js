@@ -7,9 +7,21 @@ import { config as config$1, MapStyle, mapStylePresetList, expandMapStyle, MapSt
 export { LanguageGeocoding, MapStyle, MapStyleVariant, ReferenceMapStyle, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
 
 const Language = {
+  /**
+   * AUTO mode uses the language of the browser
+   */
   AUTO: "auto",
+  /**
+   * Default fallback languages that uses latin charaters
+   */
   LATIN: "latin",
+  /**
+   * Default fallback languages that uses non-latin charaters
+   */
   NON_LATIN: "nonlatin",
+  /**
+   * Labels are in their local language, when available
+   */
   LOCAL: "",
   ALBANIAN: "sq",
   AMHARIC: "am",
@@ -100,30 +112,68 @@ function getBrowserLanguage() {
 class SdkConfig extends EventEmitter {
   constructor() {
     super();
+    /**
+     * The primary language. By default, the language of the web browser is used.
+     */
     this.primaryLanguage = Language.AUTO;
+    /**
+     * The secondary language, to overwrite the default language defined in the map style.
+     * This settings is highly dependant on the style compatibility and may not work in most cases.
+     */
     this.secondaryLanguage = null;
+    /**
+     * Setting on whether of not the SDK runs with a session logic.
+     * A "session" is started at the initialization of the SDK and finished when the browser
+     * page is being refreshed.
+     * When `session` is enabled (default: true), the extra URL param `mtsid` is added to queries
+     * on the MapTiler Cloud API. This allows MapTiler to enable "session based billing".
+     */
     this.session = true;
+    /**
+     * Unit to be used
+     */
     this._unit = "metric";
+    /**
+     * MapTiler Cloud API key
+     */
     this._apiKey = "";
   }
+  /**
+   * Set the unit system
+   */
   set unit(u) {
     this._unit = u;
     this.emit("unit", u);
   }
+  /**
+   * Get the unit system
+   */
   get unit() {
     return this._unit;
   }
+  /**
+   * Set the MapTiler Cloud API key
+   */
   set apiKey(k) {
     this._apiKey = k;
     config$1.apiKey = k;
     this.emit("apiKey", k);
   }
+  /**
+   * Get the MapTiler Cloud API key
+   */
   get apiKey() {
     return this._apiKey;
   }
+  /**
+   * Set a the custom fetch function to replace the default one
+   */
   set fetch(f) {
     config$1.fetch = f;
   }
+  /**
+   * Get the fetch fucntion
+   */
   get fetch() {
     return config$1.fetch;
   }
@@ -196,6 +246,7 @@ function enableRTL() {
       defaults.rtlPluginURL,
       null,
       true
+      // Lazy load the plugin
     );
   }
 }
@@ -325,11 +376,17 @@ class MaptilerNavigationControl extends NavigationControl {
       }
     });
   }
+  /**
+   * Overloading: the button now stores its click callback so that we can later on delete it and replace it
+   */
   _createButton(className, fn) {
     const button = super._createButton(className, fn);
     button.clickFunction = fn;
     return button;
   }
+  /**
+   * Overloading: Limit how flat the compass icon can get
+   */
   _rotateCompassArrow() {
     const rotate = this.options.visualizePitch ? `scale(${Math.min(
       1.5,
@@ -371,6 +428,12 @@ class MaptilerGeolocateControl extends GeolocateControl {
     super(...arguments);
     this.lastUpdatedCenter = new LngLat$1(0, 0);
   }
+  /**
+   * Update the camera location to center on the current position
+   *
+   * @param {Position} position the Geolocation API Position
+   * @private
+   */
   _updateCamera(position) {
     const center = new LngLat$1(
       position.coords.longitude,
@@ -389,6 +452,7 @@ class MaptilerGeolocateControl extends GeolocateControl {
     }
     this._map.fitBounds(center.toBounds(radius), options, {
       geolocateSource: true
+      // tag this camera change so it won't cause the control to change to background state
     });
     let hasFittingBeenDisrupted = false;
     const flagFittingDisruption = () => {
@@ -572,7 +636,7 @@ const GeolocationType = {
 };
 class Map extends maplibregl__default.Map {
   constructor(options) {
-    var _a, _b;
+    var _a, _b, _c;
     if (options.apiKey) {
       config.apiKey = options.apiKey;
     }
@@ -614,8 +678,11 @@ class Map extends maplibregl__default.Map {
     this.terrainExaggeration = 1;
     this.primaryLanguage = null;
     this.secondaryLanguage = null;
+    this.terrainGrowing = false;
+    this.terrainFlattening = false;
     this.primaryLanguage = (_a = options.language) != null ? _a : config.primaryLanguage;
     this.secondaryLanguage = config.secondaryLanguage;
+    this.terrainExaggeration = (_b = options.terrainExaggeration) != null ? _b : this.terrainExaggeration;
     this.once("styledata", () => __async(this, null, function* () {
       if (!options.geolocate) {
         return;
@@ -646,6 +713,7 @@ class Map extends maplibregl__default.Map {
       });
       if (locationResult.state === "granted") {
         navigator.geolocation.getCurrentPosition(
+          // success callback
           (data) => {
             if (ipLocatedCameraHash !== this.getCameraHash()) {
               return;
@@ -656,10 +724,14 @@ class Map extends maplibregl__default.Map {
               duration: 2e3
             });
           },
+          // error callback
           null,
+          // options
           {
             maximumAge: 24 * 3600 * 1e3,
+            // a day in millisec
             timeout: 5e3,
+            // milliseconds
             enableHighAccuracy: false
           }
         );
@@ -720,6 +792,7 @@ class Map extends maplibregl__default.Map {
       if (options.geolocateControl !== false) {
         const position = options.geolocateControl === true || options.geolocateControl === void 0 ? "top-right" : options.geolocateControl;
         this.addControl(
+          // new maplibregl.GeolocateControl({
           new MaptilerGeolocateControl({
             positionOptions: {
               enableHighAccuracy: true,
@@ -747,19 +820,38 @@ class Map extends maplibregl__default.Map {
     }));
     if (options.terrain) {
       this.enableTerrain(
-        (_b = options.terrainExaggeration) != null ? _b : this.terrainExaggeration
+        (_c = options.terrainExaggeration) != null ? _c : this.terrainExaggeration
       );
     }
   }
+  /**
+   * Update the style of the map.
+   * Can be:
+   * - a full style URL (possibly with API key)
+   * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
+   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
+   * @param style
+   * @param options
+   * @returns
+   */
   setStyle(style, options) {
     return super.setStyle(styleToStyle(style), options);
   }
+  /**
+   * Define the primary language of the map. Note that not all the languages shorthands provided are available.
+   * This function is a short for `.setPrimaryLanguage()`
+   * @param language
+   */
   setLanguage(language = defaults.primaryLanguage) {
     if (language === Language.AUTO) {
       return this.setLanguage(getBrowserLanguage());
     }
     this.setPrimaryLanguage(language);
   }
+  /**
+   * Define the primary language of the map. Note that not all the languages shorthands provided are available.
+   * @param language
+   */
   setPrimaryLanguage(language = defaults.primaryLanguage) {
     if (!isLanguageSupported(language)) {
       return;
@@ -834,6 +926,11 @@ class Map extends maplibregl__default.Map {
       }
     });
   }
+  /**
+   * Define the secondary language of the map. Note that this is not supported by all the map styles
+   * Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)
+   * @param language
+   */
   setSecondaryLanguage(language = defaults.secondaryLanguage) {
     if (!isLanguageSupported(language)) {
       return;
@@ -898,38 +995,111 @@ class Map extends maplibregl__default.Map {
       }
     });
   }
+  /**
+   * Get the primary language
+   * @returns
+   */
   getPrimaryLanguage() {
     return this.primaryLanguage;
   }
+  /**
+   * Get the secondary language
+   * @returns
+   */
   getSecondaryLanguage() {
     return this.secondaryLanguage;
   }
+  /**
+   * Get the exaggeration factor applied to the terrain
+   * @returns
+   */
   getTerrainExaggeration() {
     return this.terrainExaggeration;
   }
+  /**
+   * Know if terrian is enabled or not
+   * @returns
+   */
   hasTerrain() {
     return this.isTerrainEnabled;
   }
+  growTerrain(exaggeration, durationMs = 1e3) {
+    if (!this.terrain) {
+      return;
+    }
+    const startTime = performance.now();
+    const currentExaggeration = this.terrain.exaggeration;
+    const deltaExaggeration = exaggeration - currentExaggeration;
+    const updateExaggeration = () => {
+      if (!this.terrain) {
+        return;
+      }
+      if (this.terrainFlattening) {
+        return;
+      }
+      const positionInLoop = (performance.now() - startTime) / durationMs;
+      if (positionInLoop < 0.99) {
+        const exaggerationFactor = 1 - Math.pow(1 - positionInLoop, 4);
+        const newExaggeration = currentExaggeration + exaggerationFactor * deltaExaggeration;
+        this.terrain.exaggeration = newExaggeration;
+        requestAnimationFrame(updateExaggeration);
+      } else {
+        this.terrainGrowing = false;
+        this.terrainFlattening = false;
+        this.terrain.exaggeration = exaggeration;
+      }
+      this.triggerRepaint();
+    };
+    this.terrainGrowing = true;
+    this.terrainFlattening = false;
+    requestAnimationFrame(updateExaggeration);
+  }
+  /**
+   * Enables the 3D terrain visualization
+   * @param exaggeration
+   * @returns
+   */
   enableTerrain(exaggeration = this.terrainExaggeration) {
     if (exaggeration < 0) {
       console.warn("Terrain exaggeration cannot be negative.");
       return;
     }
-    const terrainInfo = this.getTerrain();
+    const dataEventTerrainGrow = (evt) => __async(this, null, function* () {
+      if (!this.terrain) {
+        return;
+      }
+      if (evt.type !== "data" || evt.dataType !== "source" || !("source" in evt)) {
+        return;
+      }
+      if (evt.sourceId !== "maptiler-terrain") {
+        return;
+      }
+      const source = evt.source;
+      if (source.type !== "raster-dem") {
+        return;
+      }
+      if (!evt.isSourceLoaded) {
+        return;
+      }
+      this.off("data", dataEventTerrainGrow);
+      this.growTerrain(exaggeration);
+    });
     const addTerrain = () => {
       this.isTerrainEnabled = true;
       this.terrainExaggeration = exaggeration;
+      this.on("data", dataEventTerrainGrow);
       this.addSource(defaults.terrainSourceId, {
         type: "raster-dem",
         url: defaults.terrainSourceURL
       });
       this.setTerrain({
         source: defaults.terrainSourceId,
-        exaggeration
+        exaggeration: 0
       });
     };
-    if (terrainInfo) {
-      this.setTerrain(__spreadProps(__spreadValues({}, terrainInfo), { exaggeration }));
+    if (this.getTerrain()) {
+      this.isTerrainEnabled = true;
+      this.growTerrain(exaggeration);
       return;
     }
     if (this.loaded() || this.isTerrainEnabled) {
@@ -943,16 +1113,68 @@ class Map extends maplibregl__default.Map {
       });
     }
   }
+  /**
+   * Disable the 3D terrain visualization
+   */
   disableTerrain() {
+    if (!this.terrain) {
+      return;
+    }
     this.isTerrainEnabled = false;
-    this.setTerrain(null);
-    if (this.getSource(defaults.terrainSourceId)) {
-      this.removeSource(defaults.terrainSourceId);
+    const animationLoopDuration = 1 * 1e3;
+    const startTime = performance.now();
+    const currentExaggeration = this.terrain.exaggeration;
+    const updateExaggeration = () => {
+      if (!this.terrain) {
+        return;
+      }
+      if (this.terrainGrowing) {
+        return;
+      }
+      const positionInLoop = (performance.now() - startTime) / animationLoopDuration;
+      if (positionInLoop < 0.99) {
+        const exaggerationFactor = Math.pow(1 - positionInLoop, 4);
+        const newExaggeration = currentExaggeration * exaggerationFactor;
+        this.terrain.exaggeration = newExaggeration;
+        requestAnimationFrame(updateExaggeration);
+      } else {
+        this.terrain.exaggeration = 0;
+        this.terrainGrowing = false;
+        this.terrainFlattening = false;
+        this.setTerrain(null);
+        if (this.getSource(defaults.terrainSourceId)) {
+          this.removeSource(defaults.terrainSourceId);
+        }
+      }
+      this.triggerRepaint();
+    };
+    this.terrainGrowing = false;
+    this.terrainFlattening = true;
+    requestAnimationFrame(updateExaggeration);
+  }
+  /**
+   * Sets the 3D terrain exageration factor.
+   * If the terrain was not enabled prior to the call of this method,
+   * the method `.enableTerrain()` will be called.
+   * If `animate` is `true`, the terrain transformation will be animated in the span of 1 second.
+   * If `animate` is `false`, no animated transition to the newly defined exaggeration.
+   * @param exaggeration
+   * @param animate
+   */
+  setTerrainExaggeration(exaggeration, animate = true) {
+    if (!animate && this.terrain) {
+      this.terrainExaggeration = exaggeration;
+      this.terrain.exaggeration = exaggeration;
+      this.triggerRepaint();
+    } else {
+      this.enableTerrain(exaggeration);
     }
   }
-  setTerrainExaggeration(exaggeration) {
-    this.enableTerrain(exaggeration);
-  }
+  /**
+   * Perform an action when the style is ready. It could be at the moment of calling this method
+   * or later.
+   * @param cb
+   */
   onStyleReady(cb) {
     if (this.isStyleLoaded()) {
       cb();
@@ -993,9 +1215,20 @@ class Map extends maplibregl__default.Map {
     hashBin[4] = this.getBearing();
     return Base64.fromUint8Array(new Uint8Array(hashBin.buffer));
   }
+  /**
+   * Get the SDK config object.
+   * This is convenient to dispatch the SDK configuration to externally built layers
+   * that do not directly have access to the SDK configuration but do have access to a Map instance.
+   * @returns
+   */
   getSdkConfig() {
     return config;
   }
+  /**
+   * Get the MapTiler session ID. Convenient to dispatch to externaly built component
+   * that do not directly have access to the SDK configuration but do have access to a Map instance.
+   * @returns
+   */
   getMaptilerSessionId() {
     return MAPTILER_SESSION_ID;
   }
@@ -1142,71 +1375,205 @@ class Point {
     this.y = Math.round(this.y);
     return this;
   }
+  /**
+   * Clone this point, returning a new point that can be modified
+   * without affecting the old one.
+   * @return {Point} the clone
+   */
   clone() {
     return new Point(this.x, this.y);
   }
+  /**
+   * Add this point's x & y coordinates to another point,
+   * yielding a new point.
+   * @param {Point} p the other point
+   * @return {Point} output point
+   */
   add(p) {
     return this.clone()._add(p);
   }
+  /**
+   * Subtract this point's x & y coordinates to from point,
+   * yielding a new point.
+   * @param {Point} p the other point
+   * @return {Point} output point
+   */
   sub(p) {
     return this.clone()._sub(p);
   }
+  /**
+   * Multiply this point's x & y coordinates by point,
+   * yielding a new point.
+   * @param {Point} p the other point
+   * @return {Point} output point
+   */
   multByPoint(p) {
     return this.clone()._multByPoint(p);
   }
+  /**
+   * Divide this point's x & y coordinates by point,
+   * yielding a new point.
+   * @param {Point} p the other point
+   * @return {Point} output point
+   */
   divByPoint(p) {
     return this.clone()._divByPoint(p);
   }
+  /**
+   * Multiply this point's x & y coordinates by a factor,
+   * yielding a new point.
+   * @param {Number} k factor
+   * @return {Point} output point
+   */
   mult(k) {
     return this.clone()._mult(k);
   }
+  /**
+   * Divide this point's x & y coordinates by a factor,
+   * yielding a new point.
+   * @param {Point} k factor
+   * @return {Point} output point
+   */
   div(k) {
     return this.clone()._div(k);
   }
+  /**
+   * Rotate this point around the 0, 0 origin by an angle a,
+   * given in radians
+   * @param {Number} a angle to rotate around, in radians
+   * @return {Point} output point
+   */
   rotate(a) {
     return this.clone()._rotate(a);
   }
+  /**
+   * Rotate this point around p point by an angle a,
+   * given in radians
+   * @param {Number} a angle to rotate around, in radians
+   * @param {Point} p Point to rotate around
+   * @return {Point} output point
+   */
   rotateAround(a, p) {
     return this.clone()._rotateAround(a, p);
   }
+  /**
+   * Multiply this point by a 4x1 transformation matrix
+   * @param {Array<Number>} m transformation matrix
+   * @return {Point} output point
+   */
   matMult(m) {
     return this.clone()._matMult(m);
   }
+  /**
+   * Calculate this point but as a unit vector from 0, 0, meaning
+   * that the distance from the resulting point to the 0, 0
+   * coordinate will be equal to 1 and the angle from the resulting
+   * point to the 0, 0 coordinate will be the same as before.
+   * @return {Point} unit vector point
+   */
   unit() {
     return this.clone()._unit();
   }
+  /**
+   * Compute a perpendicular point, where the new y coordinate
+   * is the old x coordinate and the new x coordinate is the old y
+   * coordinate multiplied by -1
+   * @return {Point} perpendicular point
+   */
   perp() {
     return this.clone()._perp();
   }
+  /**
+   * Return a version of this point with the x & y coordinates
+   * rounded to integers.
+   * @return {Point} rounded point
+   */
   round() {
     return this.clone()._round();
   }
+  /**
+   * Return the magnitude of this point: this is the Euclidean
+   * distance from the 0, 0 coordinate to this point's x and y
+   * coordinates.
+   * @return {Number} magnitude
+   */
   mag() {
     return Math.sqrt(this.x * this.x + this.y * this.y);
   }
+  /**
+   * Judge whether this point is equal to another point, returning
+   * true or false.
+   * @param {Point} other the other point
+   * @return {boolean} whether the points are equal
+   */
   equals(other) {
     return this.x === other.x && this.y === other.y;
   }
+  /**
+   * Calculate the distance from this point to another point
+   * @param {Point} p the other point
+   * @return {Number} distance
+   */
   dist(p) {
     return Math.sqrt(this.distSqr(p));
   }
+  /**
+   * Calculate the distance from this point to another point,
+   * without the square root step. Useful if you're comparing
+   * relative distances.
+   * @param {Point} p the other point
+   * @return {Number} distance
+   */
   distSqr(p) {
     const dx = p.x - this.x;
     const dy = p.y - this.y;
     return dx * dx + dy * dy;
   }
+  /**
+   * Get the angle from the 0, 0 coordinate to this point, in radians
+   * coordinates.
+   * @return {Number} angle
+   */
   angle() {
     return Math.atan2(this.y, this.x);
   }
+  /**
+   * Get the angle from this point to another point, in radians
+   * @param {Point} b the other point
+   * @return {Number} angle
+   */
   angleTo(b) {
     return Math.atan2(this.y - b.y, this.x - b.x);
   }
+  /**
+   * Get the angle between this point and another point, in radians
+   * @param {Point} b the other point
+   * @return {Number} angle
+   */
   angleWith(b) {
     return this.angleWithSep(b.x, b.y);
   }
+  /*
+   * Find the angle of the two vectors, solving the formula for
+   * the cross product a x b = |a||b|sin(θ) for θ.
+   * @param {Number} x the x-coordinate
+   * @param {Number} y the y-coordinate
+   * @return {Number} the angle in radians
+   */
   angleWithSep(x, y) {
     return Math.atan2(this.x * y - this.y * x, this.x * x + this.y * y);
   }
+  /**
+   * Construct a point from an array if necessary, otherwise if the input
+   * is already a Point, or an unknown type, return it unchanged
+   * @param {Array<number> | Point} a any kind of input value
+   * @return {Point} constructed point, or passed-through value.
+   * @example
+   * // this
+   * var point = Point.convert([0, 1]);
+   * // is equivalent to
+   * var point = new Point(0, 1);
+   */
   static convert(a) {
     if (a instanceof Point) {
       return a;
@@ -1232,7 +1599,6 @@ const {
   version,
   workerCount,
   maxParallelImageRequests,
-  clearStorage,
   workerUrl,
   addProtocol,
   removeProtocol
@@ -1256,5 +1622,5 @@ maplibregl__default.ScaleControl;
 maplibregl__default.FullscreenControl;
 maplibregl__default.TerrainControl;
 
-export { AJAXError, AttributionControl, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocationType, ImageSource, ImageSourceMLGL, Language, LngLat, LngLatBounds, LogoControl, Map, MapMLGL, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, MarkerMLGL, MercatorCoordinate, NavigationControl, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, SdkConfig, Style, StyleMLGL, TerrainControl, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, clearStorage, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocationType, ImageSource, ImageSourceMLGL, Language, LngLat, LngLatBounds, LogoControl, Map, MapMLGL, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, MarkerMLGL, MercatorCoordinate, NavigationControl, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, SdkConfig, Style, StyleMLGL, TerrainControl, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
 //# sourceMappingURL=maptiler-sdk.mjs.map

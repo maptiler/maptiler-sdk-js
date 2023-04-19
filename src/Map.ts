@@ -5,6 +5,9 @@ import type {
   MapOptions as MapOptionsML,
   ControlPosition,
   StyleOptions,
+  MapDataEvent,
+  Tile,
+  RasterDEMSourceSpecification,
 } from "maplibre-gl";
 import { v4 as uuidv4 } from "uuid";
 import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
@@ -27,6 +30,10 @@ import { AttributionControl } from "./AttributionControl";
 import { ScaleControl } from "./ScaleControl";
 import { FullscreenControl } from "./FullscreenControl";
 
+function sleepAsync(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 // StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
 export type TransformStyleFunction = (
   previous: StyleSpecification,
@@ -47,6 +54,13 @@ export const GeolocationType: {
   POINT: "POINT",
   COUNTRY: "COUNTRY",
 } as const;
+
+type MapTerrainDataEvent = MapDataEvent & {
+  isSourceLoaded: boolean;
+  tile: Tile;
+  sourceId: string;
+  source: RasterDEMSourceSpecification;
+};
 
 /**
  * Options to provide to the `Map` constructor
@@ -132,7 +146,7 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    *
    * Default: `false`
    */
-  geolocate?: typeof GeolocationType[keyof typeof GeolocationType] | boolean;
+  geolocate?: (typeof GeolocationType)[keyof typeof GeolocationType] | boolean;
 };
 
 /**
@@ -143,6 +157,8 @@ export class Map extends maplibregl.Map {
   private terrainExaggeration = 1;
   private primaryLanguage: LanguageString | null = null;
   private secondaryLanguage: LanguageString | null = null;
+  private terrainGrowing = false;
+  private terrainFlattening = false;
 
   constructor(options: MapOptions) {
     if (options.apiKey) {
@@ -198,6 +214,8 @@ export class Map extends maplibregl.Map {
 
     this.primaryLanguage = options.language ?? config.primaryLanguage;
     this.secondaryLanguage = config.secondaryLanguage;
+    this.terrainExaggeration =
+      options.terrainExaggeration ?? this.terrainExaggeration;
 
     // Map centering and geolocation
     this.once("styledata", async () => {
@@ -789,6 +807,53 @@ export class Map extends maplibregl.Map {
     return this.isTerrainEnabled;
   }
 
+  private growTerrain(exaggeration, durationMs = 1000) {
+    // This method assumes the terrain is already built
+    if (!this.terrain) {
+      return;
+    }
+
+    const startTime = performance.now();
+    // This is supposedly 0, but it could be something else (e.g. already in the middle of growing, or user defined other)
+    const currentExaggeration = this.terrain.exaggeration;
+    const deltaExaggeration = exaggeration - currentExaggeration;
+
+    // This is again called in a requestAnimationFrame ~loop, until the terrain has grown enough
+    // that it has reached the target
+    const updateExaggeration = () => {
+      if (!this.terrain) {
+        return;
+      }
+
+      // If the flattening animation is triggered while the growing animation
+      // is running, then the flattening animation is stopped
+      if (this.terrainFlattening) {
+        return;
+      }
+
+      // normalized value in interval [0, 1] of where we are currently in the animation loop
+      const positionInLoop = (performance.now() - startTime) / durationMs;
+
+      // The animation goes on until we reached 99% of the growing sequence duration
+      if (positionInLoop < 0.99) {
+        const exaggerationFactor = 1 - Math.pow(1 - positionInLoop, 4);
+        const newExaggeration =
+          currentExaggeration + exaggerationFactor * deltaExaggeration;
+        this.terrain.exaggeration = newExaggeration;
+        requestAnimationFrame(updateExaggeration);
+      } else {
+        this.terrainGrowing = false;
+        this.terrainFlattening = false;
+        this.terrain.exaggeration = exaggeration;
+      }
+      this.triggerRepaint();
+    };
+
+    this.terrainGrowing = true;
+    this.terrainFlattening = false;
+    requestAnimationFrame(updateExaggeration);
+  }
+
   /**
    * Enables the 3D terrain visualization
    * @param exaggeration
@@ -800,27 +865,72 @@ export class Map extends maplibregl.Map {
       return;
     }
 
-    const terrainInfo = this.getTerrain();
+    // This function is mapped to a map "data" event. It checks that the terrain
+    // tiles are loaded and when so, it starts an animation to make the terrain grow
+    const dataEventTerrainGrow = async (evt: MapTerrainDataEvent) => {
+      if (!this.terrain) {
+        return;
+      }
 
+      if (
+        evt.type !== "data" ||
+        evt.dataType !== "source" ||
+        !("source" in evt)
+      ) {
+        return;
+      }
+
+      if (evt.sourceId !== "maptiler-terrain") {
+        return;
+      }
+
+      const source = evt.source;
+
+      if (source.type !== "raster-dem") {
+        return;
+      }
+
+      if (!evt.isSourceLoaded) {
+        return;
+      }
+
+      // We shut this event off because we want it to happen only once.
+      // Yet, we cannot use the "once" method because only the last event of the series
+      // has `isSourceLoaded` true
+      this.off("data", dataEventTerrainGrow);
+
+      this.growTerrain(exaggeration);
+    };
+
+    // This is put into a function so that it can be called regardless
+    // of the loading state of _this_ the map instance
     const addTerrain = () => {
       // When style is changed,
       this.isTerrainEnabled = true;
       this.terrainExaggeration = exaggeration;
 
+      // Mapping it to the "data" event so that we can check that the terrain
+      // growing starts only when terrain tiles are loaded (to reduce glitching)
+      this.on("data", dataEventTerrainGrow);
+
       this.addSource(defaults.terrainSourceId, {
         type: "raster-dem",
         url: defaults.terrainSourceURL,
       });
+
+      // Setting up the terrain with a 0 exaggeration factor
+      // so it loads ~seamlessly and then can grow from there
       this.setTerrain({
         source: defaults.terrainSourceId,
-        exaggeration: exaggeration,
+        exaggeration: 0,
       });
     };
 
     // The terrain has already been loaded,
     // we just update the exaggeration.
-    if (terrainInfo) {
-      this.setTerrain({ ...terrainInfo, exaggeration });
+    if (this.getTerrain()) {
+      this.isTerrainEnabled = true;
+      this.growTerrain(exaggeration);
       return;
     }
 
@@ -840,43 +950,79 @@ export class Map extends maplibregl.Map {
    * Disable the 3D terrain visualization
    */
   disableTerrain() {
-    this.isTerrainEnabled = false;
-    this.setTerrain(null);
-    if (this.getSource(defaults.terrainSourceId)) {
-      this.removeSource(defaults.terrainSourceId);
+    // It could be disabled already
+    if (!this.terrain) {
+      return;
     }
+
+    this.isTerrainEnabled = false;
+    // this.stopFlattening = false;
+
+    // Duration of the animation in millisec
+    const animationLoopDuration = 1 * 1000;
+    const startTime = performance.now();
+    // This is supposedly 0, but it could be something else (e.g. already in the middle of growing, or user defined other)
+    const currentExaggeration = this.terrain.exaggeration;
+
+    // This is again called in a requestAnimationFrame ~loop, until the terrain has grown enough
+    // that it has reached the target
+    const updateExaggeration = () => {
+      if (!this.terrain) {
+        return;
+      }
+
+      // If the growing animation is triggered while flattening,
+      // then we exist the flatening
+      if (this.terrainGrowing) {
+        return;
+      }
+
+      // normalized value in interval [0, 1] of where we are currently in the animation loop
+      const positionInLoop =
+        (performance.now() - startTime) / animationLoopDuration;
+
+      // The animation goes on until we reached 99% of the growing sequence duration
+      if (positionInLoop < 0.99) {
+        const exaggerationFactor = Math.pow(1 - positionInLoop, 4);
+        const newExaggeration = currentExaggeration * exaggerationFactor;
+        this.terrain.exaggeration = newExaggeration;
+        requestAnimationFrame(updateExaggeration);
+      } else {
+        this.terrain.exaggeration = 0;
+        this.terrainGrowing = false;
+        this.terrainFlattening = false;
+        this.setTerrain(null);
+        if (this.getSource(defaults.terrainSourceId)) {
+          this.removeSource(defaults.terrainSourceId);
+        }
+      }
+
+      this.triggerRepaint();
+    };
+
+    this.terrainGrowing = false;
+    this.terrainFlattening = true;
+    requestAnimationFrame(updateExaggeration);
   }
 
   /**
    * Sets the 3D terrain exageration factor.
-   * Note: this is only a shortcut to `.enableTerrain()`
+   * If the terrain was not enabled prior to the call of this method,
+   * the method `.enableTerrain()` will be called.
+   * If `animate` is `true`, the terrain transformation will be animated in the span of 1 second.
+   * If `animate` is `false`, no animated transition to the newly defined exaggeration.
    * @param exaggeration
+   * @param animate
    */
-  setTerrainExaggeration(exaggeration: number) {
-    this.enableTerrain(exaggeration);
+  setTerrainExaggeration(exaggeration: number, animate = true) {
+    if (!animate && this.terrain) {
+      this.terrainExaggeration = exaggeration;
+      this.terrain.exaggeration = exaggeration;
+      this.triggerRepaint();
+    } else {
+      this.enableTerrain(exaggeration);
+    }
   }
-
-  // getLanguages() {
-  //   const layers = this.getStyle().layers;
-
-  //   for (let i = 0; i < layers.length; i += 1) {
-  //     const layer = layers[i];
-  //     const layout = layer.layout;
-
-  //     if (!layout) {
-  //       continue;
-  //     }
-
-  //     if (!layout["text-field"]) {
-  //       continue;
-  //     }
-
-  //     const textFieldLayoutProp = this.getLayoutProperty(
-  //       layer.id,
-  //       "text-field"
-  //     );
-  //   }
-  // }
 
   /**
    * Perform an action when the style is ready. It could be at the moment of calling this method
