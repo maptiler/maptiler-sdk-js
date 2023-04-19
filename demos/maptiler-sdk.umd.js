@@ -2474,10 +2474,8 @@
 	  }
 	  _toggleTerrain() {
 	    if (this._map.hasTerrain()) {
-	      console.log("button disables");
 	      this._map.disableTerrain();
 	    } else {
-	      console.log("button enables");
 	      this._map.enableTerrain();
 	    }
 	    this._updateTerrainIcon();
@@ -3180,22 +3178,18 @@
 	  }
 	  growTerrain(exaggeration, durationMs = 1e3) {
 	    if (!this.terrain) {
-	      console.log("DEBUG03");
 	      return;
 	    }
-	    console.log("DEBUG04");
 	    const startTime = performance.now();
 	    const currentExaggeration = this.terrain.exaggeration;
 	    const deltaExaggeration = exaggeration - currentExaggeration;
 	    const updateExaggeration = () => {
 	      if (!this.terrain) {
-	        console.log("DEBUG05");
 	        return;
 	      }
 	      if (this.terrainFlattening) {
 	        return;
 	      }
-	      console.log("growing");
 	      const positionInLoop = (performance.now() - startTime) / durationMs;
 	      if (positionInLoop < 0.99) {
 	        const exaggerationFactor = 1 - Math.pow(1 - positionInLoop, 4);
@@ -3245,7 +3239,6 @@
 	    });
 	    const addTerrain = () => {
 	      this.isTerrainEnabled = true;
-	      console.log("ENABLE!");
 	      this.terrainExaggeration = exaggeration;
 	      this.on("data", dataEventTerrainGrow);
 	      this.addSource(defaults.terrainSourceId, {
@@ -3258,7 +3251,6 @@
 	      });
 	    };
 	    if (this.getTerrain()) {
-	      console.log("DEBUG02");
 	      this.isTerrainEnabled = true;
 	      this.growTerrain(exaggeration);
 	      return;
@@ -3292,7 +3284,6 @@
 	      if (this.terrainGrowing) {
 	        return;
 	      }
-	      console.log("flatten");
 	      const positionInLoop = (performance.now() - startTime) / animationLoopDuration;
 	      if (positionInLoop < 0.99) {
 	        const exaggerationFactor = Math.pow(1 - positionInLoop, 4);

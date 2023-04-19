@@ -3,6 +3,7 @@
 - ADD terrain growing animation on enabling/disabling
 - VER updated from `maplibre-gl@3.0.0-pre.3` to `maplibre-gl@3.0.0-pre.4`
 - VER updated from `typedoc@0.23.21` to `typedoc@0.24.4`, which changes slightly the look of the reference documentation.
+- VER updated from `typescript@4.8.4` to `typescript@5.0.4`
 
 ## [v1.0.9](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.9)
 - FIX: if the geolocate option is missing from `Map` constructor, then it's considered `false`

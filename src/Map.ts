@@ -810,13 +810,8 @@ export class Map extends maplibregl.Map {
   private growTerrain(exaggeration, durationMs = 1000) {
     // This method assumes the terrain is already built
     if (!this.terrain) {
-      console.log("DEBUG03");
       return;
     }
-
-    console.log("DEBUG04");
-
-    // this.stopFlattening = true;
 
     const startTime = performance.now();
     // This is supposedly 0, but it could be something else (e.g. already in the middle of growing, or user defined other)
@@ -827,7 +822,6 @@ export class Map extends maplibregl.Map {
     // that it has reached the target
     const updateExaggeration = () => {
       if (!this.terrain) {
-        console.log("DEBUG05");
         return;
       }
 
@@ -836,8 +830,6 @@ export class Map extends maplibregl.Map {
       if (this.terrainFlattening) {
         return;
       }
-
-      console.log("growing");
 
       // normalized value in interval [0, 1] of where we are currently in the animation loop
       const positionInLoop = (performance.now() - startTime) / durationMs;
@@ -915,8 +907,6 @@ export class Map extends maplibregl.Map {
     const addTerrain = () => {
       // When style is changed,
       this.isTerrainEnabled = true;
-      console.log("ENABLE!");
-
       this.terrainExaggeration = exaggeration;
 
       // Mapping it to the "data" event so that we can check that the terrain
@@ -939,7 +929,6 @@ export class Map extends maplibregl.Map {
     // The terrain has already been loaded,
     // we just update the exaggeration.
     if (this.getTerrain()) {
-      console.log("DEBUG02");
       this.isTerrainEnabled = true;
       this.growTerrain(exaggeration);
       return;
@@ -987,8 +976,6 @@ export class Map extends maplibregl.Map {
       if (this.terrainGrowing) {
         return;
       }
-
-      console.log("flatten");
 
       // normalized value in interval [0, 1] of where we are currently in the animation loop
       const positionInLoop =
