@@ -396,13 +396,13 @@ Since the SDK is fully compatible with MapLibre, [all these events](https://mapl
 The `loadWithTerrain` event is triggered only *once* in a `Map` instance lifecycle, when both the `load` event and the `terrain` event **with non-null terrain** are fired. 
 
 **Why a new event?**
-When a map is instanciated with the option `terrain: true`, then MapTiler terrain is directly added to it and some animation functions such as `.flyTo()` or `.easeTo()` if started straight after the map initialization will actaully need to wait a few milliseconds that the terrain is properly initialized before running.  
-Relying on the `load` event to run an animation with a map with terrain may fail because in some cases for this reason and this is why waiting for `loadWithTerrain` is safer in this particular situation.
+When a map is instanciated with the option `terrain: true`, then MapTiler terrain is directly added to it and some animation functions such as `.flyTo()` or `.easeTo()` if started straight after the map initialization will actually need to wait a few milliseconds that the terrain is properly initialized before running.  
+Relying on the `load` event to run an animation with a map with terrain may fail in some cases for this reason, and this is why waiting for `loadWithTerrain` is safer in this particular situation.
 
-## Lifecycle Method
-The events `load` and `loadWithTerrain` are both called at most once and require a callback function to add more elements such as markers, layers, popups and data sources. Even though MapTiler SDK fully supports this logic, we have added a *promise* logic to provide a more linear and less nested way to wait for a Map instance to be ready. Let's compare the two ways:
+## Lifecycle Methods
+The events `load` and `loadWithTerrain` are both called *at most once* and require a callback function to add more elements such as markers, layers, popups and data sources. Even though MapTiler SDK fully supports this logic, we have also included a *promise* logic to provide a more linear and less nested way to wait for a Map instance to be ready. Let's compare the two ways:
 
-- With a callback on the `load` event:
+- Classic: with a callback on the `load` event:
 ```ts
 function init() {
 
@@ -413,7 +413,7 @@ function init() {
   });
 
   // We wait for the event.
-  // Once triggered, the callback is ran.
+  // Once triggered, the callback is ranin it's own scope.
   map.on("load", (evt) => {
     // Adding a data source
     map.addSource('my-gps-track-source', {
@@ -424,7 +424,7 @@ function init() {
 }
 ```
 
-- With a promise returned by the method `.onLoadAsync()`, used in an `async` function:
+- Modern: with a promise returned by the method `.onLoadAsync()`, used in an `async` function:
 ```ts
 async function init() {
 
@@ -447,7 +447,7 @@ async function init() {
 ```
 
 We deployed exactely the same logic for the `loadWithTerrain` event. Let's see how they two ways compares.
-- With a callback on the `loadWithTerrain` event:
+- Classic: with a callback on the `loadWithTerrain` event:
 ```ts
 function init() {
 
@@ -459,7 +459,7 @@ function init() {
   });
 
   // We wait for the event.
-  // Once triggered, the callback is ran.
+  // Once triggered, the callback is ran in its own scope.
   map.on("loadWithTerrain", (evt) => {
     // make an animation
     map.flyTo({
@@ -470,7 +470,7 @@ function init() {
 }
 ```
 
-- With a promise returned by the method `.onLoadWithTerrainAsync()`, used in an `async` function:
+- Modern: with a promise returned by the method `.onLoadWithTerrainAsync()`, used in an `async` function:
 ```ts
 async function init() {
 
@@ -493,7 +493,9 @@ async function init() {
 }
 ```
 
-We believe that the *promise* approach is better because it does not nested scope and allows for a linear non-nested stream of execution. It's also corresponds to more modern development standards.
+We believe that the *promise* approach is better because it does not nest scopes and will allow for a linear non-nested stream of execution. It also corresponds to more modern development standards.
+
+> 📣 *__Note:__* Generally speaking, *promises* are not a go to replacement for all event+callback and are suitable only for events that are called only once in the lifecycle of a Map instance. This is the reason why we have decided to provide a *promise* equivalent only for the `load` and `loadWithTerrain` events.
 
 # Easy access to MapTiler Cloud API
 Our map SDK is not only about maps! We also provide plenty of wrapper to our API calls!
