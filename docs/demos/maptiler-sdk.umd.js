@@ -6,6 +6,10 @@
 
 	var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
+	function getDefaultExportFromCjs (x) {
+		return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+	}
+
 	var maplibreGl = {exports: {}};
 
 	/* MapLibre GL JS is licensed under the 3-Clause BSD License. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v3.0.0-pre.4/LICENSE.txt */
@@ -53,7 +57,8 @@
 		
 	} (maplibreGl));
 
-	var maplibregl = maplibreGl.exports;
+	var maplibreGlExports = maplibreGl.exports;
+	var maplibregl = /*@__PURE__*/getDefaultExportFromCjs(maplibreGlExports);
 
 	/**
 	 *  base64.ts
@@ -869,6 +874,9 @@
 	    throw new TypeError('The "emitter" argument must be of type EventEmitter. Received type ' + typeof emitter);
 	  }
 	}
+
+	var eventsExports = events.exports;
+	var EventEmitter$1 = /*@__PURE__*/getDefaultExportFromCjs(eventsExports);
 
 	const Language = {
 	  /**
@@ -2262,7 +2270,7 @@
 	  automatic
 	};
 
-	class SdkConfig extends events.exports {
+	class SdkConfig extends EventEmitter$1 {
 	  constructor() {
 	    super();
 	    /**
@@ -2787,7 +2795,7 @@
 	  POINT: "POINT",
 	  COUNTRY: "COUNTRY"
 	};
-	class Map$1 extends maplibregl.Map {
+	let Map$1 = class Map extends maplibregl.Map {
 	  constructor(options) {
 	    var _a, _b, _c;
 	    if (options.apiKey) {
@@ -2871,11 +2879,21 @@
 	            if (ipLocatedCameraHash !== this.getCameraHash()) {
 	              return;
 	            }
-	            this.easeTo({
-	              center: [data.coords.longitude, data.coords.latitude],
-	              zoom: options.zoom || 12,
-	              duration: 2e3
-	            });
+	            if (this.terrain) {
+	              this.easeTo({
+	                center: [data.coords.longitude, data.coords.latitude],
+	                zoom: options.zoom || 12,
+	                duration: 2e3
+	              });
+	            } else {
+	              this.once("terrain", () => {
+	                this.easeTo({
+	                  center: [data.coords.longitude, data.coords.latitude],
+	                  zoom: options.zoom || 12,
+	                  duration: 2e3
+	                });
+	              });
+	            }
 	          },
 	          // error callback
 	          null,
@@ -2971,11 +2989,72 @@
 	        this.addControl(new FullscreenControl({}), position);
 	      }
 	    }));
+	    let loadEventTriggered = false;
+	    let terrainEventTriggered = false;
+	    let terrainEventData = null;
+	    this.once("load", (_) => {
+	      loadEventTriggered = true;
+	      if (terrainEventTriggered) {
+	        this.fire("loadWithTerrain", terrainEventData);
+	      }
+	    });
+	    const terrainCallback = (evt) => {
+	      if (!evt.terrain)
+	        return;
+	      terrainEventTriggered = true;
+	      terrainEventData = {
+	        type: "loadWithTerrain",
+	        target: this,
+	        terrain: evt.terrain
+	      };
+	      this.off("terrain", terrainCallback);
+	      if (loadEventTriggered) {
+	        this.fire("loadWithTerrain", terrainEventData);
+	      }
+	    };
+	    this.on("terrain", terrainCallback);
 	    if (options.terrain) {
 	      this.enableTerrain(
 	        (_c = options.terrainExaggeration) != null ? _c : this.terrainExaggeration
 	      );
 	    }
+	  }
+	  /**
+	   * Awaits for _this_ Map instance to be "loaded" and returns a Promise to the Map.
+	   * If _this_ Map instance is already loaded, the Promise is resolved directly,
+	   * otherwise, it is resolved as a result of the "load" event.
+	   * @returns
+	   */
+	  onLoadAsync() {
+	    return __async(this, null, function* () {
+	      return new Promise((resolve, reject) => {
+	        if (this.loaded()) {
+	          return resolve(this);
+	        }
+	        this.once("load", (_) => {
+	          resolve(this);
+	        });
+	      });
+	    });
+	  }
+	  /**
+	   * Awaits for _this_ Map instance to be "loaded" as well as with terrain being non-null for the first time
+	   * and returns a Promise to the Map.
+	   * If _this_ Map instance is already loaded with terrain, the Promise is resolved directly,
+	   * otherwise, it is resolved as a result of the "loadWithTerrain" event.
+	   * @returns
+	   */
+	  onLoadWithTerrainAsync() {
+	    return __async(this, null, function* () {
+	      return new Promise((resolve, reject) => {
+	        if (this.loaded() && this.terrain) {
+	          return resolve(this);
+	        }
+	        this.once("loadWithTerrain", (_) => {
+	          resolve(this);
+	        });
+	      });
+	    });
 	  }
 	  /**
 	   * Update the style of the map.
@@ -3385,7 +3464,7 @@
 	  getMaptilerSessionId() {
 	    return MAPTILER_SESSION_ID;
 	  }
-	}
+	};
 
 	class Marker extends maplibregl.Marker {
 	  addTo(map) {
@@ -3838,8 +3917,6 @@
 	exports.version = version;
 	exports.workerCount = workerCount;
 	exports.workerUrl = workerUrl;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 //# sourceMappingURL=maptiler-sdk.umd.js.map

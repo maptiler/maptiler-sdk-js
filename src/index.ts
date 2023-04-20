@@ -110,7 +110,7 @@ export type MapMLGL = InstanceType<typeof MapMLGL>;
 
 // SDK specific
 import { Map, GeolocationType } from "./Map";
-import type { MapOptions } from "./Map";
+import type { MapOptions, LoadWithTerrainEvent } from "./Map";
 
 import { Marker } from "./Marker";
 import { Popup } from "./Popup";
@@ -173,6 +173,7 @@ import type { Unit } from "./unit";
 // Exporting types
 export type {
   MapOptions,
+  LoadWithTerrainEvent,
   GeocodingOptions,
   BBox,
   Position,

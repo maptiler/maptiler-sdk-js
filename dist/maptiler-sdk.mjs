@@ -718,11 +718,21 @@ class Map extends maplibregl__default.Map {
             if (ipLocatedCameraHash !== this.getCameraHash()) {
               return;
             }
-            this.easeTo({
-              center: [data.coords.longitude, data.coords.latitude],
-              zoom: options.zoom || 12,
-              duration: 2e3
-            });
+            if (this.terrain) {
+              this.easeTo({
+                center: [data.coords.longitude, data.coords.latitude],
+                zoom: options.zoom || 12,
+                duration: 2e3
+              });
+            } else {
+              this.once("terrain", () => {
+                this.easeTo({
+                  center: [data.coords.longitude, data.coords.latitude],
+                  zoom: options.zoom || 12,
+                  duration: 2e3
+                });
+              });
+            }
           },
           // error callback
           null,
@@ -818,11 +828,72 @@ class Map extends maplibregl__default.Map {
         this.addControl(new FullscreenControl({}), position);
       }
     }));
+    let loadEventTriggered = false;
+    let terrainEventTriggered = false;
+    let terrainEventData = null;
+    this.once("load", (_) => {
+      loadEventTriggered = true;
+      if (terrainEventTriggered) {
+        this.fire("loadWithTerrain", terrainEventData);
+      }
+    });
+    const terrainCallback = (evt) => {
+      if (!evt.terrain)
+        return;
+      terrainEventTriggered = true;
+      terrainEventData = {
+        type: "loadWithTerrain",
+        target: this,
+        terrain: evt.terrain
+      };
+      this.off("terrain", terrainCallback);
+      if (loadEventTriggered) {
+        this.fire("loadWithTerrain", terrainEventData);
+      }
+    };
+    this.on("terrain", terrainCallback);
     if (options.terrain) {
       this.enableTerrain(
         (_c = options.terrainExaggeration) != null ? _c : this.terrainExaggeration
       );
     }
+  }
+  /**
+   * Awaits for _this_ Map instance to be "loaded" and returns a Promise to the Map.
+   * If _this_ Map instance is already loaded, the Promise is resolved directly,
+   * otherwise, it is resolved as a result of the "load" event.
+   * @returns
+   */
+  onLoadAsync() {
+    return __async(this, null, function* () {
+      return new Promise((resolve, reject) => {
+        if (this.loaded()) {
+          return resolve(this);
+        }
+        this.once("load", (_) => {
+          resolve(this);
+        });
+      });
+    });
+  }
+  /**
+   * Awaits for _this_ Map instance to be "loaded" as well as with terrain being non-null for the first time
+   * and returns a Promise to the Map.
+   * If _this_ Map instance is already loaded with terrain, the Promise is resolved directly,
+   * otherwise, it is resolved as a result of the "loadWithTerrain" event.
+   * @returns
+   */
+  onLoadWithTerrainAsync() {
+    return __async(this, null, function* () {
+      return new Promise((resolve, reject) => {
+        if (this.loaded() && this.terrain) {
+          return resolve(this);
+        }
+        this.once("loadWithTerrain", (_) => {
+          resolve(this);
+        });
+      });
+    });
   }
   /**
    * Update the style of the map.

@@ -1,9 +1,13 @@
 # Changelog
 ## [v1.0.10](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.10)
 - ADD terrain growing animation on enabling/disabling
+- ADD `Map` custom event `loadWithTerrain`
+- ADD `Map` lifecycle methods `.onLoadAsync()` and `.onLoadWithTerrainAsync()`
+- DOC readme section was added about the event an methods above
 - VER updated from `maplibre-gl@3.0.0-pre.3` to `maplibre-gl@3.0.0-pre.4`
 - VER updated from `typedoc@0.23.21` to `typedoc@0.24.4`, which changes slightly the look of the reference documentation.
 - VER updated from `typescript@4.8.4` to `typescript@5.0.4`
+- VER updated from `rollup@2.79.0` to `rollup@3.20.6` as well as all the Rollup plugins
 
 ## [v1.0.9](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.9)
 - FIX: if the geolocate option is missing from `Map` constructor, then it's considered `false`
