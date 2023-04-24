@@ -134,6 +134,7 @@ import { TerrainControl } from "./TerrainControl";
 import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
 import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
+import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
 
 // importing client functions to expose them as part of the SDK
 import type {
@@ -227,4 +228,5 @@ export {
   MaptilerGeolocateControl,
   MaptilerLogoControl,
   MaptilerTerrainControl,
+  MaptilerNavigationControl,
 };
