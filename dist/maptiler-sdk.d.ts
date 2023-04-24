@@ -206,7 +206,14 @@ type MapOptions = Omit<MapOptions$1, "style" | "maplibreLogo"> & {
      */
     apiKey?: string;
     /**
-     * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.
+     * Shows or hides the MapTiler logo in the bottom left corner.
+     *
+     * For paid plans:
+     * - `true` shows MapTiler logo
+     * - `false` hodes MapTiler logo
+     * - default: `false` (hide)
+     *
+     * For free plans: MapTiler logo always shows, regardless of the value.
      */
     maptilerLogo?: boolean;
     /**
