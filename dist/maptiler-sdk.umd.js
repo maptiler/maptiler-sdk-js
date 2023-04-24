@@ -3877,6 +3877,7 @@
 	exports.MapStyleVariant = MapStyleVariant;
 	exports.MaptilerGeolocateControl = MaptilerGeolocateControl;
 	exports.MaptilerLogoControl = MaptilerLogoControl;
+	exports.MaptilerNavigationControl = MaptilerNavigationControl;
 	exports.MaptilerTerrainControl = MaptilerTerrainControl;
 	exports.Marker = Marker;
 	exports.MarkerMLGL = MarkerMLGL;

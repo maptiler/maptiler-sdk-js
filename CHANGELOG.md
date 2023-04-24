@@ -1,4 +1,8 @@
 # Changelog
+## [v1.0.11](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.11)
+- DOC update for `Map`'s `option.maptilerLogo` that was a bit unclear
+- FIX now exporting `MaptilerNavigationControl`
+
 ## [v1.0.10](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.10)
 - ADD terrain growing animation on enabling/disabling
 - ADD `Map` custom event `loadWithTerrain`

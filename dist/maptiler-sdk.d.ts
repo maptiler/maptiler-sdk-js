@@ -206,7 +206,14 @@ type MapOptions = Omit<MapOptions$1, "style" | "maplibreLogo"> & {
      */
     apiKey?: string;
     /**
-     * Shows the MapTiler logo if `true`. Note that the logo is always displayed on free plan.
+     * Shows or hides the MapTiler logo in the bottom left corner.
+     *
+     * For paid plans:
+     * - `true` shows MapTiler logo
+     * - `false` hodes MapTiler logo
+     * - default: `false` (hide)
+     *
+     * For free plans: MapTiler logo always shows, regardless of the value.
      */
     maptilerLogo?: boolean;
     /**
@@ -563,6 +570,21 @@ declare class MaptilerTerrainControl implements maplibregl.IControl {
     _updateTerrainIcon(): void;
 }
 
+type HTMLButtonElementPlus = HTMLButtonElement & {
+    clickFunction: (e?: any) => unknown;
+};
+declare class MaptilerNavigationControl extends NavigationControl {
+    constructor();
+    /**
+     * Overloading: the button now stores its click callback so that we can later on delete it and replace it
+     */
+    _createButton(className: string, fn: (e?: any) => unknown): HTMLButtonElementPlus;
+    /**
+     * Overloading: Limit how flat the compass icon can get
+     */
+    _rotateCompassArrow(): void;
+}
+
 /**
  * This is TypeScript rewrite of the Point class to use instead of the version imported in MapLibre.
  * It also uses a class instead of prototypes.
@@ -802,4 +824,4 @@ type VideoSourceMLGL = InstanceType<typeof VideoSourceMLGL>;
 declare const MapMLGL: typeof maplibre_gl.Map;
 type MapMLGL = InstanceType<typeof MapMLGL>;
 
-export { AJAXError, AttributionControl, AttributionControlMLGL, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, FullscreenControlMLGL, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocateControlMLGL, GeolocationType, ImageSource, ImageSourceMLGL, Language, LanguageKey, LanguageString, LngLat, LngLatBounds, LoadWithTerrainEvent, LogoControl, LogoControlMLGL, Map, MapMLGL, MapOptions, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerTerrainControl, Marker, MarkerMLGL, Matrix2, MercatorCoordinate, NavigationControl, NavigationControlMLGL, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, ScaleControlMLGL, SdkConfig, Style, StyleMLGL, TerrainControl, TerrainControlMLGL, Unit, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, AttributionControlMLGL, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, FullscreenControlMLGL, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocateControlMLGL, GeolocationType, ImageSource, ImageSourceMLGL, Language, LanguageKey, LanguageString, LngLat, LngLatBounds, LoadWithTerrainEvent, LogoControl, LogoControlMLGL, Map, MapMLGL, MapOptions, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerNavigationControl, MaptilerTerrainControl, Marker, MarkerMLGL, Matrix2, MercatorCoordinate, NavigationControl, NavigationControlMLGL, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, ScaleControlMLGL, SdkConfig, Style, StyleMLGL, TerrainControl, TerrainControlMLGL, Unit, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
