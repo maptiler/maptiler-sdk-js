@@ -586,6 +586,13 @@ export class Map extends maplibregl.Map {
    * @param language
    */
   setPrimaryLanguage(language: LanguageString = defaults.primaryLanguage) {
+    if (this.primaryLanguage === Language.STYLE_LOCK) {
+      console.warn(
+        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag."
+      );
+      return;
+    }
+
     if (!isLanguageSupported(language as string)) {
       return;
     }
@@ -617,7 +624,7 @@ export class Map extends maplibregl.Map {
         "case",
         ["has", langStr],
         ["get", langStr],
-        ["get", "name:latin"],
+        ["get", "name"],
       ];
 
       for (let i = 0; i < layers.length; i += 1) {
@@ -751,6 +758,14 @@ export class Map extends maplibregl.Map {
    * @param language
    */
   setSecondaryLanguage(language: LanguageString = defaults.secondaryLanguage) {
+    // Using the lock flag as a primaty language also applies to the secondary
+    if (this.primaryLanguage === Language.STYLE_LOCK) {
+      console.warn(
+        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag."
+      );
+      return;
+    }
+
     if (!isLanguageSupported(language as string)) {
       return;
     }

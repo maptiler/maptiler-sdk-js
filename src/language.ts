@@ -8,6 +8,13 @@ const Language = {
   AUTO: "auto",
 
   /**
+   * STYLE is a custom flag to keep the language of the map as defined into the style.
+   * If STYLE is set in the constructor, then further modification of the language
+   * with `.setLanguage()` is not possible.
+   */
+  STYLE_LOCK: "style_lock",
+
+  /**
    * Default fallback languages that uses latin charaters
    */
   LATIN: "latin",

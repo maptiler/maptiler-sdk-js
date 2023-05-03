@@ -1,4 +1,8 @@
 # Changelog
+## [v1.0.12](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.12)
+- ADD a new language flag `Language.STYLE_LOCK` to force keep the language form the style and prevent any further update. Can be at a sigle map instance level (via constuctor option `language`) or via global config (`config.primaryLanguage`)
+- FIX the fallback language was `{name:latin}`, it is now replaced by `{name}`, which is for the local name (present by default for many places while `latin` is less frequent).
+
 ## [v1.0.11](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.11)
 - DOC update for `Map`'s `option.maptilerLogo` that was a bit unclear
 - FIX now exporting `MaptilerNavigationControl`

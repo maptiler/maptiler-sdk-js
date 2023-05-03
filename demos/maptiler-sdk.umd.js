@@ -884,6 +884,12 @@
 	   */
 	  AUTO: "auto",
 	  /**
+	   * STYLE is a custom flag to keep the language of the map as defined into the style.
+	   * If STYLE is set in the constructor, then further modification of the language
+	   * with `.setLanguage()` is not possible.
+	   */
+	  STYLE_LOCK: "style_lock",
+	  /**
 	   * Default fallback languages that uses latin charaters
 	   */
 	  LATIN: "latin",
@@ -3085,6 +3091,12 @@
 	   * @param language
 	   */
 	  setPrimaryLanguage(language = defaults.primaryLanguage) {
+	    if (this.primaryLanguage === Language.STYLE_LOCK) {
+	      console.warn(
+	        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag."
+	      );
+	      return;
+	    }
 	    if (!isLanguageSupported(language)) {
 	      return;
 	    }
@@ -3103,7 +3115,7 @@
 	        "case",
 	        ["has", langStr],
 	        ["get", langStr],
-	        ["get", "name:latin"]
+	        ["get", "name"]
 	      ];
 	      for (let i = 0; i < layers.length; i += 1) {
 	        const layer = layers[i];
@@ -3164,6 +3176,12 @@
 	   * @param language
 	   */
 	  setSecondaryLanguage(language = defaults.secondaryLanguage) {
+	    if (this.primaryLanguage === Language.STYLE_LOCK) {
+	      console.warn(
+	        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag."
+	      );
+	      return;
+	    }
 	    if (!isLanguageSupported(language)) {
 	      return;
 	    }
