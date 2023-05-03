@@ -3088,11 +3088,13 @@
 	    if (!isLanguageSupported(language)) {
 	      return;
 	    }
+	    console.log("debug");
 	    this.primaryLanguage = language;
 	    this.onStyleReady(() => {
 	      if (language === Language.AUTO) {
 	        return this.setPrimaryLanguage(getBrowserLanguage());
 	      }
+	      console.log("debug2");
 	      const layers = this.getStyle().layers;
 	      const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
 	      const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;

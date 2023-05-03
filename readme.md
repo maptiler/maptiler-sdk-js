@@ -1,5 +1,5 @@
-
 <p align="center">
+  <a href="https://docs.maptiler.com/sdk-js/">official page →</a><br>
   <img src="images/maptiler-sdk-logo.svg" width="400px">
 </p>
 
@@ -372,6 +372,7 @@ Again, it will only apply `ENGLISH` as the language of this specific map instanc
 
 The list of supported languages is built-in and can be found [here](src/language.ts). In addition, there are spacial language *flags*:
 - `Language.AUTO` **[DEFAULT]** uses the language defined in the web browser
+- `Language.STYLE_LOCK` to strictly use the language defined in the style. Prevents any further language update
 - `Language.LOCAL` uses the language local to each country
 - `Language.LATIN` uses a default with latin characters
 - `Language.NON_LATIN` uses a default with non-latin characters
