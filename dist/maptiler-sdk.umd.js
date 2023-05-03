@@ -3092,7 +3092,9 @@
 	   */
 	  setPrimaryLanguage(language = defaults.primaryLanguage) {
 	    if (this.primaryLanguage === Language.STYLE_LOCK) {
-	      console.warn("The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag.");
+	      console.warn(
+	        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag."
+	      );
 	      return;
 	    }
 	    if (!isLanguageSupported(language)) {
@@ -3113,7 +3115,7 @@
 	        "case",
 	        ["has", langStr],
 	        ["get", langStr],
-	        ["get", "name:latin"]
+	        ["get", "name"]
 	      ];
 	      for (let i = 0; i < layers.length; i += 1) {
 	        const layer = layers[i];
@@ -3175,7 +3177,9 @@
 	   */
 	  setSecondaryLanguage(language = defaults.secondaryLanguage) {
 	    if (this.primaryLanguage === Language.STYLE_LOCK) {
-	      console.warn("The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag.");
+	      console.warn(
+	        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag."
+	      );
 	      return;
 	    }
 	    if (!isLanguageSupported(language)) {

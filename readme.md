@@ -377,7 +377,7 @@ The list of supported languages is built-in and can be found [here](src/language
 - `Language.LATIN` uses a default with latin characters
 - `Language.NON_LATIN` uses a default with non-latin characters
 
-Whenever a label is not supported in the defined language, it falls back to `Language.LATIN`.
+Whenever a label is not supported in the defined language, it falls back to `Language.LOCAL`.
 
 Here is a sample of some compatible languages:
 ![](images/screenshots/multilang.gif)
