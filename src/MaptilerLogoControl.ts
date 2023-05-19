@@ -43,13 +43,10 @@ export class MaptilerLogoControl extends LogoControl {
     anchor.style.height = "30px";
 
     anchor.target = "_blank";
-    anchor.rel = "noopener nofollow";
+    anchor.rel = "noopener";
     anchor.href = this.linkURL;
-    anchor.setAttribute(
-      "aria-label",
-      this._map._getUIString("LogoControl.Title")
-    );
-    anchor.setAttribute("rel", "noopener nofollow");
+    anchor.setAttribute("aria-label", "MapTiler logo");
+    anchor.setAttribute("rel", "noopener");
     this._container.appendChild(anchor);
     this._container.style.display = "block";
 
