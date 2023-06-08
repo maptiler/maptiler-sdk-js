@@ -426,6 +426,7 @@ var __spreadValues$1 = (a, b) => {
 var __spreadProps$1 = (a, b) => __defProps$1(a, __getOwnPropDescs$1(b));
 const Marker$1 = maplibregl__default.Marker;
 const LngLat$1 = maplibregl__default.LngLat;
+const LngLatBounds$1 = maplibregl__default.LngLatBounds;
 class MaptilerGeolocateControl extends GeolocateControl {
   constructor() {
     super(...arguments);
@@ -453,7 +454,7 @@ class MaptilerGeolocateControl extends GeolocateControl {
     if (currentMapZoom > this.options.fitBoundsOptions.maxZoom) {
       options.zoom = currentMapZoom;
     }
-    this._map.fitBounds(center.toBounds(radius), options, {
+    this._map.fitBounds(LngLatBounds$1.fromLngLat(center, radius), options, {
       geolocateSource: true
       // tag this camera change so it won't cause the control to change to background state
     });
@@ -1672,7 +1673,7 @@ class Point {
 }
 
 const {
-  supported,
+  // supported,
   setRTLTextPlugin,
   getRTLTextPluginStatus,
   LngLat,
@@ -1708,5 +1709,5 @@ maplibregl__default.ScaleControl;
 maplibregl__default.FullscreenControl;
 maplibregl__default.TerrainControl;
 
-export { AJAXError, AttributionControl, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocationType, ImageSource, ImageSourceMLGL, Language, LngLat, LngLatBounds, LogoControl, Map, MapMLGL, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerNavigationControl, MaptilerTerrainControl, Marker, MarkerMLGL, MercatorCoordinate, NavigationControl, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, SdkConfig, Style, StyleMLGL, TerrainControl, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocationType, ImageSource, ImageSourceMLGL, Language, LngLat, LngLatBounds, LogoControl, Map, MapMLGL, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerNavigationControl, MaptilerTerrainControl, Marker, MarkerMLGL, MercatorCoordinate, NavigationControl, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, SdkConfig, Style, StyleMLGL, TerrainControl, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, version, workerCount, workerUrl };
 //# sourceMappingURL=maptiler-sdk.mjs.map

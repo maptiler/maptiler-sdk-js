@@ -1,7 +1,6 @@
 import * as maplibre_gl from 'maplibre-gl';
 import maplibre_gl__default, { MapOptions as MapOptions$1, StyleSpecification, ControlPosition, StyleOptions, Map as Map$1, LogoOptions as LogoOptions$1 } from 'maplibre-gl';
 export * from 'maplibre-gl';
-import * as _mapbox_mapbox_gl_supported from '@mapbox/mapbox-gl-supported';
 import { FetchFunction, ReferenceMapStyle, MapStyleVariant } from '@maptiler/client';
 export { AutomaticStaticMapOptions, BBox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, LanguageGeocoding, LanguageGeocodingString, MapStyle, MapStyleType, MapStyleVariant, Position, ReferenceMapStyle, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
 import EventEmitter from 'events';
@@ -771,7 +770,6 @@ declare class Point {
     static convert(a: Point | Array<number>): Point;
 }
 
-declare const supported: _mapbox_mapbox_gl_supported.IsSupported;
 declare const setRTLTextPlugin: (url: string, callback: (error?: Error) => void, deferred?: boolean) => void;
 declare const getRTLTextPluginStatus: () => string;
 declare const prewarm: () => void;
@@ -830,4 +828,4 @@ type VideoSourceMLGL = InstanceType<typeof VideoSourceMLGL>;
 declare const MapMLGL: typeof maplibre_gl.Map;
 type MapMLGL = InstanceType<typeof MapMLGL>;
 
-export { AJAXError, AttributionControl, AttributionControlMLGL, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, FullscreenControlMLGL, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocateControlMLGL, GeolocationType, ImageSource, ImageSourceMLGL, Language, LanguageKey, LanguageString, LngLat, LngLatBounds, LoadWithTerrainEvent, LogoControl, LogoControlMLGL, Map, MapMLGL, MapOptions, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerNavigationControl, MaptilerTerrainControl, Marker, MarkerMLGL, Matrix2, MercatorCoordinate, NavigationControl, NavigationControlMLGL, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, ScaleControlMLGL, SdkConfig, Style, StyleMLGL, TerrainControl, TerrainControlMLGL, Unit, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, AttributionControlMLGL, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, FullscreenControlMLGL, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocateControlMLGL, GeolocationType, ImageSource, ImageSourceMLGL, Language, LanguageKey, LanguageString, LngLat, LngLatBounds, LoadWithTerrainEvent, LogoControl, LogoControlMLGL, Map, MapMLGL, MapOptions, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerNavigationControl, MaptilerTerrainControl, Marker, MarkerMLGL, Matrix2, MercatorCoordinate, NavigationControl, NavigationControlMLGL, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, ScaleControlMLGL, SdkConfig, Style, StyleMLGL, TerrainControl, TerrainControlMLGL, Unit, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, version, workerCount, workerUrl };
