@@ -41,8 +41,6 @@ export class MaptilerGeolocateControl extends GeolocateControl {
       options.zoom = currentMapZoom;
     }
 
-    
-
     this._map.fitBounds(LngLatBounds.fromLngLat(center, radius), options, {
       geolocateSource: true, // tag this camera change so it won't cause the control to change to background state
     });
