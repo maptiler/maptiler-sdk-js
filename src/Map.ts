@@ -8,15 +8,13 @@ import type {
   MapDataEvent,
   Tile,
   RasterDEMSourceSpecification,
-  TerrainSpecification,
-  MapTerrainEvent,
+  RequestTransformFunction,
 } from "maplibre-gl";
-import { v4 as uuidv4 } from "uuid";
 import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
-import { config, SdkConfig } from "./config";
+import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
 import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
-import { enableRTL } from "./tools";
+import { combineTransformRequest, enableRTL } from "./tools";
 import {
   getBrowserLanguage,
   isLanguageSupported,
@@ -55,8 +53,6 @@ export type StyleSwapOptions = {
   diff?: boolean;
   transformStyle?: TransformStyleFunction;
 };
-
-const MAPTILER_SESSION_ID = uuidv4();
 
 export const GeolocationType: {
   POINT: "POINT";
@@ -197,37 +193,7 @@ export class Map extends maplibregl.Map {
       ...options,
       style,
       maplibreLogo: false,
-
-      transformRequest: (url: string) => {
-        let reqUrl = null;
-
-        try {
-          // The URL is expected to be absolute.
-          // Yet, if it's local we just return it without assuming a 'base' url (in the URL constructor)
-          // and we let the URL be locally resolved with a potential base path.
-          reqUrl = new URL(url);
-        } catch (e) {
-          return {
-            url,
-            headers: {},
-          };
-        }
-
-        if (reqUrl.host === defaults.maptilerApiHost) {
-          if (!reqUrl.searchParams.has("key")) {
-            reqUrl.searchParams.append("key", config.apiKey);
-          }
-
-          if (config.session) {
-            reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
-          }
-        }
-
-        return {
-          url: reqUrl.href,
-          headers: {},
-        };
-      },
+      transformRequest: combineTransformRequest(options.transformRequest),
     });
 
     this.primaryLanguage = options.language ?? config.primaryLanguage;
@@ -1206,5 +1172,21 @@ export class Map extends maplibregl.Map {
    */
   getMaptilerSessionId(): string {
     return MAPTILER_SESSION_ID;
+  }
+
+  /**
+   *  Updates the requestManager's transform request with a new function.
+   *
+   * @param transformRequest A callback run before the Map makes a request for an external URL. The callback can be used to modify the url, set headers, or set the credentials property for cross-origin requests.
+   *    Expected to return an object with a `url` property and optionally `headers` and `credentials` properties
+   *
+   * @returns {Map} `this`
+   *
+   *  @example
+   *  map.setTransformRequest((url: string, resourceType: string) => {});
+   */
+  setTransformRequest(transformRequest: RequestTransformFunction) {
+    super.setTransformRequest(combineTransformRequest(transformRequest));
+    return this;
   }
 }

@@ -1,10 +1,10 @@
 import maplibregl__default from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { Base64 } from 'js-base64';
-import { v4 } from 'uuid';
 import EventEmitter from 'events';
 import { config as config$1, MapStyle, mapStylePresetList, expandMapStyle, MapStyleVariant, ReferenceMapStyle, geolocation } from '@maptiler/client';
 export { LanguageGeocoding, MapStyle, MapStyleVariant, ReferenceMapStyle, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
+import { v4 } from 'uuid';
 
 const Language = {
   /**
@@ -115,6 +115,7 @@ function getBrowserLanguage() {
   return canditatelangs.length ? canditatelangs[0] : Language.LATIN;
 }
 
+const MAPTILER_SESSION_ID = v4();
 class SdkConfig extends EventEmitter {
   constructor() {
     super();
@@ -243,6 +244,22 @@ class MaptilerLogoControl extends LogoControl {
   }
 }
 
+var __defProp$2 = Object.defineProperty;
+var __getOwnPropSymbols$2 = Object.getOwnPropertySymbols;
+var __hasOwnProp$2 = Object.prototype.hasOwnProperty;
+var __propIsEnum$2 = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$2 = (obj, key, value) => key in obj ? __defProp$2(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$2 = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp$2.call(b, prop))
+      __defNormalProp$2(a, prop, b[prop]);
+  if (__getOwnPropSymbols$2)
+    for (var prop of __getOwnPropSymbols$2(b)) {
+      if (__propIsEnum$2.call(b, prop))
+        __defNormalProp$2(a, prop, b[prop]);
+    }
+  return a;
+};
 function enableRTL() {
   if (maplibregl__default.getRTLTextPluginStatus() === "unavailable") {
     maplibregl__default.setRTLTextPlugin(
@@ -273,6 +290,38 @@ function DOMremove(node) {
   if (node.parentNode) {
     node.parentNode.removeChild(node);
   }
+}
+function maptilerCloudTransformRequest(url, resourceType) {
+  let reqUrl = null;
+  try {
+    reqUrl = new URL(url);
+  } catch (e) {
+    return {
+      url
+    };
+  }
+  if (reqUrl.host === defaults.maptilerApiHost) {
+    if (!reqUrl.searchParams.has("key")) {
+      reqUrl.searchParams.append("key", config.apiKey);
+    }
+    if (config.session) {
+      reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
+    }
+  }
+  return {
+    url: reqUrl.href
+  };
+}
+function combineTransformRequest(userDefinedRTF = null) {
+  return function(url, resourceType) {
+    if (userDefinedRTF) {
+      const rp = userDefinedRTF(url, resourceType);
+      const rp2 = maptilerCloudTransformRequest(rp.url);
+      return __spreadValues$2(__spreadValues$2({}, rp), rp2);
+    } else {
+      return maptilerCloudTransformRequest(url);
+    }
+  };
 }
 
 function styleToStyle(style) {
@@ -633,7 +682,6 @@ var __async = (__this, __arguments, generator) => {
     step((generator = generator.apply(__this, __arguments)).next());
   });
 };
-const MAPTILER_SESSION_ID = v4();
 const GeolocationType = {
   POINT: "POINT",
   COUNTRY: "COUNTRY"
@@ -654,29 +702,7 @@ class Map extends maplibregl__default.Map {
     super(__spreadProps(__spreadValues({}, options), {
       style,
       maplibreLogo: false,
-      transformRequest: (url) => {
-        let reqUrl = null;
-        try {
-          reqUrl = new URL(url);
-        } catch (e) {
-          return {
-            url,
-            headers: {}
-          };
-        }
-        if (reqUrl.host === defaults.maptilerApiHost) {
-          if (!reqUrl.searchParams.has("key")) {
-            reqUrl.searchParams.append("key", config.apiKey);
-          }
-          if (config.session) {
-            reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
-          }
-        }
-        return {
-          url: reqUrl.href,
-          headers: {}
-        };
-      }
+      transformRequest: combineTransformRequest(options.transformRequest)
     }));
     this.isTerrainEnabled = false;
     this.terrainExaggeration = 1;
@@ -1318,6 +1344,21 @@ class Map extends maplibregl__default.Map {
    */
   getMaptilerSessionId() {
     return MAPTILER_SESSION_ID;
+  }
+  /**
+   *  Updates the requestManager's transform request with a new function.
+   *
+   * @param transformRequest A callback run before the Map makes a request for an external URL. The callback can be used to modify the url, set headers, or set the credentials property for cross-origin requests.
+   *    Expected to return an object with a `url` property and optionally `headers` and `credentials` properties
+   *
+   * @returns {Map} `this`
+   *
+   *  @example
+   *  map.setTransformRequest((url: string, resourceType: string) => {});
+   */
+  setTransformRequest(transformRequest) {
+    super.setTransformRequest(combineTransformRequest(transformRequest));
+    return this;
   }
 }
 

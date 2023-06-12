@@ -1,7 +1,10 @@
 import EventEmitter from "events";
 import { Language, LanguageString } from "./language";
 import { config as clientConfig, FetchFunction } from "@maptiler/client";
+import { v4 as uuidv4 } from "uuid";
 import { Unit } from "./unit";
+
+export const MAPTILER_SESSION_ID = uuidv4();
 
 /**
  * Configuration class for the SDK

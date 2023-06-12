@@ -338,71 +338,6 @@
 	    extendBuiltins: extendBuiltins,
 	};
 
-	// Unique ID creation requires a high quality random # generator. In the browser we therefore
-	// require the crypto API and do not support built-in fallback to lower quality random number
-	// generators (like Math.random()).
-	let getRandomValues;
-	const rnds8 = new Uint8Array(16);
-	function rng() {
-	  // lazy load so that environments that need to polyfill have a chance to do so
-	  if (!getRandomValues) {
-	    // getRandomValues needs to be invoked in a context where "this" is a Crypto implementation.
-	    getRandomValues = typeof crypto !== 'undefined' && crypto.getRandomValues && crypto.getRandomValues.bind(crypto);
-
-	    if (!getRandomValues) {
-	      throw new Error('crypto.getRandomValues() not supported. See https://github.com/uuidjs/uuid#getrandomvalues-not-supported');
-	    }
-	  }
-
-	  return getRandomValues(rnds8);
-	}
-
-	/**
-	 * Convert array of 16 byte values to UUID string format of the form:
-	 * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-	 */
-
-	const byteToHex = [];
-
-	for (let i = 0; i < 256; ++i) {
-	  byteToHex.push((i + 0x100).toString(16).slice(1));
-	}
-
-	function unsafeStringify(arr, offset = 0) {
-	  // Note: Be careful editing this code!  It's been tuned for performance
-	  // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
-	  return (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase();
-	}
-
-	const randomUUID = typeof crypto !== 'undefined' && crypto.randomUUID && crypto.randomUUID.bind(crypto);
-	var native = {
-	  randomUUID
-	};
-
-	function v4(options, buf, offset) {
-	  if (native.randomUUID && !buf && !options) {
-	    return native.randomUUID();
-	  }
-
-	  options = options || {};
-	  const rnds = options.random || (options.rng || rng)(); // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-
-	  rnds[6] = rnds[6] & 0x0f | 0x40;
-	  rnds[8] = rnds[8] & 0x3f | 0x80; // Copy bytes to buffer, if provided
-
-	  if (buf) {
-	    offset = offset || 0;
-
-	    for (let i = 0; i < 16; ++i) {
-	      buf[offset + i] = rnds[i];
-	    }
-
-	    return buf;
-	  }
-
-	  return unsafeStringify(rnds);
-	}
-
 	var events = {exports: {}};
 
 	var R = typeof Reflect === 'object' ? Reflect : null;
@@ -2334,6 +2269,72 @@
 	  automatic
 	};
 
+	// Unique ID creation requires a high quality random # generator. In the browser we therefore
+	// require the crypto API and do not support built-in fallback to lower quality random number
+	// generators (like Math.random()).
+	let getRandomValues;
+	const rnds8 = new Uint8Array(16);
+	function rng() {
+	  // lazy load so that environments that need to polyfill have a chance to do so
+	  if (!getRandomValues) {
+	    // getRandomValues needs to be invoked in a context where "this" is a Crypto implementation.
+	    getRandomValues = typeof crypto !== 'undefined' && crypto.getRandomValues && crypto.getRandomValues.bind(crypto);
+
+	    if (!getRandomValues) {
+	      throw new Error('crypto.getRandomValues() not supported. See https://github.com/uuidjs/uuid#getrandomvalues-not-supported');
+	    }
+	  }
+
+	  return getRandomValues(rnds8);
+	}
+
+	/**
+	 * Convert array of 16 byte values to UUID string format of the form:
+	 * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+	 */
+
+	const byteToHex = [];
+
+	for (let i = 0; i < 256; ++i) {
+	  byteToHex.push((i + 0x100).toString(16).slice(1));
+	}
+
+	function unsafeStringify(arr, offset = 0) {
+	  // Note: Be careful editing this code!  It's been tuned for performance
+	  // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
+	  return (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase();
+	}
+
+	const randomUUID = typeof crypto !== 'undefined' && crypto.randomUUID && crypto.randomUUID.bind(crypto);
+	var native = {
+	  randomUUID
+	};
+
+	function v4(options, buf, offset) {
+	  if (native.randomUUID && !buf && !options) {
+	    return native.randomUUID();
+	  }
+
+	  options = options || {};
+	  const rnds = options.random || (options.rng || rng)(); // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+
+	  rnds[6] = rnds[6] & 0x0f | 0x40;
+	  rnds[8] = rnds[8] & 0x3f | 0x80; // Copy bytes to buffer, if provided
+
+	  if (buf) {
+	    offset = offset || 0;
+
+	    for (let i = 0; i < 16; ++i) {
+	      buf[offset + i] = rnds[i];
+	    }
+
+	    return buf;
+	  }
+
+	  return unsafeStringify(rnds);
+	}
+
+	const MAPTILER_SESSION_ID = v4();
 	class SdkConfig extends EventEmitter$1 {
 	  constructor() {
 	    super();
@@ -2462,6 +2463,22 @@
 	  }
 	}
 
+	var __defProp$2 = Object.defineProperty;
+	var __getOwnPropSymbols$2 = Object.getOwnPropertySymbols;
+	var __hasOwnProp$2 = Object.prototype.hasOwnProperty;
+	var __propIsEnum$2 = Object.prototype.propertyIsEnumerable;
+	var __defNormalProp$2 = (obj, key, value) => key in obj ? __defProp$2(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+	var __spreadValues$2 = (a, b) => {
+	  for (var prop in b || (b = {}))
+	    if (__hasOwnProp$2.call(b, prop))
+	      __defNormalProp$2(a, prop, b[prop]);
+	  if (__getOwnPropSymbols$2)
+	    for (var prop of __getOwnPropSymbols$2(b)) {
+	      if (__propIsEnum$2.call(b, prop))
+	        __defNormalProp$2(a, prop, b[prop]);
+	    }
+	  return a;
+	};
 	function enableRTL() {
 	  if (maplibregl.getRTLTextPluginStatus() === "unavailable") {
 	    maplibregl.setRTLTextPlugin(
@@ -2492,6 +2509,38 @@
 	  if (node.parentNode) {
 	    node.parentNode.removeChild(node);
 	  }
+	}
+	function maptilerCloudTransformRequest(url, resourceType) {
+	  let reqUrl = null;
+	  try {
+	    reqUrl = new URL(url);
+	  } catch (e) {
+	    return {
+	      url
+	    };
+	  }
+	  if (reqUrl.host === defaults.maptilerApiHost) {
+	    if (!reqUrl.searchParams.has("key")) {
+	      reqUrl.searchParams.append("key", config.apiKey);
+	    }
+	    if (config.session) {
+	      reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
+	    }
+	  }
+	  return {
+	    url: reqUrl.href
+	  };
+	}
+	function combineTransformRequest(userDefinedRTF = null) {
+	  return function(url, resourceType) {
+	    if (userDefinedRTF) {
+	      const rp = userDefinedRTF(url, resourceType);
+	      const rp2 = maptilerCloudTransformRequest(rp.url);
+	      return __spreadValues$2(__spreadValues$2({}, rp), rp2);
+	    } else {
+	      return maptilerCloudTransformRequest(url);
+	    }
+	  };
 	}
 
 	function styleToStyle(style) {
@@ -2852,7 +2901,6 @@
 	    step((generator = generator.apply(__this, __arguments)).next());
 	  });
 	};
-	const MAPTILER_SESSION_ID = v4();
 	const GeolocationType = {
 	  POINT: "POINT",
 	  COUNTRY: "COUNTRY"
@@ -2873,29 +2921,7 @@
 	    super(__spreadProps(__spreadValues({}, options), {
 	      style,
 	      maplibreLogo: false,
-	      transformRequest: (url) => {
-	        let reqUrl = null;
-	        try {
-	          reqUrl = new URL(url);
-	        } catch (e) {
-	          return {
-	            url,
-	            headers: {}
-	          };
-	        }
-	        if (reqUrl.host === defaults.maptilerApiHost) {
-	          if (!reqUrl.searchParams.has("key")) {
-	            reqUrl.searchParams.append("key", config.apiKey);
-	          }
-	          if (config.session) {
-	            reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
-	          }
-	        }
-	        return {
-	          url: reqUrl.href,
-	          headers: {}
-	        };
-	      }
+	      transformRequest: combineTransformRequest(options.transformRequest)
 	    }));
 	    this.isTerrainEnabled = false;
 	    this.terrainExaggeration = 1;
@@ -3537,6 +3563,21 @@
 	   */
 	  getMaptilerSessionId() {
 	    return MAPTILER_SESSION_ID;
+	  }
+	  /**
+	   *  Updates the requestManager's transform request with a new function.
+	   *
+	   * @param transformRequest A callback run before the Map makes a request for an external URL. The callback can be used to modify the url, set headers, or set the credentials property for cross-origin requests.
+	   *    Expected to return an object with a `url` property and optionally `headers` and `credentials` properties
+	   *
+	   * @returns {Map} `this`
+	   *
+	   *  @example
+	   *  map.setTransformRequest((url: string, resourceType: string) => {});
+	   */
+	  setTransformRequest(transformRequest) {
+	    super.setTransformRequest(combineTransformRequest(transformRequest));
+	    return this;
 	  }
 	};
 
