@@ -1,7 +1,7 @@
 # Changelog
 
 ## [v1.1.0](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.1.0)
-- VER updated from `maplibre-gl@3.0.0-pre.4` to `maplibre-gl@3.0.1`
+- VER updated from `maplibre-gl@3.0.0-pre.4` to `maplibre-gl@3.0.1` (this includes the switch to WebGL2)
 - UP made the few necessary changes acording to updating the ML v3. No braking change for SDK API
 - FIX the MapTiler logo rel name and its nofollow feature
 - ADD bringing back Map's `options.transformRequest` and `.setTransformRequest()`
