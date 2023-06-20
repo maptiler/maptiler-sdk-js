@@ -1,4 +1,12 @@
 # Changelog
+
+## [v1.1.0](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.1.0)
+- VER updated from `maplibre-gl@3.0.0-pre.4` to `maplibre-gl@3.0.1` (this includes the switch to WebGL2)
+- UP made the few necessary changes acording to updating the ML v3. No braking change for SDK API
+- FIX the MapTiler logo rel name and its nofollow feature
+- ADD bringing back Map's `options.transformRequest` and `.setTransformRequest()`
+
+
 ## [v1.0.12](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.12)
 - ADD a new language flag `Language.STYLE_LOCK` to force keep the language form the style and prevent any further update. Can be at a sigle map instance level (via constuctor option `language`) or via global config (`config.primaryLanguage`)
 - FIX the fallback language was `{name:latin}`, it is now replaced by `{name}`, which is for the local name (present by default for many places while `latin` is less frequent).

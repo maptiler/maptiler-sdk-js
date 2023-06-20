@@ -11,7 +11,7 @@ export * from "maplibre-gl";
 import maplibregl from "maplibre-gl";
 
 const {
-  supported,
+  // supported,
   setRTLTextPlugin,
   getRTLTextPluginStatus,
   LngLat,
@@ -50,7 +50,7 @@ const FullscreenControlMLGL = maplibregl.FullscreenControl;
 const TerrainControlMLGL = maplibregl.TerrainControl;
 
 export {
-  supported,
+  // supported,
   setRTLTextPlugin,
   getRTLTextPluginStatus,
   PopupMLGL,

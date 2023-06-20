@@ -5,6 +5,7 @@ import { DOMcreate } from "./tools";
 
 const Marker = maplibregl.Marker;
 const LngLat = maplibregl.LngLat;
+const LngLatBounds = maplibregl.LngLatBounds;
 
 /**
  * The MaptilerGeolocateControl is an extension of the original GeolocateControl
@@ -40,7 +41,7 @@ export class MaptilerGeolocateControl extends GeolocateControl {
       options.zoom = currentMapZoom;
     }
 
-    this._map.fitBounds(center.toBounds(radius), options, {
+    this._map.fitBounds(LngLatBounds.fromLngLat(center, radius), options, {
       geolocateSource: true, // tag this camera change so it won't cause the control to change to background state
     });
 

@@ -1,10 +1,10 @@
 import maplibregl__default from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { Base64 } from 'js-base64';
-import { v4 } from 'uuid';
 import EventEmitter from 'events';
 import { config as config$1, MapStyle, mapStylePresetList, expandMapStyle, MapStyleVariant, ReferenceMapStyle, geolocation } from '@maptiler/client';
 export { LanguageGeocoding, MapStyle, MapStyleVariant, ReferenceMapStyle, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
+import { v4 } from 'uuid';
 
 const Language = {
   /**
@@ -115,6 +115,7 @@ function getBrowserLanguage() {
   return canditatelangs.length ? canditatelangs[0] : Language.LATIN;
 }
 
+const MAPTILER_SESSION_ID = v4();
 class SdkConfig extends EventEmitter {
   constructor() {
     super();
@@ -231,13 +232,10 @@ class MaptilerLogoControl extends LogoControl {
     anchor.style.width = "100px";
     anchor.style.height = "30px";
     anchor.target = "_blank";
-    anchor.rel = "noopener nofollow";
+    anchor.rel = "noopener";
     anchor.href = this.linkURL;
-    anchor.setAttribute(
-      "aria-label",
-      this._map._getUIString("LogoControl.Title")
-    );
-    anchor.setAttribute("rel", "noopener nofollow");
+    anchor.setAttribute("aria-label", "MapTiler logo");
+    anchor.setAttribute("rel", "noopener");
     this._container.appendChild(anchor);
     this._container.style.display = "block";
     this._map.on("resize", this._updateCompact);
@@ -246,6 +244,22 @@ class MaptilerLogoControl extends LogoControl {
   }
 }
 
+var __defProp$2 = Object.defineProperty;
+var __getOwnPropSymbols$2 = Object.getOwnPropertySymbols;
+var __hasOwnProp$2 = Object.prototype.hasOwnProperty;
+var __propIsEnum$2 = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$2 = (obj, key, value) => key in obj ? __defProp$2(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$2 = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp$2.call(b, prop))
+      __defNormalProp$2(a, prop, b[prop]);
+  if (__getOwnPropSymbols$2)
+    for (var prop of __getOwnPropSymbols$2(b)) {
+      if (__propIsEnum$2.call(b, prop))
+        __defNormalProp$2(a, prop, b[prop]);
+    }
+  return a;
+};
 function enableRTL() {
   if (maplibregl__default.getRTLTextPluginStatus() === "unavailable") {
     maplibregl__default.setRTLTextPlugin(
@@ -276,6 +290,38 @@ function DOMremove(node) {
   if (node.parentNode) {
     node.parentNode.removeChild(node);
   }
+}
+function maptilerCloudTransformRequest(url, resourceType) {
+  let reqUrl = null;
+  try {
+    reqUrl = new URL(url);
+  } catch (e) {
+    return {
+      url
+    };
+  }
+  if (reqUrl.host === defaults.maptilerApiHost) {
+    if (!reqUrl.searchParams.has("key")) {
+      reqUrl.searchParams.append("key", config.apiKey);
+    }
+    if (config.session) {
+      reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
+    }
+  }
+  return {
+    url: reqUrl.href
+  };
+}
+function combineTransformRequest(userDefinedRTF = null) {
+  return function(url, resourceType) {
+    if (userDefinedRTF) {
+      const rp = userDefinedRTF(url, resourceType);
+      const rp2 = maptilerCloudTransformRequest(rp.url);
+      return __spreadValues$2(__spreadValues$2({}, rp), rp2);
+    } else {
+      return maptilerCloudTransformRequest(url);
+    }
+  };
 }
 
 function styleToStyle(style) {
@@ -429,6 +475,7 @@ var __spreadValues$1 = (a, b) => {
 var __spreadProps$1 = (a, b) => __defProps$1(a, __getOwnPropDescs$1(b));
 const Marker$1 = maplibregl__default.Marker;
 const LngLat$1 = maplibregl__default.LngLat;
+const LngLatBounds$1 = maplibregl__default.LngLatBounds;
 class MaptilerGeolocateControl extends GeolocateControl {
   constructor() {
     super(...arguments);
@@ -456,7 +503,7 @@ class MaptilerGeolocateControl extends GeolocateControl {
     if (currentMapZoom > this.options.fitBoundsOptions.maxZoom) {
       options.zoom = currentMapZoom;
     }
-    this._map.fitBounds(center.toBounds(radius), options, {
+    this._map.fitBounds(LngLatBounds$1.fromLngLat(center, radius), options, {
       geolocateSource: true
       // tag this camera change so it won't cause the control to change to background state
     });
@@ -635,7 +682,6 @@ var __async = (__this, __arguments, generator) => {
     step((generator = generator.apply(__this, __arguments)).next());
   });
 };
-const MAPTILER_SESSION_ID = v4();
 const GeolocationType = {
   POINT: "POINT",
   COUNTRY: "COUNTRY"
@@ -656,29 +702,7 @@ class Map extends maplibregl__default.Map {
     super(__spreadProps(__spreadValues({}, options), {
       style,
       maplibreLogo: false,
-      transformRequest: (url) => {
-        let reqUrl = null;
-        try {
-          reqUrl = new URL(url);
-        } catch (e) {
-          return {
-            url,
-            headers: {}
-          };
-        }
-        if (reqUrl.host === defaults.maptilerApiHost) {
-          if (!reqUrl.searchParams.has("key")) {
-            reqUrl.searchParams.append("key", config.apiKey);
-          }
-          if (config.session) {
-            reqUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
-          }
-        }
-        return {
-          url: reqUrl.href,
-          headers: {}
-        };
-      }
+      transformRequest: combineTransformRequest(options.transformRequest)
     }));
     this.isTerrainEnabled = false;
     this.terrainExaggeration = 1;
@@ -1321,6 +1345,21 @@ class Map extends maplibregl__default.Map {
   getMaptilerSessionId() {
     return MAPTILER_SESSION_ID;
   }
+  /**
+   *  Updates the requestManager's transform request with a new function.
+   *
+   * @param transformRequest A callback run before the Map makes a request for an external URL. The callback can be used to modify the url, set headers, or set the credentials property for cross-origin requests.
+   *    Expected to return an object with a `url` property and optionally `headers` and `credentials` properties
+   *
+   * @returns {Map} `this`
+   *
+   *  @example
+   *  map.setTransformRequest((url: string, resourceType: string) => {});
+   */
+  setTransformRequest(transformRequest) {
+    super.setTransformRequest(combineTransformRequest(transformRequest));
+    return this;
+  }
 }
 
 class Marker extends maplibregl__default.Marker {
@@ -1675,7 +1714,7 @@ class Point {
 }
 
 const {
-  supported,
+  // supported,
   setRTLTextPlugin,
   getRTLTextPluginStatus,
   LngLat,
@@ -1711,5 +1750,5 @@ maplibregl__default.ScaleControl;
 maplibregl__default.FullscreenControl;
 maplibregl__default.TerrainControl;
 
-export { AJAXError, AttributionControl, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocationType, ImageSource, ImageSourceMLGL, Language, LngLat, LngLatBounds, LogoControl, Map, MapMLGL, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerNavigationControl, MaptilerTerrainControl, Marker, MarkerMLGL, MercatorCoordinate, NavigationControl, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, SdkConfig, Style, StyleMLGL, TerrainControl, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, supported, version, workerCount, workerUrl };
+export { AJAXError, AttributionControl, CanvasSource, CanvasSourceMLGL, Evented, FullscreenControl, GeoJSONSource, GeoJSONSourceMLGL, GeolocateControl, GeolocationType, ImageSource, ImageSourceMLGL, Language, LngLat, LngLatBounds, LogoControl, Map, MapMLGL, MaptilerGeolocateControl, MaptilerLogoControl, MaptilerNavigationControl, MaptilerTerrainControl, Marker, MarkerMLGL, MercatorCoordinate, NavigationControl, Point, Popup, PopupMLGL, RasterDEMTileSource, RasterDEMTileSourceMLGL, RasterTileSource, RasterTileSourceMLGL, ScaleControl, SdkConfig, Style, StyleMLGL, TerrainControl, VectorTileSource, VectorTileSourceMLGL, VideoSource, VideoSourceMLGL, addProtocol, clearPrewarmedResources, config, getRTLTextPluginStatus, maxParallelImageRequests, prewarm, removeProtocol, setRTLTextPlugin, version, workerCount, workerUrl };
 //# sourceMappingURL=maptiler-sdk.mjs.map

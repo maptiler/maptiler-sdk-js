@@ -36,15 +36,21 @@
     <script src ="maptiler-sdk.umd.js"></script>
     
     <script>
-      maptilersdk.config.apiKey = "bod4IIn9bwK8mnZIk49v" //"Yddov2aUInr8SSqd4AyH";
+      maptilersdk.config.apiKey = "YOUR_API_KEY";
 
       const map = new maptilersdk.Map({
         container: document.getElementById("map-container"),
+        style: maptilersdk.MapStyle.OUTDOOR.DARK,
         hash: true,
-        maxPitch: 85,
-        scaleControl: true,
-        fullscreenControl: true,
-        terrainControl: true,
+
+        transformRequest: function(url) {
+          const reqUrl = new URL(url);
+          reqUrl.searchParams.append("some-extra-param", "some-extra-value");
+          
+          return {
+            url: reqUrl.href,
+          }
+        }
       })
 
       const styleDropDown = document.getElementById("mapstyles-picker")
@@ -59,6 +65,15 @@
         styleOption.innerHTML = s.replace("_", " ").toLowerCase();
         styleDropDown.appendChild(styleOption);
       })
+
+      // This will end up being used instead of the one defined in the constructor
+      map.setTransformRequest((url) => {
+        const reqUrl = new URL(url);
+          reqUrl.searchParams.append("some-extra-param-two", "some-extra-value-two");
+          return {
+            url: reqUrl.href,
+          }
+      }) 
 
 
     </script>
