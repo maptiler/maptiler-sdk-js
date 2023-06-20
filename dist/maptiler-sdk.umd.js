@@ -3031,7 +3031,11 @@
 	          options.logoPosition
 	        );
 	        if (options.attributionControl === false) {
-	          this.addControl(new AttributionControl(options));
+	          this.addControl(
+	            new AttributionControl({
+	              customAttribution: options.customAttribution
+	            })
+	          );
 	        }
 	      } else if (options.maptilerLogo) {
 	        this.addControl(new MaptilerLogoControl(), options.logoPosition);
