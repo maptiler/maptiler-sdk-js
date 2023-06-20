@@ -350,7 +350,11 @@ export class Map extends maplibregl.Map {
 
         // if attribution in option is `false` but the the logo shows up in the tileJson, then the attribution must show anyways
         if (options.attributionControl === false) {
-          this.addControl(new AttributionControl(options));
+          this.addControl(
+            new AttributionControl({
+              customAttribution: options.customAttribution,
+            })
+          );
         }
       } else if (options.maptilerLogo) {
         this.addControl(new MaptilerLogoControl(), options.logoPosition);
