@@ -8,7 +8,8 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/maptiler-sdk.mjs"
+      "import": "./dist/maptiler-sdk.mjs",
+      "types": "./dist/maptiler-sdk.d.ts"
     },
     "./dist/maptiler-sdk.css": {
       "import": "./dist/maptiler-sdk.css"
