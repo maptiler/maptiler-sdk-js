@@ -218,7 +218,7 @@ export class Map extends maplibregl.Map {
       }
 
       // As a fallback, we want to center the map on the visitor. First with IP geolocation...
-      let ipLocatedCameraHash: string | null = null;
+      let ipLocatedCameraHash: string;
       try {
         await this.centerOnIpPoint(options.zoom);
         ipLocatedCameraHash = this.getCameraHash();
@@ -437,7 +437,7 @@ export class Map extends maplibregl.Map {
     // and some animation (flyTo, easeTo) are running from the begining.
     let loadEventTriggered = false;
     let terrainEventTriggered = false;
-    let terrainEventData: LoadWithTerrainEvent | null = null;
+    let terrainEventData: LoadWithTerrainEvent;
 
     this.once("load", () => {
       loadEventTriggered = true;
@@ -1072,9 +1072,8 @@ export class Map extends maplibregl.Map {
         this.terrain.exaggeration = 0;
         this.terrainGrowing = false;
         this.terrainFlattening = false;
-        // @ts-expect-error - this is a bug: https://github.com/maplibre/maplibre-gl-js/blob/deb12763e/src/ui/map.ts#L1971
-        // it should take an undefined argument to remove the terrain
-        this.setTerrain(undefined);
+        // @ts-expect-error - https://github.com/maplibre/maplibre-gl-js/issues/2992
+        this.setTerrain();
         if (this.getSource(defaults.terrainSourceId)) {
           this.removeSource(defaults.terrainSourceId);
         }

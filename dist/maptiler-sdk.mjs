@@ -730,7 +730,7 @@ class Map extends maplibregl__default.Map {
       } catch (e) {
         console.warn(e.message);
       }
-      let ipLocatedCameraHash = null;
+      let ipLocatedCameraHash;
       try {
         yield this.centerOnIpPoint(options.zoom);
         ipLocatedCameraHash = this.getCameraHash();
@@ -863,7 +863,7 @@ class Map extends maplibregl__default.Map {
     }));
     let loadEventTriggered = false;
     let terrainEventTriggered = false;
-    let terrainEventData = null;
+    let terrainEventData;
     this.once("load", () => {
       loadEventTriggered = true;
       if (terrainEventTriggered) {
@@ -1257,7 +1257,7 @@ class Map extends maplibregl__default.Map {
         this.terrain.exaggeration = 0;
         this.terrainGrowing = false;
         this.terrainFlattening = false;
-        this.setTerrain(void 0);
+        this.setTerrain();
         if (this.getSource(defaults.terrainSourceId)) {
           this.removeSource(defaults.terrainSourceId);
         }

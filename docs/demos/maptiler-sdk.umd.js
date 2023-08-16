@@ -2949,7 +2949,7 @@
 	      } catch (e) {
 	        console.warn(e.message);
 	      }
-	      let ipLocatedCameraHash = null;
+	      let ipLocatedCameraHash;
 	      try {
 	        yield this.centerOnIpPoint(options.zoom);
 	        ipLocatedCameraHash = this.getCameraHash();
@@ -3082,7 +3082,7 @@
 	    }));
 	    let loadEventTriggered = false;
 	    let terrainEventTriggered = false;
-	    let terrainEventData = null;
+	    let terrainEventData;
 	    this.once("load", () => {
 	      loadEventTriggered = true;
 	      if (terrainEventTriggered) {
@@ -3476,7 +3476,7 @@
 	        this.terrain.exaggeration = 0;
 	        this.terrainGrowing = false;
 	        this.terrainFlattening = false;
-	        this.setTerrain(void 0);
+	        this.setTerrain();
 	        if (this.getSource(defaults.terrainSourceId)) {
 	          this.removeSource(defaults.terrainSourceId);
 	        }
