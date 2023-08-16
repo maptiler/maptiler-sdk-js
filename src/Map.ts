@@ -280,7 +280,7 @@ export class Map extends maplibregl.Map {
     // If the config includes language changing, we must update the map language
     this.on("styledata", () => {
       this.setPrimaryLanguage(this.primaryLanguage);
-      this.setSecondaryLanguage(this.secondaryLanguage ?? undefined);
+      this.setSecondaryLanguage(this.secondaryLanguage);
     });
 
     // this even is in charge of reaplying the terrain elevation after the

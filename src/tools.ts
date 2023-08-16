@@ -13,8 +13,8 @@ export function enableRTL() {
   if (maplibregl.getRTLTextPluginStatus() === "unavailable") {
     maplibregl.setRTLTextPlugin(
       defaults.rtlPluginURL,
-      (e) => {
-        if (e !== undefined) console.warn(e);
+      (err?: Error | undefined) => {
+        if (err !== undefined) console.error(err);
       },
       true // Lazy load the plugin
     );

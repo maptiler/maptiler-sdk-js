@@ -2479,9 +2479,9 @@
 	  if (maplibregl.getRTLTextPluginStatus() === "unavailable") {
 	    maplibregl.setRTLTextPlugin(
 	      defaults.rtlPluginURL,
-	      (e) => {
-	        if (e !== void 0)
-	          console.warn(e);
+	      (err) => {
+	        if (err !== void 0)
+	          console.error(err);
 	      },
 	      true
 	      // Lazy load the plugin
@@ -2996,9 +2996,8 @@
 	      }
 	    }));
 	    this.on("styledata", () => {
-	      var _a2, _b2;
-	      this.setPrimaryLanguage((_a2 = this.primaryLanguage) != null ? _a2 : void 0);
-	      this.setSecondaryLanguage((_b2 = this.secondaryLanguage) != null ? _b2 : void 0);
+	      this.setPrimaryLanguage(this.primaryLanguage);
+	      this.setSecondaryLanguage(this.secondaryLanguage);
 	    });
 	    this.on("styledata", () => {
 	      if (this.getTerrain() === null && this.isTerrainEnabled) {

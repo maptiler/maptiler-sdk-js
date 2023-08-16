@@ -271,7 +271,7 @@ type MapOptions = Omit<MapOptions$1, "style" | "maplibreLogo"> & {
 declare class Map extends maplibre_gl__default.Map {
     private isTerrainEnabled;
     private terrainExaggeration;
-    private primaryLanguage?;
+    private primaryLanguage;
     private secondaryLanguage?;
     private terrainGrowing;
     private terrainFlattening;
@@ -323,7 +323,7 @@ declare class Map extends maplibre_gl__default.Map {
      * Get the primary language
      * @returns
      */
-    getPrimaryLanguage(): LanguageString | undefined;
+    getPrimaryLanguage(): LanguageString;
     /**
      * Get the secondary language
      * @returns
@@ -565,7 +565,7 @@ declare class MaptilerLogoControl extends LogoControl {
     private logoURL;
     private linkURL;
     constructor(options?: LogoOptions);
-    onAdd(map: maplibregl.Map): HTMLElement;
+    onAdd(map: Map): HTMLElement;
 }
 
 /**
