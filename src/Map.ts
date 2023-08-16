@@ -155,7 +155,7 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
 export class Map extends maplibregl.Map {
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
-  private primaryLanguage?: LanguageString;
+  private primaryLanguage: LanguageString;
   private secondaryLanguage?: LanguageString;
   private terrainGrowing = false;
   private terrainFlattening = false;
@@ -279,7 +279,7 @@ export class Map extends maplibregl.Map {
 
     // If the config includes language changing, we must update the map language
     this.on("styledata", () => {
-      this.setPrimaryLanguage(this.primaryLanguage ?? undefined);
+      this.setPrimaryLanguage(this.primaryLanguage);
       this.setSecondaryLanguage(this.secondaryLanguage ?? undefined);
     });
 
@@ -859,7 +859,7 @@ export class Map extends maplibregl.Map {
    * Get the primary language
    * @returns
    */
-  getPrimaryLanguage(): LanguageString | undefined {
+  getPrimaryLanguage(): LanguageString {
     return this.primaryLanguage;
   }
 
