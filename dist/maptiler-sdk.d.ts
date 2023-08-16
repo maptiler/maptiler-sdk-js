@@ -1,5 +1,5 @@
 import * as maplibre_gl from 'maplibre-gl';
-import maplibre_gl__default, { MapOptions as MapOptions$1, StyleSpecification, ControlPosition, StyleOptions, RequestTransformFunction, Map as Map$1, LogoOptions as LogoOptions$1 } from 'maplibre-gl';
+import maplibre_gl__default, { MapOptions as MapOptions$1, StyleSpecification, ControlPosition, StyleSwapOptions, StyleOptions, RequestTransformFunction, Map as Map$1, LogoOptions as LogoOptions$1, IControl } from 'maplibre-gl';
 export * from 'maplibre-gl';
 import { FetchFunction, ReferenceMapStyle, MapStyleVariant } from '@maptiler/client';
 export { AutomaticStaticMapOptions, BBox, BoundedStaticMapOptions, CenteredStaticMapOptions, CoordinatesSearchOptions, GeocodingOptions, LanguageGeocoding, LanguageGeocodingString, MapStyle, MapStyleType, MapStyleVariant, Position, ReferenceMapStyle, ServiceError, coordinates, data, geocoding, geolocation, staticMaps } from '@maptiler/client';
@@ -121,12 +121,12 @@ declare class SdkConfig extends EventEmitter {
     /**
      * The primary language. By default, the language of the web browser is used.
      */
-    primaryLanguage: LanguageString | null;
+    primaryLanguage: LanguageString;
     /**
      * The secondary language, to overwrite the default language defined in the map style.
      * This settings is highly dependant on the style compatibility and may not work in most cases.
      */
-    secondaryLanguage: LanguageString | null;
+    secondaryLanguage?: LanguageString;
     /**
      * Setting on whether of not the SDK runs with a session logic.
      * A "session" is started at the initialization of the SDK and finished when the browser
@@ -178,11 +178,6 @@ type LoadWithTerrainEvent = {
         source: string;
         exaggeration: number;
     };
-};
-type TransformStyleFunction = (previous: StyleSpecification, next: StyleSpecification) => StyleSpecification;
-type StyleSwapOptions = {
-    diff?: boolean;
-    transformStyle?: TransformStyleFunction;
 };
 declare const GeolocationType: {
     POINT: "POINT";
@@ -276,8 +271,8 @@ type MapOptions = Omit<MapOptions$1, "style" | "maplibreLogo"> & {
 declare class Map extends maplibre_gl__default.Map {
     private isTerrainEnabled;
     private terrainExaggeration;
-    private primaryLanguage;
-    private secondaryLanguage;
+    private primaryLanguage?;
+    private secondaryLanguage?;
     private terrainGrowing;
     private terrainFlattening;
     constructor(options: MapOptions);
@@ -306,13 +301,13 @@ declare class Map extends maplibre_gl__default.Map {
      * @param options
      * @returns
      */
-    setStyle(style: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string, options?: StyleSwapOptions & StyleOptions): this;
+    setStyle(style: null | ReferenceMapStyle | MapStyleVariant | StyleSpecification | string, options?: StyleSwapOptions & StyleOptions): this;
     /**
      * Define the primary language of the map. Note that not all the languages shorthands provided are available.
      * This function is a short for `.setPrimaryLanguage()`
      * @param language
      */
-    setLanguage(language?: LanguageString): any;
+    setLanguage(language?: LanguageString): void;
     /**
      * Define the primary language of the map. Note that not all the languages shorthands provided are available.
      * @param language
@@ -328,12 +323,12 @@ declare class Map extends maplibre_gl__default.Map {
      * Get the primary language
      * @returns
      */
-    getPrimaryLanguage(): LanguageString;
+    getPrimaryLanguage(): LanguageString | undefined;
     /**
      * Get the secondary language
      * @returns
      */
-    getSecondaryLanguage(): LanguageString;
+    getSecondaryLanguage(): LanguageString | undefined;
     /**
      * Get the exaggeration factor applied to the terrain
      * @returns
@@ -566,17 +561,18 @@ type LogoOptions = LogoOptions$1 & {
  * any link URL. By default this is using MapTiler logo and URL.
  */
 declare class MaptilerLogoControl extends LogoControl {
+    _compact: boolean;
     private logoURL;
     private linkURL;
     constructor(options?: LogoOptions);
-    onAdd(map: Map): HTMLElement;
+    onAdd(map: maplibregl.Map): HTMLElement;
 }
 
 /**
  * A `MaptilerTerrainControl` control adds a button to turn terrain on and off
  * by triggering the terrain logic that is already deployed in the Map object.
  */
-declare class MaptilerTerrainControl implements maplibregl.IControl {
+declare class MaptilerTerrainControl implements IControl {
     _map: Map;
     _container: HTMLElement;
     _terrainButton: HTMLButtonElement;
@@ -588,14 +584,14 @@ declare class MaptilerTerrainControl implements maplibregl.IControl {
 }
 
 type HTMLButtonElementPlus = HTMLButtonElement & {
-    clickFunction: (e?: any) => unknown;
+    clickFunction: (e?: Event) => unknown;
 };
 declare class MaptilerNavigationControl extends NavigationControl {
     constructor();
     /**
      * Overloading: the button now stores its click callback so that we can later on delete it and replace it
      */
-    _createButton(className: string, fn: (e?: any) => unknown): HTMLButtonElementPlus;
+    _createButton(className: string, fn: (e?: Event) => unknown): HTMLButtonElementPlus;
     /**
      * Overloading: Limit how flat the compass icon can get
      */
@@ -734,13 +730,13 @@ declare class Point {
      * @param {Point} other the other point
      * @return {boolean} whether the points are equal
      */
-    equals(other: any): boolean;
+    equals(other: Point): boolean;
     /**
      * Calculate the distance from this point to another point
      * @param {Point} p the other point
      * @return {Number} distance
      */
-    dist(p: any): number;
+    dist(p: Point): number;
     /**
      * Calculate the distance from this point to another point,
      * without the square root step. Useful if you're comparing
@@ -748,7 +744,7 @@ declare class Point {
      * @param {Point} p the other point
      * @return {Number} distance
      */
-    distSqr(p: any): number;
+    distSqr(p: Point): number;
     /**
      * Get the angle from the 0, 0 coordinate to this point, in radians
      * coordinates.
@@ -782,7 +778,7 @@ declare class Point {
     static convert(a: Point | Array<number>): Point;
 }
 
-declare const setRTLTextPlugin: (url: string, callback: (error?: Error) => void, deferred?: boolean) => void;
+declare const setRTLTextPlugin: (url: string, callback: (error?: Error | undefined) => void, deferred?: boolean | undefined) => void;
 declare const getRTLTextPluginStatus: () => string;
 declare const prewarm: () => void;
 declare const clearPrewarmedResources: () => void;

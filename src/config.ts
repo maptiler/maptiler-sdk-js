@@ -13,13 +13,13 @@ class SdkConfig extends EventEmitter {
   /**
    * The primary language. By default, the language of the web browser is used.
    */
-  primaryLanguage: LanguageString | null = Language.AUTO;
+  primaryLanguage: LanguageString = Language.AUTO;
 
   /**
    * The secondary language, to overwrite the default language defined in the map style.
    * This settings is highly dependant on the style compatibility and may not work in most cases.
    */
-  secondaryLanguage: LanguageString | null = null;
+  secondaryLanguage?: LanguageString;
 
   /**
    * Setting on whether of not the SDK runs with a session logic.

@@ -4,6 +4,7 @@ import type {
   StyleSpecification,
   MapOptions as MapOptionsML,
   ControlPosition,
+  StyleSwapOptions,
   StyleOptions,
   MapDataEvent,
   Tile,
@@ -30,10 +31,6 @@ import { AttributionControl } from "./AttributionControl";
 import { ScaleControl } from "./ScaleControl";
 import { FullscreenControl } from "./FullscreenControl";
 
-function sleepAsync(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
   target: Map;
@@ -41,17 +38,6 @@ export type LoadWithTerrainEvent = {
     source: string;
     exaggeration: number;
   };
-};
-
-// StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
-export type TransformStyleFunction = (
-  previous: StyleSpecification,
-  next: StyleSpecification
-) => StyleSpecification;
-
-export type StyleSwapOptions = {
-  diff?: boolean;
-  transformStyle?: TransformStyleFunction;
 };
 
 export const GeolocationType: {
@@ -169,8 +155,8 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
 export class Map extends maplibregl.Map {
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
-  private primaryLanguage: LanguageString | null = null;
-  private secondaryLanguage: LanguageString | null = null;
+  private primaryLanguage?: LanguageString;
+  private secondaryLanguage?: LanguageString;
   private terrainGrowing = false;
   private terrainFlattening = false;
 
@@ -226,17 +212,17 @@ export class Map extends maplibregl.Map {
           await this.fitToIpBounds();
           return;
         }
-      } catch (e) {
+      } catch (e: any) {
         // not raising
         console.warn(e.message);
       }
 
       // As a fallback, we want to center the map on the visitor. First with IP geolocation...
-      let ipLocatedCameraHash = null;
+      let ipLocatedCameraHash: string | null = null;
       try {
         await this.centerOnIpPoint(options.zoom);
         ipLocatedCameraHash = this.getCameraHash();
-      } catch (e) {
+      } catch (e: any) {
         // not raising
         console.warn(e.message);
       }
@@ -293,8 +279,8 @@ export class Map extends maplibregl.Map {
 
     // If the config includes language changing, we must update the map language
     this.on("styledata", () => {
-      this.setPrimaryLanguage(this.primaryLanguage);
-      this.setSecondaryLanguage(this.secondaryLanguage);
+      this.setPrimaryLanguage(this.primaryLanguage ?? undefined);
+      this.setSecondaryLanguage(this.secondaryLanguage ?? undefined);
     });
 
     // this even is in charge of reaplying the terrain elevation after the
@@ -451,16 +437,16 @@ export class Map extends maplibregl.Map {
     // and some animation (flyTo, easeTo) are running from the begining.
     let loadEventTriggered = false;
     let terrainEventTriggered = false;
-    let terrainEventData: LoadWithTerrainEvent = null;
+    let terrainEventData: LoadWithTerrainEvent | null = null;
 
-    this.once("load", (_) => {
+    this.once("load", () => {
       loadEventTriggered = true;
       if (terrainEventTriggered) {
         this.fire("loadWithTerrain", terrainEventData);
       }
     });
 
-    const terrainCallback = (evt) => {
+    const terrainCallback = (evt: any) => {
       if (!evt.terrain) return;
       terrainEventTriggered = true;
       terrainEventData = {
@@ -492,12 +478,12 @@ export class Map extends maplibregl.Map {
    * @returns
    */
   async onLoadAsync() {
-    return new Promise<Map>((resolve, reject) => {
+    return new Promise<Map>((resolve) => {
       if (this.loaded()) {
         return resolve(this);
       }
 
-      this.once("load", (_) => {
+      this.once("load", () => {
         resolve(this);
       });
     });
@@ -511,12 +497,12 @@ export class Map extends maplibregl.Map {
    * @returns
    */
   async onLoadWithTerrainAsync() {
-    return new Promise<Map>((resolve, reject) => {
+    return new Promise<Map>((resolve) => {
       if (this.loaded() && this.terrain) {
         return resolve(this);
       }
 
-      this.once("loadWithTerrain", (_) => {
+      this.once("loadWithTerrain", () => {
         resolve(this);
       });
     });
@@ -532,10 +518,15 @@ export class Map extends maplibregl.Map {
    * @param options
    * @returns
    */
-  setStyle(
-    style: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string,
+  override setStyle(
+    style:
+      | null
+      | ReferenceMapStyle
+      | MapStyleVariant
+      | StyleSpecification
+      | string,
     options?: StyleSwapOptions & StyleOptions
-  ) {
+  ): this {
     return super.setStyle(styleToStyle(style), options);
   }
 
@@ -544,7 +535,7 @@ export class Map extends maplibregl.Map {
    * This function is a short for `.setPrimaryLanguage()`
    * @param language
    */
-  setLanguage(language: LanguageString = defaults.primaryLanguage) {
+  setLanguage(language: LanguageString = defaults.primaryLanguage): void {
     if (language === Language.AUTO) {
       return this.setLanguage(getBrowserLanguage());
     }
@@ -605,7 +596,7 @@ export class Map extends maplibregl.Map {
           continue;
         }
 
-        if (!layout["text-field"]) {
+        if (!("text-field" in layout)) {
           continue;
         }
 
@@ -769,7 +760,7 @@ export class Map extends maplibregl.Map {
           continue;
         }
 
-        if (!layout["text-field"]) {
+        if (!("text-field" in layout)) {
           continue;
         }
 
@@ -868,7 +859,7 @@ export class Map extends maplibregl.Map {
    * Get the primary language
    * @returns
    */
-  getPrimaryLanguage(): LanguageString {
+  getPrimaryLanguage(): LanguageString | undefined {
     return this.primaryLanguage;
   }
 
@@ -876,7 +867,7 @@ export class Map extends maplibregl.Map {
    * Get the secondary language
    * @returns
    */
-  getSecondaryLanguage(): LanguageString {
+  getSecondaryLanguage(): LanguageString | undefined {
     return this.secondaryLanguage;
   }
 
@@ -896,7 +887,7 @@ export class Map extends maplibregl.Map {
     return this.isTerrainEnabled;
   }
 
-  private growTerrain(exaggeration, durationMs = 1000) {
+  private growTerrain(exaggeration: number, durationMs = 1000) {
     // This method assumes the terrain is already built
     if (!this.terrain) {
       return;
@@ -1081,7 +1072,9 @@ export class Map extends maplibregl.Map {
         this.terrain.exaggeration = 0;
         this.terrainGrowing = false;
         this.terrainFlattening = false;
-        this.setTerrain(null);
+        // @ts-expect-error - this is a bug: https://github.com/maplibre/maplibre-gl-js/blob/deb12763e/src/ui/map.ts#L1971
+        // it should take an undefined argument to remove the terrain
+        this.setTerrain(undefined);
         if (this.getSource(defaults.terrainSourceId)) {
           this.removeSource(defaults.terrainSourceId);
         }
@@ -1119,7 +1112,7 @@ export class Map extends maplibregl.Map {
    * or later.
    * @param cb
    */
-  private onStyleReady(cb) {
+  private onStyleReady(cb: () => void) {
     if (this.isStyleLoaded()) {
       cb();
     } else {
@@ -1143,7 +1136,10 @@ export class Map extends maplibregl.Map {
   async centerOnIpPoint(zoom: number | undefined) {
     const ipGeolocateResult = await geolocation.info();
     this.jumpTo({
-      center: [ipGeolocateResult.longitude, ipGeolocateResult.latitude],
+      center: [
+        ipGeolocateResult?.longitude ?? 0,
+        ipGeolocateResult?.latitude ?? 0,
+      ],
       zoom: zoom || 11,
     });
   }
@@ -1189,7 +1185,9 @@ export class Map extends maplibregl.Map {
    *  @example
    *  map.setTransformRequest((url: string, resourceType: string) => {});
    */
-  setTransformRequest(transformRequest: RequestTransformFunction) {
+  override setTransformRequest(
+    transformRequest: RequestTransformFunction
+  ): this {
     super.setTransformRequest(combineTransformRequest(transformRequest));
     return this;
   }

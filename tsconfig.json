@@ -1,11 +1,14 @@
 {
   "compilerOptions": {
     "moduleResolution": "Node",
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
     "target": "es6",
     "declaration": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "esModuleInterop": true,
-  }
-  
+    "esModuleInterop": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist", "demos", "scripts", "docs", "**/*.js", "**/*.cjs"]
 }

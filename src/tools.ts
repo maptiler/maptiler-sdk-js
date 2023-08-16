@@ -13,7 +13,9 @@ export function enableRTL() {
   if (maplibregl.getRTLTextPluginStatus() === "unavailable") {
     maplibregl.setRTLTextPlugin(
       defaults.rtlPluginURL,
-      null,
+      (e) => {
+        if (e !== undefined) console.warn(e);
+      },
       true // Lazy load the plugin
     );
   }
@@ -61,7 +63,7 @@ export function DOMremove(node: HTMLElement) {
  */
 export function maptilerCloudTransformRequest(
   url: string,
-  resourceType?: ResourceType
+  _resourceType?: ResourceType
 ): RequestParameters {
   let reqUrl = null;
 
@@ -98,15 +100,15 @@ export function maptilerCloudTransformRequest(
  * @returns
  */
 export function combineTransformRequest(
-  userDefinedRTF: RequestTransformFunction = null
+  userDefinedRTF?: RequestTransformFunction
 ): RequestTransformFunction {
   return function (
     url: string,
     resourceType?: ResourceType
   ): RequestParameters {
-    if (userDefinedRTF) {
+    if (userDefinedRTF !== undefined) {
       const rp = userDefinedRTF(url, resourceType);
-      const rp2 = maptilerCloudTransformRequest(rp.url);
+      const rp2 = maptilerCloudTransformRequest(rp?.url ?? "");
 
       return {
         ...rp,

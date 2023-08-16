@@ -1,7 +1,5 @@
-import maplibregl from "maplibre-gl";
 import type { LogoOptions as LogoOptionsML } from "maplibre-gl";
 import { defaults } from "./defaults";
-import { Map } from "./Map";
 import { LogoControl } from "./LogoControl";
 
 type LogoOptions = LogoOptionsML & {
@@ -14,6 +12,7 @@ type LogoOptions = LogoOptionsML & {
  * any link URL. By default this is using MapTiler logo and URL.
  */
 export class MaptilerLogoControl extends LogoControl {
+  declare _compact: boolean;
   private logoURL = "";
   private linkURL = "";
 
@@ -24,9 +23,9 @@ export class MaptilerLogoControl extends LogoControl {
     this.linkURL = options.linkURL ?? defaults.maptilerURL;
   }
 
-  onAdd(map: Map): HTMLElement {
+  onAdd(map: maplibregl.Map): HTMLElement {
     this._map = map;
-    this._compact = this.options && this.options.compact;
+    this._compact = (this.options && this.options.compact) ?? false;
     this._container = window.document.createElement("div");
     this._container.className = "maplibregl-ctrl";
     const anchor = window.document.createElement("a");
