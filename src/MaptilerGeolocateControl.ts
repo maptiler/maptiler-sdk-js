@@ -22,7 +22,7 @@ export class MaptilerGeolocateControl extends GeolocateControl {
    * @param {Position} position the Geolocation API Position
    * @private
    */
-  _updateCamera(position: GeolocationPosition) {
+  _updateCamera = (position: GeolocationPosition) => {
     const center = new LngLat(
       position.coords.longitude,
       position.coords.latitude
@@ -73,9 +73,9 @@ export class MaptilerGeolocateControl extends GeolocateControl {
 
       this.lastUpdatedCenter = this._map.getCenter();
     });
-  }
+  };
 
-  _setupUI(supported: boolean) {
+  _setupUI = (supported: boolean) => {
     this.lastUpdatedCenter = this._map.getCenter();
 
     this._container.addEventListener("contextmenu", (e: MouseEvent) =>
@@ -168,7 +168,7 @@ export class MaptilerGeolocateControl extends GeolocateControl {
         }
       });
     }
-  }
+  };
 
   _updateCircleRadius() {
     if (
@@ -196,9 +196,9 @@ export class MaptilerGeolocateControl extends GeolocateControl {
     this._circleElement.style.height = `${circleDiameter}px`;
   }
 
-  _onZoom() {
+  _onZoom = () => {
     if (this.options.showUserLocation && this.options.showAccuracyCircle) {
       this._updateCircleRadius();
     }
-  }
+  };
 }
