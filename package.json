@@ -35,7 +35,7 @@
     "format": "prettier --write \"src/**/*.{js,ts,tsx}\"",
     "lint": "eslint --fix \"src/**/*.{js,ts}\"",
     "doc": "rm -rf docs/* && typedoc --out docs && cp -r images docs/",
-    "prepare": "npm run format && npm run lint && npm run build && npm run doc && cp -r demos docs/"
+    "prepare": "npm run format && npm run lint && npm run build && npm run doc"
   },
   "author": "MapTiler",
   "devDependencies": {
