@@ -1,7 +1,7 @@
 import { NavigationControl } from "./NavigationControl";
 
 type HTMLButtonElementPlus = HTMLButtonElement & {
-  clickFunction: (e?: any) => unknown;
+  clickFunction: (e?: Event) => unknown;
 };
 
 export class MaptilerNavigationControl extends NavigationControl {
@@ -40,7 +40,7 @@ export class MaptilerNavigationControl extends NavigationControl {
    */
   _createButton(
     className: string,
-    fn: (e?: any) => unknown
+    fn: (e?: Event) => unknown
   ): HTMLButtonElementPlus {
     const button = super._createButton(className, fn) as HTMLButtonElementPlus;
     button.clickFunction = fn;

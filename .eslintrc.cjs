@@ -1,3 +1,5 @@
+const tsConfig = require('./tsconfig.json');
+
 module.exports = {
   extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
   parser: '@typescript-eslint/parser',
@@ -6,5 +8,6 @@ module.exports = {
   //"@typescript-eslint/ban-ts-comment": "warn"
   rules: {
     "@typescript-eslint/ban-ts-comment": "warn",
-  }
+  },
+  ignorePatterns: tsConfig.exclude,
 };

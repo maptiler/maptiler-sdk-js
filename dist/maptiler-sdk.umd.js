@@ -2343,11 +2343,6 @@
 	     */
 	    this.primaryLanguage = Language.AUTO;
 	    /**
-	     * The secondary language, to overwrite the default language defined in the map style.
-	     * This settings is highly dependant on the style compatibility and may not work in most cases.
-	     */
-	    this.secondaryLanguage = null;
-	    /**
 	     * Setting on whether of not the SDK runs with a session logic.
 	     * A "session" is started at the initialization of the SDK and finished when the browser
 	     * page is being refreshed.
@@ -2434,8 +2429,9 @@
 	    this.linkURL = (_b = options.linkURL) != null ? _b : defaults.maptilerURL;
 	  }
 	  onAdd(map) {
+	    var _a;
 	    this._map = map;
-	    this._compact = this.options && this.options.compact;
+	    this._compact = (_a = this.options && this.options.compact) != null ? _a : false;
 	    this._container = window.document.createElement("div");
 	    this._container.className = "maplibregl-ctrl";
 	    const anchor = window.document.createElement("a");
@@ -2483,7 +2479,10 @@
 	  if (maplibregl.getRTLTextPluginStatus() === "unavailable") {
 	    maplibregl.setRTLTextPlugin(
 	      defaults.rtlPluginURL,
-	      null,
+	      (err) => {
+	        if (err !== void 0)
+	          console.error(err);
+	      },
 	      true
 	      // Lazy load the plugin
 	    );
@@ -2510,7 +2509,7 @@
 	    node.parentNode.removeChild(node);
 	  }
 	}
-	function maptilerCloudTransformRequest(url, resourceType) {
+	function maptilerCloudTransformRequest(url, _resourceType) {
 	  let reqUrl = null;
 	  try {
 	    reqUrl = new URL(url);
@@ -2531,11 +2530,12 @@
 	    url: reqUrl.href
 	  };
 	}
-	function combineTransformRequest(userDefinedRTF = null) {
+	function combineTransformRequest(userDefinedRTF) {
 	  return function(url, resourceType) {
-	    if (userDefinedRTF) {
+	    var _a;
+	    if (userDefinedRTF !== void 0) {
 	      const rp = userDefinedRTF(url, resourceType);
-	      const rp2 = maptilerCloudTransformRequest(rp.url);
+	      const rp2 = maptilerCloudTransformRequest((_a = rp == null ? void 0 : rp.url) != null ? _a : "");
 	      return __spreadValues$2(__spreadValues$2({}, rp), rp2);
 	    } else {
 	      return maptilerCloudTransformRequest(url);
@@ -2707,6 +2707,7 @@
 	   * @private
 	   */
 	  _updateCamera(position) {
+	    var _a, _b, _c;
 	    const center = new LngLat$1(
 	      position.coords.longitude,
 	      position.coords.latitude
@@ -2719,7 +2720,7 @@
 	      linear: true
 	    });
 	    const currentMapZoom = this._map.getZoom();
-	    if (currentMapZoom > this.options.fitBoundsOptions.maxZoom) {
+	    if (currentMapZoom > ((_c = (_b = (_a = this.options) == null ? void 0 : _a.fitBoundsOptions) == null ? void 0 : _b.maxZoom) != null ? _c : 30)) {
 	      options.zoom = currentMapZoom;
 	    }
 	    this._map.fitBounds(LngLatBounds$1.fromLngLat(center, radius), options, {
@@ -2925,8 +2926,6 @@
 	    }));
 	    this.isTerrainEnabled = false;
 	    this.terrainExaggeration = 1;
-	    this.primaryLanguage = null;
-	    this.secondaryLanguage = null;
 	    this.terrainGrowing = false;
 	    this.terrainFlattening = false;
 	    this.primaryLanguage = (_a = options.language) != null ? _a : config.primaryLanguage;
@@ -2950,7 +2949,7 @@
 	      } catch (e) {
 	        console.warn(e.message);
 	      }
-	      let ipLocatedCameraHash = null;
+	      let ipLocatedCameraHash;
 	      try {
 	        yield this.centerOnIpPoint(options.zoom);
 	        ipLocatedCameraHash = this.getCameraHash();
@@ -3083,8 +3082,8 @@
 	    }));
 	    let loadEventTriggered = false;
 	    let terrainEventTriggered = false;
-	    let terrainEventData = null;
-	    this.once("load", (_) => {
+	    let terrainEventData;
+	    this.once("load", () => {
 	      loadEventTriggered = true;
 	      if (terrainEventTriggered) {
 	        this.fire("loadWithTerrain", terrainEventData);
@@ -3119,11 +3118,11 @@
 	   */
 	  onLoadAsync() {
 	    return __async(this, null, function* () {
-	      return new Promise((resolve, reject) => {
+	      return new Promise((resolve) => {
 	        if (this.loaded()) {
 	          return resolve(this);
 	        }
-	        this.once("load", (_) => {
+	        this.once("load", () => {
 	          resolve(this);
 	        });
 	      });
@@ -3138,11 +3137,11 @@
 	   */
 	  onLoadWithTerrainAsync() {
 	    return __async(this, null, function* () {
-	      return new Promise((resolve, reject) => {
+	      return new Promise((resolve) => {
 	        if (this.loaded() && this.terrain) {
 	          return resolve(this);
 	        }
-	        this.once("loadWithTerrain", (_) => {
+	        this.once("loadWithTerrain", () => {
 	          resolve(this);
 	        });
 	      });
@@ -3209,7 +3208,7 @@
 	        if (!layout) {
 	          continue;
 	        }
-	        if (!layout["text-field"]) {
+	        if (!("text-field" in layout)) {
 	          continue;
 	        }
 	        const textFieldLayoutProp = this.getLayoutProperty(
@@ -3287,7 +3286,7 @@
 	        if (!layout) {
 	          continue;
 	        }
-	        if (!layout["text-field"]) {
+	        if (!("text-field" in layout)) {
 	          continue;
 	        }
 	        const textFieldLayoutProp = this.getLayoutProperty(
@@ -3477,7 +3476,7 @@
 	        this.terrain.exaggeration = 0;
 	        this.terrainGrowing = false;
 	        this.terrainFlattening = false;
-	        this.setTerrain(null);
+	        this.setTerrain();
 	        if (this.getSource(defaults.terrainSourceId)) {
 	          this.removeSource(defaults.terrainSourceId);
 	        }
@@ -3534,9 +3533,13 @@
 	  }
 	  centerOnIpPoint(zoom) {
 	    return __async(this, null, function* () {
+	      var _a, _b;
 	      const ipGeolocateResult = yield geolocation.info();
 	      this.jumpTo({
-	        center: [ipGeolocateResult.longitude, ipGeolocateResult.latitude],
+	        center: [
+	          (_a = ipGeolocateResult == null ? void 0 : ipGeolocateResult.longitude) != null ? _a : 0,
+	          (_b = ipGeolocateResult == null ? void 0 : ipGeolocateResult.latitude) != null ? _b : 0
+	        ],
 	        zoom: zoom || 11
 	      });
 	    });

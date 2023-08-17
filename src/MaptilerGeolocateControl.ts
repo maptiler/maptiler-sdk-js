@@ -37,7 +37,7 @@ export class MaptilerGeolocateControl extends GeolocateControl {
 
     const currentMapZoom = this._map.getZoom();
 
-    if (currentMapZoom > this.options.fitBoundsOptions.maxZoom) {
+    if (currentMapZoom > (this.options?.fitBoundsOptions?.maxZoom ?? 30)) {
       options.zoom = currentMapZoom;
     }
 
