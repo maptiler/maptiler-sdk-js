@@ -105,7 +105,7 @@ typings/
 .DS_Store
 
 .vscode
-demos/tmp_
+demos/tmp_*
 dist
 docs
 docsmd
