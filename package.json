@@ -57,7 +57,7 @@
     "rollup-plugin-swc": "^0.2.1",
     "serve": "^14.2.0",
     "terser": "^5.17.1",
-    "typedoc": "^0.24.4",
+    "typedoc": "^0.24.8",
     "typescript": "^5.1.6"
   },
   "dependencies": {
