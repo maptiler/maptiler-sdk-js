@@ -105,5 +105,9 @@ typings/
 .DS_Store
 
 .vscode
+demos/tmp_
+dist
+docs
+docsmd
 
-demos/tmp_*
+
