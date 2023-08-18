@@ -1,4 +1,6 @@
-import maplibregl from "maplibre-gl";
+import maplibregl, { GeoJSONFeature } from "maplibre-gl";
+import { FeatureCollection, Feature } from "geojson";
+import geojsonValidation from "geojson-validation";
 import { Base64 } from "js-base64";
 import type {
   StyleSpecification,
@@ -30,6 +32,7 @@ import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
 import { AttributionControl } from "./AttributionControl";
 import { ScaleControl } from "./ScaleControl";
 import { FullscreenControl } from "./FullscreenControl";
+import { generateRandomLayerName, generateRandomSourceName, lineColorOptionsToLineLayerPaintSpec, lineOpacityOptionsToLineLayerPaintSpec, lineWidthOptionsToLineLayerPaintSpec, lineWidthOptionsToOutlineLayerPaintSpec, PolylineLayerOptions } from "./stylehelper";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -148,6 +151,10 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    */
   geolocate?: (typeof GeolocationType)[keyof typeof GeolocationType] | boolean;
 };
+
+
+
+
 
 /**
  * The Map class can be instanciated to display a map in a `<div>`
@@ -1189,5 +1196,110 @@ export class Map extends maplibregl.Map {
   ): this {
     super.setTransformRequest(combineTransformRequest(transformRequest));
     return this;
+  }
+
+
+
+  addGeoJSONPolyline(
+    // this Feature collection is expected to contain on LineStrings and MultilLinestrings
+    data: FeatureCollection,
+    options?: PolylineLayerOptions
+  )
+  : {
+    polylineLayerId: string,
+    polylineOutlineLayerId: string | null,
+    polylineSourceId: string,
+  } 
+  {
+    const sourceId = options?.sourceId ?? generateRandomSourceName();
+    const layerId = options?.layerId ?? generateRandomLayerName();
+
+    const retunedInfo = {
+      polylineLayerId: layerId,
+      polylineOutlineLayerId: "",
+      polylineSourceId: sourceId,
+    } 
+
+    // Adding the source
+    this.addSource(sourceId, {
+      type: "geojson",
+      data,
+    });
+
+    // We want to create an outline for this line layer
+    if (options?.outline === true) {
+      const outlineLayerId = `${layerId}_outline`;
+      retunedInfo.polylineOutlineLayerId = outlineLayerId;
+
+      
+      // TODO
+
+      console.log("ADDING an outline");
+
+      const outlinePaintOptions = {
+        id: outlineLayerId,
+        type: "line",
+        source: sourceId,
+        layout: {
+          "line-join": "round",
+          "line-cap": "round"
+        },
+        paint: {
+          "line-opacity": lineOpacityOptionsToLineLayerPaintSpec(options?.outlineOpacity),
+          "line-color": lineColorOptionsToLineLayerPaintSpec(options?.outlineColor, "#FFFFFF"),
+          "line-width": typeof options?.outlineWidth === "number" || typeof options?.outlineWidth === "undefined" ? lineWidthOptionsToOutlineLayerPaintSpec(options?.lineWidth, options?.outlineWidth) : lineWidthOptionsToLineLayerPaintSpec(options?.outlineWidth),
+        }
+      }
+
+      console.log(outlinePaintOptions);
+      
+
+      // TODO: the width of the outline must work according to the line width
+      // case 1: the line is fixed-width and the outline is fixed-width
+      // case 2: the line is undefined-width and the outline is fixed-width
+      // case 3: the line is undefined-width and the outline is undefined-width
+      // case 4: the line is fixed-width and the outline is undefined-width
+      // case 5: the line is ramped-width, the outline is undefined-width
+      // case 5: the line is ramped-width, the outline is fixed-width
+      // case 6: the line is ramped-width, the outline is ramped-width
+      // case 7: the line is undefined-width, the outline is ramped-width
+      // case 8: the line is fixed-width, the outline is ramped-width
+
+
+
+
+      this.addLayer({
+        id: outlineLayerId,
+        type: "line",
+        source: sourceId,
+        layout: {
+          "line-join": "round",
+          "line-cap": "round"
+        },
+        paint: {
+          "line-opacity": lineOpacityOptionsToLineLayerPaintSpec(options?.outlineOpacity),
+          "line-color": lineColorOptionsToLineLayerPaintSpec(options?.outlineColor, "#FFFFFF"),
+          "line-width": typeof options?.outlineWidth === "number" || typeof options?.outlineWidth === "undefined" ? lineWidthOptionsToOutlineLayerPaintSpec(options?.lineWidth, options?.outlineWidth) : lineWidthOptionsToLineLayerPaintSpec(options?.outlineWidth),
+        }
+      }, options?.beforeId);
+
+    }
+
+    this.addLayer({
+      id: layerId,
+      type: "line",
+      source: sourceId,
+      layout: {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      paint: {
+        "line-opacity": lineOpacityOptionsToLineLayerPaintSpec(options?.lineOpacity),
+        "line-color": lineColorOptionsToLineLayerPaintSpec(options?.lineColor),
+        "line-width": lineWidthOptionsToLineLayerPaintSpec(options?.lineWidth),
+      }
+    }, options?.beforeId);
+
+    return retunedInfo;
   }
 }

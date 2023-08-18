@@ -230,3 +230,6 @@ export {
   MaptilerTerrainControl,
   MaptilerNavigationControl,
 };
+
+
+export * from "./stylehelper";

@@ -119,3 +119,11 @@ export function combineTransformRequest(
     }
   };
 }
+
+
+export function generateRandomString(): string {
+  return Math.random()
+  .toString(36)
+  .split(".")
+  .pop() as string;
+}
