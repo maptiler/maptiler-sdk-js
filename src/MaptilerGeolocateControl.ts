@@ -16,13 +16,15 @@ const LngLatBounds = maplibregl.LngLatBounds;
 export class MaptilerGeolocateControl extends GeolocateControl {
   private lastUpdatedCenter = new LngLat(0, 0);
 
+
+
   /**
    * Update the camera location to center on the current position
    *
    * @param {Position} position the Geolocation API Position
    * @private
    */
-  _updateCamera(position: GeolocationPosition) {
+  _updateCamera = (position: GeolocationPosition) => {
     const center = new LngLat(
       position.coords.longitude,
       position.coords.latitude
@@ -73,9 +75,9 @@ export class MaptilerGeolocateControl extends GeolocateControl {
 
       this.lastUpdatedCenter = this._map.getCenter();
     });
-  }
+  };
 
-  _setupUI(supported: boolean) {
+  _setupUI = (supported: boolean) => {
     this.lastUpdatedCenter = this._map.getCenter();
 
     this._container.addEventListener("contextmenu", (e: MouseEvent) =>
@@ -116,7 +118,10 @@ export class MaptilerGeolocateControl extends GeolocateControl {
     if (this.options.showUserLocation) {
       this._dotElement = DOMcreate("div", "maplibregl-user-location-dot");
 
-      this._userLocationDotMarker = new Marker(this._dotElement);
+      console.log('debug01');
+      
+
+      this._userLocationDotMarker = new Marker({element: this._dotElement});
 
       this._circleElement = DOMcreate(
         "div",
@@ -168,7 +173,8 @@ export class MaptilerGeolocateControl extends GeolocateControl {
         }
       });
     }
-  }
+  };
+
 
   _updateCircleRadius() {
     if (
@@ -196,9 +202,9 @@ export class MaptilerGeolocateControl extends GeolocateControl {
     this._circleElement.style.height = `${circleDiameter}px`;
   }
 
-  _onZoom() {
+  _onZoom = () => {
     if (this.options.showUserLocation && this.options.showAccuracyCircle) {
       this._updateCircleRadius();
     }
-  }
+  };
 }

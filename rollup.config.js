@@ -28,19 +28,19 @@ const copyCssPlugin = copy({
   ],
 });
 
-const copyUmdBundle = copy({
-  targets: [
-    {
-      src: `dist/${outputName}.umd.js`,
-      dest: "demos/",
-    },
-    {
-      src: `dist/${outputName}.css`,
-      dest: "demos/",
-    },
-  ],
-  hook: "writeBundle"
-});
+// const copyUmdBundle = copy({
+//   targets: [
+//     {
+//       src: `dist/${outputName}.umd.js`,
+//       dest: "demos/",
+//     },
+//     {
+//       src: `dist/${outputName}.css`,
+//       dest: "demos/",
+//     },
+//   ],
+//   hook: "writeBundle"
+// });
 
 
 const bundles = [ 
@@ -78,7 +78,7 @@ const bundles = [
       globals(),
       json(),
       esbuild(),
-      copyUmdBundle, 
+      // copyUmdBundle, 
     ],
     output: [
       {
