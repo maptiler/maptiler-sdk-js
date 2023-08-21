@@ -117,10 +117,6 @@ export class MaptilerGeolocateControl extends GeolocateControl {
     // when showUserLocation is enabled, keep the Geolocate button disabled until the device location marker is setup on the map
     if (this.options.showUserLocation) {
       this._dotElement = DOMcreate("div", "maplibregl-user-location-dot");
-
-      console.log('debug01');
-      
-
       this._userLocationDotMarker = new Marker({element: this._dotElement});
 
       this._circleElement = DOMcreate(
