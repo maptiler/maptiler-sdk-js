@@ -1,9 +1,8 @@
+import { FeatureCollection, Feature } from "geojson";
 import { DataDrivenPropertyValueSpecification } from "maplibre-gl";
 import { generateRandomString } from "./tools";
 
 export type ColorPalette = [string, string, string, string];
-
-const DEFAULT_LINE_WIDTH = 4;
 
 export const colorPalettes: Array<ColorPalette> = [
   // https://colorhunt.co/palette/1d5b79468b97ef6262f3aa60
@@ -126,6 +125,34 @@ export type ZoomNumberValues = Array<{
 }>;
 
 
+/**
+ * Linera interpolation to find a value at an arbitrary zoom level, given a list of tuple zoom-value
+ * @param znv 
+ * @param z 
+ */
+export function lerpZoomNumberValues(znv: ZoomNumberValues, z: number): number {
+  // before the range
+  if (z <= znv[0].zoom) {
+    return znv[0].value;
+  }
+
+  // after the range
+  if (z >= znv[znv.length - 1].zoom) {
+    return znv[znv.length - 1].value;
+  }
+
+  // somewhere within the range
+  for (let i = 0; i < znv.length - 1; i += 1) {
+    if (z >= znv[i].zoom && z < znv[i + 1].zoom) {
+      const zoomRange = znv[i + 1].zoom - znv[i].zoom;
+      const normalizedDistanceFromLowerBound = (z - znv[i].zoom) / zoomRange;
+      return normalizedDistanceFromLowerBound * znv[i + 1].value + (1 - normalizedDistanceFromLowerBound) * znv[i].value
+    }
+  }
+
+  return 0;
+}
+
 
 export type PolylineLayerOptions = {
   /**
@@ -143,11 +170,26 @@ export type PolylineLayerOptions = {
   sourceId?: string,
 
   /**
+   * A geojson Feature collection or a URL to a geojson or the UUID of a MapTiler Cloud dataset.
+   */
+  data?: FeatureCollection | string,
+
+  /**
    * The ID of an existing layer to insert the new layer before, resulting in the new layer appearing
    * visually beneath the existing layer. If this argument is not specified, the layer will be appended 
    * to the end of the layers array and appear visually above all other layers.
    */
   beforeId?: string,
+
+  /**
+   * Zoom level at which it starts to show. Default: `0`
+   */
+  minzoom?: number,
+
+  /**
+   * Zoom level after which it no longer show. Default: `22`
+   */
+  maxzoom?: number,
 
   /**
    * Color of the line (or polyline). This is can be a constant color string or a definition based on zoom levels
@@ -186,107 +228,77 @@ export type PolylineLayerOptions = {
 }
 
 
-export function lineColorOptionsToLineLayerPaintSpec(color: undefined | string | ZoomStringValues, defaultColor?: string): string | DataDrivenPropertyValueSpecification<string> {
-  if (typeof color === "string") {
-    return color;
-  }
-
-  // assuming color is of type ZoomStringValues
-  if (Array.isArray(color)) {
-    const c = color as ZoomStringValues;
-    return [
-      "interpolate",
-      ["linear"],
-      ['zoom'],
-      ...c.map((el) => [el.zoom, el.value]).flat(),  
-    ]
-  }
-
-  if (defaultColor) {
-    return defaultColor;
-  }
-
-  return getRandomColor();
+export function lineColorOptionsToLineLayerPaintSpec(color: ZoomStringValues): DataDrivenPropertyValueSpecification<string> {
+  return [
+    "interpolate",
+    ["linear"],
+    ['zoom'],
+    ...color.map((el) => [el.zoom, el.value]).flat(),  
+  ]
 }
 
 
-export function lineWidthOptionsToLineLayerPaintSpec(width: undefined | number | ZoomNumberValues): number | DataDrivenPropertyValueSpecification<number> {
-  if (typeof width === "number") {
-    return width;
-  }
-
-  // assuming color is of type ZoomStringValues
-  if (Array.isArray(width)) {
-    const w = width as ZoomNumberValues;
-    return [
-      "interpolate",
-      ["linear"],
-      ['zoom'],
-      ...w.map((el) => [el.zoom, el.value]).flat(),  
-    ]
-  }
-
-  return DEFAULT_LINE_WIDTH;
+export function lineWidthOptionsToLineLayerPaintSpec(width: ZoomNumberValues): DataDrivenPropertyValueSpecification<number> {
+  return [
+    "interpolate",
+    ["linear"],
+    ['zoom'],
+    ...width.map((el) => [el.zoom, el.value]).flat(),  
+  ]
 }
 
 
-export function lineOpacityOptionsToLineLayerPaintSpec(opacity: undefined | number | ZoomNumberValues): number | DataDrivenPropertyValueSpecification<number> {
-  if (typeof opacity === "number") {
-    return opacity;
-  }
-
-  // assuming color is of type ZoomStringValues
-  if (Array.isArray(opacity)) {
-    const w = opacity as ZoomNumberValues;
-    return [
-      "interpolate",
-      ["linear"],
-      ['zoom'],
-      ...w.map((el) => [el.zoom, el.value]).flat(),  
-    ]
-  }
-
-  return 1;
+export function lineOpacityOptionsToLineLayerPaintSpec(opacity: ZoomNumberValues): DataDrivenPropertyValueSpecification<number> {
+  return [
+    "interpolate",
+    ["linear"],
+    ['zoom'],
+    ...opacity.map((el) => [el.zoom, el.value]).flat(),  
+  ]
 }
 
 
-
-export function outlineColorOptionsToOutlineLayerPaintSpec(color: undefined | string | ZoomStringValues): string | DataDrivenPropertyValueSpecification<string> {
-  if (typeof color === "string") {
-    return color;
-  }
-
-  // assuming color is of type ZoomStringValues
-  if (Array.isArray(color)) {
-    const c = color as ZoomStringValues;
-    return [
-      "interpolate",
-      ["linear"],
-      ['zoom'],
-      ...c.map((el) => [el.zoom, el.value]).flat(),  
-    ]
-  }
-
-  return getRandomColor();
-}
-
-export function lineWidthOptionsToOutlineLayerPaintSpec(lineWidth: undefined | number | ZoomNumberValues, outlineWidth: number | undefined): number | DataDrivenPropertyValueSpecification<number> {
-  const actualOutlineWidth = outlineWidth ?? 1;
+export function computeRampedOutlineWidth(lineWidth: number | ZoomNumberValues, outlineWidth: number | ZoomNumberValues): number | DataDrivenPropertyValueSpecification<number> {
+  // case 1: the line is fixed-width and the outline is fixed-width
+  if (typeof outlineWidth === "number" && typeof lineWidth === "number") {
+    return 2 * outlineWidth + lineWidth;
+  } else 
   
-  if (typeof lineWidth === "number") {
-    return lineWidth + 2 * actualOutlineWidth;
-  }
-
-  // assuming color is of type ZoomStringValues
-  if (Array.isArray(lineWidth)) {
-    const w = lineWidth as ZoomNumberValues;
+  // case 2: the line is ramped-width, the outline is fixed-width
+  if (typeof outlineWidth === "number" && Array.isArray(lineWidth)) {
     return [
       "interpolate",
       ["linear"],
       ['zoom'],
-      ...w.map((el) => [el.zoom, el.value + 2 * actualOutlineWidth]).flat(),  
+      ...lineWidth.map((el) => [el.zoom, 2 * outlineWidth + el.value]).flat(),  
+    ]
+
+  } else
+
+  // case 3: the line is fixed-width, the outline is ramped-width
+  if (typeof lineWidth === "number" && Array.isArray(outlineWidth)) {
+    return [
+      "interpolate",
+      ["linear"],
+      ['zoom'],
+      ...outlineWidth.map((el) => [el.zoom, 2 * el.value + lineWidth]).flat(),  
+    ]
+  }
+  
+  // case 4: the line is ramped-width, the outline is ramped-width
+  if (Array.isArray(lineWidth) && Array.isArray(outlineWidth)) {
+    // We must create an artificial set of zoom stops that includes all the zoom stops from both lists
+    // const allStops = [...lineWidth.map(el => el.zoom), ...outlineWidth.map(el => el.zoom)].sort((a: number, b: number) => a < b ? -1 : 1);
+    const allStops = Array.from(new Set([...lineWidth.map(el => el.zoom), ...outlineWidth.map(el => el.zoom)]))
+      .sort((a: number, b: number) => a < b ? -1 : 1);
+
+    return [
+      "interpolate",
+      ["linear"],
+      ['zoom'],
+      ...allStops.map((z) => [z, 2 * lerpZoomNumberValues(outlineWidth, z) + lerpZoomNumberValues(lineWidth, z)]).flat(),  
     ]
   }
 
-  return DEFAULT_LINE_WIDTH + 2 * actualOutlineWidth;
+  return 0;
 }

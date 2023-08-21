@@ -1,5 +1,5 @@
 import maplibregl, { GeoJSONFeature } from "maplibre-gl";
-import { FeatureCollection, Feature } from "geojson";
+
 import geojsonValidation from "geojson-validation";
 import { Base64 } from "js-base64";
 import type {
@@ -17,7 +17,7 @@ import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
 import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
-import { combineTransformRequest, enableRTL } from "./tools";
+import { combineTransformRequest, enableRTL, isUUID } from "./tools";
 import {
   getBrowserLanguage,
   isLanguageSupported,
@@ -32,7 +32,7 @@ import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
 import { AttributionControl } from "./AttributionControl";
 import { ScaleControl } from "./ScaleControl";
 import { FullscreenControl } from "./FullscreenControl";
-import { generateRandomLayerName, generateRandomSourceName, lineColorOptionsToLineLayerPaintSpec, lineOpacityOptionsToLineLayerPaintSpec, lineWidthOptionsToLineLayerPaintSpec, lineWidthOptionsToOutlineLayerPaintSpec, PolylineLayerOptions } from "./stylehelper";
+import { computeRampedOutlineWidth, generateRandomLayerName, generateRandomSourceName, getRandomColor, lineColorOptionsToLineLayerPaintSpec, lineOpacityOptionsToLineLayerPaintSpec, lineWidthOptionsToLineLayerPaintSpec, PolylineLayerOptions, ZoomNumberValues } from "./stylehelper";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -1199,11 +1199,15 @@ export class Map extends maplibregl.Map {
   }
 
 
-
+  /**
+   * Add a polyline witgh optional outline from a GeoJSON object
+   * @param data 
+   * @param options 
+   * @returns 
+   */
   addGeoJSONPolyline(
     // this Feature collection is expected to contain on LineStrings and MultilLinestrings
-    data: FeatureCollection,
-    options?: PolylineLayerOptions
+    options: PolylineLayerOptions
   )
   : {
     polylineLayerId: string,
@@ -1211,8 +1215,14 @@ export class Map extends maplibregl.Map {
     polylineSourceId: string,
   } 
   {
-    const sourceId = options?.sourceId ?? generateRandomSourceName();
-    const layerId = options?.layerId ?? generateRandomLayerName();
+    // We need to have the sourceId of the sourceData
+    if (!options.sourceId && !options.data) {
+      throw new Error("Creating a polyline layer require or an existing .sourceId or a valid .sourceData");
+    }
+
+
+    const sourceId = options.sourceId ?? generateRandomSourceName();
+    const layerId = options.layerId ?? generateRandomLayerName();
 
     const retunedInfo = {
       polylineLayerId: layerId,
@@ -1220,53 +1230,26 @@ export class Map extends maplibregl.Map {
       polylineSourceId: sourceId,
     } 
 
-    // Adding the source
-    this.addSource(sourceId, {
-      type: "geojson",
-      data,
-    });
+    // A new source is added if the map does not have this sourceId and the data is provided
+    if (options.data && !this.getSource(sourceId)) {
+      // Adding the source
+      this.addSource(sourceId, {
+        type: "geojson",
+        data: typeof options.data === "string" && isUUID(options.data) ? `https://api.maptiler.com/data/${options.data}/features.json?key=${config.apiKey}` : options.data,
+      });
+    }
+
+    const lineWidth = options?.lineWidth ?? 3;
+    const lineColor = options?.lineColor ?? getRandomColor();
+    const lineOpacity = options?.lineOpacity ?? 1;
+    const outlineWidth = options?.outlineWidth ?? 1;
+    const outlineColor = options?.outlineColor ?? "#FFFFFF";
+    const outlineOpacity = options?.outlineOpacity ?? 1;
 
     // We want to create an outline for this line layer
     if (options?.outline === true) {
       const outlineLayerId = `${layerId}_outline`;
       retunedInfo.polylineOutlineLayerId = outlineLayerId;
-
-      
-      // TODO
-
-      console.log("ADDING an outline");
-
-      const outlinePaintOptions = {
-        id: outlineLayerId,
-        type: "line",
-        source: sourceId,
-        layout: {
-          "line-join": "round",
-          "line-cap": "round"
-        },
-        paint: {
-          "line-opacity": lineOpacityOptionsToLineLayerPaintSpec(options?.outlineOpacity),
-          "line-color": lineColorOptionsToLineLayerPaintSpec(options?.outlineColor, "#FFFFFF"),
-          "line-width": typeof options?.outlineWidth === "number" || typeof options?.outlineWidth === "undefined" ? lineWidthOptionsToOutlineLayerPaintSpec(options?.lineWidth, options?.outlineWidth) : lineWidthOptionsToLineLayerPaintSpec(options?.outlineWidth),
-        }
-      }
-
-      console.log(outlinePaintOptions);
-      
-
-      // TODO: the width of the outline must work according to the line width
-      // case 1: the line is fixed-width and the outline is fixed-width
-      // case 2: the line is undefined-width and the outline is fixed-width
-      // case 3: the line is undefined-width and the outline is undefined-width
-      // case 4: the line is fixed-width and the outline is undefined-width
-      // case 5: the line is ramped-width, the outline is undefined-width
-      // case 5: the line is ramped-width, the outline is fixed-width
-      // case 6: the line is ramped-width, the outline is ramped-width
-      // case 7: the line is undefined-width, the outline is ramped-width
-      // case 8: the line is fixed-width, the outline is ramped-width
-
-
-
 
       this.addLayer({
         id: outlineLayerId,
@@ -1276,10 +1259,12 @@ export class Map extends maplibregl.Map {
           "line-join": "round",
           "line-cap": "round"
         },
+        minzoom: options?.minzoom ?? 0,
+        maxzoom: options?.maxzoom ?? 0,
         paint: {
-          "line-opacity": lineOpacityOptionsToLineLayerPaintSpec(options?.outlineOpacity),
-          "line-color": lineColorOptionsToLineLayerPaintSpec(options?.outlineColor, "#FFFFFF"),
-          "line-width": typeof options?.outlineWidth === "number" || typeof options?.outlineWidth === "undefined" ? lineWidthOptionsToOutlineLayerPaintSpec(options?.lineWidth, options?.outlineWidth) : lineWidthOptionsToLineLayerPaintSpec(options?.outlineWidth),
+          "line-opacity": typeof outlineOpacity === "number" ? outlineOpacity : lineOpacityOptionsToLineLayerPaintSpec(outlineOpacity),
+          "line-color": typeof outlineColor === "string" ? outlineColor : lineColorOptionsToLineLayerPaintSpec(outlineColor),
+          "line-width": computeRampedOutlineWidth(lineWidth, outlineWidth),
         }
       }, options?.beforeId);
 
@@ -1293,13 +1278,16 @@ export class Map extends maplibregl.Map {
         "line-join": "round",
         "line-cap": "round"
       },
+      minzoom: options?.minzoom ?? 0,
+      maxzoom: options?.maxzoom ?? 0,
       paint: {
-        "line-opacity": lineOpacityOptionsToLineLayerPaintSpec(options?.lineOpacity),
-        "line-color": lineColorOptionsToLineLayerPaintSpec(options?.lineColor),
-        "line-width": lineWidthOptionsToLineLayerPaintSpec(options?.lineWidth),
+        "line-opacity": typeof lineOpacity === "number" ? lineOpacity : lineOpacityOptionsToLineLayerPaintSpec(lineOpacity),
+        "line-color": typeof lineColor === "string" ? lineColor : lineColorOptionsToLineLayerPaintSpec(lineColor),
+        "line-width": typeof lineWidth === "number" ? lineWidth : lineWidthOptionsToLineLayerPaintSpec(lineWidth),
       }
     }, options?.beforeId);
 
     return retunedInfo;
   }
 }
+
