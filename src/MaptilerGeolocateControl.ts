@@ -16,8 +16,6 @@ const LngLatBounds = maplibregl.LngLatBounds;
 export class MaptilerGeolocateControl extends GeolocateControl {
   private lastUpdatedCenter = new LngLat(0, 0);
 
-
-
   /**
    * Update the camera location to center on the current position
    *
@@ -117,7 +115,7 @@ export class MaptilerGeolocateControl extends GeolocateControl {
     // when showUserLocation is enabled, keep the Geolocate button disabled until the device location marker is setup on the map
     if (this.options.showUserLocation) {
       this._dotElement = DOMcreate("div", "maplibregl-user-location-dot");
-      this._userLocationDotMarker = new Marker({element: this._dotElement});
+      this._userLocationDotMarker = new Marker({ element: this._dotElement });
 
       this._circleElement = DOMcreate(
         "div",
@@ -170,7 +168,6 @@ export class MaptilerGeolocateControl extends GeolocateControl {
       });
     }
   };
-
 
   _updateCircleRadius() {
     if (
