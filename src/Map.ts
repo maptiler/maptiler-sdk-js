@@ -1,5 +1,5 @@
 import maplibregl, { GeoJSONFeature } from "maplibre-gl";
-
+import { toGeoJSON } from "./togeojson";
 import geojsonValidation from "geojson-validation";
 import { Base64 } from "js-base64";
 import type {
@@ -33,6 +33,7 @@ import { AttributionControl } from "./AttributionControl";
 import { ScaleControl } from "./ScaleControl";
 import { FullscreenControl } from "./FullscreenControl";
 import { computeRampedOutlineWidth, generateRandomLayerName, generateRandomSourceName, getRandomColor, lineColorOptionsToLineLayerPaintSpec, lineOpacityOptionsToLineLayerPaintSpec, lineWidthOptionsToLineLayerPaintSpec, PolylineLayerOptions, ZoomNumberValues } from "./stylehelper";
+import { FeatureCollection } from "geojson";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -1199,6 +1200,80 @@ export class Map extends maplibregl.Map {
   }
 
 
+  
+  async addPolyline(
+    options: PolylineLayerOptions,
+    fetchOptions: RequestInit = {},
+  ) {
+    let data = options.data;
+
+    
+    if (typeof data === "string" ) {
+      const xmlParser = new DOMParser();
+
+      // if options.data exists and is a uuid string, we consider that it points to a MapTiler Dataset
+      if (isUUID(data)) {
+        data = `https://api.maptiler.com/data/${options.data}/features.json?key=${config.apiKey}`;
+      } else
+
+      // options.data could be a url to a .gpx file
+      if (data.split(".").pop()?.toLowerCase().trim() === "gpx") {
+        // fetch the file
+        const res = await fetch(data, fetchOptions);
+        const gpxStr = await res.text();
+        const gpxXmlDoc = xmlParser.parseFromString(gpxStr, "text/xml");
+        if (!gpxXmlDoc.querySelector("parsererror")) {
+          data = toGeoJSON.gpx(gpxXmlDoc) as FeatureCollection;
+        }
+      } else
+
+      // options.data could be a url to a .kml file
+      if (data.split(".").pop()?.toLowerCase().trim() === "kml") {
+        // fetch the file
+        const res = await fetch(data, fetchOptions);
+        const kmlStr = await res.text();
+        
+        const kmlXmlDoc = xmlParser.parseFromString(kmlStr, "text/xml");
+        if (!kmlXmlDoc.querySelector("parsererror")) {
+          data = toGeoJSON.kml(kmlXmlDoc) as FeatureCollection;
+        }
+      }
+
+      else {
+
+        
+        try {
+          // this could be a raw GeoJSON string
+          data = JSON.parse(data);
+        } catch(e) {
+          // Or this could be a raw KML or GPX string
+          const xmlDom = xmlParser.parseFromString(data as string, "text/xml");
+          if (!xmlDom.querySelector("parsererror")) {
+            // If parsed as GPX doc
+            if (xmlDom.children[0].tagName.toLowerCase() === "gpx") {
+              const dataFromGpx = toGeoJSON.gpx(xmlDom) as FeatureCollection;
+              if (dataFromGpx) {
+                data = dataFromGpx;
+              }
+            } else if (xmlDom.children[0].tagName.toLowerCase() === "kml") {
+              const dataFromKml = toGeoJSON.kml(xmlDom) as FeatureCollection;
+              if (dataFromKml) {
+                data = dataFromKml;
+              }
+            }
+
+          }
+        }
+      }
+    }
+
+    return this.addGeoJSONPolyline({
+      ...options,
+      data,
+    });
+  }
+
+
   /**
    * Add a polyline witgh optional outline from a GeoJSON object
    * @param data 
@@ -1215,11 +1290,15 @@ export class Map extends maplibregl.Map {
     polylineSourceId: string,
   } 
   {
+
+    if (options.layerId && this.getLayer(options.layerId)) {
+      throw new Error(`A layer already exists with the layer id: ${options.layerId}`);
+    }
+
     // We need to have the sourceId of the sourceData
     if (!options.sourceId && !options.data) {
       throw new Error("Creating a polyline layer require or an existing .sourceId or a valid .sourceData");
     }
-
 
     const sourceId = options.sourceId ?? generateRandomSourceName();
     const layerId = options.layerId ?? generateRandomLayerName();
@@ -1235,7 +1314,7 @@ export class Map extends maplibregl.Map {
       // Adding the source
       this.addSource(sourceId, {
         type: "geojson",
-        data: typeof options.data === "string" && isUUID(options.data) ? `https://api.maptiler.com/data/${options.data}/features.json?key=${config.apiKey}` : options.data,
+        data: options.data,
       });
     }
 
