@@ -190,6 +190,9 @@ export type {
   Matrix2,
 };
 
+// Export convert functions 'str2xml', 'xml2str', 'gpx', and 'kml'
+export * from "./converters";
+
 // Exporting classes, objects, functions, etc.
 export {
   Map,
