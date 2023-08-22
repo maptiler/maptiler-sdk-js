@@ -50,7 +50,7 @@ export class MaptilerNavigationControl extends NavigationControl {
   /**
    * Overloading: Limit how flat the compass icon can get
    */
-  _rotateCompassArrow() {
+  _rotateCompassArrow = () => {
     const rotate = this.options.visualizePitch
       ? `scale(${Math.min(
           1.5,
@@ -65,5 +65,5 @@ export class MaptilerNavigationControl extends NavigationControl {
       : `rotate(${this._map.transform.angle * (180 / Math.PI)}deg)`;
 
     this._compassIcon.style.transform = rotate;
-  }
+  };
 }

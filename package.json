@@ -35,7 +35,7 @@
     "format": "prettier --write \"src/**/*.{js,ts,tsx}\"",
     "lint": "eslint --fix \"src/**/*.{js,ts}\"",
     "doc": "rm -rf docs/* && typedoc --out docs && cp -r images docs/",
-    "prepare": "npm run format && npm run lint && npm run build && npm run doc && cp -r demos docs/",
+    "prepare": "npm run format && npm run lint && npm run build && npm run doc",
     "test:dev": "vitest dev",
     "test": "vitest run"
   },
@@ -71,7 +71,7 @@
     "@maptiler/client": "^1.5.0",
     "events": "^3.3.0",
     "js-base64": "^3.7.4",
-    "maplibre-gl": "3.1.0",
+    "maplibre-gl": "3.3.0",
     "uuid": "^9.0.0"
   }
 }
