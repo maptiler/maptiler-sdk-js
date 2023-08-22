@@ -1,5 +1,5 @@
 // Typescript port of https://github.com/mapbox/togeojson/
-// This includes KML and GPX parsing
+// This includes KML and GPX parsing to GeoJSON
 
 export interface Link {
   href: string | null;
@@ -78,7 +78,6 @@ export function gpx(doc: Document): GeoJSON.FeatureCollection {
   for (let i = 0; i < waypoints.length; i++) {
     gj.features.push(getPoint(waypoints[i]));
   }
-
   return gj;
 }
 
@@ -130,10 +129,10 @@ export function kml(
       getPlacemark(placemarks[j], styleIndex, styleByHash, styleMapIndex),
     );
   }
-
   return gj;
 }
 
+// parse color string to hex string with opacity. black with 100% opacity will be returned if no data found
 function kmlColor(v: string | null): [string, number] {
   if (v === null) return ["#000000", 1];
   let color = "";
@@ -151,6 +150,7 @@ function gxCoord(v: string): number[] {
   return numarray(v.split(" "));
 }
 
+// grab coordinates and timestamps (when available) from the gx:Track extension
 function gxCoords(root: Document | Element): {
   coords: number[][];
   times: (string | null)[];
@@ -169,6 +169,7 @@ function gxCoords(root: Document | Element): {
   };
 }
 
+// get the geometry data and coordinate timestamps if available
 function getGeometry(root: Element): {
   geoms: GeoJSON.Geometry[];
   coordTimes: (string | null)[][];
@@ -226,10 +227,10 @@ function getGeometry(root: Element): {
       }
     }
   }
-
   return { geoms, coordTimes };
 }
 
+// build geojson feature sets with all their attributes and property data
 function getPlacemark(
   root: Element,
   styleIndex: Record<string, string>,
@@ -382,6 +383,7 @@ function getPoints(
     heartRates,
   };
 }
+
 function getTrack(node: Element): undefined | GeoJSON.Feature {
   const segments = get(node, "trkseg");
   const track = [];
@@ -449,7 +451,6 @@ function getRoute(node: Element): GeoJSON.Feature | undefined {
     ...getProperties(node),
     ...getLineStyle(get1(node, "extensions")),
   };
-
   return {
     type: "Feature",
     properties: prop,
@@ -520,7 +521,6 @@ function okhash(x: string): number {
   for (let i = 0; i < x.length; i++) {
     h = ((h << 5) - h + x.charCodeAt(i)) | 0;
   }
-
   return h;
 }
 
@@ -585,6 +585,7 @@ function coord(v: string): number[][] {
   return out;
 }
 
+// build a set of coordinates, timestamps, and heartrate
 function coordPair(x: Element): {
   coordinates: number[];
   time: string | null;
