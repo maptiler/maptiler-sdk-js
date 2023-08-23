@@ -26,7 +26,7 @@ export class MaptilerLogoControl extends LogoControl {
 
   onAdd(map: Map): HTMLElement {
     this._map = map;
-    this._compact = (this.options && this.options.compact) ?? false;
+    this._compact = this.options.compact ?? false;
     this._container = window.document.createElement("div");
     this._container.className = "maplibregl-ctrl";
     const anchor = window.document.createElement("a");

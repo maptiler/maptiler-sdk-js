@@ -170,7 +170,7 @@ export class Map extends maplibregl.Map {
 
     if (!config.apiKey) {
       console.warn(
-        "MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!"
+        "MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!",
       );
     }
 
@@ -272,7 +272,7 @@ export class Map extends maplibregl.Map {
             maximumAge: 24 * 3600 * 1000, // a day in millisec
             timeout: 5000, // milliseconds
             enableHighAccuracy: false,
-          }
+          },
         );
       }
     });
@@ -308,11 +308,11 @@ export class Map extends maplibregl.Map {
           .map((sourceName) => this.getSource(sourceName))
           .filter(
             (s: any) =>
-              typeof s.url === "string" && s.url.includes("tiles.json")
+              typeof s.url === "string" && s.url.includes("tiles.json"),
           );
 
         const styleUrl = new URL(
-          (possibleSources[0] as maplibregl.VectorTileSource).url
+          (possibleSources[0] as maplibregl.VectorTileSource).url,
         );
 
         if (!styleUrl.searchParams.has("key")) {
@@ -331,7 +331,7 @@ export class Map extends maplibregl.Map {
 
         this.addControl(
           new MaptilerLogoControl({ logoURL }),
-          options.logoPosition
+          options.logoPosition,
         );
 
         // if attribution in option is `false` but the the logo shows up in the tileJson, then the attribution must show anyways
@@ -339,7 +339,7 @@ export class Map extends maplibregl.Map {
           this.addControl(
             new AttributionControl({
               customAttribution: options.customAttribution,
-            })
+            }),
           );
         }
       } else if (options.maptilerLogo) {
@@ -400,7 +400,7 @@ export class Map extends maplibregl.Map {
             showAccuracyCircle: true,
             showUserLocation: true,
           }),
-          position
+          position,
         );
       }
 
@@ -466,7 +466,7 @@ export class Map extends maplibregl.Map {
     // enable 3D terrain if provided in options
     if (options.terrain) {
       this.enableTerrain(
-        options.terrainExaggeration ?? this.terrainExaggeration
+        options.terrainExaggeration ?? this.terrainExaggeration,
       );
     }
   }
@@ -525,7 +525,7 @@ export class Map extends maplibregl.Map {
       | MapStyleVariant
       | StyleSpecification
       | string,
-    options?: StyleSwapOptions & StyleOptions
+    options?: StyleSwapOptions & StyleOptions,
   ): this {
     return super.setStyle(styleToStyle(style), options);
   }
@@ -549,7 +549,7 @@ export class Map extends maplibregl.Map {
   setPrimaryLanguage(language: LanguageString = defaults.primaryLanguage) {
     if (this.primaryLanguage === Language.STYLE_LOCK) {
       console.warn(
-        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag."
+        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag.",
       );
       return;
     }
@@ -602,7 +602,7 @@ export class Map extends maplibregl.Map {
 
         const textFieldLayoutProp = this.getLayoutProperty(
           layer.id,
-          "text-field"
+          "text-field",
         );
 
         // Note:
@@ -692,7 +692,7 @@ export class Map extends maplibregl.Map {
           (typeof textFieldLayoutProp === "string" ||
             textFieldLayoutProp instanceof String) &&
           (regexMatch = strBilingualRegex.exec(
-            textFieldLayoutProp.toString()
+            textFieldLayoutProp.toString(),
           )) !== null
         ) {
           const newProp = `{${langStr}}${regexMatch[3]}{name${
@@ -703,7 +703,7 @@ export class Map extends maplibregl.Map {
           (typeof textFieldLayoutProp === "string" ||
             textFieldLayoutProp instanceof String) &&
           (regexMatch = strMoreInfoRegex.exec(
-            textFieldLayoutProp.toString()
+            textFieldLayoutProp.toString(),
           )) !== null
         ) {
           const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
@@ -722,7 +722,7 @@ export class Map extends maplibregl.Map {
     // Using the lock flag as a primaty language also applies to the secondary
     if (this.primaryLanguage === Language.STYLE_LOCK) {
       console.warn(
-        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag."
+        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag.",
       );
       return;
     }
@@ -766,7 +766,7 @@ export class Map extends maplibregl.Map {
 
         const textFieldLayoutProp = this.getLayoutProperty(
           layer.id,
-          "text-field"
+          "text-field",
         );
 
         let newProp;
@@ -844,7 +844,7 @@ export class Map extends maplibregl.Map {
           (typeof textFieldLayoutProp === "string" ||
             textFieldLayoutProp instanceof String) &&
           (regexMatch = strBilingualRegex.exec(
-            textFieldLayoutProp.toString()
+            textFieldLayoutProp.toString(),
           )) !== null
         ) {
           const langStr = language ? `name:${language}` : "name"; // to handle local lang
@@ -1128,7 +1128,7 @@ export class Map extends maplibregl.Map {
       {
         duration: 0,
         padding: 100,
-      }
+      },
     );
   }
 
@@ -1185,7 +1185,7 @@ export class Map extends maplibregl.Map {
    *  map.setTransformRequest((url: string, resourceType: string) => {});
    */
   override setTransformRequest(
-    transformRequest: RequestTransformFunction
+    transformRequest: RequestTransformFunction,
   ): this {
     super.setTransformRequest(combineTransformRequest(transformRequest));
     return this;

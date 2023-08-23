@@ -13,7 +13,7 @@ export function styleToStyle(
     | MapStyleVariant
     | maplibregl.StyleSpecification
     | null
-    | undefined
+    | undefined,
 ): string | maplibregl.StyleSpecification {
   if (!style) {
     return MapStyle[
