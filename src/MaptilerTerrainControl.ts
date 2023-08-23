@@ -22,11 +22,11 @@ export class MaptilerTerrainControl implements IControl {
     this._terrainButton = DOMcreate(
       "button",
       "maplibregl-ctrl-terrain",
-      this._container
+      this._container,
     );
     DOMcreate("span", "maplibregl-ctrl-icon", this._terrainButton).setAttribute(
       "aria-hidden",
-      "true"
+      "true",
     );
     this._terrainButton.type = "button";
     this._terrainButton.addEventListener("click", this._toggleTerrain);
@@ -60,12 +60,12 @@ export class MaptilerTerrainControl implements IControl {
     if (this._map.hasTerrain()) {
       this._terrainButton.classList.add("maplibregl-ctrl-terrain-enabled");
       this._terrainButton.title = this._map._getUIString(
-        "TerrainControl.disableTerrain"
+        "TerrainControl.disableTerrain",
       );
     } else {
       this._terrainButton.classList.add("maplibregl-ctrl-terrain");
       this._terrainButton.title = this._map._getUIString(
-        "TerrainControl.enableTerrain"
+        "TerrainControl.enableTerrain",
       );
     }
   }

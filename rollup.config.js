@@ -28,20 +28,6 @@ const copyCssPlugin = copy({
   ],
 });
 
-// const copyUmdBundle = copy({
-//   targets: [
-//     {
-//       src: `dist/${outputName}.umd.js`,
-//       dest: "demos/",
-//     },
-//     {
-//       src: `dist/${outputName}.css`,
-//       dest: "demos/",
-//     },
-//   ],
-//   hook: "writeBundle"
-// });
-
 
 const bundles = [ 
   // ES module, not minified + sourcemap

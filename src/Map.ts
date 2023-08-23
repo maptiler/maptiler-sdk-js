@@ -1,5 +1,5 @@
 import maplibregl, { GeoJSONFeature } from "maplibre-gl";
-import { toGeoJSON } from "./togeojson";
+// import { toGeoJSON } from "./togeojson";
 import geojsonValidation from "geojson-validation";
 import { Base64 } from "js-base64";
 import type {
@@ -32,8 +32,19 @@ import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
 import { AttributionControl } from "./AttributionControl";
 import { ScaleControl } from "./ScaleControl";
 import { FullscreenControl } from "./FullscreenControl";
-import { computeRampedOutlineWidth, generateRandomLayerName, generateRandomSourceName, getRandomColor, lineColorOptionsToLineLayerPaintSpec, lineOpacityOptionsToLineLayerPaintSpec, lineWidthOptionsToLineLayerPaintSpec, PolylineLayerOptions, ZoomNumberValues } from "./stylehelper";
+import {
+  computeRampedOutlineWidth,
+  generateRandomLayerName,
+  generateRandomSourceName,
+  getRandomColor,
+  lineColorOptionsToLineLayerPaintSpec,
+  lineOpacityOptionsToLineLayerPaintSpec,
+  lineWidthOptionsToLineLayerPaintSpec,
+  PolylineLayerOptions,
+  ZoomNumberValues,
+} from "./stylehelper";
 import { FeatureCollection } from "geojson";
+import { gpx, kml } from "./converters";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -153,10 +164,6 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   geolocate?: (typeof GeolocationType)[keyof typeof GeolocationType] | boolean;
 };
 
-
-
-
-
 /**
  * The Map class can be instanciated to display a map in a `<div>`
  */
@@ -178,7 +185,7 @@ export class Map extends maplibregl.Map {
 
     if (!config.apiKey) {
       console.warn(
-        "MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!"
+        "MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!",
       );
     }
 
@@ -280,7 +287,7 @@ export class Map extends maplibregl.Map {
             maximumAge: 24 * 3600 * 1000, // a day in millisec
             timeout: 5000, // milliseconds
             enableHighAccuracy: false,
-          }
+          },
         );
       }
     });
@@ -316,11 +323,11 @@ export class Map extends maplibregl.Map {
           .map((sourceName) => this.getSource(sourceName))
           .filter(
             (s: any) =>
-              typeof s.url === "string" && s.url.includes("tiles.json")
+              typeof s.url === "string" && s.url.includes("tiles.json"),
           );
 
         const styleUrl = new URL(
-          (possibleSources[0] as maplibregl.VectorTileSource).url
+          (possibleSources[0] as maplibregl.VectorTileSource).url,
         );
 
         if (!styleUrl.searchParams.has("key")) {
@@ -339,7 +346,7 @@ export class Map extends maplibregl.Map {
 
         this.addControl(
           new MaptilerLogoControl({ logoURL }),
-          options.logoPosition
+          options.logoPosition,
         );
 
         // if attribution in option is `false` but the the logo shows up in the tileJson, then the attribution must show anyways
@@ -347,7 +354,7 @@ export class Map extends maplibregl.Map {
           this.addControl(
             new AttributionControl({
               customAttribution: options.customAttribution,
-            })
+            }),
           );
         }
       } else if (options.maptilerLogo) {
@@ -408,7 +415,7 @@ export class Map extends maplibregl.Map {
             showAccuracyCircle: true,
             showUserLocation: true,
           }),
-          position
+          position,
         );
       }
 
@@ -474,7 +481,7 @@ export class Map extends maplibregl.Map {
     // enable 3D terrain if provided in options
     if (options.terrain) {
       this.enableTerrain(
-        options.terrainExaggeration ?? this.terrainExaggeration
+        options.terrainExaggeration ?? this.terrainExaggeration,
       );
     }
   }
@@ -533,7 +540,7 @@ export class Map extends maplibregl.Map {
       | MapStyleVariant
       | StyleSpecification
       | string,
-    options?: StyleSwapOptions & StyleOptions
+    options?: StyleSwapOptions & StyleOptions,
   ): this {
     return super.setStyle(styleToStyle(style), options);
   }
@@ -557,7 +564,7 @@ export class Map extends maplibregl.Map {
   setPrimaryLanguage(language: LanguageString = defaults.primaryLanguage) {
     if (this.primaryLanguage === Language.STYLE_LOCK) {
       console.warn(
-        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag."
+        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag.",
       );
       return;
     }
@@ -610,7 +617,7 @@ export class Map extends maplibregl.Map {
 
         const textFieldLayoutProp = this.getLayoutProperty(
           layer.id,
-          "text-field"
+          "text-field",
         );
 
         // Note:
@@ -700,7 +707,7 @@ export class Map extends maplibregl.Map {
           (typeof textFieldLayoutProp === "string" ||
             textFieldLayoutProp instanceof String) &&
           (regexMatch = strBilingualRegex.exec(
-            textFieldLayoutProp.toString()
+            textFieldLayoutProp.toString(),
           )) !== null
         ) {
           const newProp = `{${langStr}}${regexMatch[3]}{name${
@@ -711,7 +718,7 @@ export class Map extends maplibregl.Map {
           (typeof textFieldLayoutProp === "string" ||
             textFieldLayoutProp instanceof String) &&
           (regexMatch = strMoreInfoRegex.exec(
-            textFieldLayoutProp.toString()
+            textFieldLayoutProp.toString(),
           )) !== null
         ) {
           const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
@@ -730,7 +737,7 @@ export class Map extends maplibregl.Map {
     // Using the lock flag as a primaty language also applies to the secondary
     if (this.primaryLanguage === Language.STYLE_LOCK) {
       console.warn(
-        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag."
+        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag.",
       );
       return;
     }
@@ -774,7 +781,7 @@ export class Map extends maplibregl.Map {
 
         const textFieldLayoutProp = this.getLayoutProperty(
           layer.id,
-          "text-field"
+          "text-field",
         );
 
         let newProp;
@@ -852,7 +859,7 @@ export class Map extends maplibregl.Map {
           (typeof textFieldLayoutProp === "string" ||
             textFieldLayoutProp instanceof String) &&
           (regexMatch = strBilingualRegex.exec(
-            textFieldLayoutProp.toString()
+            textFieldLayoutProp.toString(),
           )) !== null
         ) {
           const langStr = language ? `name:${language}` : "name"; // to handle local lang
@@ -1136,7 +1143,7 @@ export class Map extends maplibregl.Map {
       {
         duration: 0,
         padding: 100,
-      }
+      },
     );
   }
 
@@ -1193,75 +1200,137 @@ export class Map extends maplibregl.Map {
    *  map.setTransformRequest((url: string, resourceType: string) => {});
    */
   override setTransformRequest(
-    transformRequest: RequestTransformFunction
+    transformRequest: RequestTransformFunction,
   ): this {
     super.setTransformRequest(combineTransformRequest(transformRequest));
     return this;
   }
 
+  // async addPolyline(
+  //   options: PolylineLayerOptions,
+  //   fetchOptions: RequestInit = {},
+  // ) {
+  //   let data = options.data;
 
-  
+  //   if (typeof data === "string") {
+  //     const xmlParser = new DOMParser();
+
+  //     // if options.data exists and is a uuid string, we consider that it points to a MapTiler Dataset
+  //     if (isUUID(data)) {
+  //       data = `https://api.maptiler.com/data/${options.data}/features.json?key=${config.apiKey}`;
+  //     }
+
+  //     // options.data could be a url to a .gpx file
+  //     else if (data.split(".").pop()?.toLowerCase().trim() === "gpx") {
+  //       // fetch the file
+  //       const res = await fetch(data, fetchOptions);
+  //       const gpxStr = await res.text();
+  //       const gpxXmlDoc = xmlParser.parseFromString(gpxStr, "text/xml");
+  //       if (!gpxXmlDoc.querySelector("parsererror")) {
+  //         data = toGeoJSON.gpx(gpxXmlDoc) as FeatureCollection;
+  //       }
+  //     }
+
+  //     // options.data could be a url to a .kml file
+  //     else if (data.split(".").pop()?.toLowerCase().trim() === "kml") {
+  //       // fetch the file
+  //       const res = await fetch(data, fetchOptions);
+  //       const kmlStr = await res.text();
+
+  //       const kmlXmlDoc = xmlParser.parseFromString(kmlStr, "text/xml");
+  //       if (!kmlXmlDoc.querySelector("parsererror")) {
+  //         data = toGeoJSON.kml(kmlXmlDoc) as FeatureCollection;
+  //       }
+  //     } else {
+  //       try {
+  //         // this could be a raw GeoJSON string
+  //         data = JSON.parse(data);
+  //       } catch (e) {
+  //         // Or this could be a raw KML or GPX string
+  //         const xmlDom = xmlParser.parseFromString(data as string, "text/xml");
+  //         if (!xmlDom.querySelector("parsererror")) {
+  //           // If parsed as GPX doc
+  //           if (xmlDom.children[0].tagName.toLowerCase() === "gpx") {
+  //             const dataFromGpx = toGeoJSON.gpx(xmlDom) as FeatureCollection;
+  //             if (dataFromGpx) {
+  //               data = dataFromGpx;
+  //             }
+  //           } else if (xmlDom.children[0].tagName.toLowerCase() === "kml") {
+  //             const dataFromKml = toGeoJSON.kml(xmlDom) as FeatureCollection;
+  //             if (dataFromKml) {
+  //               data = dataFromKml;
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+
+  //   return this.addGeoJSONPolyline({
+  //     ...options,
+  //     data,
+  //   });
+  // }
+
+
+
+
+
   async addPolyline(
     options: PolylineLayerOptions,
     fetchOptions: RequestInit = {},
   ) {
     let data = options.data;
 
-    
-    if (typeof data === "string" ) {
+    if (typeof data === "string") {
       const xmlParser = new DOMParser();
 
       // if options.data exists and is a uuid string, we consider that it points to a MapTiler Dataset
       if (isUUID(data)) {
         data = `https://api.maptiler.com/data/${options.data}/features.json?key=${config.apiKey}`;
-      } else
+      }
 
       // options.data could be a url to a .gpx file
-      if (data.split(".").pop()?.toLowerCase().trim() === "gpx") {
+      else if (data.split(".").pop()?.toLowerCase().trim() === "gpx") {
         // fetch the file
         const res = await fetch(data, fetchOptions);
         const gpxStr = await res.text();
         const gpxXmlDoc = xmlParser.parseFromString(gpxStr, "text/xml");
         if (!gpxXmlDoc.querySelector("parsererror")) {
-          data = toGeoJSON.gpx(gpxXmlDoc) as FeatureCollection;
+          data = gpx(gpxXmlDoc) as FeatureCollection;
         }
-      } else
+      } 
 
       // options.data could be a url to a .kml file
-      if (data.split(".").pop()?.toLowerCase().trim() === "kml") {
+      else if (data.split(".").pop()?.toLowerCase().trim() === "kml") {
         // fetch the file
         const res = await fetch(data, fetchOptions);
         const kmlStr = await res.text();
-        
+
         const kmlXmlDoc = xmlParser.parseFromString(kmlStr, "text/xml");
         if (!kmlXmlDoc.querySelector("parsererror")) {
-          data = toGeoJSON.kml(kmlXmlDoc) as FeatureCollection;
+          data = kml(kmlXmlDoc) as FeatureCollection;
         }
-      }
-
-      else {
-
-        
+      } else {
         try {
           // this could be a raw GeoJSON string
           data = JSON.parse(data);
-        } catch(e) {
+        } catch (e) {
           // Or this could be a raw KML or GPX string
           const xmlDom = xmlParser.parseFromString(data as string, "text/xml");
           if (!xmlDom.querySelector("parsererror")) {
             // If parsed as GPX doc
             if (xmlDom.children[0].tagName.toLowerCase() === "gpx") {
-              const dataFromGpx = toGeoJSON.gpx(xmlDom) as FeatureCollection;
+              const dataFromGpx = gpx(xmlDom) as FeatureCollection;
               if (dataFromGpx) {
                 data = dataFromGpx;
               }
             } else if (xmlDom.children[0].tagName.toLowerCase() === "kml") {
-              const dataFromKml = toGeoJSON.kml(xmlDom) as FeatureCollection;
+              const dataFromKml = kml(xmlDom) as FeatureCollection;
               if (dataFromKml) {
                 data = dataFromKml;
               }
             }
-
           }
         }
       }
@@ -1274,30 +1343,34 @@ export class Map extends maplibregl.Map {
   }
 
 
+
+
+
   /**
    * Add a polyline witgh optional outline from a GeoJSON object
-   * @param data 
-   * @param options 
-   * @returns 
+   * @param data
+   * @param options
+   * @returns
    */
   addGeoJSONPolyline(
     // this Feature collection is expected to contain on LineStrings and MultilLinestrings
-    options: PolylineLayerOptions
-  )
-  : {
-    polylineLayerId: string,
-    polylineOutlineLayerId: string | null,
-    polylineSourceId: string,
-  } 
-  {
-
+    options: PolylineLayerOptions,
+  ): {
+    polylineLayerId: string;
+    polylineOutlineLayerId: string | null;
+    polylineSourceId: string;
+  } {
     if (options.layerId && this.getLayer(options.layerId)) {
-      throw new Error(`A layer already exists with the layer id: ${options.layerId}`);
+      throw new Error(
+        `A layer already exists with the layer id: ${options.layerId}`,
+      );
     }
 
     // We need to have the sourceId of the sourceData
     if (!options.sourceId && !options.data) {
-      throw new Error("Creating a polyline layer require or an existing .sourceId or a valid .sourceData");
+      throw new Error(
+        "Creating a polyline layer require or an existing .sourceId or a valid .sourceData",
+      );
     }
 
     const sourceId = options.sourceId ?? generateRandomSourceName();
@@ -1307,7 +1380,7 @@ export class Map extends maplibregl.Map {
       polylineLayerId: layerId,
       polylineOutlineLayerId: "",
       polylineSourceId: sourceId,
-    } 
+    };
 
     // A new source is added if the map does not have this sourceId and the data is provided
     if (options.data && !this.getSource(sourceId)) {
@@ -1330,43 +1403,62 @@ export class Map extends maplibregl.Map {
       const outlineLayerId = `${layerId}_outline`;
       retunedInfo.polylineOutlineLayerId = outlineLayerId;
 
-      this.addLayer({
-        id: outlineLayerId,
+      this.addLayer(
+        {
+          id: outlineLayerId,
+          type: "line",
+          source: sourceId,
+          layout: {
+            "line-join": "round",
+            "line-cap": "round",
+          },
+          minzoom: options?.minzoom ?? 0,
+          maxzoom: options?.maxzoom ?? 0,
+          paint: {
+            "line-opacity":
+              typeof outlineOpacity === "number"
+                ? outlineOpacity
+                : lineOpacityOptionsToLineLayerPaintSpec(outlineOpacity),
+            "line-color":
+              typeof outlineColor === "string"
+                ? outlineColor
+                : lineColorOptionsToLineLayerPaintSpec(outlineColor),
+            "line-width": computeRampedOutlineWidth(lineWidth, outlineWidth),
+          },
+        },
+        options?.beforeId,
+      );
+    }
+
+    this.addLayer(
+      {
+        id: layerId,
         type: "line",
         source: sourceId,
         layout: {
           "line-join": "round",
-          "line-cap": "round"
+          "line-cap": "round",
         },
         minzoom: options?.minzoom ?? 0,
         maxzoom: options?.maxzoom ?? 0,
         paint: {
-          "line-opacity": typeof outlineOpacity === "number" ? outlineOpacity : lineOpacityOptionsToLineLayerPaintSpec(outlineOpacity),
-          "line-color": typeof outlineColor === "string" ? outlineColor : lineColorOptionsToLineLayerPaintSpec(outlineColor),
-          "line-width": computeRampedOutlineWidth(lineWidth, outlineWidth),
-        }
-      }, options?.beforeId);
-
-    }
-
-    this.addLayer({
-      id: layerId,
-      type: "line",
-      source: sourceId,
-      layout: {
-        "line-join": "round",
-        "line-cap": "round"
+          "line-opacity":
+            typeof lineOpacity === "number"
+              ? lineOpacity
+              : lineOpacityOptionsToLineLayerPaintSpec(lineOpacity),
+          "line-color":
+            typeof lineColor === "string"
+              ? lineColor
+              : lineColorOptionsToLineLayerPaintSpec(lineColor),
+          "line-width":
+            typeof lineWidth === "number"
+              ? lineWidth
+              : lineWidthOptionsToLineLayerPaintSpec(lineWidth),
+        },
       },
-      minzoom: options?.minzoom ?? 0,
-      maxzoom: options?.maxzoom ?? 0,
-      paint: {
-        "line-opacity": typeof lineOpacity === "number" ? lineOpacity : lineOpacityOptionsToLineLayerPaintSpec(lineOpacity),
-        "line-color": typeof lineColor === "string" ? lineColor : lineColorOptionsToLineLayerPaintSpec(lineColor),
-        "line-width": typeof lineWidth === "number" ? lineWidth : lineWidthOptionsToLineLayerPaintSpec(lineWidth),
-      }
-    }, options?.beforeId);
+      options?.beforeId,
+    );
 
     return retunedInfo;
   }
 }
-

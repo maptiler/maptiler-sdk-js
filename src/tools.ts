@@ -16,7 +16,7 @@ export function enableRTL() {
       (err?: Error | undefined) => {
         if (err !== undefined) console.error(err);
       },
-      true // Lazy load the plugin
+      true, // Lazy load the plugin
     );
   }
 }
@@ -37,7 +37,7 @@ export function bindAll(fns: Array<string>, context: any): void {
 export function DOMcreate<K extends keyof HTMLElementTagNameMap>(
   tagName: K,
   className?: string,
-  container?: HTMLElement
+  container?: HTMLElement,
 ): HTMLElementTagNameMap[K] {
   const el = window.document.createElement(tagName);
   if (className !== undefined) el.className = className;
@@ -63,7 +63,9 @@ export function DOMremove(node: HTMLElement) {
  */
 export function maptilerCloudTransformRequest(
   url: string,
-  _resourceType?: ResourceType
+  // keep incase we need it in the future
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _resourceType?: ResourceType,
 ): RequestParameters {
   let reqUrl = null;
 
@@ -100,11 +102,11 @@ export function maptilerCloudTransformRequest(
  * @returns
  */
 export function combineTransformRequest(
-  userDefinedRTF?: RequestTransformFunction
+  userDefinedRTF?: RequestTransformFunction,
 ): RequestTransformFunction {
   return function (
     url: string,
-    resourceType?: ResourceType
+    resourceType?: ResourceType,
   ): RequestParameters {
     if (userDefinedRTF !== undefined) {
       const rp = userDefinedRTF(url, resourceType);
@@ -120,17 +122,13 @@ export function combineTransformRequest(
   };
 }
 
-
 export function generateRandomString(): string {
-  return Math.random()
-  .toString(36)
-  .split(".")
-  .pop() as string;
+  return Math.random().toString(36).split(".").pop() as string;
 }
-
 
 export function isUUID(s: string): boolean {
   // Regular expression to check if string is a valid UUID
-  const regexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
+  const regexExp =
+    /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
   return regexExp.test(s);
 }

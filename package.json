@@ -35,7 +35,9 @@
     "format": "prettier --write \"src/**/*.{js,ts,tsx}\"",
     "lint": "eslint --fix \"src/**/*.{js,ts}\"",
     "doc": "rm -rf docs/* && typedoc --out docs && cp -r images docs/",
-    "prepare": "npm run format && npm run lint && npm run build && npm run doc"
+    "prepare": "npm run format && npm run lint && npm run build && npm run doc",
+    "test:dev": "vitest dev",
+    "test": "vitest run"
   },
   "author": "MapTiler",
   "devDependencies": {
@@ -44,10 +46,13 @@
     "@rollup/plugin-node-resolve": "^15.0.2",
     "@types/geojson-validation": "^1.0.0",
     "@types/uuid": "^9.0.2",
+    "@types/xmldom": "^0.1.31",
     "@typescript-eslint/eslint-plugin": "^5.59.0",
     "@typescript-eslint/parser": "^5.59.0",
     "eslint": "^8.38.0",
-    "prettier": "^2.8.7",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.2",
     "rollup": "^3.20.6",
     "rollup-plugin-copy-merge": "^1.0.0",
     "rollup-plugin-dts": "^5.3.0",
@@ -59,7 +64,9 @@
     "serve": "^14.2.0",
     "terser": "^5.17.1",
     "typedoc": "^0.24.8",
-    "typescript": "^5.1.6"
+    "typescript": "^5.1.6",
+    "vitest": "^0.34.2",
+    "xmldom": "^0.6.0"
   },
   "dependencies": {
     "@maptiler/client": "^1.5.0",
