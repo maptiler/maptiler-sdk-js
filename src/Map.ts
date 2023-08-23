@@ -1253,6 +1253,7 @@ export class Map extends maplibregl.Map {
 
     // We are going to evaluate the content of .data, if provided
     let data = options.data as any;
+    let tmpData = null;
 
     if (typeof data === "string") {
       // if options.data exists and is a uuid string, we consider that it points to a MapTiler Dataset
@@ -1276,10 +1277,10 @@ export class Map extends maplibregl.Map {
         const kmlStr = await res.text();
         // Convert it to geojson. Will throw is invalid GPX content
         data = kml(kmlStr) as FeatureCollection;
-      } else {
+      } else if ((tmpData = jsonParseNoThrow(data) ?? gpxOrKml(data)) !== null) {
         // From this point, we consider that the string content provided could
         // be the string content of one of the compatible format (GeoJSON, KML, GPX)
-        data = jsonParseNoThrow(data) ?? gpxOrKml(data);
+        data = tmpData;
       }
 
       if (!data) {
