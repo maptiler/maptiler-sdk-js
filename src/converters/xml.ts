@@ -67,8 +67,10 @@ export function xml2str(node: Node): string {
 export function gpx(doc: string | Document): GeoJSON.FeatureCollection {
   if (typeof doc === "string") doc = str2xml(doc);
 
-  console.log("doc", doc);
-  
+  // The document is valid XML but not valid GPX (at leas the first node is not)
+  if (doc.children[0].tagName.toLowerCase() !== "gpx") {
+    throw new Error("The XML document is not valid GPX");
+  }
 
   const tracks = get(doc, "trk");
   const routes = get(doc, "rte");
@@ -101,7 +103,10 @@ export function kml(
 ): GeoJSON.FeatureCollection | null {
   if (typeof doc === "string") doc = str2xml(doc);
 
-  console.log("doc", doc);
+  // The document is valid XML but not valid KML (at leas the first node is not)
+  if (doc.children[0].tagName.toLowerCase() !== "kml") {
+    throw new Error("The XML document is not valid KML");
+  }
 
   const gj: GeoJSON.FeatureCollection = {
     type: "FeatureCollection",
