@@ -1,4 +1,4 @@
-import maplibregl, { GeoJSONFeature } from "maplibre-gl";
+import maplibregl from "maplibre-gl";
 import geojsonValidation from "geojson-validation";
 import { Base64 } from "js-base64";
 import type {
@@ -45,7 +45,6 @@ import {
   lineOpacityOptionsToLineLayerPaintSpec,
   lineWidthOptionsToLineLayerPaintSpec,
   PolylineLayerOptions,
-  ZoomNumberValues,
 } from "./stylehelper";
 import { FeatureCollection } from "geojson";
 import { gpx, gpxOrKml, kml } from "./converters";
@@ -1363,7 +1362,7 @@ export class Map extends maplibregl.Map {
             "line-cap": "round",
           },
           minzoom: options?.minzoom ?? 0,
-          maxzoom: options?.maxzoom ?? 0,
+          maxzoom: options?.maxzoom ?? 22,
           paint: {
             "line-opacity":
               typeof outlineOpacity === "number"
@@ -1390,7 +1389,7 @@ export class Map extends maplibregl.Map {
           "line-cap": "round",
         },
         minzoom: options?.minzoom ?? 0,
-        maxzoom: options?.maxzoom ?? 0,
+        maxzoom: options?.maxzoom ?? 22,
         paint: {
           "line-opacity":
             typeof lineOpacity === "number"
