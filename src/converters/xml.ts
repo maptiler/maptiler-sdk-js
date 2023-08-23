@@ -57,7 +57,8 @@ export function xml2str(node: Node): string {
 /**
  * Given a XML document using the GPX spec, return GeoJSON
  */
-export function gpx(doc: Document): GeoJSON.FeatureCollection {
+export function gpx(doc: string | Document): GeoJSON.FeatureCollection {
+  if (typeof doc === "string") doc = str2xml(doc);
   const tracks = get(doc, "trk");
   const routes = get(doc, "rte");
   const waypoints = get(doc, "wpt");
@@ -66,17 +67,16 @@ export function gpx(doc: Document): GeoJSON.FeatureCollection {
     type: "FeatureCollection",
     features: [],
   };
-  let feature: GeoJSON.Feature | undefined;
-  for (let i = 0; i < tracks.length; i++) {
-    feature = getTrack(tracks[i]);
+  for (const track of Array.from(tracks)) {
+    const feature = getTrack(track);
     if (feature) gj.features.push(feature);
   }
-  for (let i = 0; i < routes.length; i++) {
-    feature = getRoute(routes[i]);
+  for (const route of Array.from(routes)) {
+    const feature = getRoute(route);
     if (feature) gj.features.push(feature);
   }
-  for (let i = 0; i < waypoints.length; i++) {
-    gj.features.push(getPoint(waypoints[i]));
+  for (const waypoint of Array.from(waypoints)) {
+    gj.features.push(getPoint(waypoint));
   }
   return gj;
 }
@@ -85,9 +85,10 @@ export function gpx(doc: Document): GeoJSON.FeatureCollection {
  * Given a XML document using the KML spec, return GeoJSON
  */
 export function kml(
-  doc: Document,
+  doc: string | Document,
   xml2string?: (node: Node) => string,
 ): GeoJSON.FeatureCollection {
+  if (typeof doc === "string") doc = str2xml(doc);
   const gj: GeoJSON.FeatureCollection = {
     type: "FeatureCollection",
     features: [],
@@ -102,31 +103,29 @@ export function kml(
   const styles = get(doc, "Style");
   const styleMaps = get(doc, "StyleMap");
 
-  for (let k = 0; k < styles.length; k++) {
+  for (const style of Array.from(styles)) {
     const hash = okhash(
-      xml2string !== undefined ? xml2string(styles[k]) : xml2str(styles[k]),
+      xml2string !== undefined ? xml2string(style) : xml2str(style),
     ).toString(16);
-    styleIndex["#" + attr(styles[k], "id")] = hash;
-    styleByHash[hash] = styles[k];
+    styleIndex["#" + attr(style, "id")] = hash;
+    styleByHash[hash] = style;
   }
-  for (let l = 0; l < styleMaps.length; l++) {
-    styleIndex["#" + attr(styleMaps[l], "id")] = okhash(
-      xml2string !== undefined
-        ? xml2string(styleMaps[l])
-        : xml2str(styleMaps[l]),
+  for (const styleMap of Array.from(styleMaps)) {
+    styleIndex["#" + attr(styleMap, "id")] = okhash(
+      xml2string !== undefined ? xml2string(styleMap) : xml2str(styleMap),
     ).toString(16);
-    const pairs = get(styleMaps[l], "Pair");
+    const pairs = get(styleMap, "Pair");
     const pairsMap: Record<string, string | null> = {};
-    for (let m = 0; m < pairs.length; m++) {
-      pairsMap[nodeVal(get1(pairs[m], "key")) ?? ""] = nodeVal(
-        get1(pairs[m], "styleUrl"),
+    for (const pair of Array.from(pairs)) {
+      pairsMap[nodeVal(get1(pair, "key")) ?? ""] = nodeVal(
+        get1(pair, "styleUrl"),
       );
     }
-    styleMapIndex["#" + attr(styleMaps[l], "id")] = pairsMap;
+    styleMapIndex["#" + attr(styleMap, "id")] = pairsMap;
   }
-  for (let j = 0; j < placemarks.length; j++) {
+  for (const placemark of Array.from(placemarks)) {
     gj.features = gj.features.concat(
-      getPlacemark(placemarks[j], styleIndex, styleByHash, styleMapIndex),
+      getPlacemark(placemark, styleIndex, styleByHash, styleMapIndex),
     );
   }
   return gj;
@@ -159,10 +158,11 @@ function gxCoords(root: Document | Element): {
   const coords: number[][] = [];
   const times: (string | null)[] = [];
   if (elems.length === 0) elems = get(root, "gx:coord");
-  for (let i = 0; i < elems.length; i++)
-    coords.push(gxCoord(nodeVal(elems[i]) ?? ""));
+  for (const elem of Array.from(elems)) {
+    coords.push(gxCoord(nodeVal(elem) ?? ""));
+  }
   const timeElems = get(root, "when");
-  for (let j = 0; j < timeElems.length; j++) times.push(nodeVal(timeElems[j]));
+  for (const timeElem of Array.from(timeElems)) times.push(nodeVal(timeElem));
   return {
     coords: coords,
     times,
@@ -366,15 +366,15 @@ function getPoints(
   const line: number[][] = [];
   const times: string[] = [];
   let heartRates: (number | null)[] = [];
-  const l = pts.length;
-  if (l < 2) return; // Invalid line in GeoJSON
-  for (let i = 0; i < l; i++) {
-    const c = coordPair(pts[i]);
-    line.push(c.coordinates);
-    if (c.time) times.push(c.time);
-    if (c.heartRate || heartRates.length) {
+  const ptsLength = pts.length;
+  if (ptsLength < 2) return; // Invalid line in GeoJSON
+  for (let i = 0; i < ptsLength; i++) {
+    const cPair = coordPair(pts[i]);
+    line.push(cPair.coordinates);
+    if (cPair.time) times.push(cPair.time);
+    if (cPair.heartRate || heartRates.length) {
       if (heartRates.length === 0) heartRates = new Array(i).fill(null);
-      heartRates.push(c.heartRate);
+      heartRates.push(cPair.heartRate);
     }
   }
   return {
@@ -504,10 +504,10 @@ function getProperties(node: Element): XMLProperties & Record<string, string> {
   const links = get(node, "link");
   if (links.length !== 0) {
     prop.links = [];
-    for (let i = 0, link; i < links.length; i++) {
-      link = {
-        href: attr(links[i], "href"),
-        ...getMulti(links[i], ["text", "type"]),
+    for (const l of Array.from(links)) {
+      const link = {
+        href: attr(l, "href"),
+        ...getMulti(l, ["text", "type"]),
       };
       prop.links.push(link);
     }
@@ -579,9 +579,7 @@ function coord1(v: string): number[] {
 function coord(v: string): number[][] {
   const coords = v.replace(/^\s*|\s*$/g, "").split(/\s+/);
   const out = [];
-  for (let i = 0; i < coords.length; i++) {
-    out.push(coord1(coords[i]));
-  }
+  for (const coord of coords) out.push(coord1(coord));
   return out;
 }
 
