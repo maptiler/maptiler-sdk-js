@@ -40,7 +40,7 @@
 
       const map = new maptilersdk.Map({
         container: document.getElementById("map-container"),
-        style: maptilersdk.MapStyle.DATAVIZ.LIGHT,
+        style: maptilersdk.MapStyle.DATAVIZ.DARK,
         center: [-71.09846, 42.21432],
         zoom: 12,
         terrainControl: true,
@@ -66,9 +66,9 @@
         await map.addPolyline({
           data: geojsonPath,
           outline: true,
-          lineColor: "red",
+          lineColor: "purple",
           lineWidth: 6,
-          outlineColor: "black",
+          outlineColor: "#0dd1bd", // mid gray
           outlineWidth: 10,
         })
 
