@@ -127,7 +127,7 @@ export type PolylineLayerOptions = {
   /**
    * A geojson Feature collection or a URL to a geojson or the UUID of a MapTiler Cloud dataset.
    */
-  data?: FeatureCollection | string;
+  data: FeatureCollection | string;
 
   /**
    * The ID of an existing layer to insert the new layer before, resulting in the new layer appearing

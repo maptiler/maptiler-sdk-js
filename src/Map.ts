@@ -1,5 +1,4 @@
 import maplibregl, { GeoJSONFeature } from "maplibre-gl";
-// import { toGeoJSON } from "./togeojson";
 import geojsonValidation from "geojson-validation";
 import { Base64 } from "js-base64";
 import type {
@@ -17,7 +16,7 @@ import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
 import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
-import { combineTransformRequest, enableRTL, isUUID } from "./tools";
+import { combineTransformRequest, enableRTL, isObject, isUUID, jsonParseNoThrow } from "./tools";
 import {
   getBrowserLanguage,
   isLanguageSupported,
@@ -44,7 +43,7 @@ import {
   ZoomNumberValues,
 } from "./stylehelper";
 import { FeatureCollection } from "geojson";
-import { gpx, kml } from "./converters";
+import { gpx, gpxOrKml, kml } from "./converters";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -1206,84 +1205,23 @@ export class Map extends maplibregl.Map {
     return this;
   }
 
-  // async addPolyline(
-  //   options: PolylineLayerOptions,
-  //   fetchOptions: RequestInit = {},
-  // ) {
-  //   let data = options.data;
-
-  //   if (typeof data === "string") {
-  //     const xmlParser = new DOMParser();
-
-  //     // if options.data exists and is a uuid string, we consider that it points to a MapTiler Dataset
-  //     if (isUUID(data)) {
-  //       data = `https://api.maptiler.com/data/${options.data}/features.json?key=${config.apiKey}`;
-  //     }
-
-  //     // options.data could be a url to a .gpx file
-  //     else if (data.split(".").pop()?.toLowerCase().trim() === "gpx") {
-  //       // fetch the file
-  //       const res = await fetch(data, fetchOptions);
-  //       const gpxStr = await res.text();
-  //       const gpxXmlDoc = xmlParser.parseFromString(gpxStr, "text/xml");
-  //       if (!gpxXmlDoc.querySelector("parsererror")) {
-  //         data = toGeoJSON.gpx(gpxXmlDoc) as FeatureCollection;
-  //       }
-  //     }
-
-  //     // options.data could be a url to a .kml file
-  //     else if (data.split(".").pop()?.toLowerCase().trim() === "kml") {
-  //       // fetch the file
-  //       const res = await fetch(data, fetchOptions);
-  //       const kmlStr = await res.text();
-
-  //       const kmlXmlDoc = xmlParser.parseFromString(kmlStr, "text/xml");
-  //       if (!kmlXmlDoc.querySelector("parsererror")) {
-  //         data = toGeoJSON.kml(kmlXmlDoc) as FeatureCollection;
-  //       }
-  //     } else {
-  //       try {
-  //         // this could be a raw GeoJSON string
-  //         data = JSON.parse(data);
-  //       } catch (e) {
-  //         // Or this could be a raw KML or GPX string
-  //         const xmlDom = xmlParser.parseFromString(data as string, "text/xml");
-  //         if (!xmlDom.querySelector("parsererror")) {
-  //           // If parsed as GPX doc
-  //           if (xmlDom.children[0].tagName.toLowerCase() === "gpx") {
-  //             const dataFromGpx = toGeoJSON.gpx(xmlDom) as FeatureCollection;
-  //             if (dataFromGpx) {
-  //               data = dataFromGpx;
-  //             }
-  //           } else if (xmlDom.children[0].tagName.toLowerCase() === "kml") {
-  //             const dataFromKml = toGeoJSON.kml(xmlDom) as FeatureCollection;
-  //             if (dataFromKml) {
-  //               data = dataFromKml;
-  //             }
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-
-  //   return this.addGeoJSONPolyline({
-  //     ...options,
-  //     data,
-  //   });
-  // }
-
-
-
-
 
   async addPolyline(
     options: PolylineLayerOptions,
     fetchOptions: RequestInit = {},
   ) {
-    let data = options.data;
+
+    // We need to have the sourceId of the sourceData
+    if (!options.sourceId && !options.data) {
+      throw new Error(
+        "Creating a polyline layer requires an existing .sourceId or a valid .data property",
+      );
+    }
+
+    // We are going to evaluate the content of .data, if provided
+    let data = options.data as any;
 
     if (typeof data === "string") {
-      const xmlParser = new DOMParser();
 
       // if options.data exists and is a uuid string, we consider that it points to a MapTiler Dataset
       if (isUUID(data)) {
@@ -1295,10 +1233,8 @@ export class Map extends maplibregl.Map {
         // fetch the file
         const res = await fetch(data, fetchOptions);
         const gpxStr = await res.text();
-        const gpxXmlDoc = xmlParser.parseFromString(gpxStr, "text/xml");
-        if (!gpxXmlDoc.querySelector("parsererror")) {
-          data = gpx(gpxXmlDoc) as FeatureCollection;
-        }
+        // Convert it to geojson. Will throw is invalid GPX content
+        data = gpx(gpxStr) as FeatureCollection;
       } 
 
       // options.data could be a url to a .kml file
@@ -1306,34 +1242,24 @@ export class Map extends maplibregl.Map {
         // fetch the file
         const res = await fetch(data, fetchOptions);
         const kmlStr = await res.text();
-
-        const kmlXmlDoc = xmlParser.parseFromString(kmlStr, "text/xml");
-        if (!kmlXmlDoc.querySelector("parsererror")) {
-          data = kml(kmlXmlDoc) as FeatureCollection;
-        }
-      } else {
-        try {
-          // this could be a raw GeoJSON string
-          data = JSON.parse(data);
-        } catch (e) {
-          // Or this could be a raw KML or GPX string
-          const xmlDom = xmlParser.parseFromString(data as string, "text/xml");
-          if (!xmlDom.querySelector("parsererror")) {
-            // If parsed as GPX doc
-            if (xmlDom.children[0].tagName.toLowerCase() === "gpx") {
-              const dataFromGpx = gpx(xmlDom) as FeatureCollection;
-              if (dataFromGpx) {
-                data = dataFromGpx;
-              }
-            } else if (xmlDom.children[0].tagName.toLowerCase() === "kml") {
-              const dataFromKml = kml(xmlDom) as FeatureCollection;
-              if (dataFromKml) {
-                data = dataFromKml;
-              }
-            }
-          }
-        }
+        // Convert it to geojson. Will throw is invalid GPX content
+        data = kml(kmlStr) as FeatureCollection;
+      } 
+      
+      else {
+        // From this point, we consider that the string content provided could
+        // be the string content of one of the compatible format (GeoJSON, KML, GPX)
+        data = jsonParseNoThrow(data) ?? gpxOrKml(data);
       }
+
+      if (!data) {
+        throw new Error("Polyline data was provided as string but is incompatible with valid formats.");
+      }
+    }
+    
+    // Data was provided as a non-string but it's not a valid GeoJSON either => throw
+    else if (data && !geojsonValidation.valid(data)) {
+      throw new Error("Polyline data was provided as an object but object is not of a valid GeoJSON format");
     }
 
     return this.addGeoJSONPolyline({
@@ -1343,16 +1269,13 @@ export class Map extends maplibregl.Map {
   }
 
 
-
-
-
   /**
    * Add a polyline witgh optional outline from a GeoJSON object
    * @param data
    * @param options
    * @returns
    */
-  addGeoJSONPolyline(
+  private addGeoJSONPolyline(
     // this Feature collection is expected to contain on LineStrings and MultilLinestrings
     options: PolylineLayerOptions,
   ): {
@@ -1363,13 +1286,6 @@ export class Map extends maplibregl.Map {
     if (options.layerId && this.getLayer(options.layerId)) {
       throw new Error(
         `A layer already exists with the layer id: ${options.layerId}`,
-      );
-    }
-
-    // We need to have the sourceId of the sourceData
-    if (!options.sourceId && !options.data) {
-      throw new Error(
-        "Creating a polyline layer require or an existing .sourceId or a valid .sourceData",
       );
     }
 

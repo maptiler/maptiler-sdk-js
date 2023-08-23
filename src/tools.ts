@@ -132,3 +132,14 @@ export function isUUID(s: string): boolean {
     /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
   return regexExp.test(s);
 }
+
+
+export function jsonParseNoThrow(doc: string): any | null {
+  try {
+    return JSON.parse(doc);
+  } catch(e) {
+    // pass
+  }
+
+  return null;
+}
