@@ -45,7 +45,7 @@ export function str2xml(str: string): Document {
 
 /**
  * create a function that converts a XML to a string
- * https://developer.mozilla.org/en-US/docs/Web/API/DOMParser
+ * https://developer.mozilla.org/en-US/docs/Web/API/XMLSerializer
  */
 export function xml2str(node: Node): string {
   if (typeof XMLSerializer !== "undefined") {
