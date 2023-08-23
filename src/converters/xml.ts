@@ -37,7 +37,7 @@ export interface PlacemarkProperties {
  */
 export function str2xml(str: string): Document {
   if (typeof DOMParser !== "undefined") {
-    const doc = new DOMParser().parseFromString(str, "application/xml");     
+    const doc = new DOMParser().parseFromString(str, "application/xml");
 
     // If the input string was not valid XML
     if (doc.querySelector("parsererror")) {
@@ -48,6 +48,31 @@ export function str2xml(str: string): Document {
   } else {
     throw new Error("No XML parser found");
   }
+}
+
+/**
+ * Check one of the top level child node is of a given type ("gpx", "kml").
+ * The check is not case sensitive.
+ * @param doc
+ * @param nodeName
+ * @returns
+ */
+export function hasChildNodeWithName(doc: Document, nodeName: string): boolean {
+  if (!doc.hasChildNodes()) {
+    return false;
+  }
+
+  for (let i = 0; i < doc.childNodes.length; i += 1) {
+    const currentNodeName = doc.childNodes[i].nodeName;
+    if (
+      typeof currentNodeName === "string" &&
+      currentNodeName.trim().toLowerCase() === nodeName.toLowerCase()
+    ) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -66,9 +91,9 @@ export function xml2str(node: Node): string {
  */
 export function gpx(doc: string | Document): GeoJSON.FeatureCollection {
   if (typeof doc === "string") doc = str2xml(doc);
-
+  // doc.firstChild
   // The document is valid XML but not valid GPX (at leas the first node is not)
-  if (doc.children[0].tagName.toLowerCase() !== "gpx") {
+  if (!hasChildNodeWithName(doc, "gpx")) {
     throw new Error("The XML document is not valid GPX");
   }
 
@@ -104,7 +129,7 @@ export function kml(
   if (typeof doc === "string") doc = str2xml(doc);
 
   // The document is valid XML but not valid KML (at leas the first node is not)
-  if (doc.children[0].tagName.toLowerCase() !== "kml") {
+  if (!hasChildNodeWithName(doc, "kml")) {
     throw new Error("The XML document is not valid KML");
   }
 
@@ -626,27 +651,28 @@ function coordPair(x: Element): {
   };
 }
 
-
-export function gpxOrKml(doc: string | Document): GeoJSON.FeatureCollection | null {
+export function gpxOrKml(
+  doc: string | Document,
+): GeoJSON.FeatureCollection | null {
   try {
     // Converting only once rather than in each converter
     if (typeof doc === "string") doc = str2xml(doc);
-  } catch(e) {
+  } catch (e) {
     // The doc is a string but not valid XML
     return null;
   }
-  
+
   try {
     const result = gpx(doc);
     return result;
-  } catch(e) {
+  } catch (e) {
     // The doc is valid XML but not valid GPX
   }
 
   try {
     const result = kml(doc);
     return result;
-  } catch(e) {
+  } catch (e) {
     // The doc is valid XML but not valid KML
   }
 

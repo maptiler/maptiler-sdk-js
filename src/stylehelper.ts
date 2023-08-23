@@ -1,4 +1,4 @@
-import { FeatureCollection, Feature } from "geojson";
+import { FeatureCollection } from "geojson";
 import { DataDrivenPropertyValueSpecification } from "maplibre-gl";
 import { generateRandomString } from "./tools";
 

@@ -124,17 +124,16 @@ export function combineTransformRequest(
 
 /**
  * Generate a random string. Handy to create random IDs
- * @returns 
+ * @returns
  */
 export function generateRandomString(): string {
   return Math.random().toString(36).split(".").pop() as string;
 }
 
-
 /**
  * Check if a given string is in a uuid format
- * @param s 
- * @returns 
+ * @param s
+ * @returns
  */
 export function isUUID(s: string): boolean {
   // Regular expression to check if string is a valid UUID
@@ -145,13 +144,13 @@ export function isUUID(s: string): boolean {
 
 /**
  * Attempt a JSON parse of a string but does not throw if the string is not valid JSON, returns `null` instead.
- * @param doc 
- * @returns 
+ * @param doc
+ * @returns
  */
 export function jsonParseNoThrow(doc: string): any | null {
   try {
     return JSON.parse(doc);
-  } catch(e) {
+  } catch (e) {
     // pass
   }
 

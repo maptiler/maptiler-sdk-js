@@ -16,7 +16,12 @@ import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
 import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
-import { combineTransformRequest, enableRTL, isUUID, jsonParseNoThrow } from "./tools";
+import {
+  combineTransformRequest,
+  enableRTL,
+  isUUID,
+  jsonParseNoThrow,
+} from "./tools";
 import {
   getBrowserLanguage,
   isLanguageSupported,
@@ -1205,9 +1210,8 @@ export class Map extends maplibregl.Map {
     return this;
   }
 
-
   /**
-   * Add a polyline to the map from various source and with builtin styling. 
+   * Add a polyline to the map from various source and with builtin styling.
    * Compatible sources:
    * - gpx content as string
    * - gpx file from URL
@@ -1217,21 +1221,21 @@ export class Map extends maplibregl.Map {
    * - geojson content as string
    * - geojson content as JS object
    * - uuid of a MapTiler Cloud dataset
-   * 
+   *
    * The method also gives the possibility to add an outline layer (if `options.outline` is `true`)
    * and if so , the returned property `polylineOutlineLayerId` will be a string. As a result, two layers
    * would be added.
-   * 
+   *
    * The default styling creates a line layer of constant width of 3px, the color will be randomly picked
    * from a curated list of colors and the opacity will be 1.
    * If the outline is enabled, the outline width is of 1px at all zoom levels, the color is white and
    * the opacity is 1.
-   * 
+   *
    * Those style properties can be changed and ramped according to zoom level using an easier syntax.
-   * 
-   * @param options 
-   * @param fetchOptions 
-   * @returns 
+   *
+   * @param options
+   * @param fetchOptions
+   * @returns
    */
   async addPolyline(
     options: PolylineLayerOptions,
@@ -1241,7 +1245,6 @@ export class Map extends maplibregl.Map {
     polylineOutlineLayerId: string | null;
     polylineSourceId: string;
   }> {
-
     // We need to have the sourceId of the sourceData
     if (!options.sourceId && !options.data) {
       throw new Error(
@@ -1253,7 +1256,6 @@ export class Map extends maplibregl.Map {
     let data = options.data as any;
 
     if (typeof data === "string") {
-
       // if options.data exists and is a uuid string, we consider that it points to a MapTiler Dataset
       if (isUUID(data)) {
         data = `https://api.maptiler.com/data/${options.data}/features.json?key=${config.apiKey}`;
@@ -1266,7 +1268,7 @@ export class Map extends maplibregl.Map {
         const gpxStr = await res.text();
         // Convert it to geojson. Will throw is invalid GPX content
         data = gpx(gpxStr) as FeatureCollection;
-      } 
+      }
 
       // options.data could be a url to a .kml file
       else if (data.split(".").pop()?.toLowerCase().trim() === "kml") {
@@ -1275,22 +1277,24 @@ export class Map extends maplibregl.Map {
         const kmlStr = await res.text();
         // Convert it to geojson. Will throw is invalid GPX content
         data = kml(kmlStr) as FeatureCollection;
-      } 
-      
-      else {
+      } else {
         // From this point, we consider that the string content provided could
         // be the string content of one of the compatible format (GeoJSON, KML, GPX)
         data = jsonParseNoThrow(data) ?? gpxOrKml(data);
       }
 
       if (!data) {
-        throw new Error("Polyline data was provided as string but is incompatible with valid formats.");
+        throw new Error(
+          "Polyline data was provided as string but is incompatible with valid formats.",
+        );
       }
     }
-    
+
     // Data was provided as a non-string but it's not a valid GeoJSON either => throw
     else if (data && !geojsonValidation.valid(data)) {
-      throw new Error("Polyline data was provided as an object but object is not of a valid GeoJSON format");
+      throw new Error(
+        "Polyline data was provided as an object but object is not of a valid GeoJSON format",
+      );
     }
 
     return this.addGeoJSONPolyline({
@@ -1298,7 +1302,6 @@ export class Map extends maplibregl.Map {
       data,
     });
   }
-
 
   /**
    * Add a polyline witgh optional outline from a GeoJSON object
