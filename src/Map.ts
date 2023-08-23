@@ -1277,7 +1277,9 @@ export class Map extends maplibregl.Map {
         const kmlStr = await res.text();
         // Convert it to geojson. Will throw is invalid GPX content
         data = kml(kmlStr) as FeatureCollection;
-      } else if ((tmpData = jsonParseNoThrow(data) ?? gpxOrKml(data)) !== null) {
+      } else if (
+        (tmpData = jsonParseNoThrow(data) ?? gpxOrKml(data)) !== null
+      ) {
         // From this point, we consider that the string content provided could
         // be the string content of one of the compatible format (GeoJSON, KML, GPX)
         data = tmpData;
