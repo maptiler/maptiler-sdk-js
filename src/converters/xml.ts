@@ -37,7 +37,14 @@ export interface PlacemarkProperties {
  */
 export function str2xml(str: string): Document {
   if (typeof DOMParser !== "undefined") {
-    return new DOMParser().parseFromString(str, "application/xml");
+    const doc = new DOMParser().parseFromString(str, "application/xml"); 
+
+    // If the input string was not valid XML
+    if (doc.querySelector("parsererror")) {
+      throw new Error("The provided string is not valid XML");
+    }
+
+    return doc;
   } else {
     throw new Error("No XML parser found");
   }
@@ -59,6 +66,10 @@ export function xml2str(node: Node): string {
  */
 export function gpx(doc: string | Document): GeoJSON.FeatureCollection {
   if (typeof doc === "string") doc = str2xml(doc);
+
+  console.log("doc", doc);
+  
+
   const tracks = get(doc, "trk");
   const routes = get(doc, "rte");
   const waypoints = get(doc, "wpt");
@@ -87,8 +98,11 @@ export function gpx(doc: string | Document): GeoJSON.FeatureCollection {
 export function kml(
   doc: string | Document,
   xml2string?: (node: Node) => string,
-): GeoJSON.FeatureCollection {
+): GeoJSON.FeatureCollection | null {
   if (typeof doc === "string") doc = str2xml(doc);
+
+  console.log("doc", doc);
+
   const gj: GeoJSON.FeatureCollection = {
     type: "FeatureCollection",
     features: [],
