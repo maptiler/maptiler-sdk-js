@@ -37,7 +37,7 @@ export interface PlacemarkProperties {
  */
 export function str2xml(str: string): Document {
   if (typeof DOMParser !== "undefined") {
-    const doc = new DOMParser().parseFromString(str, "application/xml"); 
+    const doc = new DOMParser().parseFromString(str, "application/xml");     
 
     // If the input string was not valid XML
     if (doc.querySelector("parsererror")) {
@@ -624,4 +624,32 @@ function coordPair(x: Element): {
     heartRate:
       heartRate !== null ? parseFloat(nodeVal(heartRate) ?? "0") : null,
   };
+}
+
+
+export function gpxOrKml(doc: string | Document): GeoJSON.FeatureCollection | null {
+  try {
+    // Converting only once rather than in each converter
+    if (typeof doc === "string") doc = str2xml(doc);
+  } catch(e) {
+    // The doc is a string but not valid XML
+    return null;
+  }
+  
+  try {
+    const result = gpx(doc);
+    return result;
+  } catch(e) {
+    // The doc is valid XML but not valid GPX
+  }
+
+  try {
+    const result = kml(doc);
+    return result;
+  } catch(e) {
+    // The doc is valid XML but not valid KML
+  }
+
+  // At this point, the doc is not of a compatible vector format
+  return null;
 }
