@@ -16,7 +16,7 @@ import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
 import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
-import { combineTransformRequest, enableRTL, isObject, isUUID, jsonParseNoThrow } from "./tools";
+import { combineTransformRequest, enableRTL, isUUID, jsonParseNoThrow } from "./tools";
 import {
   getBrowserLanguage,
   isLanguageSupported,
@@ -1206,10 +1206,41 @@ export class Map extends maplibregl.Map {
   }
 
 
+  /**
+   * Add a polyline to the map from various source and with builtin styling. 
+   * Compatible sources:
+   * - gpx content as string
+   * - gpx file from URL
+   * - kml content from string
+   * - kml from url
+   * - geojson from url
+   * - geojson content as string
+   * - geojson content as JS object
+   * - uuid of a MapTiler Cloud dataset
+   * 
+   * The method also gives the possibility to add an outline layer (if `options.outline` is `true`)
+   * and if so , the returned property `polylineOutlineLayerId` will be a string. As a result, two layers
+   * would be added.
+   * 
+   * The default styling creates a line layer of constant width of 3px, the color will be randomly picked
+   * from a curated list of colors and the opacity will be 1.
+   * If the outline is enabled, the outline width is of 1px at all zoom levels, the color is white and
+   * the opacity is 1.
+   * 
+   * Those style properties can be changed and ramped according to zoom level using an easier syntax.
+   * 
+   * @param options 
+   * @param fetchOptions 
+   * @returns 
+   */
   async addPolyline(
     options: PolylineLayerOptions,
     fetchOptions: RequestInit = {},
-  ) {
+  ): Promise<{
+    polylineLayerId: string;
+    polylineOutlineLayerId: string | null;
+    polylineSourceId: string;
+  }> {
 
     // We need to have the sourceId of the sourceData
     if (!options.sourceId && !options.data) {
