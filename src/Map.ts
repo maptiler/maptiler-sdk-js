@@ -1,4 +1,5 @@
 import maplibregl from "maplibre-gl";
+import geojsonValidation from "geojson-validation";
 import { Base64 } from "js-base64";
 import type {
   StyleSpecification,
@@ -15,7 +16,12 @@ import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
 import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
-import { combineTransformRequest, enableRTL } from "./tools";
+import {
+  combineTransformRequest,
+  enableRTL,
+  isUUID,
+  jsonParseNoThrow,
+} from "./tools";
 import {
   getBrowserLanguage,
   isLanguageSupported,
@@ -30,6 +36,19 @@ import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
 import { AttributionControl } from "./AttributionControl";
 import { ScaleControl } from "./ScaleControl";
 import { FullscreenControl } from "./FullscreenControl";
+import {
+  computeRampedOutlineWidth,
+  generateRandomLayerName,
+  generateRandomSourceName,
+  getRandomColor,
+  lineColorOptionsToLineLayerPaintSpec,
+  rampedOptionsToLineLayerPaintSpec,
+  lineWidthOptionsToLineLayerPaintSpec,
+  PolylineLayerOptions,
+  dashArrayMaker,
+} from "./stylehelper";
+import { FeatureCollection } from "geojson";
+import { gpx, gpxOrKml, kml } from "./converters";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -514,9 +533,6 @@ export class Map extends maplibregl.Map {
    * - a full style URL (possibly with API key)
    * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
    * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
-   * @param style
-   * @param options
-   * @returns
    */
   override setStyle(
     style:
@@ -533,7 +549,6 @@ export class Map extends maplibregl.Map {
   /**
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
    * This function is a short for `.setPrimaryLanguage()`
-   * @param language
    */
   setLanguage(language: LanguageString = defaults.primaryLanguage): void {
     if (language === Language.AUTO) {
@@ -544,7 +559,6 @@ export class Map extends maplibregl.Map {
 
   /**
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
-   * @param language
    */
   setPrimaryLanguage(language: LanguageString = defaults.primaryLanguage) {
     if (this.primaryLanguage === Language.STYLE_LOCK) {
@@ -716,7 +730,6 @@ export class Map extends maplibregl.Map {
   /**
    * Define the secondary language of the map. Note that this is not supported by all the map styles
    * Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)
-   * @param language
    */
   setSecondaryLanguage(language: LanguageString = defaults.secondaryLanguage) {
     // Using the lock flag as a primaty language also applies to the secondary
@@ -937,8 +950,6 @@ export class Map extends maplibregl.Map {
 
   /**
    * Enables the 3D terrain visualization
-   * @param exaggeration
-   * @returns
    */
   enableTerrain(exaggeration = this.terrainExaggeration) {
     if (exaggeration < 0) {
@@ -1093,8 +1104,6 @@ export class Map extends maplibregl.Map {
    * the method `.enableTerrain()` will be called.
    * If `animate` is `true`, the terrain transformation will be animated in the span of 1 second.
    * If `animate` is `false`, no animated transition to the newly defined exaggeration.
-   * @param exaggeration
-   * @param animate
    */
   setTerrainExaggeration(exaggeration: number, animate = true) {
     if (!animate && this.terrain) {
@@ -1109,7 +1118,6 @@ export class Map extends maplibregl.Map {
   /**
    * Perform an action when the style is ready. It could be at the moment of calling this method
    * or later.
-   * @param cb
    */
   private onStyleReady(cb: () => void) {
     if (this.isStyleLoaded()) {
@@ -1158,7 +1166,6 @@ export class Map extends maplibregl.Map {
    * Get the SDK config object.
    * This is convenient to dispatch the SDK configuration to externally built layers
    * that do not directly have access to the SDK configuration but do have access to a Map instance.
-   * @returns
    */
   getSdkConfig(): SdkConfig {
     return config;
@@ -1189,5 +1196,232 @@ export class Map extends maplibregl.Map {
   ): this {
     super.setTransformRequest(combineTransformRequest(transformRequest));
     return this;
+  }
+
+  /**
+   * Add a polyline to the map from various sources and with builtin styling.
+   * Compatible sources:
+   * - gpx content as string
+   * - gpx file from URL
+   * - kml content from string
+   * - kml from url
+   * - geojson from url
+   * - geojson content as string
+   * - geojson content as JS object
+   * - uuid of a MapTiler Cloud dataset
+   *
+   * The method also gives the possibility to add an outline layer (if `options.outline` is `true`)
+   * and if so , the returned property `polylineOutlineLayerId` will be a string. As a result, two layers
+   * would be added.
+   *
+   * The default styling creates a line layer of constant width of 3px, the color will be randomly picked
+   * from a curated list of colors and the opacity will be 1.
+   * If the outline is enabled, the outline width is of 1px at all zoom levels, the color is white and
+   * the opacity is 1.
+   *
+   * Those style properties can be changed and ramped according to zoom level using an easier syntax.
+   *
+   */
+  async addPolyline(
+    options: PolylineLayerOptions,
+    fetchOptions: RequestInit = {},
+  ): Promise<{
+    polylineLayerId: string;
+    polylineOutlineLayerId: string;
+    polylineSourceId: string;
+  }> {
+    // We need to have the sourceId of the sourceData
+    if (!options.sourceId && !options.data) {
+      throw new Error(
+        "Creating a polyline layer requires an existing .sourceId or a valid .data property",
+      );
+    }
+
+    // We are going to evaluate the content of .data, if provided
+    let data = options.data as any;
+    const tmpData = null;
+
+    if (typeof data === "string") {
+      // if options.data exists and is a uuid string, we consider that it points to a MapTiler Dataset
+      if (isUUID(data)) {
+        data = `https://api.maptiler.com/data/${options.data}/features.json?key=${config.apiKey}`;
+      }
+
+      // options.data could be a url to a .gpx file
+      else if (data.split(".").pop()?.toLowerCase().trim() === "gpx") {
+        // fetch the file
+        const res = await fetch(data, fetchOptions);
+        const gpxStr = await res.text();
+        // Convert it to geojson. Will throw is invalid GPX content
+        data = gpx(gpxStr);
+      }
+
+      // options.data could be a url to a .kml file
+      else if (data.split(".").pop()?.toLowerCase().trim() === "kml") {
+        // fetch the file
+        const res = await fetch(data, fetchOptions);
+        const kmlStr = await res.text();
+        // Convert it to geojson. Will throw is invalid GPX content
+        data = kml(kmlStr);
+      } else {
+        // From this point, we consider that the string content provided could
+        // be the string content of one of the compatible format (GeoJSON, KML, GPX)
+        const tmpData = jsonParseNoThrow(data) ?? gpxOrKml(data);
+        if (tmpData) data = tmpData;
+      }
+
+      if (!data) {
+        throw new Error(
+          "Polyline data was provided as string but is incompatible with valid formats.",
+        );
+      }
+    }
+
+    // Data was provided as a non-string but it's not a valid GeoJSON either => throw
+    else if (data && !geojsonValidation.valid(data)) {
+      throw new Error(
+        "Polyline data was provided as an object but object is not of a valid GeoJSON format",
+      );
+    }
+
+    return this.addGeoJSONPolyline({
+      ...options,
+      data,
+    });
+  }
+
+  /**
+   * Add a polyline witgh optional outline from a GeoJSON object
+   */
+  private addGeoJSONPolyline(
+    // this Feature collection is expected to contain on LineStrings and MultilLinestrings
+    options: PolylineLayerOptions,
+  ): {
+    polylineLayerId: string;
+    polylineOutlineLayerId: string;
+    polylineSourceId: string;
+  } {
+    if (options.layerId && this.getLayer(options.layerId)) {
+      throw new Error(
+        `A layer already exists with the layer id: ${options.layerId}`,
+      );
+    }
+
+    const sourceId = options.sourceId ?? generateRandomSourceName();
+    const layerId = options.layerId ?? generateRandomLayerName();
+
+    const retunedInfo = {
+      polylineLayerId: layerId,
+      polylineOutlineLayerId: "",
+      polylineSourceId: sourceId,
+    };
+
+    // A new source is added if the map does not have this sourceId and the data is provided
+    if (options.data && !this.getSource(sourceId)) {
+      // Adding the source
+      this.addSource(sourceId, {
+        type: "geojson",
+        data: options.data,
+      });
+    }
+
+    const lineWidth = options.lineWidth ?? 3;
+    const lineColor = options.lineColor ?? getRandomColor();
+    const lineOpacity = options.lineOpacity ?? 1;
+    const lineBlur = options.lineBlur ?? 0;
+    const lineGapWidth = options.lineGapWidth ?? 0;
+    let lineDashArray = options.lineDashArray ?? null;
+    const outlineWidth = options.outlineWidth ?? 1;
+    const outlineColor = options.outlineColor ?? "#FFFFFF";
+    const outlineOpacity = options.outlineOpacity ?? 1;
+    const outlineBlur = options.outlineBlur ?? 0;
+
+    if (typeof lineDashArray === "string") {
+      lineDashArray = dashArrayMaker(lineDashArray);
+    }
+
+    // We want to create an outline for this line layer
+    if (options.outline === true) {
+      const outlineLayerId = `${layerId}_outline`;
+      retunedInfo.polylineOutlineLayerId = outlineLayerId;
+
+      this.addLayer(
+        {
+          id: outlineLayerId,
+          type: "line",
+          source: sourceId,
+          layout: {
+            "line-join": options.lineJoin ?? "round",
+            "line-cap": options.lineCap ?? "round",
+          },
+          minzoom: options.minzoom ?? 0,
+          maxzoom: options.maxzoom ?? 23,
+          paint: {
+            "line-opacity":
+              typeof outlineOpacity === "number"
+                ? outlineOpacity
+                : rampedOptionsToLineLayerPaintSpec(outlineOpacity),
+            "line-color":
+              typeof outlineColor === "string"
+                ? outlineColor
+                : lineColorOptionsToLineLayerPaintSpec(outlineColor),
+            "line-width": computeRampedOutlineWidth(lineWidth, outlineWidth),
+            "line-blur":
+              typeof outlineBlur === "number"
+                ? outlineBlur
+                : rampedOptionsToLineLayerPaintSpec(outlineBlur),
+          },
+        },
+        options.beforeId,
+      );
+    }
+
+    this.addLayer(
+      {
+        id: layerId,
+        type: "line",
+        source: sourceId,
+        layout: {
+          "line-join": options.lineJoin ?? "round",
+          "line-cap": options.lineCap ?? "round",
+        },
+        minzoom: options.minzoom ?? 0,
+        maxzoom: options.maxzoom ?? 23,
+        paint: {
+          "line-opacity":
+            typeof lineOpacity === "number"
+              ? lineOpacity
+              : rampedOptionsToLineLayerPaintSpec(lineOpacity),
+          "line-color":
+            typeof lineColor === "string"
+              ? lineColor
+              : lineColorOptionsToLineLayerPaintSpec(lineColor),
+          "line-width":
+            typeof lineWidth === "number"
+              ? lineWidth
+              : lineWidthOptionsToLineLayerPaintSpec(lineWidth),
+
+          "line-blur":
+            typeof lineBlur === "number"
+              ? lineBlur
+              : rampedOptionsToLineLayerPaintSpec(lineBlur),
+
+          "line-gap-width":
+            typeof lineGapWidth === "number"
+              ? lineGapWidth
+              : rampedOptionsToLineLayerPaintSpec(lineGapWidth),
+
+          // For some reasons passing "line-dasharray" with the value "undefined"
+          // results in no showing the line while it should have the same behavior
+          // of not adding the property "line-dasharray" as all.
+          // As a workaround, we are inlining the addition of the prop with a conditional
+          // which is less readable.
+          ...(lineDashArray && { "line-dasharray": lineDashArray }),
+        },
+      },
+      options.beforeId,
+    );
+
+    return retunedInfo;
   }
 }

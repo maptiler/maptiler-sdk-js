@@ -10,8 +10,6 @@ export type Matrix2 = [number, number, number, number];
 
 /**
  * a point
- * @param x
- * @param y
  */
 export class Point {
   public x: number;
