@@ -80,8 +80,6 @@ export type ZoomNumberValues = Array<{
 
 /**
  * Linera interpolation to find a value at an arbitrary zoom level, given a list of tuple zoom-value
- * @param znv
- * @param z
  */
 export function lerpZoomNumberValues(znv: ZoomNumberValues, z: number): number {
   // before the range

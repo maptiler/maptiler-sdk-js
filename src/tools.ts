@@ -57,9 +57,6 @@ export function DOMremove(node: HTMLElement) {
  * This function is meant to be used as transformRequest by any Map instance created.
  * It adds the session ID as well as the MapTiler Cloud key from the config to all the requests
  * performed on MapTiler Cloud servers.
- * @param url
- * @param resourceType
- * @returns
  */
 export function maptilerCloudTransformRequest(
   url: string,
@@ -98,8 +95,6 @@ export function maptilerCloudTransformRequest(
 /**
  * This combines a user-defined tranformRequest function (optionnal)
  * with the MapTiler Cloud-specific one: maptilerCloudTransformRequest
- * @param userDefinedRTF
- * @returns
  */
 export function combineTransformRequest(
   userDefinedRTF?: RequestTransformFunction,
@@ -124,7 +119,6 @@ export function combineTransformRequest(
 
 /**
  * Generate a random string. Handy to create random IDs
- * @returns
  */
 export function generateRandomString(): string {
   return Math.random().toString(36).split(".").pop() as string;
@@ -132,8 +126,6 @@ export function generateRandomString(): string {
 
 /**
  * Check if a given string is in a uuid format
- * @param s
- * @returns
  */
 export function isUUID(s: string): boolean {
   // Regular expression to check if string is a valid UUID
@@ -144,8 +136,6 @@ export function isUUID(s: string): boolean {
 
 /**
  * Attempt a JSON parse of a string but does not throw if the string is not valid JSON, returns `null` instead.
- * @param doc
- * @returns
  */
 export function jsonParseNoThrow(doc: string): any | null {
   try {

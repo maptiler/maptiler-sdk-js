@@ -532,9 +532,6 @@ export class Map extends maplibregl.Map {
    * - a full style URL (possibly with API key)
    * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
    * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
-   * @param style
-   * @param options
-   * @returns
    */
   override setStyle(
     style:
@@ -551,7 +548,6 @@ export class Map extends maplibregl.Map {
   /**
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
    * This function is a short for `.setPrimaryLanguage()`
-   * @param language
    */
   setLanguage(language: LanguageString = defaults.primaryLanguage): void {
     if (language === Language.AUTO) {
@@ -562,7 +558,6 @@ export class Map extends maplibregl.Map {
 
   /**
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
-   * @param language
    */
   setPrimaryLanguage(language: LanguageString = defaults.primaryLanguage) {
     if (this.primaryLanguage === Language.STYLE_LOCK) {
@@ -734,7 +729,6 @@ export class Map extends maplibregl.Map {
   /**
    * Define the secondary language of the map. Note that this is not supported by all the map styles
    * Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)
-   * @param language
    */
   setSecondaryLanguage(language: LanguageString = defaults.secondaryLanguage) {
     // Using the lock flag as a primaty language also applies to the secondary
@@ -955,8 +949,6 @@ export class Map extends maplibregl.Map {
 
   /**
    * Enables the 3D terrain visualization
-   * @param exaggeration
-   * @returns
    */
   enableTerrain(exaggeration = this.terrainExaggeration) {
     if (exaggeration < 0) {
@@ -1111,8 +1103,6 @@ export class Map extends maplibregl.Map {
    * the method `.enableTerrain()` will be called.
    * If `animate` is `true`, the terrain transformation will be animated in the span of 1 second.
    * If `animate` is `false`, no animated transition to the newly defined exaggeration.
-   * @param exaggeration
-   * @param animate
    */
   setTerrainExaggeration(exaggeration: number, animate = true) {
     if (!animate && this.terrain) {
@@ -1127,7 +1117,6 @@ export class Map extends maplibregl.Map {
   /**
    * Perform an action when the style is ready. It could be at the moment of calling this method
    * or later.
-   * @param cb
    */
   private onStyleReady(cb: () => void) {
     if (this.isStyleLoaded()) {
@@ -1176,7 +1165,6 @@ export class Map extends maplibregl.Map {
    * Get the SDK config object.
    * This is convenient to dispatch the SDK configuration to externally built layers
    * that do not directly have access to the SDK configuration but do have access to a Map instance.
-   * @returns
    */
   getSdkConfig(): SdkConfig {
     return config;
@@ -1232,9 +1220,6 @@ export class Map extends maplibregl.Map {
    *
    * Those style properties can be changed and ramped according to zoom level using an easier syntax.
    *
-   * @param options
-   * @param fetchOptions
-   * @returns
    */
   async addPolyline(
     options: PolylineLayerOptions,
@@ -1307,9 +1292,6 @@ export class Map extends maplibregl.Map {
 
   /**
    * Add a polyline witgh optional outline from a GeoJSON object
-   * @param data
-   * @param options
-   * @returns
    */
   private addGeoJSONPolyline(
     // this Feature collection is expected to contain on LineStrings and MultilLinestrings
