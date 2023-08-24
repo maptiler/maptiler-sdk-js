@@ -1210,7 +1210,7 @@ export class Map extends maplibregl.Map {
   }
 
   /**
-   * Add a polyline to the map from various source and with builtin styling.
+   * Add a polyline to the map from various sources and with builtin styling.
    * Compatible sources:
    * - gpx content as string
    * - gpx file from URL
