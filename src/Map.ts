@@ -1227,7 +1227,7 @@ export class Map extends maplibregl.Map {
     fetchOptions: RequestInit = {},
   ): Promise<{
     polylineLayerId: string;
-    polylineOutlineLayerId: string | null;
+    polylineOutlineLayerId: string;
     polylineSourceId: string;
   }> {
     // We need to have the sourceId of the sourceData
@@ -1253,7 +1253,7 @@ export class Map extends maplibregl.Map {
         const res = await fetch(data, fetchOptions);
         const gpxStr = await res.text();
         // Convert it to geojson. Will throw is invalid GPX content
-        data = gpx(gpxStr) as FeatureCollection;
+        data = gpx(gpxStr);
       }
 
       // options.data could be a url to a .kml file
@@ -1262,13 +1262,12 @@ export class Map extends maplibregl.Map {
         const res = await fetch(data, fetchOptions);
         const kmlStr = await res.text();
         // Convert it to geojson. Will throw is invalid GPX content
-        data = kml(kmlStr) as FeatureCollection;
-      } else if (
-        (tmpData = jsonParseNoThrow(data) ?? gpxOrKml(data)) !== null
-      ) {
+        data = kml(kmlStr);
+      } else {
         // From this point, we consider that the string content provided could
         // be the string content of one of the compatible format (GeoJSON, KML, GPX)
-        data = tmpData;
+        const tmpData = jsonParseNoThrow(data) ?? gpxOrKml(data);
+        if (tmpData) data = tmpData
       }
 
       if (!data) {
@@ -1299,7 +1298,7 @@ export class Map extends maplibregl.Map {
     options: PolylineLayerOptions,
   ): {
     polylineLayerId: string;
-    polylineOutlineLayerId: string | null;
+    polylineOutlineLayerId: string;
     polylineSourceId: string;
   } {
     if (options.layerId && this.getLayer(options.layerId)) {
