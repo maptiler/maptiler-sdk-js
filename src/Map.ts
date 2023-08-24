@@ -1199,7 +1199,7 @@ export class Map extends maplibregl.Map {
   }
 
   /**
-   * Add a polyline to the map from various source and with builtin styling.
+   * Add a polyline to the map from various sources and with builtin styling.
    * Compatible sources:
    * - gpx content as string
    * - gpx file from URL
@@ -1239,7 +1239,7 @@ export class Map extends maplibregl.Map {
 
     // We are going to evaluate the content of .data, if provided
     let data = options.data as any;
-    let tmpData = null;
+    const tmpData = null;
 
     if (typeof data === "string") {
       // if options.data exists and is a uuid string, we consider that it points to a MapTiler Dataset
@@ -1267,7 +1267,7 @@ export class Map extends maplibregl.Map {
         // From this point, we consider that the string content provided could
         // be the string content of one of the compatible format (GeoJSON, KML, GPX)
         const tmpData = jsonParseNoThrow(data) ?? gpxOrKml(data);
-        if (tmpData) data = tmpData
+        if (tmpData) data = tmpData;
       }
 
       if (!data) {
@@ -1339,12 +1339,12 @@ export class Map extends maplibregl.Map {
     if (typeof lineDashArray === "string") {
       lineDashArray = dashArrayMaker(lineDashArray);
     }
-  
+
     // We want to create an outline for this line layer
     if (options.outline === true) {
       const outlineLayerId = `${layerId}_outline`;
       retunedInfo.polylineOutlineLayerId = outlineLayerId;
-      
+
       this.addLayer(
         {
           id: outlineLayerId,
@@ -1366,10 +1366,10 @@ export class Map extends maplibregl.Map {
                 ? outlineColor
                 : lineColorOptionsToLineLayerPaintSpec(outlineColor),
             "line-width": computeRampedOutlineWidth(lineWidth, outlineWidth),
-            "line-blur": 
+            "line-blur":
               typeof outlineBlur === "number"
-              ? outlineBlur
-              : rampedOptionsToLineLayerPaintSpec(outlineBlur),
+                ? outlineBlur
+                : rampedOptionsToLineLayerPaintSpec(outlineBlur),
           },
         },
         options.beforeId,
@@ -1401,22 +1401,22 @@ export class Map extends maplibregl.Map {
               ? lineWidth
               : lineWidthOptionsToLineLayerPaintSpec(lineWidth),
 
-          "line-blur": 
+          "line-blur":
             typeof lineBlur === "number"
-            ? lineBlur
-            : rampedOptionsToLineLayerPaintSpec(lineBlur),
+              ? lineBlur
+              : rampedOptionsToLineLayerPaintSpec(lineBlur),
 
           "line-gap-width":
             typeof lineGapWidth === "number"
-            ? lineGapWidth
-            : rampedOptionsToLineLayerPaintSpec(lineGapWidth),
+              ? lineGapWidth
+              : rampedOptionsToLineLayerPaintSpec(lineGapWidth),
 
           // For some reasons passing "line-dasharray" with the value "undefined"
           // results in no showing the line while it should have the same behavior
-          // of not adding the property "line-dasharray" as all. 
+          // of not adding the property "line-dasharray" as all.
           // As a workaround, we are inlining the addition of the prop with a conditional
           // which is less readable.
-          ...(lineDashArray && {"line-dasharray": lineDashArray}),
+          ...(lineDashArray && { "line-dasharray": lineDashArray }),
         },
       },
       options.beforeId,

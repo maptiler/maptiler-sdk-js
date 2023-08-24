@@ -135,13 +135,13 @@ export type PolylineLayerOptions = {
   beforeId?: string;
 
   /**
-   * Zoom level at which it starts to show. 
+   * Zoom level at which it starts to show.
    * Default: `0`
    */
   minzoom?: number;
 
   /**
-   * Zoom level after which it no longer show. 
+   * Zoom level after which it no longer show.
    * Default: `22`
    */
   maxzoom?: number;
@@ -180,11 +180,11 @@ export type PolylineLayerOptions = {
    * Sequence of line and void to create a dash pattern. The unit is the line width so that
    * a dash array value of `[3, 1]` will create a segment worth 3 times the width of the line,
    * followed by a spacing worth 1 time the line width, and then repeat.
-   * 
+   *
    * Alternatively, this property can be a string made of underscore and whitespace characters
    * such as `"___ _ "` and internaly this will be translated into [3, 1, 1, 1]. Note that
    * this way of describing dash arrays with a string only works for integer values.
-   * 
+   *
    * Dash arrays can contain more than 2 element to create more complex patters. For instance
    * a dash array value of [3, 2, 1, 2] will create the following sequence:
    * - a segment worth 3 times the width
@@ -192,10 +192,10 @@ export type PolylineLayerOptions = {
    * - a segment worth 1 times the width
    * - a spacing worth 2 times the width
    * - repeat
-   * 
+   *
    * Default: no dash pattern
    */
-  lineDashArray?: Array<number> | string,
+  lineDashArray?: Array<number> | string;
 
   /**
    * Whether or not to add an outline.
@@ -248,8 +248,6 @@ export type PolylineLayerOptions = {
    * Default: "round"
    */
   lineJoin?: "bevel" | "round" | "miter";
-
-  
 };
 
 export function lineColorOptionsToLineLayerPaintSpec(
@@ -342,24 +340,30 @@ export function computeRampedOutlineWidth(
   return 0;
 }
 
-
 /**
  * Create a dash array from a string pattern that uses underscore and whitespace characters
  */
 export function dashArrayMaker(pattern: string): Array<number> {
   // if the pattern starts with whitespaces, then move them towards the end
   const startTrimmedPattern = pattern.trimStart();
-  const fixedPattern = `${startTrimmedPattern}${" ".repeat(pattern.length - startTrimmedPattern.length)}`
+  const fixedPattern = `${startTrimmedPattern}${" ".repeat(
+    pattern.length - startTrimmedPattern.length,
+  )}`;
   const patternArr = Array.from(fixedPattern);
 
   const isOnlyDashesAndSpaces = patternArr.every((c) => c === " " || c === "_");
   if (!isOnlyDashesAndSpaces) {
-    throw new Error("A dash pattern must be composed only of whitespace and underscore characters.");
+    throw new Error(
+      "A dash pattern must be composed only of whitespace and underscore characters.",
+    );
   }
 
-  const hasBothDashesAndWhitespaces = patternArr.some((c) => c === "_") && patternArr.some((c) => c === " ");
+  const hasBothDashesAndWhitespaces =
+    patternArr.some((c) => c === "_") && patternArr.some((c) => c === " ");
   if (!hasBothDashesAndWhitespaces) {
-    throw new Error("A dash pattern must contain at least one underscore and one whitespace character");
+    throw new Error(
+      "A dash pattern must contain at least one underscore and one whitespace character",
+    );
   }
 
   const dashArray = [1];
