@@ -1306,7 +1306,7 @@ export class Map extends maplibregl.Map {
   }
 
   /**
-   * Add a polyline witgh optional outline from a GeoJSON object
+   * Add a polyline width optional outline from a GeoJSON object
    * @param data
    * @param options
    * @returns
