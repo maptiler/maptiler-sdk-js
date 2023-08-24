@@ -62,8 +62,8 @@ export function hasChildNodeWithName(doc: Document, nodeName: string): boolean {
     return false;
   }
 
-  for (let i = 0; i < doc.childNodes.length; i += 1) {
-    const currentNodeName = doc.childNodes[i].nodeName;
+  for (const childNode of Array.from(doc.childNodes)) {
+    const currentNodeName = childNode.nodeName;
     if (
       typeof currentNodeName === "string" &&
       currentNodeName.trim().toLowerCase() === nodeName.toLowerCase()
