@@ -125,7 +125,7 @@ export function gpx(doc: string | Document): GeoJSON.FeatureCollection {
 export function kml(
   doc: string | Document,
   xml2string?: (node: Node) => string,
-): GeoJSON.FeatureCollection | null {
+): GeoJSON.FeatureCollection {
   if (typeof doc === "string") doc = str2xml(doc);
 
   // The document is valid XML but not valid KML (at leas the first node is not)
