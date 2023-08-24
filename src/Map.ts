@@ -45,6 +45,7 @@ import {
   rampedOptionsToLineLayerPaintSpec,
   lineWidthOptionsToLineLayerPaintSpec,
   PolylineLayerOptions,
+  dashArrayMaker,
 } from "./stylehelper";
 import { FeatureCollection } from "geojson";
 import { gpx, gpxOrKml, kml } from "./converters";
@@ -1330,20 +1331,21 @@ export class Map extends maplibregl.Map {
     const lineOpacity = options.lineOpacity ?? 1;
     const lineBlur = options.lineBlur ?? 0;
     const lineGapWidth = options.lineGapWidth ?? 0;
+    let lineDashArray = options.lineDashArray ?? null;
     const outlineWidth = options.outlineWidth ?? 1;
     const outlineColor = options.outlineColor ?? "#FFFFFF";
     const outlineOpacity = options.outlineOpacity ?? 1;
     const outlineBlur = options.outlineBlur ?? 0;
-  
 
+    if (typeof lineDashArray === "string") {
+      lineDashArray = dashArrayMaker(lineDashArray);
+    }
+  
     // We want to create an outline for this line layer
     if (options.outline === true) {
       const outlineLayerId = `${layerId}_outline`;
       retunedInfo.polylineOutlineLayerId = outlineLayerId;
-
-      console.log("outlineBlur", outlineBlur);
       
-
       this.addLayer(
         {
           id: outlineLayerId,
@@ -1354,7 +1356,7 @@ export class Map extends maplibregl.Map {
             "line-cap": options.lineCap ?? "round",
           },
           minzoom: options.minzoom ?? 0,
-          maxzoom: options.maxzoom ?? 22,
+          maxzoom: options.maxzoom ?? 23,
           paint: {
             "line-opacity":
               typeof outlineOpacity === "number"
@@ -1385,7 +1387,7 @@ export class Map extends maplibregl.Map {
           "line-cap": options.lineCap ?? "round",
         },
         minzoom: options.minzoom ?? 0,
-        maxzoom: options.maxzoom ?? 22,
+        maxzoom: options.maxzoom ?? 23,
         paint: {
           "line-opacity":
             typeof lineOpacity === "number"
@@ -1409,6 +1411,13 @@ export class Map extends maplibregl.Map {
             typeof lineGapWidth === "number"
             ? lineGapWidth
             : rampedOptionsToLineLayerPaintSpec(lineGapWidth),
+
+          // For some reasons passing "line-dasharray" with the value "undefined"
+          // results in no showing the line while it should have the same behavior
+          // of not adding the property "line-dasharray" as all. 
+          // As a workaround, we are inlining the addition of the prop with a conditional
+          // which is less readable.
+          ...(lineDashArray && {"line-dasharray": lineDashArray}),
         },
       },
       options.beforeId,
