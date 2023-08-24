@@ -42,7 +42,7 @@ import {
   generateRandomSourceName,
   getRandomColor,
   lineColorOptionsToLineLayerPaintSpec,
-  lineOpacityOptionsToLineLayerPaintSpec,
+  rampedOptionsToLineLayerPaintSpec,
   lineWidthOptionsToLineLayerPaintSpec,
   PolylineLayerOptions,
 } from "./stylehelper";
@@ -1328,14 +1328,21 @@ export class Map extends maplibregl.Map {
     const lineWidth = options.lineWidth ?? 3;
     const lineColor = options.lineColor ?? getRandomColor();
     const lineOpacity = options.lineOpacity ?? 1;
+    const lineBlur = options.lineBlur ?? 0;
+    const lineGapWidth = options.lineGapWidth ?? 0;
     const outlineWidth = options.outlineWidth ?? 1;
     const outlineColor = options.outlineColor ?? "#FFFFFF";
     const outlineOpacity = options.outlineOpacity ?? 1;
+    const outlineBlur = options.outlineBlur ?? 0;
+  
 
     // We want to create an outline for this line layer
     if (options.outline === true) {
       const outlineLayerId = `${layerId}_outline`;
       retunedInfo.polylineOutlineLayerId = outlineLayerId;
+
+      console.log("outlineBlur", outlineBlur);
+      
 
       this.addLayer(
         {
@@ -1343,8 +1350,8 @@ export class Map extends maplibregl.Map {
           type: "line",
           source: sourceId,
           layout: {
-            "line-join": "round",
-            "line-cap": "round",
+            "line-join": options.lineJoin ?? "round",
+            "line-cap": options.lineCap ?? "round",
           },
           minzoom: options.minzoom ?? 0,
           maxzoom: options.maxzoom ?? 22,
@@ -1352,12 +1359,16 @@ export class Map extends maplibregl.Map {
             "line-opacity":
               typeof outlineOpacity === "number"
                 ? outlineOpacity
-                : lineOpacityOptionsToLineLayerPaintSpec(outlineOpacity),
+                : rampedOptionsToLineLayerPaintSpec(outlineOpacity),
             "line-color":
               typeof outlineColor === "string"
                 ? outlineColor
                 : lineColorOptionsToLineLayerPaintSpec(outlineColor),
             "line-width": computeRampedOutlineWidth(lineWidth, outlineWidth),
+            "line-blur": 
+              typeof outlineBlur === "number"
+              ? outlineBlur
+              : rampedOptionsToLineLayerPaintSpec(outlineBlur),
           },
         },
         options.beforeId,
@@ -1370,8 +1381,8 @@ export class Map extends maplibregl.Map {
         type: "line",
         source: sourceId,
         layout: {
-          "line-join": "round",
-          "line-cap": "round",
+          "line-join": options.lineJoin ?? "round",
+          "line-cap": options.lineCap ?? "round",
         },
         minzoom: options.minzoom ?? 0,
         maxzoom: options.maxzoom ?? 22,
@@ -1379,7 +1390,7 @@ export class Map extends maplibregl.Map {
           "line-opacity":
             typeof lineOpacity === "number"
               ? lineOpacity
-              : lineOpacityOptionsToLineLayerPaintSpec(lineOpacity),
+              : rampedOptionsToLineLayerPaintSpec(lineOpacity),
           "line-color":
             typeof lineColor === "string"
               ? lineColor
@@ -1388,6 +1399,16 @@ export class Map extends maplibregl.Map {
             typeof lineWidth === "number"
               ? lineWidth
               : lineWidthOptionsToLineLayerPaintSpec(lineWidth),
+
+          "line-blur": 
+            typeof lineBlur === "number"
+            ? lineBlur
+            : rampedOptionsToLineLayerPaintSpec(lineBlur),
+
+          "line-gap-width":
+            typeof lineGapWidth === "number"
+            ? lineGapWidth
+            : rampedOptionsToLineLayerPaintSpec(lineGapWidth),
         },
       },
       options.beforeId,

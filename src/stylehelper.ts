@@ -135,49 +135,100 @@ export type PolylineLayerOptions = {
   beforeId?: string;
 
   /**
-   * Zoom level at which it starts to show. Default: `0`
+   * Zoom level at which it starts to show. 
+   * Default: `0`
    */
   minzoom?: number;
 
   /**
-   * Zoom level after which it no longer show. Default: `22`
+   * Zoom level after which it no longer show. 
+   * Default: `22`
    */
   maxzoom?: number;
 
   /**
-   * Color of the line (or polyline). This is can be a constant color string or a definition based on zoom levels
+   * Color of the line (or polyline). This is can be a constant color string or a definition based on zoom levels.
+   * Default: a color randomly pick from a list
    */
   lineColor?: string | ZoomStringValues;
 
   /**
    * Width of the line (relative to screen-space). This is can be a constant width or a definition based on zoom levels
+   * Default: `3`
    */
   lineWidth?: number | ZoomNumberValues;
 
   /**
-   * Opacity of the line. This is can be a constant opacity in [0, 1] or a definition based on zoom levels
+   * Opacity of the line. This is can be a constant opacity in [0, 1] or a definition based on zoom levels.
+   * Default: `1`
    */
   lineOpacity?: number | ZoomNumberValues;
 
   /**
-   * Whether or not to add an outline (default: false)
+   * How blury the line is, with `0` being no blur and `10` and beyond being quite blurry.
+   * Default: `0`
+   */
+  lineBlur?: number | ZoomNumberValues;
+
+  /**
+   * Draws a line casing outside of a line's actual path. Value indicates the width of the inner gap.
+   * Default: `0`
+   */
+  lineGapWidth?: number | ZoomNumberValues;
+
+  /**
+   * Whether or not to add an outline.
+   * Default: `false`
    */
   outline?: boolean;
 
   /**
-   * Color of the outline. This is can be a constant color string or a definition based on zoom levels
+   * Color of the outline. This is can be a constant color string or a definition based on zoom levels.
+   * Applies only if `.outline` is `true`.
+   * Default: `white`
    */
   outlineColor?: string | ZoomStringValues;
 
   /**
-   * Width of the outline (relative to screen-space). This is can be a constant width or a definition based on zoom levels
+   * Width of the outline (relative to screen-space). This is can be a constant width or a definition based on zoom levels.
+   * Applies only if `.outline` is `true`.
+   * Default: `1`
    */
   outlineWidth?: number | ZoomNumberValues;
 
   /**
    * Opacity of the outline. This is can be a constant opacity in [0, 1] or a definition based on zoom levels
+   * Applies only if `.outline` is `true`.
+   * Default: `1`
    */
   outlineOpacity?: number | ZoomNumberValues;
+
+  /**
+   * How blury the outline is, with `0` being no blur and `10` and beyond being quite blurry.
+   * Applies only if `.outline` is `true`.
+   * Default: `0`
+   */
+  outlineBlur?: number | ZoomNumberValues;
+
+  /**
+   * The display of line endings for both the line and the outline (if `.outline` is `true`)
+   * - "butt": A cap with a squared-off end which is drawn to the exact endpoint of the line.
+   * - "round": A cap with a rounded end which is drawn beyond the endpoint of the line at a radius of one-half of the line's width and centered on the endpoint of the line.
+   * - "square": A cap with a squared-off end which is drawn beyond the endpoint of the line at a distance of one-half of the line's width.
+   * Default: "round"
+   */
+  lineCap?: "butt" | "round" | "square";
+
+  /**
+   * The display of lines when joining for both the line and the outline (if `.outline` is `true`)
+   * - "bevel": A join with a squared-off end which is drawn beyond the endpoint of the line at a distance of one-half of the line's width.
+   * - "round": A join with a rounded end which is drawn beyond the endpoint of the line at a radius of one-half of the line's width and centered on the endpoint of the line.
+   * - "miter": A join with a sharp, angled corner which is drawn with the outer sides beyond the endpoint of the path until they meet.
+   * Default: "round"
+   */
+  lineJoin?: "bevel" | "round" | "miter";
+
+  
 };
 
 export function lineColorOptionsToLineLayerPaintSpec(
@@ -202,14 +253,14 @@ export function lineWidthOptionsToLineLayerPaintSpec(
   ];
 }
 
-export function lineOpacityOptionsToLineLayerPaintSpec(
-  opacity: ZoomNumberValues,
+export function rampedOptionsToLineLayerPaintSpec(
+  ramp: ZoomNumberValues,
 ): DataDrivenPropertyValueSpecification<number> {
   return [
     "interpolate",
     ["linear"],
     ["zoom"],
-    ...opacity.map((el) => [el.zoom, el.value]).flat(),
+    ...ramp.map((el) => [el.zoom, el.value]).flat(),
   ];
 }
 

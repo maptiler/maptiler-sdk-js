@@ -40,9 +40,9 @@
 
       const map = new maptilersdk.Map({
         container: document.getElementById("map-container"),
-        style: maptilersdk.MapStyle.DATAVIZ.LIGHT,
-        center: [-71.09846, 42.21432],
-        zoom: 10,
+        style: maptilersdk.MapStyle.DATAVIZ.DARK,
+        center: [-73.62573, 45.45311],
+        zoom: 12,
         hash: true,
         terrainControl: true,
       })
@@ -63,39 +63,22 @@
 
       map.on("load", async () => {
 
-        
-        const gpxPath = "../test/fixtures/blue_hills.gpx";
 
-        await map.addPolyline({
-          data: gpxPath,
-          outline: true,
-          lineColor: [
-            {zoom: 10, value: "#d12d0d"},
-            {zoom: 11, value: "#d18c0d"},
-            {zoom: 12, value: "#a0d10d"},
-            {zoom: 13, value: "#0dd189"},
-            {zoom: 14, value: "#0d93d1"},
-            {zoom: 15, value: "#340dd1"},
-            {zoom: 16, value: "#ba0dd1"},
-            {zoom: 17, value: "#d10d82"},
-            {zoom: 18, value: "#d10d20"},
-          ],
-          lineWidth: [
-            {zoom: 10, value: 12},
-            {zoom: 16, value: 1},
-          ],
-          outlineColor: [
-            {zoom: 10, value: "#0d93d1"},
-            {zoom: 14, value: "#d10d20"},
-            {zoom: 18, value: "#0d93d1"},
-          ],
-          outlineWidth: [
-            {zoom: 9, value: 0.5},
-            {zoom: 13, value: 6},
-            {zoom: 15, value: 1},
-            {zoom: 20, value: 8},
-          ]
+        const layerInfo = await map.addPolyline({ 
+          data: "7e73f469-1683-45c4-8185-c8a9a4a23d9f",
+
+          // --> Main line
+          lineColor: "#fff",       // White
+          lineOpacity: 0.7,        // Partially transparent to see the halo color through
+
+          // --> Halo line
+          outline: true,           // To create the electric halo, the outline is
+          outlineColor: "#d83bff", // purple
+          outlineOpacity: 0.5,     // half transparent
+          outlineWidth: 15,        // quite large compared to the main line
+          outlineBlur: 15,         // and blurry
         })
+
 
 
       })
