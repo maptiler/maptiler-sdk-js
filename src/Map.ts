@@ -1325,15 +1325,15 @@ export class Map extends maplibregl.Map {
       });
     }
 
-    const lineWidth = options?.lineWidth ?? 3;
-    const lineColor = options?.lineColor ?? getRandomColor();
-    const lineOpacity = options?.lineOpacity ?? 1;
-    const outlineWidth = options?.outlineWidth ?? 1;
-    const outlineColor = options?.outlineColor ?? "#FFFFFF";
-    const outlineOpacity = options?.outlineOpacity ?? 1;
+    const lineWidth = options.lineWidth ?? 3;
+    const lineColor = options.lineColor ?? getRandomColor();
+    const lineOpacity = options.lineOpacity ?? 1;
+    const outlineWidth = options.outlineWidth ?? 1;
+    const outlineColor = options.outlineColor ?? "#FFFFFF";
+    const outlineOpacity = options.outlineOpacity ?? 1;
 
     // We want to create an outline for this line layer
-    if (options?.outline === true) {
+    if (options.outline === true) {
       const outlineLayerId = `${layerId}_outline`;
       retunedInfo.polylineOutlineLayerId = outlineLayerId;
 
@@ -1346,8 +1346,8 @@ export class Map extends maplibregl.Map {
             "line-join": "round",
             "line-cap": "round",
           },
-          minzoom: options?.minzoom ?? 0,
-          maxzoom: options?.maxzoom ?? 22,
+          minzoom: options.minzoom ?? 0,
+          maxzoom: options.maxzoom ?? 22,
           paint: {
             "line-opacity":
               typeof outlineOpacity === "number"
@@ -1360,7 +1360,7 @@ export class Map extends maplibregl.Map {
             "line-width": computeRampedOutlineWidth(lineWidth, outlineWidth),
           },
         },
-        options?.beforeId,
+        options.beforeId,
       );
     }
 
@@ -1373,8 +1373,8 @@ export class Map extends maplibregl.Map {
           "line-join": "round",
           "line-cap": "round",
         },
-        minzoom: options?.minzoom ?? 0,
-        maxzoom: options?.maxzoom ?? 22,
+        minzoom: options.minzoom ?? 0,
+        maxzoom: options.maxzoom ?? 22,
         paint: {
           "line-opacity":
             typeof lineOpacity === "number"
@@ -1390,7 +1390,7 @@ export class Map extends maplibregl.Map {
               : lineWidthOptionsToLineLayerPaintSpec(lineWidth),
         },
       },
-      options?.beforeId,
+      options.beforeId,
     );
 
     return retunedInfo;
