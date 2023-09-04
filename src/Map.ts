@@ -1,5 +1,4 @@
 import maplibregl from "maplibre-gl";
-import geojsonValidation from "geojson-validation";
 import { Base64 } from "js-base64";
 import type {
   StyleSpecification,
@@ -20,6 +19,7 @@ import {
   combineTransformRequest,
   enableRTL,
   isUUID,
+  isValidGeoJSON,
   jsonParseNoThrow,
 } from "./tools";
 import {
@@ -1278,11 +1278,13 @@ export class Map extends maplibregl.Map {
     }
 
     // Data was provided as a non-string but it's not a valid GeoJSON either => throw
-    else if (data && !geojsonValidation.valid(data)) {
-      throw new Error(
-        "Polyline data was provided as an object but object is not of a valid GeoJSON format",
-      );
-    }
+    // else if (data && !geojsonValidation.valid(data)) {
+    // else if (data && !isValidGeoJSON(data)) {
+
+    //   throw new Error(
+    //     "Polyline data was provided as an object but object is not of a valid GeoJSON format",
+    //   );
+    // }
 
     return this.addGeoJSONPolyline({
       ...options,

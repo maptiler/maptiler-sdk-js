@@ -36,7 +36,7 @@
     <script src ="../dist/maptiler-sdk.umd.js"></script>
     
     <script>
-      maptilersdk.config.apiKey = "YOUR_API_KEY";
+      maptilersdk.config.apiKey = "QBq68I4TmDP5vSdPfylO";
 
       const map = new maptilersdk.Map({
         container: document.getElementById("map-container"),
@@ -64,8 +64,11 @@
       map.on("load", async () => {
         const geojsonPath = "../test/fixtures/blue_hills.gpx.geojson"; // south Boston
 
+        // const geojsonRes = await fetch(geojsonPath);
+        // const jsonObj = await geojsonRes.json()
+
         // await map.addPolyline({
-        //   data: geojsonPath,
+        //   data: jsonObj,
         //   outline: true,
         // })
 
