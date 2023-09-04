@@ -146,3 +146,27 @@ export function jsonParseNoThrow(doc: string): any | null {
 
   return null;
 }
+
+/**
+ * Simple function to check if an object is a GeoJSON
+ */
+export function isValidGeoJSON(obj: any): boolean {
+  if (typeof obj !== "object" || Array.isArray(obj) || obj === null)
+    return false;
+  if (!("type" in obj)) return false;
+
+  const validTypes = [
+    "Feature",
+    "FeatureCollection",
+    "Point",
+    "MultiPoint",
+    "LineString",
+    "MultiLineString",
+    "Polygon",
+    "MultiPolygon",
+    "GeometryCollection",
+  ];
+
+  if (validTypes.includes(obj.type)) return true;
+  return false;
+}
