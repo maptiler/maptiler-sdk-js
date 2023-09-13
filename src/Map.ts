@@ -19,7 +19,6 @@ import {
   combineTransformRequest,
   enableRTL,
   isUUID,
-  isValidGeoJSON,
   jsonParseNoThrow,
 } from "./tools";
 import {
@@ -47,8 +46,10 @@ import {
   PolylineLayerOptions,
   dashArrayMaker,
 } from "./stylehelper";
-import { FeatureCollection } from "geojson";
 import { gpx, gpxOrKml, kml } from "./converters";
+import Minimap from "./Minimap";
+
+import type { MinimapOptionsInput } from "./Minimap";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -147,6 +148,12 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   fullscreenControl?: boolean | ControlPosition;
 
   /**
+   * Display a minimap in a random corner of the map.
+   */
+  minimap?: MinimapOptionsInput;
+  isMinimap?: boolean;
+
+  /**
    * Method to position the map at a given geolocation. Only if:
    * - `hash` is `false`
    * - `center` is not provided
@@ -178,6 +185,7 @@ export class Map extends maplibregl.Map {
   private secondaryLanguage?: LanguageString;
   private terrainGrowing = false;
   private terrainFlattening = false;
+  private minimap?: Minimap;
 
   constructor(options: MapOptions) {
     if (options.apiKey) {
@@ -345,24 +353,26 @@ export class Map extends maplibregl.Map {
       }
 
       // The attribution and logo must show when required
-      if ("logo" in tileJsonContent && tileJsonContent.logo) {
-        const logoURL: string = tileJsonContent.logo;
+      if (!options.isMinimap) {
+        if ("logo" in tileJsonContent && tileJsonContent.logo) {
+          const logoURL: string = tileJsonContent.logo;
 
-        this.addControl(
-          new MaptilerLogoControl({ logoURL }),
-          options.logoPosition,
-        );
-
-        // if attribution in option is `false` but the the logo shows up in the tileJson, then the attribution must show anyways
-        if (options.attributionControl === false) {
           this.addControl(
-            new AttributionControl({
-              customAttribution: options.customAttribution,
-            }),
+            new MaptilerLogoControl({ logoURL }),
+            options.logoPosition,
           );
+
+          // if attribution in option is `false` but the the logo shows up in the tileJson, then the attribution must show anyways
+          if (options.attributionControl === false) {
+            this.addControl(
+              new AttributionControl({
+                customAttribution: options.customAttribution,
+              }),
+            );
+          }
+        } else if (options.maptilerLogo) {
+          this.addControl(new MaptilerLogoControl(), options.logoPosition);
         }
-      } else if (options.maptilerLogo) {
-        this.addControl(new MaptilerLogoControl(), options.logoPosition);
       }
 
       // the other controls at init time but be after
@@ -465,6 +475,16 @@ export class Map extends maplibregl.Map {
       }
     });
 
+    this.once("style.load", () => {
+      if (options.minimap !== undefined) {
+        this.minimap = new Minimap({ ...options, ...options.minimap });
+        this.addControl(
+          this.minimap,
+          options.minimap.position ?? "bottom-left",
+        );
+      }
+    });
+
     const terrainCallback = (evt: any) => {
       if (!evt.terrain) return;
       terrainEventTriggered = true;
@@ -543,6 +563,7 @@ export class Map extends maplibregl.Map {
       | string,
     options?: StyleSwapOptions & StyleOptions,
   ): this {
+    this.minimap?.setStyle(style);
     return super.setStyle(styleToStyle(style), options);
   }
 

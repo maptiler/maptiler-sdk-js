@@ -170,10 +170,12 @@ import type { Matrix2 } from "./Point";
 import { config, SdkConfig } from "./config";
 import { Language, LanguageString, LanguageKey } from "./language";
 import type { Unit } from "./unit";
+import type { MinimapOptionsInput } from "./Minimap";
 
 // Exporting types
 export type {
   MapOptions,
+  MinimapOptionsInput,
   LoadWithTerrainEvent,
   GeocodingOptions,
   BBox,
