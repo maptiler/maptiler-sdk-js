@@ -10,6 +10,7 @@ import type {
   Tile,
   RasterDEMSourceSpecification,
   RequestTransformFunction,
+  Source,
 } from "maplibre-gl";
 import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
@@ -50,6 +51,7 @@ import { gpx, gpxOrKml, kml } from "./converters";
 import Minimap from "./Minimap";
 
 import type { MinimapOptionsInput } from "./Minimap";
+import type { Geometry, FeatureCollection, GeoJsonProperties } from "geojson";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -239,9 +241,9 @@ export class Map extends maplibregl.Map {
           await this.fitToIpBounds();
           return;
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         // not raising
-        console.warn(e.message);
+        console.warn((e as Error).message);
       }
 
       // As a fallback, we want to center the map on the visitor. First with IP geolocation...
@@ -249,9 +251,9 @@ export class Map extends maplibregl.Map {
       try {
         await this.centerOnIpPoint(options.zoom);
         ipLocatedCameraHash = this.getCameraHash();
-      } catch (e: any) {
+      } catch (e: unknown) {
         // not raising
-        console.warn(e.message);
+        console.warn((e as Error).message);
       }
 
       // A more precise localization
@@ -334,8 +336,11 @@ export class Map extends maplibregl.Map {
         const possibleSources = Object.keys(this.style.sourceCaches)
           .map((sourceName) => this.getSource(sourceName))
           .filter(
-            (s: any) =>
-              typeof s.url === "string" && s.url.includes("tiles.json"),
+            (s: Source | undefined) =>
+              s &&
+              "url" in s &&
+              typeof s.url === "string" &&
+              s?.url.includes("tiles.json"),
           );
 
         const styleUrl = new URL(
@@ -485,7 +490,7 @@ export class Map extends maplibregl.Map {
       }
     });
 
-    const terrainCallback = (evt: any) => {
+    const terrainCallback = (evt: LoadWithTerrainEvent) => {
       if (!evt.terrain) return;
       terrainEventTriggered = true;
       terrainEventData = {
@@ -1259,8 +1264,7 @@ export class Map extends maplibregl.Map {
     }
 
     // We are going to evaluate the content of .data, if provided
-    let data = options.data as any;
-    const tmpData = null;
+    let data = options.data;
 
     if (typeof data === "string") {
       // if options.data exists and is a uuid string, we consider that it points to a MapTiler Dataset
@@ -1287,7 +1291,11 @@ export class Map extends maplibregl.Map {
       } else {
         // From this point, we consider that the string content provided could
         // be the string content of one of the compatible format (GeoJSON, KML, GPX)
-        const tmpData = jsonParseNoThrow(data) ?? gpxOrKml(data);
+        const tmpData =
+          (jsonParseNoThrow(data) as FeatureCollection<
+            Geometry,
+            GeoJsonProperties
+          > | null) ?? gpxOrKml(data);
         if (tmpData) data = tmpData;
       }
 

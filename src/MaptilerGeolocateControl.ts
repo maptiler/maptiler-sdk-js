@@ -1,4 +1,4 @@
-import type { LngLatLike } from "maplibre-gl";
+import type { LngLatLike, MapLibreEvent } from "maplibre-gl";
 import maplibregl from "maplibre-gl";
 import { GeolocateControl } from "./GeolocateControl";
 import { DOMcreate } from "./tools";
@@ -6,6 +6,10 @@ import { DOMcreate } from "./tools";
 const Marker = maplibregl.Marker;
 const LngLat = maplibregl.LngLat;
 const LngLatBounds = maplibregl.LngLatBounds;
+
+type MoveEndEvent = MapLibreEvent<
+  MouseEvent | TouchEvent | WheelEvent | undefined
+> & { geolocateSource?: boolean };
 
 /**
  * The MaptilerGeolocateControl is an extension of the original GeolocateControl
@@ -142,7 +146,7 @@ export class MaptilerGeolocateControl extends GeolocateControl {
     // is a zoom, rotation or pitch (where the center stays the same) then we can keep the ACTIVE_LOCK
     // mode ON.
     if (this.options.trackUserLocation) {
-      this._map.on("moveend", (event: any) => {
+      this._map.on("moveend", (event: MoveEndEvent) => {
         const fromResize =
           event.originalEvent && event.originalEvent.type === "resize";
         const movingDistance = this.lastUpdatedCenter.distanceTo(

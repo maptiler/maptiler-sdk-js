@@ -18,6 +18,10 @@ import type {
 import type { MapOptions } from "./Map";
 import type { MapStyleVariant, ReferenceMapStyle } from "@maptiler/client";
 
+// TODO: Ceiling for zoom offset
+// TODO: Turn off tilting unless user wants it
+// TODO: If using a unique style for the minimap, don't load the parent style and updates to the parent style won't affect the minimap
+
 export interface ParentRect {
   lineLayout: LineLayerSpecification["layout"];
   linePaint: LineLayerSpecification["paint"];
@@ -35,7 +39,7 @@ export interface MinimapOptionsInput extends MapOptions {
   zoomAdjust?: number;
 
   /** Set CSS properties of the container using object key-values */
-  containerStyle?: CSSStyleDeclarationProperties;
+  containerStyle?: CSSStyleDeclaration & Record<string, string>;
 
   /** Set the position of the minimap at either "top-left", "top-right", "bottom-left", or "bottom-right" */
   position?: ControlPosition;

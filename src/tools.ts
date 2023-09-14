@@ -25,9 +25,7 @@ export function enableRTL() {
 // https://github.com/maplibre/maplibre-gl-js/blob/v2.4.0/src/util/util.ts#L223
 export function bindAll(fns: Array<string>, context: any): void {
   fns.forEach((fn) => {
-    if (!context[fn]) {
-      return;
-    }
+    if (typeof context[fn] !== "function") return;
     context[fn] = context[fn].bind(context);
   });
 }
@@ -137,7 +135,7 @@ export function isUUID(s: string): boolean {
 /**
  * Attempt a JSON parse of a string but does not throw if the string is not valid JSON, returns `null` instead.
  */
-export function jsonParseNoThrow(doc: string): any | null {
+export function jsonParseNoThrow(doc: string): object | null {
   try {
     return JSON.parse(doc);
   } catch (e) {
@@ -150,7 +148,7 @@ export function jsonParseNoThrow(doc: string): any | null {
 /**
  * Simple function to check if an object is a GeoJSON
  */
-export function isValidGeoJSON(obj: any): boolean {
+export function isValidGeoJSON(obj: Record<string, string>): boolean {
   if (typeof obj !== "object" || Array.isArray(obj) || obj === null)
     return false;
   if (!("type" in obj)) return false;
