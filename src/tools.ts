@@ -135,7 +135,7 @@ export function isUUID(s: string): boolean {
 /**
  * Attempt a JSON parse of a string but does not throw if the string is not valid JSON, returns `null` instead.
  */
-export function jsonParseNoThrow(doc: string): object | null {
+export function jsonParseNoThrow<T>(doc: string): T | null {
   try {
     return JSON.parse(doc);
   } catch (e) {
@@ -148,7 +148,7 @@ export function jsonParseNoThrow(doc: string): object | null {
 /**
  * Simple function to check if an object is a GeoJSON
  */
-export function isValidGeoJSON(obj: Record<string, string>): boolean {
+export function isValidGeoJSON<T>(obj: T & Record<string, string>): boolean {
   if (typeof obj !== "object" || Array.isArray(obj) || obj === null)
     return false;
   if (!("type" in obj)) return false;

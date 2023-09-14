@@ -1292,10 +1292,9 @@ export class Map extends maplibregl.Map {
         // From this point, we consider that the string content provided could
         // be the string content of one of the compatible format (GeoJSON, KML, GPX)
         const tmpData =
-          (jsonParseNoThrow(data) as FeatureCollection<
-            Geometry,
-            GeoJsonProperties
-          > | null) ?? gpxOrKml(data);
+          jsonParseNoThrow<FeatureCollection<Geometry, GeoJsonProperties>>(
+            data,
+          ) ?? gpxOrKml(data);
         if (tmpData) data = tmpData;
       }
 
