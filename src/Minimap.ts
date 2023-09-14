@@ -21,6 +21,7 @@ import type { MapStyleVariant, ReferenceMapStyle } from "@maptiler/client";
 // TODO: Ceiling for zoom offset
 // TODO: Turn off tilting unless user wants it
 // TODO: If using a unique style for the minimap, don't load the parent style and updates to the parent style won't affect the minimap
+// TODO: Reduce out "isMinimap?: boolean;" from MapOptions
 
 export interface ParentRect {
   lineLayout: LineLayerSpecification["layout"];
