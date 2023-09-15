@@ -76,20 +76,25 @@ export default class Minimap implements IControl {
     if (options.style !== undefined) this.#differentStyle = true;
     // set options
     this.#options = {
+      // set defaults
       zoomAdjust: -4,
-      pitchAdjust: options.pitchAdjust ?? false,
+      pitchAdjust: false,
       containerStyle: {
         border: "1px solid #000",
         width: "500px",
         height: "300px",
       },
       position: "top-right",
+      // inherit map options
       ...mapOptions,
-      ...options,
+      // override any lingering control options
       attributionControl: false,
       navigationControl: false,
       geolocateControl: false,
       maptilerLogo: false,
+      // override map options with new user defined minimap options
+      ...options,
+      // specify its a minimap
       minimap: true,
     };
     if (options.lockZoom !== undefined) {
