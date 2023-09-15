@@ -36,7 +36,7 @@
     <script src ="../dist/maptiler-sdk.umd.js"></script>
     
     <script>
-      maptilersdk.config.apiKey = "YOUR_API_KEY";
+      maptilersdk.config.apiKey = "VmLHQ2lY5Ctaau3AV6tn";
 
       const map = new maptilersdk.Map({
         container: document.getElementById("map-container"),
@@ -47,12 +47,15 @@
         terrainControl: false,
         geolocate: false,
         minimap: {
+          pitchAdjust: false,
+          zoomCeiling: 0.5,
           position: "bottom-right",
           containerStyle: {
             border: "2px solid #000",
             width: "500px",
             height: "300px",
           },
+          // lockZoom: 1,
           // zoomAdjust: -4,
           parentRect: {
             linePaint: {},

@@ -151,9 +151,9 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
 
   /**
    * Display a minimap in a random corner of the map.
+   * minimap is set to "true" by the engine when creating a minimap.
    */
-  minimap?: MinimapOptionsInput;
-  isMinimap?: boolean;
+  minimap?: true | MinimapOptionsInput;
 
   /**
    * Method to position the map at a given geolocation. Only if:
@@ -358,7 +358,7 @@ export class Map extends maplibregl.Map {
       }
 
       // The attribution and logo must show when required
-      if (!options.isMinimap) {
+      if (options.minimap !== true) {
         if ("logo" in tileJsonContent && tileJsonContent.logo) {
           const logoURL: string = tileJsonContent.logo;
 
@@ -481,8 +481,8 @@ export class Map extends maplibregl.Map {
     });
 
     this.once("style.load", () => {
-      if (options.minimap !== undefined) {
-        this.minimap = new Minimap({ ...options, ...options.minimap });
+      if (typeof options.minimap === "object") {
+        this.minimap = new Minimap(options.minimap, options);
         this.addControl(
           this.minimap,
           options.minimap.position ?? "bottom-left",

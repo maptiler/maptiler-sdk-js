@@ -18,11 +18,6 @@ import type {
 import type { MapOptions } from "./Map";
 import type { MapStyleVariant, ReferenceMapStyle } from "@maptiler/client";
 
-// TODO: Ceiling for zoom offset
-// TODO: Turn off tilting unless user wants it
-// TODO: If using a unique style for the minimap, don't load the parent style and updates to the parent style won't affect the minimap
-// TODO: Reduce out "isMinimap?: boolean;" from MapOptions
-
 export interface ParentRect {
   lineLayout: LineLayerSpecification["layout"];
   linePaint: LineLayerSpecification["paint"];
@@ -31,13 +26,30 @@ export interface ParentRect {
 
 export type CSSStyleDeclarationProperties = Record<string, string>;
 
-export interface MinimapOptionsInput extends MapOptions {
+export interface MinimapOptionsInput {
+  /**
+   * Style of the map. Can be:
+   * - a full style URL (possibly with API key)
+   * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
+   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
+   */
+  style?: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string;
+
   /**
    * Set the zoom difference between the parent and the minimap
    * If the parent is zoomed to 10 and the minimap is zoomed to 8, the zoomAdjust should be 2
    * Default: -4
    */
   zoomAdjust?: number;
+
+  /** Set a zoom of the minimap and don't allow any future changes */
+  lockZoom?: number;
+
+  /** Set the maximum zoom level of the minimap */
+  zoomCeiling?: number;
+
+  /** Adjust the pitch only if the user requests */
+  pitchAdjust?: boolean;
 
   /** Set CSS properties of the container using object key-values */
   containerStyle?: CSSStyleDeclaration & Record<string, string>;
@@ -51,6 +63,7 @@ export interface MinimapOptionsInput extends MapOptions {
 
 export interface MinimapOptions extends MapOptions {
   zoomAdjust: number;
+  pitchAdjust: boolean;
   containerStyle: CSSStyleDeclarationProperties;
   parentRect?: ParentRect;
 }
@@ -61,29 +74,34 @@ export default class Minimap implements IControl {
   #parentMap!: Map;
   #container!: HTMLElement;
   #parentRect?: GeoJSON.Feature<GeoJSON.Polygon>;
+  #differentStyle = false;
   #desync?: () => void;
-  constructor(options: MinimapOptionsInput) {
-    // remove unecessary controls from parent options
-    for (const key in options) {
-      if (key.includes("Control")) delete options[key as keyof MinimapOptions];
-      if (key === "minimap") delete options[key as keyof MinimapOptions];
-    }
+  constructor(options: MinimapOptionsInput, mapOptions: MapOptions) {
+    // check if the style is different
+    if (options.style !== undefined) this.#differentStyle = true;
     // set default options
     this.#options = {
       zoomAdjust: -4,
+      pitchAdjust: options.pitchAdjust ?? false,
       containerStyle: {
         border: "1px solid #000",
         width: "500px",
         height: "300px",
       },
       position: "top-right",
+      ...mapOptions,
+      minZoom: options.zoomCeiling ?? mapOptions.minZoom,
       ...options,
       attributionControl: false,
       navigationControl: false,
       geolocateControl: false,
       maptilerLogo: false,
-      isMinimap: true,
+      minimap: true,
     };
+    if (options.lockZoom !== undefined) {
+      this.#options.minZoom = options.lockZoom;
+      this.#options.maxZoom = options.lockZoom;
+    }
   }
 
   setStyle(
@@ -95,7 +113,7 @@ export default class Minimap implements IControl {
       | string,
     options?: StyleSwapOptions & StyleOptions,
   ): void {
-    this.#minimap.setStyle(style, options);
+    if (!this.#differentStyle) this.#minimap.setStyle(style, options);
     this.#setParentBounds();
   }
 
@@ -108,7 +126,7 @@ export default class Minimap implements IControl {
       this.#container.style.setProperty(key, value);
     }
     this.#options.container = this.#container;
-    this.#options.zoom = parentMap.getZoom() + (this.#options.zoomAdjust ?? -4);
+    this.#options.zoom = parentMap.getZoom() + this.#options.zoomAdjust ?? -4;
     // create the map
     this.#minimap = new Map(this.#options);
     // ensure the canvas properly fills the container (this shouldn't be necessary wth o_O)
@@ -187,17 +205,26 @@ export default class Minimap implements IControl {
 
   #setParentBounds() {
     if (this.#parentRect === undefined) return;
-    const bounds = this.#parentMap.getBounds();
-    const ne = bounds._ne;
-    const sw = bounds._sw;
+
+    const { devicePixelRatio } = window;
+    const canvas = this.#parentMap.getCanvas();
+    const width = canvas.width / devicePixelRatio;
+    const height = canvas.height / devicePixelRatio;
+
+    // Get coordinates for all four corners
+    const unproject = this.#parentMap.unproject.bind(this.#parentMap);
+    const northWest = unproject([0, 0]);
+    const northEast = unproject([width, 0]);
+    const southWest = unproject([0, height]);
+    const southEast = unproject([width, height]);
 
     this.#parentRect.geometry.coordinates = [
       [
-        [ne.lng, ne.lat],
-        [sw.lng, ne.lat],
-        [sw.lng, sw.lat],
-        [ne.lng, sw.lat],
-        [ne.lng, ne.lat],
+        southWest.toArray(),
+        southEast.toArray(),
+        northEast.toArray(),
+        northWest.toArray(),
+        southWest.toArray(),
       ],
     ];
 
@@ -206,6 +233,7 @@ export default class Minimap implements IControl {
   }
 
   #syncMaps(): () => void {
+    const { pitchAdjust } = this.#options;
     // syncing callbacks
     const parentCallback = () => {
       sync("parent");
@@ -243,7 +271,7 @@ export default class Minimap implements IControl {
         center,
         zoom,
         bearing,
-        pitch,
+        pitch: pitchAdjust ? pitch : 0,
       });
       // update parent rect
       this.#setParentBounds();
