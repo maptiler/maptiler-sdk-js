@@ -24,8 +24,6 @@ export interface ParentRect {
   fillPaint: FillLayerSpecification["paint"];
 }
 
-export type CSSStyleDeclarationProperties = Record<string, string>;
-
 export interface MinimapOptionsInput {
   /**
    * Style of the map. Can be:
@@ -64,7 +62,7 @@ export interface MinimapOptionsInput {
 export interface MinimapOptions extends MapOptions {
   zoomAdjust: number;
   pitchAdjust: boolean;
-  containerStyle: CSSStyleDeclarationProperties;
+  containerStyle: Record<string, string>;
   parentRect?: ParentRect;
 }
 
@@ -79,7 +77,7 @@ export default class Minimap implements IControl {
   constructor(options: MinimapOptionsInput, mapOptions: MapOptions) {
     // check if the style is different
     if (options.style !== undefined) this.#differentStyle = true;
-    // set default options
+    // set options
     this.#options = {
       zoomAdjust: -4,
       pitchAdjust: options.pitchAdjust ?? false,
