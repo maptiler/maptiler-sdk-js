@@ -150,8 +150,8 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   fullscreenControl?: boolean | ControlPosition;
 
   /**
-   * Display a minimap in a random corner of the map.
-   * minimap is set to "true" by the engine when creating a minimap.
+   * Display a minimap in a user defined corner of the map. (default: `bottom-left` corner)
+   * If set to true, the map will assume it is a minimap and forego the attribution control.
    */
   minimap?: true | MinimapOptionsInput;
 
@@ -241,7 +241,7 @@ export class Map extends maplibregl.Map {
           await this.fitToIpBounds();
           return;
         }
-      } catch (e: unknown) {
+      } catch (e) {
         // not raising
         console.warn((e as Error).message);
       }
@@ -251,7 +251,7 @@ export class Map extends maplibregl.Map {
       try {
         await this.centerOnIpPoint(options.zoom);
         ipLocatedCameraHash = this.getCameraHash();
-      } catch (e: unknown) {
+      } catch (e) {
         // not raising
         console.warn((e as Error).message);
       }

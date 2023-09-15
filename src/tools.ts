@@ -148,7 +148,7 @@ export function jsonParseNoThrow<T>(doc: string): T | null {
 /**
  * Simple function to check if an object is a GeoJSON
  */
-export function isValidGeoJSON<T>(obj: T & Record<string, string>): boolean {
+export function isValidGeoJSON<T>(obj: T & { type: string }): boolean {
   if (typeof obj !== "object" || Array.isArray(obj) || obj === null)
     return false;
   if (!("type" in obj)) return false;
