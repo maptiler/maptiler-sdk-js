@@ -43,9 +43,6 @@ export interface MinimapOptionsInput {
   /** Set a zoom of the minimap and don't allow any future changes */
   lockZoom?: number;
 
-  /** Set the maximum zoom level of the minimap */
-  zoomCeiling?: number;
-
   /** Adjust the pitch only if the user requests */
   pitchAdjust?: boolean;
 
@@ -88,7 +85,6 @@ export default class Minimap implements IControl {
       },
       position: "top-right",
       ...mapOptions,
-      minZoom: options.zoomCeiling ?? mapOptions.minZoom,
       ...options,
       attributionControl: false,
       navigationControl: false,
