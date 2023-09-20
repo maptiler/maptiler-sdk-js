@@ -193,6 +193,14 @@ export type {
 // Export convert functions 'str2xml', 'xml2str', 'gpx', and 'kml'
 export * from "./converters";
 
+// export demProfiler modules
+export * from "./demProfiler";
+export * from "./demProfiler/getElevation";
+export * from "./demProfiler/tileCover";
+
+// Geometry modules
+export * from "./geometry";
+
 // Exporting classes, objects, functions, etc.
 export {
   Map,
