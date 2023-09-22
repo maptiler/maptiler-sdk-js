@@ -41,10 +41,11 @@ import {
   generateRandomLayerName,
   generateRandomSourceName,
   getRandomColor,
-  lineColorOptionsToLineLayerPaintSpec,
+  paintColorOptionsToLineLayerPaintSpec,
   rampedOptionsToLineLayerPaintSpec,
   lineWidthOptionsToLineLayerPaintSpec,
   PolylineLayerOptions,
+  PolylgonLayerOptions,
   dashArrayMaker,
 } from "./stylehelper";
 import { FeatureCollection } from "geojson";
@@ -1610,7 +1611,7 @@ export class Map extends maplibregl.Map {
             "line-color":
               typeof outlineColor === "string"
                 ? outlineColor
-                : lineColorOptionsToLineLayerPaintSpec(outlineColor),
+                : paintColorOptionsToLineLayerPaintSpec(outlineColor),
             "line-width": computeRampedOutlineWidth(lineWidth, outlineWidth),
             "line-blur":
               typeof outlineBlur === "number"
@@ -1641,7 +1642,7 @@ export class Map extends maplibregl.Map {
           "line-color":
             typeof lineColor === "string"
               ? lineColor
-              : lineColorOptionsToLineLayerPaintSpec(lineColor),
+              : paintColorOptionsToLineLayerPaintSpec(lineColor),
           "line-width":
             typeof lineWidth === "number"
               ? lineWidth
@@ -1667,6 +1668,156 @@ export class Map extends maplibregl.Map {
       },
       options.beforeId,
     );
+
+    return retunedInfo;
+  }
+
+
+
+
+
+  private addGeoJSONPolygon(
+    // this Feature collection is expected to contain on LineStrings and MultilLinestrings
+    options: PolylgonLayerOptions,
+  ): {
+    polygonLayerId: string;
+    polygonOutlineLayerId: string;
+    polygonSourceId: string;
+  } {
+
+    if (options.layerId && this.getLayer(options.layerId)) {
+      throw new Error(
+        `A layer already exists with the layer id: ${options.layerId}`,
+      );
+    }
+
+    const sourceId = options.sourceId ?? generateRandomSourceName();
+    const layerId = options.layerId ?? generateRandomLayerName();
+
+    const retunedInfo = {
+      polygonLayerId: layerId,
+      polygonOutlineLayerId: "",
+      polygonSourceId: sourceId,
+    };
+
+    // A new source is added if the map does not have this sourceId and the data is provided
+    if (options.data && !this.getSource(sourceId)) {
+      // Adding the source
+      this.addSource(sourceId, {
+        type: "geojson",
+        data: options.data,
+      });
+    }
+
+    let outlineDashArray = options.outlineDashArray ?? null;
+    const outlineWidth = options.outlineWidth ?? 1;
+    const outlineColor = options.outlineColor ?? "#FFFFFF";
+    const outlineOpacity = options.outlineOpacity ?? 1;
+    const outlineBlur = options.outlineBlur ?? 0;
+    const fillColor =  options.fillColor ?? getRandomColor();
+    const fillOpacity = options.fillOpacity ?? 0.8;
+    const outlinePosition = options.outlinePosition ?? "center";
+
+
+    if (typeof outlineDashArray === "string") {
+      outlineDashArray = dashArrayMaker(outlineDashArray);
+    }
+
+    
+
+
+    this.addLayer(
+      {
+        id: layerId,
+        type: "fill",
+        source: sourceId,
+        // layout: {
+        //   "line-join": options.lineJoin ?? "round",
+        //   "line-cap": options.lineCap ?? "round",
+        // },
+        minzoom: options.minzoom ?? 0,
+        maxzoom: options.maxzoom ?? 23,
+        paint: {
+          'fill-color': typeof fillColor === "string"
+            ? fillColor
+            : paintColorOptionsToLineLayerPaintSpec(fillColor),
+          
+          'fill-opacity': typeof fillOpacity === "number"
+            ? fillOpacity
+            : rampedOptionsToLineLayerPaintSpec(fillOpacity),
+
+        },
+      },
+      options.beforeId,
+    );
+
+    // We want to create an outline for this line layer
+    if (options.outline === true) {
+      const outlineLayerId = `${layerId}_outline`;
+      retunedInfo.polygonOutlineLayerId = outlineLayerId;
+
+
+      let computedOutlineOffset;
+
+      if (outlinePosition === "inside") {
+        if (typeof outlineWidth === "number") {
+          computedOutlineOffset = 0.5 * outlineWidth;
+        } else {
+          // @ts-ignore
+          computedOutlineOffset = rampedOptionsToLineLayerPaintSpec(outlineWidth.map((el) => ({zoom: el.zoom, value: 0.5 * el.value})))
+        }
+      } else if (outlinePosition === "outside") {
+        if (typeof outlineWidth === "number") {
+          computedOutlineOffset = -0.5 * outlineWidth
+        } else {
+
+          computedOutlineOffset = rampedOptionsToLineLayerPaintSpec(outlineWidth.map((el) => ({zoom: el.zoom, value: -0.5 * el.value})))
+        } 
+      } else {
+        computedOutlineOffset = 0;
+      }
+
+      this.addLayer(
+        {
+          id: outlineLayerId,
+          type: "line",
+          source: sourceId,
+          layout: {
+            "line-join": options.outlineJoin ?? "round",
+            "line-cap": options.outlineCap ?? "round",
+          },
+          minzoom: options.minzoom ?? 0,
+          maxzoom: options.maxzoom ?? 23,
+          paint: {
+            "line-opacity":
+              typeof outlineOpacity === "number"
+                ? outlineOpacity
+                : rampedOptionsToLineLayerPaintSpec(outlineOpacity),
+            "line-color":
+              typeof outlineColor === "string"
+                ? outlineColor
+                : paintColorOptionsToLineLayerPaintSpec(outlineColor),
+            "line-width": typeof outlineWidth === "number" 
+              ? outlineWidth
+              : rampedOptionsToLineLayerPaintSpec(outlineWidth),
+            "line-blur":
+              typeof outlineBlur === "number"
+                ? outlineBlur
+                : rampedOptionsToLineLayerPaintSpec(outlineBlur),
+
+            "line-offset": computedOutlineOffset,
+
+            // For some reasons passing "line-dasharray" with the value "undefined"
+            // results in no showing the line while it should have the same behavior
+            // of not adding the property "line-dasharray" as all.
+            // As a workaround, we are inlining the addition of the prop with a conditional
+            // which is less readable.
+            ...(outlineDashArray && { "line-dasharray": outlineDashArray }),
+          },
+        },
+        options.beforeId,
+      );
+    }
 
     return retunedInfo;
   }
