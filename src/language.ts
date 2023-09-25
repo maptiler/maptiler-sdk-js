@@ -2,16 +2,15 @@
  * Languages. Note that not all the languages of this list are available but the compatibility list may be expanded in the future.
  */
 const Language = {
-
   /**
    * The visitor language mode concatenates the prefered language from the user settings and the "defaul name".
    * Note: The "default name" is equivalent to OSM's `{name}`, which can be the most recognized names a global
    * scale or the local name.
-   * This mode is helpful in the context where a user needs to access both the local names and the names in their 
+   * This mode is helpful in the context where a user needs to access both the local names and the names in their
    * own language, for instance when traveling abroad, where signs likely to be only available in the local language.
    */
   VISITOR: "visitor",
-  
+
   /**
    * Language as the style is designed. Not that this is the default state and one
    * the language has been changed to another than `STYLE`, then it cannot be set back to `STYLE`.

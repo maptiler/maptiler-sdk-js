@@ -10,6 +10,8 @@ import type {
   Tile,
   RasterDEMSourceSpecification,
   RequestTransformFunction,
+  DataDrivenPropertyValueSpecification,
+  PropertyValueSpecification,
 } from "maplibre-gl";
 import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
@@ -552,29 +554,16 @@ export class Map extends maplibregl.Map {
    * This function is a short for `.setPrimaryLanguage()`
    */
   setLanguage(language: LanguageString = defaults.primaryLanguage): void {
-    
-    
     if (language === Language.AUTO) {
       return this.setLanguage(getBrowserLanguage());
     }
     this.setPrimaryLanguage(language);
   }
 
-
-
-
-
-
-
-
-
-
-
   /**
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
    */
   setPrimaryLanguage(language: LanguageString = defaults.primaryLanguage) {
-    console.log("setPrimaryLanguage", language);
     if (language === Language.STYLE) return;
 
     if (this.primaryLanguage === Language.STYLE_LOCK) {
@@ -597,9 +586,6 @@ export class Map extends maplibregl.Map {
 
       const layers = this.getStyle().layers;
 
-      console.log("DEBUG");
-      
-
       // detects pattern like "{name:somelanguage}" with loose spacing
       const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
 
@@ -620,7 +606,6 @@ export class Map extends maplibregl.Map {
         ["get", langStr],
         ["get", "name"],
       ];
-
 
       if (language == Language.VISITOR) {
         const firstLang = `name:${getBrowserLanguage()}`;
@@ -652,200 +637,9 @@ export class Map extends maplibregl.Map {
           ],
 
           // @ts-ignore
-          ["get", "name"]
-        ]
+          ["get", "name"],
+        ];
       }
-
-      for (let i = 0; i < layers.length; i += 1) {
-        const layer = layers[i];
-        const layout = layer.layout;
-
-        if (!layout) {
-          continue;
-        }
-
-        if (!("text-field" in layout)) {
-          continue;
-        }
-
-        const textFieldLayoutProp = this.getLayoutProperty(
-          layer.id,
-          "text-field",
-        );
-
-        // Note:
-        // The value of the 'text-field' property can take multiple shape;
-        // 1. can be an array with 'concat' on its first element (most likely means bilingual)
-        // 2. can be an array with 'get' on its first element (monolingual)
-        // 3. can be a string of shape '{name:latin}'
-        // 4. can be a string referencing another prop such as '{housenumber}' or '{ref}'
-        //
-        // The case 1, 2 and 3 will be updated while maintaining their original type and shape.
-        // The case 3 will not be updated
-
-        let regexMatch;
-
-        // This is case 1
-        if (
-          Array.isArray(textFieldLayoutProp) &&
-          textFieldLayoutProp.length >= 2 &&
-          textFieldLayoutProp[0].trim().toLowerCase() === "concat"
-        ) {
-          const newProp = textFieldLayoutProp.slice(); // newProp is Array
-          // The style could possibly have defined more than 2 concatenated language strings but we only want to edit the first
-          // The style could also define that there are more things being concatenated and not only languages
-
-          for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
-            const elem = textFieldLayoutProp[j];
-
-            // we are looking for an elem of shape '{name:somelangage}' (string) of `["get", "name:somelanguage"]` (array)
-
-            // the entry of of shape '{name:somelangage}', possibly with loose spacing
-            if (
-              (typeof elem === "string" || elem instanceof String) &&
-              strLanguageRegex.exec(elem.toString())
-            ) {
-              newProp[j] = replacer;
-              break; // we just want to update the primary language
-            }
-            // the entry is of an array of shape `["get", "name:somelanguage"]`
-            else if (
-              Array.isArray(elem) &&
-              elem.length >= 2 &&
-              elem[0].trim().toLowerCase() === "get" &&
-              strLanguageInArrayRegex.exec(elem[1].toString())
-            ) {
-              newProp[j] = replacer;
-              break; // we just want to update the primary language
-            } else if (
-              Array.isArray(elem) &&
-              elem.length === 4 &&
-              elem[0].trim().toLowerCase() === "case"
-            ) {
-              newProp[j] = replacer;
-              break; // we just want to update the primary language
-            }
-          }
-
-          this.setLayoutProperty(layer.id, "text-field", newProp);
-        }
-
-        // This is case 2
-        else if (
-          Array.isArray(textFieldLayoutProp) &&
-          textFieldLayoutProp.length >= 2 &&
-          textFieldLayoutProp[0].trim().toLowerCase() === "get" &&
-          strLanguageInArrayRegex.exec(textFieldLayoutProp[1].toString())
-        ) {
-          const newProp = replacer;
-          this.setLayoutProperty(layer.id, "text-field", newProp);
-        }
-
-        // This is case 3
-        else if (
-          (typeof textFieldLayoutProp === "string" ||
-            textFieldLayoutProp instanceof String) &&
-          strLanguageRegex.exec(textFieldLayoutProp.toString())
-        ) {
-          const newProp = replacer;
-          this.setLayoutProperty(layer.id, "text-field", newProp);
-        } else if (
-          Array.isArray(textFieldLayoutProp) &&
-          textFieldLayoutProp.length === 4 &&
-          textFieldLayoutProp[0].trim().toLowerCase() === "case"
-        ) {
-          const newProp = replacer;
-          this.setLayoutProperty(layer.id, "text-field", newProp);
-        } else if (
-          (typeof textFieldLayoutProp === "string" ||
-            textFieldLayoutProp instanceof String) &&
-          (regexMatch = strBilingualRegex.exec(
-            textFieldLayoutProp.toString(),
-          )) !== null
-        ) {
-          const newProp = `{${langStr}}${regexMatch[3]}{name${
-            regexMatch[4] || ""
-          }}`;
-          this.setLayoutProperty(layer.id, "text-field", newProp);
-        } else if (
-          (typeof textFieldLayoutProp === "string" ||
-            textFieldLayoutProp instanceof String) &&
-          (regexMatch = strMoreInfoRegex.exec(
-            textFieldLayoutProp.toString(),
-          )) !== null
-        ) {
-          const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
-          this.setLayoutProperty(layer.id, "text-field", newProp);
-        }
-      }
-    });
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  /**
-   * Define the primary language of the map. Note that not all the languages shorthands provided are available.
-   */
-  setPrimaryLanguage_ORIG(language: LanguageString = defaults.primaryLanguage) {
-    console.log("setPrimaryLanguage", language);
-    if (language === Language.STYLE) return;
-
-    if (this.primaryLanguage === Language.STYLE_LOCK) {
-      console.warn(
-        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag.",
-      );
-      return;
-    }
-
-    if (!isLanguageSupported(language as string)) {
-      return;
-    }
-
-    this.primaryLanguage = language;
-
-    this.onStyleReady(() => {
-      if (language === Language.AUTO) {
-        return this.setPrimaryLanguage(getBrowserLanguage());
-      }
-
-      const layers = this.getStyle().layers;
-
-      console.log("DEBUG");
-      
-
-      // detects pattern like "{name:somelanguage}" with loose spacing
-      const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
-
-      // detects pattern like "name:somelanguage" with loose spacing
-      const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
-
-      // for string based bilingual lang such as "{name:latin}  {name:nonlatin}" or "{name:latin}  {name}"
-      const strBilingualRegex =
-        /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
-
-      // Regex to capture when there are more info, such as mountains elevation with unit m/ft
-      const strMoreInfoRegex = /^(.*)({\s*name\s*(:\s*(\S*))?\s*})(.*)$/;
-
-      const langStr = language ? `name:${language}` : "name"; // to handle local lang
-      const replacer = [
-        "case",
-        ["has", langStr],
-        ["get", langStr],
-        ["get", "name"],
-      ];
 
       for (let i = 0; i < layers.length; i += 1) {
         const layer = layers[i];
@@ -1544,8 +1338,19 @@ export class Map extends maplibregl.Map {
     // this Feature collection is expected to contain on LineStrings and MultilLinestrings
     options: PolylineLayerOptions,
   ): {
+    /**
+     * ID of the main line layer
+     */
     polylineLayerId: string;
+
+    /**
+     * ID of the outline layer (will be `""` if no outline)
+     */
     polylineOutlineLayerId: string;
+
+    /**
+     * ID of the data source
+     */
     polylineSourceId: string;
   } {
     if (options.layerId && this.getLayer(options.layerId)) {
@@ -1557,7 +1362,7 @@ export class Map extends maplibregl.Map {
     const sourceId = options.sourceId ?? generateRandomSourceName();
     const layerId = options.layerId ?? generateRandomLayerName();
 
-    const retunedInfo = {
+    const returnedInfo = {
       polylineLayerId: layerId,
       polylineOutlineLayerId: "",
       polylineSourceId: sourceId,
@@ -1590,7 +1395,7 @@ export class Map extends maplibregl.Map {
     // We want to create an outline for this line layer
     if (options.outline === true) {
       const outlineLayerId = `${layerId}_outline`;
-      retunedInfo.polylineOutlineLayerId = outlineLayerId;
+      returnedInfo.polylineOutlineLayerId = outlineLayerId;
 
       this.addLayer(
         {
@@ -1669,22 +1474,31 @@ export class Map extends maplibregl.Map {
       options.beforeId,
     );
 
-    return retunedInfo;
+    return returnedInfo;
   }
 
-
-
-
-
-  private addGeoJSONPolygon(
+  /**
+   * Add a polygon with styling options.
+   */
+  addPolygon(
     // this Feature collection is expected to contain on LineStrings and MultilLinestrings
     options: PolylgonLayerOptions,
   ): {
+    /**
+     * ID of the fill layer
+     */
     polygonLayerId: string;
+
+    /**
+     * ID of the outline layer (will be `""` if no outline)
+     */
     polygonOutlineLayerId: string;
+
+    /**
+     * ID of the source that contains the data
+     */
     polygonSourceId: string;
   } {
-
     if (options.layerId && this.getLayer(options.layerId)) {
       throw new Error(
         `A layer already exists with the layer id: ${options.layerId}`,
@@ -1694,9 +1508,9 @@ export class Map extends maplibregl.Map {
     const sourceId = options.sourceId ?? generateRandomSourceName();
     const layerId = options.layerId ?? generateRandomLayerName();
 
-    const retunedInfo = {
+    const returnedInfo = {
       polygonLayerId: layerId,
-      polygonOutlineLayerId: "",
+      polygonOutlineLayerId: options.outline ? `${layerId}_outline` : "",
       polygonSourceId: sourceId,
     };
 
@@ -1714,111 +1528,159 @@ export class Map extends maplibregl.Map {
     const outlineColor = options.outlineColor ?? "#FFFFFF";
     const outlineOpacity = options.outlineOpacity ?? 1;
     const outlineBlur = options.outlineBlur ?? 0;
-    const fillColor =  options.fillColor ?? getRandomColor();
-    const fillOpacity = options.fillOpacity ?? 0.8;
+    const fillColor = options.fillColor ?? getRandomColor();
+    const fillOpacity = options.fillOpacity ?? 1;
     const outlinePosition = options.outlinePosition ?? "center";
-
+    const pattern = options.pattern ?? null;
 
     if (typeof outlineDashArray === "string") {
       outlineDashArray = dashArrayMaker(outlineDashArray);
     }
 
-    
+    console.log("outlineDashArray", outlineDashArray);
 
-
-    this.addLayer(
-      {
-        id: layerId,
-        type: "fill",
-        source: sourceId,
-        // layout: {
-        //   "line-join": options.lineJoin ?? "round",
-        //   "line-cap": options.lineCap ?? "round",
-        // },
-        minzoom: options.minzoom ?? 0,
-        maxzoom: options.maxzoom ?? 23,
-        paint: {
-          'fill-color': typeof fillColor === "string"
-            ? fillColor
-            : paintColorOptionsToLineLayerPaintSpec(fillColor),
-          
-          'fill-opacity': typeof fillOpacity === "number"
-            ? fillOpacity
-            : rampedOptionsToLineLayerPaintSpec(fillOpacity),
-
-        },
-      },
-      options.beforeId,
-    );
-
-    // We want to create an outline for this line layer
-    if (options.outline === true) {
-      const outlineLayerId = `${layerId}_outline`;
-      retunedInfo.polygonOutlineLayerId = outlineLayerId;
-
-
-      let computedOutlineOffset;
-
-      if (outlinePosition === "inside") {
-        if (typeof outlineWidth === "number") {
-          computedOutlineOffset = 0.5 * outlineWidth;
-        } else {
-          // @ts-ignore
-          computedOutlineOffset = rampedOptionsToLineLayerPaintSpec(outlineWidth.map((el) => ({zoom: el.zoom, value: 0.5 * el.value})))
-        }
-      } else if (outlinePosition === "outside") {
-        if (typeof outlineWidth === "number") {
-          computedOutlineOffset = -0.5 * outlineWidth
-        } else {
-
-          computedOutlineOffset = rampedOptionsToLineLayerPaintSpec(outlineWidth.map((el) => ({zoom: el.zoom, value: -0.5 * el.value})))
-        } 
-      } else {
-        computedOutlineOffset = 0;
-      }
-
+    const addLayers = (patternImageId: string | null = null) => {
       this.addLayer(
         {
-          id: outlineLayerId,
-          type: "line",
+          id: layerId,
+          type: "fill",
           source: sourceId,
-          layout: {
-            "line-join": options.outlineJoin ?? "round",
-            "line-cap": options.outlineCap ?? "round",
-          },
           minzoom: options.minzoom ?? 0,
           maxzoom: options.maxzoom ?? 23,
           paint: {
-            "line-opacity":
-              typeof outlineOpacity === "number"
-                ? outlineOpacity
-                : rampedOptionsToLineLayerPaintSpec(outlineOpacity),
-            "line-color":
-              typeof outlineColor === "string"
-                ? outlineColor
-                : paintColorOptionsToLineLayerPaintSpec(outlineColor),
-            "line-width": typeof outlineWidth === "number" 
-              ? outlineWidth
-              : rampedOptionsToLineLayerPaintSpec(outlineWidth),
-            "line-blur":
-              typeof outlineBlur === "number"
-                ? outlineBlur
-                : rampedOptionsToLineLayerPaintSpec(outlineBlur),
+            "fill-color":
+              typeof fillColor === "string"
+                ? fillColor
+                : paintColorOptionsToLineLayerPaintSpec(fillColor),
 
-            "line-offset": computedOutlineOffset,
+            "fill-opacity":
+              typeof fillOpacity === "number"
+                ? fillOpacity
+                : rampedOptionsToLineLayerPaintSpec(fillOpacity),
 
-            // For some reasons passing "line-dasharray" with the value "undefined"
-            // results in no showing the line while it should have the same behavior
-            // of not adding the property "line-dasharray" as all.
-            // As a workaround, we are inlining the addition of the prop with a conditional
-            // which is less readable.
-            ...(outlineDashArray && { "line-dasharray": outlineDashArray }),
+            // Adding a pattern if provided
+            ...(patternImageId && { "fill-pattern": patternImageId }),
           },
         },
         options.beforeId,
       );
+
+      // We want to create an outline for this line layer
+      if (options.outline === true) {
+        let computedOutlineOffset:
+          | DataDrivenPropertyValueSpecification<number>
+          | number;
+
+        if (outlinePosition === "inside") {
+          if (typeof outlineWidth === "number") {
+            computedOutlineOffset = 0.5 * outlineWidth;
+          } else {
+            // @ts-ignore
+            computedOutlineOffset = rampedOptionsToLineLayerPaintSpec(
+              outlineWidth.map((el) => ({
+                zoom: el.zoom,
+                value: 0.5 * el.value,
+              })),
+            );
+          }
+        } else if (outlinePosition === "outside") {
+          if (typeof outlineWidth === "number") {
+            computedOutlineOffset = -0.5 * outlineWidth;
+          } else {
+            computedOutlineOffset = rampedOptionsToLineLayerPaintSpec(
+              outlineWidth.map((el) => ({
+                zoom: el.zoom,
+                value: -0.5 * el.value,
+              })),
+            );
+          }
+        } else {
+          computedOutlineOffset = 0;
+        }
+
+        this.addLayer(
+          {
+            id: returnedInfo.polygonOutlineLayerId,
+            type: "line",
+            source: sourceId,
+            layout: {
+              "line-join": options.outlineJoin ?? "round",
+              "line-cap": options.outlineCap ?? "butt",
+            },
+            minzoom: options.minzoom ?? 0,
+            maxzoom: options.maxzoom ?? 23,
+            paint: {
+              "line-opacity":
+                typeof outlineOpacity === "number"
+                  ? outlineOpacity
+                  : rampedOptionsToLineLayerPaintSpec(outlineOpacity),
+              "line-color":
+                typeof outlineColor === "string"
+                  ? outlineColor
+                  : paintColorOptionsToLineLayerPaintSpec(outlineColor),
+              "line-width":
+                typeof outlineWidth === "number"
+                  ? outlineWidth
+                  : rampedOptionsToLineLayerPaintSpec(outlineWidth),
+              "line-blur":
+                typeof outlineBlur === "number"
+                  ? outlineBlur
+                  : rampedOptionsToLineLayerPaintSpec(outlineBlur),
+
+              "line-offset": computedOutlineOffset,
+
+              // For some reasons passing "line-dasharray" with the value "undefined"
+              // results in no showing the line while it should have the same behavior
+              // of not adding the property "line-dasharray" as all.
+              // As a workaround, we are inlining the addition of the prop with a conditional
+              // which is less readable.
+              ...(outlineDashArray && {
+                "line-dasharray":
+                  outlineDashArray as PropertyValueSpecification<number[]>,
+              }),
+            },
+          },
+          options.beforeId,
+        );
+      }
+    };
+
+    if (pattern) {
+      if (this.hasImage(pattern)) {
+        addLayers(pattern);
+      } else {
+        this.loadImage(
+          pattern,
+
+          // (error?: Error | null, image?: HTMLImageElement | ImageBitmap | null, expiry?: ExpiryData | null)
+          (
+            error: Error | null | undefined,
+            image: HTMLImageElement | ImageBitmap | null | undefined,
+          ) => {
+            // Throw an error if something goes wrong.
+            if (error) {
+              console.error("Could not load the pattern image.", error.message);
+              return addLayers();
+            }
+
+            if (!image) {
+              console.error(
+                `An image cannot be created from the pattern URL ${pattern}.`,
+              );
+              return addLayers();
+            }
+
+            // Add the image to the map style, using the image URL as an ID
+            this.addImage(pattern, image);
+
+            addLayers(pattern);
+          },
+        );
+      }
+    } else {
+      addLayers();
     }
 
-    return retunedInfo;
+    return returnedInfo;
   }
 }
