@@ -589,7 +589,12 @@ export class Map extends maplibregl.Map {
 
     // If the language is set to `STYLE` (which is the SDK default), but the language defined in
     // the style is `auto`, we need to bypass some verification and modify the languages anyway
-    if (!(language === Language.STYLE && styleLanguage === Language.AUTO)) {
+    if (
+      !(
+        language === Language.STYLE &&
+        (styleLanguage === Language.AUTO || styleLanguage === Language.VISITOR)
+      )
+    ) {
       if (language !== Language.STYLE) {
         this.languageAlwaysBeenStyle = false;
       }
@@ -662,7 +667,7 @@ export class Map extends maplibregl.Map {
           [
             "format",
             ["get", langStr],
-            { "font-scale": 0.7 },
+            { "font-scale": 0.8 },
             "\n",
             ["get", Language.LOCAL],
             { "font-scale": 1.1 },
@@ -692,12 +697,11 @@ export class Map extends maplibregl.Map {
 
           [
             "format",
+            ["get", langStr],
+            { "font-scale": 0.8 },
+            "\n",
             ["get", Language.LOCAL],
             { "font-scale": 1.1 },
-            "\n",
-
-            ["get", langStr],
-            { "font-scale": 0.7 },
           ],
         ],
 
