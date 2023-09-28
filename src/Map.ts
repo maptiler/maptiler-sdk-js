@@ -203,13 +203,13 @@ export class Map extends maplibregl.Map {
     });
 
     this.primaryLanguage = options.language ?? config.primaryLanguage;
-    (this.forceLanguageUpdate =
+    this.forceLanguageUpdate =
       this.primaryLanguage === Language.STYLE ||
       this.primaryLanguage === Language.STYLE_LOCK
         ? false
-        : true),
-      (this.languageAlwaysBeenStyle =
-        this.primaryLanguage === Language.STYLE ? true : false);
+        : true;
+    this.languageAlwaysBeenStyle =
+      this.primaryLanguage === Language.STYLE ? true : false;
     this.terrainExaggeration =
       options.terrainExaggeration ?? this.terrainExaggeration;
 
@@ -551,7 +551,9 @@ export class Map extends maplibregl.Map {
   ): this {
     this.forceLanguageUpdate = true;
 
-    this.once("idle", () => (this.forceLanguageUpdate = false));
+    this.once("idle", () => {
+      this.forceLanguageUpdate = false;
+    });
 
     return super.setStyle(styleToStyle(style), options);
   }
@@ -583,17 +585,23 @@ export class Map extends maplibregl.Map {
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
    */
   private setPrimaryLanguage(language: LanguageString | string) {
-    if (language !== Language.STYLE) {
-      this.languageAlwaysBeenStyle = false;
-    }
+    const styleLanguage = this.getStyleLanguage();
 
-    if (this.languageAlwaysBeenStyle) {
-      return;
-    }
+    // If the language is set to `STYLE` (which is the SDK default), but the language defined in
+    // the style is `auto`, we need to bypass some verification and modify the languages anyway
+    if (!(language === Language.STYLE && styleLanguage === Language.AUTO)) {
+      if (language !== Language.STYLE) {
+        this.languageAlwaysBeenStyle = false;
+      }
 
-    // No need to change the language
-    if (this.primaryLanguage === language && !this.forceLanguageUpdate) {
-      return;
+      if (this.languageAlwaysBeenStyle) {
+        return;
+      }
+
+      // No need to change the language
+      if (this.primaryLanguage === language && !this.forceLanguageUpdate) {
+        return;
+      }
     }
 
     if (!isLanguageSupported(language as string)) {
@@ -614,8 +622,6 @@ export class Map extends maplibregl.Map {
     // STYLE needs to be translated into one of the other language,
     // this is why it's addressed first
     if (language === Language.STYLE) {
-      const styleLanguage = this.getStyleLanguage();
-
       if (!styleLanguage) {
         console.warn("The style has no default languages.");
         return;
@@ -630,13 +636,13 @@ export class Map extends maplibregl.Map {
     }
 
     // may be overwritten below
-    let langStr = "name";
+    let langStr: string | LanguageString = Language.LOCAL;
 
     // will be overwritten below
     let replacer: Array<any> | string = `{${langStr}}`;
 
     if (languageNonStyle == Language.VISITOR) {
-      langStr = `name:${getBrowserLanguage()}`;
+      langStr = getBrowserLanguage();
       replacer = [
         "case",
         [
@@ -644,59 +650,101 @@ export class Map extends maplibregl.Map {
           // @ts-ignore
           ["has", langStr],
           // @ts-ignore
-          ["has", "name"],
+          ["has", Language.LOCAL],
         ],
         [
           "case",
           // @ts-ignore
-          ["==", ["get", langStr], ["get", "name"]],
+          ["==", ["get", langStr], ["get", Language.LOCAL]],
           // @ts-ignore
-          ["get", "name"],
-          // @ts-ignore
+          ["get", Language.LOCAL],
+
           [
-            "concat",
-            // @ts-ignore
+            "format",
             ["get", langStr],
+            { "font-scale": 0.7 },
             "\n",
-            // @ts-ignore
-            ["get", "name"],
+            ["get", Language.LOCAL],
+            { "font-scale": 1.1 },
           ],
         ],
 
         // @ts-ignore
-        ["get", "name"],
+        ["get", Language.LOCAL],
+      ];
+    } else if (languageNonStyle == Language.VISITOR_ENGLISH) {
+      langStr = Language.ENGLISH;
+      replacer = [
+        "case",
+        [
+          "all",
+          // @ts-ignore
+          ["has", langStr],
+          // @ts-ignore
+          ["has", Language.LOCAL],
+        ],
+        [
+          "case",
+          // @ts-ignore
+          ["==", ["get", langStr], ["get", Language.LOCAL]],
+          // @ts-ignore
+          ["get", Language.LOCAL],
+
+          [
+            "format",
+            ["get", Language.LOCAL],
+            { "font-scale": 1.1 },
+            "\n",
+
+            ["get", langStr],
+            { "font-scale": 0.7 },
+          ],
+        ],
+
+        // @ts-ignore
+        ["get", Language.LOCAL],
       ];
     } else if (languageNonStyle === Language.AUTO) {
-      langStr = `name:${getBrowserLanguage()}`;
-      replacer = ["case", ["has", langStr], ["get", langStr], ["get", "name"]];
+      langStr = getBrowserLanguage();
+      replacer = [
+        "case",
+        ["has", langStr],
+        ["get", langStr],
+        ["get", Language.LOCAL],
+      ];
     }
 
     // This is for using the regular names as {name}
     else if (languageNonStyle === Language.LOCAL) {
-      langStr = "name";
+      langStr = Language.LOCAL;
       replacer = `{${langStr}}`;
     }
 
     // This section is for the regular language ISO codes
     else {
-      langStr = `name:${languageNonStyle}`;
-      replacer = ["case", ["has", langStr], ["get", langStr], ["get", "name"]];
+      langStr = languageNonStyle;
+      replacer = [
+        "case",
+        ["has", langStr],
+        ["get", langStr],
+        ["get", Language.LOCAL],
+      ];
     }
 
     const layers = this.getStyle().layers;
 
-    // detects pattern like "{name:somelanguage}" with loose spacing
-    const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
+    // // detects pattern like "{name:somelanguage}" with loose spacing
+    // const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
 
-    // detects pattern like "name:somelanguage" with loose spacing
-    const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
+    // // detects pattern like "name:somelanguage" with loose spacing
+    // const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
 
-    // for string based bilingual lang such as "{name:latin}  {name:nonlatin}" or "{name:latin}  {name}"
-    const strBilingualRegex =
-      /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
+    // // for string based bilingual lang such as "{name:latin}  {name:nonlatin}" or "{name:latin}  {name}"
+    // const strBilingualRegex =
+    //   /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
 
-    // Regex to capture when there are more info, such as mountains elevation with unit m/ft
-    const strMoreInfoRegex = /^(.*)({\s*name\s*(:\s*(\S*))?\s*})(.*)$/;
+    // // Regex to capture when there are more info, such as mountains elevation with unit m/ft
+    // const strMoreInfoRegex = /^(.*)({\s*name\s*(:\s*(\S*))?\s*})(.*)$/;
 
     for (let i = 0; i < layers.length; i += 1) {
       const layer = layers[i];
@@ -715,6 +763,17 @@ export class Map extends maplibregl.Map {
         "text-field",
       );
 
+      // If the label is not about a name, then we don't translate it
+      if (
+        typeof textFieldLayoutProp === "string" &&
+        (textFieldLayoutProp.toLowerCase().includes("ref") ||
+          textFieldLayoutProp.toLowerCase().includes("housenumber"))
+      ) {
+        continue;
+      }
+
+      this.setLayoutProperty(layer.id, "text-field", replacer);
+
       // Note:
       // The value of the 'text-field' property can take multiple shape;
       // 1. can be an array with 'concat' on its first element (most likely means bilingual)
@@ -725,99 +784,99 @@ export class Map extends maplibregl.Map {
       // The case 1, 2 and 3 will be updated while maintaining their original type and shape.
       // The case 3 will not be updated
 
-      let regexMatch;
+      //   let regexMatch;
 
-      // This is case 1
-      if (
-        Array.isArray(textFieldLayoutProp) &&
-        textFieldLayoutProp.length >= 2 &&
-        textFieldLayoutProp[0].trim().toLowerCase() === "concat"
-      ) {
-        const newProp = textFieldLayoutProp.slice(); // newProp is Array
-        // The style could possibly have defined more than 2 concatenated language strings but we only want to edit the first
-        // The style could also define that there are more things being concatenated and not only languages
+      //   // This is case 1
+      //   if (
+      //     Array.isArray(textFieldLayoutProp) &&
+      //     textFieldLayoutProp.length >= 2 &&
+      //     textFieldLayoutProp[0].trim().toLowerCase() === "concat"
+      //   ) {
+      //     const newProp = textFieldLayoutProp.slice(); // newProp is Array
+      //     // The style could possibly have defined more than 2 concatenated language strings but we only want to edit the first
+      //     // The style could also define that there are more things being concatenated and not only languages
 
-        for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
-          const elem = textFieldLayoutProp[j];
+      //     for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
+      //       const elem = textFieldLayoutProp[j];
 
-          // we are looking for an elem of shape '{name:somelangage}' (string) of `["get", "name:somelanguage"]` (array)
+      //       // we are looking for an elem of shape '{name:somelangage}' (string) of `["get", "name:somelanguage"]` (array)
 
-          // the entry of of shape '{name:somelangage}', possibly with loose spacing
-          if (
-            (typeof elem === "string" || elem instanceof String) &&
-            strLanguageRegex.exec(elem.toString())
-          ) {
-            newProp[j] = replacer;
-            break; // we just want to update the primary language
-          }
-          // the entry is of an array of shape `["get", "name:somelanguage"]`
-          else if (
-            Array.isArray(elem) &&
-            elem.length >= 2 &&
-            elem[0].trim().toLowerCase() === "get" &&
-            strLanguageInArrayRegex.exec(elem[1].toString())
-          ) {
-            newProp[j] = replacer;
-            break; // we just want to update the primary language
-          } else if (
-            Array.isArray(elem) &&
-            elem.length === 4 &&
-            elem[0].trim().toLowerCase() === "case"
-          ) {
-            newProp[j] = replacer;
-            break; // we just want to update the primary language
-          }
-        }
+      //       // the entry of of shape '{name:somelangage}', possibly with loose spacing
+      //       if (
+      //         (typeof elem === "string" || elem instanceof String) &&
+      //         strLanguageRegex.exec(elem.toString())
+      //       ) {
+      //         newProp[j] = replacer;
+      //         break; // we just want to update the primary language
+      //       }
+      //       // the entry is of an array of shape `["get", "name:somelanguage"]`
+      //       else if (
+      //         Array.isArray(elem) &&
+      //         elem.length >= 2 &&
+      //         elem[0].trim().toLowerCase() === "get" &&
+      //         strLanguageInArrayRegex.exec(elem[1].toString())
+      //       ) {
+      //         newProp[j] = replacer;
+      //         break; // we just want to update the primary language
+      //       } else if (
+      //         Array.isArray(elem) &&
+      //         elem.length === 4 &&
+      //         elem[0].trim().toLowerCase() === "case"
+      //       ) {
+      //         newProp[j] = replacer;
+      //         break; // we just want to update the primary language
+      //       }
+      //     }
 
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      }
+      //     this.setLayoutProperty(layer.id, "text-field", newProp);
+      //   }
 
-      // This is case 2
-      else if (
-        Array.isArray(textFieldLayoutProp) &&
-        textFieldLayoutProp.length >= 2 &&
-        textFieldLayoutProp[0].trim().toLowerCase() === "get" &&
-        strLanguageInArrayRegex.exec(textFieldLayoutProp[1].toString())
-      ) {
-        const newProp = replacer;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      }
+      //   // This is case 2
+      //   else if (
+      //     Array.isArray(textFieldLayoutProp) &&
+      //     textFieldLayoutProp.length >= 2 &&
+      //     textFieldLayoutProp[0].trim().toLowerCase() === "get" &&
+      //     strLanguageInArrayRegex.exec(textFieldLayoutProp[1].toString())
+      //   ) {
+      //     const newProp = replacer;
+      //     this.setLayoutProperty(layer.id, "text-field", newProp);
+      //   }
 
-      // This is case 3
-      else if (
-        (typeof textFieldLayoutProp === "string" ||
-          textFieldLayoutProp instanceof String) &&
-        strLanguageRegex.exec(textFieldLayoutProp.toString())
-      ) {
-        const newProp = replacer;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      } else if (
-        Array.isArray(textFieldLayoutProp) &&
-        textFieldLayoutProp.length === 4 &&
-        textFieldLayoutProp[0].trim().toLowerCase() === "case"
-      ) {
-        const newProp = replacer;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      } else if (
-        (typeof textFieldLayoutProp === "string" ||
-          textFieldLayoutProp instanceof String) &&
-        (regexMatch = strBilingualRegex.exec(
-          textFieldLayoutProp.toString(),
-        )) !== null
-      ) {
-        const newProp = `{${langStr}}${regexMatch[3]}{name${
-          regexMatch[4] || ""
-        }}`;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      } else if (
-        (typeof textFieldLayoutProp === "string" ||
-          textFieldLayoutProp instanceof String) &&
-        (regexMatch = strMoreInfoRegex.exec(textFieldLayoutProp.toString())) !==
-          null
-      ) {
-        const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
-        this.setLayoutProperty(layer.id, "text-field", newProp);
-      }
+      //   // This is case 3
+      //   else if (
+      //     (typeof textFieldLayoutProp === "string" ||
+      //       textFieldLayoutProp instanceof String) &&
+      //     strLanguageRegex.exec(textFieldLayoutProp.toString())
+      //   ) {
+      //     const newProp = replacer;
+      //     this.setLayoutProperty(layer.id, "text-field", newProp);
+      //   } else if (
+      //     Array.isArray(textFieldLayoutProp) &&
+      //     textFieldLayoutProp.length === 4 &&
+      //     textFieldLayoutProp[0].trim().toLowerCase() === "case"
+      //   ) {
+      //     const newProp = replacer;
+      //     this.setLayoutProperty(layer.id, "text-field", newProp);
+      //   } else if (
+      //     (typeof textFieldLayoutProp === "string" ||
+      //       textFieldLayoutProp instanceof String) &&
+      //     (regexMatch = strBilingualRegex.exec(
+      //       textFieldLayoutProp.toString(),
+      //     )) !== null
+      //   ) {
+      //     const newProp = `{${langStr}}${regexMatch[3]}{name${
+      //       regexMatch[4] || ""
+      //     }}`;
+      //     this.setLayoutProperty(layer.id, "text-field", newProp);
+      //   } else if (
+      //     (typeof textFieldLayoutProp === "string" ||
+      //       textFieldLayoutProp instanceof String) &&
+      //     (regexMatch = strMoreInfoRegex.exec(textFieldLayoutProp.toString())) !==
+      //       null
+      //   ) {
+      //     const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
+      //     this.setLayoutProperty(layer.id, "text-field", newProp);
+      //   }
     }
   }
 
