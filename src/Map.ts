@@ -209,7 +209,7 @@ export class Map extends maplibregl.Map {
         ? false
         : true;
     this.languageAlwaysBeenStyle =
-      this.primaryLanguage === Language.STYLE ? true : false;
+      this.primaryLanguage === Language.STYLE;
     this.terrainExaggeration =
       options.terrainExaggeration ?? this.terrainExaggeration;
 
