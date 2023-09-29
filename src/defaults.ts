@@ -9,7 +9,7 @@ const defaults = {
   maptilerApiHost: "api.maptiler.com",
   rtlPluginURL:
     "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
-  primaryLanguage: Language.AUTO,
+  primaryLanguage: Language.STYLE,
   secondaryLanguage: Language.LOCAL,
   terrainSourceURL: "https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json",
   terrainSourceId: "maptiler-terrain",

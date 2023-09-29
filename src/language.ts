@@ -3,6 +3,30 @@
  */
 const Language = {
   /**
+   * The visitor language mode concatenates the prefered language from the user settings and the "default name".
+   * Note: The "default name" is equivalent to OSM's `{name}`, which can be the most recognized names a global
+   * scale or the local name.
+   * This mode is helpful in the context where a user needs to access both the local names and the names in their
+   * own language, for instance when traveling abroad, where signs likely to be only available in the local language.
+   */
+  VISITOR: "visitor",
+
+  /**
+   * The visitor language mode concatenates English and the "default name".
+   * Note: The "default name" is equivalent to OSM's `{name}`, which can be the most recognized names a global
+   * scale or the local name.
+   * This mode is helpful in the context where a user needs to access both the local names and the names in their
+   * own language, for instance when traveling abroad, where signs likely to be only available in the local language.
+   */
+  VISITOR_ENGLISH: "visitor_en",
+
+  /**
+   * Language as the style is designed. Not that this is the default state and one
+   * the language has been changed to another than `STYLE`, then it cannot be set back to `STYLE`.
+   */
+  STYLE: "style",
+
+  /**
    * AUTO mode uses the language of the browser
    */
   AUTO: "auto",
@@ -17,96 +41,101 @@ const Language = {
   /**
    * Default fallback languages that uses latin charaters
    */
-  LATIN: "latin",
+  LATIN: "name:latin",
 
   /**
    * Default fallback languages that uses non-latin charaters
    */
-  NON_LATIN: "nonlatin",
+  NON_LATIN: "name:nonlatin",
 
   /**
    * Labels are in their local language, when available
    */
-  LOCAL: "",
+  LOCAL: "name",
 
-  ALBANIAN: "sq",
-  AMHARIC: "am",
-  ARABIC: "ar",
-  ARMENIAN: "hy",
-  AZERBAIJANI: "az",
-  BASQUE: "eu",
-  BELORUSSIAN: "be",
-  BENGALI: "bn",
-  BOSNIAN: "bs",
-  BRETON: "br",
-  BULGARIAN: "bg",
-  CATALAN: "ca",
-  CHINESE: "zh",
-  TRADITIONAL_CHINESE: "zh-Hant",
-  SIMPLIFIED_CHINESE: "zh-Hans",
-  CORSICAN: "co",
-  CROATIAN: "hr",
-  CZECH: "cs",
-  DANISH: "da",
-  DUTCH: "nl",
-  ENGLISH: "en",
-  ESPERANTO: "eo",
-  ESTONIAN: "et",
-  FINNISH: "fi",
-  FRENCH: "fr",
-  FRISIAN: "fy",
-  GEORGIAN: "ka",
-  GERMAN: "de",
-  GREEK: "el",
-  HEBREW: "he",
-  HINDI: "hi",
-  HUNGARIAN: "hu",
-  ICELANDIC: "is",
-  INDONESIAN: "id",
-  IRISH: "ga",
-  ITALIAN: "it",
-  JAPANESE: "ja",
-  JAPANESE_HIRAGANA: "ja-Hira",
-  JAPANESE_KANA: "ja_kana",
-  JAPANESE_LATIN: "ja_rm",
-  JAPANESE_2018: "ja-Latn",
-  KANNADA: "kn",
-  KAZAKH: "kk",
-  KOREAN: "ko",
-  KOREAN_LATIN: "ko-Latn",
-  KURDISH: "ku",
-  ROMAN_LATIN: "la",
-  LATVIAN: "lv",
-  LITHUANIAN: "lt",
-  LUXEMBOURGISH: "lb",
-  MACEDONIAN: "mk",
-  MALAYALAM: "ml",
-  MALTESE: "mt",
-  NORWEGIAN: "no",
-  OCCITAN: "oc",
-  PERSIAN: "fa",
-  POLISH: "pl",
-  PORTUGUESE: "pt",
-  PUNJABI: "pa",
-  WESTERN_PUNJABI: "pnb",
-  ROMANIAN: "ro",
-  ROMANSH: "rm",
-  RUSSIAN: "ru",
-  SCOTTISH_GAELIC: "gd",
-  SERBIAN_CYRILLIC: "sr",
-  SERBIAN_LATIN: "sr-Latn",
-  SLOVAK: "sk",
-  SLOVENE: "sl",
-  SPANISH: "es",
-  SWEDISH: "sv",
-  TAMIL: "ta",
-  TELUGU: "te",
-  THAI: "th",
-  TURKISH: "tr",
-  UKRAINIAN: "uk",
-  URDU: "ur",
-  VIETNAMIAN_LATIN: "vi",
-  WELSH: "cy",
+  /**
+   * International name
+   */
+  INTERNATIONAL: "name_int",
+
+  ALBANIAN: "name:sq",
+  AMHARIC: "name:am",
+  ARABIC: "name:ar",
+  ARMENIAN: "name:hy",
+  AZERBAIJANI: "name:az",
+  BASQUE: "name:eu",
+  BELORUSSIAN: "name:be",
+  BENGALI: "name:bn",
+  BOSNIAN: "name:bs",
+  BRETON: "name:br",
+  BULGARIAN: "name:bg",
+  CATALAN: "name:ca",
+  CHINESE: "name:zh",
+  TRADITIONAL_CHINESE: "name:zh-Hant",
+  SIMPLIFIED_CHINESE: "name:zh-Hans",
+  CORSICAN: "name:co",
+  CROATIAN: "name:hr",
+  CZECH: "name:cs",
+  DANISH: "name:da",
+  DUTCH: "name:nl",
+  ENGLISH: "name:en",
+  ESPERANTO: "name:eo",
+  ESTONIAN: "name:et",
+  FINNISH: "name:fi",
+  FRENCH: "name:fr",
+  FRISIAN: "name:fy",
+  GEORGIAN: "name:ka",
+  GERMAN: "name:de",
+  GREEK: "name:el",
+  HEBREW: "name:he",
+  HINDI: "name:hi",
+  HUNGARIAN: "name:hu",
+  ICELANDIC: "name:is",
+  INDONESIAN: "name:id",
+  IRISH: "name:ga",
+  ITALIAN: "name:it",
+  JAPANESE: "name:ja",
+  JAPANESE_HIRAGANA: "name:ja-Hira",
+  JAPANESE_KANA: "name:ja_kana",
+  JAPANESE_LATIN: "name:ja_rm",
+  JAPANESE_2018: "name:ja-Latn",
+  KANNADA: "name:kn",
+  KAZAKH: "name:kk",
+  KOREAN: "name:ko",
+  KOREAN_LATIN: "name:ko-Latn",
+  KURDISH: "name:ku",
+  ROMAN_LATIN: "name:la",
+  LATVIAN: "name:lv",
+  LITHUANIAN: "name:lt",
+  LUXEMBOURGISH: "name:lb",
+  MACEDONIAN: "name:mk",
+  MALAYALAM: "name:ml",
+  MALTESE: "name:mt",
+  NORWEGIAN: "name:no",
+  OCCITAN: "name:oc",
+  PERSIAN: "name:fa",
+  POLISH: "name:pl",
+  PORTUGUESE: "name:pt",
+  PUNJABI: "name:pa",
+  WESTERN_PUNJABI: "name:pnb",
+  ROMANIAN: "name:ro",
+  ROMANSH: "name:rm",
+  RUSSIAN: "name:ru",
+  SCOTTISH_GAELIC: "name:gd",
+  SERBIAN_CYRILLIC: "name:sr",
+  SERBIAN_LATIN: "name:sr-Latn",
+  SLOVAK: "name:sk",
+  SLOVENE: "name:sl",
+  SPANISH: "name:es",
+  SWEDISH: "name:sv",
+  TAMIL: "name:ta",
+  TELUGU: "name:te",
+  THAI: "name:th",
+  TURKISH: "name:tr",
+  UKRAINIAN: "name:uk",
+  URDU: "name:ur",
+  VIETNAMIAN_LATIN: "name:vi",
+  WELSH: "name:cy",
 } as const;
 
 const languagesIsoSet = new Set(Object.values(Language) as Array<string>);
@@ -131,18 +160,18 @@ type LanguageString = Values<typeof Language>;
 
 function getBrowserLanguage(): LanguageString {
   if (typeof navigator === "undefined") {
-    return Intl.DateTimeFormat()
-      .resolvedOptions()
-      .locale.split("-")[0] as LanguageString;
+    return `name:${
+      Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0]
+    }` as LanguageString;
   }
 
   const canditatelangs = Array.from(
-    new Set(navigator.languages.map((l) => l.split("-")[0])),
+    new Set(navigator.languages.map((l) => `name:${l.split("-")[0]}`)),
   ).filter((l) => languageCodeSet.has(l as LanguageString));
 
   return canditatelangs.length
     ? (canditatelangs[0] as LanguageString)
-    : Language.LATIN;
+    : Language.LOCAL;
 }
 
 export {
