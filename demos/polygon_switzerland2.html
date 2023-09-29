@@ -1,0 +1,84 @@
+<html>
+  <head>
+    <title>MapTiler JS SDK example</title>
+    <style>
+      html, body {
+        margin: 0;
+      }
+
+      #map-container {
+        position: absolute;
+        width: 100vw;
+        height: 100vh;
+        background: radial-gradient(circle, rgb(186 226 255) 5%, rgb(0 100 159) 98%);
+      }
+
+      #style-picker-container {
+        position: absolute;
+        z-index: 2;
+        margin: 10px;
+      }
+
+    </style>
+
+    <link rel="stylesheet" href="../dist/maptiler-sdk.css">
+  </head>
+
+  <body>
+    <div id="map-container"></div>
+  
+    <script src ="../dist/maptiler-sdk.umd.js"></script>
+    
+    <script>
+      maptilersdk.config.apiKey = "YOUR_API_KEY";
+
+      const map = new maptilersdk.Map({
+        container: document.getElementById("map-container"),
+        style: maptilersdk.MapStyle.DATAVIZ.DARK,
+        hash: true,
+        center: {lat: 46.8495, lng: 8.2455 },
+        zoom: 7,
+      })
+
+      map.on("load", async () => {
+        
+        
+        const polygonLayerInfo = map.addPolygon({
+          data: "switzerland.geojson",
+          fillColor: [
+            {zoom: 5, value: "#ab0017"},
+            {zoom: 6, value: "red"},
+            {zoom: 7, value: "#ab0017"},
+            {zoom: 8, value: "red"},
+            {zoom: 9, value: "#ab0017"},
+            {zoom: 10, value: "red"},
+          ],
+          outline: true,
+          outlineDashArray: "__ ",
+          outlineWidth: [
+            {zoom: 0, value: 0},
+            {zoom: 3, value: 1},
+            {zoom: 6, value: 2},
+            {zoom: 8, value: 4},
+            {zoom: 15, value: 10},
+            {zoom: 22, value: 20},
+          ],
+          outlineColor: [
+            {zoom: 4, value: "white"},
+            {zoom: 5, value: "red"},
+            {zoom: 6, value: "white"},
+            {zoom: 7, value: "red"},
+            {zoom: 8, value: "white"},
+            {zoom: 9, value: "red"},
+            {zoom: 10, value: "white"},
+          ],
+          outlinePosition: "inside",
+        });
+
+        console.log(polygonLayerInfo);
+      })
+
+
+    </script>
+  </body>
+</html>

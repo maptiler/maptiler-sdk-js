@@ -10,6 +10,8 @@ import type {
   Tile,
   RasterDEMSourceSpecification,
   RequestTransformFunction,
+  DataDrivenPropertyValueSpecification,
+  PropertyValueSpecification,
   ExpressionSpecification,
 } from "maplibre-gl";
 import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
@@ -42,10 +44,11 @@ import {
   generateRandomLayerName,
   generateRandomSourceName,
   getRandomColor,
-  lineColorOptionsToLineLayerPaintSpec,
+  paintColorOptionsToLineLayerPaintSpec,
   rampedOptionsToLineLayerPaintSpec,
   lineWidthOptionsToLineLayerPaintSpec,
   PolylineLayerOptions,
+  PolylgonLayerOptions,
   dashArrayMaker,
 } from "./stylehelper";
 import { FeatureCollection } from "geojson";
@@ -584,6 +587,7 @@ export class Map extends maplibregl.Map {
   /**
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
    */
+
   private setPrimaryLanguage(language: LanguageString | string) {
     const styleLanguage = this.getStyleLanguage();
 
@@ -1162,11 +1166,22 @@ export class Map extends maplibregl.Map {
    * Add a polyline witgh optional outline from a GeoJSON object
    */
   private addGeoJSONPolyline(
-    // this Feature collection is expected to contain on LineStrings and MultilLinestrings
+    // The data or data source is expected to contain LineStrings or MultiLineStrings
     options: PolylineLayerOptions,
   ): {
+    /**
+     * ID of the main line layer
+     */
     polylineLayerId: string;
+
+    /**
+     * ID of the outline layer (will be `""` if no outline)
+     */
     polylineOutlineLayerId: string;
+
+    /**
+     * ID of the data source
+     */
     polylineSourceId: string;
   } {
     if (options.layerId && this.getLayer(options.layerId)) {
@@ -1178,7 +1193,7 @@ export class Map extends maplibregl.Map {
     const sourceId = options.sourceId ?? generateRandomSourceName();
     const layerId = options.layerId ?? generateRandomLayerName();
 
-    const retunedInfo = {
+    const returnedInfo = {
       polylineLayerId: layerId,
       polylineOutlineLayerId: "",
       polylineSourceId: sourceId,
@@ -1211,7 +1226,7 @@ export class Map extends maplibregl.Map {
     // We want to create an outline for this line layer
     if (options.outline === true) {
       const outlineLayerId = `${layerId}_outline`;
-      retunedInfo.polylineOutlineLayerId = outlineLayerId;
+      returnedInfo.polylineOutlineLayerId = outlineLayerId;
 
       this.addLayer(
         {
@@ -1232,7 +1247,7 @@ export class Map extends maplibregl.Map {
             "line-color":
               typeof outlineColor === "string"
                 ? outlineColor
-                : lineColorOptionsToLineLayerPaintSpec(outlineColor),
+                : paintColorOptionsToLineLayerPaintSpec(outlineColor),
             "line-width": computeRampedOutlineWidth(lineWidth, outlineWidth),
             "line-blur":
               typeof outlineBlur === "number"
@@ -1263,7 +1278,7 @@ export class Map extends maplibregl.Map {
           "line-color":
             typeof lineColor === "string"
               ? lineColor
-              : lineColorOptionsToLineLayerPaintSpec(lineColor),
+              : paintColorOptionsToLineLayerPaintSpec(lineColor),
           "line-width":
             typeof lineWidth === "number"
               ? lineWidth
@@ -1290,6 +1305,210 @@ export class Map extends maplibregl.Map {
       options.beforeId,
     );
 
-    return retunedInfo;
+    return returnedInfo;
+  }
+
+  /**
+   * Add a polygon with styling options.
+   */
+  addPolygon(
+    // this Feature collection is expected to contain on LineStrings and MultiLinestrings
+    options: PolylgonLayerOptions,
+  ): {
+    /**
+     * ID of the fill layer
+     */
+    polygonLayerId: string;
+
+    /**
+     * ID of the outline layer (will be `""` if no outline)
+     */
+    polygonOutlineLayerId: string;
+
+    /**
+     * ID of the source that contains the data
+     */
+    polygonSourceId: string;
+  } {
+    if (options.layerId && this.getLayer(options.layerId)) {
+      throw new Error(
+        `A layer already exists with the layer id: ${options.layerId}`,
+      );
+    }
+
+    const sourceId = options.sourceId ?? generateRandomSourceName();
+    const layerId = options.layerId ?? generateRandomLayerName();
+
+    const returnedInfo = {
+      polygonLayerId: layerId,
+      polygonOutlineLayerId: options.outline ? `${layerId}_outline` : "",
+      polygonSourceId: sourceId,
+    };
+
+    // A new source is added if the map does not have this sourceId and the data is provided
+    if (options.data && !this.getSource(sourceId)) {
+      // Adding the source
+      this.addSource(sourceId, {
+        type: "geojson",
+        data: options.data,
+      });
+    }
+
+    let outlineDashArray = options.outlineDashArray ?? null;
+    const outlineWidth = options.outlineWidth ?? 1;
+    const outlineColor = options.outlineColor ?? "#FFFFFF";
+    const outlineOpacity = options.outlineOpacity ?? 1;
+    const outlineBlur = options.outlineBlur ?? 0;
+    const fillColor = options.fillColor ?? getRandomColor();
+    const fillOpacity = options.fillOpacity ?? 1;
+    const outlinePosition = options.outlinePosition ?? "center";
+    const pattern = options.pattern ?? null;
+
+    if (typeof outlineDashArray === "string") {
+      outlineDashArray = dashArrayMaker(outlineDashArray);
+    }
+
+    const addLayers = (patternImageId: string | null = null) => {
+      this.addLayer(
+        {
+          id: layerId,
+          type: "fill",
+          source: sourceId,
+          minzoom: options.minzoom ?? 0,
+          maxzoom: options.maxzoom ?? 23,
+          paint: {
+            "fill-color":
+              typeof fillColor === "string"
+                ? fillColor
+                : paintColorOptionsToLineLayerPaintSpec(fillColor),
+
+            "fill-opacity":
+              typeof fillOpacity === "number"
+                ? fillOpacity
+                : rampedOptionsToLineLayerPaintSpec(fillOpacity),
+
+            // Adding a pattern if provided
+            ...(patternImageId && { "fill-pattern": patternImageId }),
+          },
+        },
+        options.beforeId,
+      );
+
+      // We want to create an outline for this line layer
+      if (options.outline === true) {
+        let computedOutlineOffset:
+          | DataDrivenPropertyValueSpecification<number>
+          | number;
+
+        if (outlinePosition === "inside") {
+          if (typeof outlineWidth === "number") {
+            computedOutlineOffset = 0.5 * outlineWidth;
+          } else {
+            computedOutlineOffset = rampedOptionsToLineLayerPaintSpec(
+              outlineWidth.map(({ zoom, value }) => ({
+                zoom,
+                value: 0.5 * value,
+              })),
+            );
+          }
+        } else if (outlinePosition === "outside") {
+          if (typeof outlineWidth === "number") {
+            computedOutlineOffset = -0.5 * outlineWidth;
+          } else {
+            computedOutlineOffset = rampedOptionsToLineLayerPaintSpec(
+              outlineWidth.map((el) => ({
+                zoom: el.zoom,
+                value: -0.5 * el.value,
+              })),
+            );
+          }
+        } else {
+          computedOutlineOffset = 0;
+        }
+
+        this.addLayer(
+          {
+            id: returnedInfo.polygonOutlineLayerId,
+            type: "line",
+            source: sourceId,
+            layout: {
+              "line-join": options.outlineJoin ?? "round",
+              "line-cap": options.outlineCap ?? "butt",
+            },
+            minzoom: options.minzoom ?? 0,
+            maxzoom: options.maxzoom ?? 23,
+            paint: {
+              "line-opacity":
+                typeof outlineOpacity === "number"
+                  ? outlineOpacity
+                  : rampedOptionsToLineLayerPaintSpec(outlineOpacity),
+              "line-color":
+                typeof outlineColor === "string"
+                  ? outlineColor
+                  : paintColorOptionsToLineLayerPaintSpec(outlineColor),
+              "line-width":
+                typeof outlineWidth === "number"
+                  ? outlineWidth
+                  : rampedOptionsToLineLayerPaintSpec(outlineWidth),
+              "line-blur":
+                typeof outlineBlur === "number"
+                  ? outlineBlur
+                  : rampedOptionsToLineLayerPaintSpec(outlineBlur),
+
+              "line-offset": computedOutlineOffset,
+
+              // For some reasons passing "line-dasharray" with the value "undefined"
+              // results in no showing the line while it should have the same behavior
+              // of not adding the property "line-dasharray" as all.
+              // As a workaround, we are inlining the addition of the prop with a conditional
+              // which is less readable.
+              ...(outlineDashArray && {
+                "line-dasharray":
+                  outlineDashArray as PropertyValueSpecification<number[]>,
+              }),
+            },
+          },
+          options.beforeId,
+        );
+      }
+    };
+
+    if (pattern) {
+      if (this.hasImage(pattern)) {
+        addLayers(pattern);
+      } else {
+        this.loadImage(
+          pattern,
+
+          // (error?: Error | null, image?: HTMLImageElement | ImageBitmap | null, expiry?: ExpiryData | null)
+          (
+            error: Error | null | undefined,
+            image: HTMLImageElement | ImageBitmap | null | undefined,
+          ) => {
+            // Throw an error if something goes wrong.
+            if (error) {
+              console.error("Could not load the pattern image.", error.message);
+              return addLayers();
+            }
+
+            if (!image) {
+              console.error(
+                `An image cannot be created from the pattern URL ${pattern}.`,
+              );
+              return addLayers();
+            }
+
+            // Add the image to the map style, using the image URL as an ID
+            this.addImage(pattern, image);
+
+            addLayers(pattern);
+          },
+        );
+      }
+    } else {
+      addLayers();
+    }
+
+    return returnedInfo;
   }
 }
