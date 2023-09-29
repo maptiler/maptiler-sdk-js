@@ -1575,7 +1575,6 @@ export class Map extends maplibregl.Map {
           if (typeof outlineWidth === "number") {
             computedOutlineOffset = 0.5 * outlineWidth;
           } else {
-            // @ts-ignore
             computedOutlineOffset = rampedOptionsToLineLayerPaintSpec(
               outlineWidth.map((el) => ({
                 zoom: el.zoom,
