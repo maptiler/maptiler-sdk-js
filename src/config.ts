@@ -1,5 +1,5 @@
 import EventEmitter from "events";
-import { Language, LanguageString } from "./language";
+import { LanguageString } from "./language";
 import { config as clientConfig, FetchFunction } from "@maptiler/client";
 import { v4 as uuidv4 } from "uuid";
 import { Unit } from "./unit";
