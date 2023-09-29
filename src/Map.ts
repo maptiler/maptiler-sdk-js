@@ -208,8 +208,7 @@ export class Map extends maplibregl.Map {
       this.primaryLanguage === Language.STYLE_LOCK
         ? false
         : true;
-    this.languageAlwaysBeenStyle =
-      this.primaryLanguage === Language.STYLE;
+    this.languageAlwaysBeenStyle = this.primaryLanguage === Language.STYLE;
     this.terrainExaggeration =
       options.terrainExaggeration ?? this.terrainExaggeration;
 
@@ -737,23 +736,7 @@ export class Map extends maplibregl.Map {
 
     const layers = this.getStyle().layers;
 
-    // // detects pattern like "{name:somelanguage}" with loose spacing
-    // const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
-
-    // // detects pattern like "name:somelanguage" with loose spacing
-    // const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
-
-    // // for string based bilingual lang such as "{name:latin}  {name:nonlatin}" or "{name:latin}  {name}"
-    // const strBilingualRegex =
-    //   /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
-
-    // // Regex to capture when there are more info, such as mountains elevation with unit m/ft
-    // const strMoreInfoRegex = /^(.*)({\s*name\s*(:\s*(\S*))?\s*})(.*)$/;
-
-    for (let i = 0; i < layers.length; i += 1) {
-      const layer = layers[i];
-      const layout = layer.layout;
-
+    for (const { id, layout } of layers) {
       if (!layout) {
         continue;
       }
@@ -762,10 +745,7 @@ export class Map extends maplibregl.Map {
         continue;
       }
 
-      const textFieldLayoutProp = this.getLayoutProperty(
-        layer.id,
-        "text-field",
-      );
+      const textFieldLayoutProp = this.getLayoutProperty(id, "text-field");
 
       // If the label is not about a name, then we don't translate it
       if (
@@ -776,7 +756,7 @@ export class Map extends maplibregl.Map {
         continue;
       }
 
-      this.setLayoutProperty(layer.id, "text-field", replacer);
+      this.setLayoutProperty(id, "text-field", replacer);
     }
   }
 
