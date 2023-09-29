@@ -734,7 +734,7 @@ export class Map extends maplibregl.Map {
       ];
     }
 
-    const layers = this.getStyle().layers;
+    const { layers } = this.getStyle();
 
     for (const { id, layout } of layers) {
       if (!layout) {
