@@ -1335,7 +1335,7 @@ export class Map extends maplibregl.Map {
    * Add a polyline witgh optional outline from a GeoJSON object
    */
   private addGeoJSONPolyline(
-    // this Feature collection is expected to contain on LineStrings and MultilLinestrings
+    // The data or data source is expected to contain LineStrings or MultiLineStrings
     options: PolylineLayerOptions,
   ): {
     /**
@@ -1536,8 +1536,6 @@ export class Map extends maplibregl.Map {
     if (typeof outlineDashArray === "string") {
       outlineDashArray = dashArrayMaker(outlineDashArray);
     }
-
-    console.log("outlineDashArray", outlineDashArray);
 
     const addLayers = (patternImageId: string | null = null) => {
       this.addLayer(
