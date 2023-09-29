@@ -735,7 +735,7 @@ export class Map extends maplibregl.Map {
       ];
     }
 
-    const layers = this.getStyle().layers;
+    const { layers } = this.getStyle();
 
     // // detects pattern like "{name:somelanguage}" with loose spacing
     // const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
