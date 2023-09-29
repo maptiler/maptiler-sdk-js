@@ -1481,7 +1481,7 @@ export class Map extends maplibregl.Map {
    * Add a polygon with styling options.
    */
   addPolygon(
-    // this Feature collection is expected to contain on LineStrings and MultilLinestrings
+    // this Feature collection is expected to contain on LineStrings and MultiLinestrings
     options: PolylgonLayerOptions,
   ): {
     /**
