@@ -10,6 +10,7 @@ import type {
   Tile,
   RasterDEMSourceSpecification,
   RequestTransformFunction,
+  ExpressionSpecification,
 } from "maplibre-gl";
 import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
@@ -643,24 +644,16 @@ export class Map extends maplibregl.Map {
     let langStr: string | LanguageString = Language.LOCAL;
 
     // will be overwritten below
-    let replacer: Array<any> | string = `{${langStr}}`;
+    let replacer: ExpressionSpecification | string = `{${langStr}}`;
 
     if (languageNonStyle == Language.VISITOR) {
       langStr = getBrowserLanguage();
       replacer = [
         "case",
-        [
-          "all",
-          // @ts-ignore
-          ["has", langStr],
-          // @ts-ignore
-          ["has", Language.LOCAL],
-        ],
+        ["all", ["has", langStr], ["has", Language.LOCAL]],
         [
           "case",
-          // @ts-ignore
           ["==", ["get", langStr], ["get", Language.LOCAL]],
-          // @ts-ignore
           ["get", Language.LOCAL],
 
           [
@@ -673,25 +666,16 @@ export class Map extends maplibregl.Map {
           ],
         ],
 
-        // @ts-ignore
         ["get", Language.LOCAL],
       ];
     } else if (languageNonStyle == Language.VISITOR_ENGLISH) {
       langStr = Language.ENGLISH;
       replacer = [
         "case",
-        [
-          "all",
-          // @ts-ignore
-          ["has", langStr],
-          // @ts-ignore
-          ["has", Language.LOCAL],
-        ],
+        ["all", ["has", langStr], ["has", Language.LOCAL]],
         [
           "case",
-          // @ts-ignore
           ["==", ["get", langStr], ["get", Language.LOCAL]],
-          // @ts-ignore
           ["get", Language.LOCAL],
 
           [
@@ -703,8 +687,6 @@ export class Map extends maplibregl.Map {
             { "font-scale": 1.1 },
           ],
         ],
-
-        // @ts-ignore
         ["get", Language.LOCAL],
       ];
     } else if (languageNonStyle === Language.AUTO) {
