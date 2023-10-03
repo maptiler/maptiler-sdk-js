@@ -47,7 +47,7 @@ export interface MinimapOptionsInput {
   pitchAdjust?: boolean;
 
   /** Set CSS properties of the container using object key-values */
-  containerStyle?: CSSStyleDeclaration & Record<string, string>;
+  containerStyle?: Record<string, string>;
 
   /** Set the position of the minimap at either "top-left", "top-right", "bottom-left", or "bottom-right" */
   position?: ControlPosition;
@@ -68,6 +68,7 @@ export default class Minimap implements IControl {
   #minimap!: Map;
   #parentMap!: Map;
   #container!: HTMLElement;
+  #canvasContainer!: HTMLElement;
   #parentRect?: GeoJSON.Feature<GeoJSON.Polygon>;
   #differentStyle = false;
   #desync?: () => void;
@@ -79,23 +80,25 @@ export default class Minimap implements IControl {
       // set defaults
       zoomAdjust: -4,
       pitchAdjust: false,
-      containerStyle: {
-        border: "1px solid #000",
-        width: "500px",
-        height: "300px",
-      },
       position: "top-right",
       // inherit map options
       ...mapOptions,
       // override any lingering control options
+      forceNoAttributionControl: true,
       attributionControl: false,
       navigationControl: false,
       geolocateControl: false,
       maptilerLogo: false,
+      minimap: false,
+      hash: false,
       // override map options with new user defined minimap options
       ...options,
-      // specify its a minimap
-      minimap: true,
+      containerStyle: {
+        border: "1px solid #000",
+        width: "400px",
+        height: "300px",
+        ...(options.containerStyle ?? {}),
+      },
     };
     if (options.lockZoom !== undefined) {
       this.#options.minZoom = options.lockZoom;
@@ -126,12 +129,13 @@ export default class Minimap implements IControl {
     }
     this.#options.container = this.#container;
     this.#options.zoom = parentMap.getZoom() + this.#options.zoomAdjust ?? -4;
-    // create the map
     this.#minimap = new Map(this.#options);
-    // ensure the canvas properly fills the container (this shouldn't be necessary wth o_O)
-    const canvas = this.#minimap.getCanvas();
-    canvas.style.width = "100%";
-    canvas.style.height = "100%";
+
+    // NOTE: For some reason the DOM doesn't properly update it's size in time
+    // for the minimap to convey it's size to the canvas.
+    this.#minimap.once("style.load", () => {
+      this.#minimap.resize();
+    });
 
     // set options
     this.#minimap.once("load", () => {

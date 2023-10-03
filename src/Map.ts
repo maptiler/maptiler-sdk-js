@@ -153,7 +153,12 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * Display a minimap in a user defined corner of the map. (default: `bottom-left` corner)
    * If set to true, the map will assume it is a minimap and forego the attribution control.
    */
-  minimap?: true | MinimapOptionsInput;
+  minimap?: boolean | ControlPosition | MinimapOptionsInput;
+
+  /**
+   * attributionControl
+   */
+  forceNoAttributionControl?: boolean;
 
   /**
    * Method to position the map at a given geolocation. Only if:
@@ -358,7 +363,7 @@ export class Map extends maplibregl.Map {
       }
 
       // The attribution and logo must show when required
-      if (options.minimap !== true) {
+      if (options.forceNoAttributionControl !== true) {
         if ("logo" in tileJsonContent && tileJsonContent.logo) {
           const logoURL: string = tileJsonContent.logo;
 
@@ -487,6 +492,12 @@ export class Map extends maplibregl.Map {
           this.minimap,
           options.minimap.position ?? "bottom-left",
         );
+      } else if (options.minimap === true) {
+        this.minimap = new Minimap({}, options);
+        this.addControl(this.minimap, "bottom-left");
+      } else if (options.minimap !== undefined && options.minimap !== false) {
+        this.minimap = new Minimap({}, options);
+        this.addControl(this.minimap, options.minimap);
       }
     });
 
