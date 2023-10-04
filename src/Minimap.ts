@@ -7,11 +7,16 @@ import { DOMcreate, DOMremove } from "./tools";
 
 import type {
   ControlPosition,
+  CustomLayerInterface,
   FillLayerSpecification,
+  FilterSpecification,
   GeoJSONSource,
   IControl,
+  LayerSpecification,
   LineLayerSpecification,
+  SourceSpecification,
   StyleOptions,
+  StyleSetterOptions,
   StyleSpecification,
   StyleSwapOptions,
 } from "maplibre-gl";
@@ -79,7 +84,6 @@ export default class Minimap implements IControl {
     this.#options = {
       // set defaults
       zoomAdjust: -4,
-      pitchAdjust: false,
       position: "top-right",
       // inherit map options
       ...mapOptions,
@@ -91,6 +95,7 @@ export default class Minimap implements IControl {
       maptilerLogo: false,
       minimap: false,
       hash: false,
+      pitchAdjust: false,
       // override map options with new user defined minimap options
       ...options,
       containerStyle: {
@@ -117,6 +122,79 @@ export default class Minimap implements IControl {
   ): void {
     if (!this.#differentStyle) this.#minimap.setStyle(style, options);
     this.#setParentBounds();
+  }
+
+  addLayer(
+    layer:
+      | (LayerSpecification & {
+          source?: string | SourceSpecification;
+        })
+      | CustomLayerInterface,
+    beforeId?: string,
+  ): Map {
+    if (!this.#differentStyle) this.#minimap.addLayer(layer, beforeId);
+    this.#setParentBounds();
+    return this.#minimap;
+  }
+
+  moveLayer(id: string, beforeId?: string): Map {
+    if (!this.#differentStyle) this.#minimap.moveLayer(id, beforeId);
+    this.#setParentBounds();
+    return this.#minimap;
+  }
+
+  removeLayer(id: string): this {
+    if (!this.#differentStyle) this.#minimap.removeLayer(id);
+    this.#setParentBounds();
+    return this;
+  }
+
+  setLayerZoomRange(layerId: string, minzoom: number, maxzoom: number): this {
+    if (!this.#differentStyle)
+      this.#minimap.setLayerZoomRange(layerId, minzoom, maxzoom);
+    this.#setParentBounds();
+    return this;
+  }
+
+  setFilter(
+    layerId: string,
+    filter?: FilterSpecification | null,
+    options?: StyleSetterOptions,
+  ): this {
+    if (!this.#differentStyle)
+      this.#minimap.setFilter(layerId, filter, options);
+    this.#setParentBounds();
+    return this;
+  }
+
+  setPaintProperty(
+    layerId: string,
+    name: string,
+    value: any,
+    options?: StyleSetterOptions,
+  ): this {
+    if (!this.#differentStyle)
+      this.#minimap.setPaintProperty(layerId, name, value, options);
+    this.#setParentBounds();
+    return this;
+  }
+
+  setLayoutProperty(
+    layerId: string,
+    name: string,
+    value: any,
+    options?: StyleSetterOptions,
+  ): this {
+    if (!this.#differentStyle)
+      this.#minimap.setLayoutProperty(layerId, name, value, options);
+    this.#setParentBounds();
+    return this;
+  }
+
+  setGlyphs(glyphsUrl: string | null, options?: StyleSetterOptions): this {
+    if (!this.#differentStyle) this.#minimap.setGlyphs(glyphsUrl, options);
+    this.#setParentBounds();
+    return this;
   }
 
   onAdd(parentMap: Map): HTMLElement {

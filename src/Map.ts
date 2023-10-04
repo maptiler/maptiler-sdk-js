@@ -11,6 +11,11 @@ import type {
   RasterDEMSourceSpecification,
   RequestTransformFunction,
   Source,
+  LayerSpecification,
+  SourceSpecification,
+  CustomLayerInterface,
+  FilterSpecification,
+  StyleSetterOptions,
 } from "maplibre-gl";
 import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
@@ -486,18 +491,58 @@ export class Map extends maplibregl.Map {
     });
 
     this.once("style.load", () => {
-      if (typeof options.minimap === "object") {
-        this.minimap = new Minimap(options.minimap, options);
-        this.addControl(
-          this.minimap,
-          options.minimap.position ?? "bottom-left",
-        );
-      } else if (options.minimap === true) {
+      const { minimap } = options;
+      if (typeof minimap === "object") {
+        const {
+          style,
+          language,
+          apiKey,
+          maptilerLogo,
+          antialias,
+          refreshExpiredTiles,
+          maxBounds,
+          scrollZoom,
+          minZoom,
+          maxZoom,
+          boxZoom,
+          locale,
+          fadeDuration,
+          crossSourceCollisions,
+          clickTolerance,
+          bounds,
+          fitBoundsOptions,
+          pixelRatio,
+          validateStyle,
+        } = options;
+        this.minimap = new Minimap(minimap, {
+          style,
+          language,
+          apiKey,
+          container: "null",
+          maptilerLogo,
+          antialias,
+          refreshExpiredTiles,
+          maxBounds,
+          scrollZoom,
+          minZoom,
+          maxZoom,
+          boxZoom,
+          locale,
+          fadeDuration,
+          crossSourceCollisions,
+          clickTolerance,
+          bounds,
+          fitBoundsOptions,
+          pixelRatio,
+          validateStyle,
+        });
+        this.addControl(this.minimap, minimap.position ?? "bottom-left");
+      } else if (minimap === true) {
         this.minimap = new Minimap({}, options);
         this.addControl(this.minimap, "bottom-left");
-      } else if (options.minimap !== undefined && options.minimap !== false) {
+      } else if (minimap !== undefined && minimap !== false) {
         this.minimap = new Minimap({}, options);
-        this.addControl(this.minimap, options.minimap);
+        this.addControl(this.minimap, minimap);
       }
     });
 
@@ -581,6 +626,173 @@ export class Map extends maplibregl.Map {
   ): this {
     this.minimap?.setStyle(style);
     return super.setStyle(styleToStyle(style), options);
+  }
+
+  /**
+   * Adds a [MapLibre style layer](https://maplibre.org/maplibre-style-spec/layers)
+   * to the map's style.
+   *
+   * A layer defines how data from a specified source will be styled. Read more about layer types
+   * and available paint and layout properties in the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/layers).
+   *
+   * @param layer - The layer to add,
+   * conforming to either the MapLibre Style Specification's [layer definition](https://maplibre.org/maplibre-style-spec/layers) or,
+   * less commonly, the {@link CustomLayerInterface} specification.
+   * The MapLibre Style Specification's layer definition is appropriate for most layers.
+   *
+   * @param beforeId - The ID of an existing layer to insert the new layer before,
+   * resulting in the new layer appearing visually beneath the existing layer.
+   * If this argument is not specified, the layer will be appended to the end of the layers array
+   * and appear visually above all other layers.
+   *
+   * @returns `this`
+   */
+  addLayer(
+    layer:
+      | (LayerSpecification & {
+          source?: string | SourceSpecification;
+        })
+      | CustomLayerInterface,
+    beforeId?: string,
+  ): this {
+    this.minimap?.addLayer(layer, beforeId);
+    return super.addLayer(layer, beforeId);
+  }
+
+  /**
+   * Moves a layer to a different z-position.
+   *
+   * @param id - The ID of the layer to move.
+   * @param beforeId - The ID of an existing layer to insert the new layer before. When viewing the map, the `id` layer will appear beneath the `beforeId` layer. If `beforeId` is omitted, the layer will be appended to the end of the layers array and appear above all other layers on the map.
+   * @returns `this`
+   *
+   * @example
+   * Move a layer with ID 'polygon' before the layer with ID 'country-label'. The `polygon` layer will appear beneath the `country-label` layer on the map.
+   * ```ts
+   * map.moveLayer('polygon', 'country-label');
+   * ```
+   */
+  moveLayer(id: string, beforeId?: string): this {
+    this.minimap?.moveLayer(id, beforeId);
+    return super.moveLayer(id, beforeId);
+  }
+
+  /**
+   * Removes the layer with the given ID from the map's style.
+   *
+   * An {@link ErrorEvent} will be fired if the image parameter is invald.
+   *
+   * @param id - The ID of the layer to remove
+   * @returns `this`
+   *
+   * @example
+   * If a layer with ID 'state-data' exists, remove it.
+   * ```ts
+   * if (map.getLayer('state-data')) map.removeLayer('state-data');
+   * ```
+   */
+  removeLayer(id: string): this {
+    this.minimap?.removeLayer(id);
+    return super.removeLayer(id);
+  }
+
+  /**
+   * Sets the zoom extent for the specified style layer. The zoom extent includes the
+   * [minimum zoom level](https://maplibre.org/maplibre-style-spec/layers/#minzoom)
+   * and [maximum zoom level](https://maplibre.org/maplibre-style-spec/layers/#maxzoom))
+   * at which the layer will be rendered.
+   *
+   * Note: For style layers using vector sources, style layers cannot be rendered at zoom levels lower than the
+   * minimum zoom level of the _source layer_ because the data does not exist at those zoom levels. If the minimum
+   * zoom level of the source layer is higher than the minimum zoom level defined in the style layer, the style
+   * layer will not be rendered at all zoom levels in the zoom range.
+   */
+  setLayerZoomRange(layerId: string, minzoom: number, maxzoom: number): this {
+    this.minimap?.setLayerZoomRange(layerId, minzoom, maxzoom);
+    return super.setLayerZoomRange(layerId, minzoom, maxzoom);
+  }
+
+  /**
+   * Sets the filter for the specified style layer.
+   *
+   * Filters control which features a style layer renders from its source.
+   * Any feature for which the filter expression evaluates to `true` will be
+   * rendered on the map. Those that are false will be hidden.
+   *
+   * Use `setFilter` to show a subset of your source data.
+   *
+   * To clear the filter, pass `null` or `undefined` as the second parameter.
+   */
+  setFilter(
+    layerId: string,
+    filter?: FilterSpecification | null,
+    options?: StyleSetterOptions,
+  ): this {
+    this.minimap?.setFilter(layerId, filter, options);
+    return super.setFilter(layerId, filter, options);
+  }
+
+  /**
+   * Sets the value of a paint property in the specified style layer.
+   *
+   * @param layerId - The ID of the layer to set the paint property in.
+   * @param name - The name of the paint property to set.
+   * @param value - The value of the paint property to set.
+   * Must be of a type appropriate for the property, as defined in the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/).
+   * @param options - Options object.
+   * @returns `this`
+   * @example
+   * ```ts
+   * map.setPaintProperty('my-layer', 'fill-color', '#faafee');
+   * ```
+   */
+  setPaintProperty(
+    layerId: string,
+    name: string,
+    value: any,
+    options?: StyleSetterOptions,
+  ): this {
+    this.minimap?.setPaintProperty(layerId, name, value, options);
+    return super.setPaintProperty(layerId, name, value, options);
+  }
+
+  /**
+   * Sets the value of a layout property in the specified style layer.
+   * Layout properties define how the layer is styled.
+   * Layout properties for layers of the same type are documented together.
+   * Layers of different types have different layout properties.
+   * See the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/) for the complete list of layout properties.
+   * @param layerId - The ID of the layer to set the layout property in.
+   * @param name - The name of the layout property to set.
+   * @param value - The value of the layout property to set.
+   * Must be of a type appropriate for the property, as defined in the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/).
+   * @param options - Options object.
+   * @returns `this`
+   */
+  setLayoutProperty(
+    layerId: string,
+    name: string,
+    value: any,
+    options?: StyleSetterOptions,
+  ): this {
+    this.minimap?.setLayoutProperty(layerId, name, value, options);
+    return super.setLayoutProperty(layerId, name, value, options);
+  }
+
+  /**
+   * Sets the value of the style's glyphs property.
+   *
+   * @param glyphsUrl - Glyph URL to set. Must conform to the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/glyphs/).
+   * @param options - Options object.
+   * @returns `this`
+   * @example
+   * ```ts
+   * map.setGlyphs('https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf');
+   * ```
+   */
+  setGlyphs(glyphsUrl: string | null, options?: StyleSetterOptions): this {
+    this.minimap?.setGlyphs(glyphsUrl, options);
+    return super.setGlyphs(glyphsUrl, options);
   }
 
   /**
