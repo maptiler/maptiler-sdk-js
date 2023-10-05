@@ -50,6 +50,9 @@ import {
   PolylineLayerOptions,
   PolylgonLayerOptions,
   dashArrayMaker,
+  PointLayerOptions,
+  clusterColorFromClusterStyle,
+  clusterRadiusFromClusterStyle,
 } from "./stylehelper";
 import { FeatureCollection } from "geojson";
 import { gpx, gpxOrKml, kml } from "./converters";
@@ -1510,5 +1513,145 @@ export class Map extends maplibregl.Map {
     }
 
     return returnedInfo;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /**
+   * Add a polyline witgh optional outline from a GeoJSON object
+   */
+  addGeoJSONPoint(
+    // The data or data source is expected to contain LineStrings or MultiLineStrings
+    options: PointLayerOptions,
+  ): {
+    /**
+     * ID of the unclustered point layer
+     */
+    pointLayerId: string;
+
+    /**
+     * ID of the clustered point layer (empty if `cluster` options id `false`)
+     */
+    clusterLayerId: string;
+
+    /**
+     * ID of the layer that shows the count of elements in each cluster (empty if `cluster` options id `false`)
+     */
+    clusterCountLayerId: string;
+
+    /**
+     * ID of the data source
+     */
+    pointSourceId: string;
+  } {
+    if (options.layerId && this.getLayer(options.layerId)) {
+      throw new Error(
+        `A layer already exists with the layer id: ${options.layerId}`,
+      );
+    }
+
+    const cluster = options.cluster ?? false;
+
+    const clusterStyle = options.clusterStyle ?? [
+      { elements: 10000, pointRadius: 50, color: getRandomColor() },
+      { elements: 1000, pointRadius: 40, color: getRandomColor() },
+      { elements: 100, pointRadius: 30, color: getRandomColor() },
+      { elements: 10, pointRadius: 20, color: getRandomColor() },
+    ];
+
+    const sourceId = options.sourceId ?? generateRandomSourceName();
+    const layerId = options.layerId ?? generateRandomLayerName();
+
+
+
+    const returnedInfo = {
+      pointLayerId: layerId,
+      clusterLayerId: "",
+      clusterCountLayerId: "",
+      pointSourceId: sourceId,
+    };
+
+    // A new source is added if the map does not have this sourceId and the data is provided
+    if (options.data && !this.getSource(sourceId)) {
+      // Adding the source
+      this.addSource(sourceId, {
+        type: "geojson",
+        data: options.data,
+        cluster,
+      });
+    }
+
+
+    if (cluster) {
+      // If using clusters, the size and color of the circles (clusters) are driven by the 
+      // numbner of elements they contain and cannot be driven by the zoom level or a property
+
+      returnedInfo.clusterLayerId = `${layerId}_cluster`;
+      returnedInfo.clusterCountLayerId = `${layerId}_clusterCount`;
+
+      this.addLayer({
+          id: returnedInfo.clusterLayerId,
+          type: 'circle',
+          source: sourceId,
+          filter: ['has', 'point_count'],
+          paint: {
+            'circle-color': clusterColorFromClusterStyle(clusterStyle),
+            'circle-radius': clusterRadiusFromClusterStyle(clusterStyle),
+          }
+        },
+        options.beforeId
+      );
+
+      const clusterTextColor = options.clusterTextColor ?? "#000000";
+
+      // With clusters, a layer with clouster count is also added
+      this.addLayer({
+          id: returnedInfo.clusterCountLayerId,
+          type: 'symbol',
+          source: sourceId,
+          filter: ['has', 'point_count'],
+          layout: {
+            'text-field': '{point_count_abbreviated}',
+            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+            'text-size': 12,
+          },
+          paint: {
+            'text-color': clusterTextColor,
+          }
+        },
+        options.beforeId
+      );
+
+    }
+
+
+
+    return returnedInfo;
+  }
+
+
+  /**
+   * Loads an image. This is an async equivalent of `Map.loadImage`
+   */
+  async loadImageAsync(url: string ): Promise<HTMLImageElement | ImageBitmap | null | undefined>{
+    return new Promise((resolve, reject) => {
+      this.loadImage(url, (error: Error | null | undefined, image: HTMLImageElement | ImageBitmap | null | undefined) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(image);
+      });
+    })
   }
 }

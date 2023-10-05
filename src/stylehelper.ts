@@ -78,6 +78,28 @@ export type ZoomNumberValues = Array<{
   value: number;
 }>;
 
+
+/**
+ * Describes how to render a cluster of points
+ */
+export type ClusterStyle = Array<{
+  /**
+   * Number of element in a cluster
+   */
+  elements: number,
+
+  /**
+   * Radius of the cluster circle
+   */
+  pointRadius: number,
+
+  /**
+   * Color of the cluster
+   */
+  color: string,
+}>
+
+
 /**
  * Linera interpolation to find a value at an arbitrary zoom level, given a list of tuple zoom-value
  */
@@ -317,6 +339,55 @@ export type PolylgonLayerOptions = CommonShapeLayerOptions & {
   pattern?: string | null;
 };
 
+
+
+
+export type PointLayerOptions = CommonShapeLayerOptions & {
+
+  /**
+   * Whether the points should cluster
+   */
+  cluster?: boolean;
+
+  /**
+   * Color of the point. This is can be a constant color string or a definition based on zoom levels.
+   * Default: a color randomly pick from a list
+   */
+  pointColor?: string | ZoomStringValues;
+
+  /**
+   * Size of the point (relative to screen-space). This is can be a constant width or a definition based on zoom levels
+   * Default: `3`
+   */
+  pointRadius?: number | ZoomNumberValues;
+
+  /**
+   * Opacity of the point or icon. This is can be a constant opacity in [0, 1] or a definition based on zoom levels.
+   * Default: `1`
+   */
+  pointOpacity?: number | ZoomNumberValues;
+
+  /**
+   * How blury the point is, with `0` being no blur and `10` and beyond being quite blurry.
+   * Default: `0`
+   */
+  pointBlur?: number | ZoomNumberValues;
+
+  /**
+   * The style of the cluster.
+   * Applicable only when `cluster` is `true`
+   */
+  clusterStyle?: ClusterStyle;
+
+  /**
+   * Font color used for the number elements in each cluster.
+   * Applicable only when `cluster` is `true`.
+   * Default: `#000000` (black)
+   */
+  clusterTextColor?: string;
+};
+
+
 export function paintColorOptionsToLineLayerPaintSpec(
   color: ZoomStringValues,
 ): DataDrivenPropertyValueSpecification<string> {
@@ -447,4 +518,32 @@ export function dashArrayMaker(pattern: string): Array<number> {
   }
 
   return dashArray;
+}
+
+
+export function clusterColorFromClusterStyle(cs: ClusterStyle): DataDrivenPropertyValueSpecification<string> {
+  const sortedCs = cs.slice();
+  sortedCs.sort((a, b) => a.elements < b.elements ? -1 : 1); // not sure
+  const firstElement = sortedCs.shift(); // sortedCs loses its first element
+
+  return [
+    'step',
+    ['get', 'point_count'],
+    firstElement?.color as string, // the first color is a fallback for small values
+    ... sortedCs.map(el => [el.elements, el.color]).flat(),
+  ];
+}
+
+
+export function clusterRadiusFromClusterStyle(cs: ClusterStyle): DataDrivenPropertyValueSpecification<number> {
+  const sortedCs = cs.slice();
+  sortedCs.sort((a, b) => a.elements < b.elements ? -1 : 1); // not sure
+  const firstElement = sortedCs.shift(); // sortedCs loses its first element
+
+  return [
+    'step',
+    ['get', 'point_count'],
+    firstElement?.pointRadius as number, // the first color is a fallback for small values
+    ... sortedCs.map(el => [el.elements, el.pointRadius]).flat(),
+  ];
 }
