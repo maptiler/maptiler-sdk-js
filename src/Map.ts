@@ -494,6 +494,8 @@ export class Map extends maplibregl.Map {
       const { minimap } = options;
       if (typeof minimap === "object") {
         const {
+          zoom,
+          center,
           style,
           language,
           apiKey,
@@ -515,6 +517,8 @@ export class Map extends maplibregl.Map {
           validateStyle,
         } = options;
         this.minimap = new Minimap(minimap, {
+          zoom,
+          center,
           style,
           language,
           apiKey,
