@@ -1561,18 +1561,10 @@ export class Map extends maplibregl.Map {
     }
 
     const cluster = options.cluster ?? false;
-
-    const clusterStyle = options.clusterStyle ?? [
-      { elements: 10000, pointRadius: 50, color: getRandomColor() },
-      { elements: 1000, pointRadius: 40, color: getRandomColor() },
-      { elements: 100, pointRadius: 30, color: getRandomColor() },
-      { elements: 10, pointRadius: 20, color: getRandomColor() },
-    ];
-
+    const clusterStyleUnsorted = options.clusterStyle ?? Array.from({length: 5}, (_, i) => ({elements: Math.pow(10, (i+1)), pointRadius: (i+2) * 7.5, color: getRandomColor() }));
+    const clusterStyle = clusterStyleUnsorted.slice().sort((a, b) => a.elements < b.elements ? -1 : 1);
     const sourceId = options.sourceId ?? generateRandomSourceName();
     const layerId = options.layerId ?? generateRandomLayerName();
-
-
 
     const returnedInfo = {
       pointLayerId: layerId,
@@ -1613,6 +1605,7 @@ export class Map extends maplibregl.Map {
       );
 
       const clusterTextColor = options.clusterTextColor ?? "#000000";
+      const clusterTextSize = options.clusterTextSize ?? 12;
 
       // With clusters, a layer with clouster count is also added
       this.addLayer({
@@ -1622,8 +1615,8 @@ export class Map extends maplibregl.Map {
           filter: ['has', 'point_count'],
           layout: {
             'text-field': '{point_count_abbreviated}',
-            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-            'text-size': 12,
+            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Medium'],
+            'text-size': clusterTextSize,
           },
           paint: {
             'text-color': clusterTextColor,
@@ -1631,6 +1624,35 @@ export class Map extends maplibregl.Map {
         },
         options.beforeId
       );
+
+      // Note: since the color of the cluster depends on the number of elements they contain
+      // we don't let the possibility to ramp the color of the unclustered point based on 
+      // zoom level. This is more of a design desision because some unclustered points could be shown
+      // near clusters and if they have the same size and/or color, this could produce a misleading
+      // data viz.
+
+      // By default the colors of the unclustered point is the same as the smallest clusters
+      const unclusteredPointColor = typeof options.pointColor === "string" ? options.pointColor : getRandomColor();
+      const unclusteredPointRadius = typeof options.pointRadius === "number" ? options.pointRadius : clusterStyle[0].pointRadius * 0.75;
+
+      // Adding the layer of unclustered point
+      this.addLayer({
+        id: returnedInfo.pointLayerId,
+        type: 'circle',
+        source: sourceId,
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-color': unclusteredPointColor,
+          'circle-radius': unclusteredPointRadius,
+          // 'circle-stroke-width': 1,
+          // 'circle-stroke-color': '#fff'
+        }
+      }, options.beforeId);
+
+    }
+
+    // Not displaying clusters
+    else {
 
     }
 

@@ -380,11 +380,18 @@ export type PointLayerOptions = CommonShapeLayerOptions & {
   clusterStyle?: ClusterStyle;
 
   /**
-   * Font color used for the number elements in each cluster.
+   * text color used for the number elements in each cluster.
    * Applicable only when `cluster` is `true`.
    * Default: `#000000` (black)
    */
   clusterTextColor?: string;
+
+  /**
+   * text size used for the number elements in each cluster.
+   * Applicable only when `cluster` is `true`.
+   * Default: `12`
+   */
+  clusterTextSize?: number;
 };
 
 
@@ -522,28 +529,26 @@ export function dashArrayMaker(pattern: string): Array<number> {
 
 
 export function clusterColorFromClusterStyle(cs: ClusterStyle): DataDrivenPropertyValueSpecification<string> {
-  const sortedCs = cs.slice();
-  sortedCs.sort((a, b) => a.elements < b.elements ? -1 : 1); // not sure
-  const firstElement = sortedCs.shift(); // sortedCs loses its first element
+  const csCopy = cs.slice();
+  const firstElement = csCopy.shift(); // sortedCs loses its first element
 
   return [
     'step',
     ['get', 'point_count'],
     firstElement?.color as string, // the first color is a fallback for small values
-    ... sortedCs.map(el => [el.elements, el.color]).flat(),
+    ... csCopy.map(el => [el.elements, el.color]).flat(),
   ];
 }
 
 
 export function clusterRadiusFromClusterStyle(cs: ClusterStyle): DataDrivenPropertyValueSpecification<number> {
-  const sortedCs = cs.slice();
-  sortedCs.sort((a, b) => a.elements < b.elements ? -1 : 1); // not sure
-  const firstElement = sortedCs.shift(); // sortedCs loses its first element
+  const csCopy = cs.slice();
+  const firstElement = csCopy.shift(); // sortedCs loses its first element
 
   return [
     'step',
     ['get', 'point_count'],
     firstElement?.pointRadius as number, // the first color is a fallback for small values
-    ... sortedCs.map(el => [el.elements, el.pointRadius]).flat(),
+    ... csCopy.map(el => [el.elements, el.pointRadius]).flat(),
   ];
 }
