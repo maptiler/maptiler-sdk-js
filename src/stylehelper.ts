@@ -380,13 +380,13 @@ export type PointLayerOptions = CommonShapeLayerOptions & {
    * 
    * Default: none
    */
-  dataDrivenStyleProperty?: string;
+  property?: string;
 
   /**
    * The style of the points.
    * Applicable only when `cluster` is `true`
    */
-  dataDrivenStyle?: DataDrivenStyle;
+  // dataDrivenStyle?: DataDrivenStyle;
 
 
   /**
@@ -602,11 +602,47 @@ export function colorDrivenByProperty(style: DataDrivenStyle, property: string):
 }
 
 
-export function radiusDrivenByProperty(style: DataDrivenStyle, property: string): DataDrivenPropertyValueSpecification<number> {
+export function radiusDrivenByProperty(style: DataDrivenStyle, property: string, zoomCompensation:boolean = true): DataDrivenPropertyValueSpecification<number> {
+
+  if (!zoomCompensation) {
+    return [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ... style.map(el => [el.value, el.pointRadius]).flat(),
+    ];
+  }
+
+
+
   return [
-    "interpolate",
-    ["linear"],
-    ["get", property],
-    ... style.map(el => [el.value, el.pointRadius]).flat(),
-  ];
+    'interpolate',
+    ['linear'],
+    ['zoom'],
+    
+    0, [
+      'interpolate',['linear'], ['get', property], 
+      ... style.map(el => [el.value, el.pointRadius * 0.025]).flat(),
+    ],
+
+    2, [
+      'interpolate',['linear'], ['get', property], 
+      ... style.map(el => [el.value, el.pointRadius * 0.05]).flat(),
+    ],
+
+    4, [
+      'interpolate',['linear'], ['get', property], 
+      ... style.map(el => [el.value, el.pointRadius * 0.1]).flat(),
+    ],
+
+    8, [
+      'interpolate',['linear'], ['get', property], 
+      ... style.map(el => [el.value, el.pointRadius * 0.25]).flat(),
+    ],
+
+    16, [
+      'interpolate', ['linear'], ['get', property],
+      ... style.map(el => [el.value, el.pointRadius]).flat(),
+    ]
+  ]
 }

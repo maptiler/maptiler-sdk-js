@@ -1565,12 +1565,9 @@ export class Map extends maplibregl.Map {
     const minPointRadius = options.minPointRadius ?? 10;
     const maxPointRadius = options.maxPointRadius ?? 40;
     const cluster = options.cluster ?? false;
-    // Default: manage clusters up to 100k elements
-    const nbDefaultDataDrivenStyleSteps =  20 //options.cluster ? 4 : 3;
-    const colorramp = options.colorRamp ?? ColorRampCollection.JET.scale(10, options.cluster ? 10000 : 1000);
+    const nbDefaultDataDrivenStyleSteps =  20;
+    const colorramp = options.colorRamp ?? ColorRampCollection.VIRIDIS.scale(10, options.cluster ? 10000 : 1000);
     const colorRampBounds = colorramp.getBounds();
-    const clusterStyleUnsorted = options.dataDrivenStyle ?? Array.from({length: nbDefaultDataDrivenStyleSteps}, (_, i) => ({value: Math.pow(10, (i+1)), pointRadius: (i+2) * 7.5, color: colorramp.getColorHex(Math.pow(10, (i+1))) }));
-    const clusterStyle = clusterStyleUnsorted.slice().sort((a, b) => a.value < b.value ? -1 : 1);
     const sourceId = options.sourceId ?? generateRandomSourceName();
     const layerId = options.layerId ?? generateRandomLayerName();
     const showLabel = options.showLabel ?? cluster;
@@ -1600,6 +1597,17 @@ export class Map extends maplibregl.Map {
       // numbner of elements they contain and cannot be driven by the zoom level or a property
 
       returnedInfo.clusterLayerId = `${layerId}_cluster`;
+
+      const clusterStyle: DataDrivenStyle = Array.from({length: nbDefaultDataDrivenStyleSteps}, (_, i) => {
+        const value = colorRampBounds.min + i * (colorRampBounds.max - colorRampBounds.min) / (nbDefaultDataDrivenStyleSteps - 1);
+        return {
+          value, 
+          pointRadius: minPointRadius + (maxPointRadius - minPointRadius) * Math.pow(i / (nbDefaultDataDrivenStyleSteps - 1), 0.5) ,
+          color: colorramp.getColorHex(value), 
+        }
+      });
+      
+      console.log("clusterStyle", clusterStyle);
       
 
       this.addLayer({
@@ -1609,7 +1617,7 @@ export class Map extends maplibregl.Map {
           filter: ['has', 'point_count'],
           paint: {
             'circle-color': options.pointColor ?? colorDrivenByProperty(clusterStyle, "point_count"),
-            'circle-radius': options.pointRadius ?? radiusDrivenByProperty(clusterStyle, "point_count"),
+            'circle-radius': options.pointRadius ?? radiusDrivenByProperty(clusterStyle, "point_count", false),
             'circle-pitch-alignment': alignOnViewport ? "viewport" : "map",
             'circle-pitch-scale': 'map', // scale with camera distance regardless of viewport/biewport alignement
           }
@@ -1639,59 +1647,20 @@ export class Map extends maplibregl.Map {
     else {
 
       let pointColor: DataDrivenPropertyValueSpecification<string> = options.pointColor ?? getRandomColor();
-      let pointRadius: DataDrivenPropertyValueSpecification<number> = options.pointRadius ?? 5;
+      let pointRadius: DataDrivenPropertyValueSpecification<number> = options.pointRadius ?? minPointRadius;
 
-      if (options.dataDrivenStyle && options.dataDrivenStyleProperty) {
-        console.log('debug01');
-        
-        pointColor = colorDrivenByProperty(options.dataDrivenStyle, options.dataDrivenStyleProperty);
-        pointRadius = radiusDrivenByProperty(options.dataDrivenStyle, options.dataDrivenStyleProperty);
-      } else 
-
-      // if a color is provided and a property to observe, but not the radius
-      if (options.pointColor && options.dataDrivenStyleProperty && !options.pointRadius) {
-        console.log('debug02');
-        const dataDrivenStyle: DataDrivenStyle = Array.from({length: nbDefaultDataDrivenStyleSteps}, (_, i) => 
-        {
-          const value = colorRampBounds.min + i * (colorRampBounds.max - colorRampBounds.min) / (nbDefaultDataDrivenStyleSteps - 1);
-          return {
-            value,
-            pointRadius: minPointRadius + (maxPointRadius - minPointRadius) * (i / (nbDefaultDataDrivenStyleSteps - 1)),
-            color: options.pointColor as string
-          }
-        });
-        pointColor = colorDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
-        pointRadius = radiusDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
-      } else
-
-      // if a radius is provided and a property to observe, but not the color
-      if (!options.pointColor && options.dataDrivenStyleProperty && options.pointRadius) {
-        console.log('debug03');
-        const dataDrivenStyle: DataDrivenStyle = Array.from({length: nbDefaultDataDrivenStyleSteps}, (_, i) => {
-          const value = colorRampBounds.min + i * (colorRampBounds.max - colorRampBounds.min) / (nbDefaultDataDrivenStyleSteps - 1);
-          return {
-            value,
-            pointRadius: options.pointRadius as number,
-            color: colorramp.getColorHex(value),
-          }
-        });
-        pointColor = colorDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
-        pointRadius = radiusDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
-      } else 
-
-      // a property to observe is provided, but neither a color nor a radius is
-      if (options.dataDrivenStyleProperty && !options.pointColor && !options.pointRadius) {
-        console.log('debug04');
+      // If the styling depends on a property, then we build a custom style
+      if (options.property) {
         const dataDrivenStyle: DataDrivenStyle = Array.from({length: nbDefaultDataDrivenStyleSteps}, (_, i) => {
           const value = colorRampBounds.min + i * (colorRampBounds.max - colorRampBounds.min) / (nbDefaultDataDrivenStyleSteps - 1);
           return {
             value, 
-            pointRadius: minPointRadius + (maxPointRadius - minPointRadius) * (i / (nbDefaultDataDrivenStyleSteps - 1)),
-            color: colorramp.getColorHex(value), 
+            pointRadius: options.pointRadius ??minPointRadius + (maxPointRadius - minPointRadius) * Math.pow(i / (nbDefaultDataDrivenStyleSteps - 1), 0.5),
+            color: options.pointColor ?? colorramp.getColorHex(value), 
           }
         });
-        pointColor = colorDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
-        pointRadius = radiusDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
+        pointColor = colorDrivenByProperty(dataDrivenStyle, options.property);
+        pointRadius = radiusDrivenByProperty(dataDrivenStyle, options.property, true);
       }
 
 
@@ -1706,7 +1675,7 @@ export class Map extends maplibregl.Map {
         source: sourceId,
         layout: {
           // Contrary to labels, we want to see the small one in front. Weirdly "circle-sort-key" works in the opposite direction as "symbol-sort-key".
-          "circle-sort-key": options.dataDrivenStyleProperty ? ["/", 1, ["get", options.dataDrivenStyleProperty]] : 0,
+          "circle-sort-key": options.property ? ["/", 1, ["get", options.property]] : 0,
         },
         paint: {
           'circle-pitch-alignment': alignOnViewport ? "viewport" : "map",
@@ -1722,9 +1691,9 @@ export class Map extends maplibregl.Map {
     }
 
 
-    if (showLabel !== false && (options.cluster || options.dataDrivenStyleProperty)) {
+    if (showLabel !== false && (options.cluster || options.property)) {
       returnedInfo.labelLayerId = `${layerId}_label`;
-      const labelColor = options.labelColor ?? "#000000";
+      const labelColor = options.labelColor ?? "#fff";
       const labelSize = options.labelSize ?? 12;
       
       // With clusters, a layer with clouster count is also added
@@ -1732,13 +1701,13 @@ export class Map extends maplibregl.Map {
           id: returnedInfo.labelLayerId,
           type: 'symbol',
           source: sourceId,
-          filter: ['has', options.cluster ? 'point_count' : options.dataDrivenStyleProperty as string],
+          filter: ['has', options.cluster ? 'point_count' : options.property as string],
           layout: {
-            'text-field': options.cluster ? '{point_count_abbreviated}' : `{${options.dataDrivenStyleProperty as string}}`, 
+            'text-field': options.cluster ? '{point_count_abbreviated}' : `{${options.property as string}}`, 
             'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Medium'],
             'text-size': labelSize,
             'text-pitch-alignment': alignOnViewport ? "viewport" : "map",
-            "symbol-sort-key": ["/", 1, ["get", options.cluster ? 'point_count' : options.dataDrivenStyleProperty as string]], // so that the largest value goes on top
+            "symbol-sort-key": ["/", 1, ["get", options.cluster ? 'point_count' : options.property as string]], // so that the largest value goes on top
           },
           paint: {
             'text-color': labelColor,
