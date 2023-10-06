@@ -591,8 +591,6 @@ export function dashArrayMaker(pattern: string): Array<number> {
 
 
 export function colorDrivenByProperty(style: DataDrivenStyle, property: string): DataDrivenPropertyValueSpecification<string> {
-  console.log(style);
-  
   return [
     "interpolate",
     ["linear"],

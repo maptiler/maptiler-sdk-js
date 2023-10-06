@@ -303,6 +303,43 @@ export class ColorRamp extends Array<ColorStop> {
     ctx.putImageData(imageData, 0, 0);
     return canvas;
   }
+
+
+  /**
+   * Apply a non-linear ressampling. This will create a new instance of ColorRamp with the same bounds.
+   */
+  resample( method: "square" | "sqrt", samples = 15): ColorRamp {
+    const inputBounds = this.getBounds();
+    const inputNormalized = this.scale(0, 1);
+    const step = 1 / (samples - 1);
+
+    let stops;
+
+    if (method === "square") {
+      stops = Array.from({length: samples}, (_, i) => {
+        const x = i * step
+        const y = Math.pow(x, 2);
+        const color = inputNormalized.getColor(y);
+        return { value: x, color };
+      });
+    } else
+
+    if (method === "sqrt") {
+      stops = Array.from({length: samples}, (_, i) => {
+        const x = i * step
+        const y = Math.pow(x, 0.5);
+        const color = inputNormalized.getColor(y);
+        return { value: x, color };
+      });
+
+    } else {
+      throw new Error("Invalid ressampling method.");
+    }
+
+    const outputNormalized = new ColorRamp({ stops });
+    const output = outputNormalized.scale(inputBounds.min, inputBounds.max);
+    return output;
+  }
 }
 
 
@@ -322,6 +359,13 @@ export const ColorRampCollection = {
     stops: [
       { value: 0, color: [0, 0, 0, 0] },
       { value: 1, color: [0, 0, 0, 0] },
+    ],
+  }),
+
+  GRAY: new ColorRamp({
+    stops: [
+      { value: 0, color: [0, 0, 0] },
+      { value: 1, color: [255, 255, 255] },
     ],
   }),
 

@@ -1606,9 +1606,6 @@ export class Map extends maplibregl.Map {
           color: colorramp.getColorHex(value), 
         }
       });
-      
-      console.log("clusterStyle", clusterStyle);
-      
 
       this.addLayer({
           id: returnedInfo.clusterLayerId,
@@ -1662,11 +1659,6 @@ export class Map extends maplibregl.Map {
         pointColor = colorDrivenByProperty(dataDrivenStyle, options.property);
         pointRadius = radiusDrivenByProperty(dataDrivenStyle, options.property, true);
       }
-
-
-      console.log("pointColor", pointColor);
-      console.log("pointRadius", pointRadius);
-      
 
       // Adding the layer of unclustered point
       this.addLayer({
