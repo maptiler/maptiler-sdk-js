@@ -51,8 +51,9 @@ import {
   PolylgonLayerOptions,
   dashArrayMaker,
   PointLayerOptions,
-  clusterColorFromClusterStyle,
-  clusterRadiusFromClusterStyle,
+  colorDrivenByProperty,
+  radiusDrivenByProperty,
+  DataDrivenStyle,
 } from "./stylehelper";
 import { FeatureCollection } from "geojson";
 import { gpx, gpxOrKml, kml } from "./converters";
@@ -1547,7 +1548,7 @@ export class Map extends maplibregl.Map {
     /**
      * ID of the layer that shows the count of elements in each cluster (empty if `cluster` options id `false`)
      */
-    clusterCountLayerId: string;
+    labelLayerId: string;
 
     /**
      * ID of the data source
@@ -1561,15 +1562,18 @@ export class Map extends maplibregl.Map {
     }
 
     const cluster = options.cluster ?? false;
-    const clusterStyleUnsorted = options.clusterStyle ?? Array.from({length: 5}, (_, i) => ({elements: Math.pow(10, (i+1)), pointRadius: (i+2) * 7.5, color: getRandomColor() }));
-    const clusterStyle = clusterStyleUnsorted.slice().sort((a, b) => a.elements < b.elements ? -1 : 1);
+    // Default: manage clusters up to 100k elements
+    const clusterStyleUnsorted = options.dataDrivenStyle ?? Array.from({length: 5}, (_, i) => ({value: Math.pow(10, (i+1)), pointRadius: (i+2) * 7.5, color: getRandomColor() }));
+    const clusterStyle = clusterStyleUnsorted.slice().sort((a, b) => a.value < b.value ? -1 : 1);
     const sourceId = options.sourceId ?? generateRandomSourceName();
     const layerId = options.layerId ?? generateRandomLayerName();
+    const showLabel = options.showLabel ?? cluster;
+    const alignOnViewport = options.alignOnViewport ?? true;
 
     const returnedInfo = {
       pointLayerId: layerId,
       clusterLayerId: "",
-      clusterCountLayerId: "",
+      labelLayerId: "",
       pointSourceId: sourceId,
     };
 
@@ -1589,7 +1593,7 @@ export class Map extends maplibregl.Map {
       // numbner of elements they contain and cannot be driven by the zoom level or a property
 
       returnedInfo.clusterLayerId = `${layerId}_cluster`;
-      returnedInfo.clusterCountLayerId = `${layerId}_clusterCount`;
+      
 
       this.addLayer({
           id: returnedInfo.clusterLayerId,
@@ -1597,53 +1601,26 @@ export class Map extends maplibregl.Map {
           source: sourceId,
           filter: ['has', 'point_count'],
           paint: {
-            'circle-color': clusterColorFromClusterStyle(clusterStyle),
-            'circle-radius': clusterRadiusFromClusterStyle(clusterStyle),
+            'circle-color': options.pointColor ?? colorDrivenByProperty(clusterStyle, "point_count"),
+            'circle-radius': options.pointRadius ?? radiusDrivenByProperty(clusterStyle, "point_count"),
+            'circle-pitch-alignment': alignOnViewport ? "viewport" : "map",
+            'circle-pitch-scale': 'map', // scale with camera distance regardless of viewport/biewport alignement
           }
         },
         options.beforeId
       );
 
-      const clusterTextColor = options.clusterTextColor ?? "#000000";
-      const clusterTextSize = options.clusterTextSize ?? 12;
-
-      // With clusters, a layer with clouster count is also added
-      this.addLayer({
-          id: returnedInfo.clusterCountLayerId,
-          type: 'symbol',
-          source: sourceId,
-          filter: ['has', 'point_count'],
-          layout: {
-            'text-field': '{point_count_abbreviated}',
-            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Medium'],
-            'text-size': clusterTextSize,
-          },
-          paint: {
-            'text-color': clusterTextColor,
-          }
-        },
-        options.beforeId
-      );
-
-      // Note: since the color of the cluster depends on the number of elements they contain
-      // we don't let the possibility to ramp the color of the unclustered point based on 
-      // zoom level. This is more of a design desision because some unclustered points could be shown
-      // near clusters and if they have the same size and/or color, this could produce a misleading
-      // data viz.
-
-      // By default the colors of the unclustered point is the same as the smallest clusters
-      const unclusteredPointColor = typeof options.pointColor === "string" ? options.pointColor : getRandomColor();
-      const unclusteredPointRadius = typeof options.pointRadius === "number" ? options.pointRadius : clusterStyle[0].pointRadius * 0.75;
-
-      // Adding the layer of unclustered point
+      // Adding the layer of unclustered point (visible only when ungrouped)
       this.addLayer({
         id: returnedInfo.pointLayerId,
         type: 'circle',
         source: sourceId,
         filter: ['!', ['has', 'point_count']],
         paint: {
-          'circle-color': unclusteredPointColor,
-          'circle-radius': unclusteredPointRadius,
+          'circle-pitch-alignment': alignOnViewport ? "viewport" : "map",
+          'circle-pitch-scale': 'map', // scale with camera distance regardless of viewport/biewport alignement
+          'circle-color':  options.pointColor ?? clusterStyle[0].color,
+          'circle-radius': options.pointRadius ?? clusterStyle[0].pointRadius * 0.75,
           // 'circle-stroke-width': 1,
           // 'circle-stroke-color': '#fff'
         }
@@ -1654,6 +1631,91 @@ export class Map extends maplibregl.Map {
     // Not displaying clusters
     else {
 
+      let pointColor: DataDrivenPropertyValueSpecification<string> = options.pointColor ?? getRandomColor();
+      let pointRadius: DataDrivenPropertyValueSpecification<number> = options.pointRadius ?? 5;
+
+      if (options.dataDrivenStyle && options.dataDrivenStyleProperty) {
+        console.log('debug01');
+        
+        pointColor = colorDrivenByProperty(options.dataDrivenStyle, options.dataDrivenStyleProperty);
+        pointRadius = radiusDrivenByProperty(options.dataDrivenStyle, options.dataDrivenStyleProperty);
+      } else 
+
+      // if a color is provided and a property to observe, but not the radius
+      if (options.pointColor && options.dataDrivenStyleProperty && !options.pointRadius) {
+        console.log('debug02');
+        const dataDrivenStyle: DataDrivenStyle = Array.from({length: 5}, (_, i) => ({value: Math.pow(10, (i+1)), pointRadius: Math.pow(i, 3) + 5, color: options.pointColor as string }));
+        pointColor = colorDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
+        pointRadius = radiusDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
+      } else
+
+      // if a raduis is provided and a property to observe, but not the color
+      if (!options.pointColor && options.dataDrivenStyleProperty && options.pointRadius) {
+        console.log('debug03');
+        const dataDrivenStyle: DataDrivenStyle = Array.from({length: 5}, (_, i) => ({value: Math.pow(10, (i+1)), pointRadius: options.pointRadius as number, color: getRandomColor() }));
+        pointColor = colorDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
+        pointRadius = radiusDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
+      } else 
+
+      if (options.dataDrivenStyleProperty && !options.pointColor && !options.pointRadius) {
+        console.log('debug04');
+        const dataDrivenStyle: DataDrivenStyle = Array.from({length: 5}, (_, i) => ({value: Math.pow(10, (i+1)), pointRadius: Math.pow(i, 3) + 5, color: getRandomColor() }));
+        pointColor = colorDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
+        pointRadius = radiusDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
+      }
+
+
+      console.log("pointColor", pointColor);
+      console.log("pointRadius", pointRadius);
+      
+
+      // Adding the layer of unclustered point
+      this.addLayer({
+        id: returnedInfo.pointLayerId,
+        type: 'circle',
+        source: sourceId,
+        layout: {
+          // Contrary to labels, we want to see the small one in front. Weirdly "circle-sort-key" works in the opposite direction as "symbol-sort-key".
+          "circle-sort-key": options.dataDrivenStyleProperty ? ["/", 1, ["get", options.dataDrivenStyleProperty]] : 0,
+        },
+        paint: {
+          'circle-pitch-alignment': alignOnViewport ? "viewport" : "map",
+          'circle-pitch-scale': 'map', // scale with camera distance regardless of viewport/biewport alignement
+          'circle-color': pointColor,
+
+          'circle-radius': pointRadius,
+          
+          // 'circle-stroke-width': 1,
+          // 'circle-stroke-color': '#fff'
+        }
+      }, options.beforeId);
+    }
+
+
+    if (showLabel !== false && (options.cluster || options.dataDrivenStyleProperty)) {
+      returnedInfo.labelLayerId = `${layerId}_label`;
+      const labelColor = options.labelColor ?? "#000000";
+      const labelSize = options.labelSize ?? 12;
+      
+      // With clusters, a layer with clouster count is also added
+      this.addLayer({
+          id: returnedInfo.labelLayerId,
+          type: 'symbol',
+          source: sourceId,
+          filter: ['has', options.cluster ? 'point_count' : options.dataDrivenStyleProperty as string],
+          layout: {
+            'text-field': options.cluster ? '{point_count_abbreviated}' : `{${options.dataDrivenStyleProperty as string}}`, 
+            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Medium'],
+            'text-size': labelSize,
+            'text-pitch-alignment': alignOnViewport ? "viewport" : "map",
+            "symbol-sort-key": ["/", 1, ["get", options.cluster ? 'point_count' : options.dataDrivenStyleProperty as string]], // so that the largest value goes on top
+          },
+          paint: {
+            'text-color': labelColor,
+          }
+        },
+        options.beforeId
+      );
     }
 
 

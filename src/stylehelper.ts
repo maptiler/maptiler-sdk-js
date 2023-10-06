@@ -82,11 +82,13 @@ export type ZoomNumberValues = Array<{
 /**
  * Describes how to render a cluster of points
  */
-export type ClusterStyle = Array<{
+export type DataDrivenStyle = Array<{
   /**
-   * Number of element in a cluster
+   * Numerical value to observe and apply the style upon.
+   * In case of clusters, the value to observe is automatically the number of elements in a cluster.
+   * In other cases, it can be a provided value.
    */
-  elements: number,
+  value: number,
 
   /**
    * Radius of the cluster circle
@@ -343,6 +345,59 @@ export type PolylgonLayerOptions = CommonShapeLayerOptions & {
 
 
 export type PointLayerOptions = CommonShapeLayerOptions & {
+  /**
+   * Color of the point. This is can be a constant color string or a definition based on zoom levels.
+   * This is mutually exclusive with `.dataDrivenStyle`.
+   * Default: a color randomly pick from a list
+   */
+  pointColor?: string;
+
+  /**
+   * Size of the point (relative to screen-space). This is can be a constant width or a definition based on zoom levels.
+   * This is mutually exclusive with `.dataDrivenStyle`.
+   * Default: `3`
+   */
+  pointRadius?: number;
+
+  /**
+   * The point property to observe and apply the `.dataDrivenStyle` upon. This property must be numerical.
+   * This is ignored if `.cluster` is `true`.
+   * 
+   * Default: none
+   */
+  dataDrivenStyleProperty?: string;
+
+  /**
+   * The style of the points.
+   * Applicable only when `cluster` is `true`
+   */
+  dataDrivenStyle?: DataDrivenStyle;
+
+
+
+  
+
+  /**
+   * Opacity of the point or icon. This is can be a constant opacity in [0, 1] or a definition based on zoom levels.
+   * Default: `1`
+   */
+  // pointOpacity?: number | ZoomNumberValues;
+
+  /**
+   * How blury the point is, with `0` being no blur and `10` and beyond being quite blurry.
+   * Default: `0`
+   */
+  // pointBlur?: number | ZoomNumberValues;
+
+  /**
+   * If `true`, the points will keep their circular shape align with the wiewport.
+   * If `false`, the points will be like flatten on the map. This difference shows
+   * when the map is tilted.
+   * Default: `true`
+   */
+  alignOnViewport?: boolean;
+
+  
 
   /**
    * Whether the points should cluster
@@ -350,48 +405,29 @@ export type PointLayerOptions = CommonShapeLayerOptions & {
   cluster?: boolean;
 
   /**
-   * Color of the point. This is can be a constant color string or a definition based on zoom levels.
-   * Default: a color randomly pick from a list
+   * Shows a label with the numerical value id `true`.
+   * If `.cluster` is `true`, the value will be the numebr of elements in the cluster.
+   * 
+   * 
+   * Default: `true` if `cluster` or `dataDrivenStyleProperty` are used, `false` otherwise.
    */
-  pointColor?: string | ZoomStringValues;
-
-  /**
-   * Size of the point (relative to screen-space). This is can be a constant width or a definition based on zoom levels
-   * Default: `3`
-   */
-  pointRadius?: number | ZoomNumberValues;
-
-  /**
-   * Opacity of the point or icon. This is can be a constant opacity in [0, 1] or a definition based on zoom levels.
-   * Default: `1`
-   */
-  pointOpacity?: number | ZoomNumberValues;
-
-  /**
-   * How blury the point is, with `0` being no blur and `10` and beyond being quite blurry.
-   * Default: `0`
-   */
-  pointBlur?: number | ZoomNumberValues;
-
-  /**
-   * The style of the cluster.
-   * Applicable only when `cluster` is `true`
-   */
-  clusterStyle?: ClusterStyle;
+  showLabel?: boolean;
 
   /**
    * text color used for the number elements in each cluster.
    * Applicable only when `cluster` is `true`.
    * Default: `#000000` (black)
    */
-  clusterTextColor?: string;
+  labelColor?: string;
 
   /**
    * text size used for the number elements in each cluster.
    * Applicable only when `cluster` is `true`.
    * Default: `12`
    */
-  clusterTextSize?: number;
+  labelSize?: number;
+
+  
 };
 
 
@@ -485,6 +521,11 @@ export function computeRampedOutlineWidth(
   return 0;
 }
 
+
+
+
+
+
 /**
  * Create a dash array from a string pattern that uses underscore and whitespace characters
  */
@@ -528,27 +569,24 @@ export function dashArrayMaker(pattern: string): Array<number> {
 }
 
 
-export function clusterColorFromClusterStyle(cs: ClusterStyle): DataDrivenPropertyValueSpecification<string> {
-  const csCopy = cs.slice();
-  const firstElement = csCopy.shift(); // sortedCs loses its first element
 
+export function colorDrivenByProperty(style: DataDrivenStyle, property: string): DataDrivenPropertyValueSpecification<string> {
+  console.log(style);
+  
   return [
-    'step',
-    ['get', 'point_count'],
-    firstElement?.color as string, // the first color is a fallback for small values
-    ... csCopy.map(el => [el.elements, el.color]).flat(),
+    "interpolate",
+    ["linear"],
+    ["get", property],
+    ... style.map(el => [el.value, el.color]).flat(),
   ];
 }
 
 
-export function clusterRadiusFromClusterStyle(cs: ClusterStyle): DataDrivenPropertyValueSpecification<number> {
-  const csCopy = cs.slice();
-  const firstElement = csCopy.shift(); // sortedCs loses its first element
-
+export function radiusDrivenByProperty(style: DataDrivenStyle, property: string): DataDrivenPropertyValueSpecification<number> {
   return [
-    'step',
-    ['get', 'point_count'],
-    firstElement?.pointRadius as number, // the first color is a fallback for small values
-    ... csCopy.map(el => [el.elements, el.pointRadius]).flat(),
+    "interpolate",
+    ["linear"],
+    ["get", property],
+    ... style.map(el => [el.value, el.pointRadius]).flat(),
   ];
 }
