@@ -1,6 +1,7 @@
 import { FeatureCollection } from "geojson";
 import { DataDrivenPropertyValueSpecification } from "maplibre-gl";
 import { generateRandomString } from "./tools";
+import { ColorRamp } from "./colorramp";
 
 export type ColorPalette = [string, string, string, string];
 
@@ -360,6 +361,20 @@ export type PointLayerOptions = CommonShapeLayerOptions & {
   pointRadius?: number;
 
   /**
+   * The minimum point radius posible.
+   * Only used when the radius is set according to a point property, using `dataDrivenStyleProperty`.
+   * Default: `10`
+   */
+  minPointRadius?: number;
+
+  /**
+   * The maximum point radius posible.
+   * Only used when the radius is set according to a point property, using `dataDrivenStyleProperty`.
+   * Default: `40`
+   */
+  maxPointRadius?: number;
+
+  /**
    * The point property to observe and apply the `.dataDrivenStyle` upon. This property must be numerical.
    * This is ignored if `.cluster` is `true`.
    * 
@@ -374,7 +389,12 @@ export type PointLayerOptions = CommonShapeLayerOptions & {
   dataDrivenStyle?: DataDrivenStyle;
 
 
-
+  /**
+   * If `pointColor` and `dataDrivenStyle` are bot not provided, but `cluster` is `true` or `dataDrivenStyleProperty` is set,
+   * then this colorramp is going to be used.
+   * Default: `ColorRampCollection.VIRIDIS` scaled to range [0, 100000]
+   */
+  colorRamp?: ColorRamp;
   
 
   /**

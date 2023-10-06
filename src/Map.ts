@@ -57,6 +57,7 @@ import {
 } from "./stylehelper";
 import { FeatureCollection } from "geojson";
 import { gpx, gpxOrKml, kml } from "./converters";
+import { ColorRampCollection } from "./colorramp";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -1561,14 +1562,20 @@ export class Map extends maplibregl.Map {
       );
     }
 
+    const minPointRadius = options.minPointRadius ?? 10;
+    const maxPointRadius = options.maxPointRadius ?? 40;
     const cluster = options.cluster ?? false;
     // Default: manage clusters up to 100k elements
-    const clusterStyleUnsorted = options.dataDrivenStyle ?? Array.from({length: 5}, (_, i) => ({value: Math.pow(10, (i+1)), pointRadius: (i+2) * 7.5, color: getRandomColor() }));
+    const nbDefaultDataDrivenStyleSteps =  20 //options.cluster ? 4 : 3;
+    const colorramp = options.colorRamp ?? ColorRampCollection.JET.scale(10, options.cluster ? 10000 : 1000);
+    const colorRampBounds = colorramp.getBounds();
+    const clusterStyleUnsorted = options.dataDrivenStyle ?? Array.from({length: nbDefaultDataDrivenStyleSteps}, (_, i) => ({value: Math.pow(10, (i+1)), pointRadius: (i+2) * 7.5, color: colorramp.getColorHex(Math.pow(10, (i+1))) }));
     const clusterStyle = clusterStyleUnsorted.slice().sort((a, b) => a.value < b.value ? -1 : 1);
     const sourceId = options.sourceId ?? generateRandomSourceName();
     const layerId = options.layerId ?? generateRandomLayerName();
     const showLabel = options.showLabel ?? cluster;
     const alignOnViewport = options.alignOnViewport ?? true;
+    
 
     const returnedInfo = {
       pointLayerId: layerId,
@@ -1644,22 +1651,45 @@ export class Map extends maplibregl.Map {
       // if a color is provided and a property to observe, but not the radius
       if (options.pointColor && options.dataDrivenStyleProperty && !options.pointRadius) {
         console.log('debug02');
-        const dataDrivenStyle: DataDrivenStyle = Array.from({length: 5}, (_, i) => ({value: Math.pow(10, (i+1)), pointRadius: Math.pow(i, 3) + 5, color: options.pointColor as string }));
+        const dataDrivenStyle: DataDrivenStyle = Array.from({length: nbDefaultDataDrivenStyleSteps}, (_, i) => 
+        {
+          const value = colorRampBounds.min + i * (colorRampBounds.max - colorRampBounds.min) / (nbDefaultDataDrivenStyleSteps - 1);
+          return {
+            value,
+            pointRadius: minPointRadius + (maxPointRadius - minPointRadius) * (i / (nbDefaultDataDrivenStyleSteps - 1)),
+            color: options.pointColor as string
+          }
+        });
         pointColor = colorDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
         pointRadius = radiusDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
       } else
 
-      // if a raduis is provided and a property to observe, but not the color
+      // if a radius is provided and a property to observe, but not the color
       if (!options.pointColor && options.dataDrivenStyleProperty && options.pointRadius) {
         console.log('debug03');
-        const dataDrivenStyle: DataDrivenStyle = Array.from({length: 5}, (_, i) => ({value: Math.pow(10, (i+1)), pointRadius: options.pointRadius as number, color: getRandomColor() }));
+        const dataDrivenStyle: DataDrivenStyle = Array.from({length: nbDefaultDataDrivenStyleSteps}, (_, i) => {
+          const value = colorRampBounds.min + i * (colorRampBounds.max - colorRampBounds.min) / (nbDefaultDataDrivenStyleSteps - 1);
+          return {
+            value,
+            pointRadius: options.pointRadius as number,
+            color: colorramp.getColorHex(value),
+          }
+        });
         pointColor = colorDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
         pointRadius = radiusDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
       } else 
 
+      // a property to observe is provided, but neither a color nor a radius is
       if (options.dataDrivenStyleProperty && !options.pointColor && !options.pointRadius) {
         console.log('debug04');
-        const dataDrivenStyle: DataDrivenStyle = Array.from({length: 5}, (_, i) => ({value: Math.pow(10, (i+1)), pointRadius: Math.pow(i, 3) + 5, color: getRandomColor() }));
+        const dataDrivenStyle: DataDrivenStyle = Array.from({length: nbDefaultDataDrivenStyleSteps}, (_, i) => {
+          const value = colorRampBounds.min + i * (colorRampBounds.max - colorRampBounds.min) / (nbDefaultDataDrivenStyleSteps - 1);
+          return {
+            value, 
+            pointRadius: minPointRadius + (maxPointRadius - minPointRadius) * (i / (nbDefaultDataDrivenStyleSteps - 1)),
+            color: colorramp.getColorHex(value), 
+          }
+        });
         pointColor = colorDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
         pointRadius = radiusDrivenByProperty(dataDrivenStyle, options.dataDrivenStyleProperty);
       }

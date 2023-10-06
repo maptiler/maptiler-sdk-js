@@ -193,6 +193,9 @@ export type {
 // Export convert functions 'str2xml', 'xml2str', 'gpx', and 'kml'
 export * from "./converters";
 
+// Export the color ramp logic and all the built-in color ramps
+export * from "./colorramp";
+
 // Exporting classes, objects, functions, etc.
 export {
   Map,
