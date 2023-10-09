@@ -70,7 +70,7 @@ export interface MinimapOptions extends MapOptions {
 
 export default class Minimap implements IControl {
   #options: MinimapOptions;
-  #minimap!: Map;
+  map!: Map;
   #parentMap!: Map;
   #container!: HTMLElement;
   #canvasContainer!: HTMLElement;
@@ -120,7 +120,7 @@ export default class Minimap implements IControl {
       | string,
     options?: StyleSwapOptions & StyleOptions,
   ): void {
-    if (!this.#differentStyle) this.#minimap.setStyle(style, options);
+    if (!this.#differentStyle) this.map.setStyle(style, options);
     this.#setParentBounds();
   }
 
@@ -132,26 +132,26 @@ export default class Minimap implements IControl {
       | CustomLayerInterface,
     beforeId?: string,
   ): Map {
-    if (!this.#differentStyle) this.#minimap.addLayer(layer, beforeId);
+    if (!this.#differentStyle) this.map.addLayer(layer, beforeId);
     this.#setParentBounds();
-    return this.#minimap;
+    return this.map;
   }
 
   moveLayer(id: string, beforeId?: string): Map {
-    if (!this.#differentStyle) this.#minimap.moveLayer(id, beforeId);
+    if (!this.#differentStyle) this.map.moveLayer(id, beforeId);
     this.#setParentBounds();
-    return this.#minimap;
+    return this.map;
   }
 
   removeLayer(id: string): this {
-    if (!this.#differentStyle) this.#minimap.removeLayer(id);
+    if (!this.#differentStyle) this.map.removeLayer(id);
     this.#setParentBounds();
     return this;
   }
 
   setLayerZoomRange(layerId: string, minzoom: number, maxzoom: number): this {
     if (!this.#differentStyle)
-      this.#minimap.setLayerZoomRange(layerId, minzoom, maxzoom);
+      this.map.setLayerZoomRange(layerId, minzoom, maxzoom);
     this.#setParentBounds();
     return this;
   }
@@ -161,8 +161,7 @@ export default class Minimap implements IControl {
     filter?: FilterSpecification | null,
     options?: StyleSetterOptions,
   ): this {
-    if (!this.#differentStyle)
-      this.#minimap.setFilter(layerId, filter, options);
+    if (!this.#differentStyle) this.map.setFilter(layerId, filter, options);
     this.#setParentBounds();
     return this;
   }
@@ -174,7 +173,7 @@ export default class Minimap implements IControl {
     options?: StyleSetterOptions,
   ): this {
     if (!this.#differentStyle)
-      this.#minimap.setPaintProperty(layerId, name, value, options);
+      this.map.setPaintProperty(layerId, name, value, options);
     this.#setParentBounds();
     return this;
   }
@@ -186,13 +185,13 @@ export default class Minimap implements IControl {
     options?: StyleSetterOptions,
   ): this {
     if (!this.#differentStyle)
-      this.#minimap.setLayoutProperty(layerId, name, value, options);
+      this.map.setLayoutProperty(layerId, name, value, options);
     this.#setParentBounds();
     return this;
   }
 
   setGlyphs(glyphsUrl: string | null, options?: StyleSetterOptions): this {
-    if (!this.#differentStyle) this.#minimap.setGlyphs(glyphsUrl, options);
+    if (!this.#differentStyle) this.map.setGlyphs(glyphsUrl, options);
     this.#setParentBounds();
     return this;
   }
@@ -207,16 +206,16 @@ export default class Minimap implements IControl {
     }
     this.#options.container = this.#container;
     this.#options.zoom = parentMap.getZoom() + this.#options.zoomAdjust ?? -4;
-    this.#minimap = new Map(this.#options);
+    this.map = new Map(this.#options);
 
     // NOTE: For some reason the DOM doesn't properly update it's size in time
     // for the minimap to convey it's size to the canvas.
-    this.#minimap.once("style.load", () => {
-      this.#minimap.resize();
+    this.map.once("style.load", () => {
+      this.map.resize();
     });
 
     // set options
-    this.#minimap.once("load", () => {
+    this.map.once("load", () => {
       this.#addParentRect(this.#options.parentRect);
       this.#desync = this.#syncMaps();
     });
@@ -247,12 +246,12 @@ export default class Minimap implements IControl {
       },
     };
 
-    this.#minimap.addSource("parentRect", {
+    this.map.addSource("parentRect", {
       type: "geojson",
       data: this.#parentRect,
     });
     if (rect.lineLayout !== undefined || rect.linePaint !== undefined) {
-      this.#minimap.addLayer({
+      this.map.addLayer({
         id: "parentRectOutline",
         type: "line",
         source: "parentRect",
@@ -268,7 +267,7 @@ export default class Minimap implements IControl {
       });
     }
     if (rect.fillPaint !== undefined) {
-      this.#minimap.addLayer({
+      this.map.addLayer({
         id: "parentRectFill",
         type: "fill",
         source: "parentRect",
@@ -309,7 +308,7 @@ export default class Minimap implements IControl {
       ],
     ];
 
-    const source = this.#minimap.getSource("parentRect") as GeoJSONSource;
+    const source = this.map.getSource("parentRect") as GeoJSONSource;
     source.setData(this.#parentRect);
   }
 
@@ -326,11 +325,11 @@ export default class Minimap implements IControl {
     // on off functions
     const on = () => {
       this.#parentMap.on("move", parentCallback);
-      this.#minimap.on("move", minimapCallback);
+      this.map.on("move", minimapCallback);
     };
     const off = () => {
       this.#parentMap.off("move", parentCallback);
-      this.#minimap.off("move", minimapCallback);
+      this.map.off("move", minimapCallback);
     };
 
     // When one map moves, we turn off the movement listeners
@@ -340,8 +339,8 @@ export default class Minimap implements IControl {
       off();
 
       // MOVE
-      const from = which === "parent" ? this.#parentMap : this.#minimap;
-      const to = which === "parent" ? this.#minimap : this.#parentMap;
+      const from = which === "parent" ? this.#parentMap : this.map;
+      const to = which === "parent" ? this.map : this.#parentMap;
       const center = from.getCenter();
       const zoom =
         from.getZoom() +
