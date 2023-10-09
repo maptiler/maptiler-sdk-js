@@ -1,7 +1,7 @@
 import { FeatureCollection } from "geojson";
 import { DataDrivenPropertyValueSpecification } from "maplibre-gl";
 import { generateRandomString } from "./tools";
-import { ColorRamp } from "./colorramp";
+import { ColorRamp, RgbaColor } from "./colorramp";
 
 export type ColorPalette = [string, string, string, string];
 
@@ -640,4 +640,20 @@ export function radiusDrivenByProperty(style: DataDrivenStyle, property: string,
       ... style.map(el => [el.value, el.pointRadius]).flat(),
     ]
   ]
+}
+
+
+export function opacityDrivenByProperty(colorramp: ColorRamp, property: string): DataDrivenPropertyValueSpecification<number> {
+
+
+  return [
+    "interpolate",
+    ["linear"],
+    ["get", property],
+    ... colorramp.map(el => {
+      const value = el.value;
+      const color: RgbaColor = el.color;
+      return [value, color.length === 4 ? color[3] / 255 : 1];
+    }).flat(),
+  ];
 }

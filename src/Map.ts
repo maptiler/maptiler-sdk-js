@@ -1619,6 +1619,19 @@ export class Map extends maplibregl.Map {
             'circle-radius': options.pointRadius ?? radiusDrivenByProperty(clusterStyle, "point_count", false),
             'circle-pitch-alignment': alignOnViewport ? "viewport" : "map",
             'circle-pitch-scale': 'map', // scale with camera distance regardless of viewport/biewport alignement
+            ...(outline && {
+              "circle-stroke-opacity": typeof outlineOpacity === "number"
+                ? outlineOpacity
+                : rampedOptionsToLineLayerPaintSpec(outlineOpacity),
+  
+              "circle-stroke-width": typeof outlineWidth === "number"
+                ? outlineWidth
+                : rampedOptionsToLineLayerPaintSpec(outlineWidth),
+  
+              "circle-stroke-color": typeof outlineColor === "string"
+                ? outlineColor
+                : paintColorOptionsToLineLayerPaintSpec(outlineColor),
+            }),
           },
           minzoom: options.minzoom ?? 0,
           maxzoom: options.maxzoom ?? 23,
@@ -1637,8 +1650,19 @@ export class Map extends maplibregl.Map {
           'circle-pitch-scale': 'map', // scale with camera distance regardless of viewport/biewport alignement
           'circle-color':  options.pointColor ?? clusterStyle[0].color,
           'circle-radius': options.pointRadius ?? clusterStyle[0].pointRadius * 0.75,
-          // 'circle-stroke-width': 1,
-          // 'circle-stroke-color': '#fff'
+          ...(outline && {
+            "circle-stroke-opacity": typeof outlineOpacity === "number"
+              ? outlineOpacity
+              : rampedOptionsToLineLayerPaintSpec(outlineOpacity),
+
+            "circle-stroke-width": typeof outlineWidth === "number"
+              ? outlineWidth
+              : rampedOptionsToLineLayerPaintSpec(outlineWidth),
+
+            "circle-stroke-color": typeof outlineColor === "string"
+              ? outlineColor
+              : paintColorOptionsToLineLayerPaintSpec(outlineColor),
+          }),
         },
         minzoom: options.minzoom ?? 0,
         maxzoom: options.maxzoom ?? 23,
