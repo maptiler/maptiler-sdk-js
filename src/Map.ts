@@ -53,10 +53,11 @@ import {
   colorDrivenByProperty,
   radiusDrivenByProperty,
   DataDrivenStyle,
+  opacityDrivenByProperty,
 } from "./stylehelper";
 import { FeatureCollection } from "geojson";
 import { gpx, gpxOrKml, kml } from "./converters";
-import { ColorRampCollection } from "./colorramp";
+import { ColorRamp, ColorRampCollection } from "./colorramp";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -1565,7 +1566,7 @@ export class Map extends maplibregl.Map {
     const maxPointRadius = options.maxPointRadius ?? 40;
     const cluster = options.cluster ?? false;
     const nbDefaultDataDrivenStyleSteps =  20;
-    const colorramp = options.colorRamp ?? ColorRampCollection.VIRIDIS.scale(10, options.cluster ? 10000 : 1000);
+    const colorramp = Array.isArray(options.pointColor) ? options.pointColor : ColorRampCollection.VIRIDIS.scale(10, options.cluster ? 10000 : 1000);
     const colorRampBounds = colorramp.getBounds();
     const sourceId = options.sourceId ?? generateRandomSourceName();
     const layerId = options.layerId ?? generateRandomLayerName();
@@ -1575,6 +1576,20 @@ export class Map extends maplibregl.Map {
     const outlineOpacity = options.outlineOpacity ?? 1;
     const outlineWidth = options.outlineWidth ?? 1;
     const outlineColor = options.outlineColor ?? "#FFFFFF";
+    let pointOpacity;
+    const randomColor = getRandomColor();
+
+    if (typeof options.pointOpacity === "number") {
+      pointOpacity = options.pointOpacity;
+    } else if (Array.isArray(options.pointOpacity)) {
+      pointOpacity = rampedOptionsToLineLayerPaintSpec(options.pointOpacity);
+    } else if (options.cluster) {
+      pointOpacity = opacityDrivenByProperty(colorramp, "point_count");
+    } else if (options.property) {
+      pointOpacity = opacityDrivenByProperty(colorramp, options.property);
+    } else {
+      pointOpacity = 1;
+    }
 
     const returnedInfo = {
       pointLayerId: layerId,
@@ -1608,17 +1623,31 @@ export class Map extends maplibregl.Map {
           color: colorramp.getColorHex(value), 
         }
       });
-
+      
       this.addLayer({
           id: returnedInfo.clusterLayerId,
           type: 'circle',
           source: sourceId,
           filter: ['has', 'point_count'],
           paint: {
-            'circle-color': options.pointColor ?? colorDrivenByProperty(clusterStyle, "point_count"),
-            'circle-radius': options.pointRadius ?? radiusDrivenByProperty(clusterStyle, "point_count", false),
+            // 'circle-color': options.pointColor ?? colorDrivenByProperty(clusterStyle, "point_count"),
+            'circle-color': typeof options.pointColor === "string" 
+              ? options.pointColor
+              : Array.isArray(options.pointColor)
+                ? colorDrivenByProperty(clusterStyle, "point_count")
+                : randomColor,
+              
+              
+              // ?? options.colorRamp ? colorDrivenByProperty(clusterStyle, "point_count") : randomColor,
+            'circle-radius': typeof options.pointRadius === "number" 
+              ? options.pointRadius
+              : Array.isArray(options.pointRadius)
+                ? rampedOptionsToLineLayerPaintSpec(options.pointRadius)
+                : radiusDrivenByProperty(clusterStyle, "point_count", false),
+
             'circle-pitch-alignment': alignOnViewport ? "viewport" : "map",
             'circle-pitch-scale': 'map', // scale with camera distance regardless of viewport/biewport alignement
+            'circle-opacity': pointOpacity,
             ...(outline && {
               "circle-stroke-opacity": typeof outlineOpacity === "number"
                 ? outlineOpacity
@@ -1639,6 +1668,8 @@ export class Map extends maplibregl.Map {
         options.beforeId
       );
 
+
+
       // Adding the layer of unclustered point (visible only when ungrouped)
       this.addLayer({
         id: returnedInfo.pointLayerId,
@@ -1648,8 +1679,18 @@ export class Map extends maplibregl.Map {
         paint: {
           'circle-pitch-alignment': alignOnViewport ? "viewport" : "map",
           'circle-pitch-scale': 'map', // scale with camera distance regardless of viewport/biewport alignement
-          'circle-color':  options.pointColor ?? clusterStyle[0].color,
-          'circle-radius': options.pointRadius ?? clusterStyle[0].pointRadius * 0.75,
+          // 'circle-color':  options.pointColor ?? clusterStyle[0].color,
+          'circle-color': typeof options.pointColor === "string" 
+          ? options.pointColor
+          : Array.isArray(options.pointColor)
+            ? colorDrivenByProperty(clusterStyle, "point_count")
+            : randomColor,
+          'circle-radius': typeof options.pointRadius === "number"
+            ? options.pointRadius
+            : Array.isArray(options.pointRadius)
+              ? rampedOptionsToLineLayerPaintSpec(options.pointRadius)
+              : clusterStyle[0].pointRadius * 0.75,
+          'circle-opacity': pointOpacity,
           ...(outline && {
             "circle-stroke-opacity": typeof outlineOpacity === "number"
               ? outlineOpacity
@@ -1673,17 +1714,25 @@ export class Map extends maplibregl.Map {
     // Not displaying clusters
     else {
 
-      let pointColor: DataDrivenPropertyValueSpecification<string> = options.pointColor ?? getRandomColor();
-      let pointRadius: DataDrivenPropertyValueSpecification<number> = options.pointRadius ?? minPointRadius;
+      let pointColor: DataDrivenPropertyValueSpecification<string> = typeof options.pointColor === "string" 
+        ? options.pointColor
+        : Array.isArray(options.pointColor)
+          ? options.pointColor.getColorHex(options.pointColor.getBounds().min) // if color ramp is given, we choose the first color of it, even if the property may not be provided
+          : getRandomColor();
+      let pointRadius: DataDrivenPropertyValueSpecification<number> = typeof options.pointRadius === "number" 
+        ? options.pointRadius
+        : Array.isArray(options.pointRadius)
+          ? rampedOptionsToLineLayerPaintSpec(options.pointRadius)
+          : minPointRadius;
 
       // If the styling depends on a property, then we build a custom style
-      if (options.property) {
+      if (options.property && Array.isArray(options.pointColor)) {
         const dataDrivenStyle: DataDrivenStyle = Array.from({length: nbDefaultDataDrivenStyleSteps}, (_, i) => {
           const value = colorRampBounds.min + i * (colorRampBounds.max - colorRampBounds.min) / (nbDefaultDataDrivenStyleSteps - 1);
           return {
             value, 
-            pointRadius: options.pointRadius ??minPointRadius + (maxPointRadius - minPointRadius) * Math.pow(i / (nbDefaultDataDrivenStyleSteps - 1), 0.5),
-            color: options.pointColor ?? colorramp.getColorHex(value), 
+            pointRadius: typeof options.pointRadius === "number" ? options.pointRadius : minPointRadius + (maxPointRadius - minPointRadius) * Math.pow(i / (nbDefaultDataDrivenStyleSteps - 1), 0.5),
+            color: typeof options.pointColor === "string" ? options.pointColor : colorramp.getColorHex(value), 
           }
         });
         pointColor = colorDrivenByProperty(dataDrivenStyle, options.property);
@@ -1703,7 +1752,7 @@ export class Map extends maplibregl.Map {
           'circle-pitch-alignment': alignOnViewport ? "viewport" : "map",
           'circle-pitch-scale': 'map', // scale with camera distance regardless of viewport/biewport alignement
           'circle-color': pointColor,
-
+          'circle-opacity': pointOpacity,
           'circle-radius': pointRadius,
             
           ...(outline && {
@@ -1746,6 +1795,7 @@ export class Map extends maplibregl.Map {
           },
           paint: {
             'text-color': labelColor,
+            'text-opacity': pointOpacity,
           },
           minzoom: options.minzoom ?? 0,
           maxzoom: options.maxzoom ?? 23,

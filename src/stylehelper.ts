@@ -354,67 +354,52 @@ export type PolylgonLayerOptions = CommonShapeLayerOptions & {
 
 export type PointLayerOptions = CommonShapeLayerOptions & {
   /**
-   * Color of the point. This is can be a constant color string or a definition based on zoom levels.
-   * This is mutually exclusive with `.dataDrivenStyle`.
+   * Can be a unique point color as a string (CSS color such as "#FF0000" or "red").
+   * Alternatively, the color can be a ColorRamp with a range.
+   * In case of `.cluster` being `true`, the range of the ColorRamp will be addressed with the number of elements in
+   * the cluster. If `.cluster` is `false`, the color will be addressed using the value of the `.property`.
+   * If no `.property` is given but `.pointColor` is a ColorRamp, the chosen color is the one at the lower bound of the ColorRamp.
    * Default: a color randomly pick from a list
    */
-  pointColor?: string;
+  pointColor?: string | ColorRamp;
 
   /**
-   * Size of the point (relative to screen-space). This is can be a constant width or a definition based on zoom levels.
-   * This is mutually exclusive with `.dataDrivenStyle`.
-   * Default: `3`
+   * Radius of the points. Can be a fixed size or a value dependant on the zoom.
+   * If `.pointRadius` is not provided, the radius will depend on the size of each cluster (if `.cluster` is `true`)
+   * or on the value of each point (if `.property` is provided and `.pointColor` is a ColorRamp).
+   * The radius will be between `.minPointRadius` and `.maxPointRadius`
    */
-  pointRadius?: number;
+  pointRadius?: number | ZoomNumberValues;
 
   /**
    * The minimum point radius posible.
-   * Only used when the radius is set according to a point property, using `dataDrivenStyleProperty`.
    * Default: `10`
    */
   minPointRadius?: number;
 
   /**
    * The maximum point radius posible.
-   * Only used when the radius is set according to a point property, using `dataDrivenStyleProperty`.
    * Default: `40`
    */
   maxPointRadius?: number;
 
   /**
-   * The point property to observe and apply the `.dataDrivenStyle` upon. This property must be numerical.
-   * This is ignored if `.cluster` is `true`.
+   * The point property to observe and apply the radius and color upon.
+   * This is ignored if `.cluster` is `true` as the observed value will be fiorced to being the number
+   * of elements in each cluster.
    * 
    * Default: none
    */
   property?: string;
-
-  /**
-   * The style of the points.
-   * Applicable only when `cluster` is `true`
-   */
-  // dataDrivenStyle?: DataDrivenStyle;
-
-
-  /**
-   * If `pointColor` and `dataDrivenStyle` are bot not provided, but `cluster` is `true` or `dataDrivenStyleProperty` is set,
-   * then this colorramp is going to be used.
-   * Default: `ColorRampCollection.VIRIDIS` scaled to range [0, 100000]
-   */
-  colorRamp?: ColorRamp;
   
 
   /**
    * Opacity of the point or icon. This is can be a constant opacity in [0, 1] or a definition based on zoom levels.
+   * Alternatively, if not provided but the `.pointColor` is a ColorRamp, the opacity will be extracted from tha alpha
+   * component if present.
    * Default: `1`
    */
-  // pointOpacity?: number | ZoomNumberValues;
-
-  /**
-   * How blury the point is, with `0` being no blur and `10` and beyond being quite blurry.
-   * Default: `0`
-   */
-  // pointBlur?: number | ZoomNumberValues;
+  pointOpacity?: number | ZoomNumberValues;
 
   /**
    * If `true`, the points will keep their circular shape align with the wiewport.
@@ -423,8 +408,6 @@ export type PointLayerOptions = CommonShapeLayerOptions & {
    * Default: `true`
    */
   alignOnViewport?: boolean;
-
-  
 
   /**
    * Whether the points should cluster
@@ -643,14 +626,21 @@ export function radiusDrivenByProperty(style: DataDrivenStyle, property: string,
 }
 
 
+/**
+ * Turns a ColorRamp instance into a MapLibre style for ramping the opacity, driven by a property
+ */
 export function opacityDrivenByProperty(colorramp: ColorRamp, property: string): DataDrivenPropertyValueSpecification<number> {
 
+  // If all opacities are the same, just return the number without any ramping logic
+  if (colorramp.every(el => el.color[3] === colorramp[0].color[3])) {
+    return colorramp[0].color[3] ? colorramp[0].color[3] / 255 : 1;
+  }
 
   return [
     "interpolate",
     ["linear"],
     ["get", property],
-    ... colorramp.map(el => {
+    ... colorramp.getRawColorStops().map(el => {
       const value = el.value;
       const color: RgbaColor = el.color;
       return [value, color.length === 4 ? color[3] / 255 : 1];
