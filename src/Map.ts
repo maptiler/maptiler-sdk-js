@@ -1572,7 +1572,6 @@ export class Map extends maplibregl.Map {
     const layerId = options.layerId ?? generateRandomLayerName();
     const showLabel = options.showLabel ?? cluster;
     const alignOnViewport = options.alignOnViewport ?? true;
-    
 
     const returnedInfo = {
       pointLayerId: layerId,
