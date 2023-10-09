@@ -169,6 +169,8 @@ export default class Minimap implements IControl {
   setPaintProperty(
     layerId: string,
     name: string,
+    // maplibre controlled types
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any,
     options?: StyleSetterOptions,
   ): this {
@@ -181,6 +183,8 @@ export default class Minimap implements IControl {
   setLayoutProperty(
     layerId: string,
     name: string,
+    // maplibre controlled types
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any,
     options?: StyleSetterOptions,
   ): this {
