@@ -197,13 +197,6 @@ export type CommonShapeLayerOptions = {
    * Default: `1`
    */
   outlineOpacity?: number | ZoomNumberValues;
-
-  /**
-   * How blury the outline is, with `0` being no blur and `10` and beyond being quite blurry.
-   * Applies only if `.outline` is `true`.
-   * Default: `0`
-   */
-  outlineBlur?: number | ZoomNumberValues;
 };
 
 export type PolylineLayerOptions = CommonShapeLayerOptions & {
@@ -275,6 +268,13 @@ export type PolylineLayerOptions = CommonShapeLayerOptions & {
    * Default: "round"
    */
   lineJoin?: "bevel" | "round" | "miter";
+
+  /**
+   * How blury the outline is, with `0` being no blur and `10` and beyond being quite blurry.
+   * Applies only if `.outline` is `true`.
+   * Default: `0`
+   */
+  outlineBlur?: number | ZoomNumberValues;
 };
 
 export type PolylgonLayerOptions = CommonShapeLayerOptions & {
@@ -340,6 +340,13 @@ export type PolylgonLayerOptions = CommonShapeLayerOptions & {
    * Default: `null` (no pattern, `fillColor` will be used)
    */
   pattern?: string | null;
+
+  /**
+   * How blury the outline is, with `0` being no blur and `10` and beyond being quite blurry.
+   * Applies only if `.outline` is `true`.
+   * Default: `0`
+   */
+  outlineBlur?: number | ZoomNumberValues;
 };
 
 
@@ -462,16 +469,6 @@ export function paintColorOptionsToLineLayerPaintSpec(
   ];
 }
 
-export function lineWidthOptionsToLineLayerPaintSpec(
-  width: ZoomNumberValues,
-): DataDrivenPropertyValueSpecification<number> {
-  return [
-    "interpolate",
-    ["linear"],
-    ["zoom"],
-    ...width.map((el) => [el.zoom, el.value]).flat(),
-  ];
-}
 
 export function rampedOptionsToLineLayerPaintSpec(
   ramp: ZoomNumberValues,

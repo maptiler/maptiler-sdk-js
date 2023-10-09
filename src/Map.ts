@@ -46,7 +46,6 @@ import {
   getRandomColor,
   paintColorOptionsToLineLayerPaintSpec,
   rampedOptionsToLineLayerPaintSpec,
-  lineWidthOptionsToLineLayerPaintSpec,
   PolylineLayerOptions,
   PolylgonLayerOptions,
   dashArrayMaker,
@@ -1287,7 +1286,7 @@ export class Map extends maplibregl.Map {
           "line-width":
             typeof lineWidth === "number"
               ? lineWidth
-              : lineWidthOptionsToLineLayerPaintSpec(lineWidth),
+              : rampedOptionsToLineLayerPaintSpec(lineWidth),
 
           "line-blur":
             typeof lineBlur === "number"
@@ -1572,6 +1571,10 @@ export class Map extends maplibregl.Map {
     const layerId = options.layerId ?? generateRandomLayerName();
     const showLabel = options.showLabel ?? cluster;
     const alignOnViewport = options.alignOnViewport ?? true;
+    const outline = options.outline ?? false;
+    const outlineOpacity = options.outlineOpacity ?? 1;
+    const outlineWidth = options.outlineWidth ?? 1;
+    const outlineColor = options.outlineColor ?? "#FFFFFF";
 
     const returnedInfo = {
       pointLayerId: layerId,
@@ -1616,7 +1619,9 @@ export class Map extends maplibregl.Map {
             'circle-radius': options.pointRadius ?? radiusDrivenByProperty(clusterStyle, "point_count", false),
             'circle-pitch-alignment': alignOnViewport ? "viewport" : "map",
             'circle-pitch-scale': 'map', // scale with camera distance regardless of viewport/biewport alignement
-          }
+          },
+          minzoom: options.minzoom ?? 0,
+          maxzoom: options.maxzoom ?? 23,
         },
         options.beforeId
       );
@@ -1634,7 +1639,9 @@ export class Map extends maplibregl.Map {
           'circle-radius': options.pointRadius ?? clusterStyle[0].pointRadius * 0.75,
           // 'circle-stroke-width': 1,
           // 'circle-stroke-color': '#fff'
-        }
+        },
+        minzoom: options.minzoom ?? 0,
+        maxzoom: options.maxzoom ?? 23,
       }, options.beforeId);
 
     }
@@ -1674,10 +1681,23 @@ export class Map extends maplibregl.Map {
           'circle-color': pointColor,
 
           'circle-radius': pointRadius,
-          
-          // 'circle-stroke-width': 1,
-          // 'circle-stroke-color': '#fff'
-        }
+            
+          ...(outline && {
+            "circle-stroke-opacity": typeof outlineOpacity === "number"
+              ? outlineOpacity
+              : rampedOptionsToLineLayerPaintSpec(outlineOpacity),
+
+            "circle-stroke-width": typeof outlineWidth === "number"
+              ? outlineWidth
+              : rampedOptionsToLineLayerPaintSpec(outlineWidth),
+
+            "circle-stroke-color": typeof outlineColor === "string"
+              ? outlineColor
+              : paintColorOptionsToLineLayerPaintSpec(outlineColor),
+          }),
+        },
+        minzoom: options.minzoom ?? 0,
+        maxzoom: options.maxzoom ?? 23,
       }, options.beforeId);
     }
 
@@ -1702,7 +1722,9 @@ export class Map extends maplibregl.Map {
           },
           paint: {
             'text-color': labelColor,
-          }
+          },
+          minzoom: options.minzoom ?? 0,
+          maxzoom: options.maxzoom ?? 23,
         },
         options.beforeId
       );
