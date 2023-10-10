@@ -50,10 +50,17 @@
 
         if (i === 0) return;
 
-        const colorrampResampledSqrt = colorramp.resample("sqrt");
-        const colorrampResampledSquare = colorramp.resample("square");
-        displayColorRamp(k, colorrampResampledSqrt, ', resampling method: "sqrt"')
-        displayColorRamp(k, colorrampResampledSquare, ', resampling method: "square"')
+        displayColorRamp(k, colorramp.resample("ease-in-square"), ', resampling method: "ease-in-square"')
+        displayColorRamp(k, colorramp.resample("ease-in-sqrt"), ', resampling method: "ease-in-sqrt"')
+        displayColorRamp(k, colorramp.resample("ease-in-exp"), ', resampling method: "ease-in-exp"')
+
+        displayColorRamp(k, colorramp.resample("ease-out-square"), ', resampling method: "ease-out-square"')
+        displayColorRamp(k, colorramp.resample("ease-out-sqrt"), ', resampling method: "ease-out-sqrt"')
+        displayColorRamp(k, colorramp.resample("ease-out-exp"), ', resampling method: "ease-out-exp"')
+
+        
+
+        colorrampContainer.appendChild( document.createElement("p") );
     })
    
    

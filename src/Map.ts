@@ -1532,7 +1532,7 @@ export class Map extends maplibregl.Map {
   /**
    * Add a polyline witgh optional outline from a GeoJSON object
    */
-  addGeoJSONPoint(
+  addPoint(
     // The data or data source is expected to contain LineStrings or MultiLineStrings
     options: PointLayerOptions,
   ): {
@@ -1563,7 +1563,7 @@ export class Map extends maplibregl.Map {
     }
 
     const minPointRadius = options.minPointRadius ?? 10;
-    const maxPointRadius = options.maxPointRadius ?? 40;
+    const maxPointRadius = options.maxPointRadius ?? 50;
     const cluster = options.cluster ?? false;
     const nbDefaultDataDrivenStyleSteps =  20;
     const colorramp = Array.isArray(options.pointColor) ? options.pointColor : ColorRampCollection.VIRIDIS.scale(10, options.cluster ? 10000 : 1000);

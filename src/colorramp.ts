@@ -308,14 +308,14 @@ export class ColorRamp extends Array<ColorStop> {
   /**
    * Apply a non-linear ressampling. This will create a new instance of ColorRamp with the same bounds.
    */
-  resample( method: "square" | "sqrt", samples = 15): ColorRamp {
+  resample( method: "ease-in-square" | "ease-out-square" | "ease-in-sqrt" | "ease-out-sqrt" | "ease-in-exp" | "ease-out-exp", samples = 15): ColorRamp {
     const inputBounds = this.getBounds();
     const inputNormalized = this.scale(0, 1);
     const step = 1 / (samples - 1);
 
     let stops;
 
-    if (method === "square") {
+    if (method === "ease-in-square") {
       stops = Array.from({length: samples}, (_, i) => {
         const x = i * step
         const y = Math.pow(x, 2);
@@ -324,10 +324,49 @@ export class ColorRamp extends Array<ColorStop> {
       });
     } else
 
-    if (method === "sqrt") {
+    if (method === "ease-out-square") {
+      stops = Array.from({length: samples}, (_, i) => {
+        const x = i * step
+        const y = 1 - Math.pow(1 - x, 2);
+        const color = inputNormalized.getColor(y);
+        return { value: x, color };
+      });
+    } else
+
+    if (method === "ease-out-sqrt") {
       stops = Array.from({length: samples}, (_, i) => {
         const x = i * step
         const y = Math.pow(x, 0.5);
+        const color = inputNormalized.getColor(y);
+        return { value: x, color };
+      });
+
+    } else 
+
+    if (method === "ease-in-sqrt") {
+      stops = Array.from({length: samples}, (_, i) => {
+        const x = i * step
+        const y = 1 - Math.pow(1 - x, 0.5);
+        const color = inputNormalized.getColor(y);
+        return { value: x, color };
+      });
+
+    } else 
+    
+    if (method === "ease-out-exp") {
+      stops = Array.from({length: samples}, (_, i) => {
+        const x = i * step
+        const y = 1 - Math.pow(2, -10 * x);
+        const color = inputNormalized.getColor(y);
+        return { value: x, color };
+      });
+
+    } else 
+    
+    if (method === "ease-in-exp") {
+      stops = Array.from({length: samples}, (_, i) => {
+        const x = i * step
+        const y = Math.pow(2, 10 * x - 10);
         const color = inputNormalized.getColor(y);
         return { value: x, color };
       });
