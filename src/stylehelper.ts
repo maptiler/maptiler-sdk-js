@@ -1,6 +1,7 @@
 import { FeatureCollection } from "geojson";
 import { DataDrivenPropertyValueSpecification } from "maplibre-gl";
 import { generateRandomString } from "./tools";
+import { ColorRamp, RgbaColor } from "./colorramp";
 
 export type ColorPalette = [string, string, string, string];
 
@@ -77,6 +78,30 @@ export type ZoomNumberValues = Array<{
    */
   value: number;
 }>;
+
+
+/**
+ * Describes how to render a cluster of points
+ */
+export type DataDrivenStyle = Array<{
+  /**
+   * Numerical value to observe and apply the style upon.
+   * In case of clusters, the value to observe is automatically the number of elements in a cluster.
+   * In other cases, it can be a provided value.
+   */
+  value: number,
+
+  /**
+   * Radius of the cluster circle
+   */
+  pointRadius: number,
+
+  /**
+   * Color of the cluster
+   */
+  color: string,
+}>
+
 
 /**
  * Linera interpolation to find a value at an arbitrary zoom level, given a list of tuple zoom-value
@@ -172,13 +197,6 @@ export type CommonShapeLayerOptions = {
    * Default: `1`
    */
   outlineOpacity?: number | ZoomNumberValues;
-
-  /**
-   * How blury the outline is, with `0` being no blur and `10` and beyond being quite blurry.
-   * Applies only if `.outline` is `true`.
-   * Default: `0`
-   */
-  outlineBlur?: number | ZoomNumberValues;
 };
 
 export type PolylineLayerOptions = CommonShapeLayerOptions & {
@@ -250,6 +268,13 @@ export type PolylineLayerOptions = CommonShapeLayerOptions & {
    * Default: "round"
    */
   lineJoin?: "bevel" | "round" | "miter";
+
+  /**
+   * How blury the outline is, with `0` being no blur and `10` and beyond being quite blurry.
+   * Applies only if `.outline` is `true`.
+   * Default: `0`
+   */
+  outlineBlur?: number | ZoomNumberValues;
 };
 
 export type PolylgonLayerOptions = CommonShapeLayerOptions & {
@@ -315,7 +340,106 @@ export type PolylgonLayerOptions = CommonShapeLayerOptions & {
    * Default: `null` (no pattern, `fillColor` will be used)
    */
   pattern?: string | null;
+
+  /**
+   * How blury the outline is, with `0` being no blur and `10` and beyond being quite blurry.
+   * Applies only if `.outline` is `true`.
+   * Default: `0`
+   */
+  outlineBlur?: number | ZoomNumberValues;
 };
+
+
+
+
+export type PointLayerOptions = CommonShapeLayerOptions & {
+  /**
+   * Can be a unique point color as a string (CSS color such as "#FF0000" or "red").
+   * Alternatively, the color can be a ColorRamp with a range.
+   * In case of `.cluster` being `true`, the range of the ColorRamp will be addressed with the number of elements in
+   * the cluster. If `.cluster` is `false`, the color will be addressed using the value of the `.property`.
+   * If no `.property` is given but `.pointColor` is a ColorRamp, the chosen color is the one at the lower bound of the ColorRamp.
+   * Default: a color randomly pick from a list
+   */
+  pointColor?: string | ColorRamp;
+
+  /**
+   * Radius of the points. Can be a fixed size or a value dependant on the zoom.
+   * If `.pointRadius` is not provided, the radius will depend on the size of each cluster (if `.cluster` is `true`)
+   * or on the value of each point (if `.property` is provided and `.pointColor` is a ColorRamp).
+   * The radius will be between `.minPointRadius` and `.maxPointRadius`
+   */
+  pointRadius?: number | ZoomNumberValues;
+
+  /**
+   * The minimum point radius posible.
+   * Default: `10`
+   */
+  minPointRadius?: number;
+
+  /**
+   * The maximum point radius posible.
+   * Default: `40`
+   */
+  maxPointRadius?: number;
+
+  /**
+   * The point property to observe and apply the radius and color upon.
+   * This is ignored if `.cluster` is `true` as the observed value will be fiorced to being the number
+   * of elements in each cluster.
+   * 
+   * Default: none
+   */
+  property?: string;
+  
+
+  /**
+   * Opacity of the point or icon. This is can be a constant opacity in [0, 1] or a definition based on zoom levels.
+   * Alternatively, if not provided but the `.pointColor` is a ColorRamp, the opacity will be extracted from tha alpha
+   * component if present.
+   * Default: `1`
+   */
+  pointOpacity?: number | ZoomNumberValues;
+
+  /**
+   * If `true`, the points will keep their circular shape align with the wiewport.
+   * If `false`, the points will be like flatten on the map. This difference shows
+   * when the map is tilted.
+   * Default: `true`
+   */
+  alignOnViewport?: boolean;
+
+  /**
+   * Whether the points should cluster
+   */
+  cluster?: boolean;
+
+  /**
+   * Shows a label with the numerical value id `true`.
+   * If `.cluster` is `true`, the value will be the numebr of elements in the cluster.
+   * 
+   * 
+   * Default: `true` if `cluster` or `dataDrivenStyleProperty` are used, `false` otherwise.
+   */
+  showLabel?: boolean;
+
+  /**
+   * text color used for the number elements in each cluster.
+   * Applicable only when `cluster` is `true`.
+   * Default: `#000000` (black)
+   */
+  labelColor?: string;
+
+  /**
+   * text size used for the number elements in each cluster.
+   * Applicable only when `cluster` is `true`.
+   * Default: `12`
+   */
+  labelSize?: number;
+
+  
+};
+
 
 export function paintColorOptionsToLineLayerPaintSpec(
   color: ZoomStringValues,
@@ -328,16 +452,6 @@ export function paintColorOptionsToLineLayerPaintSpec(
   ];
 }
 
-export function lineWidthOptionsToLineLayerPaintSpec(
-  width: ZoomNumberValues,
-): DataDrivenPropertyValueSpecification<number> {
-  return [
-    "interpolate",
-    ["linear"],
-    ["zoom"],
-    ...width.map((el) => [el.zoom, el.value]).flat(),
-  ];
-}
 
 export function rampedOptionsToLineLayerPaintSpec(
   ramp: ZoomNumberValues,
@@ -407,6 +521,11 @@ export function computeRampedOutlineWidth(
   return 0;
 }
 
+
+
+
+
+
 /**
  * Create a dash array from a string pattern that uses underscore and whitespace characters
  */
@@ -447,4 +566,84 @@ export function dashArrayMaker(pattern: string): Array<number> {
   }
 
   return dashArray;
+}
+
+
+
+export function colorDrivenByProperty(style: DataDrivenStyle, property: string): DataDrivenPropertyValueSpecification<string> {
+  return [
+    "interpolate",
+    ["linear"],
+    ["get", property],
+    ... style.map(el => [el.value, el.color]).flat(),
+  ];
+}
+
+
+export function radiusDrivenByProperty(style: DataDrivenStyle, property: string, zoomCompensation:boolean = true): DataDrivenPropertyValueSpecification<number> {
+
+  if (!zoomCompensation) {
+    return [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ... style.map(el => [el.value, el.pointRadius]).flat(),
+    ];
+  }
+
+
+
+  return [
+    'interpolate',
+    ['linear'],
+    ['zoom'],
+    
+    0, [
+      'interpolate',['linear'], ['get', property], 
+      ... style.map(el => [el.value, el.pointRadius * 0.025]).flat(),
+    ],
+
+    2, [
+      'interpolate',['linear'], ['get', property], 
+      ... style.map(el => [el.value, el.pointRadius * 0.05]).flat(),
+    ],
+
+    4, [
+      'interpolate',['linear'], ['get', property], 
+      ... style.map(el => [el.value, el.pointRadius * 0.1]).flat(),
+    ],
+
+    8, [
+      'interpolate',['linear'], ['get', property], 
+      ... style.map(el => [el.value, el.pointRadius * 0.25]).flat(),
+    ],
+
+    16, [
+      'interpolate', ['linear'], ['get', property],
+      ... style.map(el => [el.value, el.pointRadius]).flat(),
+    ]
+  ]
+}
+
+
+/**
+ * Turns a ColorRamp instance into a MapLibre style for ramping the opacity, driven by a property
+ */
+export function opacityDrivenByProperty(colorramp: ColorRamp, property: string): DataDrivenPropertyValueSpecification<number> {
+
+  // If all opacities are the same, just return the number without any ramping logic
+  if (colorramp.every(el => el.color[3] === colorramp[0].color[3])) {
+    return colorramp[0].color[3] ? colorramp[0].color[3] / 255 : 1;
+  }
+
+  return [
+    "interpolate",
+    ["linear"],
+    ["get", property],
+    ... colorramp.getRawColorStops().map(el => {
+      const value = el.value;
+      const color: RgbaColor = el.color;
+      return [value, color.length === 4 ? color[3] / 255 : 1];
+    }).flat(),
+  ];
 }
