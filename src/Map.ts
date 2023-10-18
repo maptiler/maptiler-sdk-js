@@ -1,4 +1,4 @@
-import maplibregl from "maplibre-gl";
+import maplibregl, { typeOf } from "maplibre-gl";
 import { Base64 } from "js-base64";
 import type {
   StyleSpecification,
@@ -44,8 +44,8 @@ import {
   generateRandomLayerName,
   generateRandomSourceName,
   getRandomColor,
-  paintColorOptionsToLineLayerPaintSpec,
-  rampedOptionsToLineLayerPaintSpec,
+  paintColorOptionsToPaintSpec,
+  rampedOptionsToLayerPaintSpec,
   PolylineLayerOptions,
   PolylgonLayerOptions,
   dashArrayMaker,
@@ -54,6 +54,12 @@ import {
   radiusDrivenByProperty,
   DataDrivenStyle,
   opacityDrivenByProperty,
+  HeatmapLayerOptions,
+  heatmapIntensityFromColorRamp,
+  rampedPropertyValueWeight,
+  ZoomNumberValues,
+  radiusDrivenByPropertyHeatmap,
+  PropertyValues,
 } from "./stylehelper";
 import { FeatureCollection } from "geojson";
 import { gpx, gpxOrKml, kml } from "./converters";
@@ -1248,16 +1254,16 @@ export class Map extends maplibregl.Map {
             "line-opacity":
               typeof outlineOpacity === "number"
                 ? outlineOpacity
-                : rampedOptionsToLineLayerPaintSpec(outlineOpacity),
+                : rampedOptionsToLayerPaintSpec(outlineOpacity),
             "line-color":
               typeof outlineColor === "string"
                 ? outlineColor
-                : paintColorOptionsToLineLayerPaintSpec(outlineColor),
+                : paintColorOptionsToPaintSpec(outlineColor),
             "line-width": computeRampedOutlineWidth(lineWidth, outlineWidth),
             "line-blur":
               typeof outlineBlur === "number"
                 ? outlineBlur
-                : rampedOptionsToLineLayerPaintSpec(outlineBlur),
+                : rampedOptionsToLayerPaintSpec(outlineBlur),
           },
         },
         options.beforeId,
@@ -1279,25 +1285,25 @@ export class Map extends maplibregl.Map {
           "line-opacity":
             typeof lineOpacity === "number"
               ? lineOpacity
-              : rampedOptionsToLineLayerPaintSpec(lineOpacity),
+              : rampedOptionsToLayerPaintSpec(lineOpacity),
           "line-color":
             typeof lineColor === "string"
               ? lineColor
-              : paintColorOptionsToLineLayerPaintSpec(lineColor),
+              : paintColorOptionsToPaintSpec(lineColor),
           "line-width":
             typeof lineWidth === "number"
               ? lineWidth
-              : rampedOptionsToLineLayerPaintSpec(lineWidth),
+              : rampedOptionsToLayerPaintSpec(lineWidth),
 
           "line-blur":
             typeof lineBlur === "number"
               ? lineBlur
-              : rampedOptionsToLineLayerPaintSpec(lineBlur),
+              : rampedOptionsToLayerPaintSpec(lineBlur),
 
           "line-gap-width":
             typeof lineGapWidth === "number"
               ? lineGapWidth
-              : rampedOptionsToLineLayerPaintSpec(lineGapWidth),
+              : rampedOptionsToLayerPaintSpec(lineGapWidth),
 
           // For some reasons passing "line-dasharray" with the value "undefined"
           // results in no showing the line while it should have the same behavior
@@ -1385,12 +1391,12 @@ export class Map extends maplibregl.Map {
             "fill-color":
               typeof fillColor === "string"
                 ? fillColor
-                : paintColorOptionsToLineLayerPaintSpec(fillColor),
+                : paintColorOptionsToPaintSpec(fillColor),
 
             "fill-opacity":
               typeof fillOpacity === "number"
                 ? fillOpacity
-                : rampedOptionsToLineLayerPaintSpec(fillOpacity),
+                : rampedOptionsToLayerPaintSpec(fillOpacity),
 
             // Adding a pattern if provided
             ...(patternImageId && { "fill-pattern": patternImageId }),
@@ -1409,7 +1415,7 @@ export class Map extends maplibregl.Map {
           if (typeof outlineWidth === "number") {
             computedOutlineOffset = 0.5 * outlineWidth;
           } else {
-            computedOutlineOffset = rampedOptionsToLineLayerPaintSpec(
+            computedOutlineOffset = rampedOptionsToLayerPaintSpec(
               outlineWidth.map(({ zoom, value }) => ({
                 zoom,
                 value: 0.5 * value,
@@ -1420,7 +1426,7 @@ export class Map extends maplibregl.Map {
           if (typeof outlineWidth === "number") {
             computedOutlineOffset = -0.5 * outlineWidth;
           } else {
-            computedOutlineOffset = rampedOptionsToLineLayerPaintSpec(
+            computedOutlineOffset = rampedOptionsToLayerPaintSpec(
               outlineWidth.map((el) => ({
                 zoom: el.zoom,
                 value: -0.5 * el.value,
@@ -1446,19 +1452,19 @@ export class Map extends maplibregl.Map {
               "line-opacity":
                 typeof outlineOpacity === "number"
                   ? outlineOpacity
-                  : rampedOptionsToLineLayerPaintSpec(outlineOpacity),
+                  : rampedOptionsToLayerPaintSpec(outlineOpacity),
               "line-color":
                 typeof outlineColor === "string"
                   ? outlineColor
-                  : paintColorOptionsToLineLayerPaintSpec(outlineColor),
+                  : paintColorOptionsToPaintSpec(outlineColor),
               "line-width":
                 typeof outlineWidth === "number"
                   ? outlineWidth
-                  : rampedOptionsToLineLayerPaintSpec(outlineWidth),
+                  : rampedOptionsToLayerPaintSpec(outlineWidth),
               "line-blur":
                 typeof outlineBlur === "number"
                   ? outlineBlur
-                  : rampedOptionsToLineLayerPaintSpec(outlineBlur),
+                  : rampedOptionsToLayerPaintSpec(outlineBlur),
 
               "line-offset": computedOutlineOffset,
 
@@ -1582,7 +1588,7 @@ export class Map extends maplibregl.Map {
     if (typeof options.pointOpacity === "number") {
       pointOpacity = options.pointOpacity;
     } else if (Array.isArray(options.pointOpacity)) {
-      pointOpacity = rampedOptionsToLineLayerPaintSpec(options.pointOpacity);
+      pointOpacity = rampedOptionsToLayerPaintSpec(options.pointOpacity);
     } else if (options.cluster) {
       pointOpacity = opacityDrivenByProperty(colorramp, "point_count");
     } else if (options.property) {
@@ -1642,7 +1648,7 @@ export class Map extends maplibregl.Map {
             'circle-radius': typeof options.pointRadius === "number" 
               ? options.pointRadius
               : Array.isArray(options.pointRadius)
-                ? rampedOptionsToLineLayerPaintSpec(options.pointRadius)
+                ? rampedOptionsToLayerPaintSpec(options.pointRadius)
                 : radiusDrivenByProperty(clusterStyle, "point_count", false),
 
             'circle-pitch-alignment': alignOnViewport ? "viewport" : "map",
@@ -1651,15 +1657,15 @@ export class Map extends maplibregl.Map {
             ...(outline && {
               "circle-stroke-opacity": typeof outlineOpacity === "number"
                 ? outlineOpacity
-                : rampedOptionsToLineLayerPaintSpec(outlineOpacity),
+                : rampedOptionsToLayerPaintSpec(outlineOpacity),
   
               "circle-stroke-width": typeof outlineWidth === "number"
                 ? outlineWidth
-                : rampedOptionsToLineLayerPaintSpec(outlineWidth),
+                : rampedOptionsToLayerPaintSpec(outlineWidth),
   
               "circle-stroke-color": typeof outlineColor === "string"
                 ? outlineColor
-                : paintColorOptionsToLineLayerPaintSpec(outlineColor),
+                : paintColorOptionsToPaintSpec(outlineColor),
             }),
           },
           minzoom: options.minzoom ?? 0,
@@ -1688,21 +1694,21 @@ export class Map extends maplibregl.Map {
           'circle-radius': typeof options.pointRadius === "number"
             ? options.pointRadius
             : Array.isArray(options.pointRadius)
-              ? rampedOptionsToLineLayerPaintSpec(options.pointRadius)
+              ? rampedOptionsToLayerPaintSpec(options.pointRadius)
               : clusterStyle[0].pointRadius * 0.75,
           'circle-opacity': pointOpacity,
           ...(outline && {
             "circle-stroke-opacity": typeof outlineOpacity === "number"
               ? outlineOpacity
-              : rampedOptionsToLineLayerPaintSpec(outlineOpacity),
+              : rampedOptionsToLayerPaintSpec(outlineOpacity),
 
             "circle-stroke-width": typeof outlineWidth === "number"
               ? outlineWidth
-              : rampedOptionsToLineLayerPaintSpec(outlineWidth),
+              : rampedOptionsToLayerPaintSpec(outlineWidth),
 
             "circle-stroke-color": typeof outlineColor === "string"
               ? outlineColor
-              : paintColorOptionsToLineLayerPaintSpec(outlineColor),
+              : paintColorOptionsToPaintSpec(outlineColor),
           }),
         },
         minzoom: options.minzoom ?? 0,
@@ -1722,7 +1728,7 @@ export class Map extends maplibregl.Map {
       let pointRadius: DataDrivenPropertyValueSpecification<number> = typeof options.pointRadius === "number" 
         ? options.pointRadius
         : Array.isArray(options.pointRadius)
-          ? rampedOptionsToLineLayerPaintSpec(options.pointRadius)
+          ? rampedOptionsToLayerPaintSpec(options.pointRadius)
           : minPointRadius;
 
       // If the styling depends on a property, then we build a custom style
@@ -1758,15 +1764,15 @@ export class Map extends maplibregl.Map {
           ...(outline && {
             "circle-stroke-opacity": typeof outlineOpacity === "number"
               ? outlineOpacity
-              : rampedOptionsToLineLayerPaintSpec(outlineOpacity),
+              : rampedOptionsToLayerPaintSpec(outlineOpacity),
 
             "circle-stroke-width": typeof outlineWidth === "number"
               ? outlineWidth
-              : rampedOptionsToLineLayerPaintSpec(outlineWidth),
+              : rampedOptionsToLayerPaintSpec(outlineWidth),
 
             "circle-stroke-color": typeof outlineColor === "string"
               ? outlineColor
-              : paintColorOptionsToLineLayerPaintSpec(outlineColor),
+              : paintColorOptionsToPaintSpec(outlineColor),
           }),
         },
         minzoom: options.minzoom ?? 0,
@@ -1803,9 +1809,6 @@ export class Map extends maplibregl.Map {
         options.beforeId
       );
     }
-
-
-
     return returnedInfo;
   }
 
@@ -1824,4 +1827,183 @@ export class Map extends maplibregl.Map {
       });
     })
   }
+
+
+
+
+
+
+
+    /**
+   * Add a polyline witgh optional outline from a GeoJSON object
+   */
+    addHeatmap(
+      // The data or data source is expected to contain LineStrings or MultiLineStrings
+      options: HeatmapLayerOptions,
+    ): {
+      /**
+       * ID of the heatmap layer
+       */
+      heatmapLayerId: string;
+  
+      /**
+       * ID of the data source
+       */
+      heatmapSourceId: string;
+    } {
+
+      if (options.layerId && this.getLayer(options.layerId)) {
+        throw new Error(
+          `A layer already exists with the layer id: ${options.layerId}`,
+        );
+      }
+
+      const sourceId = options.sourceId ?? generateRandomSourceName();
+      const layerId = options.layerId ?? generateRandomLayerName();
+      const minzoom = options.minzoom ?? 0;
+      const maxzoom = options.maxzoom ?? 23;
+      
+      const opacity = options.opacity ?? [
+        { zoom: minzoom, value: 1 },
+        { zoom: maxzoom - 0.25, value: 1 },
+        { zoom: maxzoom, value: 0 },
+      ];
+
+      // const colorRamp = "colorRamp" in options
+      let colorRamp = Array.isArray(options.colorRamp)
+        ? options.colorRamp
+        : ColorRampCollection.TURBO.transparentStart();
+
+      // making sure the color ramp has [0, 1] bounds
+      const crBounds = colorRamp.getBounds();
+      if (crBounds.min !== 0 || crBounds.max !== 1) {
+        colorRamp = colorRamp.scale(0, 1);
+      }
+
+      // making sure the color ramp has is transparent in 0
+      if (!colorRamp.hasTransparentStart()) {
+        colorRamp = colorRamp.transparentStart();
+      }
+
+      const intensity = options.intensity ?? [
+        {zoom: 0, value: 0.01},
+        {zoom: 4, value: 0.2},
+        {zoom: 16, value: 1},
+      ];
+
+      const property = options.property ?? null;
+      const propertyValueWeight = options.weight ?? 1;
+
+      let heatmapWeight: DataDrivenPropertyValueSpecification<number> = 1; // = typeof propertyValueWeights === "number" ? propertyValueWeights : 1;
+
+      if (property) {
+        if (typeof propertyValueWeight === "number") {
+          heatmapWeight = propertyValueWeight;
+
+          // In case this numerical weight was provided by the user and not be the default value:
+          if (typeof options.weight === "number") {
+            console.warn("The option `.property` is ignored when `.propertyValueWeights` is not of type `PropertyValueWeights`");
+          }
+        } else if (Array.isArray(propertyValueWeight)) {
+          heatmapWeight = rampedPropertyValueWeight(propertyValueWeight, property);
+        } else {
+          console.warn("The option `.property` is ignored when `.propertyValueWeights` is not of type `PropertyValueWeights`");
+        }
+      } else {
+        if (typeof propertyValueWeight === "number") {
+          heatmapWeight = propertyValueWeight;
+        } else if (Array.isArray(propertyValueWeight)) {
+          console.warn("The options `.propertyValueWeights` can only be used when `.property` is provided.");
+        }
+      }
+
+      const defaultRadiusZoomRamping = [
+        {zoom: 0, value: 50 * 0.025},
+        {zoom: 2, value: 50 * 0.05},
+        {zoom: 4, value: 50 * 0.1},
+        {zoom: 8, value: 50 * 0.25},
+        {zoom: 16, value: 50},
+      ]
+
+
+      const radius = options.radius ?? defaultRadiusZoomRamping;
+
+      let radiusHeatmap: DataDrivenPropertyValueSpecification<number> = 1;
+
+      if (typeof radius === "number") {
+        radiusHeatmap = radius;
+      } else 
+
+      // Radius is provided as a zoom-ramping array
+      if (Array.isArray(radius) && "zoom" in radius[0]) {
+        radiusHeatmap = rampedOptionsToLayerPaintSpec(radius as ZoomNumberValues);
+      } else 
+
+      // Radius is provided as data driven 
+      if (property && Array.isArray(radius) && "propertyValue" in radius[0]) {
+        radiusHeatmap = radiusDrivenByPropertyHeatmap(radius as PropertyValues, property, true);
+      } else 
+
+      if (!property && Array.isArray(radius) && "propertyValue" in radius[0]) {
+        radiusHeatmap = rampedOptionsToLayerPaintSpec(defaultRadiusZoomRamping as ZoomNumberValues);
+        console.warn("The option `.radius` can only be property-driven if the option `.property` is provided.");
+      }
+      
+      else {
+        radiusHeatmap = rampedOptionsToLayerPaintSpec(defaultRadiusZoomRamping as ZoomNumberValues);
+      }
+
+      const returnedInfo = {
+        heatmapLayerId: layerId,
+        heatmapSourceId: sourceId,
+      };
+
+      // A new source is added if the map does not have this sourceId and the data is provided
+      if (options.data && !this.getSource(sourceId)) {
+        // Adding the source
+        this.addSource(sourceId, {
+          type: "geojson",
+          data: options.data,
+        });
+      }
+
+      this.addLayer({
+        id: layerId,
+        type: "heatmap",
+        source: sourceId,
+        minzoom,
+        maxzoom,
+        paint: {
+          "heatmap-weight": heatmapWeight,
+
+          "heatmap-intensity": typeof intensity === "number"
+            ? intensity
+            : rampedOptionsToLayerPaintSpec(intensity) as PropertyValueSpecification<number>,
+
+          "heatmap-color": heatmapIntensityFromColorRamp(colorRamp),
+
+          "heatmap-radius": radiusHeatmap,
+
+          // "heatmap-radius": typeof radius === "number"
+          //   ? radius
+          //   : rampedOptionsToLayerPaintSpec(radius),
+
+          "heatmap-opacity": typeof opacity === "number"
+            ? opacity
+            : rampedOptionsToLayerPaintSpec(opacity) as PropertyValueSpecification<number>,
+
+
+          // "heatmap-radius": [
+          //   "interpolate",
+          //   ["linear"],
+          //   ["get", "mag"],
+          //   0, 0,
+          //   4, 10,
+          //   6, 50,
+          // ]
+        }
+      });
+
+      return returnedInfo;
+    }
 }

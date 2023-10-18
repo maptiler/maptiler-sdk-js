@@ -67,7 +67,7 @@ function componentToHex(c: number): string {
 }
 
 function rgbToHex(rgb: RgbaColor): string {
-  return "#" + componentToHex(rgb[0]) + componentToHex(rgb[1]) + componentToHex(rgb[2]);
+  return "#" + componentToHex(rgb[0]) + componentToHex(rgb[1]) + componentToHex(rgb[2]) + (rgb.length === 4 ? componentToHex(rgb[3]) : "");
 }
 
 export class ColorRamp extends Array<ColorStop> {
@@ -184,7 +184,7 @@ export class ColorRamp extends Array<ColorStop> {
     const stops = [];
 
     for (let i = 0; i < this.length; i += 1) {
-      stops.push(this[i]);
+      stops.push({value: this[i].value, color: this[i].color});
     }
 
     return stops;
@@ -247,7 +247,7 @@ export class ColorRamp extends Array<ColorStop> {
    */
   getColorHex(
     value: number,
-    options: { smooth?: boolean } = { smooth: true }
+    options: { smooth?: boolean, withAlpha?: boolean } = { smooth: true, withAlpha: false }
   ): string {
     return rgbToHex(this.getColor(value, options));
   }
@@ -379,6 +379,34 @@ export class ColorRamp extends Array<ColorStop> {
     const output = outputNormalized.scale(inputBounds.min, inputBounds.max);
     return output;
   }
+
+  /**
+   * Makes a clone of this color ramp that is fully transparant at the begining of their range
+   */
+  transparentStart(): ColorRamp {
+    const stops = this.getRawColorStops();
+    stops.unshift({value: stops[0].value, color: stops[0].color.slice() as RgbaColor});
+    stops[1].value += 0.001;
+
+    stops.forEach((s) => {
+      if (s.color.length === 3) {
+        s.color.push(255);
+      }
+    });
+
+    stops[0].color[3] = 0;
+
+    return new ColorRamp({ stops });
+  }
+  
+
+  /**
+   * Check if this color ramp has a transparent start
+   */
+  hasTransparentStart(): boolean {
+    return this[0].color.length === 4 && this[0].color[3] === 0;
+  }
+
 }
 
 
@@ -422,6 +450,7 @@ export const ColorRampCollection = {
       { value: 1, color: [128, 0, 0] },
     ],
   }),
+
 
   /**
    * Classic HSV color ramp (hue, saturation, value).

@@ -1,5 +1,5 @@
 import { FeatureCollection } from "geojson";
-import { DataDrivenPropertyValueSpecification } from "maplibre-gl";
+import { DataDrivenPropertyValueSpecification, ExpressionSpecification, Properties } from "maplibre-gl";
 import { generateRandomString } from "./tools";
 import { ColorRamp, RgbaColor } from "./colorramp";
 
@@ -79,6 +79,24 @@ export type ZoomNumberValues = Array<{
   value: number;
 }>;
 
+
+// export type PropertyValueWeights = Array<{
+//   propertyValue: number,
+//   weight: number,
+// }>;
+
+
+export type PropertyValues = Array<{
+  /**
+   * Value of the property (input)
+   */
+  propertyValue: number,
+
+  /**
+   * Value to associate it with (output)
+   */
+  value: number,
+}>;
 
 /**
  * Describes how to render a cluster of points
@@ -436,12 +454,82 @@ export type PointLayerOptions = CommonShapeLayerOptions & {
    * Default: `12`
    */
   labelSize?: number;
-
-  
 };
 
 
-export function paintColorOptionsToLineLayerPaintSpec(
+export type HeatmapLayerOptions = {
+  /**
+   * ID to give to the layer.
+   * If not provided, an auto-generated ID of the for "maptiler-layer-xxxxxx" will be auto-generated,
+   * with "xxxxxx" being a random string.
+   */
+  layerId?: string;
+
+  /**
+   * ID to give to the geojson source.
+   * If not provided, an auto-generated ID of the for "maptiler-source-xxxxxx" will be auto-generated,
+   * with "xxxxxx" being a random string.
+   */
+  sourceId?: string;
+
+  /**
+   * A geojson Feature collection or a URL to a geojson or the UUID of a MapTiler Cloud dataset.
+   */
+  data: FeatureCollection | string;
+
+  /**
+   * The ID of an existing layer to insert the new layer before, resulting in the new layer appearing
+   * visually beneath the existing layer. If this argument is not specified, the layer will be appended
+   * to the end of the layers array and appear visually above all other layers.
+   */
+  beforeId?: string;
+
+  /**
+   * Zoom level at which it starts to show.
+   * Default: `0`
+   */
+  minzoom?: number;
+
+  /**
+   * Zoom level after which it no longer show.
+   * Default: `22`
+   */
+  maxzoom?: number;
+
+  /**
+   * The ColorRamp instance to use for visualization. The color ramp is expected to be defined in the 
+   * range `[0, 1]` or else will be forced to this range.
+   * Default: `ColorRampCollection.TURBO`
+   */
+  colorRamp?: ColorRamp,
+
+  /**
+   * Use a property to apply a weight to each data point. Using a property requires also using
+   * the options `.propertyValueWeight` or otherwise will be ignored.
+   * Default: none, the points will all have a weight of `1`.
+   */
+  property?: string,
+
+  /**
+   * The weight to give to each data point. If of type `PropertyValueWeights`, then the options `.property` 
+   * must also be provided. If used a number, all data points will be weighted by the same number (which is of little interest)
+   */
+  weight?: PropertyValues | number,
+
+
+  radius?: number | ZoomNumberValues | PropertyValues,
+
+  opacity?: number | ZoomNumberValues,
+
+  /**
+   * The intensity is zoom-dependent. By default, the intensity is going to be scaled by zoom to preserve
+   * a natural aspect or the data distribution.
+   */
+  intensity?: number | ZoomNumberValues,
+}
+
+
+export function paintColorOptionsToPaintSpec(
   color: ZoomStringValues,
 ): DataDrivenPropertyValueSpecification<string> {
   return [
@@ -453,7 +541,7 @@ export function paintColorOptionsToLineLayerPaintSpec(
 }
 
 
-export function rampedOptionsToLineLayerPaintSpec(
+export function rampedOptionsToLayerPaintSpec(
   ramp: ZoomNumberValues,
 ): DataDrivenPropertyValueSpecification<number> {
   return [
@@ -522,7 +610,14 @@ export function computeRampedOutlineWidth(
 }
 
 
-
+export function rampedPropertyValueWeight(ramp: PropertyValues, property: string): DataDrivenPropertyValueSpecification<number> {
+  return [
+    "interpolate",
+    ["linear"],
+    ["get", property],
+    ...ramp.map((el) => [el.propertyValue, el.value]).flat(),
+  ];
+}
 
 
 
@@ -591,8 +686,6 @@ export function radiusDrivenByProperty(style: DataDrivenStyle, property: string,
     ];
   }
 
-
-
   return [
     'interpolate',
     ['linear'],
@@ -626,6 +719,50 @@ export function radiusDrivenByProperty(style: DataDrivenStyle, property: string,
 }
 
 
+
+export function radiusDrivenByPropertyHeatmap(style: PropertyValues, property: string, zoomCompensation:boolean = true): DataDrivenPropertyValueSpecification<number> {
+
+  if (!zoomCompensation) {
+    return [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ... style.map(el => [el.propertyValue, el.value]).flat(),
+    ];
+  }
+
+  return [
+    'interpolate',
+    ['linear'],
+    ['zoom'],
+    
+    0, [
+      'interpolate',['linear'], ['get', property], 
+      ... style.map(el => [el.propertyValue, el.value * 0.025]).flat(),
+    ],
+
+    2, [
+      'interpolate',['linear'], ['get', property], 
+      ... style.map(el => [el.propertyValue, el.value * 0.05]).flat(),
+    ],
+
+    4, [
+      'interpolate',['linear'], ['get', property], 
+      ... style.map(el => [el.propertyValue, el.value * 0.1]).flat(),
+    ],
+
+    8, [
+      'interpolate',['linear'], ['get', property], 
+      ... style.map(el => [el.propertyValue, el.value * 0.25]).flat(),
+    ],
+
+    16, [
+      'interpolate', ['linear'], ['get', property],
+      ... style.map(el => [el.propertyValue, el.value]).flat(),
+    ]
+  ]
+}
+
 /**
  * Turns a ColorRamp instance into a MapLibre style for ramping the opacity, driven by a property
  */
@@ -645,5 +782,21 @@ export function opacityDrivenByProperty(colorramp: ColorRamp, property: string):
       const color: RgbaColor = el.color;
       return [value, color.length === 4 ? color[3] / 255 : 1];
     }).flat(),
+  ];
+}
+
+
+export function heatmapIntensityFromColorRamp(colorRamp: ColorRamp, steps: number = 10): ExpressionSpecification {
+  return [
+    'interpolate',
+    ['linear'],
+    ['heatmap-density'],
+    ... Array.from({length: steps + 1}, (_, i) => {
+      const unitStep = i / steps
+      return [
+        unitStep,
+        colorRamp.getColorHex(unitStep),
+      ]
+    }).flat()
   ];
 }
