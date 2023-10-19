@@ -1120,7 +1120,6 @@ export class Map extends maplibregl.Map {
 
     // We are going to evaluate the content of .data, if provided
     let data = options.data as any;
-    const tmpData = null;
 
     if (typeof data === "string") {
       // if options.data exists and is a uuid string, we consider that it points to a MapTiler Dataset
@@ -1157,15 +1156,6 @@ export class Map extends maplibregl.Map {
         );
       }
     }
-
-    // Data was provided as a non-string but it's not a valid GeoJSON either => throw
-    // else if (data && !geojsonValidation.valid(data)) {
-    // else if (data && !isValidGeoJSON(data)) {
-
-    //   throw new Error(
-    //     "Polyline data was provided as an object but object is not of a valid GeoJSON format",
-    //   );
-    // }
 
     return this.addGeoJSONPolyline({
       ...options,
@@ -1358,10 +1348,18 @@ export class Map extends maplibregl.Map {
 
     // A new source is added if the map does not have this sourceId and the data is provided
     if (options.data && !this.getSource(sourceId)) {
+
+      let data: string | FeatureCollection = options.data;
+
+      // If is a UUID, we extend it to be the URL to a MapTiler Cloud hosted dataset
+      if (typeof data === "string" && isUUID(data)) {
+        data = `https://api.maptiler.com/data/${data}/features.json?key=${config.apiKey}`;
+      }
+
       // Adding the source
       this.addSource(sourceId, {
         type: "geojson",
-        data: options.data,
+        data: data,
       });
     }
 
@@ -1572,7 +1570,7 @@ export class Map extends maplibregl.Map {
     const maxPointRadius = options.maxPointRadius ?? 50;
     const cluster = options.cluster ?? false;
     const nbDefaultDataDrivenStyleSteps =  20;
-    const colorramp = Array.isArray(options.pointColor) ? options.pointColor : ColorRampCollection.VIRIDIS.scale(10, options.cluster ? 10000 : 1000);
+    const colorramp = Array.isArray(options.pointColor) ? options.pointColor : ColorRampCollection.TURBO.scale(10, options.cluster ? 10000 : 1000);
     const colorRampBounds = colorramp.getBounds();
     const sourceId = options.sourceId ?? generateRandomSourceName();
     const layerId = options.layerId ?? generateRandomLayerName();
@@ -1585,6 +1583,8 @@ export class Map extends maplibregl.Map {
     let pointOpacity;
     const randomColor = getRandomColor();
     const zoomCompensation = options.zoomCompensation ?? true;
+    const minzoom = options.minzoom ?? 0;
+    const maxzoom = options.maxzoom ?? 23;
 
     if (typeof options.pointOpacity === "number") {
       pointOpacity = options.pointOpacity;
@@ -1595,7 +1595,12 @@ export class Map extends maplibregl.Map {
     } else if (options.property) {
       pointOpacity = opacityDrivenByProperty(colorramp, options.property);
     } else {
-      pointOpacity = 1;
+      pointOpacity = rampedOptionsToLayerPaintSpec([
+        { zoom: minzoom, value: 0 },
+        { zoom: minzoom + 0.25, value: 1 },
+        { zoom: maxzoom - 0.25, value: 1 },
+        { zoom: maxzoom, value: 0 },
+      ]);
     }
 
     const returnedInfo = {
@@ -1607,10 +1612,17 @@ export class Map extends maplibregl.Map {
 
     // A new source is added if the map does not have this sourceId and the data is provided
     if (options.data && !this.getSource(sourceId)) {
+      let data: string | FeatureCollection = options.data;
+
+      // If is a UUID, we extend it to be the URL to a MapTiler Cloud hosted dataset
+      if (typeof data === "string" && isUUID(data)) {
+        data = `https://api.maptiler.com/data/${data}/features.json?key=${config.apiKey}`;
+      }
+      
       // Adding the source
       this.addSource(sourceId, {
         type: "geojson",
-        data: options.data,
+        data: data,
         cluster,
       });
     }
@@ -1669,8 +1681,8 @@ export class Map extends maplibregl.Map {
                 : paintColorOptionsToPaintSpec(outlineColor),
             }),
           },
-          minzoom: options.minzoom ?? 0,
-          maxzoom: options.maxzoom ?? 23,
+          minzoom,
+          maxzoom,
         },
         options.beforeId
       );
@@ -1712,8 +1724,8 @@ export class Map extends maplibregl.Map {
               : paintColorOptionsToPaintSpec(outlineColor),
           }),
         },
-        minzoom: options.minzoom ?? 0,
-        maxzoom: options.maxzoom ?? 23,
+        minzoom,
+        maxzoom,
       }, options.beforeId);
 
     }
@@ -1726,11 +1738,16 @@ export class Map extends maplibregl.Map {
         : Array.isArray(options.pointColor)
           ? options.pointColor.getColorHex(options.pointColor.getBounds().min) // if color ramp is given, we choose the first color of it, even if the property may not be provided
           : getRandomColor();
+
       let pointRadius: DataDrivenPropertyValueSpecification<number> = typeof options.pointRadius === "number" 
-        ? options.pointRadius
+        ? zoomCompensation
+          ? rampedOptionsToLayerPaintSpec([{zoom: 0, value: options.pointRadius * 0.025 },{zoom: 2, value: options.pointRadius * 0.05 },{zoom: 4, value: options.pointRadius * 0.1 },{zoom: 8, value: options.pointRadius * 0.25 },{zoom: 16, value: options.pointRadius * 1 }])
+          : options.pointRadius
         : Array.isArray(options.pointRadius)
           ? rampedOptionsToLayerPaintSpec(options.pointRadius)
-          : minPointRadius;
+          : zoomCompensation
+            ? rampedOptionsToLayerPaintSpec([{zoom: 0, value: minPointRadius * 0.025 },{zoom: 2, value: minPointRadius * 0.05 },{zoom: 4, value: minPointRadius * 0.1 },{zoom: 8, value: minPointRadius * 0.25 },{zoom: 16, value: minPointRadius * 1 }])
+            : minPointRadius;
 
       // If the styling depends on a property, then we build a custom style
       if (options.property && Array.isArray(options.pointColor)) {
@@ -1776,8 +1793,8 @@ export class Map extends maplibregl.Map {
               : paintColorOptionsToPaintSpec(outlineColor),
           }),
         },
-        minzoom: options.minzoom ?? 0,
-        maxzoom: options.maxzoom ?? 23,
+        minzoom,
+        maxzoom,
       }, options.beforeId);
     }
 
@@ -1804,8 +1821,8 @@ export class Map extends maplibregl.Map {
             'text-color': labelColor,
             'text-opacity': pointOpacity,
           },
-          minzoom: options.minzoom ?? 0,
-          maxzoom: options.maxzoom ?? 23,
+          minzoom,
+          maxzoom,
         },
         options.beforeId
       );
@@ -1828,11 +1845,6 @@ export class Map extends maplibregl.Map {
       });
     })
   }
-
-
-
-
-
 
 
     /**
@@ -1962,10 +1974,18 @@ export class Map extends maplibregl.Map {
 
       // A new source is added if the map does not have this sourceId and the data is provided
       if (options.data && !this.getSource(sourceId)) {
+
+        let data: string | FeatureCollection = options.data;
+
+        // If is a UUID, we extend it to be the URL to a MapTiler Cloud hosted dataset
+        if (typeof data === "string" && isUUID(data)) {
+          data = `https://api.maptiler.com/data/${data}/features.json?key=${config.apiKey}`;
+        }
+
         // Adding the source
         this.addSource(sourceId, {
           type: "geojson",
-          data: options.data,
+          data: data,
         });
       }
 
