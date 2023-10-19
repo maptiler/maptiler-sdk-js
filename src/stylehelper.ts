@@ -454,6 +454,14 @@ export type PointLayerOptions = CommonShapeLayerOptions & {
    * Default: `12`
    */
   labelSize?: number;
+
+  /**
+   * Only if `.cluster` is `false`.
+   * If the radius is driven by a property, then it will also scale by zoomming if `.zoomCompensation` is `true`.
+   * If `false`, the radius will not adapt according to the zoom level.
+   * Default: `true`
+   */
+  zoomCompensation?: boolean,
 };
 
 
@@ -516,9 +524,22 @@ export type HeatmapLayerOptions = {
    */
   weight?: PropertyValues | number,
 
-
+  /**
+   * The radius (in screenspace) can be:
+   * - a fixed number that will be constant across zoom level
+   * - of type `ZoomNumberValues` to be ramped accoding to zoom level (`.zoomCompensation` will then be ignored)
+   * - of type `PropertyValues` to be driven by the value of a property. 
+   *   If so, the option `.property` must be provided and will still be resized according to zoom level,
+   *   unless the option `.zoomCompensation` is set to `false`.
+   * 
+   * Default: 
+   */
   radius?: number | ZoomNumberValues | PropertyValues,
 
+  /**
+   * The opacity can be a fixed value or zoom-driven.
+   * Default: fades-in 0.25z after minzoom and fade-out 0.25z before maxzoom
+   */
   opacity?: number | ZoomNumberValues,
 
   /**
@@ -526,6 +547,13 @@ export type HeatmapLayerOptions = {
    * a natural aspect or the data distribution.
    */
   intensity?: number | ZoomNumberValues,
+
+  /**
+   * If the radius is driven by a property, then it will also scale by zoomming if `.zoomCompensation` is `true`.
+   * If `false`, the radius will not adapt according to the zoom level.
+   * Default: `true`
+   */
+  zoomCompensation?: boolean,
 }
 
 

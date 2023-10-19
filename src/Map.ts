@@ -1584,6 +1584,7 @@ export class Map extends maplibregl.Map {
     const outlineColor = options.outlineColor ?? "#FFFFFF";
     let pointOpacity;
     const randomColor = getRandomColor();
+    const zoomCompensation = options.zoomCompensation ?? true;
 
     if (typeof options.pointOpacity === "number") {
       pointOpacity = options.pointOpacity;
@@ -1742,7 +1743,7 @@ export class Map extends maplibregl.Map {
           }
         });
         pointColor = colorDrivenByProperty(dataDrivenStyle, options.property);
-        pointRadius = radiusDrivenByProperty(dataDrivenStyle, options.property, true);
+        pointRadius = radiusDrivenByProperty(dataDrivenStyle, options.property, zoomCompensation);
       }
 
       // Adding the layer of unclustered point
@@ -1862,9 +1863,11 @@ export class Map extends maplibregl.Map {
       const layerId = options.layerId ?? generateRandomLayerName();
       const minzoom = options.minzoom ?? 0;
       const maxzoom = options.maxzoom ?? 23;
+      const zoomCompensation = options.zoomCompensation ?? true;
       
       const opacity = options.opacity ?? [
-        { zoom: minzoom, value: 1 },
+        { zoom: minzoom, value: 0 },
+        { zoom: minzoom + 0.25, value: 1 },
         { zoom: maxzoom - 0.25, value: 1 },
         { zoom: maxzoom, value: 0 },
       ];
@@ -1924,9 +1927,8 @@ export class Map extends maplibregl.Map {
         {zoom: 8, value: 50 * 0.25},
         {zoom: 16, value: 50},
       ]
-
-
-      const radius = options.radius ?? defaultRadiusZoomRamping;
+      
+      const radius = options.radius ?? (zoomCompensation ? defaultRadiusZoomRamping : 10);
 
       let radiusHeatmap: DataDrivenPropertyValueSpecification<number> = 1;
 
@@ -1941,7 +1943,7 @@ export class Map extends maplibregl.Map {
 
       // Radius is provided as data driven 
       if (property && Array.isArray(radius) && "propertyValue" in radius[0]) {
-        radiusHeatmap = radiusDrivenByPropertyHeatmap(radius as PropertyValues, property, true);
+        radiusHeatmap = radiusDrivenByPropertyHeatmap(radius as unknown as PropertyValues, property, zoomCompensation);
       } else 
 
       if (!property && Array.isArray(radius) && "propertyValue" in radius[0]) {
@@ -1984,23 +1986,9 @@ export class Map extends maplibregl.Map {
 
           "heatmap-radius": radiusHeatmap,
 
-          // "heatmap-radius": typeof radius === "number"
-          //   ? radius
-          //   : rampedOptionsToLayerPaintSpec(radius),
-
           "heatmap-opacity": typeof opacity === "number"
             ? opacity
             : rampedOptionsToLayerPaintSpec(opacity) as PropertyValueSpecification<number>,
-
-
-          // "heatmap-radius": [
-          //   "interpolate",
-          //   ["linear"],
-          //   ["get", "mag"],
-          //   0, 0,
-          //   4, 10,
-          //   6, 50,
-          // ]
         }
       });
 
