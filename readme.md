@@ -498,6 +498,55 @@ We believe that the *promise* approach is better because it does not nest scopes
 
 > 📣 *__Note:__* Generally speaking, *promises* are not a go to replacement for all event+callback and are suitable only for events that are called only once in the lifecycle of a Map instance. This is the reason why we have decided to provide a *promise* equivalent only for the `load` and `loadWithTerrain` events.
 
+# Vector Layer Helpers
+**Let's make vector layers easy!** Originaly, you'd have to add a source and then proceed to the styling of your layer, which can be tricky becasue there are a lot of `paint` and `layout` options and they vary a lot from one type of layer to another. **But we have helpers for this!** 🖋️
+![](images/screenshots/point-layer.jpg)
+
+## Shared logic
+Helpers come with a lot of **built-in defaults** and some fail-proof logic that makes creating vector layers much easier! As a result, a dataset can be displayed in one call, creating both the datasource and the layer(s) in one go!
+
+Depending on the type of feature to add (point, polyline, polygon or heatmap), a different helper function needs to be used, but datasource could contain mixed types of feature and the helper will only display a specific type.  
+
+**Example:** we have a *geoJSON* file that contains both *polygons* and *point* and we use it as the `data` property on the `map.addPoint(...)`, this will only add the *points*.
+
+In addition to easy styling, helper's datasource can be:
+- a URL to a geoJSON file or its string content
+- a URL to a GPX or KML file (only for the polyline helper) or its string content
+- a UUID of a MapTiler Cloud dataset
+
+## Polyline Layer Helper
+The method `Map.addPolyline()` is not only comaptible with the traditionnal GeoJSON source but also with **GPX** and **KML** files and the `.data` options can be a MapTiler Cloud dataset UUID and will be resolved automatically.
+
+here is the minimal usage, with the default line width and a random color (withing a selected list):
+```ts
+map.addPolyline({ 
+  // A URL, relative or absolute
+  data: "some-trace.geojson",
+});
+```
+![](images/screenshots/default-trace.jpg)
+
+We can add many options, such a a specific color, a custom width or a dash pattern, this time sourcind the data from MapTiler Cloud, using the UUID of a dataset:
+```ts
+map.addPolyline({ 
+  data: "74003ba7-215a-4b7e-8e26-5bbe3aa70b05",
+  lineColor: "#FF6666",
+  lineWidth: 4,
+  lineDashArray: "____ _ ",
+  lineCap: "butt",
+});
+```
+![](images/screenshots/custom-trace.jpg)
+As you can see, we've come up with a fun and easy way to create **dash arrays**, just use *underscores* and *white spaces* and this pattern will repeat!
+
+All the other options are documented on a [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/).
+
+## Polygon Layer Helper
+
+## Point Layer Helper
+
+## Heatmap Layer Helper
+
 # Easy access to MapTiler Cloud API
 Our map SDK is not only about maps! We also provide plenty of wrapper to our API calls!
 
