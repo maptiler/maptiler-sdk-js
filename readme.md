@@ -692,9 +692,46 @@ map.addPoint({
 
 Here, the`PORTLAND` color ramp is going to be used so that schools with `200` students or less will have the colors at the very begining of the color ramp and schools with `2000` or more will have the color defined at the very end. Schools in between will be attributed a colors in a non-linear fashion, following the `"ease-out-sqrt"` method (read **Color Ramps** section above for more info).
 
-
+All the other options are documented on a [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/).
 
 ## Heatmap Layer Helper
+The heatmap layer is a great alternative for visualizing a collection of sparse data, but they can be challenging to use, especially when one has to come up with thir own color ramp from scratch. **The helper makes this much easier!**
+
+Here is a minimalist example, using the default `TURBO` color ramp
+```ts
+map.addHeatmap({
+  data: "public-schools.geojson",
+});
+```
+![](images/screenshots/heatmap-schools.png)
+
+Some visualisation are created with a fixed extent and zoom level in mind. In this case, we want to tailor the color, radius, weight and intensity of the heatmap blobs exactely for this precise settings. In the following example, we disable the *zoom compensation* to make sure radii and intensity is never zoom-dependant:
+```ts
+map.addHeatmap({
+  data: "public-schools.geojson",
+  property: "students",
+  // radius: how wide are the blobs
+  radius: [
+    {propertyValue: 100, value: 15},
+    {propertyValue: 800, value: 50},
+  ],
+  // weight: how intense are the blob, as fueled by a property
+  weight: [
+    {propertyValue: 100, value: 0.1},
+    {propertyValue: 800, value: 1},
+  ],
+  // A custom color ramp, must be used with its default interval of [0, 1]
+  colorRamp: ColorRampCollection.MAGMA,
+  zoomCompensation: false,
+  opacity: 0.6,
+  // a global factor applied to all the blobs, regardless of the property or zoom
+  intensity: 1.2,
+});
+```
+![](images/screenshots/heatmap-colorramp.png)
+
+All the other options are documented on a [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/).
+
 
 # Easy access to MapTiler Cloud API
 Our map SDK is not only about maps! We also provide plenty of wrapper to our API calls!
