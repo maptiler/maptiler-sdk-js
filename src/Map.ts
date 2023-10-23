@@ -1570,7 +1570,7 @@ export class Map extends maplibregl.Map {
     const maxPointRadius = options.maxPointRadius ?? 50;
     const cluster = options.cluster ?? false;
     const nbDefaultDataDrivenStyleSteps =  20;
-    const colorramp = Array.isArray(options.pointColor) ? options.pointColor : ColorRampCollection.TURBO.scale(10, options.cluster ? 10000 : 1000);
+    const colorramp = Array.isArray(options.pointColor) ? options.pointColor : ColorRampCollection.TURBO.scale(10, options.cluster ? 10000 : 1000).resample("ease-out-square");
     const colorRampBounds = colorramp.getBounds();
     const sourceId = options.sourceId ?? generateRandomSourceName();
     const layerId = options.layerId ?? generateRandomLayerName();
@@ -1652,9 +1652,10 @@ export class Map extends maplibregl.Map {
             // 'circle-color': options.pointColor ?? colorDrivenByProperty(clusterStyle, "point_count"),
             'circle-color': typeof options.pointColor === "string" 
               ? options.pointColor
-              : Array.isArray(options.pointColor)
-                ? colorDrivenByProperty(clusterStyle, "point_count")
-                : randomColor,
+              : colorDrivenByProperty(clusterStyle, "point_count"),
+              // : Array.isArray(options.pointColor)
+              //   ? colorDrivenByProperty(clusterStyle, "point_count")
+              //   : randomColor,
               
               
               // ?? options.colorRamp ? colorDrivenByProperty(clusterStyle, "point_count") : randomColor,
@@ -1701,9 +1702,11 @@ export class Map extends maplibregl.Map {
           // 'circle-color':  options.pointColor ?? clusterStyle[0].color,
           'circle-color': typeof options.pointColor === "string" 
           ? options.pointColor
-          : Array.isArray(options.pointColor)
-            ? colorDrivenByProperty(clusterStyle, "point_count")
-            : randomColor,
+          : colorramp.getColorHex(colorramp.getBounds().min),
+          // : colorDrivenByProperty(clusterStyle, "point_count"),
+          // : Array.isArray(options.pointColor)
+          //   ? colorDrivenByProperty(clusterStyle, "point_count")
+          //   : randomColor,
           'circle-radius': typeof options.pointRadius === "number"
             ? options.pointRadius
             : Array.isArray(options.pointRadius)
@@ -1746,7 +1749,7 @@ export class Map extends maplibregl.Map {
         : Array.isArray(options.pointRadius)
           ? rampedOptionsToLayerPaintSpec(options.pointRadius)
           : zoomCompensation
-            ? rampedOptionsToLayerPaintSpec([{zoom: 0, value: minPointRadius * 0.025 },{zoom: 2, value: minPointRadius * 0.05 },{zoom: 4, value: minPointRadius * 0.1 },{zoom: 8, value: minPointRadius * 0.25 },{zoom: 16, value: minPointRadius * 1 }])
+            ? rampedOptionsToLayerPaintSpec([{zoom: 0, value: minPointRadius * 0.05 },{zoom: 2, value: minPointRadius * 0.1 },{zoom: 4, value: minPointRadius * 0.2 },{zoom: 8, value: minPointRadius * 0.5 },{zoom: 16, value: minPointRadius * 1 }])
             : minPointRadius;
 
       // If the styling depends on a property, then we build a custom style
