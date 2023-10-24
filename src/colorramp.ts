@@ -1,11 +1,6 @@
 export type RgbaColor =
   | [number, number, number]
-  | [
-      number,
-      number,
-      number,
-      number
-    ];
+  | [number, number, number, number];
 
 export type ColorStop = {
   /**
@@ -16,7 +11,7 @@ export type ColorStop = {
    * RGB[A] - Array of 3-4 numbers. 0-255 per channel.
    */
   color: RgbaColor;
-}
+};
 
 /**
  * A RGBA color as per the array definition
@@ -35,7 +30,7 @@ export type ArrayColorRampStop = [
   /**
    * Color RGBA
    */
-  ArrayColor
+  ArrayColor,
 ];
 
 /**
@@ -60,14 +55,19 @@ export type ColorRampOptions = {
   stops?: Array<ColorStop>;
 };
 
-
 function componentToHex(c: number): string {
   const hex = c.toString(16);
   return hex.length == 1 ? "0" + hex : hex;
 }
 
 function rgbToHex(rgb: RgbaColor): string {
-  return "#" + componentToHex(rgb[0]) + componentToHex(rgb[1]) + componentToHex(rgb[2]) + (rgb.length === 4 ? componentToHex(rgb[3]) : "");
+  return (
+    "#" +
+    componentToHex(rgb[0]) +
+    componentToHex(rgb[1]) +
+    componentToHex(rgb[2]) +
+    (rgb.length === 4 ? componentToHex(rgb[3]) : "")
+  );
 }
 
 export class ColorRamp extends Array<ColorStop> {
@@ -107,7 +107,7 @@ export class ColorRamp extends Array<ColorStop> {
 
   setStops(
     stops: Array<ColorStop>,
-    options: { clone?: boolean } = { clone: true }
+    options: { clone?: boolean } = { clone: true },
   ): ColorRamp {
     const colorRamp = options.clone ? this.clone() : this;
 
@@ -127,7 +127,7 @@ export class ColorRamp extends Array<ColorStop> {
     }
 
     colorRamp.sort((a: ColorStop, b: ColorStop) =>
-      a.value < b.value ? -1 : 1
+      a.value < b.value ? -1 : 1,
     );
 
     this.min = min;
@@ -139,7 +139,7 @@ export class ColorRamp extends Array<ColorStop> {
   scale(
     min: number,
     max: number,
-    options: { clone?: boolean } = { clone: true }
+    options: { clone?: boolean } = { clone: true },
   ): ColorRamp {
     const clone = options.clone;
 
@@ -184,7 +184,7 @@ export class ColorRamp extends Array<ColorStop> {
     const stops = [];
 
     for (let i = 0; i < this.length; i += 1) {
-      stops.push({value: this[i].value, color: this[i].color});
+      stops.push({ value: this[i].value, color: this[i].color });
     }
 
     return stops;
@@ -207,7 +207,7 @@ export class ColorRamp extends Array<ColorStop> {
 
   getColor(
     value: number,
-    options: { smooth?: boolean } = { smooth: true }
+    options: { smooth?: boolean } = { smooth: true },
   ): RgbaColor {
     if (value <= this[0].value) {
       return this[0].color;
@@ -234,20 +234,22 @@ export class ColorRamp extends Array<ColorStop> {
 
       const beforeRatio = (valueAfter - value) / (valueAfter - valueBefore);
       return colorBefore.map((chan, i) =>
-        Math.round(chan * beforeRatio + colorAfter[i] * (1 - beforeRatio))
+        Math.round(chan * beforeRatio + colorAfter[i] * (1 - beforeRatio)),
       ) as RgbaColor;
     }
 
     return [0, 0, 0] as RgbaColor;
   }
 
-  
   /**
    * Get the color as an hexadecimal string
    */
   getColorHex(
     value: number,
-    options: { smooth?: boolean, withAlpha?: boolean } = { smooth: true, withAlpha: false }
+    options: { smooth?: boolean; withAlpha?: boolean } = {
+      smooth: true,
+      withAlpha: false,
+    },
   ): string {
     return rgbToHex(this.getColor(value, options));
   }
@@ -257,12 +259,12 @@ export class ColorRamp extends Array<ColorStop> {
    */
   getColorRelative(
     value: number,
-    options: { smooth?: boolean } = { smooth: true }
+    options: { smooth?: boolean } = { smooth: true },
   ): RgbaColor {
     const bounds = this.getBounds();
     return this.getColor(
       bounds.min + value * (bounds.max - bounds.min),
-      options
+      options,
     );
   }
 
@@ -271,7 +273,7 @@ export class ColorRamp extends Array<ColorStop> {
       horizontal: true,
       size: 512,
       smooth: true,
-    }
+    },
   ) {
     const canvas = document.createElement("canvas");
     canvas.width = options.horizontal ? (options.size as number) : 1;
@@ -304,11 +306,19 @@ export class ColorRamp extends Array<ColorStop> {
     return canvas;
   }
 
-
   /**
    * Apply a non-linear ressampling. This will create a new instance of ColorRamp with the same bounds.
    */
-  resample( method: "ease-in-square" | "ease-out-square" | "ease-in-sqrt" | "ease-out-sqrt" | "ease-in-exp" | "ease-out-exp", samples = 15): ColorRamp {
+  resample(
+    method:
+      | "ease-in-square"
+      | "ease-out-square"
+      | "ease-in-sqrt"
+      | "ease-out-sqrt"
+      | "ease-in-exp"
+      | "ease-out-exp",
+    samples = 15,
+  ): ColorRamp {
     const inputBounds = this.getBounds();
     const inputNormalized = this.scale(0, 1);
     const step = 1 / (samples - 1);
@@ -316,61 +326,47 @@ export class ColorRamp extends Array<ColorStop> {
     let stops;
 
     if (method === "ease-in-square") {
-      stops = Array.from({length: samples}, (_, i) => {
-        const x = i * step
+      stops = Array.from({ length: samples }, (_, i) => {
+        const x = i * step;
         const y = Math.pow(x, 2);
         const color = inputNormalized.getColor(y);
         return { value: x, color };
       });
-    } else
-
-    if (method === "ease-out-square") {
-      stops = Array.from({length: samples}, (_, i) => {
-        const x = i * step
+    } else if (method === "ease-out-square") {
+      stops = Array.from({ length: samples }, (_, i) => {
+        const x = i * step;
         const y = 1 - Math.pow(1 - x, 2);
         const color = inputNormalized.getColor(y);
         return { value: x, color };
       });
-    } else
-
-    if (method === "ease-out-sqrt") {
-      stops = Array.from({length: samples}, (_, i) => {
-        const x = i * step
+    } else if (method === "ease-out-sqrt") {
+      stops = Array.from({ length: samples }, (_, i) => {
+        const x = i * step;
         const y = Math.pow(x, 0.5);
         const color = inputNormalized.getColor(y);
         return { value: x, color };
       });
-
-    } else 
-
-    if (method === "ease-in-sqrt") {
-      stops = Array.from({length: samples}, (_, i) => {
-        const x = i * step
+    } else if (method === "ease-in-sqrt") {
+      stops = Array.from({ length: samples }, (_, i) => {
+        const x = i * step;
         const y = 1 - Math.pow(1 - x, 0.5);
         const color = inputNormalized.getColor(y);
         return { value: x, color };
       });
-
-    } else 
-    
-    if (method === "ease-out-exp") {
-      stops = Array.from({length: samples}, (_, i) => {
-        const x = i * step
+    } else if (method === "ease-out-exp") {
+      stops = Array.from({ length: samples }, (_, i) => {
+        const x = i * step;
         const y = 1 - Math.pow(2, -10 * x);
         const color = inputNormalized.getColor(y);
         return { value: x, color };
       });
-
-    } else 
-    
-    if (method === "ease-in-exp") {
-      stops = Array.from({length: samples}, (_, i) => {
-        const x = i * step
+    } else if (method === "ease-in-exp") {
+      stops = Array.from({ length: samples }, (_, i) => {
+        const x = i * step;
         const y = Math.pow(2, 10 * x - 10);
         const color = inputNormalized.getColor(y);
         return { value: x, color };
       });
-
     } else {
       throw new Error("Invalid ressampling method.");
     }
@@ -385,7 +381,10 @@ export class ColorRamp extends Array<ColorStop> {
    */
   transparentStart(): ColorRamp {
     const stops = this.getRawColorStops();
-    stops.unshift({value: stops[0].value, color: stops[0].color.slice() as RgbaColor});
+    stops.unshift({
+      value: stops[0].value,
+      color: stops[0].color.slice() as RgbaColor,
+    });
     stops[1].value += 0.001;
 
     stops.forEach((s) => {
@@ -398,7 +397,6 @@ export class ColorRamp extends Array<ColorStop> {
 
     return new ColorRamp({ stops });
   }
-  
 
   /**
    * Check if this color ramp has a transparent start
@@ -407,10 +405,6 @@ export class ColorRamp extends Array<ColorStop> {
     return this[0].color.length === 4 && this[0].color[3] === 0;
   }
 }
-
-
-
-
 
 /**
  * This is a collection of built-in color ramps. They are all defined in the range [0, 1]

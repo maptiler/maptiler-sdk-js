@@ -1,4 +1,4 @@
-import maplibregl, { typeOf } from "maplibre-gl";
+import maplibregl from "maplibre-gl";
 import { Base64 } from "js-base64";
 import type {
   StyleSpecification,
@@ -67,7 +67,7 @@ import {
   PropertyValues,
 } from "./stylehelper";
 import { gpx, gpxOrKml, kml } from "./converters";
-import { ColorRamp, ColorRampCollection } from "./colorramp";
+import { ColorRampCollection } from "./colorramp";
 import Minimap from "./Minimap";
 import type { MinimapOptionsInput } from "./Minimap";
 import type { Geometry, FeatureCollection, GeoJsonProperties } from "geojson";
@@ -1604,7 +1604,6 @@ export class Map extends maplibregl.Map {
 
     // A new source is added if the map does not have this sourceId and the data is provided
     if (options.data && !this.getSource(sourceId)) {
-
       let data: string | FeatureCollection = options.data;
 
       // If is a UUID, we extend it to be the URL to a MapTiler Cloud hosted dataset
@@ -1777,7 +1776,6 @@ export class Map extends maplibregl.Map {
     return returnedInfo;
   }
 
-
   /**
    * Add a polyline witgh optional outline from a GeoJSON object
    */
@@ -1814,8 +1812,13 @@ export class Map extends maplibregl.Map {
     const minPointRadius = options.minPointRadius ?? 10;
     const maxPointRadius = options.maxPointRadius ?? 50;
     const cluster = options.cluster ?? false;
-    const nbDefaultDataDrivenStyleSteps =  20;
-    const colorramp = Array.isArray(options.pointColor) ? options.pointColor : ColorRampCollection.TURBO.scale(10, options.cluster ? 10000 : 1000).resample("ease-out-square");
+    const nbDefaultDataDrivenStyleSteps = 20;
+    const colorramp = Array.isArray(options.pointColor)
+      ? options.pointColor
+      : ColorRampCollection.TURBO.scale(
+          10,
+          options.cluster ? 10000 : 1000,
+        ).resample("ease-out-square");
     const colorRampBounds = colorramp.getBounds();
     const sourceId = options.sourceId ?? generateRandomSourceName();
     const layerId = options.layerId ?? generateRandomLayerName();
@@ -1826,7 +1829,6 @@ export class Map extends maplibregl.Map {
     const outlineWidth = options.outlineWidth ?? 1;
     const outlineColor = options.outlineColor ?? "#FFFFFF";
     let pointOpacity;
-    const randomColor = getRandomColor();
     const zoomCompensation = options.zoomCompensation ?? true;
     const minzoom = options.minzoom ?? 0;
     const maxzoom = options.maxzoom ?? 23;
@@ -1863,7 +1865,7 @@ export class Map extends maplibregl.Map {
       if (typeof data === "string" && isUUID(data)) {
         data = `https://api.maptiler.com/data/${data}/features.json?key=${config.apiKey}`;
       }
-      
+
       // Adding the source
       this.addSource(sourceId, {
         type: "geojson",
@@ -1873,215 +1875,293 @@ export class Map extends maplibregl.Map {
     }
 
     if (cluster) {
-      // If using clusters, the size and color of the circles (clusters) are driven by the 
+      // If using clusters, the size and color of the circles (clusters) are driven by the
       // numbner of elements they contain and cannot be driven by the zoom level or a property
 
       returnedInfo.clusterLayerId = `${layerId}_cluster`;
 
-      const clusterStyle: DataDrivenStyle = Array.from({length: nbDefaultDataDrivenStyleSteps}, (_, i) => {
-        const value = colorRampBounds.min + i * (colorRampBounds.max - colorRampBounds.min) / (nbDefaultDataDrivenStyleSteps - 1);
-        return {
-          value, 
-          pointRadius: minPointRadius + (maxPointRadius - minPointRadius) * Math.pow(i / (nbDefaultDataDrivenStyleSteps - 1), 0.5) ,
-          color: colorramp.getColorHex(value), 
-        }
-      });
-      
-      this.addLayer({
+      const clusterStyle: DataDrivenStyle = Array.from(
+        { length: nbDefaultDataDrivenStyleSteps },
+        (_, i) => {
+          const value =
+            colorRampBounds.min +
+            (i * (colorRampBounds.max - colorRampBounds.min)) /
+              (nbDefaultDataDrivenStyleSteps - 1);
+          return {
+            value,
+            pointRadius:
+              minPointRadius +
+              (maxPointRadius - minPointRadius) *
+                Math.pow(i / (nbDefaultDataDrivenStyleSteps - 1), 0.5),
+            color: colorramp.getColorHex(value),
+          };
+        },
+      );
+
+      this.addLayer(
+        {
           id: returnedInfo.clusterLayerId,
-          type: 'circle',
+          type: "circle",
           source: sourceId,
-          filter: ['has', 'point_count'],
+          filter: ["has", "point_count"],
           paint: {
             // 'circle-color': options.pointColor ?? colorDrivenByProperty(clusterStyle, "point_count"),
-            'circle-color': typeof options.pointColor === "string" 
-              ? options.pointColor
-              : colorDrivenByProperty(clusterStyle, "point_count"),     
-              
-            'circle-radius': typeof options.pointRadius === "number" 
-              ? options.pointRadius
-              : Array.isArray(options.pointRadius)
+            "circle-color":
+              typeof options.pointColor === "string"
+                ? options.pointColor
+                : colorDrivenByProperty(clusterStyle, "point_count"),
+
+            "circle-radius":
+              typeof options.pointRadius === "number"
+                ? options.pointRadius
+                : Array.isArray(options.pointRadius)
                 ? rampedOptionsToLayerPaintSpec(options.pointRadius)
                 : radiusDrivenByProperty(clusterStyle, "point_count", false),
 
-            'circle-pitch-alignment': alignOnViewport ? "viewport" : "map",
-            'circle-pitch-scale': 'map', // scale with camera distance regardless of viewport/biewport alignement
-            'circle-opacity': pointOpacity,
+            "circle-pitch-alignment": alignOnViewport ? "viewport" : "map",
+            "circle-pitch-scale": "map", // scale with camera distance regardless of viewport/biewport alignement
+            "circle-opacity": pointOpacity,
             ...(outline && {
-              "circle-stroke-opacity": typeof outlineOpacity === "number"
-                ? outlineOpacity
-                : rampedOptionsToLayerPaintSpec(outlineOpacity),
-  
-              "circle-stroke-width": typeof outlineWidth === "number"
-                ? outlineWidth
-                : rampedOptionsToLayerPaintSpec(outlineWidth),
-  
-              "circle-stroke-color": typeof outlineColor === "string"
-                ? outlineColor
-                : paintColorOptionsToPaintSpec(outlineColor),
+              "circle-stroke-opacity":
+                typeof outlineOpacity === "number"
+                  ? outlineOpacity
+                  : rampedOptionsToLayerPaintSpec(outlineOpacity),
+
+              "circle-stroke-width":
+                typeof outlineWidth === "number"
+                  ? outlineWidth
+                  : rampedOptionsToLayerPaintSpec(outlineWidth),
+
+              "circle-stroke-color":
+                typeof outlineColor === "string"
+                  ? outlineColor
+                  : paintColorOptionsToPaintSpec(outlineColor),
             }),
           },
           minzoom,
           maxzoom,
         },
-        options.beforeId
+        options.beforeId,
       );
 
-
-
       // Adding the layer of unclustered point (visible only when ungrouped)
-      this.addLayer({
-        id: returnedInfo.pointLayerId,
-        type: 'circle',
-        source: sourceId,
-        filter: ['!', ['has', 'point_count']],
-        paint: {
-          'circle-pitch-alignment': alignOnViewport ? "viewport" : "map",
-          'circle-pitch-scale': 'map', // scale with camera distance regardless of viewport/biewport alignement
-          // 'circle-color':  options.pointColor ?? clusterStyle[0].color,
-          'circle-color': typeof options.pointColor === "string" 
-          ? options.pointColor
-          : colorramp.getColorHex(colorramp.getBounds().min),
-          'circle-radius': typeof options.pointRadius === "number"
-            ? options.pointRadius
-            : Array.isArray(options.pointRadius)
-              ? rampedOptionsToLayerPaintSpec(options.pointRadius)
-              : clusterStyle[0].pointRadius * 0.75,
-          'circle-opacity': pointOpacity,
-          ...(outline && {
-            "circle-stroke-opacity": typeof outlineOpacity === "number"
-              ? outlineOpacity
-              : rampedOptionsToLayerPaintSpec(outlineOpacity),
+      this.addLayer(
+        {
+          id: returnedInfo.pointLayerId,
+          type: "circle",
+          source: sourceId,
+          filter: ["!", ["has", "point_count"]],
+          paint: {
+            "circle-pitch-alignment": alignOnViewport ? "viewport" : "map",
+            "circle-pitch-scale": "map", // scale with camera distance regardless of viewport/biewport alignement
+            // 'circle-color':  options.pointColor ?? clusterStyle[0].color,
+            "circle-color":
+              typeof options.pointColor === "string"
+                ? options.pointColor
+                : colorramp.getColorHex(colorramp.getBounds().min),
+            "circle-radius":
+              typeof options.pointRadius === "number"
+                ? options.pointRadius
+                : Array.isArray(options.pointRadius)
+                ? rampedOptionsToLayerPaintSpec(options.pointRadius)
+                : clusterStyle[0].pointRadius * 0.75,
+            "circle-opacity": pointOpacity,
+            ...(outline && {
+              "circle-stroke-opacity":
+                typeof outlineOpacity === "number"
+                  ? outlineOpacity
+                  : rampedOptionsToLayerPaintSpec(outlineOpacity),
 
-            "circle-stroke-width": typeof outlineWidth === "number"
-              ? outlineWidth
-              : rampedOptionsToLayerPaintSpec(outlineWidth),
+              "circle-stroke-width":
+                typeof outlineWidth === "number"
+                  ? outlineWidth
+                  : rampedOptionsToLayerPaintSpec(outlineWidth),
 
-            "circle-stroke-color": typeof outlineColor === "string"
-              ? outlineColor
-              : paintColorOptionsToPaintSpec(outlineColor),
-          }),
+              "circle-stroke-color":
+                typeof outlineColor === "string"
+                  ? outlineColor
+                  : paintColorOptionsToPaintSpec(outlineColor),
+            }),
+          },
+          minzoom,
+          maxzoom,
         },
-        minzoom,
-        maxzoom,
-
-      }, options.beforeId);
+        options.beforeId,
+      );
     }
 
     // Not displaying clusters
     else {
-
-      let pointColor: DataDrivenPropertyValueSpecification<string> = typeof options.pointColor === "string" 
-        ? options.pointColor
-        : Array.isArray(options.pointColor)
+      let pointColor: DataDrivenPropertyValueSpecification<string> =
+        typeof options.pointColor === "string"
+          ? options.pointColor
+          : Array.isArray(options.pointColor)
           ? options.pointColor.getColorHex(options.pointColor.getBounds().min) // if color ramp is given, we choose the first color of it, even if the property may not be provided
           : getRandomColor();
 
-      let pointRadius: DataDrivenPropertyValueSpecification<number> = typeof options.pointRadius === "number" 
-        ? zoomCompensation
-          ? rampedOptionsToLayerPaintSpec([{zoom: 0, value: options.pointRadius * 0.025 },{zoom: 2, value: options.pointRadius * 0.05 },{zoom: 4, value: options.pointRadius * 0.1 },{zoom: 8, value: options.pointRadius * 0.25 },{zoom: 16, value: options.pointRadius * 1 }])
-          : options.pointRadius
-        : Array.isArray(options.pointRadius)
+      let pointRadius: DataDrivenPropertyValueSpecification<number> =
+        typeof options.pointRadius === "number"
+          ? zoomCompensation
+            ? rampedOptionsToLayerPaintSpec([
+                { zoom: 0, value: options.pointRadius * 0.025 },
+                { zoom: 2, value: options.pointRadius * 0.05 },
+                { zoom: 4, value: options.pointRadius * 0.1 },
+                { zoom: 8, value: options.pointRadius * 0.25 },
+                { zoom: 16, value: options.pointRadius * 1 },
+              ])
+            : options.pointRadius
+          : Array.isArray(options.pointRadius)
           ? rampedOptionsToLayerPaintSpec(options.pointRadius)
           : zoomCompensation
-            ? rampedOptionsToLayerPaintSpec([{zoom: 0, value: minPointRadius * 0.05 },{zoom: 2, value: minPointRadius * 0.1 },{zoom: 4, value: minPointRadius * 0.2 },{zoom: 8, value: minPointRadius * 0.5 },{zoom: 16, value: minPointRadius * 1 }])
-            : minPointRadius;
+          ? rampedOptionsToLayerPaintSpec([
+              { zoom: 0, value: minPointRadius * 0.05 },
+              { zoom: 2, value: minPointRadius * 0.1 },
+              { zoom: 4, value: minPointRadius * 0.2 },
+              { zoom: 8, value: minPointRadius * 0.5 },
+              { zoom: 16, value: minPointRadius * 1 },
+            ])
+          : minPointRadius;
 
       // If the styling depends on a property, then we build a custom style
       if (options.property && Array.isArray(options.pointColor)) {
-        const dataDrivenStyle: DataDrivenStyle = Array.from({length: nbDefaultDataDrivenStyleSteps}, (_, i) => {
-          const value = colorRampBounds.min + i * (colorRampBounds.max - colorRampBounds.min) / (nbDefaultDataDrivenStyleSteps - 1);
-          return {
-            value, 
-            pointRadius: typeof options.pointRadius === "number" ? options.pointRadius : minPointRadius + (maxPointRadius - minPointRadius) * Math.pow(i / (nbDefaultDataDrivenStyleSteps - 1), 0.5),
-            color: typeof options.pointColor === "string" ? options.pointColor : colorramp.getColorHex(value), 
-          }
-        });
+        const dataDrivenStyle: DataDrivenStyle = Array.from(
+          { length: nbDefaultDataDrivenStyleSteps },
+          (_, i) => {
+            const value =
+              colorRampBounds.min +
+              (i * (colorRampBounds.max - colorRampBounds.min)) /
+                (nbDefaultDataDrivenStyleSteps - 1);
+            return {
+              value,
+              pointRadius:
+                typeof options.pointRadius === "number"
+                  ? options.pointRadius
+                  : minPointRadius +
+                    (maxPointRadius - minPointRadius) *
+                      Math.pow(i / (nbDefaultDataDrivenStyleSteps - 1), 0.5),
+              color:
+                typeof options.pointColor === "string"
+                  ? options.pointColor
+                  : colorramp.getColorHex(value),
+            };
+          },
+        );
         pointColor = colorDrivenByProperty(dataDrivenStyle, options.property);
-        pointRadius = radiusDrivenByProperty(dataDrivenStyle, options.property, zoomCompensation);
+        pointRadius = radiusDrivenByProperty(
+          dataDrivenStyle,
+          options.property,
+          zoomCompensation,
+        );
       }
 
       // Adding the layer of unclustered point
-      this.addLayer({
-        id: returnedInfo.pointLayerId,
-        type: 'circle',
-        source: sourceId,
-        layout: {
-          // Contrary to labels, we want to see the small one in front. Weirdly "circle-sort-key" works in the opposite direction as "symbol-sort-key".
-          "circle-sort-key": options.property ? ["/", 1, ["get", options.property]] : 0,
-        },
-        paint: {
-          'circle-pitch-alignment': alignOnViewport ? "viewport" : "map",
-          'circle-pitch-scale': 'map', // scale with camera distance regardless of viewport/biewport alignement
-          'circle-color': pointColor,
-          'circle-opacity': pointOpacity,
-          'circle-radius': pointRadius,
-            
-          ...(outline && {
-            "circle-stroke-opacity": typeof outlineOpacity === "number"
-              ? outlineOpacity
-              : rampedOptionsToLayerPaintSpec(outlineOpacity),
+      this.addLayer(
+        {
+          id: returnedInfo.pointLayerId,
+          type: "circle",
+          source: sourceId,
+          layout: {
+            // Contrary to labels, we want to see the small one in front. Weirdly "circle-sort-key" works in the opposite direction as "symbol-sort-key".
+            "circle-sort-key": options.property
+              ? ["/", 1, ["get", options.property]]
+              : 0,
+          },
+          paint: {
+            "circle-pitch-alignment": alignOnViewport ? "viewport" : "map",
+            "circle-pitch-scale": "map", // scale with camera distance regardless of viewport/biewport alignement
+            "circle-color": pointColor,
+            "circle-opacity": pointOpacity,
+            "circle-radius": pointRadius,
 
-            "circle-stroke-width": typeof outlineWidth === "number"
-              ? outlineWidth
-              : rampedOptionsToLayerPaintSpec(outlineWidth),
+            ...(outline && {
+              "circle-stroke-opacity":
+                typeof outlineOpacity === "number"
+                  ? outlineOpacity
+                  : rampedOptionsToLayerPaintSpec(outlineOpacity),
 
-            "circle-stroke-color": typeof outlineColor === "string"
-              ? outlineColor
-              : paintColorOptionsToPaintSpec(outlineColor),
-          }),
+              "circle-stroke-width":
+                typeof outlineWidth === "number"
+                  ? outlineWidth
+                  : rampedOptionsToLayerPaintSpec(outlineWidth),
+
+              "circle-stroke-color":
+                typeof outlineColor === "string"
+                  ? outlineColor
+                  : paintColorOptionsToPaintSpec(outlineColor),
+            }),
+          },
+          minzoom,
+          maxzoom,
         },
-        minzoom,
-        maxzoom,
-      }, options.beforeId);
+        options.beforeId,
+      );
     }
-
 
     if (showLabel !== false && (options.cluster || options.property)) {
       returnedInfo.labelLayerId = `${layerId}_label`;
       const labelColor = options.labelColor ?? "#fff";
       const labelSize = options.labelSize ?? 12;
-      
+
       // With clusters, a layer with clouster count is also added
-      this.addLayer({
+      this.addLayer(
+        {
           id: returnedInfo.labelLayerId,
-          type: 'symbol',
+          type: "symbol",
           source: sourceId,
-          filter: ['has', options.cluster ? 'point_count' : options.property as string],
+          filter: [
+            "has",
+            options.cluster ? "point_count" : (options.property as string),
+          ],
           layout: {
-            'text-field': options.cluster ? '{point_count_abbreviated}' : `{${options.property as string}}`, 
-            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Medium'],
-            'text-size': labelSize,
-            'text-pitch-alignment': alignOnViewport ? "viewport" : "map",
-            "symbol-sort-key": ["/", 1, ["get", options.cluster ? 'point_count' : options.property as string]], // so that the largest value goes on top
+            "text-field": options.cluster
+              ? "{point_count_abbreviated}"
+              : `{${options.property as string}}`,
+            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Medium"],
+            "text-size": labelSize,
+            "text-pitch-alignment": alignOnViewport ? "viewport" : "map",
+            "symbol-sort-key": [
+              "/",
+              1,
+              [
+                "get",
+                options.cluster ? "point_count" : (options.property as string),
+              ],
+            ], // so that the largest value goes on top
           },
           paint: {
-            'text-color': labelColor,
-            'text-opacity': pointOpacity,
+            "text-color": labelColor,
+            "text-opacity": pointOpacity,
           },
           minzoom,
           maxzoom,
         },
-        options.beforeId
+        options.beforeId,
       );
     }
     return returnedInfo;
   }
 
-
   /**
    * Loads an image. This is an async equivalent of `Map.loadImage`
    */
-  async loadImageAsync(url: string ): Promise<HTMLImageElement | ImageBitmap | null | undefined>{
+  async loadImageAsync(
+    url: string,
+  ): Promise<HTMLImageElement | ImageBitmap | null | undefined> {
     return new Promise((resolve, reject) => {
-      this.loadImage(url, (error: Error | null | undefined, image: HTMLImageElement | ImageBitmap | null | undefined) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(image);
-      });
-    })
+      this.loadImage(
+        url,
+        (
+          error: Error | null | undefined,
+          image: HTMLImageElement | ImageBitmap | null | undefined,
+        ) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve(image);
+        },
+      );
+    });
   }
 
   /**
@@ -2101,7 +2181,6 @@ export class Map extends maplibregl.Map {
      */
     heatmapSourceId: string;
   } {
-
     if (options.layerId && this.getLayer(options.layerId)) {
       throw new Error(
         `A layer already exists with the layer id: ${options.layerId}`,
@@ -2138,9 +2217,9 @@ export class Map extends maplibregl.Map {
     }
 
     const intensity = options.intensity ?? [
-      {zoom: 0, value: 0.01},
-      {zoom: 4, value: 0.2},
-      {zoom: 16, value: 1},
+      { zoom: 0, value: 0.01 },
+      { zoom: 4, value: 0.2 },
+      { zoom: 16, value: 1 },
     ];
 
     const property = options.property ?? null;
@@ -2154,54 +2233,78 @@ export class Map extends maplibregl.Map {
 
         // In case this numerical weight was provided by the user and not be the default value:
         if (typeof options.weight === "number") {
-          console.warn("The option `.property` is ignored when `.propertyValueWeights` is not of type `PropertyValueWeights`");
+          console.warn(
+            "The option `.property` is ignored when `.propertyValueWeights` is not of type `PropertyValueWeights`",
+          );
         }
       } else if (Array.isArray(propertyValueWeight)) {
-        heatmapWeight = rampedPropertyValueWeight(propertyValueWeight, property);
+        heatmapWeight = rampedPropertyValueWeight(
+          propertyValueWeight,
+          property,
+        );
       } else {
-        console.warn("The option `.property` is ignored when `.propertyValueWeights` is not of type `PropertyValueWeights`");
+        console.warn(
+          "The option `.property` is ignored when `.propertyValueWeights` is not of type `PropertyValueWeights`",
+        );
       }
     } else {
       if (typeof propertyValueWeight === "number") {
         heatmapWeight = propertyValueWeight;
       } else if (Array.isArray(propertyValueWeight)) {
-        console.warn("The options `.propertyValueWeights` can only be used when `.property` is provided.");
+        console.warn(
+          "The options `.propertyValueWeights` can only be used when `.property` is provided.",
+        );
       }
     }
 
     const defaultRadiusZoomRamping = [
-      {zoom: 0, value: 50 * 0.025},
-      {zoom: 2, value: 50 * 0.05},
-      {zoom: 4, value: 50 * 0.1},
-      {zoom: 8, value: 50 * 0.25},
-      {zoom: 16, value: 50},
-    ]
+      { zoom: 0, value: 50 * 0.025 },
+      { zoom: 2, value: 50 * 0.05 },
+      { zoom: 4, value: 50 * 0.1 },
+      { zoom: 8, value: 50 * 0.25 },
+      { zoom: 16, value: 50 },
+    ];
 
-    const radius = options.radius ?? (zoomCompensation ? defaultRadiusZoomRamping : 10);
+    const radius =
+      options.radius ?? (zoomCompensation ? defaultRadiusZoomRamping : 10);
 
     let radiusHeatmap: DataDrivenPropertyValueSpecification<number> = 1;
 
     if (typeof radius === "number") {
       radiusHeatmap = radius;
-    } else 
-
-    // Radius is provided as a zoom-ramping array
-    if (Array.isArray(radius) && "zoom" in radius[0]) {
-      radiusHeatmap = rampedOptionsToLayerPaintSpec(radius as ZoomNumberValues);
-    } else 
-
-    // Radius is provided as data driven 
-    if (property && Array.isArray(radius) && "propertyValue" in radius[0]) {
-      radiusHeatmap = radiusDrivenByPropertyHeatmap(radius as unknown as PropertyValues, property, zoomCompensation);
-    } else 
-
-    if (!property && Array.isArray(radius) && "propertyValue" in radius[0]) {
-      radiusHeatmap = rampedOptionsToLayerPaintSpec(defaultRadiusZoomRamping as ZoomNumberValues);
-      console.warn("The option `.radius` can only be property-driven if the option `.property` is provided.");
     }
 
-    else {
-      radiusHeatmap = rampedOptionsToLayerPaintSpec(defaultRadiusZoomRamping as ZoomNumberValues);
+    // Radius is provided as a zoom-ramping array
+    else if (Array.isArray(radius) && "zoom" in radius[0]) {
+      radiusHeatmap = rampedOptionsToLayerPaintSpec(radius as ZoomNumberValues);
+    }
+
+    // Radius is provided as data driven
+    else if (
+      property &&
+      Array.isArray(radius) &&
+      "propertyValue" in radius[0]
+    ) {
+      radiusHeatmap = radiusDrivenByPropertyHeatmap(
+        radius as unknown as PropertyValues,
+        property,
+        zoomCompensation,
+      );
+    } else if (
+      !property &&
+      Array.isArray(radius) &&
+      "propertyValue" in radius[0]
+    ) {
+      radiusHeatmap = rampedOptionsToLayerPaintSpec(
+        defaultRadiusZoomRamping as ZoomNumberValues,
+      );
+      console.warn(
+        "The option `.radius` can only be property-driven if the option `.property` is provided.",
+      );
+    } else {
+      radiusHeatmap = rampedOptionsToLayerPaintSpec(
+        defaultRadiusZoomRamping as ZoomNumberValues,
+      );
     }
 
     const returnedInfo = {
@@ -2211,7 +2314,6 @@ export class Map extends maplibregl.Map {
 
     // A new source is added if the map does not have this sourceId and the data is provided
     if (options.data && !this.getSource(sourceId)) {
-
       let data: string | FeatureCollection = options.data;
 
       // If is a UUID, we extend it to be the URL to a MapTiler Cloud hosted dataset
@@ -2235,18 +2337,24 @@ export class Map extends maplibregl.Map {
       paint: {
         "heatmap-weight": heatmapWeight,
 
-        "heatmap-intensity": typeof intensity === "number"
-          ? intensity
-          : rampedOptionsToLayerPaintSpec(intensity) as PropertyValueSpecification<number>,
+        "heatmap-intensity":
+          typeof intensity === "number"
+            ? intensity
+            : (rampedOptionsToLayerPaintSpec(
+                intensity,
+              ) as PropertyValueSpecification<number>),
 
         "heatmap-color": heatmapIntensityFromColorRamp(colorRamp),
 
         "heatmap-radius": radiusHeatmap,
 
-        "heatmap-opacity": typeof opacity === "number"
-          ? opacity
-          : rampedOptionsToLayerPaintSpec(opacity) as PropertyValueSpecification<number>,
-      }
+        "heatmap-opacity":
+          typeof opacity === "number"
+            ? opacity
+            : (rampedOptionsToLayerPaintSpec(
+                opacity,
+              ) as PropertyValueSpecification<number>),
+      },
     });
 
     return returnedInfo;

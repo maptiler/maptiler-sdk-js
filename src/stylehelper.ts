@@ -1,5 +1,8 @@
 import { FeatureCollection } from "geojson";
-import { DataDrivenPropertyValueSpecification, ExpressionSpecification, Properties } from "maplibre-gl";
+import {
+  DataDrivenPropertyValueSpecification,
+  ExpressionSpecification,
+} from "maplibre-gl";
 import { generateRandomString } from "./tools";
 import { ColorRamp, RgbaColor } from "./colorramp";
 
@@ -79,19 +82,17 @@ export type ZoomNumberValues = Array<{
   value: number;
 }>;
 
-
 export type PropertyValues = Array<{
   /**
    * Value of the property (input)
    */
-  propertyValue: number,
+  propertyValue: number;
 
   /**
    * Value to associate it with (output)
    */
-  value: number,
+  value: number;
 }>;
-
 
 /**
  * Describes how to render a cluster of points
@@ -102,19 +103,18 @@ export type DataDrivenStyle = Array<{
    * In case of clusters, the value to observe is automatically the number of elements in a cluster.
    * In other cases, it can be a provided value.
    */
-  value: number,
+  value: number;
 
   /**
    * Radius of the cluster circle
    */
-  pointRadius: number,
+  pointRadius: number;
 
   /**
    * Color of the cluster
    */
-  color: string,
-}>
-
+  color: string;
+}>;
 
 /**
  * Linera interpolation to find a value at an arbitrary zoom level, given a list of tuple zoom-value
@@ -362,9 +362,6 @@ export type PolylgonLayerOptions = CommonShapeLayerOptions & {
   outlineBlur?: number | ZoomNumberValues;
 };
 
-
-
-
 export type PointLayerOptions = CommonShapeLayerOptions & {
   /**
    * Can be a unique point color as a string (CSS color such as "#FF0000" or "red").
@@ -400,11 +397,10 @@ export type PointLayerOptions = CommonShapeLayerOptions & {
    * The point property to observe and apply the radius and color upon.
    * This is ignored if `.cluster` is `true` as the observed value will be fiorced to being the number
    * of elements in each cluster.
-   * 
+   *
    * Default: none
    */
   property?: string;
-  
 
   /**
    * Opacity of the point or icon. This is can be a constant opacity in [0, 1] or a definition based on zoom levels.
@@ -430,8 +426,8 @@ export type PointLayerOptions = CommonShapeLayerOptions & {
   /**
    * Shows a label with the numerical value id `true`.
    * If `.cluster` is `true`, the value will be the numebr of elements in the cluster.
-   * 
-   * 
+   *
+   *
    * Default: `true` if `cluster` or `dataDrivenStyleProperty` are used, `false` otherwise.
    */
   showLabel?: boolean;
@@ -456,9 +452,8 @@ export type PointLayerOptions = CommonShapeLayerOptions & {
    * If `false`, the radius will not adapt according to the zoom level.
    * Default: `true`
    */
-  zoomCompensation?: boolean,
+  zoomCompensation?: boolean;
 };
-
 
 export type HeatmapLayerOptions = {
   /**
@@ -500,57 +495,56 @@ export type HeatmapLayerOptions = {
   maxzoom?: number;
 
   /**
-   * The ColorRamp instance to use for visualization. The color ramp is expected to be defined in the 
+   * The ColorRamp instance to use for visualization. The color ramp is expected to be defined in the
    * range `[0, 1]` or else will be forced to this range.
    * Default: `ColorRampCollection.TURBO`
    */
-  colorRamp?: ColorRamp,
+  colorRamp?: ColorRamp;
 
   /**
    * Use a property to apply a weight to each data point. Using a property requires also using
    * the options `.propertyValueWeight` or otherwise will be ignored.
    * Default: none, the points will all have a weight of `1`.
    */
-  property?: string,
+  property?: string;
 
   /**
-   * The weight to give to each data point. If of type `PropertyValueWeights`, then the options `.property` 
+   * The weight to give to each data point. If of type `PropertyValueWeights`, then the options `.property`
    * must also be provided. If used a number, all data points will be weighted by the same number (which is of little interest)
    */
-  weight?: PropertyValues | number,
+  weight?: PropertyValues | number;
 
   /**
    * The radius (in screenspace) can be:
    * - a fixed number that will be constant across zoom level
    * - of type `ZoomNumberValues` to be ramped accoding to zoom level (`.zoomCompensation` will then be ignored)
-   * - of type `PropertyValues` to be driven by the value of a property. 
+   * - of type `PropertyValues` to be driven by the value of a property.
    *   If so, the option `.property` must be provided and will still be resized according to zoom level,
    *   unless the option `.zoomCompensation` is set to `false`.
-   * 
-   * Default: 
+   *
+   * Default:
    */
-  radius?: number | ZoomNumberValues | PropertyValues,
+  radius?: number | ZoomNumberValues | PropertyValues;
 
   /**
    * The opacity can be a fixed value or zoom-driven.
    * Default: fades-in 0.25z after minzoom and fade-out 0.25z before maxzoom
    */
-  opacity?: number | ZoomNumberValues,
+  opacity?: number | ZoomNumberValues;
 
   /**
    * The intensity is zoom-dependent. By default, the intensity is going to be scaled by zoom to preserve
    * a natural aspect or the data distribution.
    */
-  intensity?: number | ZoomNumberValues,
+  intensity?: number | ZoomNumberValues;
 
   /**
    * If the radius is driven by a property, then it will also scale by zoomming if `.zoomCompensation` is `true`.
    * If `false`, the radius will not adapt according to the zoom level.
    * Default: `true`
    */
-  zoomCompensation?: boolean,
-}
-
+  zoomCompensation?: boolean;
+};
 
 export function paintColorOptionsToPaintSpec(
   color: ZoomStringValues,
@@ -562,7 +556,6 @@ export function paintColorOptionsToPaintSpec(
     ...color.map((el) => [el.zoom, el.value]).flat(),
   ];
 }
-
 
 export function rampedOptionsToLayerPaintSpec(
   ramp: ZoomNumberValues,
@@ -632,8 +625,10 @@ export function computeRampedOutlineWidth(
   return 0;
 }
 
-
-export function rampedPropertyValueWeight(ramp: PropertyValues, property: string): DataDrivenPropertyValueSpecification<number> {
+export function rampedPropertyValueWeight(
+  ramp: PropertyValues,
+  property: string,
+): DataDrivenPropertyValueSpecification<number> {
   return [
     "interpolate",
     ["linear"],
@@ -641,7 +636,6 @@ export function rampedPropertyValueWeight(ramp: PropertyValues, property: string
     ...ramp.map((el) => [el.propertyValue, el.value]).flat(),
   ];
 }
-
 
 /**
  * Create a dash array from a string pattern that uses underscore and whitespace characters
@@ -685,113 +679,149 @@ export function dashArrayMaker(pattern: string): Array<number> {
   return dashArray;
 }
 
-
-
-export function colorDrivenByProperty(style: DataDrivenStyle, property: string): DataDrivenPropertyValueSpecification<string> {
+export function colorDrivenByProperty(
+  style: DataDrivenStyle,
+  property: string,
+): DataDrivenPropertyValueSpecification<string> {
   return [
     "interpolate",
     ["linear"],
     ["get", property],
-    ... style.map(el => [el.value, el.color]).flat(),
+    ...style.map((el) => [el.value, el.color]).flat(),
   ];
 }
 
-
-export function radiusDrivenByProperty(style: DataDrivenStyle, property: string, zoomCompensation:boolean = true): DataDrivenPropertyValueSpecification<number> {
-
+export function radiusDrivenByProperty(
+  style: DataDrivenStyle,
+  property: string,
+  zoomCompensation = true,
+): DataDrivenPropertyValueSpecification<number> {
   if (!zoomCompensation) {
     return [
       "interpolate",
       ["linear"],
       ["get", property],
-      ... style.map(el => [el.value, el.pointRadius]).flat(),
+      ...style.map((el) => [el.value, el.pointRadius]).flat(),
     ];
   }
 
   return [
-    'interpolate',
-    ['linear'],
-    ['zoom'],
-    
-    0, [
-      'interpolate',['linear'], ['get', property], 
-      ... style.map(el => [el.value, el.pointRadius * 0.025]).flat(),
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+
+    0,
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.map((el) => [el.value, el.pointRadius * 0.025]).flat(),
     ],
 
-    2, [
-      'interpolate',['linear'], ['get', property], 
-      ... style.map(el => [el.value, el.pointRadius * 0.05]).flat(),
+    2,
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.map((el) => [el.value, el.pointRadius * 0.05]).flat(),
     ],
 
-    4, [
-      'interpolate',['linear'], ['get', property], 
-      ... style.map(el => [el.value, el.pointRadius * 0.1]).flat(),
+    4,
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.map((el) => [el.value, el.pointRadius * 0.1]).flat(),
     ],
 
-    8, [
-      'interpolate',['linear'], ['get', property], 
-      ... style.map(el => [el.value, el.pointRadius * 0.25]).flat(),
+    8,
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.map((el) => [el.value, el.pointRadius * 0.25]).flat(),
     ],
 
-    16, [
-      'interpolate', ['linear'], ['get', property],
-      ... style.map(el => [el.value, el.pointRadius]).flat(),
-    ]
-  ]
+    16,
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.map((el) => [el.value, el.pointRadius]).flat(),
+    ],
+  ];
 }
 
-
-export function radiusDrivenByPropertyHeatmap(style: PropertyValues, property: string, zoomCompensation:boolean = true): DataDrivenPropertyValueSpecification<number> {
-
+export function radiusDrivenByPropertyHeatmap(
+  style: PropertyValues,
+  property: string,
+  zoomCompensation = true,
+): DataDrivenPropertyValueSpecification<number> {
   if (!zoomCompensation) {
     return [
       "interpolate",
       ["linear"],
       ["get", property],
-      ... style.map(el => [el.propertyValue, el.value]).flat(),
+      ...style.map((el) => [el.propertyValue, el.value]).flat(),
     ];
   }
 
   return [
-    'interpolate',
-    ['linear'],
-    ['zoom'],
-    
-    0, [
-      'interpolate',['linear'], ['get', property], 
-      ... style.map(el => [el.propertyValue, el.value * 0.025]).flat(),
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+
+    0,
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.map((el) => [el.propertyValue, el.value * 0.025]).flat(),
     ],
 
-    2, [
-      'interpolate',['linear'], ['get', property], 
-      ... style.map(el => [el.propertyValue, el.value * 0.05]).flat(),
+    2,
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.map((el) => [el.propertyValue, el.value * 0.05]).flat(),
     ],
 
-    4, [
-      'interpolate',['linear'], ['get', property], 
-      ... style.map(el => [el.propertyValue, el.value * 0.1]).flat(),
+    4,
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.map((el) => [el.propertyValue, el.value * 0.1]).flat(),
     ],
 
-    8, [
-      'interpolate',['linear'], ['get', property], 
-      ... style.map(el => [el.propertyValue, el.value * 0.25]).flat(),
+    8,
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.map((el) => [el.propertyValue, el.value * 0.25]).flat(),
     ],
 
-    16, [
-      'interpolate', ['linear'], ['get', property],
-      ... style.map(el => [el.propertyValue, el.value]).flat(),
-    ]
-  ]
+    16,
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.map((el) => [el.propertyValue, el.value]).flat(),
+    ],
+  ];
 }
-
 
 /**
  * Turns a ColorRamp instance into a MapLibre style for ramping the opacity, driven by a property
  */
-export function opacityDrivenByProperty(colorramp: ColorRamp, property: string): DataDrivenPropertyValueSpecification<number> {
-
+export function opacityDrivenByProperty(
+  colorramp: ColorRamp,
+  property: string,
+): DataDrivenPropertyValueSpecification<number> {
   // If all opacities are the same, just return the number without any ramping logic
-  if (colorramp.every(el => el.color[3] === colorramp[0].color[3])) {
+  if (colorramp.every((el) => el.color[3] === colorramp[0].color[3])) {
     return colorramp[0].color[3] ? colorramp[0].color[3] / 255 : 1;
   }
 
@@ -799,25 +829,28 @@ export function opacityDrivenByProperty(colorramp: ColorRamp, property: string):
     "interpolate",
     ["linear"],
     ["get", property],
-    ... colorramp.getRawColorStops().map(el => {
-      const value = el.value;
-      const color: RgbaColor = el.color;
-      return [value, color.length === 4 ? color[3] / 255 : 1];
-    }).flat(),
+    ...colorramp
+      .getRawColorStops()
+      .map((el) => {
+        const value = el.value;
+        const color: RgbaColor = el.color;
+        return [value, color.length === 4 ? color[3] / 255 : 1];
+      })
+      .flat(),
   ];
 }
 
-export function heatmapIntensityFromColorRamp(colorRamp: ColorRamp, steps: number = 10): ExpressionSpecification {
+export function heatmapIntensityFromColorRamp(
+  colorRamp: ColorRamp,
+  steps = 10,
+): ExpressionSpecification {
   return [
-    'interpolate',
-    ['linear'],
-    ['heatmap-density'],
-    ... Array.from({length: steps + 1}, (_, i) => {
-      const unitStep = i / steps
-      return [
-        unitStep,
-        colorRamp.getColorHex(unitStep),
-      ]
-    }).flat()
+    "interpolate",
+    ["linear"],
+    ["heatmap-density"],
+    ...Array.from({ length: steps + 1 }, (_, i) => {
+      const unitStep = i / steps;
+      return [unitStep, colorRamp.getColorHex(unitStep)];
+    }).flat(),
   ];
 }
