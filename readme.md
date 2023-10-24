@@ -781,7 +781,7 @@ map.addHeatmap({
 });
 ```
 ![](images/screenshots/heatmap-colorramp.png)
-Turning off zoom compensation allows for more accurate adjustments to the visualization at a specific zoom level, but it may not adapt as smoothly when zooming in or out.
+Turning off *zoom compensation* allows for more accurate adjustments to the visualization at a specific zoom level, but it may not adapt as smoothly when zooming in or out.
 
 All the other options are documented on a [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/).
 
