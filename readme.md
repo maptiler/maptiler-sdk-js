@@ -513,7 +513,7 @@ import { ColorRampCollection } from "@maptiler/sdk";
 
 // The TURBO color ramp, just like all the built-ins, is defined in [0, 1],
 // but we can rescale it to fit the range of temperature [-18, 38]°C (equivalent to [0, 100]F)
-// and this actually createc a clone of the original TURBO
+// and this actually creates a clone of the original TURBO
 const temperatureTurbo = ColorRampCollection.TURBO.scale(-18, 38);
 
 // What's the color at 0°C (or 32F) ?
@@ -545,9 +545,9 @@ const myCustomRamp = new ColorRamp({
 });
 ```
 
-When defining a new *ramp*, the color can be a RGB array (`[number, number, number]`) or a RGBA array (`[number, number, number, number]`).
+When defining a new *ramp*, the colors can be a RGB array (`[number, number, number]`) or a RGBA array (`[number, number, number, number]`).
 
-Many methods are available on Color Ramp, such as getting a `<canvas>` element of it, rescale it, flip it or [ressample it in a non-linear way](colorramp.md). Read more on [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and have a look at our [examples](https://docs.maptiler.com/sdk-js/examples/?q=colorramp) to see how they work.
+Many methods are available on color ramps, such as getting a `<canvas>` element of it, rescale it, flip it or [ressample it in a non-linear way](colorramp.md). Read more on [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and have a look at our [examples](https://docs.maptiler.com/sdk-js/examples/?q=colorramp) to see how they work.
 
 
 # Vector Layer Helpers
@@ -747,9 +747,9 @@ Here, the`PORTLAND` color ramp is going to be used so that schools with `200` st
 All the other options are documented on a [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/).
 
 ## Heatmap Layer Helper
-The heatmap layer is a great alternative for visualizing a collection of sparse data, but they can be challenging to use, especially when one has to come up with thir own color ramp from scratch. **The helper makes this much easier!**
+The heatmap layer is a great alternative for visualizing a collection of sparse data, but they can be challenging to use, especially when one has to come up with their own color ramp from scratch. **The helper makes this much easier!**
 
-Here is a minimalist example, using the default `TURBO` color ramp
+Here is a minimalist example, using the default built-in `TURBO` color ramp:
 ```ts
 map.addHeatmap({
   data: "public-schools.geojson",
@@ -757,7 +757,7 @@ map.addHeatmap({
 ```
 ![](images/screenshots/heatmap-schools.png)
 
-Some visualisation are created with a fixed extent and zoom level in mind. In this case, we want to tailor the color, radius, weight and intensity of the heatmap blobs exactely for this precise settings. In the following example, we disable the *zoom compensation* to make sure radii and intensity is never zoom-dependant:
+Some visualisations are created with a fixed geographic extent or zoom level in mind, whether it's a survey at the scale of a single neigbohood, or statitics at country scale. In this case, we want to tailor the color, radius, weight and intensity of the heatmap blobs exactely for this precise settings. In the following example, we disable the *zoom compensation* to make sure radii and intensity is never zoom-dependant:
 ```ts
 map.addHeatmap({
   data: "public-schools.geojson",
@@ -781,6 +781,7 @@ map.addHeatmap({
 });
 ```
 ![](images/screenshots/heatmap-colorramp.png)
+Turning off zoom compensation allows for more accurate adjustments to the visualization at a specific zoom level, but it may not adapt as smoothly when zooming in or out.
 
 All the other options are documented on a [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/).
 
