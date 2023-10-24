@@ -498,6 +498,58 @@ We believe that the *promise* approach is better because it does not nest scopes
 
 > 📣 *__Note:__* Generally speaking, *promises* are not a go to replacement for all event+callback and are suitable only for events that are called only once in the lifecycle of a Map instance. This is the reason why we have decided to provide a *promise* equivalent only for the `load` and `loadWithTerrain` events.
 
+# Color Ramps
+A color ramp is a color gradient defined in a specific interval, for instance in [0, 1], and for any value within this interval will retrieve a color. They are defined by at least a color at each bound and usualy additional colors within the range.  
+
+Color ramps are super useful to represent numerical data in a visual way: the temperature, the population density, the average commute time, etc.  
+
+The SDK includes many built-in ready to use color ramps as well as extra logic to manipulate them and create new ones, here is the full list:
+
+![](images/colorramps.png)
+
+To use an already existing color ramp and access some of its values:
+```ts
+import { ColorRampCollection } from "@maptiler/sdk";
+
+// The TURBO color ramp, just like all the built-ins, is defined in [0, 1],
+// but we can rescale it to fit the range of temperature [-18, 38]°C (equivalent to [0, 100]F)
+// and this actually createc a clone of the original TURBO
+const temperatureTurbo = ColorRampCollection.TURBO.scale(-18, 38);
+
+// What's the color at 0°C (or 32F) ?
+const zeroColor = temperatureTurbo.getColor(0);
+// The color is an array: [45, 218, 189, 255]
+
+// Alternatively, we can ask for the hex color:
+const zeroColorHex = temperatureTurbo.getColorHex(0);
+// The color is a string: "#2ddabdff"
+```
+
+Creating a new one consists in defining all the colors for each *color stops*. The values can be in the range of interest and *do not* have to be in [0, 1]. For example, let's recreate a *Viridis* color ramp but with a range going from 0 to 100:
+
+```ts
+import { ColorRamp } from "@maptiler/sdk";
+
+const myCustomRamp = new ColorRamp({
+  stops: [
+    { value: 0, color: [68, 1, 84] },
+    { value: 13, color: [71, 44, 122] },
+    { value: 25, color: [59, 81, 139] },
+    { value: 38, color: [44, 113, 142] },
+    { value: 5, color: [33, 144, 141] },
+    { value: 63, color: [39, 173, 129] },
+    { value: 75, color: [92, 200, 99] },
+    { value: 88, color: [170, 220, 50] },
+    { value: 100, color: [253, 231, 37] },
+  ]
+});
+```
+
+When defining a new *ramp*, the color can be a RGB array (`[number, number, number]`) or a RGBA array (`[number, number, number, number]`).
+
+Many methods are available on Color Ramp, such as getting a `<canvas>` element of it, rescale it, flip it or [ressample it in a non-linear way](colorramp.md). Read more on [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and have a look at our [examples](https://docs.maptiler.com/sdk-js/examples/?q=colorramp) to see how they work.
+
+
 # Vector Layer Helpers
 **Let's make vector layers easy!** Originaly, you'd have to add a source and then proceed to the styling of your layer, which can be tricky becasue there are a lot of `paint` and `layout` options and they vary a lot from one type of layer to another. **But we have helpers for this!** 🖋️
 ![](images/screenshots/point-layer.jpg)
