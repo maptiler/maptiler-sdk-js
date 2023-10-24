@@ -406,7 +406,6 @@ export class ColorRamp extends Array<ColorStop> {
   hasTransparentStart(): boolean {
     return this[0].color.length === 4 && this[0].color[3] === 0;
   }
-
 }
 
 
@@ -450,7 +449,6 @@ export const ColorRampCollection = {
       { value: 1, color: [128, 0, 0] },
     ],
   }),
-
 
   /**
    * Classic HSV color ramp (hue, saturation, value).

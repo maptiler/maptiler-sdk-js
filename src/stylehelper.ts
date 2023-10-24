@@ -80,12 +80,6 @@ export type ZoomNumberValues = Array<{
 }>;
 
 
-// export type PropertyValueWeights = Array<{
-//   propertyValue: number,
-//   weight: number,
-// }>;
-
-
 export type PropertyValues = Array<{
   /**
    * Value of the property (input)
@@ -97,6 +91,7 @@ export type PropertyValues = Array<{
    */
   value: number,
 }>;
+
 
 /**
  * Describes how to render a cluster of points
@@ -648,7 +643,6 @@ export function rampedPropertyValueWeight(ramp: PropertyValues, property: string
 }
 
 
-
 /**
  * Create a dash array from a string pattern that uses underscore and whitespace characters
  */
@@ -747,7 +741,6 @@ export function radiusDrivenByProperty(style: DataDrivenStyle, property: string,
 }
 
 
-
 export function radiusDrivenByPropertyHeatmap(style: PropertyValues, property: string, zoomCompensation:boolean = true): DataDrivenPropertyValueSpecification<number> {
 
   if (!zoomCompensation) {
@@ -791,6 +784,7 @@ export function radiusDrivenByPropertyHeatmap(style: PropertyValues, property: s
   ]
 }
 
+
 /**
  * Turns a ColorRamp instance into a MapLibre style for ramping the opacity, driven by a property
  */
@@ -812,7 +806,6 @@ export function opacityDrivenByProperty(colorramp: ColorRamp, property: string):
     }).flat(),
   ];
 }
-
 
 export function heatmapIntensityFromColorRamp(colorRamp: ColorRamp, steps: number = 10): ExpressionSpecification {
   return [

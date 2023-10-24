@@ -10,6 +10,12 @@ import type {
   Tile,
   RasterDEMSourceSpecification,
   RequestTransformFunction,
+  Source,
+  LayerSpecification,
+  SourceSpecification,
+  CustomLayerInterface,
+  FilterSpecification,
+  StyleSetterOptions,
   DataDrivenPropertyValueSpecification,
   PropertyValueSpecification,
   ExpressionSpecification,
@@ -22,7 +28,6 @@ import {
   combineTransformRequest,
   enableRTL,
   isUUID,
-  isValidGeoJSON,
   jsonParseNoThrow,
 } from "./tools";
 import {
@@ -61,9 +66,11 @@ import {
   radiusDrivenByPropertyHeatmap,
   PropertyValues,
 } from "./stylehelper";
-import { FeatureCollection } from "geojson";
 import { gpx, gpxOrKml, kml } from "./converters";
 import { ColorRamp, ColorRampCollection } from "./colorramp";
+import Minimap from "./Minimap";
+import type { MinimapOptionsInput } from "./Minimap";
+import type { Geometry, FeatureCollection, GeoJsonProperties } from "geojson";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -162,6 +169,17 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   fullscreenControl?: boolean | ControlPosition;
 
   /**
+   * Display a minimap in a user defined corner of the map. (default: `bottom-left` corner)
+   * If set to true, the map will assume it is a minimap and forego the attribution control.
+   */
+  minimap?: boolean | ControlPosition | MinimapOptionsInput;
+
+  /**
+   * attributionControl
+   */
+  forceNoAttributionControl?: boolean;
+
+  /**
    * Method to position the map at a given geolocation. Only if:
    * - `hash` is `false`
    * - `center` is not provided
@@ -192,6 +210,7 @@ export class Map extends maplibregl.Map {
   private primaryLanguage: LanguageString;
   private terrainGrowing = false;
   private terrainFlattening = false;
+  private minimap?: Minimap;
   private forceLanguageUpdate: boolean;
   private languageAlwaysBeenStyle: boolean;
 
@@ -252,9 +271,9 @@ export class Map extends maplibregl.Map {
           await this.fitToIpBounds();
           return;
         }
-      } catch (e: any) {
+      } catch (e) {
         // not raising
-        console.warn(e.message);
+        console.warn((e as Error).message);
       }
 
       // As a fallback, we want to center the map on the visitor. First with IP geolocation...
@@ -262,9 +281,9 @@ export class Map extends maplibregl.Map {
       try {
         await this.centerOnIpPoint(options.zoom);
         ipLocatedCameraHash = this.getCameraHash();
-      } catch (e: any) {
+      } catch (e) {
         // not raising
-        console.warn(e.message);
+        console.warn((e as Error).message);
       }
 
       // A more precise localization
@@ -346,8 +365,11 @@ export class Map extends maplibregl.Map {
         const possibleSources = Object.keys(this.style.sourceCaches)
           .map((sourceName) => this.getSource(sourceName))
           .filter(
-            (s: any) =>
-              typeof s.url === "string" && s.url.includes("tiles.json"),
+            (s: Source | undefined) =>
+              s &&
+              "url" in s &&
+              typeof s.url === "string" &&
+              s?.url.includes("tiles.json"),
           );
 
         const styleUrl = new URL(
@@ -365,24 +387,26 @@ export class Map extends maplibregl.Map {
       }
 
       // The attribution and logo must show when required
-      if ("logo" in tileJsonContent && tileJsonContent.logo) {
-        const logoURL: string = tileJsonContent.logo;
+      if (options.forceNoAttributionControl !== true) {
+        if ("logo" in tileJsonContent && tileJsonContent.logo) {
+          const logoURL: string = tileJsonContent.logo;
 
-        this.addControl(
-          new MaptilerLogoControl({ logoURL }),
-          options.logoPosition,
-        );
-
-        // if attribution in option is `false` but the the logo shows up in the tileJson, then the attribution must show anyways
-        if (options.attributionControl === false) {
           this.addControl(
-            new AttributionControl({
-              customAttribution: options.customAttribution,
-            }),
+            new MaptilerLogoControl({ logoURL }),
+            options.logoPosition,
           );
+
+          // if attribution in option is `false` but the the logo shows up in the tileJson, then the attribution must show anyways
+          if (options.attributionControl === false) {
+            this.addControl(
+              new AttributionControl({
+                customAttribution: options.customAttribution,
+              }),
+            );
+          }
+        } else if (options.maptilerLogo) {
+          this.addControl(new MaptilerLogoControl(), options.logoPosition);
         }
-      } else if (options.maptilerLogo) {
-        this.addControl(new MaptilerLogoControl(), options.logoPosition);
       }
 
       // the other controls at init time but be after
@@ -485,7 +509,67 @@ export class Map extends maplibregl.Map {
       }
     });
 
-    const terrainCallback = (evt: any) => {
+    this.once("style.load", () => {
+      const { minimap } = options;
+      if (typeof minimap === "object") {
+        const {
+          zoom,
+          center,
+          style,
+          language,
+          apiKey,
+          maptilerLogo,
+          antialias,
+          refreshExpiredTiles,
+          maxBounds,
+          scrollZoom,
+          minZoom,
+          maxZoom,
+          boxZoom,
+          locale,
+          fadeDuration,
+          crossSourceCollisions,
+          clickTolerance,
+          bounds,
+          fitBoundsOptions,
+          pixelRatio,
+          validateStyle,
+        } = options;
+        this.minimap = new Minimap(minimap, {
+          zoom,
+          center,
+          style,
+          language,
+          apiKey,
+          container: "null",
+          maptilerLogo,
+          antialias,
+          refreshExpiredTiles,
+          maxBounds,
+          scrollZoom,
+          minZoom,
+          maxZoom,
+          boxZoom,
+          locale,
+          fadeDuration,
+          crossSourceCollisions,
+          clickTolerance,
+          bounds,
+          fitBoundsOptions,
+          pixelRatio,
+          validateStyle,
+        });
+        this.addControl(this.minimap, minimap.position ?? "bottom-left");
+      } else if (minimap === true) {
+        this.minimap = new Minimap({}, options);
+        this.addControl(this.minimap, "bottom-left");
+      } else if (minimap !== undefined && minimap !== false) {
+        this.minimap = new Minimap({}, options);
+        this.addControl(this.minimap, minimap);
+      }
+    });
+
+    const terrainCallback = (evt: LoadWithTerrainEvent) => {
       if (!evt.terrain) return;
       terrainEventTriggered = true;
       terrainEventData = {
@@ -563,6 +647,7 @@ export class Map extends maplibregl.Map {
       | string,
     options?: StyleSwapOptions & StyleOptions,
   ): this {
+    this.minimap?.setStyle(style);
     this.forceLanguageUpdate = true;
 
     this.once("idle", () => {
@@ -570,6 +655,173 @@ export class Map extends maplibregl.Map {
     });
 
     return super.setStyle(styleToStyle(style), options);
+  }
+
+  /**
+   * Adds a [MapLibre style layer](https://maplibre.org/maplibre-style-spec/layers)
+   * to the map's style.
+   *
+   * A layer defines how data from a specified source will be styled. Read more about layer types
+   * and available paint and layout properties in the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/layers).
+   *
+   * @param layer - The layer to add,
+   * conforming to either the MapLibre Style Specification's [layer definition](https://maplibre.org/maplibre-style-spec/layers) or,
+   * less commonly, the {@link CustomLayerInterface} specification.
+   * The MapLibre Style Specification's layer definition is appropriate for most layers.
+   *
+   * @param beforeId - The ID of an existing layer to insert the new layer before,
+   * resulting in the new layer appearing visually beneath the existing layer.
+   * If this argument is not specified, the layer will be appended to the end of the layers array
+   * and appear visually above all other layers.
+   *
+   * @returns `this`
+   */
+  addLayer(
+    layer:
+      | (LayerSpecification & {
+          source?: string | SourceSpecification;
+        })
+      | CustomLayerInterface,
+    beforeId?: string,
+  ): this {
+    this.minimap?.addLayer(layer, beforeId);
+    return super.addLayer(layer, beforeId);
+  }
+
+  /**
+   * Moves a layer to a different z-position.
+   *
+   * @param id - The ID of the layer to move.
+   * @param beforeId - The ID of an existing layer to insert the new layer before. When viewing the map, the `id` layer will appear beneath the `beforeId` layer. If `beforeId` is omitted, the layer will be appended to the end of the layers array and appear above all other layers on the map.
+   * @returns `this`
+   *
+   * @example
+   * Move a layer with ID 'polygon' before the layer with ID 'country-label'. The `polygon` layer will appear beneath the `country-label` layer on the map.
+   * ```ts
+   * map.moveLayer('polygon', 'country-label');
+   * ```
+   */
+  moveLayer(id: string, beforeId?: string): this {
+    this.minimap?.moveLayer(id, beforeId);
+    return super.moveLayer(id, beforeId);
+  }
+
+  /**
+   * Removes the layer with the given ID from the map's style.
+   *
+   * An {@link ErrorEvent} will be fired if the image parameter is invald.
+   *
+   * @param id - The ID of the layer to remove
+   * @returns `this`
+   *
+   * @example
+   * If a layer with ID 'state-data' exists, remove it.
+   * ```ts
+   * if (map.getLayer('state-data')) map.removeLayer('state-data');
+   * ```
+   */
+  removeLayer(id: string): this {
+    this.minimap?.removeLayer(id);
+    return super.removeLayer(id);
+  }
+
+  /**
+   * Sets the zoom extent for the specified style layer. The zoom extent includes the
+   * [minimum zoom level](https://maplibre.org/maplibre-style-spec/layers/#minzoom)
+   * and [maximum zoom level](https://maplibre.org/maplibre-style-spec/layers/#maxzoom))
+   * at which the layer will be rendered.
+   *
+   * Note: For style layers using vector sources, style layers cannot be rendered at zoom levels lower than the
+   * minimum zoom level of the _source layer_ because the data does not exist at those zoom levels. If the minimum
+   * zoom level of the source layer is higher than the minimum zoom level defined in the style layer, the style
+   * layer will not be rendered at all zoom levels in the zoom range.
+   */
+  setLayerZoomRange(layerId: string, minzoom: number, maxzoom: number): this {
+    this.minimap?.setLayerZoomRange(layerId, minzoom, maxzoom);
+    return super.setLayerZoomRange(layerId, minzoom, maxzoom);
+  }
+
+  /**
+   * Sets the filter for the specified style layer.
+   *
+   * Filters control which features a style layer renders from its source.
+   * Any feature for which the filter expression evaluates to `true` will be
+   * rendered on the map. Those that are false will be hidden.
+   *
+   * Use `setFilter` to show a subset of your source data.
+   *
+   * To clear the filter, pass `null` or `undefined` as the second parameter.
+   */
+  setFilter(
+    layerId: string,
+    filter?: FilterSpecification | null,
+    options?: StyleSetterOptions,
+  ): this {
+    this.minimap?.setFilter(layerId, filter, options);
+    return super.setFilter(layerId, filter, options);
+  }
+
+  /**
+   * Sets the value of a paint property in the specified style layer.
+   *
+   * @param layerId - The ID of the layer to set the paint property in.
+   * @param name - The name of the paint property to set.
+   * @param value - The value of the paint property to set.
+   * Must be of a type appropriate for the property, as defined in the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/).
+   * @param options - Options object.
+   * @returns `this`
+   * @example
+   * ```ts
+   * map.setPaintProperty('my-layer', 'fill-color', '#faafee');
+   * ```
+   */
+  setPaintProperty(
+    layerId: string,
+    name: string,
+    value: any,
+    options?: StyleSetterOptions,
+  ): this {
+    this.minimap?.setPaintProperty(layerId, name, value, options);
+    return super.setPaintProperty(layerId, name, value, options);
+  }
+
+  /**
+   * Sets the value of a layout property in the specified style layer.
+   * Layout properties define how the layer is styled.
+   * Layout properties for layers of the same type are documented together.
+   * Layers of different types have different layout properties.
+   * See the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/) for the complete list of layout properties.
+   * @param layerId - The ID of the layer to set the layout property in.
+   * @param name - The name of the layout property to set.
+   * @param value - The value of the layout property to set.
+   * Must be of a type appropriate for the property, as defined in the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/).
+   * @param options - Options object.
+   * @returns `this`
+   */
+  setLayoutProperty(
+    layerId: string,
+    name: string,
+    value: any,
+    options?: StyleSetterOptions,
+  ): this {
+    this.minimap?.setLayoutProperty(layerId, name, value, options);
+    return super.setLayoutProperty(layerId, name, value, options);
+  }
+
+  /**
+   * Sets the value of the style's glyphs property.
+   *
+   * @param glyphsUrl - Glyph URL to set. Must conform to the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/glyphs/).
+   * @param options - Options object.
+   * @returns `this`
+   * @example
+   * ```ts
+   * map.setGlyphs('https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf');
+   * ```
+   */
+  setGlyphs(glyphsUrl: string | null, options?: StyleSetterOptions): this {
+    this.minimap?.setGlyphs(glyphsUrl, options);
+    return super.setGlyphs(glyphsUrl, options);
   }
 
   private getStyleLanguage(): string | null {
@@ -590,6 +842,7 @@ export class Map extends maplibregl.Map {
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
    */
   setLanguage(language: LanguageString | string): void {
+    this.minimap?.map?.setLanguage(language);
     this.onStyleReady(() => {
       this.setPrimaryLanguage(language);
     });
@@ -1119,7 +1372,7 @@ export class Map extends maplibregl.Map {
     }
 
     // We are going to evaluate the content of .data, if provided
-    let data = options.data as any;
+    let data = options.data;
 
     if (typeof data === "string") {
       // if options.data exists and is a uuid string, we consider that it points to a MapTiler Dataset
@@ -1146,7 +1399,10 @@ export class Map extends maplibregl.Map {
       } else {
         // From this point, we consider that the string content provided could
         // be the string content of one of the compatible format (GeoJSON, KML, GPX)
-        const tmpData = jsonParseNoThrow(data) ?? gpxOrKml(data);
+        const tmpData =
+          jsonParseNoThrow<FeatureCollection<Geometry, GeoJsonProperties>>(
+            data,
+          ) ?? gpxOrKml(data);
         if (tmpData) data = tmpData;
       }
 
@@ -1522,17 +1778,6 @@ export class Map extends maplibregl.Map {
   }
 
 
-
-
-
-
-
-
-
-
-
-
-
   /**
    * Add a polyline witgh optional outline from a GeoJSON object
    */
@@ -1627,7 +1872,6 @@ export class Map extends maplibregl.Map {
       });
     }
 
-
     if (cluster) {
       // If using clusters, the size and color of the circles (clusters) are driven by the 
       // numbner of elements they contain and cannot be driven by the zoom level or a property
@@ -1652,13 +1896,8 @@ export class Map extends maplibregl.Map {
             // 'circle-color': options.pointColor ?? colorDrivenByProperty(clusterStyle, "point_count"),
             'circle-color': typeof options.pointColor === "string" 
               ? options.pointColor
-              : colorDrivenByProperty(clusterStyle, "point_count"),
-              // : Array.isArray(options.pointColor)
-              //   ? colorDrivenByProperty(clusterStyle, "point_count")
-              //   : randomColor,
+              : colorDrivenByProperty(clusterStyle, "point_count"),     
               
-              
-              // ?? options.colorRamp ? colorDrivenByProperty(clusterStyle, "point_count") : randomColor,
             'circle-radius': typeof options.pointRadius === "number" 
               ? options.pointRadius
               : Array.isArray(options.pointRadius)
@@ -1703,10 +1942,6 @@ export class Map extends maplibregl.Map {
           'circle-color': typeof options.pointColor === "string" 
           ? options.pointColor
           : colorramp.getColorHex(colorramp.getBounds().min),
-          // : colorDrivenByProperty(clusterStyle, "point_count"),
-          // : Array.isArray(options.pointColor)
-          //   ? colorDrivenByProperty(clusterStyle, "point_count")
-          //   : randomColor,
           'circle-radius': typeof options.pointRadius === "number"
             ? options.pointRadius
             : Array.isArray(options.pointRadius)
@@ -1729,8 +1964,8 @@ export class Map extends maplibregl.Map {
         },
         minzoom,
         maxzoom,
-      }, options.beforeId);
 
+      }, options.beforeId);
     }
 
     // Not displaying clusters
@@ -1849,172 +2084,171 @@ export class Map extends maplibregl.Map {
     })
   }
 
-
-    /**
+  /**
    * Add a polyline witgh optional outline from a GeoJSON object
    */
-    addHeatmap(
-      // The data or data source is expected to contain LineStrings or MultiLineStrings
-      options: HeatmapLayerOptions,
-    ): {
-      /**
-       * ID of the heatmap layer
-       */
-      heatmapLayerId: string;
-  
-      /**
-       * ID of the data source
-       */
-      heatmapSourceId: string;
-    } {
+  addHeatmap(
+    // The data or data source is expected to contain LineStrings or MultiLineStrings
+    options: HeatmapLayerOptions,
+  ): {
+    /**
+     * ID of the heatmap layer
+     */
+    heatmapLayerId: string;
 
-      if (options.layerId && this.getLayer(options.layerId)) {
-        throw new Error(
-          `A layer already exists with the layer id: ${options.layerId}`,
-        );
-      }
+    /**
+     * ID of the data source
+     */
+    heatmapSourceId: string;
+  } {
 
-      const sourceId = options.sourceId ?? generateRandomSourceName();
-      const layerId = options.layerId ?? generateRandomLayerName();
-      const minzoom = options.minzoom ?? 0;
-      const maxzoom = options.maxzoom ?? 23;
-      const zoomCompensation = options.zoomCompensation ?? true;
-      
-      const opacity = options.opacity ?? [
-        { zoom: minzoom, value: 0 },
-        { zoom: minzoom + 0.25, value: 1 },
-        { zoom: maxzoom - 0.25, value: 1 },
-        { zoom: maxzoom, value: 0 },
-      ];
+    if (options.layerId && this.getLayer(options.layerId)) {
+      throw new Error(
+        `A layer already exists with the layer id: ${options.layerId}`,
+      );
+    }
 
-      // const colorRamp = "colorRamp" in options
-      let colorRamp = Array.isArray(options.colorRamp)
-        ? options.colorRamp
-        : ColorRampCollection.TURBO.transparentStart();
+    const sourceId = options.sourceId ?? generateRandomSourceName();
+    const layerId = options.layerId ?? generateRandomLayerName();
+    const minzoom = options.minzoom ?? 0;
+    const maxzoom = options.maxzoom ?? 23;
+    const zoomCompensation = options.zoomCompensation ?? true;
 
-      // making sure the color ramp has [0, 1] bounds
-      const crBounds = colorRamp.getBounds();
-      if (crBounds.min !== 0 || crBounds.max !== 1) {
-        colorRamp = colorRamp.scale(0, 1);
-      }
+    const opacity = options.opacity ?? [
+      { zoom: minzoom, value: 0 },
+      { zoom: minzoom + 0.25, value: 1 },
+      { zoom: maxzoom - 0.25, value: 1 },
+      { zoom: maxzoom, value: 0 },
+    ];
 
-      // making sure the color ramp has is transparent in 0
-      if (!colorRamp.hasTransparentStart()) {
-        colorRamp = colorRamp.transparentStart();
-      }
+    // const colorRamp = "colorRamp" in options
+    let colorRamp = Array.isArray(options.colorRamp)
+      ? options.colorRamp
+      : ColorRampCollection.TURBO.transparentStart();
 
-      const intensity = options.intensity ?? [
-        {zoom: 0, value: 0.01},
-        {zoom: 4, value: 0.2},
-        {zoom: 16, value: 1},
-      ];
+    // making sure the color ramp has [0, 1] bounds
+    const crBounds = colorRamp.getBounds();
+    if (crBounds.min !== 0 || crBounds.max !== 1) {
+      colorRamp = colorRamp.scale(0, 1);
+    }
 
-      const property = options.property ?? null;
-      const propertyValueWeight = options.weight ?? 1;
+    // making sure the color ramp has is transparent in 0
+    if (!colorRamp.hasTransparentStart()) {
+      colorRamp = colorRamp.transparentStart();
+    }
 
-      let heatmapWeight: DataDrivenPropertyValueSpecification<number> = 1; // = typeof propertyValueWeights === "number" ? propertyValueWeights : 1;
+    const intensity = options.intensity ?? [
+      {zoom: 0, value: 0.01},
+      {zoom: 4, value: 0.2},
+      {zoom: 16, value: 1},
+    ];
 
-      if (property) {
-        if (typeof propertyValueWeight === "number") {
-          heatmapWeight = propertyValueWeight;
+    const property = options.property ?? null;
+    const propertyValueWeight = options.weight ?? 1;
 
-          // In case this numerical weight was provided by the user and not be the default value:
-          if (typeof options.weight === "number") {
-            console.warn("The option `.property` is ignored when `.propertyValueWeights` is not of type `PropertyValueWeights`");
-          }
-        } else if (Array.isArray(propertyValueWeight)) {
-          heatmapWeight = rampedPropertyValueWeight(propertyValueWeight, property);
-        } else {
+    let heatmapWeight: DataDrivenPropertyValueSpecification<number> = 1; // = typeof propertyValueWeights === "number" ? propertyValueWeights : 1;
+
+    if (property) {
+      if (typeof propertyValueWeight === "number") {
+        heatmapWeight = propertyValueWeight;
+
+        // In case this numerical weight was provided by the user and not be the default value:
+        if (typeof options.weight === "number") {
           console.warn("The option `.property` is ignored when `.propertyValueWeights` is not of type `PropertyValueWeights`");
         }
+      } else if (Array.isArray(propertyValueWeight)) {
+        heatmapWeight = rampedPropertyValueWeight(propertyValueWeight, property);
       } else {
-        if (typeof propertyValueWeight === "number") {
-          heatmapWeight = propertyValueWeight;
-        } else if (Array.isArray(propertyValueWeight)) {
-          console.warn("The options `.propertyValueWeights` can only be used when `.property` is provided.");
-        }
+        console.warn("The option `.property` is ignored when `.propertyValueWeights` is not of type `PropertyValueWeights`");
       }
-
-      const defaultRadiusZoomRamping = [
-        {zoom: 0, value: 50 * 0.025},
-        {zoom: 2, value: 50 * 0.05},
-        {zoom: 4, value: 50 * 0.1},
-        {zoom: 8, value: 50 * 0.25},
-        {zoom: 16, value: 50},
-      ]
-      
-      const radius = options.radius ?? (zoomCompensation ? defaultRadiusZoomRamping : 10);
-
-      let radiusHeatmap: DataDrivenPropertyValueSpecification<number> = 1;
-
-      if (typeof radius === "number") {
-        radiusHeatmap = radius;
-      } else 
-
-      // Radius is provided as a zoom-ramping array
-      if (Array.isArray(radius) && "zoom" in radius[0]) {
-        radiusHeatmap = rampedOptionsToLayerPaintSpec(radius as ZoomNumberValues);
-      } else 
-
-      // Radius is provided as data driven 
-      if (property && Array.isArray(radius) && "propertyValue" in radius[0]) {
-        radiusHeatmap = radiusDrivenByPropertyHeatmap(radius as unknown as PropertyValues, property, zoomCompensation);
-      } else 
-
-      if (!property && Array.isArray(radius) && "propertyValue" in radius[0]) {
-        radiusHeatmap = rampedOptionsToLayerPaintSpec(defaultRadiusZoomRamping as ZoomNumberValues);
-        console.warn("The option `.radius` can only be property-driven if the option `.property` is provided.");
+    } else {
+      if (typeof propertyValueWeight === "number") {
+        heatmapWeight = propertyValueWeight;
+      } else if (Array.isArray(propertyValueWeight)) {
+        console.warn("The options `.propertyValueWeights` can only be used when `.property` is provided.");
       }
-      
-      else {
-        radiusHeatmap = rampedOptionsToLayerPaintSpec(defaultRadiusZoomRamping as ZoomNumberValues);
-      }
-
-      const returnedInfo = {
-        heatmapLayerId: layerId,
-        heatmapSourceId: sourceId,
-      };
-
-      // A new source is added if the map does not have this sourceId and the data is provided
-      if (options.data && !this.getSource(sourceId)) {
-
-        let data: string | FeatureCollection = options.data;
-
-        // If is a UUID, we extend it to be the URL to a MapTiler Cloud hosted dataset
-        if (typeof data === "string" && isUUID(data)) {
-          data = `https://api.maptiler.com/data/${data}/features.json?key=${config.apiKey}`;
-        }
-
-        // Adding the source
-        this.addSource(sourceId, {
-          type: "geojson",
-          data: data,
-        });
-      }
-
-      this.addLayer({
-        id: layerId,
-        type: "heatmap",
-        source: sourceId,
-        minzoom,
-        maxzoom,
-        paint: {
-          "heatmap-weight": heatmapWeight,
-
-          "heatmap-intensity": typeof intensity === "number"
-            ? intensity
-            : rampedOptionsToLayerPaintSpec(intensity) as PropertyValueSpecification<number>,
-
-          "heatmap-color": heatmapIntensityFromColorRamp(colorRamp),
-
-          "heatmap-radius": radiusHeatmap,
-
-          "heatmap-opacity": typeof opacity === "number"
-            ? opacity
-            : rampedOptionsToLayerPaintSpec(opacity) as PropertyValueSpecification<number>,
-        }
-      });
-
-      return returnedInfo;
     }
+
+    const defaultRadiusZoomRamping = [
+      {zoom: 0, value: 50 * 0.025},
+      {zoom: 2, value: 50 * 0.05},
+      {zoom: 4, value: 50 * 0.1},
+      {zoom: 8, value: 50 * 0.25},
+      {zoom: 16, value: 50},
+    ]
+
+    const radius = options.radius ?? (zoomCompensation ? defaultRadiusZoomRamping : 10);
+
+    let radiusHeatmap: DataDrivenPropertyValueSpecification<number> = 1;
+
+    if (typeof radius === "number") {
+      radiusHeatmap = radius;
+    } else 
+
+    // Radius is provided as a zoom-ramping array
+    if (Array.isArray(radius) && "zoom" in radius[0]) {
+      radiusHeatmap = rampedOptionsToLayerPaintSpec(radius as ZoomNumberValues);
+    } else 
+
+    // Radius is provided as data driven 
+    if (property && Array.isArray(radius) && "propertyValue" in radius[0]) {
+      radiusHeatmap = radiusDrivenByPropertyHeatmap(radius as unknown as PropertyValues, property, zoomCompensation);
+    } else 
+
+    if (!property && Array.isArray(radius) && "propertyValue" in radius[0]) {
+      radiusHeatmap = rampedOptionsToLayerPaintSpec(defaultRadiusZoomRamping as ZoomNumberValues);
+      console.warn("The option `.radius` can only be property-driven if the option `.property` is provided.");
+    }
+
+    else {
+      radiusHeatmap = rampedOptionsToLayerPaintSpec(defaultRadiusZoomRamping as ZoomNumberValues);
+    }
+
+    const returnedInfo = {
+      heatmapLayerId: layerId,
+      heatmapSourceId: sourceId,
+    };
+
+    // A new source is added if the map does not have this sourceId and the data is provided
+    if (options.data && !this.getSource(sourceId)) {
+
+      let data: string | FeatureCollection = options.data;
+
+      // If is a UUID, we extend it to be the URL to a MapTiler Cloud hosted dataset
+      if (typeof data === "string" && isUUID(data)) {
+        data = `https://api.maptiler.com/data/${data}/features.json?key=${config.apiKey}`;
+      }
+
+      // Adding the source
+      this.addSource(sourceId, {
+        type: "geojson",
+        data: data,
+      });
+    }
+
+    this.addLayer({
+      id: layerId,
+      type: "heatmap",
+      source: sourceId,
+      minzoom,
+      maxzoom,
+      paint: {
+        "heatmap-weight": heatmapWeight,
+
+        "heatmap-intensity": typeof intensity === "number"
+          ? intensity
+          : rampedOptionsToLayerPaintSpec(intensity) as PropertyValueSpecification<number>,
+
+        "heatmap-color": heatmapIntensityFromColorRamp(colorRamp),
+
+        "heatmap-radius": radiusHeatmap,
+
+        "heatmap-opacity": typeof opacity === "number"
+          ? opacity
+          : rampedOptionsToLayerPaintSpec(opacity) as PropertyValueSpecification<number>,
+      }
+    });
+
+    return returnedInfo;
+  }
 }
