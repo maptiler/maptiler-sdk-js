@@ -547,19 +547,29 @@ const myCustomRamp = new ColorRamp({
 
 When defining a new *ramp*, the colors can be a RGB array (`[number, number, number]`) or a RGBA array (`[number, number, number, number]`).
 
-Many methods are available on color ramps, such as getting a `<canvas>` element of it, rescale it, flip it or [ressample it in a non-linear way](colorramp.md). Read more on [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and have a look at our [examples](https://docs.maptiler.com/sdk-js/examples/?q=colorramp) to see how they work.
+Many methods are available on color ramps, such as getting a `<canvas>` element of it, rescale it, flip it or [resample it in a non-linear way](colorramp.md). Read more on [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and have a look at our [examples](https://docs.maptiler.com/sdk-js/examples/?q=colorramp) to see how they work.
 
 
 # Vector Layer Helpers
-**Let's make vector layers easy!** Originaly, you'd have to add a source and then proceed to the styling of your layer, which can be tricky becasue there are a lot of `paint` and `layout` options and they vary a lot from one type of layer to another. **But we have helpers for this!** 🖋️
+**Let's make vector layers easy!** Originaly, you'd have to add a source and then proceed to the styling of your layer, which can be tricky because there are a lot of `paint` and `layout` options and they vary a lot from one type of layer to another. **But we have helpers for this!** 🖋️
 ![](images/screenshots/point-layer.jpg)
 
 ## Shared logic
 Helpers come with a lot of **built-in defaults** and some fail-proof logic that makes creating vector layers much easier! As a result, a dataset can be displayed in one call, creating both the datasource and the layer(s) in one go!
 
-Depending on the type of feature to add (point, polyline, polygon or heatmap), a different helper function needs to be used, but datasource could contain mixed types of feature and the helper will only display a specific type.  
+Depending on the type of feature to add (point, polyline, polygon or heatmap), a different helper function needs to be used, but datasource could contain mixed types of feature and the helper will only display a specific type.
 
-**Example:** we have a *geoJSON* file that contains both *polygons* and *point* and we use it as the `data` property on the `map.addPoint(...)`, this will only add the *points*.
+All the helpers are made avaialable under the `helpers` object. If you are using ES Modules, this is how you access them:
+```ts
+import { Map, helpers } from "@maptiler/sdk";
+```
+
+If you are using the UMD bundle of the SDK, for example from our CDN, you will find the `helpers` with:
+```js
+maptilersdk.helpers
+```
+
+**Example:** we have a *geoJSON* file that contains both *polygons* and *point* and we use it as the `data` property on the `helpers.addPoint(map, { options })`, this will only add the *points*.
 
 In addition to easy styling, helper's datasource can be:
 - a URL to a geoJSON file or its string content
@@ -571,7 +581,7 @@ The key design principle of these vector layers helpers is **it's easy to make w
 
 > For example, to create a road with an outline, one must draw two layers: a wider base layer and a narrower top layer, fueled by the same polyline data. This requires ordering the layers properly and computing not the width of the outline, but rather the width of the polyline underneath so that it outgrows the top road layer of the desired number of pixels. 
 
-With the polyline helper, you just say if you want an outline and specify its size (or even a zoom dependant size) and everything is handled for you. As a result, the `Map.addPolyline()` method will return an object with **multiple IDs**: ID of the top/main layer, ID of the outline layer (could be `null`) and the ID of the data source. This makes further layer and source manipulation possible.
+With the polyline helper, you just say if you want an outline and specify its size (or even a zoom dependant size) and everything is handled for you. As a result, calling the method `helpers.addPolyline` will return an object with **multiple IDs**: ID of the top/main layer, ID of the outline layer (could be `null`) and the ID of the data source. This makes further layer and source manipulation possible.
 
 ### Input
 
@@ -620,20 +630,20 @@ maxzoom?: number;
 
 
 ## Polyline Layer Helper
-The method `Map.addPolyline()` is not only comaptible with the traditionnal GeoJSON source but also with **GPX** and **KML** files and the `.data` options can be a MapTiler Cloud dataset UUID and will be resolved automatically.
+The method `helpers.addPolyline` is not only compaptible with the traditional GeoJSON source but also with **GPX** and **KML** files and the `.data` options can be a MapTiler Cloud dataset UUID and will be resolved automatically.
 
 here is the minimal usage, with the default line width and a random color (withing a selected list):
 ```ts
-map.addPolyline({ 
+helpers.addPolyline(map, { 
   // A URL, relative or absolute
   data: "some-trace.geojson",
 });
 ```
 ![](images/screenshots/default-trace.jpg)
 
-We can add many options, such a a specific color, a custom width or a dash pattern, this time sourcind the data from MapTiler Cloud, using the UUID of a dataset:
+We can add many options, such a a specific color, a custom width or a dash pattern, this time sourcing the data from MapTiler Cloud, using the UUID of a dataset:
 ```ts
-map.addPolyline({ 
+helpers.addPolyline(map, { 
   data: "74003ba7-215a-4b7e-8e26-5bbe3aa70b05",
   lineColor: "#FF6666",
   lineWidth: 4,
@@ -646,7 +656,7 @@ As you can see, we've come up with a fun and easy way to create **dash arrays**,
 
 Adding an outline is also pretty straightforward:
 ```ts
-map.addPolyline({ 
+helpers.addPolyline(map, { 
   data: "74003ba7-215a-4b7e-8e26-5bbe3aa70b05",
   lineColor: "#880000",
   outline: true,
@@ -656,7 +666,7 @@ map.addPolyline({
 
 Endless possibilities, what about a glowing wire?
 ```ts
-map.addPolyline({ 
+helpers.addPolyline(map, { 
   data: "74003ba7-215a-4b7e-8e26-5bbe3aa70b05",
   lineColor: "#fff",
   lineWidth: 1,
@@ -679,7 +689,7 @@ The polygon helper makes it easy to create vector layers that contain polygons, 
 Here is a minimalist example, with a half-transparent polygon of Switzerland, from a local file:
 
 ```ts
-map.addPolygon({
+helpers.addPolygon(map, {
   data: "switzerland.geojson",
   fillOpacity: 0.5,
 });
@@ -691,7 +701,7 @@ Again, if no color is specified, a random one from a list is being picked:
 Plenty of options are available to create the interesting thematic visualizations:
 
 ```ts
-map.addPolygon({
+helpers.addPolygon(map, {
   data: "switzerland.geojson",
   pattern: "cheese512.png",
   outline: true,
@@ -710,7 +720,7 @@ A point visualisation may appear like the simplest of all, but we noticed this i
 
 Here is the simplest example, with a dataset loaded from a local file:
 ```ts
-map.addPoint({
+helpers.addPoint(map, {
   data: "public-schools.geojson",
 })
 ```
@@ -719,7 +729,7 @@ if no color is specified, a random color is used and the default radius is rampe
 
 Here is the same dataset, but with *point clustering* enabled:
 ```ts
-map.addPoint({
+helpers.addPoint(map, {
   data: "public-schools.geojson",
   cluster: true,
 });
@@ -729,7 +739,7 @@ On the other hand, if clusters are enabled, the default color is fueled by the c
 
 With the point helper, it's also possible to adapt the color and theradius based on a property. In the following example, we display a point for each public school, with the scaling factor being the number of students:
 ```ts
-map.addPoint({
+helpers.addPoint(map, {
   data: "public-schools.geojson",
   property: "students",
   pointColor: ColorRampCollection.PORTLAND.scale(200, 2000).resample("ease-out-sqrt"),
@@ -751,7 +761,7 @@ The heatmap layer is a great alternative for visualizing a collection of sparse 
 
 Here is a minimalist example, using the default built-in `TURBO` color ramp:
 ```ts
-map.addHeatmap({
+helpers.addHeatmap(map, {
   data: "public-schools.geojson",
 });
 ```
@@ -759,7 +769,7 @@ map.addHeatmap({
 
 Some visualisations are created with a fixed geographic extent or zoom level in mind, whether it's a survey at the scale of a single neigbohood, or statitics at country scale. In this case, we want to tailor the color, radius, weight and intensity of the heatmap blobs exactely for this precise settings. In the following example, we disable the *zoom compensation* to make sure radii and intensity is never zoom-dependant:
 ```ts
-map.addHeatmap({
+helpers.addHeatmap(map, {
   data: "public-schools.geojson",
   property: "students",
   // radius: how wide are the blobs
