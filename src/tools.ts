@@ -14,7 +14,7 @@ export function enableRTL() {
     maplibregl.setRTLTextPlugin(
       defaults.rtlPluginURL,
       (err?: Error | undefined) => {
-        if (err !== undefined) console.error(err);
+        if (err) console.error(err);
       },
       true, // Lazy load the plugin
     );
