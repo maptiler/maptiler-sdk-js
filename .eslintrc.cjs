@@ -14,7 +14,8 @@ module.exports = {
   root: true,
   rules: {
     "@typescript-eslint/ban-ts-comment": "warn",
-    "prettier/prettier": "error"
+    "prettier/prettier": "error",
+    "@typescript-eslint/no-explicit-any": "warn"
   },
   ignorePatterns: tsConfig.exclude,
 };

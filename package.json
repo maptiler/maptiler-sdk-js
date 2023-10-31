@@ -8,9 +8,13 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/maptiler-sdk.mjs"
+      "import": "./dist/maptiler-sdk.mjs",
+      "types": "./dist/maptiler-sdk.d.ts"
     },
     "./dist/maptiler-sdk.css": {
+      "import": "./dist/maptiler-sdk.css"
+    },
+    "./style.css": {
       "import": "./dist/maptiler-sdk.css"
     }
   },
@@ -35,7 +39,7 @@
     "format": "prettier --write \"src/**/*.{js,ts,tsx}\"",
     "lint": "eslint --fix \"src/**/*.{js,ts}\"",
     "doc": "rm -rf docs/* && typedoc --out docs && cp -r images docs/",
-    "prepare": "npm run format && npm run lint && npm run build && npm run test && npm run doc",
+    "prepare": "npm run format && npm run lint && npm run build && npm run test",
     "test:dev": "vitest dev",
     "test": "vitest run"
   },
@@ -46,12 +50,12 @@
     "@rollup/plugin-node-resolve": "^15.0.2",
     "@types/uuid": "^9.0.2",
     "@types/xmldom": "^0.1.31",
-    "@typescript-eslint/eslint-plugin": "^5.59.0",
-    "@typescript-eslint/parser": "^5.59.0",
-    "eslint": "^8.38.0",
+    "@typescript-eslint/eslint-plugin": "^6.9.0",
+    "@typescript-eslint/parser": "^6.9.0",
+    "eslint": "^8.52.0",
     "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-prettier": "^5.0.0",
-    "prettier": "^3.0.2",
+    "eslint-plugin-prettier": "^5.0.1",
+    "prettier": "^3.0.3",
     "rollup": "^3.20.6",
     "rollup-plugin-copy-merge": "^1.0.0",
     "rollup-plugin-dts": "^5.3.0",
@@ -68,7 +72,7 @@
     "xmldom": "^0.6.0"
   },
   "dependencies": {
-    "@maptiler/client": "^1.5.0",
+    "@maptiler/client": "^1.7.0",
     "events": "^3.3.0",
     "js-base64": "^3.7.4",
     "maplibre-gl": "3.3.0",

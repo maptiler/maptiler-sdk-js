@@ -498,6 +498,304 @@ We believe that the *promise* approach is better because it does not nest scopes
 
 > 📣 *__Note:__* Generally speaking, *promises* are not a go to replacement for all event+callback and are suitable only for events that are called only once in the lifecycle of a Map instance. This is the reason why we have decided to provide a *promise* equivalent only for the `load` and `loadWithTerrain` events.
 
+# Color Ramps
+A color ramp is a color gradient defined in a specific interval, for instance in [0, 1], and for any value within this interval will retrieve a color. They are defined by at least a color at each bound and usualy additional colors within the range.  
+
+Color ramps are super useful to represent numerical data in a visual way: the temperature, the population density, the average commute time, etc.  
+
+The SDK includes many built-in ready to use color ramps as well as extra logic to manipulate them and create new ones, here is the full list:
+
+![](images/colorramps.png)
+
+To use an already existing color ramp and access some of its values:
+```ts
+import { ColorRampCollection } from "@maptiler/sdk";
+
+// The TURBO color ramp, just like all the built-ins, is defined in [0, 1],
+// but we can rescale it to fit the range of temperature [-18, 38]°C (equivalent to [0, 100]F)
+// and this actually creates a clone of the original TURBO
+const temperatureTurbo = ColorRampCollection.TURBO.scale(-18, 38);
+
+// What's the color at 0°C (or 32F) ?
+const zeroColor = temperatureTurbo.getColor(0);
+// The color is an array: [45, 218, 189, 255]
+
+// Alternatively, we can ask for the hex color:
+const zeroColorHex = temperatureTurbo.getColorHex(0);
+// The color is a string: "#2ddabdff"
+```
+
+Creating a new one consists in defining all the colors for each *color stops*. The values can be in the range of interest and *do not* have to be in [0, 1]. For example, let's recreate a *Viridis* color ramp but with a range going from 0 to 100:
+
+```ts
+import { ColorRamp } from "@maptiler/sdk";
+
+const myCustomRamp = new ColorRamp({
+  stops: [
+    { value: 0, color: [68, 1, 84] },
+    { value: 13, color: [71, 44, 122] },
+    { value: 25, color: [59, 81, 139] },
+    { value: 38, color: [44, 113, 142] },
+    { value: 5, color: [33, 144, 141] },
+    { value: 63, color: [39, 173, 129] },
+    { value: 75, color: [92, 200, 99] },
+    { value: 88, color: [170, 220, 50] },
+    { value: 100, color: [253, 231, 37] },
+  ]
+});
+```
+
+When defining a new *ramp*, the colors can be a RGB array (`[number, number, number]`) or a RGBA array (`[number, number, number, number]`).
+
+Many methods are available on color ramps, such as getting a `<canvas>` element of it, rescale it, flip it or [resample it in a non-linear way](colorramp.md). Read more on [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and have a look at our [examples](https://docs.maptiler.com/sdk-js/examples/?q=colorramp) to see how they work.
+
+
+# Vector Layer Helpers
+**Let's make vector layers easy!** Originaly, you'd have to add a source and then proceed to the styling of your layer, which can be tricky because there are a lot of `paint` and `layout` options and they vary a lot from one type of layer to another. **But we have helpers for this!** 🖋️
+![](images/screenshots/point-layer.jpg)
+
+## Shared logic
+Helpers come with a lot of **built-in defaults** and some fail-proof logic that makes creating vector layers much easier! As a result, a dataset can be displayed in one call, creating both the datasource and the layer(s) in one go!
+
+Depending on the type of feature to add (point, polyline, polygon or heatmap), a different helper function needs to be used, but datasource could contain mixed types of feature and the helper will only display a specific type.
+
+All the helpers are made avaialable under the `helpers` object. If you are using ES Modules, this is how you access them:
+```ts
+import { Map, helpers } from "@maptiler/sdk";
+```
+
+If you are using the UMD bundle of the SDK, for example from our CDN, you will find the `helpers` with:
+```js
+maptilersdk.helpers
+```
+
+**Example:** we have a *geoJSON* file that contains both *polygons* and *point* and we use it as the `data` property on the `helpers.addPoint(map, { options })`, this will only add the *points*.
+
+In addition to easy styling, helper's datasource can be:
+- a URL to a geoJSON file or its string content
+- a URL to a GPX or KML file (only for the polyline helper) or its string content
+- a UUID of a MapTiler Cloud dataset
+
+### Multiple Layers
+The key design principle of these vector layers helpers is **it's easy to make what you want**, which is very different from **making MapLibre easier to use**.  
+
+> For example, to create a road with an outline, one must draw two layers: a wider base layer and a narrower top layer, fueled by the same polyline data. This requires ordering the layers properly and computing not the width of the outline, but rather the width of the polyline underneath so that it outgrows the top road layer of the desired number of pixels. 
+
+With the polyline helper, you just say if you want an outline and specify its size (or even a zoom dependant size) and everything is handled for you. As a result, calling the method `helpers.addPolyline` will return an object with **multiple IDs**: ID of the top/main layer, ID of the outline layer (could be `null`) and the ID of the data source. This makes further layer and source manipulation possible.
+
+### Input
+
+The vector layer helper also share some *I/O* logic: each of them can take many options but a subset of them is common across all the helpers:
+
+```ts
+/**
+ * A geojson Feature collection or a URL to a geojson or the UUID of a MapTiler Cloud dataset.
+ */
+data: FeatureCollection | string;
+
+/**
+ * ID to give to the layer.
+ * If not provided, an auto-generated ID of the for "maptiler-layer-xxxxxx" will be auto-generated,
+ * with "xxxxxx" being a random string.
+ */
+layerId?: string;
+
+/**
+ * ID to give to the geojson source.
+ * If not provided, an auto-generated ID of the for "maptiler-source-xxxxxx" will be auto-generated,
+ * with "xxxxxx" being a random string.
+ */
+sourceId?: string;
+
+/**
+ * The ID of an existing layer to insert the new layer before, resulting in the new layer appearing
+ * visually beneath the existing layer. If this argument is not specified, the layer will be appended
+ * to the end of the layers array and appear visually above all other layers.
+ */
+beforeId?: string;
+
+/**
+ * Zoom level at which it starts to show.
+ * Default: `0`
+ */
+minzoom?: number;
+
+/**
+ * Zoom level after which it no longer show.
+ * Default: `22`
+ */
+maxzoom?: number;
+```
+
+
+
+## Polyline Layer Helper
+The method `helpers.addPolyline` is not only compaptible with the traditional GeoJSON source but also with **GPX** and **KML** files and the `.data` options can be a MapTiler Cloud dataset UUID and will be resolved automatically.
+
+here is the minimal usage, with the default line width and a random color (withing a selected list):
+```ts
+helpers.addPolyline(map, { 
+  // A URL, relative or absolute
+  data: "some-trace.geojson",
+});
+```
+![](images/screenshots/default-trace.jpg)
+
+We can add many options, such a a specific color, a custom width or a dash pattern, this time sourcing the data from MapTiler Cloud, using the UUID of a dataset:
+```ts
+helpers.addPolyline(map, { 
+  data: "74003ba7-215a-4b7e-8e26-5bbe3aa70b05",
+  lineColor: "#FF6666",
+  lineWidth: 4,
+  lineDashArray: "____ _ ",
+  lineCap: "butt",
+});
+```
+![](images/screenshots/custom-trace.jpg)
+As you can see, we've come up with a fun and easy way to create **dash arrays**, just use *underscores* and *white spaces* and this pattern will repeat!
+
+Adding an outline is also pretty straightforward:
+```ts
+helpers.addPolyline(map, { 
+  data: "74003ba7-215a-4b7e-8e26-5bbe3aa70b05",
+  lineColor: "#880000",
+  outline: true,
+});
+```
+![](images/screenshots/polyline-outline.png)
+
+Endless possibilities, what about a glowing wire?
+```ts
+helpers.addPolyline(map, { 
+  data: "74003ba7-215a-4b7e-8e26-5bbe3aa70b05",
+  lineColor: "#fff",
+  lineWidth: 1,
+  outline: true,
+  outlineColor: "#ca57ff",
+  outlineWidth: 2,
+  outlineWidth: 10,
+  outlineBlur: 10,
+  outlineOpacity: 0.5,
+});
+```
+![](images/screenshots/polyline-glow.png)
+
+
+All the other options are documented on a [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/).
+
+## Polygon Layer Helper
+The polygon helper makes it easy to create vector layers that contain polygons, whether they are *multi*polylons, *holed*polygons or just simple polygons. Whenever it's possible and it makes sense, we use the same terminology across the different helpers.
+
+Here is a minimalist example, with a half-transparent polygon of Switzerland, from a local file:
+
+```ts
+helpers.addPolygon(map, {
+  data: "switzerland.geojson",
+  fillOpacity: 0.5,
+});
+```
+
+Again, if no color is specified, a random one from a list is being picked:
+![](images/screenshots/polygon-transparent.png)
+
+Plenty of options are available to create the interesting thematic visualizations:
+
+```ts
+helpers.addPolygon(map, {
+  data: "switzerland.geojson",
+  pattern: "cheese512.png",
+  outline: true,
+  outlineWidth: 3,
+  outlineColor: "white",
+  outlineDashArray: "_ ",
+  fillOpacity: 0.7,
+});
+```
+![](images/screenshots/swiss-cheese.png)
+
+All the other options are documented on a [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/).
+
+## Point Layer Helper
+A point visualisation may appear like the simplest of all, but we noticed this is where people get the most creative: cluster, data-drive variable radius, but also scaled with zoom, with or without labels, data-driven colors, etc. Our helper supports all of these and will fill-in with built-in default for what's missing.
+
+Here is the simplest example, with a dataset loaded from a local file:
+```ts
+helpers.addPoint(map, {
+  data: "public-schools.geojson",
+})
+```
+if no color is specified, a random color is used and the default radius is ramped over the zoom level:
+![](images/screenshots/points.png)
+
+Here is the same dataset, but with *point clustering* enabled:
+```ts
+helpers.addPoint(map, {
+  data: "public-schools.geojson",
+  cluster: true,
+});
+```
+On the other hand, if clusters are enabled, the default color is fueled by the color ramp `TURBO` scaled from `10` to `10000` non-linearly resampled with the method `"ease-out-square"`. The size also varies from `minPointradius` (default: `10`) to `maxPointRadius` (default: `50`):
+![](images/screenshots/points-clustered.png)
+
+With the point helper, it's also possible to adapt the color and theradius based on a property. In the following example, we display a point for each public school, with the scaling factor being the number of students:
+```ts
+helpers.addPoint(map, {
+  data: "public-schools.geojson",
+  property: "students",
+  pointColor: ColorRampCollection.PORTLAND.scale(200, 2000).resample("ease-out-sqrt"),
+  pointOpacity: 0.8,
+  minPointRadius: 6,
+  maxPointRadius: 30,
+  showLabel: true,
+  zoomCompensation: false,
+})
+```
+![](images/screenshots/nyc-schools.png)
+
+Here, the`PORTLAND` color ramp is going to be used so that schools with `200` students or less will have the colors at the very begining of the color ramp and schools with `2000` or more will have the color defined at the very end. Schools in between will be attributed a colors in a non-linear fashion, following the `"ease-out-sqrt"` method (read **Color Ramps** section above for more info).
+
+All the other options are documented on a [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/).
+
+## Heatmap Layer Helper
+The heatmap layer is a great alternative for visualizing a collection of sparse data, but they can be challenging to use, especially when one has to come up with their own color ramp from scratch. **The helper makes this much easier!**
+
+Here is a minimalist example, using the default built-in `TURBO` color ramp:
+```ts
+helpers.addHeatmap(map, {
+  data: "public-schools.geojson",
+});
+```
+![](images/screenshots/heatmap-schools.png)
+
+Some visualisations are created with a fixed geographic extent or zoom level in mind, whether it's a survey at the scale of a single neigbohood, or statitics at country scale. In this case, we want to tailor the color, radius, weight and intensity of the heatmap blobs exactely for this precise settings. In the following example, we disable the *zoom compensation* to make sure radii and intensity is never zoom-dependant:
+```ts
+helpers.addHeatmap(map, {
+  data: "public-schools.geojson",
+  property: "students",
+  // radius: how wide are the blobs
+  radius: [
+    {propertyValue: 100, value: 15},
+    {propertyValue: 800, value: 50},
+  ],
+  // weight: how intense are the blob, as fueled by a property
+  weight: [
+    {propertyValue: 100, value: 0.1},
+    {propertyValue: 800, value: 1},
+  ],
+  // A custom color ramp, must be used with its default interval of [0, 1]
+  colorRamp: ColorRampCollection.MAGMA,
+  zoomCompensation: false,
+  opacity: 0.6,
+  // a global factor applied to all the blobs, regardless of the property or zoom
+  intensity: 1.2,
+});
+```
+![](images/screenshots/heatmap-colorramp.png)
+Turning off *zoom compensation* allows for more accurate adjustments to the visualization at a specific zoom level, but it may not adapt as smoothly when zooming in or out.
+
+All the other options are documented on a [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/).
+
+
 # Easy access to MapTiler Cloud API
 Our map SDK is not only about maps! We also provide plenty of wrapper to our API calls!
 

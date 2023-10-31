@@ -239,4 +239,4 @@ export {
   MaptilerNavigationControl,
 };
 
-export * from "./stylehelper";
+export * from "./helpers";
