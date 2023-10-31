@@ -1,5 +1,21 @@
 # Changelog
 
+## [v1.2.0](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.2.0)
+- Added the Minimap control https://github.com/maptiler/maptiler-sdk-js/pull/54
+- Added vector layer helpers to create easier:
+  - point layer (https://github.com/maptiler/maptiler-sdk-js/pull/61)
+  - heatmap layer (https://github.com/maptiler/maptiler-sdk-js/pull/61)
+  - polyline layer, including parsing from GPX/KML (https://github.com/maptiler/maptiler-sdk-js/pull/51)
+  - polygon layer (https://github.com/maptiler/maptiler-sdk-js/pull/56)
+- Add the `ColorRamp` class to create and customize color ramps, as well as `ColorRampCollection` with many predefined ones (as part of https://github.com/maptiler/maptiler-sdk-js/pull/61)
+- Improved the language management for increased compatibility with [MapTiler Customize](https://cloud.maptiler.com/maps/editor/) (https://github.com/maptiler/maptiler-sdk-js/pull/58)
+- Upgrade to MapLibre v3.5.2 (https://github.com/maptiler/maptiler-sdk-js/pull/63)
+- Update of TypeScript configuration `moduleResolution` to `Bundler` (https://github.com/maptiler/maptiler-sdk-js/pull/62)
+- Fixed type export (https://github.com/maptiler/maptiler-sdk-js/pull/47)
+
+## [v1.1.2](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.1.2)
+- Now using a fixed version of MapLibre GL. No longer use `^` because this caused issues as MapLibre made minor/patch update that were not backward compatible
+
 ## [v1.1.1](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.1.1)
 - VER update to `maplibre-gl@3.1.0`
 
@@ -8,7 +24,6 @@
 - UP made the few necessary changes acording to updating the ML v3. No braking change for SDK API
 - FIX the MapTiler logo rel name and its nofollow feature
 - ADD bringing back Map's `options.transformRequest` and `.setTransformRequest()`
-
 
 ## [v1.0.12](https://github.com/maptiler/maptiler-sdk-js/releases/tag/v1.0.12)
 - ADD a new language flag `Language.STYLE_LOCK` to force keep the language form the style and prevent any further update. Can be at a sigle map instance level (via constuctor option `language`) or via global config (`config.primaryLanguage`)
