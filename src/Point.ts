@@ -10,8 +10,6 @@ export type Matrix2 = [number, number, number, number];
 
 /**
  * a point
- * @param x
- * @param y
  */
 export class Point {
   public x: number;
@@ -249,7 +247,7 @@ export class Point {
    * @param {Point} other the other point
    * @return {boolean} whether the points are equal
    */
-  equals(other): boolean {
+  equals(other: Point): boolean {
     return this.x === other.x && this.y === other.y;
   }
 
@@ -258,7 +256,7 @@ export class Point {
    * @param {Point} p the other point
    * @return {Number} distance
    */
-  dist(p): number {
+  dist(p: Point): number {
     return Math.sqrt(this.distSqr(p));
   }
 
@@ -269,7 +267,7 @@ export class Point {
    * @param {Point} p the other point
    * @return {Number} distance
    */
-  distSqr(p): number {
+  distSqr(p: Point): number {
     const dx = p.x - this.x;
     const dy = p.y - this.y;
     return dx * dx + dy * dy;

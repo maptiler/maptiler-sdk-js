@@ -4,11 +4,19 @@ import type {
   StyleSpecification,
   MapOptions as MapOptionsML,
   ControlPosition,
+  StyleSwapOptions,
   StyleOptions,
   MapDataEvent,
   Tile,
   RasterDEMSourceSpecification,
   RequestTransformFunction,
+  Source,
+  LayerSpecification,
+  SourceSpecification,
+  CustomLayerInterface,
+  FilterSpecification,
+  StyleSetterOptions,
+  ExpressionSpecification,
 } from "maplibre-gl";
 import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
@@ -30,9 +38,8 @@ import { AttributionControl } from "./AttributionControl";
 import { ScaleControl } from "./ScaleControl";
 import { FullscreenControl } from "./FullscreenControl";
 
-function sleepAsync(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import Minimap from "./Minimap";
+import type { MinimapOptionsInput } from "./Minimap";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -41,17 +48,6 @@ export type LoadWithTerrainEvent = {
     source: string;
     exaggeration: number;
   };
-};
-
-// StyleSwapOptions is not exported by Maplibre, but we can redefine it (used for setStyle)
-export type TransformStyleFunction = (
-  previous: StyleSpecification,
-  next: StyleSpecification
-) => StyleSpecification;
-
-export type StyleSwapOptions = {
-  diff?: boolean;
-  transformStyle?: TransformStyleFunction;
 };
 
 export const GeolocationType: {
@@ -142,6 +138,17 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   fullscreenControl?: boolean | ControlPosition;
 
   /**
+   * Display a minimap in a user defined corner of the map. (default: `bottom-left` corner)
+   * If set to true, the map will assume it is a minimap and forego the attribution control.
+   */
+  minimap?: boolean | ControlPosition | MinimapOptionsInput;
+
+  /**
+   * attributionControl
+   */
+  forceNoAttributionControl?: boolean;
+
+  /**
    * Method to position the map at a given geolocation. Only if:
    * - `hash` is `false`
    * - `center` is not provided
@@ -169,10 +176,12 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
 export class Map extends maplibregl.Map {
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
-  private primaryLanguage: LanguageString | null = null;
-  private secondaryLanguage: LanguageString | null = null;
+  private primaryLanguage: LanguageString;
   private terrainGrowing = false;
   private terrainFlattening = false;
+  private minimap?: Minimap;
+  private forceLanguageUpdate: boolean;
+  private languageAlwaysBeenStyle: boolean;
 
   constructor(options: MapOptions) {
     if (options.apiKey) {
@@ -184,7 +193,7 @@ export class Map extends maplibregl.Map {
 
     if (!config.apiKey) {
       console.warn(
-        "MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!"
+        "MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!",
       );
     }
 
@@ -197,7 +206,12 @@ export class Map extends maplibregl.Map {
     });
 
     this.primaryLanguage = options.language ?? config.primaryLanguage;
-    this.secondaryLanguage = config.secondaryLanguage;
+    this.forceLanguageUpdate =
+      this.primaryLanguage === Language.STYLE ||
+      this.primaryLanguage === Language.STYLE_LOCK
+        ? false
+        : true;
+    this.languageAlwaysBeenStyle = this.primaryLanguage === Language.STYLE;
     this.terrainExaggeration =
       options.terrainExaggeration ?? this.terrainExaggeration;
 
@@ -228,17 +242,17 @@ export class Map extends maplibregl.Map {
         }
       } catch (e) {
         // not raising
-        console.warn(e.message);
+        console.warn((e as Error).message);
       }
 
       // As a fallback, we want to center the map on the visitor. First with IP geolocation...
-      let ipLocatedCameraHash = null;
+      let ipLocatedCameraHash: string;
       try {
         await this.centerOnIpPoint(options.zoom);
         ipLocatedCameraHash = this.getCameraHash();
       } catch (e) {
         // not raising
-        console.warn(e.message);
+        console.warn((e as Error).message);
       }
 
       // A more precise localization
@@ -286,7 +300,7 @@ export class Map extends maplibregl.Map {
             maximumAge: 24 * 3600 * 1000, // a day in millisec
             timeout: 5000, // milliseconds
             enableHighAccuracy: false,
-          }
+          },
         );
       }
     });
@@ -294,7 +308,6 @@ export class Map extends maplibregl.Map {
     // If the config includes language changing, we must update the map language
     this.on("styledata", () => {
       this.setPrimaryLanguage(this.primaryLanguage);
-      this.setSecondaryLanguage(this.secondaryLanguage);
     });
 
     // this even is in charge of reaplying the terrain elevation after the
@@ -321,12 +334,15 @@ export class Map extends maplibregl.Map {
         const possibleSources = Object.keys(this.style.sourceCaches)
           .map((sourceName) => this.getSource(sourceName))
           .filter(
-            (s: any) =>
-              typeof s.url === "string" && s.url.includes("tiles.json")
+            (s: Source | undefined) =>
+              s &&
+              "url" in s &&
+              typeof s.url === "string" &&
+              s?.url.includes("tiles.json"),
           );
 
         const styleUrl = new URL(
-          (possibleSources[0] as maplibregl.VectorTileSource).url
+          (possibleSources[0] as maplibregl.VectorTileSource).url,
         );
 
         if (!styleUrl.searchParams.has("key")) {
@@ -340,24 +356,26 @@ export class Map extends maplibregl.Map {
       }
 
       // The attribution and logo must show when required
-      if ("logo" in tileJsonContent && tileJsonContent.logo) {
-        const logoURL: string = tileJsonContent.logo;
+      if (options.forceNoAttributionControl !== true) {
+        if ("logo" in tileJsonContent && tileJsonContent.logo) {
+          const logoURL: string = tileJsonContent.logo;
 
-        this.addControl(
-          new MaptilerLogoControl({ logoURL }),
-          options.logoPosition
-        );
-
-        // if attribution in option is `false` but the the logo shows up in the tileJson, then the attribution must show anyways
-        if (options.attributionControl === false) {
           this.addControl(
-            new AttributionControl({
-              customAttribution: options.customAttribution,
-            })
+            new MaptilerLogoControl({ logoURL }),
+            options.logoPosition,
           );
+
+          // if attribution in option is `false` but the the logo shows up in the tileJson, then the attribution must show anyways
+          if (options.attributionControl === false) {
+            this.addControl(
+              new AttributionControl({
+                customAttribution: options.customAttribution,
+              }),
+            );
+          }
+        } else if (options.maptilerLogo) {
+          this.addControl(new MaptilerLogoControl(), options.logoPosition);
         }
-      } else if (options.maptilerLogo) {
-        this.addControl(new MaptilerLogoControl(), options.logoPosition);
       }
 
       // the other controls at init time but be after
@@ -414,7 +432,7 @@ export class Map extends maplibregl.Map {
             showAccuracyCircle: true,
             showUserLocation: true,
           }),
-          position
+          position,
         );
       }
 
@@ -451,16 +469,76 @@ export class Map extends maplibregl.Map {
     // and some animation (flyTo, easeTo) are running from the begining.
     let loadEventTriggered = false;
     let terrainEventTriggered = false;
-    let terrainEventData: LoadWithTerrainEvent = null;
+    let terrainEventData: LoadWithTerrainEvent;
 
-    this.once("load", (_) => {
+    this.once("load", () => {
       loadEventTriggered = true;
       if (terrainEventTriggered) {
         this.fire("loadWithTerrain", terrainEventData);
       }
     });
 
-    const terrainCallback = (evt) => {
+    this.once("style.load", () => {
+      const { minimap } = options;
+      if (typeof minimap === "object") {
+        const {
+          zoom,
+          center,
+          style,
+          language,
+          apiKey,
+          maptilerLogo,
+          antialias,
+          refreshExpiredTiles,
+          maxBounds,
+          scrollZoom,
+          minZoom,
+          maxZoom,
+          boxZoom,
+          locale,
+          fadeDuration,
+          crossSourceCollisions,
+          clickTolerance,
+          bounds,
+          fitBoundsOptions,
+          pixelRatio,
+          validateStyle,
+        } = options;
+        this.minimap = new Minimap(minimap, {
+          zoom,
+          center,
+          style,
+          language,
+          apiKey,
+          container: "null",
+          maptilerLogo,
+          antialias,
+          refreshExpiredTiles,
+          maxBounds,
+          scrollZoom,
+          minZoom,
+          maxZoom,
+          boxZoom,
+          locale,
+          fadeDuration,
+          crossSourceCollisions,
+          clickTolerance,
+          bounds,
+          fitBoundsOptions,
+          pixelRatio,
+          validateStyle,
+        });
+        this.addControl(this.minimap, minimap.position ?? "bottom-left");
+      } else if (minimap === true) {
+        this.minimap = new Minimap({}, options);
+        this.addControl(this.minimap, "bottom-left");
+      } else if (minimap !== undefined && minimap !== false) {
+        this.minimap = new Minimap({}, options);
+        this.addControl(this.minimap, minimap);
+      }
+    });
+
+    const terrainCallback = (evt: LoadWithTerrainEvent) => {
       if (!evt.terrain) return;
       terrainEventTriggered = true;
       terrainEventData = {
@@ -480,7 +558,7 @@ export class Map extends maplibregl.Map {
     // enable 3D terrain if provided in options
     if (options.terrain) {
       this.enableTerrain(
-        options.terrainExaggeration ?? this.terrainExaggeration
+        options.terrainExaggeration ?? this.terrainExaggeration,
       );
     }
   }
@@ -492,12 +570,12 @@ export class Map extends maplibregl.Map {
    * @returns
    */
   async onLoadAsync() {
-    return new Promise<Map>((resolve, reject) => {
+    return new Promise<Map>((resolve) => {
       if (this.loaded()) {
         return resolve(this);
       }
 
-      this.once("load", (_) => {
+      this.once("load", () => {
         resolve(this);
       });
     });
@@ -511,12 +589,12 @@ export class Map extends maplibregl.Map {
    * @returns
    */
   async onLoadWithTerrainAsync() {
-    return new Promise<Map>((resolve, reject) => {
+    return new Promise<Map>((resolve) => {
       if (this.loaded() && this.terrain) {
         return resolve(this);
       }
 
-      this.once("loadWithTerrain", (_) => {
+      this.once("loadWithTerrain", () => {
         resolve(this);
       });
     });
@@ -528,340 +606,377 @@ export class Map extends maplibregl.Map {
    * - a full style URL (possibly with API key)
    * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
    * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
-   * @param style
-   * @param options
-   * @returns
    */
-  setStyle(
-    style: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string,
-    options?: StyleSwapOptions & StyleOptions
-  ) {
+  override setStyle(
+    style:
+      | null
+      | ReferenceMapStyle
+      | MapStyleVariant
+      | StyleSpecification
+      | string,
+    options?: StyleSwapOptions & StyleOptions,
+  ): this {
+    this.minimap?.setStyle(style);
+    this.forceLanguageUpdate = true;
+
+    this.once("idle", () => {
+      this.forceLanguageUpdate = false;
+    });
+
     return super.setStyle(styleToStyle(style), options);
   }
 
   /**
-   * Define the primary language of the map. Note that not all the languages shorthands provided are available.
-   * This function is a short for `.setPrimaryLanguage()`
-   * @param language
+   * Adds a [MapLibre style layer](https://maplibre.org/maplibre-style-spec/layers)
+   * to the map's style.
+   *
+   * A layer defines how data from a specified source will be styled. Read more about layer types
+   * and available paint and layout properties in the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/layers).
+   *
+   * @param layer - The layer to add,
+   * conforming to either the MapLibre Style Specification's [layer definition](https://maplibre.org/maplibre-style-spec/layers) or,
+   * less commonly, the {@link CustomLayerInterface} specification.
+   * The MapLibre Style Specification's layer definition is appropriate for most layers.
+   *
+   * @param beforeId - The ID of an existing layer to insert the new layer before,
+   * resulting in the new layer appearing visually beneath the existing layer.
+   * If this argument is not specified, the layer will be appended to the end of the layers array
+   * and appear visually above all other layers.
+   *
+   * @returns `this`
    */
-  setLanguage(language: LanguageString = defaults.primaryLanguage) {
-    if (language === Language.AUTO) {
-      return this.setLanguage(getBrowserLanguage());
+  addLayer(
+    layer:
+      | (LayerSpecification & {
+          source?: string | SourceSpecification;
+        })
+      | CustomLayerInterface,
+    beforeId?: string,
+  ): this {
+    this.minimap?.addLayer(layer, beforeId);
+    return super.addLayer(layer, beforeId);
+  }
+
+  /**
+   * Moves a layer to a different z-position.
+   *
+   * @param id - The ID of the layer to move.
+   * @param beforeId - The ID of an existing layer to insert the new layer before. When viewing the map, the `id` layer will appear beneath the `beforeId` layer. If `beforeId` is omitted, the layer will be appended to the end of the layers array and appear above all other layers on the map.
+   * @returns `this`
+   *
+   * @example
+   * Move a layer with ID 'polygon' before the layer with ID 'country-label'. The `polygon` layer will appear beneath the `country-label` layer on the map.
+   * ```ts
+   * map.moveLayer('polygon', 'country-label');
+   * ```
+   */
+  moveLayer(id: string, beforeId?: string): this {
+    this.minimap?.moveLayer(id, beforeId);
+    return super.moveLayer(id, beforeId);
+  }
+
+  /**
+   * Removes the layer with the given ID from the map's style.
+   *
+   * An {@link ErrorEvent} will be fired if the image parameter is invald.
+   *
+   * @param id - The ID of the layer to remove
+   * @returns `this`
+   *
+   * @example
+   * If a layer with ID 'state-data' exists, remove it.
+   * ```ts
+   * if (map.getLayer('state-data')) map.removeLayer('state-data');
+   * ```
+   */
+  removeLayer(id: string): this {
+    this.minimap?.removeLayer(id);
+    return super.removeLayer(id);
+  }
+
+  /**
+   * Sets the zoom extent for the specified style layer. The zoom extent includes the
+   * [minimum zoom level](https://maplibre.org/maplibre-style-spec/layers/#minzoom)
+   * and [maximum zoom level](https://maplibre.org/maplibre-style-spec/layers/#maxzoom))
+   * at which the layer will be rendered.
+   *
+   * Note: For style layers using vector sources, style layers cannot be rendered at zoom levels lower than the
+   * minimum zoom level of the _source layer_ because the data does not exist at those zoom levels. If the minimum
+   * zoom level of the source layer is higher than the minimum zoom level defined in the style layer, the style
+   * layer will not be rendered at all zoom levels in the zoom range.
+   */
+  setLayerZoomRange(layerId: string, minzoom: number, maxzoom: number): this {
+    this.minimap?.setLayerZoomRange(layerId, minzoom, maxzoom);
+    return super.setLayerZoomRange(layerId, minzoom, maxzoom);
+  }
+
+  /**
+   * Sets the filter for the specified style layer.
+   *
+   * Filters control which features a style layer renders from its source.
+   * Any feature for which the filter expression evaluates to `true` will be
+   * rendered on the map. Those that are false will be hidden.
+   *
+   * Use `setFilter` to show a subset of your source data.
+   *
+   * To clear the filter, pass `null` or `undefined` as the second parameter.
+   */
+  setFilter(
+    layerId: string,
+    filter?: FilterSpecification | null,
+    options?: StyleSetterOptions,
+  ): this {
+    this.minimap?.setFilter(layerId, filter, options);
+    return super.setFilter(layerId, filter, options);
+  }
+
+  /**
+   * Sets the value of a paint property in the specified style layer.
+   *
+   * @param layerId - The ID of the layer to set the paint property in.
+   * @param name - The name of the paint property to set.
+   * @param value - The value of the paint property to set.
+   * Must be of a type appropriate for the property, as defined in the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/).
+   * @param options - Options object.
+   * @returns `this`
+   * @example
+   * ```ts
+   * map.setPaintProperty('my-layer', 'fill-color', '#faafee');
+   * ```
+   */
+  setPaintProperty(
+    layerId: string,
+    name: string,
+    value: any,
+    options?: StyleSetterOptions,
+  ): this {
+    this.minimap?.setPaintProperty(layerId, name, value, options);
+    return super.setPaintProperty(layerId, name, value, options);
+  }
+
+  /**
+   * Sets the value of a layout property in the specified style layer.
+   * Layout properties define how the layer is styled.
+   * Layout properties for layers of the same type are documented together.
+   * Layers of different types have different layout properties.
+   * See the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/) for the complete list of layout properties.
+   * @param layerId - The ID of the layer to set the layout property in.
+   * @param name - The name of the layout property to set.
+   * @param value - The value of the layout property to set.
+   * Must be of a type appropriate for the property, as defined in the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/).
+   * @param options - Options object.
+   * @returns `this`
+   */
+  setLayoutProperty(
+    layerId: string,
+    name: string,
+    value: any,
+    options?: StyleSetterOptions,
+  ): this {
+    this.minimap?.setLayoutProperty(layerId, name, value, options);
+    return super.setLayoutProperty(layerId, name, value, options);
+  }
+
+  /**
+   * Sets the value of the style's glyphs property.
+   *
+   * @param glyphsUrl - Glyph URL to set. Must conform to the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/glyphs/).
+   * @param options - Options object.
+   * @returns `this`
+   * @example
+   * ```ts
+   * map.setGlyphs('https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf');
+   * ```
+   */
+  setGlyphs(glyphsUrl: string | null, options?: StyleSetterOptions): this {
+    this.minimap?.setGlyphs(glyphsUrl, options);
+    return super.setGlyphs(glyphsUrl, options);
+  }
+
+  private getStyleLanguage(): string | null {
+    if (!this.style.stylesheet.metadata) return null;
+    if (typeof this.style.stylesheet.metadata !== "object") return null;
+
+    if (
+      "maptiler:language" in this.style.stylesheet.metadata &&
+      typeof this.style.stylesheet.metadata["maptiler:language"] === "string"
+    ) {
+      return this.style.stylesheet.metadata["maptiler:language"];
+    } else {
+      return null;
     }
-    this.setPrimaryLanguage(language);
   }
 
   /**
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
-   * @param language
    */
-  setPrimaryLanguage(language: LanguageString = defaults.primaryLanguage) {
+  setLanguage(language: LanguageString | string): void {
+    this.minimap?.map?.setLanguage(language);
+    this.onStyleReady(() => {
+      this.setPrimaryLanguage(language);
+    });
+  }
+
+  /**
+   * Define the primary language of the map. Note that not all the languages shorthands provided are available.
+   */
+
+  private setPrimaryLanguage(language: LanguageString | string) {
+    const styleLanguage = this.getStyleLanguage();
+
+    // If the language is set to `STYLE` (which is the SDK default), but the language defined in
+    // the style is `auto`, we need to bypass some verification and modify the languages anyway
+    if (
+      !(
+        language === Language.STYLE &&
+        (styleLanguage === Language.AUTO || styleLanguage === Language.VISITOR)
+      )
+    ) {
+      if (language !== Language.STYLE) {
+        this.languageAlwaysBeenStyle = false;
+      }
+
+      if (this.languageAlwaysBeenStyle) {
+        return;
+      }
+
+      // No need to change the language
+      if (this.primaryLanguage === language && !this.forceLanguageUpdate) {
+        return;
+      }
+    }
+
+    if (!isLanguageSupported(language as string)) {
+      console.warn(`The language "${language}" is not supported.`);
+      return;
+    }
+
     if (this.primaryLanguage === Language.STYLE_LOCK) {
       console.warn(
-        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag."
+        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag.",
       );
       return;
     }
 
-    if (!isLanguageSupported(language as string)) {
-      return;
-    }
+    this.primaryLanguage = language as LanguageString;
+    let languageNonStyle: LanguageString = language as LanguageString;
 
-    this.primaryLanguage = language;
-
-    this.onStyleReady(() => {
-      if (language === Language.AUTO) {
-        return this.setPrimaryLanguage(getBrowserLanguage());
+    // STYLE needs to be translated into one of the other language,
+    // this is why it's addressed first
+    if (language === Language.STYLE) {
+      if (!styleLanguage) {
+        console.warn("The style has no default languages.");
+        return;
       }
 
-      const layers = this.getStyle().layers;
+      if (!isLanguageSupported(styleLanguage)) {
+        console.warn("The language defined in the style is not valid.");
+        return;
+      }
 
-      // detects pattern like "{name:somelanguage}" with loose spacing
-      const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
+      languageNonStyle = styleLanguage as LanguageString;
+    }
 
-      // detects pattern like "name:somelanguage" with loose spacing
-      const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
+    // may be overwritten below
+    let langStr: string | LanguageString = Language.LOCAL;
 
-      // for string based bilingual lang such as "{name:latin}  {name:nonlatin}" or "{name:latin}  {name}"
-      const strBilingualRegex =
-        /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
+    // will be overwritten below
+    let replacer: ExpressionSpecification | string = `{${langStr}}`;
 
-      // Regex to capture when there are more info, such as mountains elevation with unit m/ft
-      const strMoreInfoRegex = /^(.*)({\s*name\s*(:\s*(\S*))?\s*})(.*)$/;
+    if (languageNonStyle == Language.VISITOR) {
+      langStr = getBrowserLanguage();
+      replacer = [
+        "case",
+        ["all", ["has", langStr], ["has", Language.LOCAL]],
+        [
+          "case",
+          ["==", ["get", langStr], ["get", Language.LOCAL]],
+          ["get", Language.LOCAL],
 
-      const langStr = language ? `name:${language}` : "name"; // to handle local lang
-      const replacer = [
+          [
+            "format",
+            ["get", langStr],
+            { "font-scale": 0.8 },
+            "\n",
+            ["get", Language.LOCAL],
+            { "font-scale": 1.1 },
+          ],
+        ],
+
+        ["get", Language.LOCAL],
+      ];
+    } else if (languageNonStyle == Language.VISITOR_ENGLISH) {
+      langStr = Language.ENGLISH;
+      replacer = [
+        "case",
+        ["all", ["has", langStr], ["has", Language.LOCAL]],
+        [
+          "case",
+          ["==", ["get", langStr], ["get", Language.LOCAL]],
+          ["get", Language.LOCAL],
+
+          [
+            "format",
+            ["get", langStr],
+            { "font-scale": 0.8 },
+            "\n",
+            ["get", Language.LOCAL],
+            { "font-scale": 1.1 },
+          ],
+        ],
+        ["get", Language.LOCAL],
+      ];
+    } else if (languageNonStyle === Language.AUTO) {
+      langStr = getBrowserLanguage();
+      replacer = [
         "case",
         ["has", langStr],
         ["get", langStr],
-        ["get", "name"],
+        ["get", Language.LOCAL],
       ];
-
-      for (let i = 0; i < layers.length; i += 1) {
-        const layer = layers[i];
-        const layout = layer.layout;
-
-        if (!layout) {
-          continue;
-        }
-
-        if (!layout["text-field"]) {
-          continue;
-        }
-
-        const textFieldLayoutProp = this.getLayoutProperty(
-          layer.id,
-          "text-field"
-        );
-
-        // Note:
-        // The value of the 'text-field' property can take multiple shape;
-        // 1. can be an array with 'concat' on its first element (most likely means bilingual)
-        // 2. can be an array with 'get' on its first element (monolingual)
-        // 3. can be a string of shape '{name:latin}'
-        // 4. can be a string referencing another prop such as '{housenumber}' or '{ref}'
-        //
-        // The case 1, 2 and 3 will be updated while maintaining their original type and shape.
-        // The case 3 will not be updated
-
-        let regexMatch;
-
-        // This is case 1
-        if (
-          Array.isArray(textFieldLayoutProp) &&
-          textFieldLayoutProp.length >= 2 &&
-          textFieldLayoutProp[0].trim().toLowerCase() === "concat"
-        ) {
-          const newProp = textFieldLayoutProp.slice(); // newProp is Array
-          // The style could possibly have defined more than 2 concatenated language strings but we only want to edit the first
-          // The style could also define that there are more things being concatenated and not only languages
-
-          for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
-            const elem = textFieldLayoutProp[j];
-
-            // we are looking for an elem of shape '{name:somelangage}' (string) of `["get", "name:somelanguage"]` (array)
-
-            // the entry of of shape '{name:somelangage}', possibly with loose spacing
-            if (
-              (typeof elem === "string" || elem instanceof String) &&
-              strLanguageRegex.exec(elem.toString())
-            ) {
-              newProp[j] = replacer;
-              break; // we just want to update the primary language
-            }
-            // the entry is of an array of shape `["get", "name:somelanguage"]`
-            else if (
-              Array.isArray(elem) &&
-              elem.length >= 2 &&
-              elem[0].trim().toLowerCase() === "get" &&
-              strLanguageInArrayRegex.exec(elem[1].toString())
-            ) {
-              newProp[j] = replacer;
-              break; // we just want to update the primary language
-            } else if (
-              Array.isArray(elem) &&
-              elem.length === 4 &&
-              elem[0].trim().toLowerCase() === "case"
-            ) {
-              newProp[j] = replacer;
-              break; // we just want to update the primary language
-            }
-          }
-
-          this.setLayoutProperty(layer.id, "text-field", newProp);
-        }
-
-        // This is case 2
-        else if (
-          Array.isArray(textFieldLayoutProp) &&
-          textFieldLayoutProp.length >= 2 &&
-          textFieldLayoutProp[0].trim().toLowerCase() === "get" &&
-          strLanguageInArrayRegex.exec(textFieldLayoutProp[1].toString())
-        ) {
-          const newProp = replacer;
-          this.setLayoutProperty(layer.id, "text-field", newProp);
-        }
-
-        // This is case 3
-        else if (
-          (typeof textFieldLayoutProp === "string" ||
-            textFieldLayoutProp instanceof String) &&
-          strLanguageRegex.exec(textFieldLayoutProp.toString())
-        ) {
-          const newProp = replacer;
-          this.setLayoutProperty(layer.id, "text-field", newProp);
-        } else if (
-          Array.isArray(textFieldLayoutProp) &&
-          textFieldLayoutProp.length === 4 &&
-          textFieldLayoutProp[0].trim().toLowerCase() === "case"
-        ) {
-          const newProp = replacer;
-          this.setLayoutProperty(layer.id, "text-field", newProp);
-        } else if (
-          (typeof textFieldLayoutProp === "string" ||
-            textFieldLayoutProp instanceof String) &&
-          (regexMatch = strBilingualRegex.exec(
-            textFieldLayoutProp.toString()
-          )) !== null
-        ) {
-          const newProp = `{${langStr}}${regexMatch[3]}{name${
-            regexMatch[4] || ""
-          }}`;
-          this.setLayoutProperty(layer.id, "text-field", newProp);
-        } else if (
-          (typeof textFieldLayoutProp === "string" ||
-            textFieldLayoutProp instanceof String) &&
-          (regexMatch = strMoreInfoRegex.exec(
-            textFieldLayoutProp.toString()
-          )) !== null
-        ) {
-          const newProp = `${regexMatch[1]}{${langStr}}${regexMatch[5]}`;
-          this.setLayoutProperty(layer.id, "text-field", newProp);
-        }
-      }
-    });
-  }
-
-  /**
-   * Define the secondary language of the map. Note that this is not supported by all the map styles
-   * Note that most styles do not allow a secondary language and this function only works if the style allows (no force adding)
-   * @param language
-   */
-  setSecondaryLanguage(language: LanguageString = defaults.secondaryLanguage) {
-    // Using the lock flag as a primaty language also applies to the secondary
-    if (this.primaryLanguage === Language.STYLE_LOCK) {
-      console.warn(
-        "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag."
-      );
-      return;
     }
 
-    if (!isLanguageSupported(language as string)) {
-      return;
+    // This is for using the regular names as {name}
+    else if (languageNonStyle === Language.LOCAL) {
+      langStr = Language.LOCAL;
+      replacer = `{${langStr}}`;
     }
 
-    this.secondaryLanguage = language;
+    // This section is for the regular language ISO codes
+    else {
+      langStr = languageNonStyle;
+      replacer = [
+        "case",
+        ["has", langStr],
+        ["get", langStr],
+        ["get", Language.LOCAL],
+      ];
+    }
 
-    this.onStyleReady(() => {
-      if (language === Language.AUTO) {
-        return this.setSecondaryLanguage(getBrowserLanguage());
+    const { layers } = this.getStyle();
+
+    for (const { id, layout } of layers) {
+      if (!layout) {
+        continue;
       }
 
-      const layers = this.getStyle().layers;
-
-      // detects pattern like "{name:somelanguage}" with loose spacing
-      const strLanguageRegex = /^\s*{\s*name\s*(:\s*(\S*))?\s*}$/;
-
-      // detects pattern like "name:somelanguage" with loose spacing
-      const strLanguageInArrayRegex = /^\s*name\s*(:\s*(\S*))?\s*$/;
-
-      // for string based bilingual lang such as "{name:latin}  {name:nonlatin}" or "{name:latin}  {name}"
-      const strBilingualRegex =
-        /^\s*{\s*name\s*(:\s*(\S*))?\s*}(\s*){\s*name\s*(:\s*(\S*))?\s*}$/;
-
-      let regexMatch;
-
-      for (let i = 0; i < layers.length; i += 1) {
-        const layer = layers[i];
-        const layout = layer.layout;
-
-        if (!layout) {
-          continue;
-        }
-
-        if (!layout["text-field"]) {
-          continue;
-        }
-
-        const textFieldLayoutProp = this.getLayoutProperty(
-          layer.id,
-          "text-field"
-        );
-
-        let newProp;
-
-        // Note:
-        // The value of the 'text-field' property can take multiple shape;
-        // 1. can be an array with 'concat' on its first element (most likely means bilingual)
-        // 2. can be an array with 'get' on its first element (monolingual)
-        // 3. can be a string of shape '{name:latin}'
-        // 4. can be a string referencing another prop such as '{housenumber}' or '{ref}'
-        //
-        // Only the case 1 will be updated because we don't want to change the styling (read: add a secondary language where the original styling is only displaying 1)
-
-        // This is case 1
-        if (
-          Array.isArray(textFieldLayoutProp) &&
-          textFieldLayoutProp.length >= 2 &&
-          textFieldLayoutProp[0].trim().toLowerCase() === "concat"
-        ) {
-          newProp = textFieldLayoutProp.slice(); // newProp is Array
-          // The style could possibly have defined more than 2 concatenated language strings but we only want to edit the first
-          // The style could also define that there are more things being concatenated and not only languages
-
-          let languagesAlreadyFound = 0;
-
-          for (let j = 0; j < textFieldLayoutProp.length; j += 1) {
-            const elem = textFieldLayoutProp[j];
-
-            // we are looking for an elem of shape '{name:somelangage}' (string) of `["get", "name:somelanguage"]` (array)
-
-            // the entry of of shape '{name:somelangage}', possibly with loose spacing
-            if (
-              (typeof elem === "string" || elem instanceof String) &&
-              strLanguageRegex.exec(elem.toString())
-            ) {
-              if (languagesAlreadyFound === 1) {
-                newProp[j] = `{name:${language}}`;
-                break; // we just want to update the secondary language
-              }
-
-              languagesAlreadyFound += 1;
-            }
-            // the entry is of an array of shape `["get", "name:somelanguage"]`
-            else if (
-              Array.isArray(elem) &&
-              elem.length >= 2 &&
-              elem[0].trim().toLowerCase() === "get" &&
-              strLanguageInArrayRegex.exec(elem[1].toString())
-            ) {
-              if (languagesAlreadyFound === 1) {
-                newProp[j][1] = `name:${language}`;
-                break; // we just want to update the secondary language
-              }
-
-              languagesAlreadyFound += 1;
-            } else if (
-              Array.isArray(elem) &&
-              elem.length === 4 &&
-              elem[0].trim().toLowerCase() === "case"
-            ) {
-              if (languagesAlreadyFound === 1) {
-                newProp[j] = ["get", `name:${language}`]; // the situation with 'case' is supposed to only happen with the primary lang
-                break; // but in case a styling also does that for secondary...
-              }
-
-              languagesAlreadyFound += 1;
-            }
-          }
-
-          this.setLayoutProperty(layer.id, "text-field", newProp);
-        }
-
-        // the language (both first and second) are defined into a single string model
-        else if (
-          (typeof textFieldLayoutProp === "string" ||
-            textFieldLayoutProp instanceof String) &&
-          (regexMatch = strBilingualRegex.exec(
-            textFieldLayoutProp.toString()
-          )) !== null
-        ) {
-          const langStr = language ? `name:${language}` : "name"; // to handle local lang
-          newProp = `{name${regexMatch[1] || ""}}${regexMatch[3]}{${langStr}}`;
-          this.setLayoutProperty(layer.id, "text-field", newProp);
-        }
+      if (!("text-field" in layout)) {
+        continue;
       }
-    });
+
+      const textFieldLayoutProp = this.getLayoutProperty(id, "text-field");
+
+      // If the label is not about a name, then we don't translate it
+      if (
+        typeof textFieldLayoutProp === "string" &&
+        (textFieldLayoutProp.toLowerCase().includes("ref") ||
+          textFieldLayoutProp.toLowerCase().includes("housenumber"))
+      ) {
+        continue;
+      }
+
+      this.setLayoutProperty(id, "text-field", replacer);
+    }
   }
 
   /**
@@ -870,14 +985,6 @@ export class Map extends maplibregl.Map {
    */
   getPrimaryLanguage(): LanguageString {
     return this.primaryLanguage;
-  }
-
-  /**
-   * Get the secondary language
-   * @returns
-   */
-  getSecondaryLanguage(): LanguageString {
-    return this.secondaryLanguage;
   }
 
   /**
@@ -896,7 +1003,7 @@ export class Map extends maplibregl.Map {
     return this.isTerrainEnabled;
   }
 
-  private growTerrain(exaggeration, durationMs = 1000) {
+  private growTerrain(exaggeration: number, durationMs = 1000) {
     // This method assumes the terrain is already built
     if (!this.terrain) {
       return;
@@ -946,8 +1053,6 @@ export class Map extends maplibregl.Map {
 
   /**
    * Enables the 3D terrain visualization
-   * @param exaggeration
-   * @returns
    */
   enableTerrain(exaggeration = this.terrainExaggeration) {
     if (exaggeration < 0) {
@@ -1081,7 +1186,8 @@ export class Map extends maplibregl.Map {
         this.terrain.exaggeration = 0;
         this.terrainGrowing = false;
         this.terrainFlattening = false;
-        this.setTerrain(null);
+        // @ts-expect-error - https://github.com/maplibre/maplibre-gl-js/issues/2992
+        this.setTerrain();
         if (this.getSource(defaults.terrainSourceId)) {
           this.removeSource(defaults.terrainSourceId);
         }
@@ -1101,8 +1207,6 @@ export class Map extends maplibregl.Map {
    * the method `.enableTerrain()` will be called.
    * If `animate` is `true`, the terrain transformation will be animated in the span of 1 second.
    * If `animate` is `false`, no animated transition to the newly defined exaggeration.
-   * @param exaggeration
-   * @param animate
    */
   setTerrainExaggeration(exaggeration: number, animate = true) {
     if (!animate && this.terrain) {
@@ -1117,9 +1221,8 @@ export class Map extends maplibregl.Map {
   /**
    * Perform an action when the style is ready. It could be at the moment of calling this method
    * or later.
-   * @param cb
    */
-  private onStyleReady(cb) {
+  private onStyleReady(cb: () => void) {
     if (this.isStyleLoaded()) {
       cb();
     } else {
@@ -1136,14 +1239,17 @@ export class Map extends maplibregl.Map {
       {
         duration: 0,
         padding: 100,
-      }
+      },
     );
   }
 
   async centerOnIpPoint(zoom: number | undefined) {
     const ipGeolocateResult = await geolocation.info();
     this.jumpTo({
-      center: [ipGeolocateResult.longitude, ipGeolocateResult.latitude],
+      center: [
+        ipGeolocateResult?.longitude ?? 0,
+        ipGeolocateResult?.latitude ?? 0,
+      ],
       zoom: zoom || 11,
     });
   }
@@ -1163,7 +1269,6 @@ export class Map extends maplibregl.Map {
    * Get the SDK config object.
    * This is convenient to dispatch the SDK configuration to externally built layers
    * that do not directly have access to the SDK configuration but do have access to a Map instance.
-   * @returns
    */
   getSdkConfig(): SdkConfig {
     return config;
@@ -1189,8 +1294,33 @@ export class Map extends maplibregl.Map {
    *  @example
    *  map.setTransformRequest((url: string, resourceType: string) => {});
    */
-  setTransformRequest(transformRequest: RequestTransformFunction) {
+  override setTransformRequest(
+    transformRequest: RequestTransformFunction,
+  ): this {
     super.setTransformRequest(combineTransformRequest(transformRequest));
     return this;
+  }
+
+  /**
+   * Loads an image. This is an async equivalent of `Map.loadImage`
+   */
+  async loadImageAsync(
+    url: string,
+  ): Promise<HTMLImageElement | ImageBitmap | null | undefined> {
+    return new Promise((resolve, reject) => {
+      this.loadImage(
+        url,
+        (
+          error: Error | null | undefined,
+          image: HTMLImageElement | ImageBitmap | null | undefined,
+        ) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve(image);
+        },
+      );
+    });
   }
 }

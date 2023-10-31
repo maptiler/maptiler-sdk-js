@@ -10,7 +10,7 @@ import json from '@rollup/plugin-json';
 import execute from "rollup-plugin-shell";
 
 const outputName = "maptiler-sdk";
-const externals = ["maplibre-gl", "@maptiler/client", "@mapbox/point-geometry", "uuid", "@mapbox/unitbezier", "events", "js-base64"];
+const externals = ["maplibre-gl", "@maptiler/client", "@mapbox/point-geometry", "uuid", "@mapbox/unitbezier", "events", "js-base64", "geojson-validation"];
 
 const cssMaplibreFilepath = "node_modules/maplibre-gl/dist/maplibre-gl.css";
 const cssTemplateFilepath = "src/style/style_template.css";
@@ -26,20 +26,6 @@ const copyCssPlugin = copy({
       file: cssDistribution,
     },
   ],
-});
-
-const copyUmdBundle = copy({
-  targets: [
-    {
-      src: `dist/${outputName}.umd.js`,
-      dest: "demos/",
-    },
-    {
-      src: `dist/${outputName}.css`,
-      dest: "demos/",
-    },
-  ],
-  hook: "writeBundle"
 });
 
 
@@ -78,7 +64,7 @@ const bundles = [
       globals(),
       json(),
       esbuild(),
-      copyUmdBundle, 
+      // copyUmdBundle, 
     ],
     output: [
       {

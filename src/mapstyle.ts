@@ -13,10 +13,12 @@ export function styleToStyle(
     | MapStyleVariant
     | maplibregl.StyleSpecification
     | null
-    | undefined
+    | undefined,
 ): string | maplibregl.StyleSpecification {
   if (!style) {
-    return MapStyle[mapStylePresetList[0].referenceStyleID]
+    return MapStyle[
+      mapStylePresetList[0].referenceStyleID as keyof typeof MapStyle
+    ]
       .getDefaultVariant()
       .getExpandedStyleURL();
   }

@@ -1,8 +1,9 @@
 import EventEmitter from "events";
-import { Language, LanguageString } from "./language";
+import { LanguageString } from "./language";
 import { config as clientConfig, FetchFunction } from "@maptiler/client";
 import { v4 as uuidv4 } from "uuid";
 import { Unit } from "./unit";
+import { defaults } from "./defaults";
 
 export const MAPTILER_SESSION_ID = uuidv4();
 
@@ -13,13 +14,13 @@ class SdkConfig extends EventEmitter {
   /**
    * The primary language. By default, the language of the web browser is used.
    */
-  primaryLanguage: LanguageString | null = Language.AUTO;
+  primaryLanguage: LanguageString = defaults.primaryLanguage;
 
   /**
    * The secondary language, to overwrite the default language defined in the map style.
    * This settings is highly dependant on the style compatibility and may not work in most cases.
    */
-  secondaryLanguage: LanguageString | null = null;
+  secondaryLanguage?: LanguageString;
 
   /**
    * Setting on whether of not the SDK runs with a session logic.

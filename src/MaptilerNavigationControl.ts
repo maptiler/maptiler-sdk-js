@@ -1,7 +1,7 @@
 import { NavigationControl } from "./NavigationControl";
 
 type HTMLButtonElementPlus = HTMLButtonElement & {
-  clickFunction: (e?: any) => unknown;
+  clickFunction: (e?: Event) => unknown;
 };
 
 export class MaptilerNavigationControl extends NavigationControl {
@@ -15,7 +15,7 @@ export class MaptilerNavigationControl extends NavigationControl {
     // Removing the default click event
     this._compass.removeEventListener(
       "click",
-      (this._compass as HTMLButtonElementPlus).clickFunction
+      (this._compass as HTMLButtonElementPlus).clickFunction,
     );
 
     // Adding custom click event
@@ -40,7 +40,7 @@ export class MaptilerNavigationControl extends NavigationControl {
    */
   _createButton(
     className: string,
-    fn: (e?: any) => unknown
+    fn: (e?: Event) => unknown,
   ): HTMLButtonElementPlus {
     const button = super._createButton(className, fn) as HTMLButtonElementPlus;
     button.clickFunction = fn;
@@ -50,17 +50,20 @@ export class MaptilerNavigationControl extends NavigationControl {
   /**
    * Overloading: Limit how flat the compass icon can get
    */
-  _rotateCompassArrow() {
+  _rotateCompassArrow = () => {
     const rotate = this.options.visualizePitch
       ? `scale(${Math.min(
           1.5,
           1 /
-            Math.pow(Math.cos(this._map.transform.pitch * (Math.PI / 180)), 0.5)
+            Math.pow(
+              Math.cos(this._map.transform.pitch * (Math.PI / 180)),
+              0.5,
+            ),
         )}) rotateX(${Math.min(70, this._map.transform.pitch)}deg) rotateZ(${
           this._map.transform.angle * (180 / Math.PI)
         }deg)`
       : `rotate(${this._map.transform.angle * (180 / Math.PI)}deg)`;
 
     this._compassIcon.style.transform = rotate;
-  }
+  };
 }

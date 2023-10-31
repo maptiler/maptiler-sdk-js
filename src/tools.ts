@@ -13,8 +13,10 @@ export function enableRTL() {
   if (maplibregl.getRTLTextPluginStatus() === "unavailable") {
     maplibregl.setRTLTextPlugin(
       defaults.rtlPluginURL,
-      null,
-      true // Lazy load the plugin
+      (err?: Error | undefined) => {
+        if (err) console.error(err);
+      },
+      true, // Lazy load the plugin
     );
   }
 }
@@ -23,9 +25,7 @@ export function enableRTL() {
 // https://github.com/maplibre/maplibre-gl-js/blob/v2.4.0/src/util/util.ts#L223
 export function bindAll(fns: Array<string>, context: any): void {
   fns.forEach((fn) => {
-    if (!context[fn]) {
-      return;
-    }
+    if (typeof context[fn] !== "function") return;
     context[fn] = context[fn].bind(context);
   });
 }
@@ -35,7 +35,7 @@ export function bindAll(fns: Array<string>, context: any): void {
 export function DOMcreate<K extends keyof HTMLElementTagNameMap>(
   tagName: K,
   className?: string,
-  container?: HTMLElement
+  container?: HTMLElement,
 ): HTMLElementTagNameMap[K] {
   const el = window.document.createElement(tagName);
   if (className !== undefined) el.className = className;
@@ -55,13 +55,12 @@ export function DOMremove(node: HTMLElement) {
  * This function is meant to be used as transformRequest by any Map instance created.
  * It adds the session ID as well as the MapTiler Cloud key from the config to all the requests
  * performed on MapTiler Cloud servers.
- * @param url
- * @param resourceType
- * @returns
  */
 export function maptilerCloudTransformRequest(
   url: string,
-  resourceType?: ResourceType
+  // keep incase we need it in the future
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _resourceType?: ResourceType,
 ): RequestParameters {
   let reqUrl = null;
 
@@ -94,19 +93,17 @@ export function maptilerCloudTransformRequest(
 /**
  * This combines a user-defined tranformRequest function (optionnal)
  * with the MapTiler Cloud-specific one: maptilerCloudTransformRequest
- * @param userDefinedRTF
- * @returns
  */
 export function combineTransformRequest(
-  userDefinedRTF: RequestTransformFunction = null
+  userDefinedRTF?: RequestTransformFunction,
 ): RequestTransformFunction {
   return function (
     url: string,
-    resourceType?: ResourceType
+    resourceType?: ResourceType,
   ): RequestParameters {
-    if (userDefinedRTF) {
+    if (userDefinedRTF !== undefined) {
       const rp = userDefinedRTF(url, resourceType);
-      const rp2 = maptilerCloudTransformRequest(rp.url);
+      const rp2 = maptilerCloudTransformRequest(rp?.url ?? "");
 
       return {
         ...rp,
@@ -116,4 +113,58 @@ export function combineTransformRequest(
       return maptilerCloudTransformRequest(url);
     }
   };
+}
+
+/**
+ * Generate a random string. Handy to create random IDs
+ */
+export function generateRandomString(): string {
+  return Math.random().toString(36).substring(2);
+}
+
+/**
+ * Check if a given string is in a uuid format
+ */
+export function isUUID(s: string): boolean {
+  // Regular expression to check if string is a valid UUID
+  const regexExp =
+    /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
+  return regexExp.test(s);
+}
+
+/**
+ * Attempt a JSON parse of a string but does not throw if the string is not valid JSON, returns `null` instead.
+ */
+export function jsonParseNoThrow<T>(doc: string): T | null {
+  try {
+    return JSON.parse(doc);
+  } catch (e) {
+    // pass
+  }
+
+  return null;
+}
+
+/**
+ * Simple function to check if an object is a GeoJSON
+ */
+export function isValidGeoJSON<T>(obj: T & { type: string }): boolean {
+  if (typeof obj !== "object" || Array.isArray(obj) || obj === null)
+    return false;
+  if (!("type" in obj)) return false;
+
+  const validTypes = [
+    "Feature",
+    "FeatureCollection",
+    "Point",
+    "MultiPoint",
+    "LineString",
+    "MultiLineString",
+    "Polygon",
+    "MultiPolygon",
+    "GeometryCollection",
+  ];
+
+  if (validTypes.includes(obj.type)) return true;
+  return false;
 }

@@ -170,10 +170,12 @@ import type { Matrix2 } from "./Point";
 import { config, SdkConfig } from "./config";
 import { Language, LanguageString, LanguageKey } from "./language";
 import type { Unit } from "./unit";
+import type { MinimapOptionsInput } from "./Minimap";
 
 // Exporting types
 export type {
   MapOptions,
+  MinimapOptionsInput,
   LoadWithTerrainEvent,
   GeocodingOptions,
   BBox,
@@ -189,6 +191,12 @@ export type {
   MapStyleType,
   Matrix2,
 };
+
+// Export convert functions 'str2xml', 'xml2str', 'gpx', and 'kml'
+export * from "./converters";
+
+// Export the color ramp logic and all the built-in color ramps
+export * from "./colorramp";
 
 // Exporting classes, objects, functions, etc.
 export {
@@ -230,3 +238,5 @@ export {
   MaptilerTerrainControl,
   MaptilerNavigationControl,
 };
+
+export * from "./helpers";
