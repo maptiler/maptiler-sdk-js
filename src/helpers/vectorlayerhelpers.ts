@@ -235,7 +235,7 @@ export type PolylineLayerOptions = CommonShapeLayerOptions & {
   outlineBlur?: number | ZoomNumberValues;
 };
 
-export type PolylgonLayerOptions = CommonShapeLayerOptions & {
+export type PolygonLayerOptions = CommonShapeLayerOptions & {
   /**
    * Color of the polygon. This is can be a constant color string or a definition based on zoom levels.
    * Default: a color randomly pick from a list
@@ -741,7 +741,7 @@ function addGeoJSONPolyline(
 export function addPolygon(
   map: Map,
   // this Feature collection is expected to contain on LineStrings and MultiLinestrings
-  options: PolylgonLayerOptions,
+  options: PolygonLayerOptions,
 ): {
   /**
    * ID of the fill layer
