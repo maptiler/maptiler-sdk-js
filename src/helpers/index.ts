@@ -11,7 +11,7 @@ export type {
   PropertyValues,
   CommonShapeLayerOptions,
   PolylineLayerOptions,
-  PolylgonLayerOptions,
+  PolygonLayerOptions,
   PointLayerOptions,
   HeatmapLayerOptions,
 } from "./vectorlayerhelpers";
