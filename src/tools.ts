@@ -23,6 +23,7 @@ export function enableRTL() {
 
 // This comes from:
 // https://github.com/maplibre/maplibre-gl-js/blob/v2.4.0/src/util/util.ts#L223
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function bindAll(fns: Array<string>, context: any): void {
   fns.forEach((fn) => {
     if (typeof context[fn] !== "function") return;
