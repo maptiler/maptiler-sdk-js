@@ -747,6 +747,7 @@ export class Map extends maplibregl.Map {
   setPaintProperty(
     layerId: string,
     name: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any,
     options?: StyleSetterOptions,
   ): this {
@@ -770,6 +771,7 @@ export class Map extends maplibregl.Map {
   setLayoutProperty(
     layerId: string,
     name: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any,
     options?: StyleSetterOptions,
   ): this {
