@@ -5,6 +5,14 @@
 ### Bug Fixes
 ### Others
 
+## 1.2.1
+### New Features
+- Elevation lookup at `maptilersdk.elevation` with the function `.at()`, `.batch()` and for geojson payloads. From the update of the MapTiler Client library
+### Bug Fixes
+- The index now exposes the geocoding option types from the Client library
+### Others
+- Udate of the Maptiler Client library to v1.8.0 that brings the elevation and math module
+
 ## 1.2.0
 ### New Features
 - Added the Minimap control https://github.com/maptiler/maptiler-sdk-js/pull/54
