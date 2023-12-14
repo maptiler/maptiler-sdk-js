@@ -8,10 +8,13 @@
 ## 1.2.1
 ### New Features
 - Elevation lookup at `maptilersdk.elevation` with the function `.at()`, `.batch()` and for geojson payloads. From the update of the MapTiler Client library
+- the new `ready` event. Called only once after `load` and wait for all the controls managed by the Map constructor to be dealt with (as one relies on async logic)
+- the new Map lifecycle method `.onReadyAsync()` corresponding to a promise-based equivalent of the the `ready` event.
 ### Bug Fixes
 - The index now exposes the geocoding option types from the Client library
 ### Others
-- Udate of the Maptiler Client library to v1.8.0 that brings the elevation and math module
+- Update of the Maptiler Client library to v1.8.0 that brings the elevation and math module
+- Update with the last version of MapLibre GL JS (v3.6.2)
 
 ## 1.2.0
 ### New Features
