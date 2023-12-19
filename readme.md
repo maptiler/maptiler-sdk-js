@@ -392,16 +392,32 @@ Languages that are written right-to-left such as arabic and hebrew are fully sup
 
 # Custom Events and Map Lifecycle
 ## Events
-Since the SDK is fully compatible with MapLibre, [all these events](https://maplibre.org/maplibre-gl-js-docs/api/map/#map-events) are available, yet we have added one more: `loadWithTerrain`.  
+### The `ready` event
+The `ready` event happens just after the `load` event but waits that all the controls managed by the `Map` constructor are dealt with, some having an asynchronous logic to set up.  
+Since the `ready` event waits that all the basic controls are nicely positioned, it is **safer** to use `ready` than `load` if you plan to add other custom comtrols with the `.addControl()` method.
 
-The `loadWithTerrain` event is triggered only *once* in a `Map` instance lifecycle, when both the `load` event and the `terrain` event **with non-null terrain** are fired. 
+This event works exactely the same way as `load` and you can safely replace those by `"ready"`. Here is a usage example:
+
+```js
+const map = new maptilersdk.Map({
+  container: "map-container",
+});
+
+map.on("ready", (evt) => {
+  const terrainControl = new maptilersdk.MaptilerTerrainControl();
+  map.addControl(terrainControl);
+})
+```
+
+### The `loadWithTerrain` event
+The `loadWithTerrain` event is triggered only *once* in a `Map` instance lifecycle, when both the `ready` event and the `terrain` event **with non-null terrain** are fired. 
 
 **Why a new event?**
 When a map is instanciated with the option `terrain: true`, then MapTiler terrain is directly added to it and some animation functions such as `.flyTo()` or `.easeTo()` if started straight after the map initialization will actually need to wait a few milliseconds that the terrain is properly initialized before running.  
-Relying on the `load` event to run an animation with a map with terrain may fail in some cases for this reason, and this is why waiting for `loadWithTerrain` is safer in this particular situation.
+Relying on the `ready` or `load` event to run an animation with a map with terrain may fail in some cases for this reason, and this is why waiting for `loadWithTerrain` is safer in this particular situation.
 
 ## Lifecycle Methods
-The events `load` and `loadWithTerrain` are both called *at most once* and require a callback function to add more elements such as markers, layers, popups and data sources. Even though MapTiler SDK fully supports this logic, we have also included a *promise* logic to provide a more linear and less nested way to wait for a Map instance to be ready. Let's compare the two ways:
+The events `load`, `ready` and `loadWithTerrain` are both called *at most once* and require a callback function to add more elements such as markers, layers, popups and data sources. Even though MapTiler SDK fully supports this logic, we have also included a *promise* logic to provide a more linear and less nested way to wait for a Map instance to be usable. Let's compare the two ways:
 
 - Classic: with a callback on the `load` event:
 ```ts
@@ -494,9 +510,54 @@ async function init() {
 }
 ```
 
+And finally, the lifecycle method corresponding to the `ready` event:
+- Classic: with a callback on the `ready` event:
+```ts
+function init() {
+
+  const map = new Map({
+    container,
+    center: [2.34804, 48.85439], // Paris, France
+    zoom: 14,
+  });
+
+  // We wait for the event.
+  // Once triggered, the callback is ranin it's own scope.
+  map.on("ready", (evt) => {
+    // Adding a data source
+    map.addSource('my-gps-track-source', {
+      type: "geojson",
+      data: "https://example.com/some-gps-track.geojson",
+    });
+  })
+}
+```
+
+- Modern: with a promise returned by the method `.onReadyAsync()`, used in an `async` function:
+```ts
+async function init() {
+
+  const map = new Map({
+    container,
+    center: [2.34804, 48.85439], // Paris, France
+    zoom: 14,
+  });
+
+  // We wait for the promise to resolve.
+  // Once triggered, the rest of the init function runs
+  await map.onReadyAsync();
+
+  // Adding a data source
+  map.addSource('my-gps-track-source', {
+    type: "geojson",
+    data: "https://example.com/some-gps-track.geojson",
+  });
+}
+```
+
 We believe that the *promise* approach is better because it does not nest scopes and will allow for a linear non-nested stream of execution. It also corresponds to more modern development standards.
 
-> 📣 *__Note:__* Generally speaking, *promises* are not a go to replacement for all event+callback and are suitable only for events that are called only once in the lifecycle of a Map instance. This is the reason why we have decided to provide a *promise* equivalent only for the `load` and `loadWithTerrain` events.
+> 📣 *__Note:__* Generally speaking, *promises* are not a go to replacement for all event+callback and are suitable only for events that are called only once in the lifecycle of a Map instance. This is the reason why we have decided to provide a *promise* equivalent only for the `load`, `ready` and `loadWithTerrain` events but not for events that may be called multiple time such as interaction events.
 
 # Color Ramps
 A color ramp is a color gradient defined in a specific interval, for instance in [0, 1], and for any value within this interval will retrieve a color. They are defined by at least a color at each bound and usualy additional colors within the range.  
@@ -1061,3 +1122,132 @@ And voila!
 > 📣 *__Note:__* The GeoJSON for this track contains 9380 couples of coordinates, which is a lot! In order to send the track to MapTiler Cloud static maps API, the client simplifies the long paths while keeping a high degree of precision using a very fast [Ramer-Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
 
 Read more about bounded static maps on our official [API documentation](https://docs.maptiler.com/cloud/api/static-maps/#auto-fitted-image).
+
+## 🏔️ Elevation
+With the elevation API, it's possible to get the elevation in metter from any location. It's possible to lookup and compute elevation for a single location, to provide a batch of points, from a GeoJSON LineString or from a GeoJSON MultiLineString!
+
+> ℹ️ Under the hood, the elevation API is fueled by MapTiler Cloud's **RGB Terrain** raster tileset, which is a composite of many high-resolution DEMs from all over the world, currated and processed by our geodata team! The same dataset is also fueling our SDK's elevation (3D terrain) and the hillshading we use in many of our styles.
+
+> 📣 Note for **TypeScript** users: internaly, the elevation feature relies on some *GeoJSON* types definitions that can be found in this NPM package: `@types/geojson`. Namely `LineString`, `MultiLineString` and `Position`. It may improve your developer experience to also use these types. 
+
+Let's see how to use it:
+
+### At a single location
+```ts
+// Not mandatory, but it's to explain where the type comes from:
+import { Position } from "geojson";
+
+const montBlancPeak: Position = [6.864884, 45.832743];
+const elevatedPosition = await maptilersdk.elevation.at(montBlancPeak);
+```
+The returned value is also a *GeoJSON* `Position` array, but with three elements: `[lng, lat, elevation]`.
+
+Read more about elevation lookup for a single location in our [official documentation](https://docs.maptiler.com/client-js/elevation/#at).
+
+### Batch mode
+```ts
+// Not mandatory, but it's to explain where the type comes from:
+import { Position } from "geojson";
+
+const peaks: Position[] = [
+  [6.864884, 45.832743],   // Mont Blanc, Alps
+  [86.9250, 27.9881],      // Mount Everest, Himalayas
+  [-70.0109, -32.6532],    // Aconcagua, Andes
+  [-151.0064, 63.0695],    // Denali, Alaska
+  [37.3556, -3.0674],      // Mount Kilimanjaro
+  [42.4453, 43.3499],      // Mount Elbrus, Caucasus
+  [137.1595, -4.0784],     // Puncak Jaya, Sudirman Range
+  [-140.4055, 60.5672],    // Mount Logan, Saint Elias Mountains
+  [138.73111, 35.358055],  // Mount Fuji
+];
+
+const elevatedPeaks = await maptilersdk.elevation.batch(peaks);
+```
+
+Read more about elevation lookup for a batch of locations in our [official documentation](https://docs.maptiler.com/client-js/elevation/#batch).
+
+### From a GeoJSON LineString
+In the *GeoJSON* LineString case, it clones the entire structure and the positions arrays of the clone will contain three element: `[lng, lat, elevation]`. The original LineString is not mutated nor pointed at.
+
+```ts
+// Not mandatory, but it's to explain where the type comes from:
+import { LineString } from "geojson";
+
+
+const someLineString: LineString = {
+  type: "LineString",
+  coordinates: [[6.864884, 45.832743], [86.9250, 27.9881], [-70.0109, -32.6532]]
+};
+
+const someElevatedLineString = await maptilersdk.elevation.fromLineString(someLineString);
+// someElevatedLineString is also of type LineString
+```
+
+Read more about elevation lookup for a `LineString` in our [official documentation](https://docs.maptiler.com/client-js/elevation/#linestring).
+
+### From a GeoJSON MultiLineString
+In the *GeoJSON* MultiLineString case, it clones the entire structure and the positions arrays of the clone will contain three element: `[lng, lat, elevation]`. The original MultiLineString is not mutated nor pointed at.
+
+```ts
+// Not mandatory, but it's to explain where the type comes from:
+import { MultiLineString } from "geojson";
+
+
+const someMultiLineString: MultiLineString = {
+  type: "LineString",
+  coordinates: [
+    [[6.864884, 45.832743], [86.9250, 27.9881], [-70.0109, -32.6532]],
+    [[-151.0064, 63.0695], [37.3556, -3.0674], [42.4453, 43.3499]],
+    [[137.1595, -4.0784], [-140.4055, 60.5672], [138.73111, 35.358055]],
+  ]
+};
+
+const someElevatedMultiLineString = await maptilersdk.elevation.fromMultiLineString(someMultiLineString);
+// someElevatedMultiLineString is also of type MultiLineString
+```
+
+Read more about elevation lookup for a `MultiLineString` in our [official documentation](https://docs.maptiler.com/client-js/elevation/#multilinestring).
+
+### Caching
+In order to increase performance while reducing unnecessary elevation data fetching, the elevation tiles are cached. This is particularly important for the LineString and MultiLineString lookups because GeoJSON data are likely to come from a recorded or planned route, where position points are very close to one another.
+
+## 🧮 Math
+Some operations can be fairly repetitive: WGS84 to Mercator, WGS84 to *zxy* tile index, distance between two points with Haversine formula, etc. As a result, we have decided to expose a `math` package providing the most recurent feature, so that, just like us at MapTiler, you no longer need to copy-paste the same function from your previous project!
+
+The `math` package differs from the others in the sense that it does not call the MapTiler Cloud API, instead it operates fully on the machine it's running on.
+
+Here are some examples:
+
+```ts
+// Not mandatory, but it's to explain where the type comes from:
+import { Position } from "geojson";
+
+// Some constants
+const earthRadius = maptilersdk.math.EARTH_RADIUS;
+const earthCircumference = maptilersdk.math.EARTH_CIRCUMFERENCE;
+
+const montBlancPeakWgs84: Position = [6.864884, 45.832743];
+
+// From WGS84 to Mercator
+const montBlancPeakMerc = maptilersdk.math.wgs84ToMercator(montBlancPeakWgs84); // also of type Position
+
+// From Mercator to WGS84
+const montBlancPeakWgs84Again = maptilersdk.math.mercatorToWgs84(montBlancPeakMerc);
+
+// A great-circle distance in meter:
+const from: Position = /* ... */;
+const to: Position = /* ... */;
+const distance = maptilersdk.math.haversineDistanceWgs84(from, to);
+
+// Full distance of a route made of many positions
+const route: Position[] = /* ... */;
+const totalDistance = maptilersdk.math.haversineCumulatedDistanceWgs84(route);
+
+// Lon lat to tile index, given a zoom level. An [x, y] array is returned
+const tileXY = maptilersdk.math.wgs84ToTileIndex(montBlancPeakWgs84, 14);
+// Possible to have floating point tile indices with a third argument to `false`
+
+// and many more!
+```
+
+Please find out more about the math package in our [official documentation](https://docs.maptiler.com/client-js/math):

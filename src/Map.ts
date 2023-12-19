@@ -182,6 +182,7 @@ export class Map extends maplibregl.Map {
   private minimap?: Minimap;
   private forceLanguageUpdate: boolean;
   private languageAlwaysBeenStyle: boolean;
+  private isReady: boolean = false;
 
   constructor(options: MapOptions) {
     if (options.apiKey) {
@@ -459,11 +460,14 @@ export class Map extends maplibregl.Map {
 
         this.addControl(new FullscreenControl({}), position);
       }
+
+      this.isReady = true;
+      this.fire("ready", { target: this });
     });
 
     // Creating a custom event: "loadWithTerrain"
     // that fires only once when both:
-    // - the map has full loaded (corresponds to the the "load" event)
+    // - the map has full ready (corresponds to the the "ready" event)
     // - the terrain has loaded (corresponds to the "terrain" event with terrain beion non-null)
     // This custom event is necessary to wait for when the map is instanciated with `terrain: true`
     // and some animation (flyTo, easeTo) are running from the begining.
@@ -471,7 +475,7 @@ export class Map extends maplibregl.Map {
     let terrainEventTriggered = false;
     let terrainEventData: LoadWithTerrainEvent;
 
-    this.once("load", () => {
+    this.once("ready", () => {
       loadEventTriggered = true;
       if (terrainEventTriggered) {
         this.fire("loadWithTerrain", terrainEventData);
@@ -582,6 +586,26 @@ export class Map extends maplibregl.Map {
   }
 
   /**
+   * Awaits for _this_ Map instance to be "ready" and returns a Promise to the Map.
+   * If _this_ Map instance is already ready, the Promise is resolved directly,
+   * otherwise, it is resolved as a result of the "ready" event.
+   * A map instance is "ready" when all the controls that can be managed by the contructor are
+   * dealt with. This happens after the "load" event, due to the asynchronous nature
+   * of some built-in controls.
+   */
+  async onReadyAsync() {
+    return new Promise<Map>((resolve) => {
+      if (this.isReady) {
+        return resolve(this);
+      }
+
+      this.once("ready", () => {
+        resolve(this);
+      });
+    });
+  }
+
+  /**
    * Awaits for _this_ Map instance to be "loaded" as well as with terrain being non-null for the first time
    * and returns a Promise to the Map.
    * If _this_ Map instance is already loaded with terrain, the Promise is resolved directly,
@@ -590,7 +614,7 @@ export class Map extends maplibregl.Map {
    */
   async onLoadWithTerrainAsync() {
     return new Promise<Map>((resolve) => {
-      if (this.loaded() && this.terrain) {
+      if (this.isReady && this.terrain) {
         return resolve(this);
       }
 
