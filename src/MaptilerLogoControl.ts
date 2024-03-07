@@ -1,9 +1,9 @@
-import type { LogoOptions as LogoOptionsML } from "maplibre-gl";
+import type { LogoControlOptions as LogoControlOptionsML } from "maplibre-gl";
 import { defaults } from "./defaults";
 import { LogoControl } from "./LogoControl";
 import type { Map } from "./Map";
 
-type LogoOptions = LogoOptionsML & {
+type LogoControlOptions = LogoControlOptionsML & {
   logoURL?: string;
   linkURL?: string;
 };
@@ -17,7 +17,7 @@ export class MaptilerLogoControl extends LogoControl {
   private logoURL = "";
   private linkURL = "";
 
-  constructor(options: LogoOptions = {}) {
+  constructor(options: LogoControlOptions = {}) {
     super(options);
 
     this.logoURL = options.logoURL ?? defaults.maptilerLogoURL;
