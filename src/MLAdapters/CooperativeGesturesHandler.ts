@@ -4,7 +4,7 @@
 
 import maplibregl from "maplibre-gl";
 import type { GestureOptions, Map as MapMLGL } from "maplibre-gl";
-import { Map } from "./Map";
+import { Map } from "../Map";
 
 export class CooperativeGesturesHandler extends maplibregl.CooperativeGesturesHandler {
   constructor(map: Map | MapMLGL, options: GestureOptions) {

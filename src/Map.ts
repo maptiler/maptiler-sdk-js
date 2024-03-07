@@ -34,9 +34,9 @@ import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
 import { geolocation } from "@maptiler/client";
 import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
-import { AttributionControl } from "./AttributionControl";
-import { ScaleControl } from "./ScaleControl";
-import { FullscreenControl } from "./FullscreenControl";
+import { AttributionControl } from "./MLAdapters/AttributionControl";
+import { ScaleControl } from "./MLAdapters/ScaleControl";
+import { FullscreenControl } from "./MLAdapters/FullscreenControl";
 
 import Minimap from "./Minimap";
 import type { MinimapOptionsInput } from "./Minimap";

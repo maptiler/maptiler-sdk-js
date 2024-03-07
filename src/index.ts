@@ -1,9 +1,4 @@
 import packagejson from "../package.json";
-
-function getVersion(): string {
-  return packagejson.version;
-}
-
 import maplibregl from "maplibre-gl";
 
 // Exporting types from MapLibre
@@ -61,6 +56,20 @@ const {
   addSourceType,
   importScriptInWorkers,
 } = maplibregl;
+
+/**
+ * Get the version of MapTiler SDK
+ */
+function getVersion(): string {
+  return packagejson.version;
+}
+
+/**
+ * Get the version of MapLibre GL JS
+ */
+function getMapLibreVersion(): string {
+  return maplibregl.getVersion();
+}
 
 console.log("maplibregl", maplibregl);
 
@@ -143,6 +152,7 @@ export {
   MapTouchEventMLGL,
   MapMouseEventMLGL,
   getVersion,
+  getMapLibreVersion,
 };
 // Exporting types of class instances from MapLibre:
 export type NavigationControlMLGL = InstanceType<typeof NavigationControlMLGL>;
@@ -191,28 +201,28 @@ export {
   type MapOptions,
   type LoadWithTerrainEvent,
 } from "./Map";
-export { Marker } from "./Marker";
-export { Popup } from "./Popup";
-export { Style } from "./Style";
-export { CanvasSource } from "./CanvasSource";
-export { GeoJSONSource } from "./GeoJSONSource";
-export { ImageSource } from "./ImageSource";
-export { RasterTileSource } from "./RasterTileSource";
-export { RasterDEMTileSource } from "./RasterDEMTileSource";
-export { VectorTileSource } from "./VectorTileSource";
-export { VideoSource } from "./VideoSource";
-export { NavigationControl } from "./NavigationControl";
-export { GeolocateControl } from "./GeolocateControl";
-export { AttributionControl } from "./AttributionControl";
-export { LogoControl } from "./LogoControl";
-export { ScaleControl } from "./ScaleControl";
-export { FullscreenControl } from "./FullscreenControl";
-export { TerrainControl } from "./TerrainControl";
-export { BoxZoomHandler } from "./BoxZoomHandler";
-export { ScrollZoomHandler } from "./ScrollZoomHandler";
-export { CooperativeGesturesHandler } from "./CooperativeGesturesHandler";
-export { KeyboardHandler } from "./KeyboardHandler";
-export { TwoFingersTouchPitchHandler } from "./TwoFingersTouchPitchHandler";
+export { Marker } from "./MLAdapters/Marker";
+export { Popup } from "./MLAdapters/Popup";
+export { Style } from "./MLAdapters/Style";
+export { CanvasSource } from "./MLAdapters/CanvasSource";
+export { GeoJSONSource } from "./MLAdapters/GeoJSONSource";
+export { ImageSource } from "./MLAdapters/ImageSource";
+export { RasterTileSource } from "./MLAdapters/RasterTileSource";
+export { RasterDEMTileSource } from "./MLAdapters/RasterDEMTileSource";
+export { VectorTileSource } from "./MLAdapters/VectorTileSource";
+export { VideoSource } from "./MLAdapters/VideoSource";
+export { NavigationControl } from "./MLAdapters/NavigationControl";
+export { GeolocateControl } from "./MLAdapters/GeolocateControl";
+export { AttributionControl } from "./MLAdapters/AttributionControl";
+export { LogoControl } from "./MLAdapters/LogoControl";
+export { ScaleControl } from "./MLAdapters/ScaleControl";
+export { FullscreenControl } from "./MLAdapters/FullscreenControl";
+export { TerrainControl } from "./MLAdapters/TerrainControl";
+export { BoxZoomHandler } from "./MLAdapters/BoxZoomHandler";
+export { ScrollZoomHandler } from "./MLAdapters/ScrollZoomHandler";
+export { CooperativeGesturesHandler } from "./MLAdapters/CooperativeGesturesHandler";
+export { KeyboardHandler } from "./MLAdapters/KeyboardHandler";
+export { TwoFingersTouchPitchHandler } from "./MLAdapters/TwoFingersTouchPitchHandler";
 export { MapWheelEvent } from "./MLAdapters/MapWheelEvent";
 export { MapTouchEvent } from "./MLAdapters/MapTouchEvent";
 export { MapMouseEvent } from "./MLAdapters/MapMouseEvent";
