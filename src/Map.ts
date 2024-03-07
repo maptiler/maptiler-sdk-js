@@ -1331,5 +1331,4 @@ export class Map extends maplibregl.Map {
     super.setTransformRequest(combineTransformRequest(transformRequest));
     return this;
   }
-
 }

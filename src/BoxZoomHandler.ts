@@ -7,9 +7,12 @@ import type { Map as MapMLGL } from "maplibre-gl";
 import { Map } from "./Map";
 
 export class BoxZoomHandler extends maplibregl.BoxZoomHandler {
-  constructor(map: Map | MapMLGL, options: {
-    clickTolerance: number;
-}) {
+  constructor(
+    map: Map | MapMLGL,
+    options: {
+      clickTolerance: number;
+    },
+  ) {
     super(map as MapMLGL, options);
   }
 }

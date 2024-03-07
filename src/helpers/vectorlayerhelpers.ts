@@ -914,17 +914,17 @@ export function addPolygon(
     if (map.hasImage(pattern)) {
       addLayers(pattern);
     } else {
-
-      map.loadImage(pattern)
-      .then((value: GetResourceResponse<HTMLImageElement | ImageBitmap>) => {
-        // Add the image to the map style, using the image URL as an ID
-        map.addImage(pattern, value.data);
-        addLayers(pattern);
-      })
-      .catch((err: Error) => {
-        console.error("Could not load the pattern image.", err.message);
-        return addLayers();
-      })
+      map
+        .loadImage(pattern)
+        .then((value: GetResourceResponse<HTMLImageElement | ImageBitmap>) => {
+          // Add the image to the map style, using the image URL as an ID
+          map.addImage(pattern, value.data);
+          addLayers(pattern);
+        })
+        .catch((err: Error) => {
+          console.error("Could not load the pattern image.", err.message);
+          return addLayers();
+        });
     }
   } else {
     addLayers();

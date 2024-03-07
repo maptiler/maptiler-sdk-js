@@ -7,7 +7,12 @@ import type { Map as MapMLGL } from "maplibre-gl";
 import { Map } from "../Map";
 
 export class MapMouseEvent extends maplibregl.MapMouseEvent {
-  constructor(type: string, map: Map | MapMLGL, originalEvent: MouseEvent, data: any = {}) {
+  constructor(
+    type: string,
+    map: Map | MapMLGL,
+    originalEvent: MouseEvent,
+    data: any = {},
+  ) {
     super(type, map as MapMLGL, originalEvent, data);
   }
 }

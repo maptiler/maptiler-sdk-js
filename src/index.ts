@@ -1,7 +1,7 @@
 import packagejson from "../package.json";
 
 function getVersion(): string {
-  return packagejson.version
+  return packagejson.version;
 }
 
 import maplibregl from "maplibre-gl";
@@ -174,9 +174,13 @@ export type VideoSourceMLGL = InstanceType<typeof VideoSourceMLGL>;
 export type MapMLGL = InstanceType<typeof MapMLGL>;
 export type BoxZoomHandlerMLGL = InstanceType<typeof BoxZoomHandlerMLGL>;
 export type ScrollZoomHandlerMLGL = InstanceType<typeof ScrollZoomHandlerMLGL>;
-export type CooperativeGesturesHandlerMLGL = InstanceType<typeof CooperativeGesturesHandlerMLGL>;
+export type CooperativeGesturesHandlerMLGL = InstanceType<
+  typeof CooperativeGesturesHandlerMLGL
+>;
 export type KeyboardHandlerMLGL = InstanceType<typeof KeyboardHandlerMLGL>;
-export type TwoFingersTouchPitchHandlerMLGL = InstanceType<typeof TwoFingersTouchPitchHandlerMLGL>;
+export type TwoFingersTouchPitchHandlerMLGL = InstanceType<
+  typeof TwoFingersTouchPitchHandlerMLGL
+>;
 export type MapWheelEventMLGL = InstanceType<typeof MapWheelEventMLGL>;
 export type MapTouchEventMLGL = InstanceType<typeof MapTouchEventMLGL>;
 export type MapMouseEventMLGL = InstanceType<typeof MapMouseEventMLGL>;
