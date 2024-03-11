@@ -59,9 +59,7 @@ export function DOMremove(node: HTMLElement) {
  */
 export function maptilerCloudTransformRequest(
   url: string,
-  // keep incase we need it in the future
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _resourceType?: ResourceType,
+  resourceType?: ResourceType,
 ): RequestParameters {
   let reqUrl = null;
 
@@ -86,6 +84,19 @@ export function maptilerCloudTransformRequest(
     }
   }
 
+  if (
+    config.caching &&
+    config.session &&
+    reqUrl.host === defaults.maptilerApiHost &&
+    (resourceType == "Tile" ||
+      resourceType == "Source" ||
+      resourceType == "Glyphs")
+  ) {
+    return {
+      url: reqUrl.href.replace("https://", "localcache://"),
+    };
+  }
+
   return {
     url: reqUrl.href,
   };
@@ -104,14 +115,14 @@ export function combineTransformRequest(
   ): RequestParameters {
     if (userDefinedRTF !== undefined) {
       const rp = userDefinedRTF(url, resourceType);
-      const rp2 = maptilerCloudTransformRequest(rp?.url ?? "");
+      const rp2 = maptilerCloudTransformRequest(rp?.url ?? "", resourceType);
 
       return {
         ...rp,
         ...rp2,
       };
     } else {
-      return maptilerCloudTransformRequest(url);
+      return maptilerCloudTransformRequest(url, resourceType);
     }
   };
 }

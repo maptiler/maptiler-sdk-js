@@ -32,6 +32,11 @@ class SdkConfig extends EventEmitter {
   session = true;
 
   /**
+   * TODO description
+   */
+  caching = true;
+
+  /**
    * Unit to be used
    */
   private _unit: Unit = "metric";

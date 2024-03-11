@@ -17,6 +17,9 @@ import type {
   FilterSpecification,
   StyleSetterOptions,
   ExpressionSpecification,
+  RequestParameters,
+  ResponseCallback,
+  Cancelable,
 } from "maplibre-gl";
 import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
@@ -40,6 +43,7 @@ import { FullscreenControl } from "./MLAdapters/FullscreenControl";
 
 import Minimap from "./Minimap";
 import type { MinimapOptionsInput } from "./Minimap";
+import { addProtocol } from ".";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -210,6 +214,90 @@ export class Map extends maplibregl.Map {
       maplibreLogo: false,
       transformRequest: combineTransformRequest(options.transformRequest),
     });
+
+    if (config.caching) {
+      // TODO promises
+      // TODO cleanup
+      // TODO make safer
+      // TODO cache cleaning ?
+      // TODO move elsewhere ?
+      addProtocol(
+        "localcache",
+        (
+          params: RequestParameters,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          callback: ResponseCallback<any>,
+        ): Cancelable => {
+          if (!params.url) throw new Error("");
+
+          params.url = params.url.replace("localcache://", "https://");
+
+          if (params.url.includes("tiles.json")) {
+            // move `Last-Modified` to query so it propagates to tile URLs
+            fetch(params.url, params).then((response) => {
+              response.json().then((json) => {
+                json.tiles[0] +=
+                  "&last-modified=" + response.headers.get("Last-Modified");
+                callback(
+                  null,
+                  json,
+                  response.headers.get("Cache-Control"),
+                  response.headers.get("Expires"),
+                );
+              });
+            });
+          } else {
+            const url = new URL(params.url);
+
+            const cacheableUrl = new URL(url);
+            cacheableUrl.searchParams.delete("mtsid");
+            cacheableUrl.searchParams.delete("key");
+            const cacheKey = cacheableUrl.toString();
+
+            const fetchableUrl = new URL(url);
+            fetchableUrl.searchParams.delete("last-modified");
+            const fetchUrl = fetchableUrl.toString();
+
+            const respond = (response: Response) => {
+              const parsePromise =
+                params.type === "arrayBuffer" || params.type === "image"
+                  ? response.arrayBuffer()
+                  : params.type === "json"
+                  ? response.json()
+                  : response.text();
+              parsePromise.then((data) => {
+                callback(
+                  null,
+                  data,
+                  response.headers.get("Cache-Control"),
+                  response.headers.get("Expires"),
+                );
+              });
+            };
+
+            // TODO configurable cache name ?
+            caches.open("maptiler_tiles").then((cache) => {
+              cache.match(cacheKey).then((response) => {
+                if (response) {
+                  console.log("Cache hit", cacheKey);
+                  respond(response);
+                } else {
+                  console.log("Cache miss", cacheKey);
+                  fetch(fetchUrl, params).then((response) => {
+                    if (response.status < 300) {
+                      cache.put(cacheKey, response.clone());
+                    }
+                    respond(response);
+                  });
+                }
+              });
+            });
+          }
+
+          return { cancel: () => {} };
+        },
+      );
+    }
 
     this.primaryLanguage = options.language ?? config.primaryLanguage;
     this.forceLanguageUpdate =
