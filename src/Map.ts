@@ -18,8 +18,7 @@ import type {
   StyleSetterOptions,
   ExpressionSpecification,
   RequestParameters,
-  ResponseCallback,
-  Cancelable,
+  GetResourceResponse,
 } from "maplibre-gl";
 import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
@@ -216,36 +215,36 @@ export class Map extends maplibregl.Map {
     });
 
     if (config.caching) {
-      // TODO promises
       // TODO cleanup
       // TODO make safer
       // TODO cache cleaning ?
       // TODO move elsewhere ?
       addProtocol(
         "localcache",
-        (
+        async (
           params: RequestParameters,
+          abortController: AbortController,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          callback: ResponseCallback<any>,
-        ): Cancelable => {
+        ): Promise<GetResourceResponse<any>> => {
           if (!params.url) throw new Error("");
 
           params.url = params.url.replace("localcache://", "https://");
 
           if (params.url.includes("tiles.json")) {
+            const requestInit: RequestInit = params;
+            requestInit.signal = abortController.signal;
+            const response = await fetch(params.url, requestInit);
+            const json = await response.json();
+
             // move `Last-Modified` to query so it propagates to tile URLs
-            fetch(params.url, params).then((response) => {
-              response.json().then((json) => {
-                json.tiles[0] +=
-                  "&last-modified=" + response.headers.get("Last-Modified");
-                callback(
-                  null,
-                  json,
-                  response.headers.get("Cache-Control"),
-                  response.headers.get("Expires"),
-                );
-              });
-            });
+            json.tiles[0] +=
+              "&last-modified=" + response.headers.get("Last-Modified");
+
+            return {
+              data: json,
+              cacheControl: response.headers.get("Cache-Control"),
+              expires: response.headers.get("Expires"),
+            };
           } else {
             const url = new URL(params.url);
 
@@ -258,43 +257,44 @@ export class Map extends maplibregl.Map {
             fetchableUrl.searchParams.delete("last-modified");
             const fetchUrl = fetchableUrl.toString();
 
-            const respond = (response: Response) => {
+            const respond = async (
+              response: Response,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ): Promise<GetResourceResponse<any>> => {
               const parsePromise =
                 params.type === "arrayBuffer" || params.type === "image"
                   ? response.arrayBuffer()
                   : params.type === "json"
                   ? response.json()
                   : response.text();
-              parsePromise.then((data) => {
-                callback(
-                  null,
-                  data,
-                  response.headers.get("Cache-Control"),
-                  response.headers.get("Expires"),
-                );
-              });
+              const data = await parsePromise;
+
+              return {
+                data,
+                cacheControl: response.headers.get("Cache-Control"),
+                expires: response.headers.get("Expires"),
+              };
             };
 
             // TODO configurable cache name ?
-            caches.open("maptiler_tiles").then((cache) => {
-              cache.match(cacheKey).then((response) => {
-                if (response) {
-                  console.log("Cache hit", cacheKey);
-                  respond(response);
-                } else {
-                  console.log("Cache miss", cacheKey);
-                  fetch(fetchUrl, params).then((response) => {
-                    if (response.status < 300) {
-                      cache.put(cacheKey, response.clone());
-                    }
-                    respond(response);
-                  });
-                }
-              });
-            });
-          }
+            const cache = await caches.open("maptiler_tiles");
 
-          return { cancel: () => {} };
+            const cacheMatch = await cache.match(cacheKey);
+
+            if (cacheMatch) {
+              console.log("Cache hit", cacheKey);
+              return respond(cacheMatch);
+            } else {
+              console.log("Cache miss", cacheKey);
+              const requestInit: RequestInit = params;
+              requestInit.signal = abortController.signal;
+              const response = await fetch(fetchUrl, requestInit);
+              if (response.status < 300) {
+                cache.put(cacheKey, response.clone());
+              }
+              return respond(response);
+            }
+          }
         },
       );
     }
