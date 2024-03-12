@@ -7,6 +7,7 @@ import type {
 import { defaults } from "./defaults";
 import { config } from "./config";
 import { MAPTILER_SESSION_ID } from "./config";
+import { localCacheTransformRequest } from "./caching";
 
 export function enableRTL() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,21 +85,8 @@ export function maptilerCloudTransformRequest(
     }
   }
 
-  if (
-    config.caching &&
-    config.session &&
-    reqUrl.host === defaults.maptilerApiHost &&
-    (resourceType == "Tile" ||
-      resourceType == "Source" ||
-      resourceType == "Glyphs")
-  ) {
-    return {
-      url: reqUrl.href.replace("https://", "localcache://"),
-    };
-  }
-
   return {
-    url: reqUrl.href,
+    url: localCacheTransformRequest(reqUrl, resourceType),
   };
 }
 
