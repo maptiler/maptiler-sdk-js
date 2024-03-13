@@ -17,6 +17,7 @@ import type {
   FilterSpecification,
   StyleSetterOptions,
   ExpressionSpecification,
+  SymbolLayerSpecification,
 } from "maplibre-gl";
 import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
@@ -986,7 +987,34 @@ export class Map extends maplibregl.Map {
 
     const { layers } = this.getStyle();
 
-    for (const { id, layout } of layers) {
+    for (const genericLayer of layers) {
+      // Only symbole layer can have a layout with text-field
+      if (genericLayer.type !== "symbol") {
+        continue;
+      }
+
+      const layer = genericLayer as SymbolLayerSpecification;
+      const source = this.getSource(layer.source)
+
+      // Only a layer that is bound to a valid source is considered for language switching
+      if (!source) {
+        continue;
+      }
+
+      // Only source with a url are considered
+      if (!("url" in source && typeof source.url === "string")  ) {
+        continue;
+      }
+
+      const sourceURL = new URL(source.url);
+      
+      // Only layers managed by MapTiler are considered for language switch
+      if (sourceURL.host !== defaults.maptilerApiHost) {
+        continue;
+      }
+      
+      const { id, layout } = layer;
+
       if (!layout) {
         continue;
       }
@@ -994,7 +1022,7 @@ export class Map extends maplibregl.Map {
       if (!("text-field" in layout)) {
         continue;
       }
-
+      
       const textFieldLayoutProp = this.getLayoutProperty(id, "text-field");
 
       // If the label is not about a name, then we don't translate it
@@ -1002,7 +1030,7 @@ export class Map extends maplibregl.Map {
         typeof textFieldLayoutProp === "string" &&
         (textFieldLayoutProp.toLowerCase().includes("ref") ||
           textFieldLayoutProp.toLowerCase().includes("housenumber"))
-      ) {
+      ) {        
         continue;
       }
 
