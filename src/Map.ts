@@ -7,7 +7,7 @@ import type {
   StyleSwapOptions,
   StyleOptions,
   MapDataEvent,
-  Tile,
+  // Tile,
   RasterDEMSourceSpecification,
   RequestTransformFunction,
   Source,
@@ -34,9 +34,9 @@ import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
 import { geolocation } from "@maptiler/client";
 import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
-import { AttributionControl } from "./AttributionControl";
-import { ScaleControl } from "./ScaleControl";
-import { FullscreenControl } from "./FullscreenControl";
+import { AttributionControl } from "./MLAdapters/AttributionControl";
+import { ScaleControl } from "./MLAdapters/ScaleControl";
+import { FullscreenControl } from "./MLAdapters/FullscreenControl";
 
 import Minimap from "./Minimap";
 import type { MinimapOptionsInput } from "./Minimap";
@@ -60,7 +60,7 @@ export const GeolocationType: {
 
 type MapTerrainDataEvent = MapDataEvent & {
   isSourceLoaded: boolean;
-  tile: Tile;
+  // tile: Tile;
   sourceId: string;
   source: RasterDEMSourceSpecification;
 };
@@ -101,6 +101,11 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * For free plans: MapTiler logo always shows, regardless of the value.
    */
   maptilerLogo?: boolean;
+
+  /**
+   * Attribution text to show in an {@link AttributionControl}.
+   */
+  customAttribution?: string | Array<string>;
 
   /**
    * Enables 3D terrain if `true`. (default: `false`)
@@ -1325,28 +1330,5 @@ export class Map extends maplibregl.Map {
   ): this {
     super.setTransformRequest(combineTransformRequest(transformRequest));
     return this;
-  }
-
-  /**
-   * Loads an image. This is an async equivalent of `Map.loadImage`
-   */
-  async loadImageAsync(
-    url: string,
-  ): Promise<HTMLImageElement | ImageBitmap | null | undefined> {
-    return new Promise((resolve, reject) => {
-      this.loadImage(
-        url,
-        (
-          error: Error | null | undefined,
-          image: HTMLImageElement | ImageBitmap | null | undefined,
-        ) => {
-          if (error) {
-            reject(error);
-            return;
-          }
-          resolve(image);
-        },
-      );
-    });
   }
 }

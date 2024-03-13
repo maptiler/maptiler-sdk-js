@@ -4,7 +4,7 @@
 
 import maplibregl from "maplibre-gl";
 import type { Map as MapMLGL } from "maplibre-gl";
-import { Map } from "./Map";
+import { Map } from "../Map";
 
 export class TerrainControl extends maplibregl.TerrainControl {
   onAdd(map: Map | MapMLGL) {

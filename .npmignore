@@ -4,3 +4,7 @@ images
 scripts
 test
 demos
+src
+dist/*umd*
+CHANGELOG.md
+colorramp.md

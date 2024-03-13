@@ -60,12 +60,12 @@ export class MaptilerTerrainControl implements IControl {
     if (this._map.hasTerrain()) {
       this._terrainButton.classList.add("maplibregl-ctrl-terrain-enabled");
       this._terrainButton.title = this._map._getUIString(
-        "TerrainControl.disableTerrain",
+        "TerrainControl.Disable",
       );
     } else {
       this._terrainButton.classList.add("maplibregl-ctrl-terrain");
       this._terrainButton.title = this._map._getUIString(
-        "TerrainControl.enableTerrain",
+        "TerrainControl.Enable",
       );
     }
   }

@@ -5,6 +5,15 @@
 ### Bug Fixes
 ### Others
 
+## 2.0.0
+### New Features
+- Updating with MapLibre GL JS v4.1
+### Bug Fixes
+### Others
+- Removed `Map.loadImageAsync()` as MapLibre's `.loadImage()` is now promise based.
+- Added all the exports that are now exposed from MapLibre
+- Adapted some newly exported classes to make them TypeScript-compatible with the `Map` classes from both MapLibre and MapTiler SDK
+
 ## 1.2.1
 ### New Features
 - Elevation lookup at `maptilersdk.elevation` with the function `.at()`, `.batch()` and for geojson payloads. From the update of the MapTiler Client library
