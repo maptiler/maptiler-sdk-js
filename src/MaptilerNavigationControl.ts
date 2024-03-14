@@ -1,4 +1,4 @@
-import { NavigationControl } from "./NavigationControl";
+import { NavigationControl } from "./MLAdapters/NavigationControl";
 
 type HTMLButtonElementPlus = HTMLButtonElement & {
   clickFunction: (e?: Event) => unknown;

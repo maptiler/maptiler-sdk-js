@@ -4,7 +4,7 @@
 
 import maplibregl from "maplibre-gl";
 import type { Map as MapMLGL } from "maplibre-gl";
-import { Map } from "./Map";
+import { Map } from "../Map";
 
 export class CanvasSource extends maplibregl.CanvasSource {
   onAdd(map: Map | MapMLGL) {
