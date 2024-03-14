@@ -2,27 +2,29 @@ import packagejson from "../package.json";
 import maplibregl from "maplibre-gl";
 
 // Exporting types from MapLibre
-export {
-  type IControl,
-  type CustomLayerInterface,
-  type PaddingOptions,
-  type LngLatLike,
-  type PointLike,
-  type LngLatBoundsLike,
-  type Source,
-  type MapTerrainEvent,
-  type MapStyleImageMissingEvent,
-  type MapStyleDataEvent,
-  type MapSourceDataEvent,
-  type MapLibreZoomEvent,
-  type MapLibreEvent,
-  type MapLayerTouchEvent,
-  type MapLayerMouseEvent,
-  type MapLayerEventType,
-  type MapEventType,
-  type MapDataEvent,
-  type MapContextEvent,
-} from "maplibre-gl";
+// export {
+//   type IControl,
+//   type CustomLayerInterface,
+//   type PaddingOptions,
+//   type LngLatLike,
+//   type PointLike,
+//   type LngLatBoundsLike,
+//   type Source,
+//   type MapTerrainEvent,
+//   type MapStyleImageMissingEvent,
+//   type MapStyleDataEvent,
+//   type MapSourceDataEvent,
+//   type MapLibreZoomEvent,
+//   type MapLibreEvent,
+//   type MapLayerTouchEvent,
+//   type MapLayerMouseEvent,
+//   type MapLayerEventType,
+//   type MapEventType,
+//   type MapDataEvent,
+//   type MapContextEvent,
+// } from "maplibre-gl";
+
+export type * from "maplibre-gl";
 
 const {
   // supported,
