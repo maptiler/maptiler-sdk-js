@@ -32,7 +32,9 @@ class SdkConfig extends EventEmitter {
   session = true;
 
   /**
-   * TODO description
+   * Enables client-side caching of requests for tiles and fonts.
+   * The cached requests persist multiple browser sessions and will be reused when possible.
+   * Works only for requests to the MapTiler Cloud API when sessions are enabled.
    */
   caching = true;
 

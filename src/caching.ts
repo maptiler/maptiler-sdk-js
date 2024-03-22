@@ -11,6 +11,9 @@ const LOCAL_CACHE_PROTOCOL_SOURCE = "localcache_source";
 const LOCAL_CACHE_PROTOCOL_DATA = "localcache";
 const LOCAL_CACHE_NAME = "maptiler_sdk";
 
+const CACHE_LIMIT_ITEMS = 1000;
+const CACHE_LIMIT_CHECK_INTERVAL = 100;
+
 export function localCacheTransformRequest(
   reqUrl: URL,
   resourceType?: ResourceType,
@@ -32,10 +35,26 @@ export function localCacheTransformRequest(
   return reqUrl.href;
 }
 
+let cacheInstance: Cache;
+
+async function getCache() {
+  if (!cacheInstance) {
+    cacheInstance = await caches.open(LOCAL_CACHE_NAME);
+  }
+  return cacheInstance;
+}
+
+let cachePutCounter = 0;
+async function limitCache() {
+  const cache = await getCache();
+  const keys = await cache.keys();
+  const toPurge = keys.slice(0, Math.max(keys.length - CACHE_LIMIT_ITEMS, 0));
+  for (const key of toPurge) {
+    cache.delete(key);
+  }
+}
+
 export function registerLocalCacheProtocol() {
-  // TODO cleanup
-  // TODO make safer
-  // TODO cache cleaning ?
   addProtocol(
     LOCAL_CACHE_PROTOCOL_SOURCE,
     async (
@@ -102,16 +121,12 @@ export function registerLocalCacheProtocol() {
         };
       };
 
-      // TODO do only once somehow
-      const cache = await caches.open(LOCAL_CACHE_NAME);
-
+      const cache = await getCache();
       const cacheMatch = await cache.match(cacheKey);
 
       if (cacheMatch) {
-        console.log("Cache hit", cacheKey);
         return respond(cacheMatch);
       } else {
-        console.log("Cache miss", cacheKey);
         const requestInit: RequestInit = params;
         requestInit.signal = abortController.signal;
         const response = await fetch(fetchUrl, requestInit);
@@ -120,6 +135,10 @@ export function registerLocalCacheProtocol() {
             // "DOMException: Cache.put() was aborted"
             // can happen here because the response is not done streaming yet
           });
+          if (++cachePutCounter > CACHE_LIMIT_CHECK_INTERVAL) {
+            limitCache();
+            cachePutCounter = 0;
+          }
         }
         return respond(response);
       }
