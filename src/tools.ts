@@ -7,6 +7,7 @@ import type {
 import { defaults } from "./defaults";
 import { config } from "./config";
 import { MAPTILER_SESSION_ID } from "./config";
+import { localCacheTransformRequest } from "./caching";
 
 export function enableRTL() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -59,9 +60,7 @@ export function DOMremove(node: HTMLElement) {
  */
 export function maptilerCloudTransformRequest(
   url: string,
-  // keep incase we need it in the future
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _resourceType?: ResourceType,
+  resourceType?: ResourceType,
 ): RequestParameters {
   let reqUrl = null;
 
@@ -87,7 +86,7 @@ export function maptilerCloudTransformRequest(
   }
 
   return {
-    url: reqUrl.href,
+    url: localCacheTransformRequest(reqUrl, resourceType),
   };
 }
 
@@ -104,14 +103,14 @@ export function combineTransformRequest(
   ): RequestParameters {
     if (userDefinedRTF !== undefined) {
       const rp = userDefinedRTF(url, resourceType);
-      const rp2 = maptilerCloudTransformRequest(rp?.url ?? "");
+      const rp2 = maptilerCloudTransformRequest(rp?.url ?? "", resourceType);
 
       return {
         ...rp,
         ...rp2,
       };
     } else {
-      return maptilerCloudTransformRequest(url);
+      return maptilerCloudTransformRequest(url, resourceType);
     }
   };
 }

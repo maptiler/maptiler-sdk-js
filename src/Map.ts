@@ -40,6 +40,7 @@ import { FullscreenControl } from "./MLAdapters/FullscreenControl";
 
 import Minimap from "./Minimap";
 import type { MinimapOptionsInput } from "./Minimap";
+import { registerLocalCacheProtocol } from "./caching";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -210,6 +211,10 @@ export class Map extends maplibregl.Map {
       maplibreLogo: false,
       transformRequest: combineTransformRequest(options.transformRequest),
     });
+
+    if (config.caching) {
+      registerLocalCacheProtocol();
+    }
 
     this.primaryLanguage = options.language ?? config.primaryLanguage;
     this.forceLanguageUpdate =
