@@ -22,6 +22,8 @@ The **MapTiler SDK JS** extends MapLibre GL JS, exposes all its features, and ad
 In addition, the MapTiler SDK JS provides well-documented and easy-to-use wrapper functions to the [MapTiler Cloud API services](https://docs.maptiler.com/cloud/api) such as: geocoding, static maps, geolocation, as well as a search engine for coordinate reference systems and transforming coordinates from one CRS to another.
 > 📣 *__Note:__* If you need <ins>only the API Client library</ins> to use in a headless fashion and without any map display, check out [MapTiler Client JS](https://github.com/maptiler/maptiler-client-js) library for browser and NodeJS.
 
+![Lake Louise, Canada, with MapTiler Outdoor style](images/screenshots/lake-louise.jpg)
+
 # Install
 ```shell
 npm install --save @maptiler/sdk
