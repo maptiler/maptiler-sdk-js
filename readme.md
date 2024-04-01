@@ -174,6 +174,9 @@ Here is the full list:
 - `MapStyle.DATAVIZ`, the perfect style for data visualization, with very little noise
   - `MapStyle.DATAVIZ.DARK` (variant)
   - `MapStyle.DATAVIZ.LIGHT` (variant)
+- `MapStyle.BACKDROP`, great style for data visualization when hillshading matters!
+  - `MapStyle.BACKDROP.DARK` (variant)
+  - `MapStyle.BACKDROP.LIGHT` (variant)
 - `MapStyle.BASIC` reference style for minimalist design and general purpose
   - `MapStyle.BASIC.DARK` (variant)
   - `MapStyle.BASIC.LIGHT` (variant)
