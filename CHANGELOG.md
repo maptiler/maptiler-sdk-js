@@ -10,6 +10,7 @@
 - Updating with MapLibre GL JS v4.1
 - Added client-side caching mechanism for tiles and fonts
 ### Bug Fixes
+- Language switching now only occurs on layers fueled by a MapTiler Cloud source
 ### Others
 - Removed `Map.loadImageAsync()` as MapLibre's `.loadImage()` is now promise based.
 - Added all the exports that are now exposed from MapLibre
