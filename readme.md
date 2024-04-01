@@ -51,7 +51,7 @@ const map = new maptilersdk.Map({
 });
 ```
 
-Alternativelly, the `apiKey` can be set as Map option intead of in the `config` object. Yet, this will still internally propagate to the `config` obejct:
+Alternativelly, the `apiKey` can be set as Map option intead of in the `config` object. Yet, this will still internally propagate to the `config` object:
 ```ts
 import * as maptilersdk from '@maptiler/sdk';
 
@@ -856,6 +856,16 @@ Turning off *zoom compensation* allows for more accurate adjustments to the visu
 
 All the other options are documented on a [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/).
 
+# Caching
+Starting from v2, MapTiler SDK introduced the **caching** of tiles and fonts served by MapTiler Cloud, which can represent a large chunk of the data being fetched when browsing a map. This caching leverages modern browsers caching API so it's well-managed and there is no risk of bloating! When we update **MapTiler Planet** or our **official styles**, the caching logic will detect it and automatically invalidate older versions of the tiles that were previously cached.
+
+Caching greatly improves the performance at load time and positively impact the user experience, for this reason, it is **enabled by default**. If for debugging purposes or a for a very specific use-case caching needs to be disabled, then it possible:
+
+```ts
+import { config } from "@maptiler/sdk";
+
+config.caching = false;
+```
 
 # Easy access to MapTiler Cloud API
 Our map SDK is not only about maps! We also provide plenty of wrapper to our API calls!
