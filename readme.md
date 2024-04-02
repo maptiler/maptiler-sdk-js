@@ -22,6 +22,8 @@ The **MapTiler SDK JS** extends MapLibre GL JS, exposes all its features, and ad
 In addition, the MapTiler SDK JS provides well-documented and easy-to-use wrapper functions to the [MapTiler Cloud API services](https://docs.maptiler.com/cloud/api) such as: geocoding, static maps, geolocation, as well as a search engine for coordinate reference systems and transforming coordinates from one CRS to another.
 > 📣 *__Note:__* If you need <ins>only the API Client library</ins> to use in a headless fashion and without any map display, check out [MapTiler Client JS](https://github.com/maptiler/maptiler-client-js) library for browser and NodeJS.
 
+![Lake Louise, Canada, with MapTiler Outdoor style](images/screenshots/lake-louise.jpg)
+
 # Install
 ```shell
 npm install --save @maptiler/sdk
@@ -51,7 +53,7 @@ const map = new maptilersdk.Map({
 });
 ```
 
-Alternativelly, the `apiKey` can be set as Map option intead of in the `config` object. Yet, this will still internally propagate to the `config` obejct:
+Alternativelly, the `apiKey` can be set as Map option intead of in the `config` object. Yet, this will still internally propagate to the `config` object:
 ```ts
 import * as maptilersdk from '@maptiler/sdk';
 
@@ -172,6 +174,9 @@ Here is the full list:
 - `MapStyle.DATAVIZ`, the perfect style for data visualization, with very little noise
   - `MapStyle.DATAVIZ.DARK` (variant)
   - `MapStyle.DATAVIZ.LIGHT` (variant)
+- `MapStyle.BACKDROP`, great style for data visualization when hillshading matters!
+  - `MapStyle.BACKDROP.DARK` (variant)
+  - `MapStyle.BACKDROP.LIGHT` (variant)
 - `MapStyle.BASIC` reference style for minimalist design and general purpose
   - `MapStyle.BASIC.DARK` (variant)
   - `MapStyle.BASIC.LIGHT` (variant)
@@ -856,6 +861,16 @@ Turning off *zoom compensation* allows for more accurate adjustments to the visu
 
 All the other options are documented on a [our reference page](https://docs.maptiler.com/sdk-js/api/map/) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/).
 
+# Caching
+Starting from v2, MapTiler SDK introduced the **caching** of tiles and fonts served by MapTiler Cloud, which can represent a large chunk of the data being fetched when browsing a map. This caching leverages modern browsers caching API so it's well-managed and there is no risk of bloating! When we update **MapTiler Planet** or our **official styles**, the caching logic will detect it and automatically invalidate older versions of the tiles that were previously cached.
+
+Caching greatly improves the performance at load time and positively impact the user experience, for this reason, it is **enabled by default**. If for debugging purposes or a for a very specific use-case caching needs to be disabled, then it possible:
+
+```ts
+import { config } from "@maptiler/sdk";
+
+config.caching = false;
+```
 
 # Easy access to MapTiler Cloud API
 Our map SDK is not only about maps! We also provide plenty of wrapper to our API calls!

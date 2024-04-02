@@ -1,6 +1,7 @@
 import type { Geometry, FeatureCollection, GeoJsonProperties } from "geojson";
 import type {
   DataDrivenPropertyValueSpecification,
+  GetResourceResponse,
   PropertyValueSpecification,
 } from "maplibre-gl";
 import type { Map } from "../Map";
@@ -913,33 +914,17 @@ export function addPolygon(
     if (map.hasImage(pattern)) {
       addLayers(pattern);
     } else {
-      map.loadImage(
-        pattern,
-
-        // (error?: Error | null, image?: HTMLImageElement | ImageBitmap | null, expiry?: ExpiryData | null)
-        (
-          error: Error | null | undefined,
-          image: HTMLImageElement | ImageBitmap | null | undefined,
-        ) => {
-          // Throw an error if something goes wrong.
-          if (error) {
-            console.error("Could not load the pattern image.", error.message);
-            return addLayers();
-          }
-
-          if (!image) {
-            console.error(
-              `An image cannot be created from the pattern URL ${pattern}.`,
-            );
-            return addLayers();
-          }
-
+      map
+        .loadImage(pattern)
+        .then((value: GetResourceResponse<HTMLImageElement | ImageBitmap>) => {
           // Add the image to the map style, using the image URL as an ID
-          map.addImage(pattern, image);
-
+          map.addImage(pattern, value.data);
           addLayers(pattern);
-        },
-      );
+        })
+        .catch((err: Error) => {
+          console.error("Could not load the pattern image.", err.message);
+          return addLayers();
+        });
     }
   } else {
     addLayers();
