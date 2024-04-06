@@ -3,8 +3,8 @@ import {
   RequestParameters,
   ResourceType,
   addProtocol,
-} from "maplibre-gl";
-import { config } from ".";
+  config,
+} from ".";
 import { defaults } from "./defaults";
 
 const LOCAL_CACHE_PROTOCOL_SOURCE = "localcache_source";
