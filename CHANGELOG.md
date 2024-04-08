@@ -5,6 +5,10 @@
 ### Bug Fixes
 ### Others
 
+## 2.0.1
+### Bug Fixes
+- Bundling issue solved by [#79](https://github.com/maptiler/maptiler-sdk-js/pull/79)
+
 ## 2.0.0
 ### New Features
 - Updating with MapLibre GL JS v4.1

@@ -73,8 +73,6 @@ function getMapLibreVersion(): string {
   return maplibregl.getVersion();
 }
 
-console.log("maplibregl", maplibregl);
-
 // We still want to export maplibregl.Map, but as a different name
 const MapMLGL = maplibregl.Map;
 const MarkerMLGL = maplibregl.Marker;
