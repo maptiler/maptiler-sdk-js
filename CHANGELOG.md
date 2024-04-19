@@ -3,6 +3,7 @@
 ## DEVEL
 ### New Features
 ### Bug Fixes
+- Fix for the client-side caching breaking GeoJSON sources [#82](https://github.com/maptiler/maptiler-sdk-js/pull/82)
 ### Others
 
 ## 2.0.1
