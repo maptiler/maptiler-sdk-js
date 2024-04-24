@@ -5,6 +5,13 @@
 ### Bug Fixes
 ### Others
 
+## NEXT
+### Bug Fixes
+- Improved attribution management
+### Others
+- Update to MapLibre GL JS v4.1.3
+
+
 ## 2.0.1
 ### Bug Fixes
 - Bundling issue solved by [#79](https://github.com/maptiler/maptiler-sdk-js/pull/79)

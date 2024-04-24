@@ -211,6 +211,7 @@ export class Map extends maplibregl.Map {
       style,
       maplibreLogo: false,
       transformRequest: combineTransformRequest(options.transformRequest),
+      ...(options.attributionControl ?? { attributionControl: false }),
     });
 
     if (config.caching) {
@@ -377,8 +378,8 @@ export class Map extends maplibregl.Map {
             options.logoPosition,
           );
 
-          // if attribution in option is `false` but the the logo shows up in the tileJson, then the attribution must show anyways
-          if (options.attributionControl === false) {
+          // if attribution in option is `false` or not provided, but the the logo shows up in the tileJson, then the attribution must show anyways
+          if (!options.attributionControl) {
             this.addControl(
               new AttributionControl({
                 customAttribution: options.customAttribution,
