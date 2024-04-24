@@ -23,7 +23,7 @@ export function localCacheTransformRequest(
     config.session &&
     reqUrl.host === defaults.maptilerApiHost
   ) {
-    if (resourceType == "Source") {
+    if (resourceType == "Source" && reqUrl.href.includes("tiles.json")) {
       return reqUrl.href.replace(
         "https://",
         `${LOCAL_CACHE_PROTOCOL_SOURCE}://`,
@@ -74,9 +74,11 @@ export function registerLocalCacheProtocol() {
       const response = await fetch(params.url, requestInit);
       const json = await response.json();
 
-      // move `Last-Modified` to query so it propagates to tile URLs
-      json.tiles[0] +=
-        "&last-modified=" + response.headers.get("Last-Modified");
+      if (json.tiles && json.tiles.length > 0) {
+        // move `Last-Modified` to query so it propagates to tile URLs
+        json.tiles[0] +=
+          "&last-modified=" + response.headers.get("Last-Modified");
+      }
 
       return {
         data: json,
