@@ -3,11 +3,11 @@
 ## DEVEL
 ### New Features
 ### Bug Fixes
-- Fix for the client-side caching breaking GeoJSON sources [#82](https://github.com/maptiler/maptiler-sdk-js/pull/82)
 ### Others
 
-## NEXT
+## 2.0.2
 ### Bug Fixes
+- Fix for the client-side caching breaking GeoJSON sources [#82](https://github.com/maptiler/maptiler-sdk-js/pull/82)
 - Improved attribution management
 ### Others
 - Update to MapLibre GL JS v4.1.3
