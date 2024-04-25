@@ -18,6 +18,7 @@ import type {
   StyleSetterOptions,
   ExpressionSpecification,
   SymbolLayerSpecification,
+  AttributionControlOptions,
 } from "maplibre-gl";
 import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
@@ -35,7 +36,6 @@ import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
 import { geolocation } from "@maptiler/client";
 import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
-import { AttributionControl } from "./MLAdapters/AttributionControl";
 import { ScaleControl } from "./MLAdapters/ScaleControl";
 import { FullscreenControl } from "./MLAdapters/FullscreenControl";
 
@@ -205,13 +205,32 @@ export class Map extends maplibregl.Map {
       );
     }
 
+    // default attribution control options
+    let attributionControlOptions = {
+      compact: false,
+    } as AttributionControlOptions;
+    if (options.customAttribution) {
+      attributionControlOptions.customAttribution = options.customAttribution;
+    } else if (
+      options.attributionControl &&
+      typeof options.attributionControl === "object"
+    ) {
+      attributionControlOptions = {
+        ...attributionControlOptions,
+        ...options.attributionControl,
+      };
+    }
+
     // calling the map constructor with full length style
     super({
       ...options,
       style,
       maplibreLogo: false,
       transformRequest: combineTransformRequest(options.transformRequest),
-      ...(options.attributionControl ?? { attributionControl: false }),
+      attributionControl:
+        options.forceNoAttributionControl === true
+          ? false
+          : attributionControlOptions,
     });
 
     if (config.caching) {
@@ -377,15 +396,6 @@ export class Map extends maplibregl.Map {
             new MaptilerLogoControl({ logoURL }),
             options.logoPosition,
           );
-
-          // if attribution in option is `false` or not provided, but the the logo shows up in the tileJson, then the attribution must show anyways
-          if (!options.attributionControl) {
-            this.addControl(
-              new AttributionControl({
-                customAttribution: options.customAttribution,
-              }),
-            );
-          }
         } else if (options.maptilerLogo) {
           this.addControl(new MaptilerLogoControl(), options.logoPosition);
         }

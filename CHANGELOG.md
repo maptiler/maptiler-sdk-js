@@ -5,6 +5,10 @@
 ### Bug Fixes
 ### Others
 
+## 2.0.3
+### Bug Fixes
+- Fixed issue in attribution control
+
 ## 2.0.2
 ### Bug Fixes
 - Fix for the client-side caching breaking GeoJSON sources [#82](https://github.com/maptiler/maptiler-sdk-js/pull/82)
