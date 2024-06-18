@@ -5,6 +5,12 @@
 ### Bug Fixes
 ### Others
 
+## 2.1.0
+### New Features
+- Update from Maplibre v4.1.3 to v4.4.1 (see Maplibre's [changelog](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#441))
+### Bug Fixes
+- Floating buildings, fixed with the above update
+
 ## 2.0.3
 ### Bug Fixes
 - Fixed issue in attribution control

@@ -95,13 +95,13 @@ export function maptilerCloudTransformRequest(
  * with the MapTiler Cloud-specific one: maptilerCloudTransformRequest
  */
 export function combineTransformRequest(
-  userDefinedRTF?: RequestTransformFunction,
+  userDefinedRTF?: RequestTransformFunction | null,
 ): RequestTransformFunction {
   return function (
     url: string,
     resourceType?: ResourceType,
   ): RequestParameters {
-    if (userDefinedRTF !== undefined) {
+    if (userDefinedRTF !== undefined && userDefinedRTF !== null) {
       const rp = userDefinedRTF(url, resourceType);
       const rp2 = maptilerCloudTransformRequest(rp?.url ?? "", resourceType);
 
