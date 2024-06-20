@@ -159,4 +159,8 @@
   border-radius: 3px;
   color: #fb8600;
   text-align: center;
+  font-family: sans-serif;
+  font-weight: 300;
+  font-size: 16px;
+  max-width: calc(100% - 80px);
 }

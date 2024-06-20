@@ -179,9 +179,9 @@ export function getWebGLSupportError(): string | null {
   const gl = document.createElement("canvas").getContext("webgl2");
   if (!gl) {
     if (typeof WebGL2RenderingContext !== "undefined") {
-      return "Graphic rendering with WebGL2 has been disabled or is not supported by your graphic card.<br>The map cannot be displayed.";
+      return "Graphic rendering with WebGL2 has been disabled or is not supported by your graphic card. The map cannot be displayed.";
     } else {
-      return "Your browser does not support graphic rendering with WebGL2.<br>The map cannot be displayed.";
+      return "Your browser does not support graphic rendering with WebGL2. The map cannot be displayed.";
     }
   } else {
     return null;
@@ -211,6 +211,6 @@ export function displayNoWebGlWarning(container: HTMLElement | string) {
   const errorMessageDiv = document.createElement("div");
   errorMessageDiv.innerHTML = webglError;
   errorMessageDiv.classList.add("no-webgl-support-div");
-
   actualContainer.appendChild(errorMessageDiv);
+  throw new Error(webglError);
 }
