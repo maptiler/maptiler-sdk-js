@@ -41,7 +41,7 @@ import { FullscreenControl } from "./MLAdapters/FullscreenControl";
 
 import Minimap from "./Minimap";
 import type { MinimapOptionsInput } from "./Minimap";
-import { registerLocalCacheProtocol } from "./caching";
+import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -233,7 +233,13 @@ export class Map extends maplibregl.Map {
           : attributionControlOptions,
     });
 
-    if (config.caching) {
+    if (config.caching && !CACHE_API_AVAILABLE) {
+      console.warn(
+        "The cache API is only available in secure contexts. More info at https://developer.mozilla.org/en-US/docs/Web/API/Cache",
+      );
+    }
+
+    if (config.caching && CACHE_API_AVAILABLE) {
       registerLocalCacheProtocol();
     }
 
