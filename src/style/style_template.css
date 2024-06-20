@@ -144,3 +144,19 @@
   text-align: right;
   line-height: 14px;
 }
+
+.no-webgl-support-div {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  margin: auto;
+  width: fit-content;
+  height: fit-content;
+  padding: 10px;
+  background: white;
+  border-radius: 3px;
+  color: #fb8600;
+  text-align: center;
+}

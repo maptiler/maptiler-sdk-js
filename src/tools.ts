@@ -168,3 +168,49 @@ export function isValidGeoJSON<T>(obj: T & { type: string }): boolean {
   if (validTypes.includes(obj.type)) return true;
   return false;
 }
+
+/**
+ * This function tests if WebGL2 is supported. Since it can be for a different reasons that WebGL2 is
+ * not supported but we do not have an action to take based on the reason, this function return null
+ * if there is no error (WebGL is supported), or returns a string with the error message if WebGL2 is
+ * not supported.
+ */
+export function getWebGLSupportError(): string | null {
+  const gl = document.createElement("canvas").getContext("webgl2");
+  if (!gl) {
+    if (typeof WebGL2RenderingContext !== "undefined") {
+      return "Graphic rendering with WebGL2 has been disabled or is not supported by your graphic card.<br>The map cannot be displayed.";
+    } else {
+      return "Your browser does not support graphic rendering with WebGL2.<br>The map cannot be displayed.";
+    }
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Display an error message in the Map div if WebGL2 is not supported
+ */
+export function displayNoWebGlWarning(container: HTMLElement | string) {
+  const webglError = getWebGLSupportError();
+
+  if (!webglError) return;
+
+  let actualContainer: HTMLElement | null = null;
+
+  if (typeof container === "string") {
+    actualContainer = document.getElementById(container);
+  } else if (container instanceof HTMLElement) {
+    actualContainer = container;
+  }
+
+  if (!actualContainer) {
+    throw new Error("The Map container must be provided.");
+  }
+
+  const errorMessageDiv = document.createElement("div");
+  errorMessageDiv.innerHTML = webglError;
+  errorMessageDiv.classList.add("no-webgl-support-div");
+
+  actualContainer.appendChild(errorMessageDiv);
+}

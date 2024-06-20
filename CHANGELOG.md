@@ -2,6 +2,7 @@
 
 ## DEVEL
 ### New Features
+- Displays a message in the map div when WebGL2 is not supported
 ### Bug Fixes
 ### Others
 

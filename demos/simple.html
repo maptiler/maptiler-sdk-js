@@ -8,9 +8,11 @@
 
       #map-container {
         position: absolute;
-        width: 100vw;
-        height: 100vh;
+        width: 70vw;
+        height: 70vh;
         background: radial-gradient(circle, rgb(186 226 255) 5%, rgb(0 100 159) 98%);
+        bottom: 0;
+        right: 0;
       }
 
       #style-picker-container {
@@ -36,7 +38,7 @@
     <script src ="../dist/maptiler-sdk.umd.js"></script>
     
     <script>
-      maptilersdk.config.apiKey = "YOUR_API_KEY";
+      maptilersdk.config.apiKey = "PhsGJ2SdW2MhmzzsT8zU";
 
       const map = new maptilersdk.Map({
         container: document.getElementById("map-container"),
