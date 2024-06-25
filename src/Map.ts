@@ -24,7 +24,11 @@ import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
 import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
-import { combineTransformRequest, enableRTL } from "./tools";
+import {
+  combineTransformRequest,
+  displayNoWebGlWarning,
+  enableRTL,
+} from "./tools";
 import {
   getBrowserLanguage,
   isLanguageSupported,
@@ -192,6 +196,8 @@ export class Map extends maplibregl.Map {
   private isReady: boolean = false;
 
   constructor(options: MapOptions) {
+    displayNoWebGlWarning(options.container);
+
     if (options.apiKey) {
       config.apiKey = options.apiKey;
     }
