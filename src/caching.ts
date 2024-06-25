@@ -13,12 +13,14 @@ const LOCAL_CACHE_NAME = "maptiler_sdk";
 
 const CACHE_LIMIT_ITEMS = 1000;
 const CACHE_LIMIT_CHECK_INTERVAL = 100;
+export const CACHE_API_AVAILABLE = typeof caches !== "undefined";
 
 export function localCacheTransformRequest(
   reqUrl: URL,
   resourceType?: ResourceType,
 ): string {
   if (
+    CACHE_API_AVAILABLE &&
     config.caching &&
     config.session &&
     reqUrl.host === defaults.maptilerApiHost
