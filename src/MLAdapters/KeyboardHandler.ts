@@ -4,10 +4,10 @@
 
 import maplibregl from "maplibre-gl";
 import type { Map as MapMLGL } from "maplibre-gl";
-import { Map } from "../Map";
+import type { Map as SDKMap } from "../Map";
 
 export class KeyboardHandler extends maplibregl.KeyboardHandler {
-  constructor(map: Map | MapMLGL) {
+  constructor(map: SDKMap | MapMLGL) {
     super(map as MapMLGL);
   }
 }

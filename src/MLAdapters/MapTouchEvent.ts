@@ -4,10 +4,10 @@
 
 import maplibregl from "maplibre-gl";
 import type { Map as MapMLGL } from "maplibre-gl";
-import { Map } from "../Map";
+import type { Map as SDKMap } from "../Map";
 
 export class MapTouchEvent extends maplibregl.MapTouchEvent {
-  constructor(type: string, map: Map | MapMLGL, originalEvent: TouchEvent) {
+  constructor(type: string, map: SDKMap | MapMLGL, originalEvent: TouchEvent) {
     super(type, map as MapMLGL, originalEvent);
   }
 }

@@ -2,7 +2,7 @@
  * This is an extension adds support for adding a minimap to one of the map's control containers.
  */
 
-import { Map } from "./Map";
+import { Map as SDKMap } from "./Map";
 import { DOMcreate, DOMremove } from "./tools";
 
 import type {
@@ -70,8 +70,8 @@ export interface MinimapOptions extends MapOptions {
 
 export default class Minimap implements IControl {
   #options: MinimapOptions;
-  map!: Map;
-  #parentMap!: Map;
+  map!: SDKMap;
+  #parentMap!: SDKMap;
   #container!: HTMLElement;
   #canvasContainer!: HTMLElement;
   #parentRect?: GeoJSON.Feature<GeoJSON.Polygon>;
@@ -131,13 +131,13 @@ export default class Minimap implements IControl {
         })
       | CustomLayerInterface,
     beforeId?: string,
-  ): Map {
+  ): SDKMap {
     if (!this.#differentStyle) this.map.addLayer(layer, beforeId);
     this.#setParentBounds();
     return this.map;
   }
 
-  moveLayer(id: string, beforeId?: string): Map {
+  moveLayer(id: string, beforeId?: string): SDKMap {
     if (!this.#differentStyle) this.map.moveLayer(id, beforeId);
     this.#setParentBounds();
     return this.map;
@@ -200,7 +200,7 @@ export default class Minimap implements IControl {
     return this;
   }
 
-  onAdd(parentMap: Map): HTMLElement {
+  onAdd(parentMap: SDKMap): HTMLElement {
     this.#parentMap = parentMap;
     //prep the container
     this.#container = DOMcreate("div", "maplibregl-ctrl maplibregl-ctrl-group");
@@ -210,7 +210,7 @@ export default class Minimap implements IControl {
     }
     this.#options.container = this.#container;
     this.#options.zoom = parentMap.getZoom() + this.#options.zoomAdjust ?? -4;
-    this.map = new Map(this.#options);
+    this.map = new SDKMap(this.#options);
 
     // NOTE: For some reason the DOM doesn't properly update it's size in time
     // for the minimap to convey it's size to the canvas.

@@ -4,7 +4,7 @@ import type {
   GetResourceResponse,
   PropertyValueSpecification,
 } from "maplibre-gl";
-import type { Map } from "../Map";
+import type { Map as SDKMap } from "../Map";
 import { config } from "../config";
 import { isUUID, jsonParseNoThrow } from "../tools";
 import {
@@ -520,7 +520,7 @@ export async function addPolyline(
   /**
    * Map instance to add a polyline layer to
    */
-  map: Map,
+  map: SDKMap,
   /**
    * Options related to adding a polyline layer
    */
@@ -593,7 +593,7 @@ export async function addPolyline(
  * Add a polyline from a GeoJSON object
  */
 function addGeoJSONPolyline(
-  map: Map,
+  map: SDKMap,
   // The data or data source is expected to contain LineStrings or MultiLineStrings
   options: PolylineLayerOptions,
 ): {
@@ -740,7 +740,7 @@ function addGeoJSONPolyline(
  * Add a polygon with styling options.
  */
 export function addPolygon(
-  map: Map,
+  map: SDKMap,
   // this Feature collection is expected to contain on LineStrings and MultiLinestrings
   options: PolygonLayerOptions,
 ): {
@@ -940,7 +940,7 @@ export function addPoint(
   /**
    * The Map instance to add a point layer to
    */
-  map: Map,
+  map: SDKMap,
   // The data or data source is expected to contain LineStrings or MultiLineStrings
   options: PointLayerOptions,
 ): {
@@ -1309,7 +1309,7 @@ export function addHeatmap(
   /**
    * Map instance to add a heatmap layer to
    */
-  map: Map,
+  map: SDKMap,
   // The data or data source is expected to contain LineStrings or MultiLineStrings
   options: HeatmapLayerOptions,
 ): {

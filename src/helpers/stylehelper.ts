@@ -117,7 +117,7 @@ export function computeRampedOutlineWidth(
   }
 
   // case 2: the line is ramped-width, the outline is fixed-width
-  else if (typeof outlineWidth === "number" && Array.isArray(lineWidth)) {
+  if (typeof outlineWidth === "number" && Array.isArray(lineWidth)) {
     return [
       "interpolate",
       ["linear"],
@@ -127,7 +127,7 @@ export function computeRampedOutlineWidth(
   }
 
   // case 3: the line is fixed-width, the outline is ramped-width
-  else if (typeof lineWidth === "number" && Array.isArray(outlineWidth)) {
+  if (typeof lineWidth === "number" && Array.isArray(outlineWidth)) {
     return [
       "interpolate",
       ["linear"],

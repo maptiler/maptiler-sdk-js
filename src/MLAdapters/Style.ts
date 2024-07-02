@@ -4,10 +4,10 @@
 
 import maplibregl from "maplibre-gl";
 import type { Map as MapMLGL, StyleOptions } from "maplibre-gl";
-import { Map } from "../Map";
+import type { Map as SDKMap } from "../Map";
 
 export class Style extends maplibregl.Style {
-  constructor(map: Map, options: StyleOptions = {}) {
+  constructor(map: SDKMap, options: StyleOptions = {}) {
     super(map as MapMLGL, options);
   }
 }

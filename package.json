@@ -40,6 +40,8 @@
     "format": "prettier -c \"src/**/*.{js,ts,tsx}\"",
     "lint:fix": "eslint --fix \"src/**/*.{js,ts}\"",
     "lint": "eslint \"src/**/*.{js,ts}\"",
+    "biome": "npx @biomejs/biome check",
+    "biome:fix": "npx @biomejs/biome check --write",
     "doc": "rm -rf docs/* && typedoc --out docs && cp -r images docs/",
     "prepare": "npm run format:fix && npm run lint:fix && npm run build && npm run test",
     "test:dev": "vitest dev",
@@ -47,6 +49,7 @@
   },
   "author": "MapTiler",
   "devDependencies": {
+    "@biomejs/biome": "1.8.3",
     "@rollup/plugin-commonjs": "^24.1.0",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.2",

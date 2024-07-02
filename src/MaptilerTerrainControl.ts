@@ -1,6 +1,6 @@
 import { bindAll, DOMcreate, DOMremove } from "./tools";
 
-import type { Map } from "./Map";
+import type { Map as SDKMap } from "./Map";
 import type { IControl } from "maplibre-gl";
 
 /**
@@ -8,7 +8,7 @@ import type { IControl } from "maplibre-gl";
  * by triggering the terrain logic that is already deployed in the Map object.
  */
 export class MaptilerTerrainControl implements IControl {
-  _map!: Map;
+  _map!: SDKMap;
   _container!: HTMLElement;
   _terrainButton!: HTMLButtonElement;
 
@@ -16,7 +16,7 @@ export class MaptilerTerrainControl implements IControl {
     bindAll(["_toggleTerrain", "_updateTerrainIcon"], this);
   }
 
-  onAdd(map: Map): HTMLElement {
+  onAdd(map: SDKMap): HTMLElement {
     this._map = map;
     this._container = DOMcreate("div", "maplibregl-ctrl maplibregl-ctrl-group");
     this._terrainButton = DOMcreate(

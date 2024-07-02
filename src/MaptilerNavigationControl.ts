@@ -55,9 +55,9 @@ export class MaptilerNavigationControl extends NavigationControl {
       ? `scale(${Math.min(
           1.5,
           1 /
-            Math.pow(
-              Math.cos(this._map.transform.pitch * (Math.PI / 180)),
-              0.5,
+            (
+              Math.cos(this._map.transform.pitch * (Math.PI / 180)) **
+              0.5
             ),
         )}) rotateX(${Math.min(70, this._map.transform.pitch)}deg) rotateZ(${
           this._map.transform.angle * (180 / Math.PI)

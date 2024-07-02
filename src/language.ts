@@ -176,8 +176,8 @@ function getBrowserLanguage(): LanguageString {
 
 export {
   Language,
-  LanguageString,
-  LanguageKey,
+  type LanguageString,
+  type LanguageKey,
   getBrowserLanguage,
   isLanguageSupported,
 };
