@@ -1,15 +1,16 @@
 # MapTiler SDK Changelog
 
-## 2.2.1
+## 2.2.0
 ### New Features
-- Displays a message in the map div when WebGL2 is not supported
-- Fails quietly if caching API is not usable (non https, non localhost)
+- Displays a message in the map div when WebGL2 is not supported (https://github.com/maptiler/maptiler-sdk-js/pull/92)
+- Fails quietly if caching API is not usable (non https, non localhost) (https://github.com/maptiler/maptiler-sdk-js/pull/93)
 ### Bug Fixes
-- Removed `Inflight` as a second degree dependency
-- Removed double export of class+type from Maplibre
+- Removed `Inflight` as a second degree dependency (https://github.com/maptiler/maptiler-sdk-js/pull/95)
+- Removed double export of class+type from Maplibre (https://github.com/maptiler/maptiler-sdk-js/pull/95)
+- Fixing the loading of the RTL plugin (https://github.com/maptiler/maptiler-sdk-js/pull/96)
 ### Others
-- Replaced Eslint and Prettier by BiomeJS (ang got rid of tons of dependencies, some were problematic)
-- Fixed many formatting and linting issues pointed by BiomeJS
+- Replaced Eslint and Prettier by BiomeJS (ang got rid of tons of dependencies, some were problematic) (https://github.com/maptiler/maptiler-sdk-js/pull/95)
+- Fixed many formatting and linting issues pointed by BiomeJS (https://github.com/maptiler/maptiler-sdk-js/pull/95)
 
 ## 2.1.0
 ### New Features

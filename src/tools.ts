@@ -6,14 +6,14 @@ import { MAPTILER_SESSION_ID } from "./config";
 import { localCacheTransformRequest } from "./caching";
 
 export function enableRTL() {
-  if (maplibregl.getRTLTextPluginStatus() === "unavailable") {
-    maplibregl.setRTLTextPlugin(
-      defaults.rtlPluginURL,
-      (err?: Error | undefined) => {
-        if (err) console.error(err);
-      },
-      true, // Lazy load the plugin
-    );
+  const status = maplibregl.getRTLTextPluginStatus();
+
+  if (status === "unavailable" || status === "requested") {
+    try {
+      maplibregl.setRTLTextPlugin(defaults.rtlPluginURL, true);
+    } catch (e) {
+      // nothing
+    }
   }
 }
 

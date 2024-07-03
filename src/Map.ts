@@ -346,7 +346,7 @@ export class Map extends maplibregl.Map {
     });
 
     // load the Right-to-Left text plugin (will happen only once)
-    this.once("load", async () => {
+    this.once("load", () => {
       enableRTL();
     });
 

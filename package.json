@@ -1,6 +1,6 @@
 {
   "name": "@maptiler/sdk",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "The Javascript & TypeScript map SDK tailored for MapTiler Cloud",
   "module": "dist/maptiler-sdk.mjs",
   "types": "dist/maptiler-sdk.d.ts",
@@ -36,10 +36,6 @@
   "scripts": {
     "build": "rm -rf dist/* && NODE_ENV=production rollup -c",
     "dev": "rm -rf dist/* && NODE_ENV=development rollup -c -w",
-    "format:fix": "prettier --write \"src/**/*.{js,ts,tsx}\"",
-    "format": "prettier -c \"src/**/*.{js,ts,tsx}\"",
-    "lint:fix": "eslint --fix \"src/**/*.{js,ts}\"",
-    "lint": "eslint \"src/**/*.{js,ts}\"",
     "biome": "biome check --max-diagnostics=1000",
     "biome:fix": "npx @biomejs/biome check --max-diagnostics=1000 --write",
     "doc": "rm -rf docs/* && typedoc --out docs && cp -r images docs/",
