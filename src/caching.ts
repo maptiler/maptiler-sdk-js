@@ -1,10 +1,4 @@
-import {
-  GetResourceResponse,
-  RequestParameters,
-  ResourceType,
-  addProtocol,
-  config,
-} from ".";
+import { type GetResourceResponse, type RequestParameters, type ResourceType, addProtocol, config } from ".";
 import { defaults } from "./defaults";
 
 const LOCAL_CACHE_PROTOCOL_SOURCE = "localcache_source";
@@ -15,22 +9,13 @@ const CACHE_LIMIT_ITEMS = 1000;
 const CACHE_LIMIT_CHECK_INTERVAL = 100;
 export const CACHE_API_AVAILABLE = typeof caches !== "undefined";
 
-export function localCacheTransformRequest(
-  reqUrl: URL,
-  resourceType?: ResourceType,
-): string {
-  if (
-    CACHE_API_AVAILABLE &&
-    config.caching &&
-    config.session &&
-    reqUrl.host === defaults.maptilerApiHost
-  ) {
-    if (resourceType == "Source" && reqUrl.href.includes("tiles.json")) {
-      return reqUrl.href.replace(
-        "https://",
-        `${LOCAL_CACHE_PROTOCOL_SOURCE}://`,
-      );
-    } else if (resourceType == "Tile" || resourceType == "Glyphs") {
+export function localCacheTransformRequest(reqUrl: URL, resourceType?: ResourceType): string {
+  if (CACHE_API_AVAILABLE && config.caching && config.session && reqUrl.host === defaults.maptilerApiHost) {
+    if (resourceType === "Source" && reqUrl.href.includes("tiles.json")) {
+      return reqUrl.href.replace("https://", `${LOCAL_CACHE_PROTOCOL_SOURCE}://`);
+    }
+
+    if (resourceType === "Tile" || resourceType === "Glyphs") {
       return reqUrl.href.replace("https://", `${LOCAL_CACHE_PROTOCOL_DATA}://`);
     }
   }
@@ -66,10 +51,7 @@ export function registerLocalCacheProtocol() {
     ): Promise<GetResourceResponse<any>> => {
       if (!params.url) throw new Error("");
 
-      params.url = params.url.replace(
-        `${LOCAL_CACHE_PROTOCOL_SOURCE}://`,
-        "https://",
-      );
+      params.url = params.url.replace(`${LOCAL_CACHE_PROTOCOL_SOURCE}://`, "https://");
 
       const requestInit: RequestInit = params;
       requestInit.signal = abortController.signal;
@@ -78,8 +60,7 @@ export function registerLocalCacheProtocol() {
 
       if (json.tiles && json.tiles.length > 0) {
         // move `Last-Modified` to query so it propagates to tile URLs
-        json.tiles[0] +=
-          "&last-modified=" + response.headers.get("Last-Modified");
+        json.tiles[0] += `&last-modified=${response.headers.get("Last-Modified")}`;
       }
 
       return {
@@ -91,17 +72,10 @@ export function registerLocalCacheProtocol() {
   );
   addProtocol(
     LOCAL_CACHE_PROTOCOL_DATA,
-    async (
-      params: RequestParameters,
-      abortController: AbortController,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ): Promise<GetResourceResponse<any>> => {
+    async (params: RequestParameters, abortController: AbortController): Promise<GetResourceResponse<any>> => {
       if (!params.url) throw new Error("");
 
-      params.url = params.url.replace(
-        `${LOCAL_CACHE_PROTOCOL_DATA}://`,
-        "https://",
-      );
+      params.url = params.url.replace(`${LOCAL_CACHE_PROTOCOL_DATA}://`, "https://");
 
       const url = new URL(params.url);
 
@@ -114,10 +88,7 @@ export function registerLocalCacheProtocol() {
       fetchableUrl.searchParams.delete("last-modified");
       const fetchUrl = fetchableUrl.toString();
 
-      const respond = async (
-        response: Response,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ): Promise<GetResourceResponse<any>> => {
+      const respond = async (response: Response): Promise<GetResourceResponse<any>> => {
         return {
           data: await response.arrayBuffer(),
           cacheControl: response.headers.get("Cache-Control"),
@@ -130,22 +101,22 @@ export function registerLocalCacheProtocol() {
 
       if (cacheMatch) {
         return respond(cacheMatch);
-      } else {
-        const requestInit: RequestInit = params;
-        requestInit.signal = abortController.signal;
-        const response = await fetch(fetchUrl, requestInit);
-        if (response.status >= 200 && response.status < 300) {
-          cache.put(cacheKey, response.clone()).catch(() => {
-            // "DOMException: Cache.put() was aborted"
-            // can happen here because the response is not done streaming yet
-          });
-          if (++cachePutCounter > CACHE_LIMIT_CHECK_INTERVAL) {
-            limitCache();
-            cachePutCounter = 0;
-          }
-        }
-        return respond(response);
       }
+
+      const requestInit: RequestInit = params;
+      requestInit.signal = abortController.signal;
+      const response = await fetch(fetchUrl, requestInit);
+      if (response.status >= 200 && response.status < 300) {
+        cache.put(cacheKey, response.clone()).catch(() => {
+          // "DOMException: Cache.put() was aborted"
+          // can happen here because the response is not done streaming yet
+        });
+        if (++cachePutCounter > CACHE_LIMIT_CHECK_INTERVAL) {
+          limitCache();
+          cachePutCounter = 0;
+        }
+      }
+      return respond(response);
     },
   );
 }

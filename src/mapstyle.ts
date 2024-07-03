@@ -1,24 +1,10 @@
-import {
-  MapStyle,
-  ReferenceMapStyle,
-  MapStyleVariant,
-  mapStylePresetList,
-  expandMapStyle,
-} from "@maptiler/client";
+import { MapStyle, ReferenceMapStyle, MapStyleVariant, mapStylePresetList, expandMapStyle } from "@maptiler/client";
 
 export function styleToStyle(
-  style:
-    | string
-    | ReferenceMapStyle
-    | MapStyleVariant
-    | maplibregl.StyleSpecification
-    | null
-    | undefined,
+  style: string | ReferenceMapStyle | MapStyleVariant | maplibregl.StyleSpecification | null | undefined,
 ): string | maplibregl.StyleSpecification {
   if (!style) {
-    return MapStyle[
-      mapStylePresetList[0].referenceStyleID as keyof typeof MapStyle
-    ]
+    return MapStyle[mapStylePresetList[0].referenceStyleID as keyof typeof MapStyle]
       .getDefaultVariant()
       .getExpandedStyleURL();
   }
@@ -29,9 +15,9 @@ export function styleToStyle(
       // If a style does not start by http but still contains the extension ".json"
       // we assume it's a relative path to a style json file
       return style as string;
-    } else {
-      return expandMapStyle(style);
     }
+
+    return expandMapStyle(style);
   }
 
   if (style instanceof MapStyleVariant) {

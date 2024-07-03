@@ -30,7 +30,15 @@
     "rules": {
       "suspicious": {
         "noExplicitAny": {
-          "level": "warn"
+          "level": "off"
+        }
+      },
+      "complexity": {
+        "noUselessTernary": {
+          "level": "off"
+        },
+        "useOptionalChain": {
+          "level": "off"
         }
       }
     }

@@ -160,24 +160,14 @@ type LanguageString = Values<typeof Language>;
 
 function getBrowserLanguage(): LanguageString {
   if (typeof navigator === "undefined") {
-    return `name:${
-      Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0]
-    }` as LanguageString;
+    return `name:${Intl.DateTimeFormat().resolvedOptions().locale.split("-")[0]}` as LanguageString;
   }
 
-  const canditatelangs = Array.from(
-    new Set(navigator.languages.map((l) => `name:${l.split("-")[0]}`)),
-  ).filter((l) => languageCodeSet.has(l as LanguageString));
+  const canditatelangs = Array.from(new Set(navigator.languages.map((l) => `name:${l.split("-")[0]}`))).filter((l) =>
+    languageCodeSet.has(l as LanguageString),
+  );
 
-  return canditatelangs.length
-    ? (canditatelangs[0] as LanguageString)
-    : Language.LOCAL;
+  return canditatelangs.length ? (canditatelangs[0] as LanguageString) : Language.LOCAL;
 }
 
-export {
-  Language,
-  type LanguageString,
-  type LanguageKey,
-  getBrowserLanguage,
-  isLanguageSupported,
-};
+export { Language, type LanguageString, type LanguageKey, getBrowserLanguage, isLanguageSupported };

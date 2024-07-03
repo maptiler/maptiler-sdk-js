@@ -1,8 +1,8 @@
 import EventEmitter from "events";
-import { LanguageString } from "./language";
-import { config as clientConfig, FetchFunction } from "@maptiler/client";
+import type { LanguageString } from "./language";
+import { config as clientConfig, type FetchFunction } from "@maptiler/client";
 import { v4 as uuidv4 } from "uuid";
-import { Unit } from "./unit";
+import type { Unit } from "./unit";
 import { defaults } from "./defaults";
 
 export const MAPTILER_SESSION_ID = uuidv4();
@@ -47,10 +47,6 @@ class SdkConfig extends EventEmitter {
    * MapTiler Cloud API key
    */
   private _apiKey = "";
-
-  constructor() {
-    super();
-  }
 
   /**
    * Set the unit system

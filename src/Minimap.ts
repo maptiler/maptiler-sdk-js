@@ -112,12 +112,7 @@ export default class Minimap implements IControl {
   }
 
   setStyle(
-    style:
-      | null
-      | ReferenceMapStyle
-      | MapStyleVariant
-      | StyleSpecification
-      | string,
+    style: null | ReferenceMapStyle | MapStyleVariant | StyleSpecification | string,
     options?: StyleSwapOptions & StyleOptions,
   ): void {
     if (!this.#differentStyle) this.map.setStyle(style, options);
@@ -150,17 +145,12 @@ export default class Minimap implements IControl {
   }
 
   setLayerZoomRange(layerId: string, minzoom: number, maxzoom: number): this {
-    if (!this.#differentStyle)
-      this.map.setLayerZoomRange(layerId, minzoom, maxzoom);
+    if (!this.#differentStyle) this.map.setLayerZoomRange(layerId, minzoom, maxzoom);
     this.#setParentBounds();
     return this;
   }
 
-  setFilter(
-    layerId: string,
-    filter?: FilterSpecification | null,
-    options?: StyleSetterOptions,
-  ): this {
+  setFilter(layerId: string, filter?: FilterSpecification | null, options?: StyleSetterOptions): this {
     if (!this.#differentStyle) this.map.setFilter(layerId, filter, options);
     this.#setParentBounds();
     return this;
@@ -170,12 +160,10 @@ export default class Minimap implements IControl {
     layerId: string,
     name: string,
     // maplibre controlled types
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any,
     options?: StyleSetterOptions,
   ): this {
-    if (!this.#differentStyle)
-      this.map.setPaintProperty(layerId, name, value, options);
+    if (!this.#differentStyle) this.map.setPaintProperty(layerId, name, value, options);
     this.#setParentBounds();
     return this;
   }
@@ -184,12 +172,10 @@ export default class Minimap implements IControl {
     layerId: string,
     name: string,
     // maplibre controlled types
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any,
     options?: StyleSetterOptions,
   ): this {
-    if (!this.#differentStyle)
-      this.map.setLayoutProperty(layerId, name, value, options);
+    if (!this.#differentStyle) this.map.setLayoutProperty(layerId, name, value, options);
     this.#setParentBounds();
     return this;
   }
@@ -233,10 +219,7 @@ export default class Minimap implements IControl {
   }
 
   #addParentRect(rect?: ParentRect): void {
-    if (
-      rect === undefined ||
-      (rect.linePaint === undefined && rect.fillPaint === undefined)
-    ) {
+    if (rect === undefined || (rect.linePaint === undefined && rect.fillPaint === undefined)) {
       return;
     }
     this.#parentRect = {
@@ -303,13 +286,7 @@ export default class Minimap implements IControl {
     const southEast = unproject([width, height]);
 
     this.#parentRect.geometry.coordinates = [
-      [
-        southWest.toArray(),
-        southEast.toArray(),
-        northEast.toArray(),
-        northWest.toArray(),
-        southWest.toArray(),
-      ],
+      [southWest.toArray(), southEast.toArray(), northEast.toArray(), northWest.toArray(), southWest.toArray()],
     ];
 
     const source = this.map.getSource("parentRect") as GeoJSONSource;
@@ -346,9 +323,7 @@ export default class Minimap implements IControl {
       const from = which === "parent" ? this.#parentMap : this.map;
       const to = which === "parent" ? this.map : this.#parentMap;
       const center = from.getCenter();
-      const zoom =
-        from.getZoom() +
-        (this.#options.zoomAdjust ?? -4) * (which === "parent" ? 1 : -1);
+      const zoom = from.getZoom() + (this.#options.zoomAdjust ?? -4) * (which === "parent" ? 1 : -1);
       const bearing = from.getBearing();
       const pitch = from.getPitch();
       to.jumpTo({

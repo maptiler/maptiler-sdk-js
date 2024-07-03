@@ -112,13 +112,13 @@ export {
   LngLatBounds,
   MercatorCoordinate,
   Evented,
-  AJAXError,
-  CanvasSourceMLGL,
-  GeoJSONSourceMLGL,
+  type AJAXError,
+  type CanvasSourceMLGL,
+  type GeoJSONSourceMLGL,
   ImageSourceMLGL,
-  RasterDEMTileSourceMLGL,
+  type RasterDEMTileSourceMLGL,
   RasterTileSourceMLGL,
-  VectorTileSourceMLGL,
+  type VectorTileSourceMLGL,
   VideoSourceMLGL,
   prewarm,
   clearPrewarmedResources,
@@ -148,18 +148,16 @@ export {
   CooperativeGesturesHandlerMLGL,
   KeyboardHandlerMLGL,
   TwoFingersTouchPitchHandlerMLGL,
-  MapWheelEventMLGL,
-  MapTouchEventMLGL,
-  MapMouseEventMLGL,
+  type MapWheelEventMLGL,
+  type MapTouchEventMLGL,
+  type MapMouseEventMLGL,
   getVersion,
   getMapLibreVersion,
 };
 // Exporting types of class instances from MapLibre:
 export type NavigationControlMLGL = InstanceType<typeof NavigationControlMLGL>;
 export type GeolocateControlMLGL = InstanceType<typeof GeolocateControlMLGL>;
-export type AttributionControlMLGL = InstanceType<
-  typeof AttributionControlMLGL
->;
+export type AttributionControlMLGL = InstanceType<typeof AttributionControlMLGL>;
 export type LogoControlMLGL = InstanceType<typeof LogoControlMLGL>;
 export type ScaleControlMLGL = InstanceType<typeof ScaleControlMLGL>;
 export type FullscreenControlMLGL = InstanceType<typeof FullscreenControlMLGL>;
@@ -175,22 +173,16 @@ export type AJAXError = InstanceType<typeof AJAXError>;
 export type CanvasSourceMLGL = InstanceType<typeof CanvasSourceMLGL>;
 export type GeoJSONSourceMLGL = InstanceType<typeof GeoJSONSourceMLGL>;
 export type ImageSourceMLGL = InstanceType<typeof ImageSourceMLGL>;
-export type RasterDEMTileSourceMLGL = InstanceType<
-  typeof RasterDEMTileSourceMLGL
->;
+export type RasterDEMTileSourceMLGL = InstanceType<typeof RasterDEMTileSourceMLGL>;
 export type RasterTileSourceMLGL = InstanceType<typeof RasterTileSourceMLGL>;
 export type VectorTileSourceMLGL = InstanceType<typeof VectorTileSourceMLGL>;
 export type VideoSourceMLGL = InstanceType<typeof VideoSourceMLGL>;
 export type MapMLGL = InstanceType<typeof MapMLGL>;
 export type BoxZoomHandlerMLGL = InstanceType<typeof BoxZoomHandlerMLGL>;
 export type ScrollZoomHandlerMLGL = InstanceType<typeof ScrollZoomHandlerMLGL>;
-export type CooperativeGesturesHandlerMLGL = InstanceType<
-  typeof CooperativeGesturesHandlerMLGL
->;
+export type CooperativeGesturesHandlerMLGL = InstanceType<typeof CooperativeGesturesHandlerMLGL>;
 export type KeyboardHandlerMLGL = InstanceType<typeof KeyboardHandlerMLGL>;
-export type TwoFingersTouchPitchHandlerMLGL = InstanceType<
-  typeof TwoFingersTouchPitchHandlerMLGL
->;
+export type TwoFingersTouchPitchHandlerMLGL = InstanceType<typeof TwoFingersTouchPitchHandlerMLGL>;
 export type MapWheelEventMLGL = InstanceType<typeof MapWheelEventMLGL>;
 export type MapTouchEventMLGL = InstanceType<typeof MapTouchEventMLGL>;
 export type MapMouseEventMLGL = InstanceType<typeof MapMouseEventMLGL>;
