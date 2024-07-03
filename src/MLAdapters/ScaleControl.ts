@@ -4,10 +4,10 @@
 
 import maplibregl from "maplibre-gl";
 import type { Map as MapMLGL } from "maplibre-gl";
-import { Map } from "../Map";
+import type { Map as SDKMap } from "../Map";
 
 export class ScaleControl extends maplibregl.ScaleControl {
-  onAdd(map: Map | MapMLGL) {
+  onAdd(map: SDKMap | MapMLGL) {
     return super.onAdd(map as MapMLGL);
   }
 }

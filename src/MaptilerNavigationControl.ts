@@ -13,10 +13,7 @@ export class MaptilerNavigationControl extends NavigationControl {
     });
 
     // Removing the default click event
-    this._compass.removeEventListener(
-      "click",
-      (this._compass as HTMLButtonElementPlus).clickFunction,
-    );
+    this._compass.removeEventListener("click", (this._compass as HTMLButtonElementPlus).clickFunction);
 
     // Adding custom click event
     this._compass.addEventListener("click", (e) => {
@@ -38,10 +35,7 @@ export class MaptilerNavigationControl extends NavigationControl {
   /**
    * Overloading: the button now stores its click callback so that we can later on delete it and replace it
    */
-  _createButton(
-    className: string,
-    fn: (e?: Event) => unknown,
-  ): HTMLButtonElementPlus {
+  _createButton(className: string, fn: (e?: Event) => unknown): HTMLButtonElementPlus {
     const button = super._createButton(className, fn) as HTMLButtonElementPlus;
     button.clickFunction = fn;
     return button;
@@ -54,11 +48,7 @@ export class MaptilerNavigationControl extends NavigationControl {
     const rotate = this.options.visualizePitch
       ? `scale(${Math.min(
           1.5,
-          1 /
-            Math.pow(
-              Math.cos(this._map.transform.pitch * (Math.PI / 180)),
-              0.5,
-            ),
+          1 / Math.cos(this._map.transform.pitch * (Math.PI / 180)) ** 0.5,
         )}) rotateX(${Math.min(70, this._map.transform.pitch)}deg) rotateZ(${
           this._map.transform.angle * (180 / Math.PI)
         }deg)`

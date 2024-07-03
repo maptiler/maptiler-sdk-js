@@ -20,21 +20,12 @@ import type {
   SymbolLayerSpecification,
   AttributionControlOptions,
 } from "maplibre-gl";
-import { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
-import { config, MAPTILER_SESSION_ID, SdkConfig } from "./config";
+import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
+import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
 import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
-import {
-  combineTransformRequest,
-  displayNoWebGlWarning,
-  enableRTL,
-} from "./tools";
-import {
-  getBrowserLanguage,
-  isLanguageSupported,
-  Language,
-  LanguageString,
-} from "./language";
+import { combineTransformRequest, displayNoWebGlWarning, enableRTL } from "./tools";
+import { getBrowserLanguage, isLanguageSupported, Language, type LanguageString } from "./language";
 import { styleToStyle } from "./mapstyle";
 import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
@@ -184,6 +175,7 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
 /**
  * The Map class can be instanciated to display a map in a `<div>`
  */
+// biome-ignore lint/suspicious/noShadowRestrictedNames: we want to keep consitency with MapLibre
 export class Map extends maplibregl.Map {
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
@@ -193,7 +185,7 @@ export class Map extends maplibregl.Map {
   private minimap?: Minimap;
   private forceLanguageUpdate: boolean;
   private languageAlwaysBeenStyle: boolean;
-  private isReady: boolean = false;
+  private isReady = false;
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -206,9 +198,7 @@ export class Map extends maplibregl.Map {
     const hashPreConstructor = location.hash;
 
     if (!config.apiKey) {
-      console.warn(
-        "MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!",
-      );
+      console.warn("MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!");
     }
 
     // default attribution control options
@@ -217,10 +207,7 @@ export class Map extends maplibregl.Map {
     } as AttributionControlOptions;
     if (options.customAttribution) {
       attributionControlOptions.customAttribution = options.customAttribution;
-    } else if (
-      options.attributionControl &&
-      typeof options.attributionControl === "object"
-    ) {
+    } else if (options.attributionControl && typeof options.attributionControl === "object") {
       attributionControlOptions = {
         ...attributionControlOptions,
         ...options.attributionControl,
@@ -233,10 +220,7 @@ export class Map extends maplibregl.Map {
       style,
       maplibreLogo: false,
       transformRequest: combineTransformRequest(options.transformRequest),
-      attributionControl:
-        options.forceNoAttributionControl === true
-          ? false
-          : attributionControlOptions,
+      attributionControl: options.forceNoAttributionControl === true ? false : attributionControlOptions,
     });
 
     if (config.caching && !CACHE_API_AVAILABLE) {
@@ -251,13 +235,9 @@ export class Map extends maplibregl.Map {
 
     this.primaryLanguage = options.language ?? config.primaryLanguage;
     this.forceLanguageUpdate =
-      this.primaryLanguage === Language.STYLE ||
-      this.primaryLanguage === Language.STYLE_LOCK
-        ? false
-        : true;
+      this.primaryLanguage === Language.STYLE || this.primaryLanguage === Language.STYLE_LOCK ? false : true;
     this.languageAlwaysBeenStyle = this.primaryLanguage === Language.STYLE;
-    this.terrainExaggeration =
-      options.terrainExaggeration ?? this.terrainExaggeration;
+    this.terrainExaggeration = options.terrainExaggeration ?? this.terrainExaggeration;
 
     // Map centering and geolocation
     this.once("styledata", async () => {
@@ -378,16 +358,10 @@ export class Map extends maplibregl.Map {
         const possibleSources = Object.keys(this.style.sourceCaches)
           .map((sourceName) => this.getSource(sourceName))
           .filter(
-            (s: Source | undefined) =>
-              s &&
-              "url" in s &&
-              typeof s.url === "string" &&
-              s?.url.includes("tiles.json"),
+            (s: Source | undefined) => s && "url" in s && typeof s.url === "string" && s?.url.includes("tiles.json"),
           );
 
-        const styleUrl = new URL(
-          (possibleSources[0] as maplibregl.VectorTileSource).url,
-        );
+        const styleUrl = new URL((possibleSources[0] as maplibregl.VectorTileSource).url);
 
         if (!styleUrl.searchParams.has("key")) {
           styleUrl.searchParams.append("key", config.apiKey);
@@ -404,10 +378,7 @@ export class Map extends maplibregl.Map {
         if ("logo" in tileJsonContent && tileJsonContent.logo) {
           const logoURL: string = tileJsonContent.logo;
 
-          this.addControl(
-            new MaptilerLogoControl({ logoURL }),
-            options.logoPosition,
-          );
+          this.addControl(new MaptilerLogoControl({ logoURL }), options.logoPosition);
         } else if (options.maptilerLogo) {
           this.addControl(new MaptilerLogoControl(), options.logoPosition);
         }
@@ -420,9 +391,7 @@ export class Map extends maplibregl.Map {
       if (options.scaleControl) {
         // default position, if not provided, is top left corner
         const position = (
-          options.scaleControl === true || options.scaleControl === undefined
-            ? "bottom-right"
-            : options.scaleControl
+          options.scaleControl === true || options.scaleControl === undefined ? "bottom-right" : options.scaleControl
         ) as ControlPosition;
 
         const scaleControl = new ScaleControl({ unit: config.unit });
@@ -435,8 +404,7 @@ export class Map extends maplibregl.Map {
       if (options.navigationControl !== false) {
         // default position, if not provided, is top left corner
         const position = (
-          options.navigationControl === true ||
-          options.navigationControl === undefined
+          options.navigationControl === true || options.navigationControl === undefined
             ? "top-right"
             : options.navigationControl
         ) as ControlPosition;
@@ -446,8 +414,7 @@ export class Map extends maplibregl.Map {
       if (options.geolocateControl !== false) {
         // default position, if not provided, is top left corner
         const position = (
-          options.geolocateControl === true ||
-          options.geolocateControl === undefined
+          options.geolocateControl === true || options.geolocateControl === undefined
             ? "top-right"
             : options.geolocateControl
         ) as ControlPosition;
@@ -474,10 +441,7 @@ export class Map extends maplibregl.Map {
       if (options.terrainControl) {
         // default position, if not provided, is top left corner
         const position = (
-          options.terrainControl === true ||
-          options.terrainControl === undefined
-            ? "top-right"
-            : options.terrainControl
+          options.terrainControl === true || options.terrainControl === undefined ? "top-right" : options.terrainControl
         ) as ControlPosition;
         this.addControl(new MaptilerTerrainControl(), position);
       }
@@ -486,8 +450,7 @@ export class Map extends maplibregl.Map {
       if (options.fullscreenControl) {
         // default position, if not provided, is top left corner
         const position = (
-          options.fullscreenControl === true ||
-          options.fullscreenControl === undefined
+          options.fullscreenControl === true || options.fullscreenControl === undefined
             ? "top-right"
             : options.fullscreenControl
         ) as ControlPosition;
@@ -595,9 +558,7 @@ export class Map extends maplibregl.Map {
 
     // enable 3D terrain if provided in options
     if (options.terrain) {
-      this.enableTerrain(
-        options.terrainExaggeration ?? this.terrainExaggeration,
-      );
+      this.enableTerrain(options.terrainExaggeration ?? this.terrainExaggeration);
     }
   }
 
@@ -666,12 +627,7 @@ export class Map extends maplibregl.Map {
    * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
    */
   override setStyle(
-    style:
-      | null
-      | ReferenceMapStyle
-      | MapStyleVariant
-      | StyleSpecification
-      | string,
+    style: null | ReferenceMapStyle | MapStyleVariant | StyleSpecification | string,
     options?: StyleSwapOptions & StyleOptions,
   ): this {
     this.minimap?.setStyle(style);
@@ -779,11 +735,7 @@ export class Map extends maplibregl.Map {
    *
    * To clear the filter, pass `null` or `undefined` as the second parameter.
    */
-  setFilter(
-    layerId: string,
-    filter?: FilterSpecification | null,
-    options?: StyleSetterOptions,
-  ): this {
+  setFilter(layerId: string, filter?: FilterSpecification | null, options?: StyleSetterOptions): this {
     this.minimap?.setFilter(layerId, filter, options);
     return super.setFilter(layerId, filter, options);
   }
@@ -802,13 +754,7 @@ export class Map extends maplibregl.Map {
    * map.setPaintProperty('my-layer', 'fill-color', '#faafee');
    * ```
    */
-  setPaintProperty(
-    layerId: string,
-    name: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    value: any,
-    options?: StyleSetterOptions,
-  ): this {
+  setPaintProperty(layerId: string, name: string, value: any, options?: StyleSetterOptions): this {
     this.minimap?.setPaintProperty(layerId, name, value, options);
     return super.setPaintProperty(layerId, name, value, options);
   }
@@ -826,13 +772,7 @@ export class Map extends maplibregl.Map {
    * @param options - Options object.
    * @returns `this`
    */
-  setLayoutProperty(
-    layerId: string,
-    name: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    value: any,
-    options?: StyleSetterOptions,
-  ): this {
+  setLayoutProperty(layerId: string, name: string, value: any, options?: StyleSetterOptions): this {
     this.minimap?.setLayoutProperty(layerId, name, value, options);
     return super.setLayoutProperty(layerId, name, value, options);
   }
@@ -862,9 +802,9 @@ export class Map extends maplibregl.Map {
       typeof this.style.stylesheet.metadata["maptiler:language"] === "string"
     ) {
       return this.style.stylesheet.metadata["maptiler:language"];
-    } else {
-      return null;
     }
+
+    return null;
   }
 
   /**
@@ -886,12 +826,7 @@ export class Map extends maplibregl.Map {
 
     // If the language is set to `STYLE` (which is the SDK default), but the language defined in
     // the style is `auto`, we need to bypass some verification and modify the languages anyway
-    if (
-      !(
-        language === Language.STYLE &&
-        (styleLanguage === Language.AUTO || styleLanguage === Language.VISITOR)
-      )
-    ) {
+    if (!(language === Language.STYLE && (styleLanguage === Language.AUTO || styleLanguage === Language.VISITOR))) {
       if (language !== Language.STYLE) {
         this.languageAlwaysBeenStyle = false;
       }
@@ -943,7 +878,7 @@ export class Map extends maplibregl.Map {
     // will be overwritten below
     let replacer: ExpressionSpecification | string = `{${langStr}}`;
 
-    if (languageNonStyle == Language.VISITOR) {
+    if (languageNonStyle === Language.VISITOR) {
       langStr = getBrowserLanguage();
       replacer = [
         "case",
@@ -953,19 +888,12 @@ export class Map extends maplibregl.Map {
           ["==", ["get", langStr], ["get", Language.LOCAL]],
           ["get", Language.LOCAL],
 
-          [
-            "format",
-            ["get", langStr],
-            { "font-scale": 0.8 },
-            "\n",
-            ["get", Language.LOCAL],
-            { "font-scale": 1.1 },
-          ],
+          ["format", ["get", langStr], { "font-scale": 0.8 }, "\n", ["get", Language.LOCAL], { "font-scale": 1.1 }],
         ],
 
         ["get", Language.LOCAL],
       ];
-    } else if (languageNonStyle == Language.VISITOR_ENGLISH) {
+    } else if (languageNonStyle === Language.VISITOR_ENGLISH) {
       langStr = Language.ENGLISH;
       replacer = [
         "case",
@@ -975,25 +903,13 @@ export class Map extends maplibregl.Map {
           ["==", ["get", langStr], ["get", Language.LOCAL]],
           ["get", Language.LOCAL],
 
-          [
-            "format",
-            ["get", langStr],
-            { "font-scale": 0.8 },
-            "\n",
-            ["get", Language.LOCAL],
-            { "font-scale": 1.1 },
-          ],
+          ["format", ["get", langStr], { "font-scale": 0.8 }, "\n", ["get", Language.LOCAL], { "font-scale": 1.1 }],
         ],
         ["get", Language.LOCAL],
       ];
     } else if (languageNonStyle === Language.AUTO) {
       langStr = getBrowserLanguage();
-      replacer = [
-        "case",
-        ["has", langStr],
-        ["get", langStr],
-        ["get", Language.LOCAL],
-      ];
+      replacer = ["case", ["has", langStr], ["get", langStr], ["get", Language.LOCAL]];
     }
 
     // This is for using the regular names as {name}
@@ -1005,12 +921,7 @@ export class Map extends maplibregl.Map {
     // This section is for the regular language ISO codes
     else {
       langStr = languageNonStyle;
-      replacer = [
-        "case",
-        ["has", langStr],
-        ["get", langStr],
-        ["get", Language.LOCAL],
-      ];
+      replacer = ["case", ["has", langStr], ["get", langStr], ["get", Language.LOCAL]];
     }
 
     const { layers } = this.getStyle();
@@ -1056,8 +967,7 @@ export class Map extends maplibregl.Map {
       // If the label is not about a name, then we don't translate it
       if (
         typeof textFieldLayoutProp === "string" &&
-        (textFieldLayoutProp.toLowerCase().includes("ref") ||
-          textFieldLayoutProp.toLowerCase().includes("housenumber"))
+        (textFieldLayoutProp.toLowerCase().includes("ref") || textFieldLayoutProp.toLowerCase().includes("housenumber"))
       ) {
         continue;
       }
@@ -1119,9 +1029,8 @@ export class Map extends maplibregl.Map {
 
       // The animation goes on until we reached 99% of the growing sequence duration
       if (positionInLoop < 0.99) {
-        const exaggerationFactor = 1 - Math.pow(1 - positionInLoop, 4);
-        const newExaggeration =
-          currentExaggeration + exaggerationFactor * deltaExaggeration;
+        const exaggerationFactor = 1 - (1 - positionInLoop) ** 4;
+        const newExaggeration = currentExaggeration + exaggerationFactor * deltaExaggeration;
         this.terrain.exaggeration = newExaggeration;
         requestAnimationFrame(updateExaggeration);
       } else {
@@ -1154,11 +1063,7 @@ export class Map extends maplibregl.Map {
         return;
       }
 
-      if (
-        evt.type !== "data" ||
-        evt.dataType !== "source" ||
-        !("source" in evt)
-      ) {
+      if (evt.type !== "data" || evt.dataType !== "source" || !("source" in evt)) {
         return;
       }
 
@@ -1260,12 +1165,11 @@ export class Map extends maplibregl.Map {
       }
 
       // normalized value in interval [0, 1] of where we are currently in the animation loop
-      const positionInLoop =
-        (performance.now() - startTime) / animationLoopDuration;
+      const positionInLoop = (performance.now() - startTime) / animationLoopDuration;
 
       // The animation goes on until we reached 99% of the growing sequence duration
       if (positionInLoop < 0.99) {
-        const exaggerationFactor = Math.pow(1 - positionInLoop, 4);
+        const exaggerationFactor = (1 - positionInLoop) ** 4;
         const newExaggeration = currentExaggeration * exaggerationFactor;
         this.terrain.exaggeration = newExaggeration;
         requestAnimationFrame(updateExaggeration);
@@ -1321,22 +1225,16 @@ export class Map extends maplibregl.Map {
 
   async fitToIpBounds() {
     const ipGeolocateResult = await geolocation.info();
-    this.fitBounds(
-      ipGeolocateResult.country_bounds as [number, number, number, number],
-      {
-        duration: 0,
-        padding: 100,
-      },
-    );
+    this.fitBounds(ipGeolocateResult.country_bounds as [number, number, number, number], {
+      duration: 0,
+      padding: 100,
+    });
   }
 
   async centerOnIpPoint(zoom: number | undefined) {
     const ipGeolocateResult = await geolocation.info();
     this.jumpTo({
-      center: [
-        ipGeolocateResult?.longitude ?? 0,
-        ipGeolocateResult?.latitude ?? 0,
-      ],
+      center: [ipGeolocateResult?.longitude ?? 0, ipGeolocateResult?.latitude ?? 0],
       zoom: zoom || 11,
     });
   }
@@ -1381,9 +1279,7 @@ export class Map extends maplibregl.Map {
    *  @example
    *  map.setTransformRequest((url: string, resourceType: string) => {});
    */
-  override setTransformRequest(
-    transformRequest: RequestTransformFunction,
-  ): this {
+  override setTransformRequest(transformRequest: RequestTransformFunction): this {
     super.setTransformRequest(combineTransformRequest(transformRequest));
     return this;
   }

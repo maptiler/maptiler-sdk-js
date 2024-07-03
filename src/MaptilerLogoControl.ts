@@ -1,7 +1,7 @@
 import type { LogoControlOptions as LogoControlOptionsML } from "maplibre-gl";
 import { defaults } from "./defaults";
 import { LogoControl } from "./MLAdapters/LogoControl";
-import type { Map } from "./Map";
+import type { Map as SDKMap } from "./Map";
 
 type LogoControlOptions = LogoControlOptionsML & {
   logoURL?: string;
@@ -24,7 +24,7 @@ export class MaptilerLogoControl extends LogoControl {
     this.linkURL = options.linkURL ?? defaults.maptilerURL;
   }
 
-  onAdd(map: Map): HTMLElement {
+  onAdd(map: SDKMap): HTMLElement {
     this._map = map;
     this._compact = this.options.compact ?? false;
     this._container = window.document.createElement("div");

@@ -1,16 +1,11 @@
 import maplibregl from "maplibre-gl";
-import type {
-  RequestParameters,
-  ResourceType,
-  RequestTransformFunction,
-} from "maplibre-gl";
+import type { RequestParameters, ResourceType, RequestTransformFunction } from "maplibre-gl";
 import { defaults } from "./defaults";
 import { config } from "./config";
 import { MAPTILER_SESSION_ID } from "./config";
 import { localCacheTransformRequest } from "./caching";
 
 export function enableRTL() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (maplibregl.getRTLTextPluginStatus() === "unavailable") {
     maplibregl.setRTLTextPlugin(
       defaults.rtlPluginURL,
@@ -24,12 +19,11 @@ export function enableRTL() {
 
 // This comes from:
 // https://github.com/maplibre/maplibre-gl-js/blob/v2.4.0/src/util/util.ts#L223
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function bindAll(fns: Array<string>, context: any): void {
-  fns.forEach((fn) => {
-    if (typeof context[fn] !== "function") return;
+  for (const fn of fns) {
+    if (typeof context[fn] !== "function") continue;
     context[fn] = context[fn].bind(context);
-  });
+  }
 }
 
 // This comes from:
@@ -58,10 +52,7 @@ export function DOMremove(node: HTMLElement) {
  * It adds the session ID as well as the MapTiler Cloud key from the config to all the requests
  * performed on MapTiler Cloud servers.
  */
-export function maptilerCloudTransformRequest(
-  url: string,
-  resourceType?: ResourceType,
-): RequestParameters {
+export function maptilerCloudTransformRequest(url: string, resourceType?: ResourceType): RequestParameters {
   let reqUrl = null;
 
   try {
@@ -94,13 +85,8 @@ export function maptilerCloudTransformRequest(
  * This combines a user-defined tranformRequest function (optionnal)
  * with the MapTiler Cloud-specific one: maptilerCloudTransformRequest
  */
-export function combineTransformRequest(
-  userDefinedRTF?: RequestTransformFunction | null,
-): RequestTransformFunction {
-  return function (
-    url: string,
-    resourceType?: ResourceType,
-  ): RequestParameters {
+export function combineTransformRequest(userDefinedRTF?: RequestTransformFunction | null): RequestTransformFunction {
+  return (url: string, resourceType?: ResourceType): RequestParameters => {
     if (userDefinedRTF !== undefined && userDefinedRTF !== null) {
       const rp = userDefinedRTF(url, resourceType);
       const rp2 = maptilerCloudTransformRequest(rp?.url ?? "", resourceType);
@@ -109,9 +95,9 @@ export function combineTransformRequest(
         ...rp,
         ...rp2,
       };
-    } else {
-      return maptilerCloudTransformRequest(url, resourceType);
     }
+
+    return maptilerCloudTransformRequest(url, resourceType);
   };
 }
 
@@ -127,8 +113,7 @@ export function generateRandomString(): string {
  */
 export function isUUID(s: string): boolean {
   // Regular expression to check if string is a valid UUID
-  const regexExp =
-    /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
+  const regexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
   return regexExp.test(s);
 }
 
@@ -149,8 +134,7 @@ export function jsonParseNoThrow<T>(doc: string): T | null {
  * Simple function to check if an object is a GeoJSON
  */
 export function isValidGeoJSON<T>(obj: T & { type: string }): boolean {
-  if (typeof obj !== "object" || Array.isArray(obj) || obj === null)
-    return false;
+  if (typeof obj !== "object" || Array.isArray(obj) || obj === null) return false;
   if (!("type" in obj)) return false;
 
   const validTypes = [
@@ -180,12 +164,10 @@ export function getWebGLSupportError(): string | null {
   if (!gl) {
     if (typeof WebGL2RenderingContext !== "undefined") {
       return "Graphic rendering with WebGL2 has been disabled or is not supported by your graphic card. The map cannot be displayed.";
-    } else {
-      return "Your browser does not support graphic rendering with WebGL2. The map cannot be displayed.";
     }
-  } else {
-    return null;
+    return "Your browser does not support graphic rendering with WebGL2. The map cannot be displayed.";
   }
+  return null;
 }
 
 /**
