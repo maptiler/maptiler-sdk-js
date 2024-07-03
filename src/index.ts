@@ -1,29 +1,6 @@
 import packagejson from "../package.json";
 import maplibregl from "maplibre-gl";
 
-// Exporting types from MapLibre
-// export {
-//   type IControl,
-//   type CustomLayerInterface,
-//   type PaddingOptions,
-//   type LngLatLike,
-//   type PointLike,
-//   type LngLatBoundsLike,
-//   type Source,
-//   type MapTerrainEvent,
-//   type MapStyleImageMissingEvent,
-//   type MapStyleDataEvent,
-//   type MapSourceDataEvent,
-//   type MapLibreZoomEvent,
-//   type MapLibreEvent,
-//   type MapLayerTouchEvent,
-//   type MapLayerMouseEvent,
-//   type MapLayerEventType,
-//   type MapEventType,
-//   type MapDataEvent,
-//   type MapContextEvent,
-// } from "maplibre-gl";
-
 export type * from "maplibre-gl";
 
 const {
@@ -162,30 +139,7 @@ export type LogoControlMLGL = InstanceType<typeof LogoControlMLGL>;
 export type ScaleControlMLGL = InstanceType<typeof ScaleControlMLGL>;
 export type FullscreenControlMLGL = InstanceType<typeof FullscreenControlMLGL>;
 export type TerrainControlMLGL = InstanceType<typeof TerrainControlMLGL>;
-// export type MarkerMLGL = InstanceType<typeof MarkerMLGL>;
-// export type PopupMLGL = InstanceType<typeof PopupMLGL>;
-// export type StyleMLGL = InstanceType<typeof StyleMLGL>;
-// export type LngLat = InstanceType<typeof LngLat>;
-// export type LngLatBounds = InstanceType<typeof LngLatBounds>;
-// export type MercatorCoordinate = InstanceType<typeof MercatorCoordinate>;
-// export type Evented = InstanceType<typeof Evented>;
-// export type AJAXError = InstanceType<typeof AJAXError>;
-// export type CanvasSourceMLGL = InstanceType<typeof CanvasSourceMLGL>;
-// export type GeoJSONSourceMLGL = InstanceType<typeof GeoJSONSourceMLGL>;
-// export type ImageSourceMLGL = InstanceType<typeof ImageSourceMLGL>;
-// export type RasterDEMTileSourceMLGL = InstanceType<typeof RasterDEMTileSourceMLGL>;
-// export type RasterTileSourceMLGL = InstanceType<typeof RasterTileSourceMLGL>;
-// export type VectorTileSourceMLGL = InstanceType<typeof VectorTileSourceMLGL>;
-// export type VideoSourceMLGL = InstanceType<typeof VideoSourceMLGL>;
-// export type MapMLGL = InstanceType<typeof MapMLGL>;
-// export type BoxZoomHandlerMLGL = InstanceType<typeof BoxZoomHandlerMLGL>;
-// export type ScrollZoomHandlerMLGL = InstanceType<typeof ScrollZoomHandlerMLGL>;
-// export type CooperativeGesturesHandlerMLGL = InstanceType<typeof CooperativeGesturesHandlerMLGL>;
-// export type KeyboardHandlerMLGL = InstanceType<typeof KeyboardHandlerMLGL>;
-// export type TwoFingersTouchPitchHandlerMLGL = InstanceType<typeof TwoFingersTouchPitchHandlerMLGL>;
-// export type MapWheelEventMLGL = InstanceType<typeof MapWheelEventMLGL>;
-// export type MapTouchEventMLGL = InstanceType<typeof MapTouchEventMLGL>;
-// export type MapMouseEventMLGL = InstanceType<typeof MapMouseEventMLGL>;
+
 // SDK specific
 export {
   Map,
