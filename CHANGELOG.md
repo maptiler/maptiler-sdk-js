@@ -2,7 +2,7 @@
 
 ## 2.2.1
 ### Bug Fixes
-- The types from classes defined in Maplibre are now exposed more reliably
+- The types from classes defined in Maplibre are now exposed more reliably (https://github.com/maptiler/maptiler-sdk-js/pull/98)
 
 ## 2.2.0
 ### New Features
