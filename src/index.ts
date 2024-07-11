@@ -1,10 +1,50 @@
 import packagejson from "../package.json";
-import maplibregl from "maplibre-gl";
 
+// Types from MapLibre are not re-exported one by one
 export type * from "maplibre-gl";
 
-const {
-  // supported,
+/**
+ * Get the version of MapTiler SDK
+ */
+export function getVersion(): string {
+  return packagejson.version;
+}
+
+export {
+  // The following elements have MapTiler SDK equivalents to make
+  // them fully compatible with the SDK Map class definition (see src/MLAdapters).
+  // Still, for MapLibre compatibility reasons, we want to export them
+  // with the suffic "MLGL".
+  Map as MapMLGL,
+  Marker as MarkerMLGL,
+  Popup as PopupMLGL,
+  Style as StyleMLGL,
+  CanvasSource as CanvasSourceMLGL,
+  GeoJSONSource as GeoJSONSourceMLGL,
+  ImageSource as ImageSourceMLGL,
+  RasterTileSource as RasterTileSourceMLGL,
+  RasterDEMTileSource as RasterDEMTileSourceMLGL,
+  VectorTileSource as VectorTileSourceMLGL,
+  VideoSource as VideoSourceMLGL,
+  NavigationControl as NavigationControlMLGL,
+  GeolocateControl as GeolocateControlMLGL,
+  AttributionControl as AttributionControlMLGL,
+  LogoControl as LogoControlMLGL,
+  ScaleControl as ScaleControlMLGL,
+  FullscreenControl as FullscreenControlMLGL,
+  TerrainControl as TerrainControlMLGL,
+  BoxZoomHandler as BoxZoomHandlerMLGL,
+  ScrollZoomHandler as ScrollZoomHandlerMLGL,
+  CooperativeGesturesHandler as CooperativeGesturesHandlerMLGL,
+  KeyboardHandler as KeyboardHandlerMLGL,
+  TwoFingersTouchPitchHandler as TwoFingersTouchPitchHandlerMLGL,
+  MapWheelEvent as MapWheelEventMLGL,
+  MapTouchEvent as MapTouchEventMLGL,
+  MapMouseEvent as MapMouseEventMLGL,
+  config as configMLGL,
+  getVersion as getMapLibreVersion,
+  // The folowing items are exported from MapLibre as-is because they
+  // are already compatible with MapTiler SDK.
   setRTLTextPlugin,
   getRTLTextPluginStatus,
   LngLat,
@@ -14,94 +54,8 @@ const {
   AJAXError,
   prewarm,
   clearPrewarmedResources,
-  addProtocol,
-  removeProtocol,
   Hash,
   Point,
-  config,
-  EdgeInsets,
-  DragRotateHandler,
-  DragPanHandler,
-  TwoFingersTouchZoomRotateHandler,
-  DoubleClickZoomHandler,
-  TwoFingersTouchZoomHandler,
-  TwoFingersTouchRotateHandler,
-  getWorkerCount,
-  setWorkerCount,
-  getMaxParallelImageRequests,
-  setMaxParallelImageRequests,
-  getWorkerUrl,
-  setWorkerUrl,
-  addSourceType,
-  importScriptInWorkers,
-} = maplibregl;
-
-/**
- * Get the version of MapTiler SDK
- */
-function getVersion(): string {
-  return packagejson.version;
-}
-
-/**
- * Get the version of MapLibre GL JS
- */
-function getMapLibreVersion(): string {
-  return maplibregl.getVersion();
-}
-
-// We still want to export maplibregl.Map, but as a different name
-const MapMLGL = maplibregl.Map;
-const MarkerMLGL = maplibregl.Marker;
-const PopupMLGL = maplibregl.Popup;
-const StyleMLGL = maplibregl.Style;
-const CanvasSourceMLGL = maplibregl.CanvasSource;
-const GeoJSONSourceMLGL = maplibregl.GeoJSONSource;
-const ImageSourceMLGL = maplibregl.ImageSource;
-const RasterTileSourceMLGL = maplibregl.RasterTileSource;
-const RasterDEMTileSourceMLGL = maplibregl.RasterDEMTileSource;
-const VectorTileSourceMLGL = maplibregl.VectorTileSource;
-const VideoSourceMLGL = maplibregl.VideoSource;
-const NavigationControlMLGL = maplibregl.NavigationControl;
-const GeolocateControlMLGL = maplibregl.GeolocateControl;
-const AttributionControlMLGL = maplibregl.AttributionControl;
-const LogoControlMLGL = maplibregl.LogoControl;
-const ScaleControlMLGL = maplibregl.ScaleControl;
-const FullscreenControlMLGL = maplibregl.FullscreenControl;
-const TerrainControlMLGL = maplibregl.TerrainControl;
-const BoxZoomHandlerMLGL = maplibregl.BoxZoomHandler;
-const ScrollZoomHandlerMLGL = maplibregl.ScrollZoomHandler;
-const CooperativeGesturesHandlerMLGL = maplibregl.CooperativeGesturesHandler;
-const KeyboardHandlerMLGL = maplibregl.KeyboardHandler;
-const TwoFingersTouchPitchHandlerMLGL = maplibregl.TwoFingersTouchPitchHandler;
-const MapWheelEventMLGL = maplibregl.MapWheelEvent;
-const MapTouchEventMLGL = maplibregl.MapTouchEvent;
-const MapMouseEventMLGL = maplibregl.MapMouseEvent;
-
-export {
-  // supported,
-  setRTLTextPlugin,
-  getRTLTextPluginStatus,
-  PopupMLGL,
-  MarkerMLGL,
-  StyleMLGL,
-  LngLat,
-  LngLatBounds,
-  MercatorCoordinate,
-  Evented,
-  type AJAXError,
-  type CanvasSourceMLGL,
-  type GeoJSONSourceMLGL,
-  ImageSourceMLGL,
-  type RasterDEMTileSourceMLGL,
-  RasterTileSourceMLGL,
-  type VectorTileSourceMLGL,
-  VideoSourceMLGL,
-  prewarm,
-  clearPrewarmedResources,
-  Hash,
-  Point,
-  config as configMLGL,
   EdgeInsets,
   DragRotateHandler,
   DragPanHandler,
@@ -119,34 +73,9 @@ export {
   importScriptInWorkers,
   addProtocol,
   removeProtocol,
-  MapMLGL,
-  BoxZoomHandlerMLGL,
-  ScrollZoomHandlerMLGL,
-  CooperativeGesturesHandlerMLGL,
-  KeyboardHandlerMLGL,
-  TwoFingersTouchPitchHandlerMLGL,
-  type MapWheelEventMLGL,
-  type MapTouchEventMLGL,
-  type MapMouseEventMLGL,
-  getVersion,
-  getMapLibreVersion,
-};
-// Exporting types of class instances from MapLibre:
-export type NavigationControlMLGL = InstanceType<typeof NavigationControlMLGL>;
-export type GeolocateControlMLGL = InstanceType<typeof GeolocateControlMLGL>;
-export type AttributionControlMLGL = InstanceType<typeof AttributionControlMLGL>;
-export type LogoControlMLGL = InstanceType<typeof LogoControlMLGL>;
-export type ScaleControlMLGL = InstanceType<typeof ScaleControlMLGL>;
-export type FullscreenControlMLGL = InstanceType<typeof FullscreenControlMLGL>;
-export type TerrainControlMLGL = InstanceType<typeof TerrainControlMLGL>;
+} from "maplibre-gl";
 
-// SDK specific
-export {
-  Map,
-  GeolocationType,
-  type MapOptions,
-  type LoadWithTerrainEvent,
-} from "./Map";
+// The following items are only MapLibre adapted to MapTiler SDK Map class
 export { Marker } from "./MLAdapters/Marker";
 export { Popup } from "./MLAdapters/Popup";
 export { Style } from "./MLAdapters/Style";
@@ -172,7 +101,14 @@ export { TwoFingersTouchPitchHandler } from "./MLAdapters/TwoFingersTouchPitchHa
 export { MapWheelEvent } from "./MLAdapters/MapWheelEvent";
 export { MapTouchEvent } from "./MLAdapters/MapTouchEvent";
 export { MapMouseEvent } from "./MLAdapters/MapMouseEvent";
-// Export of modified versions of the controls
+
+// SDK specific
+export {
+  Map,
+  GeolocationType,
+  type MapOptions,
+  type LoadWithTerrainEvent,
+} from "./Map";
 export * from "./MaptilerGeolocateControl";
 export * from "./MaptilerLogoControl";
 export * from "./MaptilerTerrainControl";
@@ -238,7 +174,6 @@ export {
   styleToStyle,
 } from "@maptiler/client";
 
-// export * from "./Point";
 export { config, SdkConfig } from "./config";
 export * from "./language";
 export { type Unit } from "./unit";
