@@ -3,6 +3,8 @@
 ## 2.2.1
 ### Bug Fixes
 - The types from classes defined in Maplibre are now exposed more reliably (https://github.com/maptiler/maptiler-sdk-js/pull/98)
+### Others
+- Loading (lazy) the RTL plugin ealier and outside Map instance to prevent display glitch
 
 ## 2.2.0
 ### New Features

@@ -1,7 +1,11 @@
 import packagejson from "../package.json";
+import { enableRTL } from "./tools";
 
 // Types from MapLibre are not re-exported one by one
 export type * from "maplibre-gl";
+
+// Enabling the right-to-left text compatibility plugin early to avoid blinking
+enableRTL();
 
 /**
  * Get the version of MapTiler SDK

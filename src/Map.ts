@@ -24,7 +24,7 @@ import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
 import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
-import { combineTransformRequest, displayNoWebGlWarning, enableRTL } from "./tools";
+import { combineTransformRequest, displayNoWebGlWarning } from "./tools";
 import { getBrowserLanguage, isLanguageSupported, Language, type LanguageString } from "./language";
 import { styleToStyle } from "./mapstyle";
 import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
@@ -343,11 +343,6 @@ export class Map extends maplibregl.Map {
       if (this.getTerrain() === null && this.isTerrainEnabled) {
         this.enableTerrain(this.terrainExaggeration);
       }
-    });
-
-    // load the Right-to-Left text plugin (will happen only once)
-    this.once("load", () => {
-      enableRTL();
     });
 
     // Update logo and attibution
