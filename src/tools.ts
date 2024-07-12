@@ -6,6 +6,9 @@ import { MAPTILER_SESSION_ID } from "./config";
 import { localCacheTransformRequest } from "./caching";
 
 export function enableRTL() {
+  // Prevent this from running server side
+  if (typeof window === "undefined") return;
+
   const status = maplibregl.getRTLTextPluginStatus();
 
   if (status === "unavailable" || status === "requested") {
