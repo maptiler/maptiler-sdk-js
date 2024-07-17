@@ -1,3 +1,4 @@
+import maplibre from "maplibre-gl";
 import packagejson from "../package.json";
 import { enableRTL } from "./tools";
 
@@ -14,39 +15,40 @@ export function getVersion(): string {
   return packagejson.version;
 }
 
-export {
+// Re-export classes and methods from MapLibre, which is a CommonJS module
+export const {
   // The following elements have MapTiler SDK equivalents to make
   // them fully compatible with the SDK Map class definition (see src/MLAdapters).
   // Still, for MapLibre compatibility reasons, we want to export them
   // with the suffic "MLGL".
-  Map as MapMLGL,
-  Marker as MarkerMLGL,
-  Popup as PopupMLGL,
-  Style as StyleMLGL,
-  CanvasSource as CanvasSourceMLGL,
-  GeoJSONSource as GeoJSONSourceMLGL,
-  ImageSource as ImageSourceMLGL,
-  RasterTileSource as RasterTileSourceMLGL,
-  RasterDEMTileSource as RasterDEMTileSourceMLGL,
-  VectorTileSource as VectorTileSourceMLGL,
-  VideoSource as VideoSourceMLGL,
-  NavigationControl as NavigationControlMLGL,
-  GeolocateControl as GeolocateControlMLGL,
-  AttributionControl as AttributionControlMLGL,
-  LogoControl as LogoControlMLGL,
-  ScaleControl as ScaleControlMLGL,
-  FullscreenControl as FullscreenControlMLGL,
-  TerrainControl as TerrainControlMLGL,
-  BoxZoomHandler as BoxZoomHandlerMLGL,
-  ScrollZoomHandler as ScrollZoomHandlerMLGL,
-  CooperativeGesturesHandler as CooperativeGesturesHandlerMLGL,
-  KeyboardHandler as KeyboardHandlerMLGL,
-  TwoFingersTouchPitchHandler as TwoFingersTouchPitchHandlerMLGL,
-  MapWheelEvent as MapWheelEventMLGL,
-  MapTouchEvent as MapTouchEventMLGL,
-  MapMouseEvent as MapMouseEventMLGL,
-  config as configMLGL,
-  getVersion as getMapLibreVersion,
+  Map: MapMLGL,
+  Marker: MarkerMLGL,
+  Popup: PopupMLGL,
+  Style: StyleMLGL,
+  CanvasSource: CanvasSourceMLGL,
+  GeoJSONSource: GeoJSONSourceMLGL,
+  ImageSource: ImageSourceMLGL,
+  RasterTileSource: RasterTileSourceMLGL,
+  RasterDEMTileSource: RasterDEMTileSourceMLGL,
+  VectorTileSource: VectorTileSourceMLGL,
+  VideoSource: VideoSourceMLGL,
+  NavigationControl: NavigationControlMLGL,
+  GeolocateControl: GeolocateControlMLGL,
+  AttributionControl: AttributionControlMLGL,
+  LogoControl: LogoControlMLGL,
+  ScaleControl: ScaleControlMLGL,
+  FullscreenControl: FullscreenControlMLGL,
+  TerrainControl: TerrainControlMLGL,
+  BoxZoomHandler: BoxZoomHandlerMLGL,
+  ScrollZoomHandler: ScrollZoomHandlerMLGL,
+  CooperativeGesturesHandler: CooperativeGesturesHandlerMLGL,
+  KeyboardHandler: KeyboardHandlerMLGL,
+  TwoFingersTouchPitchHandler: TwoFingersTouchPitchHandlerMLGL,
+  MapWheelEvent: MapWheelEventMLGL,
+  MapTouchEvent: MapTouchEventMLGL,
+  MapMouseEvent: MapMouseEventMLGL,
+  config: configMLGL,
+  getVersion: getMapLibreVersion,
   // The folowing items are exported from MapLibre as-is because they
   // are already compatible with MapTiler SDK.
   setRTLTextPlugin,
@@ -77,7 +79,7 @@ export {
   importScriptInWorkers,
   addProtocol,
   removeProtocol,
-} from "maplibre-gl";
+} = maplibre;
 
 // The following items are only MapLibre adapted to MapTiler SDK Map class
 export { Marker } from "./MLAdapters/Marker";
