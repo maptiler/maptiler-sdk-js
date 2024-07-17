@@ -1,4 +1,4 @@
-import maplibre from "maplibre-gl";
+import maplibregl from "maplibre-gl";
 import packagejson from "../package.json";
 import { enableRTL } from "./tools";
 
@@ -79,7 +79,7 @@ export const {
   importScriptInWorkers,
   addProtocol,
   removeProtocol,
-} = maplibre;
+} = maplibregl;
 
 // The following items are only MapLibre adapted to MapTiler SDK Map class
 export { Marker } from "./MLAdapters/Marker";
