@@ -15,7 +15,8 @@ export function getVersion(): string {
   return packagejson.version;
 }
 
-// Re-export classes and methods from MapLibre, which is a CommonJS module
+// Re-export classes and methods from MapLibre. Since it’s a CommonJS module,
+// we can’t re-export them directly with `export { ... } from "maplibre-gl"`.
 export const {
   // The following elements have MapTiler SDK equivalents to make
   // them fully compatible with the SDK Map class definition (see src/MLAdapters).
