@@ -1,5 +1,9 @@
 # MapTiler SDK Changelog
 
+## 2.2.2
+### Bug Fixes
+- Fix broken Maplibre imports in v2.2.1 (https://github.com/maptiler/maptiler-sdk-js/pull/100)
+
 ## 2.2.1
 ### Bug Fixes
 - The types from classes defined in Maplibre are now exposed more reliably (https://github.com/maptiler/maptiler-sdk-js/pull/98)
