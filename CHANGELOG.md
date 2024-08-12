@@ -1,5 +1,12 @@
 # MapTiler SDK Changelog
 
+## 2.2.2
+### Bug Fixes
+- No longer using named imports from Maplibre (https://github.com/maptiler/maptiler-sdk-js/issues/99)
+- Exporting types with classes for Maplibre types (https://github.com/maptiler/maptiler-sdk-js/issues/99)
+### Others
+- Bundling now made with ViteJS (no longer Rollup)
+
 ## 2.2.1
 ### Bug Fixes
 - The types from classes defined in Maplibre are now exposed more reliably (https://github.com/maptiler/maptiler-sdk-js/pull/98)

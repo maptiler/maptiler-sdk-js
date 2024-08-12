@@ -73,7 +73,6 @@ export default class Minimap implements IControl {
   map!: SDKMap;
   #parentMap!: SDKMap;
   #container!: HTMLElement;
-  #canvasContainer!: HTMLElement;
   #parentRect?: GeoJSON.Feature<GeoJSON.Polygon>;
   #differentStyle = false;
   #desync?: () => void;

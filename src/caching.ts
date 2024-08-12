@@ -1,5 +1,12 @@
-import { type GetResourceResponse, type RequestParameters, type ResourceType, addProtocol, config } from ".";
+import type { GetResourceResponse, RequestParameters, ResourceType } from "maplibre-gl";
+
+import { config } from "./config";
+
+import maplibregl from "maplibre-gl";
+
 import { defaults } from "./defaults";
+
+const { addProtocol } = maplibregl;
 
 const LOCAL_CACHE_PROTOCOL_SOURCE = "localcache_source";
 const LOCAL_CACHE_PROTOCOL_DATA = "localcache";
