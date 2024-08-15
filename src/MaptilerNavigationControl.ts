@@ -1,3 +1,4 @@
+import type { NavigationControlOptions } from "maplibre-gl";
 import { NavigationControl } from "./MLAdapters/NavigationControl";
 
 type HTMLButtonElementPlus = HTMLButtonElement & {
@@ -5,31 +6,33 @@ type HTMLButtonElementPlus = HTMLButtonElement & {
 };
 
 export class MaptilerNavigationControl extends NavigationControl {
-  constructor() {
+  constructor(options: NavigationControlOptions = {}) {
     super({
-      showCompass: true,
-      showZoom: true,
-      visualizePitch: true,
+      showCompass: options.showCompass ?? true,
+      showZoom: options.showZoom ?? true,
+      visualizePitch: options.visualizePitch ?? true,
     });
 
     // Removing the default click event
-    this._compass.removeEventListener("click", (this._compass as HTMLButtonElementPlus).clickFunction);
+    if (this._compass) {
+      this._compass.removeEventListener("click", (this._compass as HTMLButtonElementPlus).clickFunction);
 
-    // Adding custom click event
-    this._compass.addEventListener("click", (e) => {
-      {
-        const currentPitch = this._map.getPitch();
-        if (currentPitch === 0) {
-          this._map.easeTo({ pitch: Math.min(this._map.getMaxPitch(), 80) });
-        } else {
-          if (this.options.visualizePitch) {
-            this._map.resetNorthPitch({}, { originalEvent: e });
+      // Adding custom click event
+      this._compass.addEventListener("click", (e) => {
+        {
+          const currentPitch = this._map.getPitch();
+          if (currentPitch === 0) {
+            this._map.easeTo({ pitch: Math.min(this._map.getMaxPitch(), 80) });
           } else {
-            this._map.resetNorth({}, { originalEvent: e });
+            if (this.options.visualizePitch) {
+              this._map.resetNorthPitch({}, { originalEvent: e });
+            } else {
+              this._map.resetNorth({}, { originalEvent: e });
+            }
           }
         }
-      }
-    });
+      });
+    }
   }
 
   /**
