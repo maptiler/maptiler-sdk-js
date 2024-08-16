@@ -2,7 +2,7 @@ import fs from "fs";
 import { promisify } from "util";
 import { test, expect } from "vitest";
 import { gpx, kml } from "../../src/converters";
-import { DOMParser, XMLSerializer } from "xmldom";
+import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
 
 const readDir = promisify(fs.readdir);
 const readFile = promisify(fs.readFile);
