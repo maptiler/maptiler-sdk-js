@@ -1,3 +1,4 @@
+import { takeScreenshot } from "./screenshot";
 import { addPolyline, addPolygon, addPoint, addHeatmap } from "./vectorlayerhelpers";
 
 export type {
@@ -19,4 +20,5 @@ export const helpers = {
   addPolygon,
   addPoint,
   addHeatmap,
+  takeScreenshot,
 };
