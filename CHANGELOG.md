@@ -19,9 +19,11 @@
   - Add option to position markers at subpixel coordinates to prevent markers jumping on `moveend` ([#4458](https://github.com/maplibre/maplibre-gl-js/pull/4458))
   - Emit events when the cooperative gestures option has prevented a gesture. ([#4470](https://github.com/maplibre/maplibre-gl-js/pull/4470))
   - Enable anisotropic filtering only when the pitch is greater than 20 degrees to preserve image sharpness on flat or slightly tilted maps.
+- Screenshot helper to create current map view screenshots, to download or to get a PNG blob of
 ### Others
 - Updating from MapLibre v4.4.1 to v4.5.2
 - Updating `MapTilerGeolocateControl` to match latest Maplibre update
+- Updating `xmldom` and replaced it by `@xmldom/xmldom`
 
 ## 2.2.2
 ### Bug Fixes

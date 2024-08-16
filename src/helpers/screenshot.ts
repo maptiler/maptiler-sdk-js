@@ -5,21 +5,22 @@ import type { Map as MapSDK } from "../Map";
  * Depending on the options, this function can automatically trigger a download of te file.
  */
 export async function takeScreenshot(
-  map: MapSDK, 
-  options: { 
+  map: MapSDK,
+  options: {
     /**
      * If `true`, this function will trigger a download in addition to returning a blob.
      * Default: `false`
      */
-    download?: boolean,
+    download?: boolean;
 
     /**
      * Only if `options.download` is `true`. Indicates the filename under which
      * the file will be downloaded.
      * Default: `"maptiler_screenshot.png"`
      */
-    filename?: string
-  } = {}): Promise<Blob> {
+    filename?: string;
+  } = {},
+): Promise<Blob> {
   return new Promise((resolve, reject) => {
     map.redraw();
 
@@ -49,7 +50,7 @@ export async function takeScreenshot(
             URL.revokeObjectURL(link.href);
           }, 0);
         }
-      }, "image/png"); 
+      }, "image/png");
     });
   });
 }
