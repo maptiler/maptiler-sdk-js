@@ -1,5 +1,14 @@
 # MapTiler SDK Changelog
 
+## NEXT
+### Bug Fixes
+- Updating from MapLibre v4.4.1 to v4.5.2. See Maplibre changelogs for [v4.5.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#450), [v4.5.1](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#451) and [v4.5.2](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#452)
+### New Features
+- Updating from MapLibre v4.4.1 to v4.5.2, adding the following features. See Maplibre changelogs for [v4.5.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#450), [v4.5.1](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#451) and [v4.5.2](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#452)
+### Others
+- Updating from MapLibre v4.4.1 to v4.5.2
+- Updating `MapTilerGeolocateControl` to match latest Maplibre update
+
 ## 2.2.2
 ### Bug Fixes
 - No longer using named imports from Maplibre (https://github.com/maptiler/maptiler-sdk-js/issues/99)

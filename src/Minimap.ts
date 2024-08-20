@@ -194,7 +194,7 @@ export default class Minimap implements IControl {
       this.#container.style.setProperty(key, value);
     }
     this.#options.container = this.#container;
-    this.#options.zoom = parentMap.getZoom() + this.#options.zoomAdjust ?? -4;
+    this.#options.zoom = parentMap.getZoom() + this.#options.zoomAdjust;
     this.map = new SDKMap(this.#options);
 
     // NOTE: For some reason the DOM doesn't properly update it's size in time
@@ -322,7 +322,7 @@ export default class Minimap implements IControl {
       const from = which === "parent" ? this.#parentMap : this.map;
       const to = which === "parent" ? this.map : this.#parentMap;
       const center = from.getCenter();
-      const zoom = from.getZoom() + (this.#options.zoomAdjust ?? -4) * (which === "parent" ? 1 : -1);
+      const zoom = from.getZoom() + this.#options.zoomAdjust * (which === "parent" ? 1 : -1);
       const bearing = from.getBearing();
       const pitch = from.getPitch();
       to.jumpTo({

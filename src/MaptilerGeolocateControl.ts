@@ -74,13 +74,12 @@ export class MaptilerGeolocateControl extends GeolocateControl {
     });
   };
 
-  _setupUI = (supported: boolean) => {
-    this.lastUpdatedCenter = this._map.getCenter();
-
-    this._container.addEventListener("contextmenu", (e: MouseEvent) => e.preventDefault());
-    this._geolocateButton = DOMcreate("button", "maplibregl-ctrl-geolocate", this._container);
-    DOMcreate("span", "maplibregl-ctrl-icon", this._geolocateButton).setAttribute("aria-hidden", "true");
-    this._geolocateButton.type = "button";
+  _finishSetupUI = (supported: boolean) => {
+    // this method is called asynchronously during onAdd
+    if (!this._map) {
+      // control has since been removed
+      return;
+    }
 
     if (supported === false) {
       // warnOnce('Geolocation support is not available so the GeolocateControl will be disabled.');
@@ -90,6 +89,7 @@ export class MaptilerGeolocateControl extends GeolocateControl {
       this._geolocateButton.setAttribute("aria-label", title);
     } else {
       const title = this._map._getUIString("GeolocateControl.FindMyLocation");
+      this._geolocateButton.disabled = false;
       this._geolocateButton.title = title;
       this._geolocateButton.setAttribute("aria-label", title);
     }
