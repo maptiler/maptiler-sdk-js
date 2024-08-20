@@ -1,6 +1,5 @@
 import type { Map as MapSDK } from "../Map";
 
-
 /**
  * Takes a screenshot (PNG file) of the curent map view.
  * Depending on the options, this function can automatically trigger a download of te file.
@@ -25,10 +24,8 @@ export async function takeScreenshot(
      * If `true`, the whole page, as displayed in browser, will be included in the screenshot.
      * This requires user permission with a native prompt to select the browser tab or page.
      * On Chromium-based browsers, the current tab will already be preselected.
-     * 
      * If `false`, only the map context (without DOM elements such as Markers or Popups) will be included.
      * This mode does not need the user to grant permission.
-     * 
      * Default: `false`
      */
     wholePage?: boolean;
@@ -58,13 +55,12 @@ export async function takeScreenshot(
   return blob;
 }
 
-
 function getMapScreenshotBlob(map: MapSDK): Promise<Blob> {
   return new Promise((resolve, reject) => {
     map.redraw();
 
     map.once("idle", () => {
-      map.getCanvas().toBlob( (blob) => {
+      map.getCanvas().toBlob((blob) => {
         if (!blob) {
           return reject(Error("Screenshot could not be created."));
         }
@@ -74,7 +70,6 @@ function getMapScreenshotBlob(map: MapSDK): Promise<Blob> {
     });
   });
 }
-
 
 async function getPageScreenshotBlob(): Promise<Blob> {
   const captureStream = await navigator.mediaDevices.getDisplayMedia({
@@ -112,7 +107,7 @@ async function getPageScreenshotBlob(): Promise<Blob> {
   for (const track of captureStream.getTracks()) {
     track.stop();
   }
-  
+
   return new Promise((resolve, reject) => {
     canvas.toBlob(async (blob) => {
       if (!blob) {
@@ -122,4 +117,4 @@ async function getPageScreenshotBlob(): Promise<Blob> {
       resolve(blob);
     }, "image/png");
   });
-};
+}
