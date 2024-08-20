@@ -35,7 +35,6 @@ export default defineConfig({
         "events", 
         "js-base64", 
         "geojson-validation",
-        "xmldom",
       ],
       output: {
         // Provide global variables to use in the UMD build

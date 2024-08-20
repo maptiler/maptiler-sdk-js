@@ -55,14 +55,14 @@
     "typescript": "^5.1.6",
     "vite": "^5.3.4",
     "vite-plugin-dts": "^4.0.0-beta.0",
-    "vitest": "^0.34.2"
+    "vitest": "^0.34.2",
+    "@xmldom/xmldom": "^0.8.10"
   },
   "dependencies": {
     "@maptiler/client": "^1.8.1",
     "events": "^3.3.0",
     "js-base64": "^3.7.4",
     "maplibre-gl": "^4.5.2",
-    "uuid": "^9.0.0",
-    "xmldom": "^0.6.0"
+    "uuid": "^9.0.0"
   }
 }
