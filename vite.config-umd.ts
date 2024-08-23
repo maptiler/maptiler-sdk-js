@@ -1,10 +1,8 @@
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 
-console.log(">>>>> process.env.NODE_ENV", process.env.NODE_ENV);
-
-
 const isProduction = process.env.NODE_ENV === "production";
+const bundleFilename = isProduction ? "maptiler-sdk.umd.min.js" : "maptiler-sdk.umd.js"
 
 const plugins = [];
 
@@ -21,7 +19,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'maptilersdk',
       // the proper extensions will be added
-      fileName: (format, entryName) => "maptiler-sdk.umd.js",
+      fileName: (format, entryName) => bundleFilename,
       formats: ['umd'],
     }
   },
