@@ -12,6 +12,7 @@ export default defineConfig({
   mode: isProduction ? "production" : "development",
   build: {
     minify: isProduction,
+    emptyOutDir: isProduction,
     outDir: "dist",
     sourcemap: true,
     lib: {

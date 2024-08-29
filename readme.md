@@ -862,6 +862,37 @@ Turning off *zoom compensation* allows for more accurate adjustments to the visu
 
 All the other options are documented on [our reference page](https://docs.maptiler.com/sdk-js/api/helpers/#heatmap) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/?q=heatmap+helper).
 
+# Other helper
+## Take Screenshots, programmatically
+There are two different ways to create screenshot, corresponding to two very different usecases. Note that screenshots will not contain *DOM elements* such as `Marker` and `Popup`, since those are not part of the rendering context.
+
+**1. Get a `blob` of a screenshot, PNG encoded:**
+```ts
+import { Map, helpers } from "@maptiler/sdk";
+
+// ... initialize a Map instance, wait for the "load" or "ready" event ...
+
+// Inside an async function, or with using .then()
+const blob = await helpers.takeScreenshot(map);
+```
+The returned `Blob` of a PNG image file can be very handy if the goal is to programmatically further manipulate the screenshot, such as sending it to some feedback endpoint with a POST request.
+
+**2. Download a PNG file:**
+```ts
+import { Map, helpers } from "@maptiler/sdk";
+
+// ... initialize a Map instance, wait for the "load" or "ready" event ...
+
+// No need to be inside an async function, the download will be triggered when the file is ready
+maptilersdk.helpers.takeScreenshot(map, {
+  download: true, 
+  filename: "map_screenshot.png"
+});
+```
+Getting a file directly is a nice option that can be useful to share some debugging context with colleagues, compare multiple styles, or share your creation on social media.
+
+> 📣 *__Note:__* Keep in mind that MapTiler Cloud data are copyrighted and their usage is restricted. This include MapTiler built-in styles and tilesets, among others. In case of doubt, do not hesitate to read our [terms](https://www.maptiler.com/terms/) or to ask our [support team](https://www.maptiler.com/contacts/).
+
 # Caching
 Starting from v2, MapTiler SDK introduced the **caching** of tiles and fonts served by MapTiler Cloud, which can represent a large chunk of the data being fetched when browsing a map. This caching leverages modern browsers caching API so it's well-managed and there is no risk of bloating! When we update **MapTiler Planet** or our **official styles**, the caching logic will detect it and automatically invalidate older versions of the tiles that were previously cached.
 
