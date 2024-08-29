@@ -864,7 +864,7 @@ All the other options are documented on [our reference page](https://docs.maptil
 
 # Other helper
 ## Take Screenshots, programmatically
-There are two different ways to create sceenshot, corresponding to two very different usecases. Note that screenshots will not contain *DOM elements* such as `Marker` and `Popup`, since those are not part of the rendering context.
+There are two different ways to create screenshot, corresponding to two very different usecases. Note that screenshots will not contain *DOM elements* such as `Marker` and `Popup`, since those are not part of the rendering context.
 
 **1. Get a `blob` of a screenshot, PNG encoded:**
 ```ts
