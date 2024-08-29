@@ -19,21 +19,10 @@ export async function takeScreenshot(
      * Default: `"maptiler_screenshot.png"`
      */
     filename?: string;
-
-    /**
-     * If `true`, the whole page, as displayed in browser, will be included in the screenshot.
-     * This requires user permission with a native prompt to select the browser tab or page.
-     * On Chromium-based browsers, the current tab will already be preselected.
-     * If `false`, only the map context (without DOM elements such as Markers or Popups) will be included.
-     * This mode does not need the user to grant permission.
-     * Default: `false`
-     */
-    wholePage?: boolean;
   } = {},
 ): Promise<Blob> {
   const download = options.download ?? false;
-  const wholePage = options.wholePage ?? false;
-  const blob = wholePage ? await getPageScreenshotBlob() : await getMapScreenshotBlob(map);
+  const blob = await getMapScreenshotBlob(map);
 
   if (download) {
     const filename = options.filename ?? "maptiler_screenshot.png";
@@ -68,53 +57,5 @@ function getMapScreenshotBlob(map: MapSDK): Promise<Blob> {
         resolve(blob);
       }, "image/png");
     });
-  });
-}
-
-async function getPageScreenshotBlob(): Promise<Blob> {
-  const captureStream = await navigator.mediaDevices.getDisplayMedia({
-    video: {
-      displaySurface: "browser",
-    },
-    // @ts-ignore: experimental, works well on Chrome-based browsers
-    preferCurrentTab: true,
-    audio: false,
-  });
-
-  const video = document.createElement("video");
-  video.srcObject = captureStream;
-
-  // Wait for the video to be ready
-  await new Promise<void>((resolve) => {
-    video.onloadedmetadata = () => {
-      video.play();
-      resolve();
-    };
-  });
-
-  const canvas = document.createElement("canvas");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext("2d");
-
-  if (!ctx) {
-    throw new Error();
-  }
-
-  // Draw the current video frame to the canvas
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  for (const track of captureStream.getTracks()) {
-    track.stop();
-  }
-
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(async (blob) => {
-      if (!blob) {
-        return reject(Error("Screenshot could not be created."));
-      }
-
-      resolve(blob);
-    }, "image/png");
   });
 }
