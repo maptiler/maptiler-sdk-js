@@ -1034,6 +1034,8 @@ export class Map extends maplibregl.Map {
         this.terrain.exaggeration = exaggeration;
       }
 
+      // When growing the terrain, this is only necessary before rendering
+      this._elevationFreeze = false;
       this.triggerRepaint();
     };
 
@@ -1162,6 +1164,10 @@ export class Map extends maplibregl.Map {
       // normalized value in interval [0, 1] of where we are currently in the animation loop
       const positionInLoop = (performance.now() - startTime) / animationLoopDuration;
 
+      // At disabling, this should be togled fo both the setTerrain() (at the end of the animation)
+      // and also just before triggerRepain(), this is why we moved it this high
+      this._elevationFreeze = false;
+
       // The animation goes on until we reached 99% of the growing sequence duration
       if (positionInLoop < 0.99) {
         const exaggerationFactor = (1 - positionInLoop) ** 4;
@@ -1172,6 +1178,7 @@ export class Map extends maplibregl.Map {
         this.terrain.exaggeration = 0;
         this.terrainGrowing = false;
         this.terrainFlattening = false;
+
         // @ts-expect-error - https://github.com/maplibre/maplibre-gl-js/issues/2992
         this.setTerrain();
         if (this.getSource(defaults.terrainSourceId)) {
