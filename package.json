@@ -51,20 +51,20 @@
     "@biomejs/biome": "1.8.3",
     "@types/uuid": "^9.0.2",
     "@types/xmldom": "^0.1.31",
+    "@xmldom/xmldom": "^0.8.10",
     "serve": "^14.2.0",
     "terser": "^5.17.1",
     "typedoc": "^0.24.8",
     "typescript": "^5.1.6",
     "vite": "^5.3.4",
     "vite-plugin-dts": "^4.0.0-beta.0",
-    "vitest": "^0.34.2",
-    "@xmldom/xmldom": "^0.8.10"
+    "vitest": "^0.34.2"
   },
   "dependencies": {
     "@maptiler/client": "^1.8.1",
     "events": "^3.3.0",
     "js-base64": "^3.7.4",
-    "maplibre-gl": "^4.5.2",
+    "maplibre-gl": "^4.6.0",
     "uuid": "^9.0.0"
   }
 }
