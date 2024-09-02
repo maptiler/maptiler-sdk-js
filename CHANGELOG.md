@@ -4,7 +4,7 @@
 ### Bug Fixes
 - Updating from MapLibre v4.4.1 to v4.6.0. See Maplibre changelogs for [v4.5.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#450), [v4.5.1](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#451), [v4.5.2](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#452), and [v4.6.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#460)
 ### New Features
-- Updating from MapLibre v4.4.1 to v4.5.2, adding the following features. See Maplibre changelogs for [v4.5.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#450), [v4.5.1](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#451) and [v4.5.2](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#452)
+- Updating from MapLibre v4.4.1 to v4.5.2, adding the following features. See Maplibre changelogs for for [v4.5.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#450), [v4.5.1](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#451), [v4.5.2](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#452), and [v4.6.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#460)
 ### Others
 - Updating from MapLibre v4.4.1 to v4.5.2
 - Updating `MapTilerGeolocateControl` to match latest Maplibre update
