@@ -2,8 +2,6 @@ import { Language as LanguageFromClient, getLanguageInfoFromCode, type LanguageI
 
 // Adding some language entries that are specific to the SDK
 const Language = {
-  ...LanguageFromClient,
-  
   /**
    * Language mode to display labels in both the local language and the language of the visitor's device, concatenated.
    * Note that if those two languages are the same, labels won't be duplicated.
@@ -26,6 +24,7 @@ const Language = {
    */
   STYLE_LOCK: { code: null, flag: "style_lock", name: "Style Lock", latin: false, isMode: true, geocoding: false } as LanguageInfo,
 
+  ...LanguageFromClient,
 } as const;
 
 
