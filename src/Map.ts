@@ -25,11 +25,11 @@ import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
 import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
 import { combineTransformRequest, displayNoWebGlWarning } from "./tools";
-import { getBrowserLanguage, isLanguageSupported, Language, type LanguageString } from "./language";
+import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
 import { styleToStyle } from "./mapstyle";
 import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
-import { geolocation } from "@maptiler/client";
+import { geolocation, getLanguageInfoFromFlag, toLanguageInfo } from "@maptiler/client";
 import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
 import { ScaleControl } from "./MLAdapters/ScaleControl";
 import { FullscreenControl } from "./MLAdapters/FullscreenControl";
@@ -79,7 +79,7 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * or with a built-in shorthand (eg. Language.ENGLISH).
    * Note that this is equivalent to setting the `config.primaryLanguage` and will overwrite it.
    */
-  language?: LanguageString;
+  language?: LanguageInfo;
 
   /**
    * Define the MapTiler Cloud API key to be used. This is strictly equivalent to setting
@@ -179,7 +179,7 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
 export class Map extends maplibregl.Map {
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
-  private primaryLanguage: LanguageString;
+  private primaryLanguage: LanguageInfo;
   private terrainGrowing = false;
   private terrainFlattening = false;
   private minimap?: Minimap;
@@ -788,7 +788,7 @@ export class Map extends maplibregl.Map {
     return super.setGlyphs(glyphsUrl, options);
   }
 
-  private getStyleLanguage(): string | null {
+  private getStyleLanguage(): LanguageInfo | null {
     if (!this.style.stylesheet.metadata) return null;
     if (typeof this.style.stylesheet.metadata !== "object") return null;
 
@@ -796,7 +796,7 @@ export class Map extends maplibregl.Map {
       "maptiler:language" in this.style.stylesheet.metadata &&
       typeof this.style.stylesheet.metadata["maptiler:language"] === "string"
     ) {
-      return this.style.stylesheet.metadata["maptiler:language"];
+      return getLanguageInfoFromFlag(this.style.stylesheet.metadata["maptiler:language"]);
     }
 
     return null;
@@ -805,7 +805,7 @@ export class Map extends maplibregl.Map {
   /**
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
    */
-  setLanguage(language: LanguageString | string): void {
+  setLanguage(language: LanguageInfo | string): void {
     this.minimap?.map?.setLanguage(language);
     this.onStyleReady(() => {
       this.setPrimaryLanguage(language);
@@ -816,13 +816,21 @@ export class Map extends maplibregl.Map {
    * Define the primary language of the map. Note that not all the languages shorthands provided are available.
    */
 
-  private setPrimaryLanguage(language: LanguageString | string) {
+  private setPrimaryLanguage(lang: LanguageInfo | string) {
     const styleLanguage = this.getStyleLanguage();
+
+    // lang could be a string and we want to manipulate a LanguageInfo object instead
+    const language = toLanguageInfo(lang, Language);
+
+    if (!language) {
+      console.warn(`The language "${language}" is not supported.`);
+      return;
+    }
 
     // If the language is set to `STYLE` (which is the SDK default), but the language defined in
     // the style is `auto`, we need to bypass some verification and modify the languages anyway
-    if (!(language === Language.STYLE && (styleLanguage === Language.AUTO || styleLanguage === Language.VISITOR))) {
-      if (language !== Language.STYLE) {
+    if (!(language.flag === Language.STYLE.flag && (styleLanguage && (styleLanguage.flag === Language.AUTO.flag || styleLanguage.flag === Language.VISITOR.flag)))) {
+      if (language.flag !== Language.STYLE.flag) {
         this.languageAlwaysBeenStyle = false;
       }
 
@@ -836,87 +844,78 @@ export class Map extends maplibregl.Map {
       }
     }
 
-    if (!isLanguageSupported(language as string)) {
-      console.warn(`The language "${language}" is not supported.`);
-      return;
-    }
-
-    if (this.primaryLanguage === Language.STYLE_LOCK) {
+    if (this.primaryLanguage.flag === Language.STYLE_LOCK.flag) {
       console.warn(
         "The language cannot be changed because this map has been instantiated with the STYLE_LOCK language flag.",
       );
       return;
     }
 
-    this.primaryLanguage = language as LanguageString;
-    let languageNonStyle: LanguageString = language as LanguageString;
+    this.primaryLanguage = language;
+    let languageNonStyle = language;
 
     // STYLE needs to be translated into one of the other language,
     // this is why it's addressed first
-    if (language === Language.STYLE) {
+    if (language.flag === Language.STYLE.flag) {
       if (!styleLanguage) {
-        console.warn("The style has no default languages.");
+        console.warn("The style has no default languages or has an invalid one.");
         return;
       }
 
-      if (!isLanguageSupported(styleLanguage)) {
-        console.warn("The language defined in the style is not valid.");
-        return;
-      }
-
-      languageNonStyle = styleLanguage as LanguageString;
+      languageNonStyle = styleLanguage;
     }
 
     // may be overwritten below
-    let langStr: string | LanguageString = Language.LOCAL;
+    let langStr = Language.LOCAL.flag;
 
     // will be overwritten below
     let replacer: ExpressionSpecification | string = `{${langStr}}`;
 
-    if (languageNonStyle === Language.VISITOR) {
-      langStr = getBrowserLanguage();
+    if (languageNonStyle.flag === Language.VISITOR.flag) {
+      langStr = getBrowserLanguage().flag;
       replacer = [
         "case",
-        ["all", ["has", langStr], ["has", Language.LOCAL]],
+        ["all", ["has", langStr], ["has", Language.LOCAL.flag]],
         [
           "case",
-          ["==", ["get", langStr], ["get", Language.LOCAL]],
-          ["get", Language.LOCAL],
+          ["==", ["get", langStr], ["get", Language.LOCAL.flag]],
+          ["get", Language.LOCAL.flag],
 
-          ["format", ["get", langStr], { "font-scale": 0.8 }, "\n", ["get", Language.LOCAL], { "font-scale": 1.1 }],
+          ["format", ["get", langStr], { "font-scale": 0.8 }, "\n", ["get", Language.LOCAL.flag], { "font-scale": 1.1 }],
         ],
-
-        ["get", Language.LOCAL],
+        ["get", Language.LOCAL.flag],
       ];
-    } else if (languageNonStyle === Language.VISITOR_ENGLISH) {
-      langStr = Language.ENGLISH;
+
+    } else if (languageNonStyle.flag === Language.VISITOR_ENGLISH.flag) {
+      langStr = Language.ENGLISH.flag;
       replacer = [
         "case",
-        ["all", ["has", langStr], ["has", Language.LOCAL]],
+        ["all", ["has", langStr], ["has", Language.LOCAL.flag]],
         [
           "case",
-          ["==", ["get", langStr], ["get", Language.LOCAL]],
-          ["get", Language.LOCAL],
+          ["==", ["get", langStr], ["get", Language.LOCAL.flag]],
+          ["get", Language.LOCAL.flag],
 
-          ["format", ["get", langStr], { "font-scale": 0.8 }, "\n", ["get", Language.LOCAL], { "font-scale": 1.1 }],
+          ["format", ["get", langStr], { "font-scale": 0.8 }, "\n", ["get", Language.LOCAL.flag], { "font-scale": 1.1 }],
         ],
-        ["get", Language.LOCAL],
+        ["get", Language.LOCAL.flag],
       ];
-    } else if (languageNonStyle === Language.AUTO) {
-      langStr = getBrowserLanguage();
-      replacer = ["case", ["has", langStr], ["get", langStr], ["get", Language.LOCAL]];
+
+    } else if (languageNonStyle.flag === Language.AUTO.flag) {
+      langStr = getBrowserLanguage().flag;
+      replacer = ["case", ["has", langStr], ["get", langStr], ["get", Language.LOCAL.flag]];
     }
 
     // This is for using the regular names as {name}
     else if (languageNonStyle === Language.LOCAL) {
-      langStr = Language.LOCAL;
+      langStr = Language.LOCAL.flag;
       replacer = `{${langStr}}`;
     }
 
     // This section is for the regular language ISO codes
     else {
-      langStr = languageNonStyle;
-      replacer = ["case", ["has", langStr], ["get", langStr], ["get", Language.LOCAL]];
+      langStr = languageNonStyle.flag;
+      replacer = ["case", ["has", langStr], ["get", langStr], ["get", Language.LOCAL.flag]];
     }
 
     const { layers } = this.getStyle();
@@ -975,7 +974,7 @@ export class Map extends maplibregl.Map {
    * Get the primary language
    * @returns
    */
-  getPrimaryLanguage(): LanguageString {
+  getPrimaryLanguage(): LanguageInfo {
     return this.primaryLanguage;
   }
 

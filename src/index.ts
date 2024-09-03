@@ -220,9 +220,7 @@ export {
   type GeolocationInfoOptions,
   type GeolocationResult,
   type GetDataOptions,
-  LanguageGeocoding,
   type LanguageGeocodingOptions,
-  type LanguageGeocodingString,
   MapStyle,
   type MapStylePreset,
   type MapStyleType,
@@ -243,7 +241,6 @@ export {
   expandMapStyle,
   geocoding,
   geolocation,
-  getAutoLanguageGeocoding,
   getBufferToPixelDataParser,
   getTileCache,
   mapStylePresetList,
@@ -251,6 +248,14 @@ export {
   misc,
   staticMaps,
   styleToStyle,
+  type LanguageInfo,
+  areSameLanguages,
+  toLanguageInfo,
+  isLanguageInfo,
+  getAutoLanguage,
+  getLanguageInfoFromFlag,
+  getLanguageInfoFromCode,
+  getLanguageInfoFromKey,
 } from "@maptiler/client";
 
 export { config, SdkConfig } from "./config";

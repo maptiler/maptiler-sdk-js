@@ -1,5 +1,5 @@
 import EventEmitter from "events";
-import type { LanguageString } from "./language";
+import type { LanguageInfo } from "./language";
 import { config as clientConfig, type FetchFunction } from "@maptiler/client";
 import { v4 as uuidv4 } from "uuid";
 import type { Unit } from "./unit";
@@ -14,13 +14,13 @@ class SdkConfig extends EventEmitter {
   /**
    * The primary language. By default, the language of the web browser is used.
    */
-  primaryLanguage: LanguageString = defaults.primaryLanguage;
+  primaryLanguage: LanguageInfo = defaults.primaryLanguage;
 
   /**
    * The secondary language, to overwrite the default language defined in the map style.
    * This settings is highly dependant on the style compatibility and may not work in most cases.
    */
-  secondaryLanguage?: LanguageString;
+  secondaryLanguage?: LanguageInfo;
 
   /**
    * Setting on whether of not the SDK runs with a session logic.
