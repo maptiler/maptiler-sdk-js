@@ -1352,7 +1352,8 @@ export function addHeatmap(
           ? opacity
           : (rampedOptionsToLayerPaintSpec(opacity) as PropertyValueSpecification<number>),
     },
-  });
+  },
+  options.beforeId);
 
   return returnedInfo;
 }
