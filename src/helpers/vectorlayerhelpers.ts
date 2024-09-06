@@ -1329,30 +1329,33 @@ export function addHeatmap(
     });
   }
 
-  map.addLayer({
-    id: layerId,
-    type: "heatmap",
-    source: sourceId,
-    minzoom,
-    maxzoom,
-    paint: {
-      "heatmap-weight": heatmapWeight,
+  map.addLayer(
+    {
+      id: layerId,
+      type: "heatmap",
+      source: sourceId,
+      minzoom,
+      maxzoom,
+      paint: {
+        "heatmap-weight": heatmapWeight,
 
-      "heatmap-intensity":
-        typeof intensity === "number"
-          ? intensity
-          : (rampedOptionsToLayerPaintSpec(intensity) as PropertyValueSpecification<number>),
+        "heatmap-intensity":
+          typeof intensity === "number"
+            ? intensity
+            : (rampedOptionsToLayerPaintSpec(intensity) as PropertyValueSpecification<number>),
 
-      "heatmap-color": heatmapIntensityFromColorRamp(colorRamp),
+        "heatmap-color": heatmapIntensityFromColorRamp(colorRamp),
 
-      "heatmap-radius": radiusHeatmap,
+        "heatmap-radius": radiusHeatmap,
 
-      "heatmap-opacity":
-        typeof opacity === "number"
-          ? opacity
-          : (rampedOptionsToLayerPaintSpec(opacity) as PropertyValueSpecification<number>),
+        "heatmap-opacity":
+          typeof opacity === "number"
+            ? opacity
+            : (rampedOptionsToLayerPaintSpec(opacity) as PropertyValueSpecification<number>),
+      },
     },
-  });
+    options.beforeId,
+  );
 
   return returnedInfo;
 }
