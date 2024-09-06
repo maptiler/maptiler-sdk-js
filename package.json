@@ -61,7 +61,7 @@
     "vitest": "^0.34.2"
   },
   "dependencies": {
-    "@maptiler/client": "file:../maptiler-client-js/maptiler-client-1.8.1.tgz",
+    "@maptiler/client": "file:../maptiler-client-js/maptiler-client-2.0.0.tgz",
     "events": "^3.3.0",
     "js-base64": "^3.7.4",
     "maplibre-gl": "^4.6.0",
