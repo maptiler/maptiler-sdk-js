@@ -10,6 +10,7 @@
 ### Others
 - Updating from MapLibre v4.4.1 to v4.5.2
 - Updating `MapTilerGeolocateControl` to match latest Maplibre update (https://github.com/maptiler/maptiler-sdk-js/pull/104)
+- Now sourcing language list from `@maptiler/client` (https://github.com/maptiler/maptiler-client-js/pull/42)
 
 ## 2.2.2
 ### Bug Fixes
