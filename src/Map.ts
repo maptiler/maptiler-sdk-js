@@ -829,7 +829,13 @@ export class Map extends maplibregl.Map {
 
     // If the language is set to `STYLE` (which is the SDK default), but the language defined in
     // the style is `auto`, we need to bypass some verification and modify the languages anyway
-    if (!(language.flag === Language.STYLE.flag && (styleLanguage && (styleLanguage.flag === Language.AUTO.flag || styleLanguage.flag === Language.VISITOR.flag)))) {
+    if (
+      !(
+        language.flag === Language.STYLE.flag &&
+        styleLanguage &&
+        (styleLanguage.flag === Language.AUTO.flag || styleLanguage.flag === Language.VISITOR.flag)
+      )
+    ) {
       if (language.flag !== Language.STYLE.flag) {
         this.languageAlwaysBeenStyle = false;
       }
@@ -881,11 +887,17 @@ export class Map extends maplibregl.Map {
           ["==", ["get", langStr], ["get", Language.LOCAL.flag]],
           ["get", Language.LOCAL.flag],
 
-          ["format", ["get", langStr], { "font-scale": 0.8 }, "\n", ["get", Language.LOCAL.flag], { "font-scale": 1.1 }],
+          [
+            "format",
+            ["get", langStr],
+            { "font-scale": 0.8 },
+            "\n",
+            ["get", Language.LOCAL.flag],
+            { "font-scale": 1.1 },
+          ],
         ],
         ["get", Language.LOCAL.flag],
       ];
-
     } else if (languageNonStyle.flag === Language.VISITOR_ENGLISH.flag) {
       langStr = Language.ENGLISH.flag;
       replacer = [
@@ -896,11 +908,17 @@ export class Map extends maplibregl.Map {
           ["==", ["get", langStr], ["get", Language.LOCAL.flag]],
           ["get", Language.LOCAL.flag],
 
-          ["format", ["get", langStr], { "font-scale": 0.8 }, "\n", ["get", Language.LOCAL.flag], { "font-scale": 1.1 }],
+          [
+            "format",
+            ["get", langStr],
+            { "font-scale": 0.8 },
+            "\n",
+            ["get", Language.LOCAL.flag],
+            { "font-scale": 1.1 },
+          ],
         ],
         ["get", Language.LOCAL.flag],
       ];
-
     } else if (languageNonStyle.flag === Language.AUTO.flag) {
       langStr = getBrowserLanguage().flag;
       replacer = ["case", ["has", langStr], ["get", langStr], ["get", Language.LOCAL.flag]];
