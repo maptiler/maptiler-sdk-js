@@ -1,14 +1,14 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## 2.3.0
 ### Bug Fixes
-- Updating from MapLibre v4.4.1 to v4.6.0. See Maplibre changelogs for [v4.5.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#450), [v4.5.1](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#451), [v4.5.2](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#452), and [v4.6.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#460)
+- Updating from MapLibre v4.4.1 to v4.7.0. See Maplibre changelogs for [v4.5.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#450), [v4.5.1](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#451), [v4.5.2](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#452), and [v4.6.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#460)
 - Fixed the elevation shift glitch happening with terrain animation after calling `.easeTo()` (https://github.com/maptiler/maptiler-sdk-js/pull/110)
 - The heatmap layer helper missed the `beforeId` option
 ### New Features
-- Updating from MapLibre v4.4.1 to v4.5.2, adding the following features. See Maplibre changelogs for for [v4.5.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#450), [v4.5.1](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#451), [v4.5.2](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#452), and [v4.6.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#460)
+- Updating from MapLibre v4.4.1 to v4.7.0, adding the following features. See Maplibre changelogs for for [v4.5.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#450), [v4.5.1](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#451), [v4.5.2](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#452), [v4.6.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#460) and [v4.7.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#470)
 ### Others
-- Updating from MapLibre v4.4.1 to v4.5.2
+- Updating from MapLibre v4.4.1 to v4.7.0
 - Updating `MapTilerGeolocateControl` to match latest Maplibre update (https://github.com/maptiler/maptiler-sdk-js/pull/104)
 - Now sourcing language list from `@maptiler/client` (https://github.com/maptiler/maptiler-client-js/pull/42)
 
