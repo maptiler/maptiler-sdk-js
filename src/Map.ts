@@ -558,7 +558,6 @@ export class Map extends maplibregl.Map {
     }
   }
 
-
   /**
    * Set the duration (millisec) of the terrain animation for growing or flattening.
    * Must be positive. (Built-in default: `1000` milliseconds)
@@ -566,7 +565,6 @@ export class Map extends maplibregl.Map {
   setTerrainAnimationDuration(d: number) {
     this.terrainAnimationDuration = Math.max(d, 0);
   }
-
 
   /**
    * Awaits for _this_ Map instance to be "loaded" and returns a Promise to the Map.
@@ -1221,7 +1219,7 @@ export class Map extends maplibregl.Map {
     };
 
     if (!this.terrainGrowing && !this.terrainFlattening) {
-      this.fire("terrainAnimationStart", {terrain: this.terrain});
+      this.fire("terrainAnimationStart", { terrain: this.terrain });
     }
 
     this.terrainGrowing = false;
