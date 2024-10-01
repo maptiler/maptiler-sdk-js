@@ -1,5 +1,10 @@
 # MapTiler SDK Changelog
 
+## NEXT
+### New Features
+- The `Map` class instances now have a `.setTerrainAnimationDuration(d: number)` method
+- The `Map` class instances now have events related to terrain animation `"terrainAnimationStart"` and `"terrainAnimationStop"`
+
 ## 2.3.0
 ### Bug Fixes
 - Updating from MapLibre v4.4.1 to v4.7.0. See Maplibre changelogs for [v4.5.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#450), [v4.5.1](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#451), [v4.5.2](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#452), and [v4.6.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#460)
