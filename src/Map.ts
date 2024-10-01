@@ -186,6 +186,7 @@ export class Map extends maplibregl.Map {
   private forceLanguageUpdate: boolean;
   private languageAlwaysBeenStyle: boolean;
   private isReady = false;
+  private terrainAnimationDuration = 1000;
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -556,6 +557,16 @@ export class Map extends maplibregl.Map {
       this.enableTerrain(options.terrainExaggeration ?? this.terrainExaggeration);
     }
   }
+
+
+  /**
+   * Set the duration (millisec) of the terrain animation for growing or flattening.
+   * Must be positive. (Built-in default: `1000` milliseconds)
+   */
+  setTerrainAnimationDuration(d: number) {
+    this.terrainAnimationDuration = Math.max(d, 0);
+  }
+
 
   /**
    * Awaits for _this_ Map instance to be "loaded" and returns a Promise to the Map.
@@ -1012,7 +1023,7 @@ export class Map extends maplibregl.Map {
     return this.isTerrainEnabled;
   }
 
-  private growTerrain(exaggeration: number, durationMs = 1000) {
+  private growTerrain(exaggeration: number) {
     // This method assumes the terrain is already built
     if (!this.terrain) {
       return;
@@ -1037,7 +1048,7 @@ export class Map extends maplibregl.Map {
       }
 
       // normalized value in interval [0, 1] of where we are currently in the animation loop
-      const positionInLoop = (performance.now() - startTime) / durationMs;
+      const positionInLoop = (performance.now() - startTime) / this.terrainAnimationDuration;
 
       // The animation goes on until we reached 99% of the growing sequence duration
       if (positionInLoop < 0.99) {
@@ -1049,12 +1060,17 @@ export class Map extends maplibregl.Map {
         this.terrainGrowing = false;
         this.terrainFlattening = false;
         this.terrain.exaggeration = exaggeration;
+        this.fire("terrainAnimationStop", { terrain: this.terrain });
       }
 
       // When growing the terrain, this is only necessary before rendering
       this._elevationFreeze = false;
       this.triggerRepaint();
     };
+
+    if (!this.terrainGrowing && !this.terrainFlattening) {
+      this.fire("terrainAnimationStart", { terrain: this.terrain });
+    }
 
     this.terrainGrowing = true;
     this.terrainFlattening = false;
@@ -1157,10 +1173,7 @@ export class Map extends maplibregl.Map {
     }
 
     this.isTerrainEnabled = false;
-    // this.stopFlattening = false;
 
-    // Duration of the animation in millisec
-    const animationLoopDuration = 1 * 1000;
     const startTime = performance.now();
     // This is supposedly 0, but it could be something else (e.g. already in the middle of growing, or user defined other)
     const currentExaggeration = this.terrain.exaggeration;
@@ -1172,14 +1185,14 @@ export class Map extends maplibregl.Map {
         return;
       }
 
-      // If the growing animation is triggered while flattening,
-      // then we exist the flatening
+      // If the growing animation is triggered while flattening is in progress.
+      // We exit the flatening
       if (this.terrainGrowing) {
         return;
       }
 
       // normalized value in interval [0, 1] of where we are currently in the animation loop
-      const positionInLoop = (performance.now() - startTime) / animationLoopDuration;
+      const positionInLoop = (performance.now() - startTime) / this.terrainAnimationDuration;
 
       // At disabling, this should be togled fo both the setTerrain() (at the end of the animation)
       // and also just before triggerRepain(), this is why we moved it this high
@@ -1201,10 +1214,15 @@ export class Map extends maplibregl.Map {
         if (this.getSource(defaults.terrainSourceId)) {
           this.removeSource(defaults.terrainSourceId);
         }
+        this.fire("terrainAnimationStop", { terrain: null });
       }
 
       this.triggerRepaint();
     };
+
+    if (!this.terrainGrowing && !this.terrainFlattening) {
+      this.fire("terrainAnimationStart", {terrain: this.terrain});
+    }
 
     this.terrainGrowing = false;
     this.terrainFlattening = true;
