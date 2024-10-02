@@ -24,7 +24,7 @@ import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
 import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
-import { combineTransformRequest, displayNoWebGlWarning } from "./tools";
+import { combineTransformRequest, displayNoWebGlWarning, displayWebGLContextLostWarning } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
 import { styleToStyle } from "./mapstyle";
 import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
@@ -555,6 +555,14 @@ export class Map extends maplibregl.Map {
     if (options.terrain) {
       this.enableTerrain(options.terrainExaggeration ?? this.terrainExaggeration);
     }
+
+    // Display a message if WebGL context is lost
+    this.once("load", () => {
+      this.getCanvas().addEventListener("webglcontextlost", (e) => {
+        console.warn(e);
+        displayWebGLContextLostWarning(options.container);
+      });
+    });
   }
 
   /**
