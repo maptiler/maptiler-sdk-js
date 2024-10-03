@@ -29,7 +29,7 @@ import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
 import { styleToStyle } from "./mapstyle";
 import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
 import { MaptilerNavigationControl } from "./MaptilerNavigationControl";
-import { geolocation, getLanguageInfoFromFlag, toLanguageInfo } from "@maptiler/client";
+import { MapStyle, geolocation, getLanguageInfoFromFlag, toLanguageInfo } from "@maptiler/client";
 import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
 import { ScaleControl } from "./MLAdapters/ScaleControl";
 import { FullscreenControl } from "./MLAdapters/FullscreenControl";
@@ -632,8 +632,17 @@ export class Map extends maplibregl.Map {
       this.forceLanguageUpdate = false;
     });
 
-    const compatibleStyle = styleToStyle(style);
-    // TODO: async check remote style
+    const compatibleStyle = styleToStyle(
+      style,
+      // onStyleUrlNotFound callback
+      // This callback is async (performs a header fetch)
+      // and will most likely run after the `super.setStyle()` below
+      (styleURL: string) => {
+        console.warn(`The style URL ${styleURL} does not yield a valid style. Loading the default style instead.`);
+        this.setStyle(MapStyle.STREETS);
+      },
+    );
+
     super.setStyle(compatibleStyle, options);
     return this;
   }
