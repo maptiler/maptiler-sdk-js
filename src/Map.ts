@@ -561,6 +561,7 @@ export class Map extends maplibregl.Map {
       this.getCanvas().addEventListener("webglcontextlost", (e) => {
         console.warn(e);
         displayWebGLContextLostWarning(options.container);
+        this.fire("webglContextLost", { error: e });
       });
     });
   }

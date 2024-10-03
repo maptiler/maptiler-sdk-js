@@ -204,7 +204,7 @@ export function displayNoWebGlWarning(container: HTMLElement | string) {
  * Display an error message in the Map div if WebGL2 is not supported
  */
 export function displayWebGLContextLostWarning(container: HTMLElement | string) {
-  const webglError = "The WebGL context was lost, please refresh the page to continue.";
+  const webglError = "The WebGL context was lost.";
 
   let actualContainer: HTMLElement | null = null;
 
@@ -222,5 +222,5 @@ export function displayWebGLContextLostWarning(container: HTMLElement | string) 
   errorMessageDiv.innerHTML = webglError;
   errorMessageDiv.classList.add("webgl-warning-div");
   actualContainer.appendChild(errorMessageDiv);
-  throw new Error(webglError);
+  // throw new Error(webglError);
 }

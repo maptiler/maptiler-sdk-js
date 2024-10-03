@@ -3,6 +3,7 @@
 ## NEXT
 ### New Features
 - Shows a warning message in the map container if WebGL context is lost
+- The event `"webglContextLost"` is now exposed
 
 ## 2.3.0
 ### Bug Fixes
