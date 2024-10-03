@@ -568,9 +568,9 @@ We believe that the *promise* approach is better because it does not nest scopes
 ### The `webglContextLost` event
 The maps is rendered with WebGL, that leverages the GPU to provide high-performance graphics. In some cases, the host machine, operating system or the graphics driver, can decide that continuing to run such high performance graphics is unsustainable, and will abort the process. This is called a "WebGL context loss". Such situation happens when the ressources are running low or when multiple browser tabs are competing to access graphics memory.  
 
-The best course of action in such situation varies from an app to another. Sometimes a page refresh is the best thing to do, in other cases, instantiating a new Map dynmicaly at application level is more appropriate because it hides a technical failure to the end user. The event `webglContextLost` is exposed so most appropriate scenario can be implemented at application level.   
+The best course of action in such situation varies from an app to another. Sometimes a page refresh is the best thing to do, in other cases, instantiating a new Map dynmicaly at application level is more appropriate because it hides a technical failure to the end user. The event `webglContextLost` is exposed so that the most appropriate scenario can be implemented at application level.   
 
-Here is how to respond to a WebGL loss with a simple page refresh:
+Here is how to respond to a WebGL context loss with a simple page refresh:
 ```ts
 
 // Init the map
