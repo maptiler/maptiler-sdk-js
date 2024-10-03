@@ -632,7 +632,10 @@ export class Map extends maplibregl.Map {
       this.forceLanguageUpdate = false;
     });
 
-    return super.setStyle(styleToStyle(style), options);
+    const compatibleStyle = styleToStyle(style);
+    // TODO: async check remote style
+    super.setStyle(compatibleStyle, options);
+    return this;
   }
 
   /**

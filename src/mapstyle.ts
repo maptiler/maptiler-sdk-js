@@ -30,3 +30,8 @@ export function styleToStyle(
 
   return style as maplibregl.StyleSpecification;
 }
+
+
+// export async function validateRemoteStyle(styleURL: string, apiKey: string): boolean {
+
+// }
