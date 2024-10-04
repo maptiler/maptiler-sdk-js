@@ -1,4 +1,4 @@
-import maplibregl from "maplibre-gl";
+import maplibregl, { AJAXError } from "maplibre-gl";
 import { Base64 } from "js-base64";
 import type {
   StyleSpecification,
@@ -37,6 +37,7 @@ import { FullscreenControl } from "./MLAdapters/FullscreenControl";
 import Minimap from "./Minimap";
 import type { MinimapOptionsInput } from "./Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
+import { getRequestlogger } from "./RequestLogger";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -221,6 +222,33 @@ export class Map extends maplibregl.Map {
       maplibreLogo: false,
       transformRequest: combineTransformRequest(options.transformRequest),
       attributionControl: options.forceNoAttributionControl === true ? false : attributionControlOptions,
+    });
+
+    // Safeguard for distant styles at non-http 2xx status URLs
+    this.on("error", (event) => {
+      if (event.error instanceof AJAXError) {
+        const err = event.error as AJAXError;
+        const url = err.url;
+
+        // Looking into the request logger if a record with such url exists
+        // in order to get its resourceType
+        const requestLogger = getRequestlogger();
+        const requestRecord = requestLogger.get(url);
+
+        // If the AJAXError is for a "Style" we fall back to the default style, and add a console warning.
+        if (requestRecord && requestRecord.resourceType === "Style") {
+          let warning = `The style at URL ${url} could not be loaded. `;
+          // Loading a new style failed. If a style is not already in place,
+          // the default one is loaded instead + warning in console
+          if (!this.getStyle()) {
+            this.setStyle(MapStyle.STREETS);
+            warning += `Loading default style "${MapStyle.STREETS.getDefaultVariant().getId()}" as a fallback.`;
+          } else {
+            warning += "Leaving the style as is.";
+          }
+          console.warn(warning);
+        }
+      }
     });
 
     if (config.caching && !CACHE_API_AVAILABLE) {
@@ -637,10 +665,10 @@ export class Map extends maplibregl.Map {
       // onStyleUrlNotFound callback
       // This callback is async (performs a header fetch)
       // and will most likely run after the `super.setStyle()` below
-      (styleURL: string) => {
-        console.warn(`The style URL ${styleURL} does not yield a valid style. Loading the default style instead.`);
-        this.setStyle(MapStyle.STREETS);
-      },
+      // (styleURL: string) => {
+      //   console.warn(`The style URL ${styleURL} does not yield a valid style. Loading the default style instead.`);
+      //   this.setStyle(MapStyle.STREETS);
+      // },
     );
 
     super.setStyle(compatibleStyle, options);
