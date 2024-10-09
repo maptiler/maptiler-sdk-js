@@ -76,6 +76,37 @@ For example, with a [NextJS](https://nextjs.org/) app, this can take place at th
 import "@maptiler/sdk/dist/maptiler-sdk.css";
 ```
 
+### TypeScript
+The SDK is fully typed, but it may happen that types defined in Maplibre GL JS are not visible in your project. This is a known issue that comes from Maplibre being a CommonJS bundle.
+
+There are mainly two ways to addess this issue and access to the complete type definition.
+
+1. **With `esModuleInterop`**  
+
+Set the following in your `tsconfig.json`:
+```js
+{
+  "compilerOptions": {
+    // ...
+    "esModuleInterop": true,
+  }
+}
+``` 
+
+2. **With `moduleResolution`**  
+
+Set the following in your `tsconfig.json`:
+```js
+{
+  "compilerOptions": {
+    // ...
+    "moduleResolution": "Bundler",
+  }
+}
+``` 
+Note that this second option is not always possible as some frameworks and other dependencies won't let you use the "Bundler" mode.
+
+
 
 ## With CDN
 The SDK hosted on our CDN is bundled as *[Universal Module Definition](https://github.com/umdjs/umd)* (UMD) to make it standalone and contain all its dependencies. The CDN also serves the style sheet (CSS).
