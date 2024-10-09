@@ -37,7 +37,6 @@ import { FullscreenControl } from "./MLAdapters/FullscreenControl";
 import Minimap from "./Minimap";
 import type { MinimapOptionsInput } from "./Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
-import { getRequestlogger } from "./RequestLogger";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -187,6 +186,7 @@ export class Map extends maplibregl.Map {
   private forceLanguageUpdate: boolean;
   private languageAlwaysBeenStyle: boolean;
   private isReady = false;
+  private monitoredStyleUrls!: Set<string>;
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -195,7 +195,7 @@ export class Map extends maplibregl.Map {
       config.apiKey = options.apiKey;
     }
 
-    const style = styleToStyle(options.style);
+    const { style, requiresUrlMonitoring } = styleToStyle(options.style);
     const hashPreConstructor = location.hash;
 
     if (!config.apiKey) {
@@ -224,29 +224,37 @@ export class Map extends maplibregl.Map {
       attributionControl: options.forceNoAttributionControl === true ? false : attributionControlOptions,
     });
 
+    if (requiresUrlMonitoring) {
+      this.monitorStyleUrl(style as string);
+    }
+
+    const applyFallbackStyle = (brokenStyleURL: string) => {
+      let warning = `The style at URL ${brokenStyleURL} could not be loaded. `;
+      // Loading a new style failed. If a style is not already in place,
+      // the default one is loaded instead + warning in console
+      if (!this.getStyle()) {
+        this.setStyle(MapStyle.STREETS);
+        warning += `Loading default MapTiler Cloud style "${MapStyle.STREETS.getDefaultVariant().getId()}" as a fallback.`;
+      } else {
+        warning += "Leaving the style as is.";
+      }
+      console.warn(warning);
+    };
+
     // Safeguard for distant styles at non-http 2xx status URLs
     this.on("error", (event) => {
       if (event.error instanceof AJAXError) {
         const err = event.error as AJAXError;
         const url = err.url;
+        const cleanUrl = new URL(url);
+        cleanUrl.search = "";
+        const clearnUrlStr = cleanUrl.href;
 
-        // Looking into the request logger if a record with such url exists
-        // in order to get its resourceType
-        const requestLogger = getRequestlogger();
-        const requestRecord = requestLogger.get(url);
-
-        // If the AJAXError is for a "Style" we fall back to the default style, and add a console warning.
-        if (requestRecord && requestRecord.resourceType === "Style") {
-          let warning = `The style at URL ${url} could not be loaded. `;
-          // Loading a new style failed. If a style is not already in place,
-          // the default one is loaded instead + warning in console
-          if (!this.getStyle()) {
-            this.setStyle(MapStyle.STREETS);
-            warning += `Loading default style "${MapStyle.STREETS.getDefaultVariant().getId()}" as a fallback.`;
-          } else {
-            warning += "Leaving the style as is.";
-          }
-          console.warn(warning);
+        // If the URL is present in the list of monitored style URL,
+        // that means this AJAXError was about a style, and we want to fallback to
+        // the default style
+        if (this.monitoredStyleUrls.has(clearnUrlStr)) {
+          return applyFallbackStyle(url);
         }
       }
     });
@@ -642,6 +650,20 @@ export class Map extends maplibregl.Map {
     });
   }
 
+  private monitorStyleUrl(url: string) {
+    // In case this was called before the super constructor could be called.
+    if (typeof this.monitoredStyleUrls === "undefined") {
+      this.monitoredStyleUrls = new Set<string>();
+    }
+
+    // Note: Because of the usage of urlToAbsoluteUrl() the URL of a style is always supposed to be absolute
+
+    // Removing all the URL params to make it easier to later identify in the set
+    const cleanUrl = new URL(url);
+    cleanUrl.search = "";
+    this.monitoredStyleUrls.add(cleanUrl.href);
+  }
+
   /**
    * Update the style of the map.
    * Can be:
@@ -660,18 +682,13 @@ export class Map extends maplibregl.Map {
       this.forceLanguageUpdate = false;
     });
 
-    const compatibleStyle = styleToStyle(
-      style,
-      // onStyleUrlNotFound callback
-      // This callback is async (performs a header fetch)
-      // and will most likely run after the `super.setStyle()` below
-      // (styleURL: string) => {
-      //   console.warn(`The style URL ${styleURL} does not yield a valid style. Loading the default style instead.`);
-      //   this.setStyle(MapStyle.STREETS);
-      // },
-    );
+    const styleInfo = styleToStyle(style);
 
-    super.setStyle(compatibleStyle, options);
+    if (styleInfo.requiresUrlMonitoring) {
+      this.monitorStyleUrl(styleInfo.style as string);
+    }
+
+    super.setStyle(styleInfo.style, options);
     return this;
   }
 

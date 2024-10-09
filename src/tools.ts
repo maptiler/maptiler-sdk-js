@@ -4,7 +4,6 @@ import { defaults } from "./defaults";
 import { config } from "./config";
 import { MAPTILER_SESSION_ID } from "./config";
 import { localCacheTransformRequest } from "./caching";
-import { getRequestlogger } from "./RequestLogger";
 
 export function enableRTL() {
   // Prevent this from running server side
@@ -81,9 +80,6 @@ export function maptilerCloudTransformRequest(url: string, resourceType?: Resour
   }
 
   const localCacheTransformedReq = localCacheTransformRequest(reqUrl, resourceType);
-
-  const requestLogger = getRequestlogger();
-  requestLogger.add(localCacheTransformedReq, resourceType);
 
   return {
     url: localCacheTransformedReq,
