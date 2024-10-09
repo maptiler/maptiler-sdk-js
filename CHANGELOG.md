@@ -2,11 +2,11 @@
 
 ## NEXT
 ### New Features
-
+- Shows a warning message in the map container if WebGL context is lost
+- The event `"webglContextLost"` is now exposed
 - The `Map` class instances now have a `.setTerrainAnimationDuration(d: number)` method
 - The `Map` class instances now have events related to terrain animation `"terrainAnimationStart"` and `"terrainAnimationStop"`
 - expose the function `getWebGLSupportError()` to detect WebGL compatibility
-
 
 ## 2.3.0
 ### Bug Fixes
