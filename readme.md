@@ -340,6 +340,55 @@ map.disableTerrain()
 
 > 📣 *__Note 2:__* please be aware that due to the volume and elevation of the map floor in 3D space, the navigation with the terrain enabled is slightly different than without.
 
+By default, enabling, disabling or even just updating the terrain exaggeration will result in a 1-second animation. This is possible to modify with the following `Map` method:
+
+```ts
+// Duration in milliseconds
+map.setTerrainAnimationDuration(500);
+```
+
+## Terrain events
+- `"terrain"` event  
+
+As an extension of Maplibre GL JS, MapTiler SDK is also exposing the terrain event `"terrain"`. This event is triggered when a terrain source is added or removed:
+
+```ts
+map.on("terrain", (e) => {
+  // your logic here
+})
+```
+
+Since MapTiler SDK adds animation and the terrain data is necessary all along, the `"terrain"` event will be called at the very begining of the terrain animation when enabling and at the very end when disabling.
+
+- `"terrainAnimationStart"` and `"terrainAnimationStop"` events  
+
+With the animation of the terrain, it can sometimes be convenient to know when the animation starts and ends. These two events are made just for that, here are how they work:
+
+```ts
+map.on("terrainAnimationStart", (event) => {
+  console.log("Terrain animation is starting...");
+});
+
+map.on("terrainAnimationStop", (event) => {
+  console.log("Terrain animation is finished");
+});
+```
+
+The `event` argument is an object that contains (amond other things) a `terrain` attribute. In the case of `"terrainAnimationStop"`, this terrain attribute is `null` if the animation was about disabling the terrain, otherwise, this is just a propagation of `map.terrain`.
+
+In the following example, we decide to associate the terrain animation with a change of camera, e.g. from clicking on the terrain control:
+- when the terrain is enabled, it pops up with an animation and only **then** the camera is animated to take a lower point of view
+- when the terrain is disabled, it is flattened with an animation and only **then** the camera is animated to a top view
+
+```ts
+map.on("terrainAnimationStop", (e) => {
+  map.easeTo({
+    pitch: e.terrain ? 60 : 0,
+    duration: 500,
+  });
+});
+```
+
 
 # Easy language switching
 The language generally depends on the style but we made it possible to easily set and update from a built-in list of languages.
