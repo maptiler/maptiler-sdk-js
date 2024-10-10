@@ -76,6 +76,37 @@ For example, with a [NextJS](https://nextjs.org/) app, this can take place at th
 import "@maptiler/sdk/dist/maptiler-sdk.css";
 ```
 
+### TypeScript
+The SDK is fully typed, but it may happen that types defined in Maplibre GL JS are not visible in your project. This is a known issue that comes from Maplibre being a CommonJS bundle.
+
+There are mainly two ways to addess this issue and access to the complete type definition.
+
+1. **With `esModuleInterop`**  
+
+Set the following in your `tsconfig.json`:
+```js
+{
+  "compilerOptions": {
+    // ...
+    "esModuleInterop": true,
+  }
+}
+``` 
+
+2. **With `moduleResolution`**  
+
+Set the following in your `tsconfig.json`:
+```js
+{
+  "compilerOptions": {
+    // ...
+    "moduleResolution": "Bundler",
+  }
+}
+``` 
+Note that this second option is not always possible as some frameworks and other dependencies won't let you use the "Bundler" mode.
+
+
 
 ## With CDN
 The SDK hosted on our CDN is bundled as *[Universal Module Definition](https://github.com/umdjs/umd)* (UMD) to make it standalone and contain all its dependencies. The CDN also serves the style sheet (CSS).
@@ -340,6 +371,55 @@ map.disableTerrain()
 
 > 📣 *__Note 2:__* please be aware that due to the volume and elevation of the map floor in 3D space, the navigation with the terrain enabled is slightly different than without.
 
+By default, enabling, disabling or even just updating the terrain exaggeration will result in a 1-second animation. This is possible to modify with the following `Map` method:
+
+```ts
+// Duration in milliseconds
+map.setTerrainAnimationDuration(500);
+```
+
+## Terrain events
+- `"terrain"` event  
+
+As an extension of Maplibre GL JS, MapTiler SDK is also exposing the terrain event `"terrain"`. This event is triggered when a terrain source is added or removed:
+
+```ts
+map.on("terrain", (e) => {
+  // your logic here
+})
+```
+
+Since MapTiler SDK adds animation and the terrain data is necessary all along, the `"terrain"` event will be called at the very begining of the terrain animation when enabling and at the very end when disabling.
+
+- `"terrainAnimationStart"` and `"terrainAnimationStop"` events  
+
+With the animation of the terrain, it can sometimes be convenient to know when the animation starts and ends. These two events are made just for that, here are how they work:
+
+```ts
+map.on("terrainAnimationStart", (event) => {
+  console.log("Terrain animation is starting...");
+});
+
+map.on("terrainAnimationStop", (event) => {
+  console.log("Terrain animation is finished");
+});
+```
+
+The `event` argument is an object that contains (amond other things) a `terrain` attribute. In the case of `"terrainAnimationStop"`, this terrain attribute is `null` if the animation was about disabling the terrain, otherwise, this is just a propagation of `map.terrain`.
+
+In the following example, we decide to associate the terrain animation with a change of camera, e.g. from clicking on the terrain control:
+- when the terrain is enabled, it pops up with an animation and only **then** the camera is animated to take a lower point of view
+- when the terrain is disabled, it is flattened with an animation and only **then** the camera is animated to a top view
+
+```ts
+map.on("terrainAnimationStop", (e) => {
+  map.easeTo({
+    pitch: e.terrain ? 60 : 0,
+    duration: 500,
+  });
+});
+```
+
 
 # Easy language switching
 The language generally depends on the style but we made it possible to easily set and update from a built-in list of languages.
@@ -564,6 +644,27 @@ async function init() {
 We believe that the *promise* approach is better because it does not nest scopes and will allow for a linear non-nested stream of execution. It also corresponds to more modern development standards.
 
 > 📣 *__Note:__* Generally speaking, *promises* are not a go to replacement for all event+callback and are suitable only for events that are called only once in the lifecycle of a Map instance. This is the reason why we have decided to provide a *promise* equivalent only for the `load`, `ready` and `loadWithTerrain` events but not for events that may be called multiple time such as interaction events.
+
+### The `webglContextLost` event
+The maps is rendered with WebGL, that leverages the GPU to provide high-performance graphics. In some cases, the host machine, operating system or the graphics driver, can decide that continuing to run such high performance graphics is unsustainable, and will abort the process. This is called a "WebGL context loss". Such situation happens when the ressources are running low or when multiple browser tabs are competing to access graphics memory.  
+
+The best course of action in such situation varies from an app to another. Sometimes a page refresh is the best thing to do, in other cases, instantiating a new Map dynmicaly at application level is more appropriate because it hides a technical failure to the end user. The event `webglContextLost` is exposed so that the most appropriate scenario can be implemented at application level.   
+
+Here is how to respond to a WebGL context loss with a simple page refresh:
+```ts
+
+// Init the map
+const map = new maptilersdk.Map({
+  container: "map-container",
+  hash: true,
+})
+
+// Refresh the page if context is lost.
+// Since `hash` is true, the location will be the same as before
+map.on("webglContextLost", (e) => {
+  location.reload();
+})
+```
 
 # Color Ramps
 A color ramp is a color gradient defined in a specific interval, for instance in [0, 1], and for any value within this interval will retrieve a color. They are defined by at least a color at each bound and usually additional colors within the range.  

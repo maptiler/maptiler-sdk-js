@@ -197,7 +197,32 @@ export function displayNoWebGlWarning(container: HTMLElement | string) {
 
   const errorMessageDiv = document.createElement("div");
   errorMessageDiv.innerHTML = webglError;
-  errorMessageDiv.classList.add("no-webgl-support-div");
+  errorMessageDiv.classList.add("webgl-warning-div");
   actualContainer.appendChild(errorMessageDiv);
   throw new Error(webglError);
+}
+
+/**
+ * Display an error message in the Map div if WebGL2 is not supported
+ */
+export function displayWebGLContextLostWarning(container: HTMLElement | string) {
+  const webglError = "The WebGL context was lost.";
+
+  let actualContainer: HTMLElement | null = null;
+
+  if (typeof container === "string") {
+    actualContainer = document.getElementById(container);
+  } else if (container instanceof HTMLElement) {
+    actualContainer = container;
+  }
+
+  if (!actualContainer) {
+    throw new Error("The Map container must be provided.");
+  }
+
+  const errorMessageDiv = document.createElement("div");
+  errorMessageDiv.innerHTML = webglError;
+  errorMessageDiv.classList.add("webgl-warning-div");
+  actualContainer.appendChild(errorMessageDiv);
+  // throw new Error(webglError);
 }

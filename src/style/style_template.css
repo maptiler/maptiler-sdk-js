@@ -145,7 +145,7 @@
   line-height: 14px;
 }
 
-.no-webgl-support-div {
+.webgl-warning-div {
   position: absolute;
   top: 0;
   left: 0;
