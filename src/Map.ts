@@ -188,6 +188,7 @@ export class Map extends maplibregl.Map {
   private isReady = false;
   private terrainAnimationDuration = 1000;
   private monitoredStyleUrls!: Set<string>;
+  private styleInProcess = false;
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -196,12 +197,18 @@ export class Map extends maplibregl.Map {
       config.apiKey = options.apiKey;
     }
 
-    const { style, requiresUrlMonitoring } = styleToStyle(options.style);
-    const hashPreConstructor = location.hash;
+    const { style, requiresUrlMonitoring, isFallback } = styleToStyle(options.style);
+    if (isFallback) {
+      console.warn(
+        "Invalid style. A style must be a valid URL to a style.json, a JSON string representing a valid StyleSpecification or a valid StyleSpecification object. Fallback to default MapTiler style.",
+      );
+    }
 
     if (!config.apiKey) {
       console.warn("MapTiler Cloud API key is not set. Visit https://maptiler.com and try Cloud for free!");
     }
+
+    const hashPreConstructor = location.hash;
 
     // default attribution control options
     let attributionControlOptions = {
@@ -216,21 +223,30 @@ export class Map extends maplibregl.Map {
       };
     }
 
-    // calling the map constructor with full length style
-    super({
+    const superOptions = {
       ...options,
       style,
       maplibreLogo: false,
       transformRequest: combineTransformRequest(options.transformRequest),
       attributionControl: options.forceNoAttributionControl === true ? false : attributionControlOptions,
-    });
+    } as maplibregl.MapOptions;
+
+    // Removing the style option from the super constructor so that we can initialize this.styleInProcess before
+    // calling .setStyle(). Otherwise, if a style is provided to the super constructor, the setStyle method is called as
+    // a child call of super, meaning instance attributes cannot be initialized yet.
+    // The styleInProcess instance attribute is necessary to track if a style has not fall into a CORS error, for which
+    // Maplibre DOES NOT throw an AJAXError (hence does not track the URL of the failed http request)
+    // biome-ignore lint/performance/noDelete: <explanation>
+    delete superOptions.style;
+    super(superOptions);
+    this.setStyle(style);
 
     if (requiresUrlMonitoring) {
       this.monitorStyleUrl(style as string);
     }
 
-    const applyFallbackStyle = (brokenStyleURL: string) => {
-      let warning = `The style at URL ${brokenStyleURL} could not be loaded. `;
+    const applyFallbackStyle = () => {
+      let warning = "The distant style could not be loaded.";
       // Loading a new style failed. If a style is not already in place,
       // the default one is loaded instead + warning in console
       if (!this.getStyle()) {
@@ -241,6 +257,10 @@ export class Map extends maplibregl.Map {
       }
       console.warn(warning);
     };
+
+    this.on("style.load", () => {
+      this.styleInProcess = false;
+    });
 
     // Safeguard for distant styles at non-http 2xx status URLs
     this.on("error", (event) => {
@@ -255,8 +275,18 @@ export class Map extends maplibregl.Map {
         // that means this AJAXError was about a style, and we want to fallback to
         // the default style
         if (this.monitoredStyleUrls.has(clearnUrlStr)) {
-          return applyFallbackStyle(url);
+          this.monitoredStyleUrls.delete(clearnUrlStr);
+          applyFallbackStyle();
         }
+        return;
+      }
+
+      // CORS error when fetching distant URL are not detected as AJAXError by Maplibre, just as generic error with no url property
+      // so we have to find a way to detect them when it comes to failing to load a style.
+      if (this.styleInProcess) {
+        // If this.styleInProcess is true, it very likely means the style URL has not resolved due to a CORS issue.
+        // In such case, we load the default style
+        return applyFallbackStyle();
       }
     });
 
@@ -706,6 +736,22 @@ export class Map extends maplibregl.Map {
       this.monitorStyleUrl(styleInfo.style as string);
     }
 
+    // If the style is invalid and what is returned is a fallback + the map already has a style,
+    // the style remains unchanged.
+    if (styleInfo.isFallback) {
+      if (this.getStyle()) {
+        console.warn(
+          "Invalid style. A style must be a valid URL to a style.json, a JSON string representing a valid StyleSpecification or a valid StyleSpecification object. Keeping the curent style instead.",
+        );
+        return this;
+      }
+
+      console.warn(
+        "Invalid style. A style must be a valid URL to a style.json, a JSON string representing a valid StyleSpecification or a valid StyleSpecification object. Fallback to default MapTiler style.",
+      );
+    }
+
+    this.styleInProcess = true;
     super.setStyle(styleInfo.style, options);
     return this;
   }
