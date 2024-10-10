@@ -7,6 +7,7 @@
 - The `Map` class instances now have a `.setTerrainAnimationDuration(d: number)` method
 - The `Map` class instances now have events related to terrain animation `"terrainAnimationStart"` and `"terrainAnimationStop"`
 - expose the function `getWebGLSupportError()` to detect WebGL compatibility
+- Adding detection of invalid style objects of URLs and falls back to a default style if necessary.
 
 ## 2.3.0
 ### Bug Fixes
