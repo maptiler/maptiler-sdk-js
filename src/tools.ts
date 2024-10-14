@@ -79,8 +79,10 @@ export function maptilerCloudTransformRequest(url: string, resourceType?: Resour
     }
   }
 
+  const localCacheTransformedReq = localCacheTransformRequest(reqUrl, resourceType);
+
   return {
-    url: localCacheTransformRequest(reqUrl, resourceType),
+    url: localCacheTransformedReq,
   };
 }
 
