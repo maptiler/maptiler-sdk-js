@@ -1,5 +1,10 @@
 # MapTiler SDK Changelog
 
+## NEXT
+### Bug Fixes
+- Navigation now relies on `Map` methods instead of `Transform` methods for bearing due to globe projection being available
+
+
 ## 2.4.0
 ### New Features
 - Shows a warning message in the map container if WebGL context is lost
