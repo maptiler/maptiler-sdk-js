@@ -37,6 +37,7 @@ import { FullscreenControl } from "./MLAdapters/FullscreenControl";
 import Minimap from "./Minimap";
 import type { MinimapOptionsInput } from "./Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
+import { MaptilerProjectionControl } from "./MaptilerProjectionControl";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -170,6 +171,11 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * Default: `false`
    */
   geolocate?: (typeof GeolocationType)[keyof typeof GeolocationType] | boolean;
+
+  /**
+   * Show the projection control. (default: `false`, will show if `true`)
+   */
+  projectionControl?: boolean | ControlPosition;
 };
 
 /**
@@ -506,6 +512,14 @@ export class Map extends maplibregl.Map {
           options.terrainControl === true || options.terrainControl === undefined ? "top-right" : options.terrainControl
         ) as ControlPosition;
         this.addControl(new MaptilerTerrainControl(), position);
+      }
+
+      if (options.projectionControl) {
+        // default position, if not provided, is top left corner
+        const position = (
+          options.projectionControl === true || options.projectionControl === undefined ? "top-right" : options.projectionControl
+        ) as ControlPosition;
+        this.addControl(new MaptilerProjectionControl(), position);
       }
 
       // By default, no fullscreen control
