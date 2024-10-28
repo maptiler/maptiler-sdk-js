@@ -1,4 +1,4 @@
-import maplibregl, { AJAXError } from "maplibre-gl";
+import maplibregl from "maplibre-gl";
 import { Base64 } from "js-base64";
 import type {
   StyleSpecification,
@@ -264,8 +264,8 @@ export class Map extends maplibregl.Map {
 
     // Safeguard for distant styles at non-http 2xx status URLs
     this.on("error", (event) => {
-      if (event.error instanceof AJAXError) {
-        const err = event.error as AJAXError;
+      if (event.error instanceof maplibregl.AJAXError) {
+        const err = event.error as maplibregl.AJAXError;
         const url = err.url;
         const cleanUrl = new URL(url);
         cleanUrl.search = "";
