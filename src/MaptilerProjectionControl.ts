@@ -36,15 +36,33 @@ export class MaptilerProjectionControl implements IControl {
   }
 
   private toggleProjection(): void {
-    console.log(this.map.style.getTransition());
-    
-    if (this.isGlobe()) {
+    if (this.map.getProjection() === undefined) {
       this.map.setProjection({type: "mercator"});
+      // @ts-ignore
+      // this.map.transform.setGlobeViewAllowed(false, true);
+    }
+
+    
+
+    if (this.isGlobe()) {
+      this.map.setProjection({type: "globe"});
+      // @ts-ignore
+      this.map.transform.setGlobeViewAllowed(false, true);
+      this.map.once("projectiontransition", () => {
+        this.map.setProjection({type: "mercator"});
+      });
     } else {
       this.map.setProjection({type: "globe"});
       // @ts-ignore
+      this.map.transform.setGlobeViewAllowed(false, true);
+      // @ts-ignore
       this.map.transform.setGlobeViewAllowed(true, true);
+      this.map.once("projectiontransition", () => {
+        this.map.setProjection({type: "globe"});
+      });
     }
+
+    // this.map.redraw()
 
     this.updateProjectionIcon();
   }
@@ -55,19 +73,27 @@ export class MaptilerProjectionControl implements IControl {
     this.projectionButton.classList.remove("maplibregl-ctrl-projection-globe");
     this.projectionButton.classList.remove("maplibregl-ctrl-projection-mercator");
     if (this.isGlobe()) {
-      this.projectionButton.classList.add("maplibregl-ctrl-projection-mercator");
+      console.log("IS GLOBE");
+      
+      this.projectionButton.classList.add("maplibregl-ctrl-projection-globe");
       this.projectionButton.title = "Enable Mercator projection";
     } else {
-      this.projectionButton.classList.add("maplibregl-ctrl-projection-globe");
+      console.log("IS MERC");
+      
+      this.projectionButton.classList.add("maplibregl-ctrl-projection-mercator");
       this.projectionButton.title = "Enable Globe projection";
     }
   }
 
 
   private isGlobe(): boolean {
+
+
     if (!this.map) return false;
+    
     const projection = this.map.getProjection();
     if (!projection) return false;
-    return projection.type === "globe";
+    // @ts-ignore
+    return projection.type === "globe" && this.map.transform.getGlobeViewAllowed();
   }
 }

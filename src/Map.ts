@@ -63,6 +63,13 @@ type MapTerrainDataEvent = MapDataEvent & {
   source: RasterDEMSourceSpecification;
 };
 
+
+/**
+ * The type of projection, `undefined` means it's decided by the style and if the style does not contain any projection info,
+ * if falls back to the default Mercator
+ */
+export type ProjectionTypes = "mercator" | "globe" | undefined;
+
 /**
  * Options to provide to the `Map` constructor
  */
@@ -176,7 +183,15 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * Show the projection control. (default: `false`, will show if `true`)
    */
   projectionControl?: boolean | ControlPosition;
+
+  /**
+   * Whether the projection should be "mercator" or "globe".
+   * If not provided, the style takes precedence. If provided, overwrite the style.
+   */
+  projectionType?: ProjectionTypes;
 };
+
+
 
 /**
  * The Map class can be instanciated to display a map in a `<div>`
@@ -195,6 +210,7 @@ export class Map extends maplibregl.Map {
   private terrainAnimationDuration = 1000;
   private monitoredStyleUrls!: Set<string>;
   private styleInProcess = false;
+  private curentProjection: ProjectionTypes = undefined;
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -311,6 +327,23 @@ export class Map extends maplibregl.Map {
       this.primaryLanguage === Language.STYLE || this.primaryLanguage === Language.STYLE_LOCK ? false : true;
     this.languageAlwaysBeenStyle = this.primaryLanguage === Language.STYLE;
     this.terrainExaggeration = options.terrainExaggeration ?? this.terrainExaggeration;
+
+    this.curentProjection = options.projectionType;
+
+    // Managing the type of projection and persist if not present in style
+    this.on("styledata", () => {
+
+      if (this.curentProjection === "mercator") {
+        this.setProjection({type: 'globe'});
+        // @ts-ignore
+        this.transform.setGlobeViewAllowed(false, true); // The `false` means mercator
+      } else if (this.curentProjection === "globe"){
+        this.setProjection({type: 'globe'});
+        // @ts-ignore
+        this.transform.setGlobeViewAllowed(true, true); // the first `true` means globe
+      }
+      
+    });
 
     // Map centering and geolocation
     this.once("styledata", async () => {
