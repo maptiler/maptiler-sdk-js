@@ -1472,4 +1472,63 @@ export class Map extends maplibregl.Map {
     super.setTransformRequest(combineTransformRequest(transformRequest));
     return this;
   }
+
+  /**
+   * Returns whether a globe projection is currently being used
+   */
+  isGlobeprojection(): boolean {
+    const projection = this.getProjection();
+    if (!projection) return false;
+    // @ts-ignore
+    return projection.type === "globe" && this.transform.getGlobeViewAllowed();
+  }
+
+  /**
+   * Uses the globe projection. Animated by default, it can be disabled
+   */
+  enableGlobeProjection(animate: boolean = true) {
+    if (this.isGlobeprojection()) return;
+
+    // From Mercator to Globe
+    this.setProjection({ type: "globe" });
+
+    if (animate) {
+      // @ts-ignore
+      this.transform.setGlobeViewAllowed(false, true); // the `false` means mercator
+
+      this.once("projectiontransition", () => {
+        // @ts-ignore
+        this.transform.setGlobeViewAllowed(true, true);
+      });
+
+    } else {
+      // @ts-ignore
+      this.transform.setGlobeViewAllowed(true, true);
+    }
+
+    this.curentProjection = "globe";
+  }
+
+
+  /**
+   * Uses the Mercator projection. Animated by default, it can be disabled
+   */
+  enableMercatorProjection(animate: boolean = true) {
+    if (!this.isGlobeprojection()) return;
+
+    if (animate) {
+      // From Globe to Mercator
+      this.setProjection({ type: "globe" });
+       // @ts-ignore
+       this.transform.setGlobeViewAllowed(false, true);
+       this.once("projectiontransition", () => {
+         this.setProjection({ type: "mercator" });
+       });
+    } else {
+      this.setProjection({ type: "mercator" });
+    }
+
+    this.curentProjection = "mercator";
+  }
+  
 }
