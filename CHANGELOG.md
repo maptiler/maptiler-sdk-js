@@ -1,5 +1,9 @@
 # MapTiler SDK Changelog
 
+## 2.4.1
+### Bug Fixes
+- The class `AJAXError` is now imported as part of the `maplibregl` namespace (CommonJS limitation from Maplibre GL JS) (https://github.com/maptiler/maptiler-sdk-js/pull/129)
+
 ## 2.4.0
 ### New Features
 - Shows a warning message in the map container if WebGL context is lost
