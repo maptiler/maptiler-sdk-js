@@ -1500,7 +1500,6 @@ export class Map extends maplibregl.Map {
         // @ts-ignore
         this.transform.setGlobeViewAllowed(true, true);
       });
-
     } else {
       // @ts-ignore
       this.transform.setGlobeViewAllowed(true, true);
@@ -1508,7 +1507,6 @@ export class Map extends maplibregl.Map {
 
     this.curentProjection = "globe";
   }
-
 
   /**
    * Uses the Mercator projection. Animated by default, it can be disabled
@@ -1519,16 +1517,15 @@ export class Map extends maplibregl.Map {
     if (animate) {
       // From Globe to Mercator
       this.setProjection({ type: "globe" });
-       // @ts-ignore
-       this.transform.setGlobeViewAllowed(false, true);
-       this.once("projectiontransition", () => {
-         this.setProjection({ type: "mercator" });
-       });
+      // @ts-ignore
+      this.transform.setGlobeViewAllowed(false, true);
+      this.once("projectiontransition", () => {
+        this.setProjection({ type: "mercator" });
+      });
     } else {
       this.setProjection({ type: "mercator" });
     }
 
     this.curentProjection = "mercator";
   }
-  
 }

@@ -10,7 +10,6 @@ export class MaptilerProjectionControl implements IControl {
   container!: HTMLElement;
   projectionButton!: HTMLButtonElement;
 
-  
   onAdd(map: SDKMap): HTMLElement {
     this.map = map;
     this.container = DOMcreate("div", "maplibregl-ctrl maplibregl-ctrl-group");
@@ -25,14 +24,12 @@ export class MaptilerProjectionControl implements IControl {
     return this.container;
   }
 
-
   onRemove(): void {
     DOMremove(this.container);
     this.map.off("projectiontransition", this.updateProjectionIcon);
     // @ts-expect-error: map will only be undefined on remove
     this.map = undefined;
   }
-
 
   private toggleProjection(): void {
     if (this.map.getProjection() === undefined) {
@@ -46,7 +43,6 @@ export class MaptilerProjectionControl implements IControl {
     this.updateProjectionIcon();
   }
 
-
   private updateProjectionIcon(): void {
     this.projectionButton.classList.remove("maplibregl-ctrl-projection-globe");
     this.projectionButton.classList.remove("maplibregl-ctrl-projection-mercator");
@@ -58,5 +54,4 @@ export class MaptilerProjectionControl implements IControl {
       this.projectionButton.title = "Enable Globe projection";
     }
   }
-
 }
