@@ -1,5 +1,4 @@
 import { DOMcreate, DOMremove } from "./tools";
-
 import type { Map as SDKMap } from "./Map";
 import type { IControl } from "maplibre-gl";
 
@@ -11,6 +10,7 @@ export class MaptilerProjectionControl implements IControl {
   container!: HTMLElement;
   projectionButton!: HTMLButtonElement;
 
+  
   onAdd(map: SDKMap): HTMLElement {
     this.map = map;
     this.container = DOMcreate("div", "maplibregl-ctrl maplibregl-ctrl-group");
@@ -25,6 +25,7 @@ export class MaptilerProjectionControl implements IControl {
     return this.container;
   }
 
+
   onRemove(): void {
     DOMremove(this.container);
     this.map.off("projectiontransition", this.updateProjectionIcon);
@@ -32,39 +33,24 @@ export class MaptilerProjectionControl implements IControl {
     this.map = undefined;
   }
 
+
   private toggleProjection(): void {
     if (this.map.getProjection() === undefined) {
       this.map.setProjection({ type: "mercator" });
     }
-
-    if (this.isGlobe()) {
-      // From Globe to Mercator
-      this.map.setProjection({ type: "globe" });
-      // @ts-ignore
-      this.map.transform.setGlobeViewAllowed(false, true);
-      this.map.once("projectiontransition", () => {
-        this.map.setProjection({ type: "mercator" });
-      });
+    if (this.map.isGlobeprojection()) {
+      this.map.enableMercatorProjection();
     } else {
-      // From Mercator to Globe
-      this.map.setProjection({ type: "globe" });
-      // @ts-ignore
-      this.map.transform.setGlobeViewAllowed(false, true); // the `false` means mercator
-
-      this.map.once("projectiontransition", () => {
-        // @ts-ignore
-        this.map.transform.setGlobeViewAllowed(true, true);
-      });
+      this.map.enableGlobeProjection();
     }
-
     this.updateProjectionIcon();
   }
 
+
   private updateProjectionIcon(): void {
-    // this.projectionButton.classList.remove("maplibregl-ctrl-terrain");
     this.projectionButton.classList.remove("maplibregl-ctrl-projection-globe");
     this.projectionButton.classList.remove("maplibregl-ctrl-projection-mercator");
-    if (this.isGlobe()) {
+    if (this.map.isGlobeprojection()) {
       this.projectionButton.classList.add("maplibregl-ctrl-projection-mercator");
       this.projectionButton.title = "Enable Mercator projection";
     } else {
@@ -73,12 +59,4 @@ export class MaptilerProjectionControl implements IControl {
     }
   }
 
-  private isGlobe(): boolean {
-    if (!this.map) return false;
-
-    const projection = this.map.getProjection();
-    if (!projection) return false;
-    // @ts-ignore
-    return projection.type === "globe" && this.map.transform.getGlobeViewAllowed();
-  }
 }
