@@ -75,11 +75,12 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   style?: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string;
 
   /**
-   * Define the language of the map. This can be done directly with a language ISO code (eg. "en")
+   * Define the language of the map. This can be done directly with a language ISO code (eg. "en"),
+   * the ISO code prepended with the OSM flag (eg. "name:en" or even just "name"),
    * or with a built-in shorthand (eg. Language.ENGLISH).
    * Note that this is equivalent to setting the `config.primaryLanguage` and will overwrite it.
    */
-  language?: LanguageInfo;
+  language?: LanguageInfo | string;
 
   /**
    * Define the MapTiler Cloud API key to be used. This is strictly equivalent to setting
@@ -300,7 +301,13 @@ export class Map extends maplibregl.Map {
       registerLocalCacheProtocol();
     }
 
-    this.primaryLanguage = options.language ?? config.primaryLanguage;
+    if (typeof options.language === "undefined") {
+      this.primaryLanguage = config.primaryLanguage;
+    } else {
+      const providedlanguage = toLanguageInfo(options.language, Language);
+      this.primaryLanguage = providedlanguage ?? config.primaryLanguage;
+    }
+
     this.forceLanguageUpdate =
       this.primaryLanguage === Language.STYLE || this.primaryLanguage === Language.STYLE_LOCK ? false : true;
     this.languageAlwaysBeenStyle = this.primaryLanguage === Language.STYLE;
