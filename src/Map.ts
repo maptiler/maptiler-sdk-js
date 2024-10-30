@@ -63,7 +63,6 @@ type MapTerrainDataEvent = MapDataEvent & {
   source: RasterDEMSourceSpecification;
 };
 
-
 /**
  * The type of projection, `undefined` means it's decided by the style and if the style does not contain any projection info,
  * if falls back to the default Mercator
@@ -188,10 +187,8 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * Whether the projection should be "mercator" or "globe".
    * If not provided, the style takes precedence. If provided, overwrite the style.
    */
-  projectionType?: ProjectionTypes;
+  projection?: ProjectionTypes;
 };
-
-
 
 /**
  * The Map class can be instanciated to display a map in a `<div>`
@@ -328,21 +325,17 @@ export class Map extends maplibregl.Map {
     this.languageAlwaysBeenStyle = this.primaryLanguage === Language.STYLE;
     this.terrainExaggeration = options.terrainExaggeration ?? this.terrainExaggeration;
 
-    this.curentProjection = options.projectionType;
+    this.curentProjection = options.projection;
 
     // Managing the type of projection and persist if not present in style
     this.on("styledata", () => {
-
       if (this.curentProjection === "mercator") {
-        this.setProjection({type: 'globe'});
-        // @ts-ignore
-        this.transform.setGlobeViewAllowed(false, true); // The `false` means mercator
-      } else if (this.curentProjection === "globe"){
-        this.setProjection({type: 'globe'});
+        this.setProjection({ type: "mercator" });
+      } else if (this.curentProjection === "globe") {
+        this.setProjection({ type: "globe" });
         // @ts-ignore
         this.transform.setGlobeViewAllowed(true, true); // the first `true` means globe
       }
-      
     });
 
     // Map centering and geolocation
@@ -550,7 +543,9 @@ export class Map extends maplibregl.Map {
       if (options.projectionControl) {
         // default position, if not provided, is top left corner
         const position = (
-          options.projectionControl === true || options.projectionControl === undefined ? "top-right" : options.projectionControl
+          options.projectionControl === true || options.projectionControl === undefined
+            ? "top-right"
+            : options.projectionControl
         ) as ControlPosition;
         this.addControl(new MaptilerProjectionControl(), position);
       }
