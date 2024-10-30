@@ -3,7 +3,7 @@
 ## 2.4.1
 ### Bug Fixes
 - The class `AJAXError` is now imported as part of the `maplibregl` namespace (CommonJS limitation from Maplibre GL JS) (https://github.com/maptiler/maptiler-sdk-js/pull/129)
-- The `Map` constructor can now also take a language as a string
+- The `Map` constructor can now also take a language as a string (https://github.com/maptiler/maptiler-sdk-js/pull/131)
 
 ## 2.4.0
 ### New Features

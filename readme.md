@@ -468,13 +468,38 @@ Whenever a label is not supported in the defined language, it falls back to `Lan
 Here is a sample of some compatible languages:
 ![](images/screenshots/multilang.gif)
 
-# Built-in support for right-to-left languages
+## Built-in support for right-to-left languages
 Languages that are written right-to-left such as Arabic and Hebrew are fully supported by default. No need to install any plugins!
 
 <p align="center">
   <img src="images/screenshots/lang-arabic.jpeg" width="48%"></img>
   <img src="images/screenshots/lang-hebrew.jpeg" width="48%"></img>
 </p>
+
+## Visitor language modes
+The *visitor* language modes are special built-in modes made to display labels in two different languages, concatenated when available:
+- `Language.VISITOR` concatenates labels in the language of your system and the *local* language
+- `Language.VISITOR_ENGLISH` concatenates labels in English and the *local* language
+
+```ts
+const map = new Map({
+  // some options...
+  language: Language.VISITOR,
+})
+
+// or
+
+const map = new Map({
+  // some options...
+  language: Language.VISITOR_ENGLISH,
+})
+```
+
+We believe these two modes can be very handy to help the end users identify places, especially when the local labels are not using a latin charset. Here is how it looks like:
+
+![](images/screenshots/visitor_athen.png)
+![](images/screenshots/visitor_osaka.png)
+
 
 # Custom Events and Map Lifecycle
 ## Events
