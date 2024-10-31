@@ -65,7 +65,7 @@
     "@maptiler/client": "^2.0.0",
     "events": "^3.3.0",
     "js-base64": "^3.7.4",
-    "maplibre-gl": "^5.0.0-pre.3",
+    "maplibre-gl": "^5.0.0-pre.4",
     "uuid": "^9.0.0"
   }
 }
