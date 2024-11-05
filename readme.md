@@ -357,8 +357,7 @@ The internal camera has a default vertical field of view [*(wikipedia)*](https:/
 
 ```ts
 // Ajust de FOV, with values from 1 to 50
-map.transform.setFov(10);
-map.redraw();
+map.setVerticalFieldOfView(10);
 ```
 > 📣 *__Note:__* with the Mercator projection, it is possible to set a FOV of `0`, which yields a true orthographic projection [*(wikipedia)*](https://en.wikipedia.org/wiki/Orthographic_projection), but the globe projection does not allow this.
 
