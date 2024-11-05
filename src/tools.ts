@@ -226,3 +226,40 @@ export function displayWebGLContextLostWarning(container: HTMLElement | string) 
   actualContainer.appendChild(errorMessageDiv);
   // throw new Error(webglError);
 }
+
+/**
+ * Return true if the provided piece of style expression has the form ["get", "name:XX"]
+ * with XX benig a 2-letter is code for languages
+ */
+function isGetNameLanguage(subExpr: unknown): boolean {
+  if (!Array.isArray(subExpr)) return false;
+  if (subExpr.length !== 2) return false;
+  if (subExpr[0] !== "get") return false;
+  if (typeof subExpr[1] !== "string") return false;
+  if (!subExpr[1].startsWith("name:")) return false;
+
+  return true;
+}
+
+export function changeFirstLanguage(
+  origExpr: maplibregl.ExpressionSpecification,
+  replacer: maplibregl.ExpressionSpecification | string,
+): maplibregl.ExpressionSpecification {
+  const expr = structuredClone(origExpr) as maplibregl.ExpressionSpecification;
+
+  const exploreNode = (subExpr: maplibregl.ExpressionSpecification | string) => {
+    if (typeof subExpr === "string") return;
+
+    for (let i = 0; i < subExpr.length; i += 1) {
+      if (isGetNameLanguage(subExpr[i])) {
+        subExpr[i] = structuredClone(replacer);
+      } else {
+        exploreNode(subExpr[i] as maplibregl.ExpressionSpecification | string);
+      }
+    }
+  };
+
+  exploreNode(expr);
+
+  return expr;
+}

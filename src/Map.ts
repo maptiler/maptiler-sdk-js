@@ -24,7 +24,12 @@ import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
 import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
-import { combineTransformRequest, displayNoWebGlWarning, displayWebGLContextLostWarning } from "./tools";
+import {
+  changeFirstLanguage,
+  combineTransformRequest,
+  displayNoWebGlWarning,
+  displayWebGLContextLostWarning,
+} from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
 import { styleToStyle } from "./mapstyle";
 import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
@@ -190,6 +195,7 @@ export class Map extends maplibregl.Map {
   private terrainAnimationDuration = 1000;
   private monitoredStyleUrls!: Set<string>;
   private styleInProcess = false;
+  private originalLabelStyle = new window.Map<string, ExpressionSpecification | string>();
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -730,6 +736,7 @@ export class Map extends maplibregl.Map {
     style: null | ReferenceMapStyle | MapStyleVariant | StyleSpecification | string,
     options?: StyleSwapOptions & StyleOptions,
   ): this {
+    this.originalLabelStyle.clear();
     this.minimap?.setStyle(style);
     this.forceLanguageUpdate = true;
 
@@ -1049,7 +1056,7 @@ export class Map extends maplibregl.Map {
       ];
     } else if (languageNonStyle.flag === Language.AUTO.flag) {
       langStr = getBrowserLanguage().flag;
-      replacer = ["case", ["has", langStr], ["get", langStr], ["get", Language.LOCAL.flag]];
+      replacer = ["coalesce", ["get", langStr], ["get", Language.LOCAL.flag]];
     }
 
     // This is for using the regular names as {name}
@@ -1061,10 +1068,13 @@ export class Map extends maplibregl.Map {
     // This section is for the regular language ISO codes
     else {
       langStr = languageNonStyle.flag;
-      replacer = ["case", ["has", langStr], ["get", langStr], ["get", Language.LOCAL.flag]];
+      replacer = ["coalesce", ["get", langStr], ["get", Language.LOCAL.flag]];
     }
 
     const { layers } = this.getStyle();
+
+    // True if it's the first time the language is updated for the current style
+    const firstPassOnStyle = this.originalLabelStyle.size === 0;
 
     for (const genericLayer of layers) {
       // Only symbole layer can have a layout with text-field
@@ -1102,17 +1112,42 @@ export class Map extends maplibregl.Map {
         continue;
       }
 
-      const textFieldLayoutProp = this.getLayoutProperty(id, "text-field");
+      let textFieldLayoutProp: string | maplibregl.ExpressionSpecification;
 
-      // If the label is not about a name, then we don't translate it
-      if (
-        typeof textFieldLayoutProp === "string" &&
-        (textFieldLayoutProp.toLowerCase().includes("ref") || textFieldLayoutProp.toLowerCase().includes("housenumber"))
-      ) {
-        continue;
+      // Keeping a copy of the text-field sub-object as it is in the original style
+      if (firstPassOnStyle) {
+        textFieldLayoutProp = this.getLayoutProperty(id, "text-field");
+        this.originalLabelStyle.set(id, textFieldLayoutProp);
+      } else {
+        textFieldLayoutProp = this.originalLabelStyle.get(id) as string | maplibregl.ExpressionSpecification;
       }
 
-      this.setLayoutProperty(id, "text-field", replacer);
+      // From this point, the value of textFieldLayoutProp is as in the original version of the style
+      // and never a mofified version
+
+      // Testing the different case where the text-field property should NOT be updated:
+      if (typeof textFieldLayoutProp === "string") {
+        // If the field is a string that DOES NOT contain an opening curly bracket.
+        // (This happens when the label is a hardcoded string that does not refer to a property)
+        if (!textFieldLayoutProp.includes("{")) {
+          continue;
+        }
+
+        // If the text field does not contain the "name" substring.
+        // This happens when dealing with {ref}, {housenumber}, {height}, etc.
+        if (!textFieldLayoutProp.includes("name")) {
+          continue;
+        }
+
+        this.setLayoutProperty(id, "text-field", replacer);
+      }
+
+      // The value of text-field is an object
+      else {
+        const newReplacer = changeFirstLanguage(textFieldLayoutProp, replacer);
+        console.log("New replacer:", newReplacer);
+        this.setLayoutProperty(id, "text-field", newReplacer);
+      }
     }
   }
 
