@@ -1476,7 +1476,7 @@ export class Map extends maplibregl.Map {
   /**
    * Returns whether a globe projection is currently being used
    */
-  isGlobeprojection(): boolean {
+  isGlobeProjection(): boolean {
     const projection = this.getProjection();
     if (!projection) return false;
     // @ts-ignore
@@ -1487,7 +1487,7 @@ export class Map extends maplibregl.Map {
    * Uses the globe projection. Animated by default, it can be disabled
    */
   enableGlobeProjection(animate: boolean = true) {
-    if (this.isGlobeprojection()) return;
+    if (this.isGlobeProjection()) return;
 
     // From Mercator to Globe
     this.setProjection({ type: "globe" });
@@ -1512,7 +1512,7 @@ export class Map extends maplibregl.Map {
    * Uses the Mercator projection. Animated by default, it can be disabled
    */
   enableMercatorProjection(animate: boolean = true) {
-    if (!this.isGlobeprojection()) return;
+    if (!this.isGlobeProjection()) return;
 
     if (animate) {
       // From Globe to Mercator

@@ -35,7 +35,7 @@ export class MaptilerProjectionControl implements IControl {
     if (this.map.getProjection() === undefined) {
       this.map.setProjection({ type: "mercator" });
     }
-    if (this.map.isGlobeprojection()) {
+    if (this.map.isGlobeProjection()) {
       this.map.enableMercatorProjection();
     } else {
       this.map.enableGlobeProjection();
@@ -46,7 +46,7 @@ export class MaptilerProjectionControl implements IControl {
   private updateProjectionIcon(): void {
     this.projectionButton.classList.remove("maplibregl-ctrl-projection-globe");
     this.projectionButton.classList.remove("maplibregl-ctrl-projection-mercator");
-    if (this.map.isGlobeprojection()) {
+    if (this.map.isGlobeProjection()) {
       this.projectionButton.classList.add("maplibregl-ctrl-projection-mercator");
       this.projectionButton.title = "Enable Mercator projection";
     } else {
