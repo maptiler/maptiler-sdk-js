@@ -241,6 +241,12 @@ function isGetNameLanguage(subExpr: unknown): boolean {
   return true;
 }
 
+/**
+ * In a text-field style property (as an object, not a string) the langages that are specified as
+ * ["get", "name:XX"] are replaced by the proved replacer (also an object).
+ * This replacement happened regardless of how deep in the object the flag is.
+ * Note that it does not replace the occurences of ["get", "name"] (local names)
+ */
 export function changeFirstLanguage(
   origExpr: maplibregl.ExpressionSpecification,
   replacer: maplibregl.ExpressionSpecification | string,
@@ -260,6 +266,5 @@ export function changeFirstLanguage(
   };
 
   exploreNode(expr);
-
   return expr;
 }

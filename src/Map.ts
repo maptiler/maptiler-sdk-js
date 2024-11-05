@@ -1010,7 +1010,7 @@ export class Map extends maplibregl.Map {
     let langStr = Language.LOCAL.flag;
 
     // will be overwritten below
-    let replacer: ExpressionSpecification | string = `{${langStr}}`;
+    let replacer: ExpressionSpecification | string = ["get", langStr];
 
     if (languageNonStyle.flag === Language.VISITOR.flag) {
       langStr = getBrowserLanguage().flag;
@@ -1062,7 +1062,7 @@ export class Map extends maplibregl.Map {
     // This is for using the regular names as {name}
     else if (languageNonStyle === Language.LOCAL) {
       langStr = Language.LOCAL.flag;
-      replacer = `{${langStr}}`;
+      replacer = ["get", langStr];
     }
 
     // This section is for the regular language ISO codes
@@ -1145,7 +1145,6 @@ export class Map extends maplibregl.Map {
       // The value of text-field is an object
       else {
         const newReplacer = changeFirstLanguage(textFieldLayoutProp, replacer);
-        console.log("New replacer:", newReplacer);
         this.setLayoutProperty(id, "text-field", newReplacer);
       }
     }
