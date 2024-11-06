@@ -268,3 +268,31 @@ export function changeFirstLanguage(
   exploreNode(expr);
   return expr;
 }
+
+/**
+ * Tst if a string matches the pattern "{name:xx}" in a exact way or is a loose way (such as "foo {name:xx}")
+ */
+export function checkNamePattern(str: string): { contains: boolean; exactMatch: boolean } {
+  const regex = /\{name:[a-zA-Z]{2}\}/;
+  return {
+    contains: regex.test(str),
+    exactMatch: new RegExp(`^${regex.source}$`).test(str),
+  };
+}
+
+/**
+ * Replaces the occurences of {name:xx} in a string by a provided object-expression to return a concat object expression
+ */
+export function replaceLanguage(
+  origLang: string,
+  newLang: maplibregl.ExpressionSpecification,
+): maplibregl.ExpressionSpecification {
+  const elementsToConcat = origLang.split(/\{name:[a-zA-Z]{2}\}/);
+
+  const allElements = elementsToConcat.flatMap((item, i) =>
+    i === elementsToConcat.length - 1 ? [item] : [item, newLang],
+  );
+
+  const expr = ["concat", ...allElements] as maplibregl.ExpressionSpecification;
+  return expr;
+}

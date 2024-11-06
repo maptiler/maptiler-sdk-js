@@ -26,9 +26,11 @@ import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
 import {
   changeFirstLanguage,
+  checkNamePattern,
   combineTransformRequest,
   displayNoWebGlWarning,
   displayWebGLContextLostWarning,
+  replaceLanguage,
 } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
 import { styleToStyle } from "./mapstyle";
@@ -1127,19 +1129,22 @@ export class Map extends maplibregl.Map {
 
       // Testing the different case where the text-field property should NOT be updated:
       if (typeof textFieldLayoutProp === "string") {
-        // If the field is a string that DOES NOT contain an opening curly bracket.
-        // (This happens when the label is a hardcoded string that does not refer to a property)
-        if (!textFieldLayoutProp.includes("{")) {
-          continue;
-        }
+        const { contains, exactMatch } = checkNamePattern(textFieldLayoutProp);
 
-        // If the text field does not contain the "name" substring.
-        // This happens when dealing with {ref}, {housenumber}, {height}, etc.
-        if (!textFieldLayoutProp.includes("name")) {
-          continue;
-        }
+        // If the current text-fiels does not contain any "{name:xx}" pattern
+        if (!contains) continue;
 
-        this.setLayoutProperty(id, "text-field", replacer);
+        // In case of an exact match, we replace by an object representation of the label
+        if (exactMatch) {
+          this.setLayoutProperty(id, "text-field", replacer);
+        } else {
+          // In case of a non-exact match (such as "foo {name:xx} bar")
+          // we create a "concat" object expresion composed of the original elements with new replacer
+          // in-betweem
+          const newReplacer = replaceLanguage(textFieldLayoutProp, replacer);
+
+          this.setLayoutProperty(id, "text-field", newReplacer);
+        }
       }
 
       // The value of text-field is an object

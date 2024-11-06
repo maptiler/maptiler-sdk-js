@@ -2,7 +2,7 @@
 
 ## 2.4.2
 ### Bug Fixes
-- The language switching is now more robust and preserves the original formatting from the style (`Map.setPrimareyLangage()`) (https://github.com/maptiler/maptiler-sdk-js/pull/134)
+- The language switching is now more robust and preserves the original formatting from the style (`Map.setPrimaryLangage()`) (https://github.com/maptiler/maptiler-sdk-js/pull/134)
 
 ## 2.4.1
 ### Bug Fixes
