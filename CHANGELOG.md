@@ -1,5 +1,10 @@
 # MapTiler SDK Changelog
 
+## 2.4.2
+### Others
+- Now able to GitHub action a beta on NPM from the GH release creation process
+- Updated GH action to v4
+
 ## 2.4.1
 ### Bug Fixes
 - The class `AJAXError` is now imported as part of the `maplibregl` namespace (CommonJS limitation from Maplibre GL JS) (https://github.com/maptiler/maptiler-sdk-js/pull/129)
