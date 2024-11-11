@@ -28,6 +28,7 @@ import {
   changeFirstLanguage,
   checkNamePattern,
   combineTransformRequest,
+  computeLabelsLocalizationMetrics,
   displayNoWebGlWarning,
   displayWebGLContextLostWarning,
   replaceLanguage,
@@ -198,6 +199,7 @@ export class Map extends maplibregl.Map {
   private monitoredStyleUrls!: Set<string>;
   private styleInProcess = false;
   private originalLabelStyle = new window.Map<string, ExpressionSpecification | string>();
+  private isStyleLocalized = false;
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -1012,7 +1014,7 @@ export class Map extends maplibregl.Map {
     let langStr = Language.LOCAL.flag;
 
     // will be overwritten below
-    let replacer: ExpressionSpecification | string = ["get", langStr];
+    let replacer: ExpressionSpecification = ["get", langStr];
 
     if (languageNonStyle.flag === Language.VISITOR.flag) {
       langStr = getBrowserLanguage().flag;
@@ -1077,6 +1079,14 @@ export class Map extends maplibregl.Map {
 
     // True if it's the first time the language is updated for the current style
     const firstPassOnStyle = this.originalLabelStyle.size === 0;
+
+    // Analisis on all the label layers to check the languages being used
+    if (firstPassOnStyle) {
+      const labelsLocalizationMetrics = computeLabelsLocalizationMetrics(layers, this);
+      this.isStyleLocalized = Object.keys(labelsLocalizationMetrics.localized).length > 0;
+      console.log("this.isStyleLocalized", this.isStyleLocalized);
+      
+    }
 
     for (const genericLayer of layers) {
       // Only symbole layer can have a layout with text-field

@@ -1,9 +1,10 @@
 import maplibregl from "maplibre-gl";
-import type { RequestParameters, ResourceType, RequestTransformFunction } from "maplibre-gl";
+import type { RequestParameters, ResourceType, RequestTransformFunction, SymbolLayerSpecification } from "maplibre-gl";
 import { defaults } from "./defaults";
 import { config } from "./config";
 import { MAPTILER_SESSION_ID } from "./config";
 import { localCacheTransformRequest } from "./caching";
+import { Map as MapSDK } from "./Map";
 
 export function enableRTL() {
   // Prevent this from running server side
@@ -229,7 +230,7 @@ export function displayWebGLContextLostWarning(container: HTMLElement | string) 
 
 /**
  * Return true if the provided piece of style expression has the form ["get", "name:XX"]
- * with XX benig a 2-letter is code for languages
+ * with XX being a 2-letter is code for languages
  */
 function isGetNameLanguage(subExpr: unknown): boolean {
   if (!Array.isArray(subExpr)) return false;
@@ -242,14 +243,14 @@ function isGetNameLanguage(subExpr: unknown): boolean {
 }
 
 /**
- * In a text-field style property (as an object, not a string) the langages that are specified as
+ * In a text-field style property (as an object, not a string) the languages that are specified as
  * ["get", "name:XX"] are replaced by the proved replacer (also an object).
  * This replacement happened regardless of how deep in the object the flag is.
  * Note that it does not replace the occurences of ["get", "name"] (local names)
  */
 export function changeFirstLanguage(
   origExpr: maplibregl.ExpressionSpecification,
-  replacer: maplibregl.ExpressionSpecification | string,
+  replacer: maplibregl.ExpressionSpecification,
 ): maplibregl.ExpressionSpecification {
   const expr = structuredClone(origExpr) as maplibregl.ExpressionSpecification;
 
@@ -265,12 +266,17 @@ export function changeFirstLanguage(
     }
   };
 
+  // The provided expression could be directly a ["get", "name:xx"]
+  if (isGetNameLanguage(expr)) {
+    return replacer;
+  }
+
   exploreNode(expr);
   return expr;
 }
 
 /**
- * Tst if a string matches the pattern "{name:xx}" in a exact way or is a loose way (such as "foo {name:xx}")
+ * Test if a string matches the pattern "{name:xx}" in a exact way or is a loose way (such as "foo {name:xx}")
  */
 export function checkNamePattern(str: string): { contains: boolean; exactMatch: boolean } {
   const regex = /\{name:\S+\}/;
@@ -295,4 +301,139 @@ export function replaceLanguage(
 
   const expr = ["concat", ...allElements] as maplibregl.ExpressionSpecification;
   return expr;
+}
+
+
+/**
+ * Find languages used in string label definition.
+ * The returned array contains languages such as "en", "fr" but
+ * can also contain null that stand for the use of {name}
+ */
+export function findLanguageStr(str: string): Array<string | null> {
+  const regex = /\{name(?:\:(?<language>\S+))?\}/g;
+  const languageUsed = [] as Array<string | null>;
+
+  while (true) {
+    const match = regex.exec(str);
+    if (!match) break;
+
+    // The is a match
+    const language = match.groups?.language ?? null;
+
+    // The language is non-null if provided {name:xx}
+    // but if provided {name} then language will be null
+    languageUsed.push(language);
+  }
+  return languageUsed;
+}
+
+
+function isGetNameLanguageAndFind(subExpr: unknown): {isLanguage: boolean, localization: string | null} | null {
+  // Not language expression
+  if (!Array.isArray(subExpr)) return null
+  if (subExpr.length !== 2) return null;
+  if (subExpr[0] !== "get") return null;
+  if (typeof subExpr[1] !== "string") return null;
+
+  // Is non localized language
+  if (subExpr[1].trim() === "name") {
+    return {
+      isLanguage: true,
+      localization: null,
+    };
+  }
+
+  // Is a localized language
+  if (subExpr[1].trim().startsWith("name:")) {
+    return {
+      isLanguage: true,
+      localization: subExpr[1].trim().split(":").pop() as string,
+    }
+  }
+
+  return null;
+}
+
+
+/**
+ * Find languages used in object label definition.
+ * The returned array contains languages such as "en", "fr" but
+ * can also contain null that stand for the use of {name}
+ */
+export function findLanguageObj(origExpr: maplibregl.ExpressionSpecification): Array<string | null> {
+  const languageUsed = [] as Array<string | null>;
+  const expr = structuredClone(origExpr) as maplibregl.ExpressionSpecification;
+
+  const exploreNode = (subExpr: maplibregl.ExpressionSpecification | string | Array<maplibregl.ExpressionSpecification | string>) => {
+    if (typeof subExpr === "string") return;
+
+    for (let i = 0; i < subExpr.length; i += 1) {
+      const result = isGetNameLanguageAndFind(subExpr[i]);
+      if (result) {
+        languageUsed.push(result.localization);
+      } else {
+        exploreNode(subExpr[i] as maplibregl.ExpressionSpecification | string);
+      }
+    }
+  };
+
+  exploreNode([expr]);
+  return languageUsed;
+}
+
+
+export function computeLabelsLocalizationMetrics(layers: maplibregl.LayerSpecification[], map: MapSDK): {unlocalized: number, localized: {[k: string]: number}} {
+  const languages: Array<string | null>[]  = [];
+
+  for (const genericLayer of layers) {
+    // Only symbole layer can have a layout with text-field
+    if (genericLayer.type !== "symbol") {
+      continue;
+    }
+
+    const layer = genericLayer as SymbolLayerSpecification;
+    const { id, layout } = layer;
+
+    if (!layout) {
+      continue;
+    }
+
+    if (!("text-field" in layout)) {
+      continue;
+    }
+
+    const textFieldLayoutProp: string | maplibregl.ExpressionSpecification = map.getLayoutProperty(id, "text-field");
+
+    if (!textFieldLayoutProp) {
+      continue;
+    }
+
+    if (typeof textFieldLayoutProp === "string") {
+      const l = findLanguageStr(textFieldLayoutProp);
+      languages.push(l);
+    } else {
+      const l = findLanguageObj(textFieldLayoutProp);
+      languages.push(l);
+    }
+  }
+
+  const flatLanguages = languages.flat();
+  const localizationMetrics: {unlocalized: number, localized: {[k: string]: number}} = {
+    unlocalized: 0,
+    localized: {},
+  };
+
+  for (const lang of flatLanguages) {
+    if (lang === null) {
+      localizationMetrics.unlocalized += 1;
+    } else {
+      if (!(lang in localizationMetrics.localized)) {
+        localizationMetrics.localized[lang] = 0;
+      }
+      localizationMetrics.localized[lang] += 1;
+    }
+    
+  }
+  console.log(localizationMetrics);
+  return localizationMetrics;
 }
