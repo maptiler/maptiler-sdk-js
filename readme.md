@@ -51,24 +51,25 @@ const mapContainer = document.getElementById('my-container-div');
 const map = new maptilersdk.Map({
   container: mapContainer,
 });
+```
 
 Alternatively, the `apiKey` can be set as Map option instead of in the `config` object. Yet, this will still internally propagate to the `config` object:
 ```ts
 import * as maptilersdk from '@maptiler/sdk';
-```
 
 // Let's say you have a DIV ready to receive a map
 const mapContainer = document.getElementById('my-container-div');
 
-  // Instantiate the map
-  const map = new maptilersdk.Map({
-    container: mapContainer,
-    apiKey: 'YOUR_API_KEY'
-  });
+// Instantiate the map
+const map = new maptilersdk.Map({
+  container: mapContainer,
+  apiKey: 'YOUR_API_KEY'
+});
+```
 
 By default, the map will be initialized with the style [streets-v2](https://www.maptiler.com/maps/#style=streets-v2).
 
-Depending on the framework and environment you are using for your application, you will have to also include the CSS file. 
+Depending on the framework and environment you are using for your application, you will have to also include the CSS file.
 
 For example, with a [NextJS](https://nextjs.org/) app, this can take place at the top of the file `_app.ts/js`:
 ```ts
