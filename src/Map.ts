@@ -1084,8 +1084,6 @@ export class Map extends maplibregl.Map {
     if (firstPassOnStyle) {
       const labelsLocalizationMetrics = computeLabelsLocalizationMetrics(layers, this);
       this.isStyleLocalized = Object.keys(labelsLocalizationMetrics.localized).length > 0;
-      console.log("this.isStyleLocalized", this.isStyleLocalized);
-      
     }
 
     for (const genericLayer of layers) {
@@ -1139,7 +1137,12 @@ export class Map extends maplibregl.Map {
 
       // Testing the different case where the text-field property should NOT be updated:
       if (typeof textFieldLayoutProp === "string") {
-        const { contains, exactMatch } = checkNamePattern(textFieldLayoutProp);
+        // When the original style is localized (this.isStyleLocalized is true), we do not modify the {name} because they are
+        // very likely to be only fallbacks.
+        // When the original style is not localized (this.isStyleLocalized is false), the occurences of "{name}"
+        // should be replaced by localized versions with fallback to local language.
+
+        const { contains, exactMatch } = checkNamePattern(textFieldLayoutProp, this.isStyleLocalized);
 
         // If the current text-fiels does not contain any "{name:xx}" pattern
         if (!contains) continue;
@@ -1148,10 +1151,10 @@ export class Map extends maplibregl.Map {
         if (exactMatch) {
           this.setLayoutProperty(id, "text-field", replacer);
         } else {
-          // In case of a non-exact match (such as "foo {name:xx} bar")
+          // In case of a non-exact match (such as "foo {name:xx} bar" or "foo {name} bar", depending on localization)
           // we create a "concat" object expresion composed of the original elements with new replacer
           // in-betweem
-          const newReplacer = replaceLanguage(textFieldLayoutProp, replacer);
+          const newReplacer = replaceLanguage(textFieldLayoutProp, replacer, this.isStyleLocalized);
 
           this.setLayoutProperty(id, "text-field", newReplacer);
         }
@@ -1159,7 +1162,7 @@ export class Map extends maplibregl.Map {
 
       // The value of text-field is an object
       else {
-        const newReplacer = changeFirstLanguage(textFieldLayoutProp, replacer);
+        const newReplacer = changeFirstLanguage(textFieldLayoutProp, replacer, this.isStyleLocalized);
         this.setLayoutProperty(id, "text-field", newReplacer);
       }
     }

@@ -4,7 +4,7 @@ import { defaults } from "./defaults";
 import { config } from "./config";
 import { MAPTILER_SESSION_ID } from "./config";
 import { localCacheTransformRequest } from "./caching";
-import { Map as MapSDK } from "./Map";
+import type { Map as MapSDK } from "./Map";
 
 export function enableRTL() {
   // Prevent this from running server side
@@ -232,12 +232,13 @@ export function displayWebGLContextLostWarning(container: HTMLElement | string) 
  * Return true if the provided piece of style expression has the form ["get", "name:XX"]
  * with XX being a 2-letter is code for languages
  */
-function isGetNameLanguage(subExpr: unknown): boolean {
+function isGetNameLanguage(subExpr: unknown, localized: boolean): boolean {
   if (!Array.isArray(subExpr)) return false;
   if (subExpr.length !== 2) return false;
   if (subExpr[0] !== "get") return false;
   if (typeof subExpr[1] !== "string") return false;
-  if (!subExpr[1].startsWith("name:")) return false;
+  if (localized && !subExpr[1].startsWith("name:")) return false;
+  if (!localized && subExpr[1] !== "name") return false;
 
   return true;
 }
@@ -251,6 +252,7 @@ function isGetNameLanguage(subExpr: unknown): boolean {
 export function changeFirstLanguage(
   origExpr: maplibregl.ExpressionSpecification,
   replacer: maplibregl.ExpressionSpecification,
+  localized: boolean,
 ): maplibregl.ExpressionSpecification {
   const expr = structuredClone(origExpr) as maplibregl.ExpressionSpecification;
 
@@ -258,7 +260,7 @@ export function changeFirstLanguage(
     if (typeof subExpr === "string") return;
 
     for (let i = 0; i < subExpr.length; i += 1) {
-      if (isGetNameLanguage(subExpr[i])) {
+      if (isGetNameLanguage(subExpr[i], localized)) {
         subExpr[i] = structuredClone(replacer);
       } else {
         exploreNode(subExpr[i] as maplibregl.ExpressionSpecification | string);
@@ -267,7 +269,7 @@ export function changeFirstLanguage(
   };
 
   // The provided expression could be directly a ["get", "name:xx"]
-  if (isGetNameLanguage(expr)) {
+  if (isGetNameLanguage(expr, localized)) {
     return replacer;
   }
 
@@ -276,10 +278,12 @@ export function changeFirstLanguage(
 }
 
 /**
- * Test if a string matches the pattern "{name:xx}" in a exact way or is a loose way (such as "foo {name:xx}")
+ * If `localized` is `true`, it checks for the pattern "{name:xx}" (with "xx" being a language iso string).
+ * If `localized` is `false`, it check for {name}.
+ * In a exact way or is a loose way (such as "foo {name:xx}" or "foo {name} bar")
  */
-export function checkNamePattern(str: string): { contains: boolean; exactMatch: boolean } {
-  const regex = /\{name:\S+\}/;
+export function checkNamePattern(str: string, localized: boolean): { contains: boolean; exactMatch: boolean } {
+  const regex = localized ? /\{name:\S+\}/ : /\{name\}/;
   return {
     contains: regex.test(str),
     exactMatch: new RegExp(`^${regex.source}$`).test(str),
@@ -292,8 +296,10 @@ export function checkNamePattern(str: string): { contains: boolean; exactMatch: 
 export function replaceLanguage(
   origLang: string,
   newLang: maplibregl.ExpressionSpecification,
+  localized: boolean,
 ): maplibregl.ExpressionSpecification {
-  const elementsToConcat = origLang.split(/\{name:\S+\}/);
+  const regex = localized ? /\{name:\S+\}/ : /\{name\}/;
+  const elementsToConcat = origLang.split(regex);
 
   const allElements = elementsToConcat.flatMap((item, i) =>
     i === elementsToConcat.length - 1 ? [item] : [item, newLang],
@@ -302,7 +308,6 @@ export function replaceLanguage(
   const expr = ["concat", ...allElements] as maplibregl.ExpressionSpecification;
   return expr;
 }
-
 
 /**
  * Find languages used in string label definition.
@@ -327,10 +332,9 @@ export function findLanguageStr(str: string): Array<string | null> {
   return languageUsed;
 }
 
-
-function isGetNameLanguageAndFind(subExpr: unknown): {isLanguage: boolean, localization: string | null} | null {
+function isGetNameLanguageAndFind(subExpr: unknown): { isLanguage: boolean; localization: string | null } | null {
   // Not language expression
-  if (!Array.isArray(subExpr)) return null
+  if (!Array.isArray(subExpr)) return null;
   if (subExpr.length !== 2) return null;
   if (subExpr[0] !== "get") return null;
   if (typeof subExpr[1] !== "string") return null;
@@ -348,12 +352,11 @@ function isGetNameLanguageAndFind(subExpr: unknown): {isLanguage: boolean, local
     return {
       isLanguage: true,
       localization: subExpr[1].trim().split(":").pop() as string,
-    }
+    };
   }
 
   return null;
 }
-
 
 /**
  * Find languages used in object label definition.
@@ -364,7 +367,9 @@ export function findLanguageObj(origExpr: maplibregl.ExpressionSpecification): A
   const languageUsed = [] as Array<string | null>;
   const expr = structuredClone(origExpr) as maplibregl.ExpressionSpecification;
 
-  const exploreNode = (subExpr: maplibregl.ExpressionSpecification | string | Array<maplibregl.ExpressionSpecification | string>) => {
+  const exploreNode = (
+    subExpr: maplibregl.ExpressionSpecification | string | Array<maplibregl.ExpressionSpecification | string>,
+  ) => {
     if (typeof subExpr === "string") return;
 
     for (let i = 0; i < subExpr.length; i += 1) {
@@ -381,9 +386,11 @@ export function findLanguageObj(origExpr: maplibregl.ExpressionSpecification): A
   return languageUsed;
 }
 
-
-export function computeLabelsLocalizationMetrics(layers: maplibregl.LayerSpecification[], map: MapSDK): {unlocalized: number, localized: {[k: string]: number}} {
-  const languages: Array<string | null>[]  = [];
+export function computeLabelsLocalizationMetrics(
+  layers: maplibregl.LayerSpecification[],
+  map: MapSDK,
+): { unlocalized: number; localized: { [k: string]: number } } {
+  const languages: Array<string | null>[] = [];
 
   for (const genericLayer of layers) {
     // Only symbole layer can have a layout with text-field
@@ -418,7 +425,7 @@ export function computeLabelsLocalizationMetrics(layers: maplibregl.LayerSpecifi
   }
 
   const flatLanguages = languages.flat();
-  const localizationMetrics: {unlocalized: number, localized: {[k: string]: number}} = {
+  const localizationMetrics: { unlocalized: number; localized: { [k: string]: number } } = {
     unlocalized: 0,
     localized: {},
   };
@@ -432,8 +439,6 @@ export function computeLabelsLocalizationMetrics(layers: maplibregl.LayerSpecifi
       }
       localizationMetrics.localized[lang] += 1;
     }
-    
   }
-  console.log(localizationMetrics);
   return localizationMetrics;
 }
