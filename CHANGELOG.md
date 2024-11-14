@@ -1,8 +1,12 @@
 # MapTiler SDK Changelog
 
 ## NEXT
+### New Features
+- New `MaptilerProjectionControl`  to toggle globe/Mercator projection
+
 ### Bug Fixes
 - Navigation now relies on `Map` methods instead of `Transform` methods for bearing due to globe projection being available
+
 
 
 ## 2.4.0

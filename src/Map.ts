@@ -37,6 +37,7 @@ import { FullscreenControl } from "./MLAdapters/FullscreenControl";
 import Minimap from "./Minimap";
 import type { MinimapOptionsInput } from "./Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
+import { MaptilerProjectionControl } from "./MaptilerProjectionControl";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -61,6 +62,12 @@ type MapTerrainDataEvent = MapDataEvent & {
   sourceId: string;
   source: RasterDEMSourceSpecification;
 };
+
+/**
+ * The type of projection, `undefined` means it's decided by the style and if the style does not contain any projection info,
+ * if falls back to the default Mercator
+ */
+export type ProjectionTypes = "mercator" | "globe" | undefined;
 
 /**
  * Options to provide to the `Map` constructor
@@ -170,6 +177,17 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * Default: `false`
    */
   geolocate?: (typeof GeolocationType)[keyof typeof GeolocationType] | boolean;
+
+  /**
+   * Show the projection control. (default: `false`, will show if `true`)
+   */
+  projectionControl?: boolean | ControlPosition;
+
+  /**
+   * Whether the projection should be "mercator" or "globe".
+   * If not provided, the style takes precedence. If provided, overwrite the style.
+   */
+  projection?: ProjectionTypes;
 };
 
 /**
@@ -189,6 +207,7 @@ export class Map extends maplibregl.Map {
   private terrainAnimationDuration = 1000;
   private monitoredStyleUrls!: Set<string>;
   private styleInProcess = false;
+  private curentProjection: ProjectionTypes = undefined;
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -305,6 +324,19 @@ export class Map extends maplibregl.Map {
       this.primaryLanguage === Language.STYLE || this.primaryLanguage === Language.STYLE_LOCK ? false : true;
     this.languageAlwaysBeenStyle = this.primaryLanguage === Language.STYLE;
     this.terrainExaggeration = options.terrainExaggeration ?? this.terrainExaggeration;
+
+    this.curentProjection = options.projection;
+
+    // Managing the type of projection and persist if not present in style
+    this.on("styledata", () => {
+      if (this.curentProjection === "mercator") {
+        this.setProjection({ type: "mercator" });
+      } else if (this.curentProjection === "globe") {
+        this.setProjection({ type: "globe" });
+        // @ts-ignore
+        this.transform.setGlobeViewAllowed(true, true); // the first `true` means globe
+      }
+    });
 
     // Map centering and geolocation
     this.once("styledata", async () => {
@@ -506,6 +538,16 @@ export class Map extends maplibregl.Map {
           options.terrainControl === true || options.terrainControl === undefined ? "top-right" : options.terrainControl
         ) as ControlPosition;
         this.addControl(new MaptilerTerrainControl(), position);
+      }
+
+      if (options.projectionControl) {
+        // default position, if not provided, is top left corner
+        const position = (
+          options.projectionControl === true || options.projectionControl === undefined
+            ? "top-right"
+            : options.projectionControl
+        ) as ControlPosition;
+        this.addControl(new MaptilerProjectionControl(), position);
       }
 
       // By default, no fullscreen control
@@ -1429,5 +1471,61 @@ export class Map extends maplibregl.Map {
   override setTransformRequest(transformRequest: RequestTransformFunction): this {
     super.setTransformRequest(combineTransformRequest(transformRequest));
     return this;
+  }
+
+  /**
+   * Returns whether a globe projection is currently being used
+   */
+  isGlobeProjection(): boolean {
+    const projection = this.getProjection();
+    if (!projection) return false;
+    // @ts-ignore
+    return projection.type === "globe" && this.transform.getGlobeViewAllowed();
+  }
+
+  /**
+   * Uses the globe projection. Animated by default, it can be disabled
+   */
+  enableGlobeProjection(animate: boolean = true) {
+    if (this.isGlobeProjection()) return;
+
+    // From Mercator to Globe
+    this.setProjection({ type: "globe" });
+
+    if (animate) {
+      // @ts-ignore
+      this.transform.setGlobeViewAllowed(false, true); // the `false` means mercator
+
+      this.once("projectiontransition", () => {
+        // @ts-ignore
+        this.transform.setGlobeViewAllowed(true, true);
+      });
+    } else {
+      // @ts-ignore
+      this.transform.setGlobeViewAllowed(true, true);
+    }
+
+    this.curentProjection = "globe";
+  }
+
+  /**
+   * Uses the Mercator projection. Animated by default, it can be disabled
+   */
+  enableMercatorProjection(animate: boolean = true) {
+    if (!this.isGlobeProjection()) return;
+
+    if (animate) {
+      // From Globe to Mercator
+      this.setProjection({ type: "globe" });
+      // @ts-ignore
+      this.transform.setGlobeViewAllowed(false, true);
+      this.once("projectiontransition", () => {
+        this.setProjection({ type: "mercator" });
+      });
+    } else {
+      this.setProjection({ type: "mercator" });
+    }
+
+    this.curentProjection = "mercator";
   }
 }
