@@ -47,7 +47,7 @@ maptilersdk.config.apiKey = 'YOUR_API_KEY';
 // Let's say you have a DIV ready to receive a map
 const mapContainer = document.getElementById('my-container-div');
 
-// Instanciate the map
+// Instantiate the map
 const map = new maptilersdk.Map({
   container: mapContainer,
 });
@@ -60,16 +60,16 @@ import * as maptilersdk from '@maptiler/sdk';
 // Let's say you have a DIV ready to receive a map
 const mapContainer = document.getElementById('my-container-div');
 
-// Instanciate the map
+// Instantiate the map
 const map = new maptilersdk.Map({
   container: mapContainer,
-  apiKey: 'YOUR_API_KEY';
+  apiKey: 'YOUR_API_KEY'
 });
 ```
 
 By default, the map will be initialized with the style [streets-v2](https://www.maptiler.com/maps/#style=streets-v2).
 
-Depending on the framework and environment you are using for your application, you will have to also include the CSS file. 
+Depending on the framework and environment you are using for your application, you will have to also include the CSS file.
 
 For example, with a [NextJS](https://nextjs.org/) app, this can take place at the top of the file `_app.ts/js`:
 ```ts
@@ -79,7 +79,7 @@ import "@maptiler/sdk/dist/maptiler-sdk.css";
 ### TypeScript
 The SDK is fully typed, but it may happen that types defined in Maplibre GL JS are not visible in your project. This is a known issue that comes from Maplibre being a CommonJS bundle.
 
-There are mainly two ways to addess this issue and access to the complete type definition.
+There are mainly two ways to address this issue and access to the complete type definition.
 
 1. **With `esModuleInterop`**  
 
@@ -237,7 +237,7 @@ All reference styles (instances of `ReferenceMapStyle`) and style variants (inst
 ___
 
 
-Still, you can still use some classic styles with just a *string* if you know their MapTiler Cloud ID:
+You can also use classic styles with just a *string* if you know their MapTiler Cloud ID:
 
 ```ts
 map.setStyle('outdoor-v2');
@@ -406,7 +406,7 @@ The `geolocation` options will not be taken into consideration in the following 
 
 > 📣 *__Note:__* if none of the options `center` or `hash` is provided to the `Map` constructor, then the map will be centered using the `POINT` strategy, unless the `geolocate` has the value `false`.
 
-> 📣 *__Note 2:__* the term *IP geolocation* refers to finding the physical location of a computer using its *IP address*. The *IP address* is a numerical identifier of a computer within a network, just like the phone number for a telephone. The *IP geolocation* is **not** using the GPS of a device and usually provides a precision in the order of a few hundred meters. This precision may vary based on many local parameters such as the density of the network grid or the terrain, this is why it is generaly better not to use a zoom level higher than `14`.
+> 📣 *__Note 2:__* the term *IP geolocation* refers to finding the physical location of a computer using its *IP address*. The *IP address* is a numerical identifier of a computer within a network, just like the phone number for a telephone. The *IP geolocation* is **not** using the GPS of a device and usually provides a precision in the order of a few hundred meters. This precision may vary based on many local parameters such as the density of the network grid or the terrain, this is why it is generally better not to use a zoom level higher than `14`.
 
 # Easy to add controls
 The term "control" is commonly used for all sorts of buttons and information displays that take place in one of the corners of the map area. The most well-known are probably the `[+]` and `[-]` zoom buttons as well as the attribution information. Plenty of others are possible and we have made a few easy to add and directly accessible from the `Map` constructor options:
@@ -483,7 +483,7 @@ Or simply disable it:
 map.disableTerrain()
 ```
 
-> 📣 *__Note:__* Keep in mind that setting an exaggeration factor at `0` will result in a the same result as disabling the elevation but that terrain RGB tiles will still be fetched in the background.
+> 📣 *__Note:__* Keep in mind that setting an exaggeration factor at `0` will result in the same result as disabling the elevation but that terrain RGB tiles will still be fetched in the background.
 
 > 📣 *__Note 2:__* please be aware that due to the volume and elevation of the map floor in 3D space, the navigation with the terrain enabled is slightly different than without.
 
@@ -505,7 +505,7 @@ map.on("terrain", (e) => {
 })
 ```
 
-Since MapTiler SDK adds animation and the terrain data is necessary all along, the `"terrain"` event will be called at the very begining of the terrain animation when enabling and at the very end when disabling.
+Since MapTiler SDK adds animation and the terrain data is necessary all along, the `"terrain"` event will be called at the very beginning of the terrain animation when enabling and at the very end when disabling.
 
 - `"terrainAnimationStart"` and `"terrainAnimationStop"` events  
 
@@ -521,7 +521,7 @@ map.on("terrainAnimationStop", (event) => {
 });
 ```
 
-The `event` argument is an object that contains (amond other things) a `terrain` attribute. In the case of `"terrainAnimationStop"`, this terrain attribute is `null` if the animation was about disabling the terrain, otherwise, this is just a propagation of `map.terrain`.
+The `event` argument is an object that contains (among other things) a `terrain` attribute. In the case of `"terrainAnimationStop"`, this terrain attribute is `null` if the animation was about disabling the terrain, otherwise, this is just a propagation of `map.terrain`.
 
 In the following example, we decide to associate the terrain animation with a change of camera, e.g. from clicking on the terrain control:
 - when the terrain is enabled, it pops up with an animation and only **then** the camera is animated to take a lower point of view
@@ -584,13 +584,38 @@ Whenever a label is not supported in the defined language, it falls back to `Lan
 Here is a sample of some compatible languages:
 ![](images/screenshots/multilang.gif)
 
-# Built-in support for right-to-left languages
+## Built-in support for right-to-left languages
 Languages that are written right-to-left such as Arabic and Hebrew are fully supported by default. No need to install any plugins!
 
 <p align="center">
   <img src="images/screenshots/lang-arabic.jpeg" width="48%"></img>
   <img src="images/screenshots/lang-hebrew.jpeg" width="48%"></img>
 </p>
+
+## Visitor language modes
+The *visitor* language modes are special built-in modes made to display labels in two different languages, concatenated when available:
+- `Language.VISITOR` concatenates labels in the language of your system and the *local* language
+- `Language.VISITOR_ENGLISH` concatenates labels in English and the *local* language
+
+```ts
+const map = new Map({
+  // some options...
+  language: Language.VISITOR,
+})
+
+// or
+
+const map = new Map({
+  // some options...
+  language: Language.VISITOR_ENGLISH,
+})
+```
+
+We believe these two modes can be very handy to help the end users identify places, especially when the local labels are not using a latin charset. Here is how it looks like:
+
+![](images/screenshots/visitor_athen.png)
+![](images/screenshots/visitor_osaka.png)
+
 
 # Custom Events and Map Lifecycle
 ## Events
@@ -632,7 +657,7 @@ function init() {
   });
 
   // We wait for the event.
-  // Once triggered, the callback is ranin it's own scope.
+  // Once triggered, the callback is ran in its own scope.
   map.on("load", (evt) => {
     // Adding a data source
     map.addSource('my-gps-track-source', {
@@ -724,7 +749,7 @@ function init() {
   });
 
   // We wait for the event.
-  // Once triggered, the callback is ranin it's own scope.
+  // Once triggered, the callback is ran in its own scope.
   map.on("ready", (evt) => {
     // Adding a data source
     map.addSource('my-gps-track-source', {
@@ -762,9 +787,9 @@ We believe that the *promise* approach is better because it does not nest scopes
 > 📣 *__Note:__* Generally speaking, *promises* are not a go to replacement for all event+callback and are suitable only for events that are called only once in the lifecycle of a Map instance. This is the reason why we have decided to provide a *promise* equivalent only for the `load`, `ready` and `loadWithTerrain` events but not for events that may be called multiple time such as interaction events.
 
 ### The `webglContextLost` event
-The maps is rendered with WebGL, that leverages the GPU to provide high-performance graphics. In some cases, the host machine, operating system or the graphics driver, can decide that continuing to run such high performance graphics is unsustainable, and will abort the process. This is called a "WebGL context loss". Such situation happens when the ressources are running low or when multiple browser tabs are competing to access graphics memory.  
+The map is rendered with WebGL, that leverages the GPU to provide high-performance graphics. In some cases, the host machine, operating system or the graphics driver, can decide that continuing to run such high performance graphics is unsustainable, and will abort the process. This is called a "WebGL context loss". Such situation happens when the resources are running low or when multiple browser tabs are competing to access graphics memory.
 
-The best course of action in such situation varies from an app to another. Sometimes a page refresh is the best thing to do, in other cases, instantiating a new Map dynmicaly at application level is more appropriate because it hides a technical failure to the end user. The event `webglContextLost` is exposed so that the most appropriate scenario can be implemented at application level.   
+The best course of action in such situation varies from an app to another. Sometimes a page refresh is the best thing to do, in other cases, instantiating a new Map dynamically at application level is more appropriate because it hides a technical failure to the end user. The event `webglContextLost` is exposed so that the most appropriate scenario can be implemented at application level.
 
 Here is how to respond to a WebGL context loss with a simple page refresh:
 ```ts
@@ -855,13 +880,13 @@ maptilersdk.helpers
 
 **Example:** we have a *geoJSON* file that contains both *polygons* and *point* and we use it as the `data` property on the `helpers.addPoint(map, { options })`, this will only add the *points*.
 
-In addition to easy styling, the helper's datasource can be:
+In addition to easy styling, the helpers' datasource can be:
 - a URL to a geoJSON file or its string content
 - a URL to a GPX or KML file (only for the polyline helper) or its string content
 - a UUID of a MapTiler Cloud dataset
 
 ### Multiple Layers
-The key design principle of these vector layer helpers is **it's easy to make what you want**, which is very different from **making MapLibre easier to use**.  
+The key design principle of these vector layer helpers is **it's easy to make what you want**, which is very different from **making MapLibre easier to use**.
 
 > For example, to create a road with an outline, one must draw two layers: a wider base layer and a narrower top layer, fueled by the same polyline data. This requires ordering the layers properly and computing not the width of the outline, but rather the width of the polyline underneath so that it outgrows the top road layer of the desired number of pixels. 
 
@@ -950,13 +975,12 @@ helpers.addPolyline(map, {
 
 Endless possibilities, what about a glowing wire?
 ```ts
-helpers.addPolyline(map, { 
+helpers.addPolyline(map, {
   data: "74003ba7-215a-4b7e-8e26-5bbe3aa70b05",
   lineColor: "#fff",
   lineWidth: 1,
   outline: true,
   outlineColor: "#ca57ff",
-  outlineWidth: 2,
   outlineWidth: 10,
   outlineBlur: 10,
   outlineOpacity: 0.5,
@@ -968,7 +992,7 @@ helpers.addPolyline(map, {
 All the other options are documented on [our reference page](https://docs.maptiler.com/sdk-js/api/helpers/#polyline) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/?q=polyline+helper).
 
 ## Polygon Layer Helper
-The polygon helper makes it easy to create vector layers that contain polygons, whether they are *multi*polylons, *holed*polygons or just simple polygons. Whenever it's possible and it makes sense, we use the same terminology across the different helpers.
+The polygon helper makes it easy to create vector layers that contain polygons, whether they are *multi*polygons, *holed*polygons or just simple polygons. Whenever it's possible and it makes sense, we use the same terminology across the different helpers.
 
 Here is a minimalist example, with a half-transparent polygon of Switzerland, from a local file:
 

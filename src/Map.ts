@@ -1,4 +1,4 @@
-import maplibregl, { AJAXError } from "maplibre-gl";
+import maplibregl from "maplibre-gl";
 import { Base64 } from "js-base64";
 import type {
   StyleSpecification,
@@ -24,7 +24,15 @@ import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
 import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
-import { combineTransformRequest, displayNoWebGlWarning, displayWebGLContextLostWarning } from "./tools";
+import {
+  changeFirstLanguage,
+  checkNamePattern,
+  combineTransformRequest,
+  computeLabelsLocalizationMetrics,
+  displayNoWebGlWarning,
+  displayWebGLContextLostWarning,
+  replaceLanguage,
+} from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
 import { styleToStyle } from "./mapstyle";
 import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
@@ -82,11 +90,12 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   style?: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string;
 
   /**
-   * Define the language of the map. This can be done directly with a language ISO code (eg. "en")
+   * Define the language of the map. This can be done directly with a language ISO code (eg. "en"),
+   * the ISO code prepended with the OSM flag (eg. "name:en" or even just "name"),
    * or with a built-in shorthand (eg. Language.ENGLISH).
    * Note that this is equivalent to setting the `config.primaryLanguage` and will overwrite it.
    */
-  language?: LanguageInfo;
+  language?: LanguageInfo | string;
 
   /**
    * Define the MapTiler Cloud API key to be used. This is strictly equivalent to setting
@@ -208,6 +217,8 @@ export class Map extends maplibregl.Map {
   private monitoredStyleUrls!: Set<string>;
   private styleInProcess = false;
   private curentProjection: ProjectionTypes = undefined;
+  private originalLabelStyle = new window.Map<string, ExpressionSpecification | string>();
+  private isStyleLocalized = false;
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -283,8 +294,8 @@ export class Map extends maplibregl.Map {
 
     // Safeguard for distant styles at non-http 2xx status URLs
     this.on("error", (event) => {
-      if (event.error instanceof AJAXError) {
-        const err = event.error as AJAXError;
+      if (event.error instanceof maplibregl.AJAXError) {
+        const err = event.error as maplibregl.AJAXError;
         const url = err.url;
         const cleanUrl = new URL(url);
         cleanUrl.search = "";
@@ -319,7 +330,13 @@ export class Map extends maplibregl.Map {
       registerLocalCacheProtocol();
     }
 
-    this.primaryLanguage = options.language ?? config.primaryLanguage;
+    if (typeof options.language === "undefined") {
+      this.primaryLanguage = config.primaryLanguage;
+    } else {
+      const providedlanguage = toLanguageInfo(options.language, Language);
+      this.primaryLanguage = providedlanguage ?? config.primaryLanguage;
+    }
+
     this.forceLanguageUpdate =
       this.primaryLanguage === Language.STYLE || this.primaryLanguage === Language.STYLE_LOCK ? false : true;
     this.languageAlwaysBeenStyle = this.primaryLanguage === Language.STYLE;
@@ -765,6 +782,7 @@ export class Map extends maplibregl.Map {
     style: null | ReferenceMapStyle | MapStyleVariant | StyleSpecification | string,
     options?: StyleSwapOptions & StyleOptions,
   ): this {
+    this.originalLabelStyle.clear();
     this.minimap?.setStyle(style);
     this.forceLanguageUpdate = true;
 
@@ -1038,7 +1056,7 @@ export class Map extends maplibregl.Map {
     let langStr = Language.LOCAL.flag;
 
     // will be overwritten below
-    let replacer: ExpressionSpecification | string = `{${langStr}}`;
+    let replacer: ExpressionSpecification = ["get", langStr];
 
     if (languageNonStyle.flag === Language.VISITOR.flag) {
       langStr = getBrowserLanguage().flag;
@@ -1084,22 +1102,31 @@ export class Map extends maplibregl.Map {
       ];
     } else if (languageNonStyle.flag === Language.AUTO.flag) {
       langStr = getBrowserLanguage().flag;
-      replacer = ["case", ["has", langStr], ["get", langStr], ["get", Language.LOCAL.flag]];
+      replacer = ["coalesce", ["get", langStr], ["get", Language.LOCAL.flag]];
     }
 
     // This is for using the regular names as {name}
     else if (languageNonStyle === Language.LOCAL) {
       langStr = Language.LOCAL.flag;
-      replacer = `{${langStr}}`;
+      replacer = ["get", langStr];
     }
 
     // This section is for the regular language ISO codes
     else {
       langStr = languageNonStyle.flag;
-      replacer = ["case", ["has", langStr], ["get", langStr], ["get", Language.LOCAL.flag]];
+      replacer = ["coalesce", ["get", langStr], ["get", Language.LOCAL.flag]];
     }
 
     const { layers } = this.getStyle();
+
+    // True if it's the first time the language is updated for the current style
+    const firstPassOnStyle = this.originalLabelStyle.size === 0;
+
+    // Analisis on all the label layers to check the languages being used
+    if (firstPassOnStyle) {
+      const labelsLocalizationMetrics = computeLabelsLocalizationMetrics(layers, this);
+      this.isStyleLocalized = Object.keys(labelsLocalizationMetrics.localized).length > 0;
+    }
 
     for (const genericLayer of layers) {
       // Only symbole layer can have a layout with text-field
@@ -1137,17 +1164,49 @@ export class Map extends maplibregl.Map {
         continue;
       }
 
-      const textFieldLayoutProp = this.getLayoutProperty(id, "text-field");
+      let textFieldLayoutProp: string | maplibregl.ExpressionSpecification;
 
-      // If the label is not about a name, then we don't translate it
-      if (
-        typeof textFieldLayoutProp === "string" &&
-        (textFieldLayoutProp.toLowerCase().includes("ref") || textFieldLayoutProp.toLowerCase().includes("housenumber"))
-      ) {
-        continue;
+      // Keeping a copy of the text-field sub-object as it is in the original style
+      if (firstPassOnStyle) {
+        textFieldLayoutProp = this.getLayoutProperty(id, "text-field");
+        this.originalLabelStyle.set(id, textFieldLayoutProp);
+      } else {
+        textFieldLayoutProp = this.originalLabelStyle.get(id) as string | maplibregl.ExpressionSpecification;
       }
 
-      this.setLayoutProperty(id, "text-field", replacer);
+      // From this point, the value of textFieldLayoutProp is as in the original version of the style
+      // and never a mofified version
+
+      // Testing the different case where the text-field property should NOT be updated:
+      if (typeof textFieldLayoutProp === "string") {
+        // When the original style is localized (this.isStyleLocalized is true), we do not modify the {name} because they are
+        // very likely to be only fallbacks.
+        // When the original style is not localized (this.isStyleLocalized is false), the occurences of "{name}"
+        // should be replaced by localized versions with fallback to local language.
+
+        const { contains, exactMatch } = checkNamePattern(textFieldLayoutProp, this.isStyleLocalized);
+
+        // If the current text-fiels does not contain any "{name:xx}" pattern
+        if (!contains) continue;
+
+        // In case of an exact match, we replace by an object representation of the label
+        if (exactMatch) {
+          this.setLayoutProperty(id, "text-field", replacer);
+        } else {
+          // In case of a non-exact match (such as "foo {name:xx} bar" or "foo {name} bar", depending on localization)
+          // we create a "concat" object expresion composed of the original elements with new replacer
+          // in-betweem
+          const newReplacer = replaceLanguage(textFieldLayoutProp, replacer, this.isStyleLocalized);
+
+          this.setLayoutProperty(id, "text-field", newReplacer);
+        }
+      }
+
+      // The value of text-field is an object
+      else {
+        const newReplacer = changeFirstLanguage(textFieldLayoutProp, replacer, this.isStyleLocalized);
+        this.setLayoutProperty(id, "text-field", newReplacer);
+      }
     }
   }
 

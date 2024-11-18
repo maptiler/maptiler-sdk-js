@@ -8,6 +8,19 @@
 - Navigation now relies on `Map` methods instead of `Transform` methods for bearing due to globe projection being available
 
 
+## 2.4.2
+### Bug Fixes
+- The language switching is now more robust and preserves the original formatting from the style (`Map.setPrimaryLangage()`) (https://github.com/maptiler/maptiler-sdk-js/pull/134)
+
+### Others
+- Now able to GitHub action a beta on NPM from the GH release creation process
+- Updated GH action to v4
+
+
+## 2.4.1
+### Bug Fixes
+- The class `AJAXError` is now imported as part of the `maplibregl` namespace (CommonJS limitation from Maplibre GL JS) (https://github.com/maptiler/maptiler-sdk-js/pull/129)
+- The `Map` constructor can now also take a language as a string (https://github.com/maptiler/maptiler-sdk-js/pull/131)
 
 ## 2.4.0
 ### New Features
