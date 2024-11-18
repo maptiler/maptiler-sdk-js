@@ -24,7 +24,15 @@ import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
 import { defaults } from "./defaults";
 import { MaptilerLogoControl } from "./MaptilerLogoControl";
-import { combineTransformRequest, displayNoWebGlWarning, displayWebGLContextLostWarning } from "./tools";
+import {
+  changeFirstLanguage,
+  checkNamePattern,
+  combineTransformRequest,
+  computeLabelsLocalizationMetrics,
+  displayNoWebGlWarning,
+  displayWebGLContextLostWarning,
+  replaceLanguage,
+} from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
 import { styleToStyle } from "./mapstyle";
 import { MaptilerTerrainControl } from "./MaptilerTerrainControl";
@@ -190,6 +198,8 @@ export class Map extends maplibregl.Map {
   private terrainAnimationDuration = 1000;
   private monitoredStyleUrls!: Set<string>;
   private styleInProcess = false;
+  private originalLabelStyle = new window.Map<string, ExpressionSpecification | string>();
+  private isStyleLocalized = false;
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -730,6 +740,7 @@ export class Map extends maplibregl.Map {
     style: null | ReferenceMapStyle | MapStyleVariant | StyleSpecification | string,
     options?: StyleSwapOptions & StyleOptions,
   ): this {
+    this.originalLabelStyle.clear();
     this.minimap?.setStyle(style);
     this.forceLanguageUpdate = true;
 
@@ -1003,7 +1014,7 @@ export class Map extends maplibregl.Map {
     let langStr = Language.LOCAL.flag;
 
     // will be overwritten below
-    let replacer: ExpressionSpecification | string = `{${langStr}}`;
+    let replacer: ExpressionSpecification = ["get", langStr];
 
     if (languageNonStyle.flag === Language.VISITOR.flag) {
       langStr = getBrowserLanguage().flag;
@@ -1049,22 +1060,31 @@ export class Map extends maplibregl.Map {
       ];
     } else if (languageNonStyle.flag === Language.AUTO.flag) {
       langStr = getBrowserLanguage().flag;
-      replacer = ["case", ["has", langStr], ["get", langStr], ["get", Language.LOCAL.flag]];
+      replacer = ["coalesce", ["get", langStr], ["get", Language.LOCAL.flag]];
     }
 
     // This is for using the regular names as {name}
     else if (languageNonStyle === Language.LOCAL) {
       langStr = Language.LOCAL.flag;
-      replacer = `{${langStr}}`;
+      replacer = ["get", langStr];
     }
 
     // This section is for the regular language ISO codes
     else {
       langStr = languageNonStyle.flag;
-      replacer = ["case", ["has", langStr], ["get", langStr], ["get", Language.LOCAL.flag]];
+      replacer = ["coalesce", ["get", langStr], ["get", Language.LOCAL.flag]];
     }
 
     const { layers } = this.getStyle();
+
+    // True if it's the first time the language is updated for the current style
+    const firstPassOnStyle = this.originalLabelStyle.size === 0;
+
+    // Analisis on all the label layers to check the languages being used
+    if (firstPassOnStyle) {
+      const labelsLocalizationMetrics = computeLabelsLocalizationMetrics(layers, this);
+      this.isStyleLocalized = Object.keys(labelsLocalizationMetrics.localized).length > 0;
+    }
 
     for (const genericLayer of layers) {
       // Only symbole layer can have a layout with text-field
@@ -1102,17 +1122,49 @@ export class Map extends maplibregl.Map {
         continue;
       }
 
-      const textFieldLayoutProp = this.getLayoutProperty(id, "text-field");
+      let textFieldLayoutProp: string | maplibregl.ExpressionSpecification;
 
-      // If the label is not about a name, then we don't translate it
-      if (
-        typeof textFieldLayoutProp === "string" &&
-        (textFieldLayoutProp.toLowerCase().includes("ref") || textFieldLayoutProp.toLowerCase().includes("housenumber"))
-      ) {
-        continue;
+      // Keeping a copy of the text-field sub-object as it is in the original style
+      if (firstPassOnStyle) {
+        textFieldLayoutProp = this.getLayoutProperty(id, "text-field");
+        this.originalLabelStyle.set(id, textFieldLayoutProp);
+      } else {
+        textFieldLayoutProp = this.originalLabelStyle.get(id) as string | maplibregl.ExpressionSpecification;
       }
 
-      this.setLayoutProperty(id, "text-field", replacer);
+      // From this point, the value of textFieldLayoutProp is as in the original version of the style
+      // and never a mofified version
+
+      // Testing the different case where the text-field property should NOT be updated:
+      if (typeof textFieldLayoutProp === "string") {
+        // When the original style is localized (this.isStyleLocalized is true), we do not modify the {name} because they are
+        // very likely to be only fallbacks.
+        // When the original style is not localized (this.isStyleLocalized is false), the occurences of "{name}"
+        // should be replaced by localized versions with fallback to local language.
+
+        const { contains, exactMatch } = checkNamePattern(textFieldLayoutProp, this.isStyleLocalized);
+
+        // If the current text-fiels does not contain any "{name:xx}" pattern
+        if (!contains) continue;
+
+        // In case of an exact match, we replace by an object representation of the label
+        if (exactMatch) {
+          this.setLayoutProperty(id, "text-field", replacer);
+        } else {
+          // In case of a non-exact match (such as "foo {name:xx} bar" or "foo {name} bar", depending on localization)
+          // we create a "concat" object expresion composed of the original elements with new replacer
+          // in-betweem
+          const newReplacer = replaceLanguage(textFieldLayoutProp, replacer, this.isStyleLocalized);
+
+          this.setLayoutProperty(id, "text-field", newReplacer);
+        }
+      }
+
+      // The value of text-field is an object
+      else {
+        const newReplacer = changeFirstLanguage(textFieldLayoutProp, replacer, this.isStyleLocalized);
+        this.setLayoutProperty(id, "text-field", newReplacer);
+      }
     }
   }
 
