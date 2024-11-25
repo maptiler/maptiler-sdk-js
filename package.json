@@ -1,6 +1,6 @@
 {
   "name": "@maptiler/sdk",
-  "version": "3.0.0-rc.1",
+  "version": "3.0.0-rc.2",
   "description": "The Javascript & TypeScript map SDK tailored for MapTiler Cloud",
   "module": "dist/maptiler-sdk.mjs",
   "types": "dist/maptiler-sdk.d.ts",
@@ -61,11 +61,11 @@
     "vitest": "^0.34.2"
   },
   "dependencies": {
-    "@maplibre/maplibre-gl-style-spec": "^21.0.0",
-    "@maptiler/client": "^2.0.0",
+    "@maplibre/maplibre-gl-style-spec": "^22.0.0",
+    "@maptiler/client": "^2.2.0",
     "events": "^3.3.0",
     "js-base64": "^3.7.4",
-    "maplibre-gl": "5.0.0-pre.6",
+    "maplibre-gl": "^5.0.0-pre.7",
     "uuid": "^9.0.0"
   }
 }
