@@ -1,6 +1,6 @@
 {
   "name": "@maptiler/sdk",
-  "version": "2.4.2",
+  "version": "2.5.0",
   "description": "The Javascript & TypeScript map SDK tailored for MapTiler Cloud",
   "module": "dist/maptiler-sdk.mjs",
   "types": "dist/maptiler-sdk.d.ts",
@@ -62,7 +62,7 @@
   },
   "dependencies": {
     "@maplibre/maplibre-gl-style-spec": "^20.3.1",
-    "@maptiler/client": "^2.0.0",
+    "@maptiler/client": "^2.2.0",
     "events": "^3.3.0",
     "js-base64": "^3.7.4",
     "maplibre-gl": "4.7.1",
