@@ -2,7 +2,7 @@
 
 ## 2.5.1
 ### Bug Fixes
-- Better control of the status of `monitoredStyleUrls` in Map instance when error is caught
+- Better control of the status of `monitoredStyleUrls` in Map instance when error is caught (https://github.com/maptiler/maptiler-sdk-js/pull/141)
 
 ## 2.5.0
 ### others
