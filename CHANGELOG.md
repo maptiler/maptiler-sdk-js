@@ -2,7 +2,7 @@
 
 ## 2.5.1
 ### Bug Fixes
-- Added extra integrity checks on style object when updating language
+- Added extra integrity checks on style object when updating language (https://github.com/maptiler/maptiler-sdk-js/pull/142)
 
 ## 2.5.0
 ### others
