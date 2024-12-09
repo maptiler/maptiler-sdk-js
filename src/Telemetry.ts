@@ -1,0 +1,83 @@
+import type { Map as MapSDK } from "./Map";
+import { config, MAPTILER_SESSION_ID } from "./config";
+import { defaults } from "./defaults";
+import packagejson from "../package.json";
+
+/**
+ * A Telemetry instance sends some usage and merics to a dedicated endpoint at MapTiler Cloud.
+ */
+export class Telemetry {
+  private map: MapSDK;
+  private registeredModules: Array<{ name: string; version: string }> = [];
+
+  /**
+   *
+   * @param map : a Map instance
+   * @param delay : a delay in milliseconds after which the payload is sent to MapTiler cloud (cannot be less than 1000ms)
+   */
+  constructor(map: MapSDK, delay: number = 2000) {
+    this.map = map;
+
+    setTimeout(
+      () => {
+        if (!config.telemetry) {
+          return;
+        }
+
+        const endpointURL = this.preparePayload();
+        console.log(endpointURL);
+      },
+      Math.max(1000, delay),
+    );
+  }
+
+  /**
+   * Register a module to the telemetry system of the SDK.
+   * The arguments `name` and `version` likely come from the package.json
+   * of each module.
+   */
+  registerModule(name: string, version: string) {
+    this.registeredModules.push({ name, version });
+  }
+
+  private preparePayload(): string {
+    const telemetryUrl = new URL(defaults.telemetryURL);
+
+    // Adding the version of the SDK
+    telemetryUrl.searchParams.append("sdk", packagejson.version);
+
+    // Adding the API key
+    telemetryUrl.searchParams.append("key", config.apiKey);
+
+    // Adding MapTiler Cloud session ID
+    telemetryUrl.searchParams.append("mtsid", MAPTILER_SESSION_ID);
+
+    // Is the app using session?
+    telemetryUrl.searchParams.append("session", config.session ? "1" : "0");
+
+    // Is the app using tile caching?
+    telemetryUrl.searchParams.append("caching", config.caching ? "1" : "0");
+
+    // Is the langauge updated from the original style?
+    telemetryUrl.searchParams.append("lang-updated", this.map.isLanguageUpdated() ? "1" : "0");
+
+    // Is terrain enabled?
+    telemetryUrl.searchParams.append("terrain", this.map.getTerrain() ? "1" : "0");
+
+    // Is globe enabled?
+    telemetryUrl.searchParams.append("globe", this.map.isGlobeProjection() ? "1" : "0");
+
+    // Adding the modules
+    // the list of modules are separated by a "|". For each module, a "*" is used to separate the name and the version:
+    // "@maptiler/module-foo*1.1.0|@maptiler/module-bar*3.4.0|@maptiler/module-baz*9.0.3|@maptiler/module-quz*0.0.2-rc.1"
+    // then the `.append()` function is in charge of URL-encoding the argument
+    if (this.registeredModules.length) {
+      telemetryUrl.searchParams.append(
+        "modules",
+        this.registeredModules.map((module) => `${module.name}*${module.version}`).join("|"),
+      );
+    }
+
+    return telemetryUrl.href;
+  }
+}
