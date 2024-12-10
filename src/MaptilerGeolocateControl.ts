@@ -167,6 +167,9 @@ export class MaptilerGeolocateControl extends GeolocateControl {
     }
   };
 
+  // We are overwriting the method _setErrorState from Maplibre's GeolocateControl because the
+  // case BACKGROUND_ERROR is not dealt with in the original function and yields an error.
+  // Related issue: https://github.com/maplibre/maplibre-gl-js/issues/2294
   _setErrorState() {
     switch (this._watchState) {
       case "WAITING_ACTIVE":
