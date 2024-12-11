@@ -19,13 +19,20 @@ export class Telemetry {
     this.map = map;
 
     setTimeout(
-      () => {
+      async () => {
         if (!config.telemetry) {
           return;
         }
-
         const endpointURL = this.preparePayload();
-        console.log(endpointURL);
+
+        try {
+          const response = await fetch(endpointURL, { method: "POST" });
+          if (!response.ok) {
+            console.warn("The metrics could not be sent to MapTiler Cloud");
+          }
+        } catch (e) {
+          console.warn("The metrics could not be sent to MapTiler Cloud", e);
+        }
       },
       Math.max(1000, delay),
     );
@@ -68,13 +75,13 @@ export class Telemetry {
     telemetryUrl.searchParams.append("globe", this.map.isGlobeProjection() ? "1" : "0");
 
     // Adding the modules
-    // the list of modules are separated by a "|". For each module, a "*" is used to separate the name and the version:
-    // "@maptiler/module-foo*1.1.0|@maptiler/module-bar*3.4.0|@maptiler/module-baz*9.0.3|@maptiler/module-quz*0.0.2-rc.1"
+    // the list of modules are separated by a "|". For each module, a ":" is used to separate the name and the version:
+    // "@maptiler/module-foo:1.1.0|@maptiler/module-bar:3.4.0|@maptiler/module-baz:9.0.3|@maptiler/module-quz:0.0.2-rc.1"
     // then the `.append()` function is in charge of URL-encoding the argument
     if (this.registeredModules.length) {
       telemetryUrl.searchParams.append(
         "modules",
-        this.registeredModules.map((module) => `${module.name}*${module.version}`).join("|"),
+        this.registeredModules.map((module) => `${module.name}:${module.version}`).join("|"),
       );
     }
 
