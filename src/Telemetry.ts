@@ -8,7 +8,7 @@ import packagejson from "../package.json";
  */
 export class Telemetry {
   private map: MapSDK;
-  private registeredModules: Array<{ name: string; version: string }> = [];
+  private registeredModules = new Set<string>();
 
   /**
    *
@@ -44,7 +44,11 @@ export class Telemetry {
    * of each module.
    */
   registerModule(name: string, version: string) {
-    this.registeredModules.push({ name, version });
+    // The telemetry is using a Set (and not an array) to avoid duplicates
+    // of same module + same version. Yet we want to track is the same module
+    // is being used with multiple version in a given project as this
+    // could be a source of incompatibility
+    this.registeredModules.add(`${name}:${version}`);
   }
 
   private preparePayload(): string {
@@ -78,11 +82,8 @@ export class Telemetry {
     // the list of modules are separated by a "|". For each module, a ":" is used to separate the name and the version:
     // "@maptiler/module-foo:1.1.0|@maptiler/module-bar:3.4.0|@maptiler/module-baz:9.0.3|@maptiler/module-quz:0.0.2-rc.1"
     // then the `.append()` function is in charge of URL-encoding the argument
-    if (this.registeredModules.length) {
-      telemetryUrl.searchParams.append(
-        "modules",
-        this.registeredModules.map((module) => `${module.name}:${module.version}`).join("|"),
-      );
+    if (this.registeredModules.size > 0) {
+      telemetryUrl.searchParams.append("modules", Array.from(this.registeredModules).join("|"));
     }
 
     return telemetryUrl.href;
