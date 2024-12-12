@@ -72,15 +72,16 @@
       const map = new maptilersdk.Map({
         container: document.getElementById("map-container"),
         style: maptilersdk.MapStyle.OUTDOOR,
-        hash: true,
+        hash: false,
         terrainControl: true,
         geolocate: true,
         maxPitch: 85,
         terrain: true,
-        pitch: 80,
-        bearing: 32.8,
+        pitch: 0,
+        bearing: 0,
         center: [7.8097, 46.0739],
-        zoom: 11.45,
+        zoom: 2,
+        projection: "globe"
       })
 
 
