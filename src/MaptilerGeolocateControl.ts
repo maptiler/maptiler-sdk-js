@@ -166,4 +166,37 @@ export class MaptilerGeolocateControl extends GeolocateControl {
       this._updateCircleRadius();
     }
   };
+
+  // We are overwriting the method _setErrorState from Maplibre's GeolocateControl because the
+  // case BACKGROUND_ERROR is not dealt with in the original function and yields an error.
+  // Related issue: https://github.com/maplibre/maplibre-gl-js/issues/2294
+  _setErrorState() {
+    switch (this._watchState) {
+      case "WAITING_ACTIVE":
+        this._watchState = "ACTIVE_ERROR";
+        this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-active");
+        this._geolocateButton.classList.add("maplibregl-ctrl-geolocate-active-error");
+        break;
+      case "ACTIVE_LOCK":
+        this._watchState = "ACTIVE_ERROR";
+        this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-active");
+        this._geolocateButton.classList.add("maplibregl-ctrl-geolocate-active-error");
+        this._geolocateButton.classList.add("maplibregl-ctrl-geolocate-waiting");
+        // turn marker grey
+        break;
+      case "BACKGROUND":
+        this._watchState = "BACKGROUND_ERROR";
+        this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-background");
+        this._geolocateButton.classList.add("maplibregl-ctrl-geolocate-background-error");
+        this._geolocateButton.classList.add("maplibregl-ctrl-geolocate-waiting");
+        // turn marker grey
+        break;
+      case "ACTIVE_ERROR":
+        break;
+      case "BACKGROUND_ERROR":
+        break;
+      default:
+        throw new Error(`Unexpected watchState ${this._watchState}`);
+    }
+  }
 }

@@ -928,7 +928,7 @@ export class Map extends maplibregl.Map {
   }
 
   private getStyleLanguage(): LanguageInfo | null {
-    if (!this.style.stylesheet.metadata) return null;
+    if (!this.style || !this.style.stylesheet || !this.style.stylesheet.metadata) return null;
     if (typeof this.style.stylesheet.metadata !== "object") return null;
 
     if (
