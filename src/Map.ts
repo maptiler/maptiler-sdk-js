@@ -46,6 +46,7 @@ import Minimap from "./Minimap";
 import type { MinimapOptionsInput } from "./Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 import { MaptilerProjectionControl } from "./MaptilerProjectionControl";
+import { Telemetry } from "./Telemetry";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -204,6 +205,7 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
  */
 // biome-ignore lint/suspicious/noShadowRestrictedNames: we want to keep consitency with MapLibre
 export class Map extends maplibregl.Map {
+  public readonly telemetry: Telemetry;
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
   private primaryLanguage: LanguageInfo;
@@ -219,6 +221,7 @@ export class Map extends maplibregl.Map {
   private curentProjection: ProjectionTypes = undefined;
   private originalLabelStyle = new window.Map<string, ExpressionSpecification | string>();
   private isStyleLocalized = false;
+  private languageIsUpdated = false;
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -690,6 +693,8 @@ export class Map extends maplibregl.Map {
         this.fire("webglContextLost", { error: e });
       });
     });
+
+    this.telemetry = new Telemetry(this);
   }
 
   /**
@@ -1208,6 +1213,8 @@ export class Map extends maplibregl.Map {
         this.setLayoutProperty(id, "text-field", newReplacer);
       }
     }
+
+    this.languageIsUpdated = true;
   }
 
   /**
@@ -1586,5 +1593,15 @@ export class Map extends maplibregl.Map {
     }
 
     this.curentProjection = "mercator";
+  }
+
+  /**
+   * Returns `true` is the language was ever updated, meaning changed
+   * from what is delivered in the style.
+   * Returns `false` if language in use is the language from the style
+   * and has never been changed.
+   */
+  isLanguageUpdated(): boolean {
+    return this.languageIsUpdated;
   }
 }
