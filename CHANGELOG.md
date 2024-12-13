@@ -3,6 +3,7 @@
 ## 2.5.1
 ### Bug Fixes
 - Added extra integrity checks on style object when updating language (https://github.com/maptiler/maptiler-sdk-js/pull/142)
+- The Geolocate control no longer throwing error when window is lost (issue on Firefox only) (https://github.com/maptiler/maptiler-sdk-js/pull/140)
 
 ## 2.5.0
 ### others
