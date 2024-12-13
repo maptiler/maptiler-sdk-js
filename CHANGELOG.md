@@ -2,6 +2,7 @@
 
 ## 2.5.1
 ### Bug Fixes
+- Better control of the status of `monitoredStyleUrls` in Map instance when error is caught (https://github.com/maptiler/maptiler-sdk-js/pull/141)
 - Added extra integrity checks on style object when updating language (https://github.com/maptiler/maptiler-sdk-js/pull/142)
 - The Geolocate control no longer throwing error when window is lost (issue on Firefox only) (https://github.com/maptiler/maptiler-sdk-js/pull/140)
 
