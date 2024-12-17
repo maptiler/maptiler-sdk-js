@@ -259,7 +259,7 @@ export {
   getLanguageInfoFromKey,
 } from "@maptiler/client";
 
-export { getWebGLSupportError } from "./tools";
+export { getWebGLSupportError, displayWebGLContextLostWarning } from "./tools";
 export { config, SdkConfig } from "./config";
 export * from "./language";
 export type { Unit } from "./unit";
