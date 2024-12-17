@@ -695,9 +695,9 @@ export class Map extends maplibregl.Map {
            * https://github.com/maplibre/maplibre-gl-js/blob/main/src/ui/map.ts#L3334
            */
           console.warn("[webglcontextlost]", "WebGL context lost after map removal. This is harmless.");
-          return
+          return;
         }
-        
+
         console.warn("[webglcontextlost]", "Unexpected loss of WebGL context!");
 
         this.fire("webglContextLost", event);
@@ -720,12 +720,12 @@ export class Map extends maplibregl.Map {
     };
 
     this.remove();
-    
+
     Object.assign(this, new Map({ ...this.options }));
 
     this.once("load", () => {
       this.jumpTo(cameraOptions);
-    }); 
+    });
   }
 
   /**
