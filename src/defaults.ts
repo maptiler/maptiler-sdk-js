@@ -7,6 +7,7 @@ const defaults = {
   maptilerLogoURL: "https://api.maptiler.com/resources/logo.svg",
   maptilerURL: "https://www.maptiler.com/",
   maptilerApiHost: "api.maptiler.com",
+  telemetryURL: "https://api.maptiler.com/metrics",
   rtlPluginURL: "https://cdn.maptiler.com/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.min.js",
   primaryLanguage: Language.STYLE,
   secondaryLanguage: Language.LOCAL,

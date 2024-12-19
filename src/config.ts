@@ -39,6 +39,25 @@ class SdkConfig extends EventEmitter {
   caching = true;
 
   /**
+   * Telemetry is enabled by default but can be opted-out by setting this value to `false`.
+   * The telemetry is very valuable to the team at MapTiler because it shares information
+   * about where to add the extra effort. It also helps spotting some incompatibility issues
+   * that may arise between the SDK and a specific version of a module.
+   *
+   * It consists in sending metrics about usage of the following features:
+   * - SDK version [string]
+   * - API key [string]
+   * - MapTiler sesion ID (if opted-in) [string]
+   * - if tile caching is enabled [boolean]
+   * - if language specified at initialization [boolean]
+   * - if terrain is activated at initialization [boolean]
+   * - if globe projection is activated at initialization [boolean]
+   *
+   * In addition, each official module will be add added to a list, alongside its version number.
+   */
+  telemetry = true;
+
+  /**
    * Unit to be used
    */
   private _unit: Unit = "metric";
