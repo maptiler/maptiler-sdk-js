@@ -1103,7 +1103,40 @@ Turning off *zoom compensation* allows for more accurate adjustments to the visu
 
 All the other options are documented on [our reference page](https://docs.maptiler.com/sdk-js/api/helpers/#heatmap) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/?q=heatmap+helper).
 
-# Other helper
+# Other helpers
+## Convert GPX and KML to GeoJSON
+In the [Polyline helper section](#polyline-layer-helper) above, we have seen that one can feed the helper directly with a path to a GPX or KML file, that is then converted under the hood client-side into a GeoJSON `FeatureCollection` object. This conversion feature is also exposed and can be used as such:
+
+```ts
+import { gpx } from "@maptiler/sdk";
+
+// ... assuming inside an async function
+
+// Fetching the GPX file as a string:
+const gpxFilePath = "some_gps_trace.gpx";
+const gpxResponse = await fetch(gpxFilePath);
+const gpxStr = await res.text();
+
+// Converting the GPX payload into a GeoJSON FeatureCollection:
+const features = maptilersdk.gpx(gpxStr);
+```
+
+And for KML files:
+```ts
+import { kml } from "@maptiler/sdk";
+
+// ... assuming inside an async function
+
+// Fetching the KML file as a string:
+const kmlFilePath = "some_gps_trace.kml";
+const kmlResponse = await fetch(kmlFilePath);
+const kmlStr = await res.text();
+
+// Converting the KML payload into a GeoJSON FeatureCollection:
+const features = maptilersdk.gpx(kmlStr);
+```
+
+
 ## Take Screenshots, programmatically
 There are two different ways to create screenshot, corresponding to two very different usecases. Note that screenshots will not contain *DOM elements* such as `Marker` and `Popup`, since those are not part of the rendering context.
 

@@ -8,11 +8,19 @@
 ### Bug Fixes
 - Navigation now relies on `Map` methods instead of `Transform` methods for bearing due to globe projection being available
 
+## 2.5.1
+### Bug Fixes
+- Better control of the status of `monitoredStyleUrls` in Map instance when error is caught (https://github.com/maptiler/maptiler-sdk-js/pull/141)
+- Added extra integrity checks on style object when updating language (https://github.com/maptiler/maptiler-sdk-js/pull/142)
+- The Geolocate control no longer throwing error when window is lost (issue on Firefox only) (https://github.com/maptiler/maptiler-sdk-js/pull/140)
+
+## 2.5.0
+### others
+- Update MapTiler Client library to v2.5.0
 
 ## 2.4.2
 ### Bug Fixes
 - The language switching is now more robust and preserves the original formatting from the style (`Map.setPrimaryLangage()`) (https://github.com/maptiler/maptiler-sdk-js/pull/134)
-
 ### Others
 - Now able to GitHub action a beta on NPM from the GH release creation process
 - Updated GH action to v4

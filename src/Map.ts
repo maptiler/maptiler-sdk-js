@@ -307,7 +307,7 @@ export class Map extends maplibregl.Map {
         // If the URL is present in the list of monitored style URL,
         // that means this AJAXError was about a style, and we want to fallback to
         // the default style
-        if (this.monitoredStyleUrls.has(clearnUrlStr)) {
+        if (this.monitoredStyleUrls && this.monitoredStyleUrls.has(clearnUrlStr)) {
           this.monitoredStyleUrls.delete(clearnUrlStr);
           applyFallbackStyle();
         }
@@ -975,7 +975,7 @@ export class Map extends maplibregl.Map {
   }
 
   private getStyleLanguage(): LanguageInfo | null {
-    if (!this.style.stylesheet.metadata) return null;
+    if (!this.style || !this.style.stylesheet || !this.style.stylesheet.metadata) return null;
     if (typeof this.style.stylesheet.metadata !== "object") return null;
 
     if (
