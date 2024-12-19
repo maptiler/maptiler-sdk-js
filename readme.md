@@ -261,6 +261,122 @@ And can even be provided in the URI form:
 map.setStyle("maptiler://c912ffc8-2360-487a-973b-59d037fb15b8");
 ```
 
+# Globe or Mercator projection?
+The **Web Mercator projection** [*(Wikipedia)*](https://en.wikipedia.org/wiki/Web_Mercator_projection) has been the go-to standard in cartography since the early days or web mapping. Partly for technical reasons but also because it is great for navigation as well as for showing the entire world in one screen, with no hidden face. That being said, Mercator's heavy distorsion at high latitudes, as well a the discontinuity at the poles can be a limitation for data visualization and has been critisized for providing a biased view of the world.
+
+The **globe projection**, available starting from MapTiler SDK v3, does not suffer from these biases and can feel overall more playfull than Mercator. It can be a great choice for semi-global data visualization, especially for data close to the poles, thanks to its geographic continuity.
+
+
+| Mercator projection    | Globe projection |
+| :--------: | :-------: |
+| ![](images/screenshots/mercator_projection.jpeg) | ![](images/screenshots/globe_projection.jpeg) |
+
+The choice between Mercator and Globe can be done at different levels and moments in the lifecycle of the map, yet, unless stated otherwise, **Mercator remains the default**.
+
+- In the style, using the `projection` top-level property.
+For globe:
+```js
+{
+  "version": ...,
+  "id": ...,
+  "name": ...,
+  "sources": ...,
+  "layers": ...,
+
+  // Make the style use the globe projection at load time
+  "projection": {
+    "type": "globe"
+  }
+
+  // ... 
+}
+```
+or for Mercator:
+```js
+{
+  "version": ...,
+  "id": ...,
+  "name": ...,
+  "sources": ...,
+  "layers": ...,
+
+  // Make the style use the mercator projection at load time
+  "projection": {
+    "type": "mercator"
+  }
+
+  // ... 
+}
+```
+
+- In the constructor of the `Map` class, using the `projection` option. For globe:
+```ts
+const map = new maptilersdk.Map({
+  container: "map",
+  projection: "globe", // Force a globe projection
+});
+```
+or for Mercator:
+```ts
+const map = new maptilersdk.Map({
+  container: "map",
+  projection: "mercator", // Force a mercator projection
+})
+```
+This will overwrite the `projection` property from the style (if any) and will persist it later if the map style was to change.
+
+- Use the built-in methods:
+```ts
+const animate = false;
+map.enableGlobeProjection(animate);
+// or
+map.enableMercatorProjection(animate);
+```
+
+The animated transition is enabled by default, but can be disabled by passing `false`, as in the example above. Similarly to the `projection` option in the constructor, this will overwrite the projection settings from style (if any) and persist it when the style is updated.
+
+The projection setter built in Maplibre GL JS is also usable:
+```ts
+map.setProjection({type: "mercator"});
+// or
+map.setProjection({type: "globe"});
+```
+but this will not automatically animate the transition and may cause rendering glitches.
+
+- Using the `MaptilerProjectionControl`. Not mounted by default, it can easily be added with a single option in the `Map` constructor:
+```ts
+const map = new maptilersdk.Map({
+  container: "map",
+  projectionControl: true,  // or the position such as "top-left", "top-right", 
+});                         // "bottom-right" or "bottom-left"
+```
+This dedicated control will show a globe icon <img src="images/screenshots/globe_icon.png" width="30px"/> to transition from Mercator to globe projection and will show a flat map icon <img src="images/screenshots/mercator_icon.png" width="30px"/> to transition from globe to Mercator projection. The chosen projection persist with future style changes.
+
+## Field of view (FOV)
+The internal camera has a default vertical field of view [*(wikipedia)*](https://en.wikipedia.org/wiki/Field_of_view) of a wide ~36.86 degrees. In globe mode, such a large *FOV* reduces the amount of the Earth that can be seen at once and exaggerates the central part, comparably to a fisheye lens. In many cases, a narrower *FOV* is preferable. Here is how to update if:
+
+```ts
+// Ajust de FOV, with values from 1 to 50
+map.setVerticalFieldOfView(10);
+```
+> 📣 *__Note:__* with the Mercator projection, it is possible to set a FOV of `0`, which yields a true orthographic projection [*(wikipedia)*](https://en.wikipedia.org/wiki/Orthographic_projection), but the globe projection does not allow this.
+
+Here is a table of FOV comparison:
+| 01°    | 10° | 20° | 30° | 40° | 50° | 
+| :--------: | :-------: |:-------: |:-------: |:-------: |:-------: |
+| ![](images/screenshots/fov_1.jpeg) | ![](images/screenshots/fov_10.jpeg) | ![](images/screenshots/fov_20.jpeg) | ![](images/screenshots/fov_30.jpeg) | ![](images/screenshots/fov_40.jpeg) | ![](images/screenshots/fov_50.jpeg) | 
+
+
+## Globe screenshots
+![](images/screenshots/globe_topo_arctica.jpeg)
+![](images/screenshots/globe_hybrid.jpeg)
+![](images/screenshots/globe_outdoor_alaska.jpeg)
+![](images/screenshots/globe_outdoor_emea.jpeg)
+![](images/screenshots/globe_outdoor_panamerica.jpeg)
+
+
+> 📣 *__Note:__* Terrain is not fully compatible with the globe projection yet so it's better to disable it at low zoom level (from afar) and to choose the Mercator projection at higher zoom level (from up close).
+
 # Centering the map on visitors
 It is sometimes handy to center the map on the visitor's location, and there are multiple ways of doing it but for the SDK, we have decided to make this extra simple by using the [IP geolocation](#%EF%B8%8F%EF%B8%8F-geolocation) API provided by [MapTiler Cloud](https://docs.maptiler.com/cloud/api/geolocation/), directly exposed as a single option of the `Map` constructor. There are two strategies:
 1. `POINT`: centering the map on the actual visitor location, optionally using the `zoom` option (zoom level `13` if none is provided). As a more precise option, if the user has previously granted access to the browser location (more precise) then this is going to be used.

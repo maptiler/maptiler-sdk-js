@@ -14,10 +14,11 @@
         /* background: radial-gradient(circle, rgb(186 226 255) 5%, rgb(0 100 159) 98%); */
       }
 
-      #style-picker-container {
+      #ctrl-panel {
         position: absolute;
         z-index: 2;
         margin: 10px;
+        color: white;
       }
 
     </style>
@@ -27,35 +28,35 @@
 
   <body>
     <div id="map-container"></div>
-    <div id="style-picker-container">
+    <div id="ctrl-panel">
       <div>
         <label for="sky-color">sky-color</label>
-        <input id="sky-color" type="color" value="#027bdb"></input>
+        <input id="sky-color" type="color" value="#0C2E4B"></input>
       </div>
 
       <div>
         <label for="horizon-color">horizon-color</label>
-        <input id="horizon-color" type="color" value="#ffffff"></input>
+        <input id="horizon-color" type="color" value="#09112F"></input>
       </div>
 
       <div>
         <label for="fog-color">fog-color</label>
-        <input id="fog-color" type="color" value="#ffffff"></input>
+        <input id="fog-color" type="color" value="#09112F"></input>
       </div>
       
       <div>
         <label for="fog-ground-blend">fog-ground-blend</label>
-        <input id="fog-ground-blend" type="range" min="0" max="1" step="0.01" value="0.1"></input>
+        <input id="fog-ground-blend" type="range" min="0" max="1" step="0.01" value="0.0"></input>
       </div>
 
       <div>
         <label for="horizon-fog-blend">horizon-fog-blend</label>
-        <input id="horizon-fog-blend" type="range" min="0" max="1" step="0.01" value="0.5"></input>
+        <input id="horizon-fog-blend" type="range" min="0" max="1" step="0.01" value="0.1"></input>
       </div>
 
       <div>
         <label for="sky-horizon-blend">sky-horizon-blend</label>
-        <input id="sky-horizon-blend" type="range" min="0" max="1" step="0.01" value="0.75"></input>
+        <input id="sky-horizon-blend" type="range" min="0" max="1" step="0.01" value="1.0"></input>
       </div>
 
       <div>
@@ -71,17 +72,18 @@
 
       const map = new maptilersdk.Map({
         container: document.getElementById("map-container"),
-        style: maptilersdk.MapStyle.OUTDOOR,
-        hash: true,
+        style: maptilersdk.MapStyle.OUTDOOR.DARK,
+        hash: false,
         terrainControl: true,
         geolocate: true,
         maxPitch: 85,
         terrain: true,
-        pitch: 80,
-        bearing: 32.8,
+        pitch: 0,
+        bearing: 0,
         center: [7.8097, 46.0739],
-        zoom: 11.45,
-      })
+        zoom: 2,
+        projection: "globe"
+      });
 
 
       document.getElementById("sky-color").addEventListener("input", (e) => {
@@ -129,15 +131,16 @@
 
       map.on("ready", () => {
         map.setSky({
-          "sky-color": "#027bdb",
-          "horizon-color": "#ffffff",
-          "fog-color": "#ffffff",
-          "fog-ground-blend": 0.1,
-          "horizon-fog-blend": 0.5,
-          "sky-horizon-blend": 0.75,
+          "sky-color": "#0C2E4B",
+          "horizon-color": "#09112F",
+          "fog-color": "#09112F",
+          "fog-ground-blend": 0.0,
+          "horizon-fog-blend": 0.1,
+          "sky-horizon-blend": 1.0,
           "atmosphere-blend": 0.5,
         })
       })
+
 
     </script>
   </body>
