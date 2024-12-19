@@ -136,7 +136,7 @@ The SDK hosted on our CDN is bundled as *[Universal Module Definition](https://g
   <body>
     <div id="map-container"></div>
   
-    <script src ="dist/maptiler-sdk.umd.js"></script>
+    <script src ="dist/maptiler-sdk.umd.min.js"></script>
     
     <script>
       // Add your MapTiler Cloud API key to the config

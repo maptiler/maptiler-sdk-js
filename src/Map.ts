@@ -353,8 +353,6 @@ export class Map extends maplibregl.Map {
         this.setProjection({ type: "mercator" });
       } else if (this.curentProjection === "globe") {
         this.setProjection({ type: "globe" });
-        // @ts-ignore
-        this.transform.setGlobeViewAllowed(true, true); // the first `true` means globe
       }
     });
 
@@ -613,7 +611,7 @@ export class Map extends maplibregl.Map {
           language,
           apiKey,
           maptilerLogo,
-          antialias,
+          canvasContextAttributes,
           refreshExpiredTiles,
           maxBounds,
           scrollZoom,
@@ -629,6 +627,7 @@ export class Map extends maplibregl.Map {
           pixelRatio,
           validateStyle,
         } = options;
+
         this.minimap = new Minimap(minimap, {
           zoom,
           center,
@@ -637,7 +636,7 @@ export class Map extends maplibregl.Map {
           apiKey,
           container: "null",
           maptilerLogo,
-          antialias,
+          canvasContextAttributes,
           refreshExpiredTiles,
           maxBounds,
           scrollZoom,
@@ -1544,53 +1543,32 @@ export class Map extends maplibregl.Map {
    */
   isGlobeProjection(): boolean {
     const projection = this.getProjection();
-    if (!projection) return false;
-    // @ts-ignore
-    return projection.type === "globe" && this.transform.getGlobeViewAllowed();
+
+    return projection?.type === "globe";
   }
 
   /**
-   * Uses the globe projection. Animated by default, it can be disabled
+   * Activate the globe projection.
    */
-  enableGlobeProjection(animate: boolean = true) {
-    if (this.isGlobeProjection()) return;
-
-    // From Mercator to Globe
-    this.setProjection({ type: "globe" });
-
-    if (animate) {
-      // @ts-ignore
-      this.transform.setGlobeViewAllowed(false, true); // the `false` means mercator
-
-      this.once("projectiontransition", () => {
-        // @ts-ignore
-        this.transform.setGlobeViewAllowed(true, true);
-      });
-    } else {
-      // @ts-ignore
-      this.transform.setGlobeViewAllowed(true, true);
+  enableGlobeProjection() {
+    if (this.isGlobeProjection() === true) {
+      return;
     }
+
+    this.setProjection({ type: "globe" });
 
     this.curentProjection = "globe";
   }
 
   /**
-   * Uses the Mercator projection. Animated by default, it can be disabled
+   * Activate the mercator projection.
    */
-  enableMercatorProjection(animate: boolean = true) {
-    if (!this.isGlobeProjection()) return;
-
-    if (animate) {
-      // From Globe to Mercator
-      this.setProjection({ type: "globe" });
-      // @ts-ignore
-      this.transform.setGlobeViewAllowed(false, true);
-      this.once("projectiontransition", () => {
-        this.setProjection({ type: "mercator" });
-      });
-    } else {
-      this.setProjection({ type: "mercator" });
+  enableMercatorProjection() {
+    if (this.isGlobeProjection() === false) {
+      return;
     }
+
+    this.setProjection({ type: "mercator" });
 
     this.curentProjection = "mercator";
   }
