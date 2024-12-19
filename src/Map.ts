@@ -30,7 +30,6 @@ import {
   combineTransformRequest,
   computeLabelsLocalizationMetrics,
   displayNoWebGlWarning,
-  displayWebGLContextLostWarning,
   replaceLanguage,
 } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
@@ -206,6 +205,7 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
 // biome-ignore lint/suspicious/noShadowRestrictedNames: we want to keep consitency with MapLibre
 export class Map extends maplibregl.Map {
   public readonly telemetry: Telemetry;
+  private options: MapOptions;
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
   private primaryLanguage: LanguageInfo;
@@ -272,6 +272,9 @@ export class Map extends maplibregl.Map {
     // biome-ignore lint/performance/noDelete: <explanation>
     delete superOptions.style;
     super(superOptions);
+
+    this.options = options;
+
     this.setStyle(style);
 
     if (requiresUrlMonitoring) {
@@ -687,14 +690,43 @@ export class Map extends maplibregl.Map {
 
     // Display a message if WebGL context is lost
     this.once("load", () => {
-      this.getCanvas().addEventListener("webglcontextlost", (e) => {
-        console.warn(e);
-        displayWebGLContextLostWarning(options.container);
-        this.fire("webglContextLost", { error: e });
+      this.getCanvas().addEventListener("webglcontextlost", (event) => {
+        if (this._removed === true) {
+          /**
+           * https://github.com/maplibre/maplibre-gl-js/blob/main/src/ui/map.ts#L3334
+           */
+          console.warn("[webglcontextlost]", "WebGL context lost after map removal. This is harmless.");
+          return;
+        }
+
+        console.warn("[webglcontextlost]", "Unexpected loss of WebGL context!");
+
+        this.fire("webglContextLost", event);
       });
     });
 
     this.telemetry = new Telemetry(this);
+  }
+
+  /**
+   * Recreates the map instance with the same options.
+   * Useful for WebGL context loss.
+   */
+  public recreate() {
+    const cameraOptions: maplibregl.CameraOptions = {
+      center: this.getCenter(),
+      zoom: this.getZoom(),
+      bearing: this.getBearing(),
+      pitch: this.getPitch(),
+    };
+
+    this.remove();
+
+    Object.assign(this, new Map({ ...this.options }));
+
+    this.once("load", () => {
+      this.jumpTo(cameraOptions);
+    });
   }
 
   /**
