@@ -1,5 +1,14 @@
 # MapTiler SDK Changelog
 
+## 3.0.0
+### New Features
+- Update to Maplibre v5.0.0
+- New `MaptilerProjectionControl`  to toggle Globe/Mercator projection
+- Add metric collection and plugin registration feature
+
+### Bug Fixes
+- Navigation now relies on `Map` methods instead of `Transform` methods for bearing due to globe projection being available
+
 ## 2.5.1
 ### Bug Fixes
 - Better control of the status of `monitoredStyleUrls` in Map instance when error is caught (https://github.com/maptiler/maptiler-sdk-js/pull/141)

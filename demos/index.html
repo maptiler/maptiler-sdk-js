@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MapTiler SDK JS</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+</head>
+
+<body>
+  <h1>MapTiler SDK JS Examples</h1>
+  <ul>
+    <li>
+      <a href="colorramps.html?key=">Color ramps</a>
+    </li>
+    <li>
+      <a href="mountain.html?key=">Mountain</a>
+    </li>
+    <li>
+      <a href="readyevent.html?key=">Ready Event</a>
+    </li>
+    <li>
+      <a href="simple.html?key=">Simple</a>
+    </li>
+    <li>
+      <a href="sky_day.html?key=">Sky - Day</a>
+    </li>
+    <li>
+      <a href="sky_night.html?key=">Sky - Night</a>
+    </li>
+    <li>
+      <a href="transform-request.html?key=">Transform request</a>
+    </li>
+  </ul>
+
+  <script type="module">
+    document.querySelectorAll("a").forEach((a) => {
+      a.href += import.meta.env.VITE_API_KEY;
+    });
+  </script>
+</body>
+
+</html>
