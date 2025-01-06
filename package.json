@@ -1,6 +1,6 @@
 {
   "name": "@maptiler/sdk",
-  "version": "3.0.0-rc.5",
+  "version": "3.0.0",
   "description": "The Javascript & TypeScript map SDK tailored for MapTiler Cloud",
   "module": "dist/maptiler-sdk.mjs",
   "types": "dist/maptiler-sdk.d.ts",
@@ -38,34 +38,33 @@
     "biome:fix": "npx @biomejs/biome check --max-diagnostics=1000 --write",
     "doc": "rm -rf docs/* && typedoc --out docs && cp -r images docs/",
     "test": "vitest run",
-    "build-css": "node scripts/replace-path-with-content.js src/style/style_template.css dist/tmp_maptiler-sdk.css && cat node_modules/maplibre-gl/dist/maplibre-gl.css dist/tmp_maptiler-sdk.css > dist/maptiler-sdk.css && rm dist/tmp_maptiler-sdk.css && cp dist/maptiler-sdk.css build/maptiler-sdk.css",
+    "build-css": "mkdir -p dist build && node scripts/replace-path-with-content.js src/style/style_template.css dist/tmp_maptiler-sdk.css && cat node_modules/maplibre-gl/dist/maplibre-gl.css dist/tmp_maptiler-sdk.css > dist/maptiler-sdk.css && rm dist/tmp_maptiler-sdk.css && cp dist/maptiler-sdk.css build/maptiler-sdk.css",
     "build-umd": "tsc && NODE_ENV=production vite build -c vite.config-umd.ts",
     "build-es": "tsc && NODE_ENV=production vite build -c vite.config-es.ts",
     "build": "npm run build-es; npm run build-umd; npm run build-css",
     "make": "npm run biome:fix && npm run build",
-    "dev-umd": "npm run build-css && tsc && NODE_ENV=dev vite build -w -c vite.config-umd.ts",
+    "dev": "vite -c vite.config.ts",
+    "dev2": "npm run build-css && tsc && NODE_ENV=dev vite build -w -c vite.config-umd.ts",
     "help": "vite build --help"
   },
   "author": "MapTiler",
   "devDependencies": {
-    "@biomejs/biome": "1.8.3",
-    "@types/uuid": "^9.0.2",
-    "@types/xmldom": "^0.1.31",
-    "@xmldom/xmldom": "^0.8.10",
-    "serve": "^14.2.0",
-    "terser": "^5.17.1",
+    "@biomejs/biome": "1.9.4",
+    "@types/uuid": "^10.0.0",
+    "@types/xmldom": "^0.1.34",
+    "@xmldom/xmldom": "^0.9.6",
     "typedoc": "^0.24.8",
-    "typescript": "^5.1.6",
-    "vite": "^5.3.4",
-    "vite-plugin-dts": "^4.0.0-beta.0",
-    "vitest": "^0.34.2"
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7",
+    "vite-plugin-dts": "^4.4.0",
+    "vitest": "^2.1.8"
   },
   "dependencies": {
     "@maplibre/maplibre-gl-style-spec": "^22.0.1",
     "@maptiler/client": "^2.2.0",
     "events": "^3.3.0",
-    "js-base64": "^3.7.4",
-    "maplibre-gl": "^5.0.0-pre.10",
-    "uuid": "^9.0.0"
+    "js-base64": "^3.7.7",
+    "maplibre-gl": "^5.0.0",
+    "uuid": "^11.0.4"
   }
 }
