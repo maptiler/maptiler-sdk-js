@@ -10,6 +10,9 @@ export default defineConfig({
   plugins: [
     {
       name: 'url-override',
+      /**
+       * Changing logged URLs to include the path to the demo directory.
+       */
       configureServer: (server) => {
         const printUrls = server.printUrls;
 
