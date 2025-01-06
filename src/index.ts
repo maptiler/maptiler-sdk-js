@@ -262,7 +262,7 @@ export {
 export { getWebGLSupportError } from "./tools";
 export { config, SdkConfig } from "./config";
 export * from "./language";
-export { type Unit } from "./unit";
+export type { Unit } from "./unit";
 export * from "./Minimap";
 export * from "./converters";
 export * from "./colorramp";
