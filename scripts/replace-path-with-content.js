@@ -47,5 +47,4 @@ filePaths.forEach(filePath => {
   text = text.replace(filePath, transforms[extension](filepath))
 });
 
-// console.log(text);
 fs.writeFileSync(process.argv[3], text);

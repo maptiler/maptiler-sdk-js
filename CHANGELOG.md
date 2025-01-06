@@ -1,8 +1,9 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## 3.0.0
 ### New Features
-- New `MaptilerProjectionControl`  to toggle globe/Mercator projection
+- Update to Maplibre v5.0.0
+- New `MaptilerProjectionControl`  to toggle Globe/Mercator projection
 - Add metric collection and plugin registration feature
 
 ### Bug Fixes
