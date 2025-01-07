@@ -28,6 +28,7 @@ In addition, the MapTiler SDK JS provides well-documented and easy-to-use wrappe
 ```shell
 npm install --save @maptiler/sdk
 ```
+
 ⚠️ Please keep in mind that if you use any additional [MapTiler modules](https://github.com/search?q=topic%3Amaptiler-sdk-plugin+org), you must update them to a version that supports MapTiler SDK JS v3.
 
 # API documentation
