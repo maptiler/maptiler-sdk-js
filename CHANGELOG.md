@@ -1,13 +1,19 @@
 # MapTiler SDK Changelog
 
 ## 3.0.0
-### New Features
-- Update to Maplibre v5.0.0
-- New `MaptilerProjectionControl`  to toggle Globe/Mercator projection
-- Add metric collection and plugin registration feature
+⚠️ Please keep in mind that if you use any additional [MapTiler modules](https://docs.maptiler.com/sdk-js/modules/), you must update them to a version that supports MapTiler SDK JS v3.
 
-### Bug Fixes
-- Navigation now relies on `Map` methods instead of `Transform` methods for bearing due to globe projection being available
+## ✨ Features and improvements
+* Globe projection support
+* `MaptilerProjectionControl`  to toggle Globe/Mercator projection
+
+## 🐛 Bug fixes
+* _None_
+
+## 🔧 Others
+* Using MapLibre GL JS 5.0.0
+* Using MapTiler Client JS 2.2.0
+
 
 ## 2.5.1
 ### Bug Fixes
@@ -15,9 +21,11 @@
 - Added extra integrity checks on style object when updating language (https://github.com/maptiler/maptiler-sdk-js/pull/142)
 - The Geolocate control no longer throwing error when window is lost (issue on Firefox only) (https://github.com/maptiler/maptiler-sdk-js/pull/140)
 
+
 ## 2.5.0
 ### others
 - Update MapTiler Client library to v2.5.0
+
 
 ## 2.4.2
 ### Bug Fixes
@@ -42,6 +50,7 @@
 - Adding detection of invalid style objects of URLs and falls back to a default style if necessary.
 - Updating to Maplibre v4.7.1
 
+
 ## 2.3.0
 ### Bug Fixes
 - Updating from MapLibre v4.4.1 to v4.7.0. See Maplibre changelogs for [v4.5.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#450), [v4.5.1](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#451), [v4.5.2](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#452), and [v4.6.0](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#460)
@@ -54,6 +63,7 @@
 - Updating `MapTilerGeolocateControl` to match latest Maplibre update (https://github.com/maptiler/maptiler-sdk-js/pull/104)
 - Now sourcing language list from `@maptiler/client` (https://github.com/maptiler/maptiler-client-js/pull/42)
 
+
 ## 2.2.2
 ### Bug Fixes
 - No longer using named imports from Maplibre (https://github.com/maptiler/maptiler-sdk-js/issues/99)
@@ -61,11 +71,13 @@
 ### Others
 - Bundling now made with ViteJS (no longer Rollup)
 
+
 ## 2.2.1
 ### Bug Fixes
 - The types from classes defined in Maplibre are now exposed more reliably (https://github.com/maptiler/maptiler-sdk-js/pull/98)
 ### Others
 - Loading (lazy) the RTL plugin ealier and outside Map instance to prevent display glitch
+
 
 ## 2.2.0
 ### New Features
@@ -79,15 +91,18 @@
 - Replaced Eslint and Prettier by BiomeJS (ang got rid of tons of dependencies, some were problematic) (https://github.com/maptiler/maptiler-sdk-js/pull/95)
 - Fixed many formatting and linting issues pointed by BiomeJS (https://github.com/maptiler/maptiler-sdk-js/pull/95)
 
+
 ## 2.1.0
 ### New Features
 - Update from Maplibre v4.1.3 to v4.4.1 (see Maplibre's [changelog](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md#441))
 ### Bug Fixes
 - Floating buildings, fixed with the above update
 
+
 ## 2.0.3
 ### Bug Fixes
 - Fixed issue in attribution control
+
 
 ## 2.0.2
 ### Bug Fixes
@@ -101,6 +116,7 @@
 ### Bug Fixes
 - Bundling issue solved by [#79](https://github.com/maptiler/maptiler-sdk-js/pull/79)
 
+
 ## 2.0.0
 ### New Features
 - Updating with MapLibre GL JS v4.1
@@ -112,6 +128,7 @@
 - Added all the exports that are now exposed from MapLibre
 - Adapted some newly exported classes to make them TypeScript-compatible with the `Map` classes from both MapLibre and MapTiler SDK
 
+
 ## 1.2.1
 ### New Features
 - Elevation lookup at `maptilersdk.elevation` with the function `.at()`, `.batch()` and for geojson payloads. From the update of the MapTiler Client library
@@ -122,6 +139,7 @@
 ### Others
 - Update of the Maptiler Client library to v1.8.0 that brings the elevation and math module
 - Update with the last version of MapLibre GL JS (v3.6.2)
+
 
 ## 1.2.0
 ### New Features
@@ -139,13 +157,16 @@
 - Upgrade to MapLibre v3.5.2 (https://github.com/maptiler/maptiler-sdk-js/pull/63)
 - Update of TypeScript configuration `moduleResolution` to `Bundler` (https://github.com/maptiler/maptiler-sdk-js/pull/62)
 
+
 ## 1.1.2
 ### Bug Fixes
 - Now using a fixed version of MapLibre GL. No longer use `^` because this caused issues as MapLibre made minor/patch update that were not backward compatible
 
+
 ## 1.1.1
 ### Others
 - Update to `maplibre-gl@3.1.0`
+
 
 ## 1.1.0
 ### New Features
@@ -163,11 +184,13 @@
 ### Bug Fixes
 - The fallback language was `{name:latin}`, it is now replaced by `{name}`, which is for the local name (present by default for many places while `latin` is less frequent).
 
+
 ## 1.0.11
 ### Bug Fixes
 - Now exporting `MaptilerNavigationControl`
 ### Others
 - Documentation update for `Map`'s `option.maptilerLogo` that was a bit unclear
+
 
 ## 1.0.10
 ### New Features
@@ -180,6 +203,7 @@
 - Updated from `typedoc@0.23.21` to `typedoc@0.24.4`, which changes slightly the look of the reference documentation.
 - Updated from `typescript@4.8.4` to `typescript@5.0.4`
 - Updated from `rollup@2.79.0` to `rollup@3.20.6` as well as all the Rollup plugins
+
 
 ## 1.0.9
 ### New Features
@@ -237,6 +261,7 @@
 ### Bug Fixes
 - Since v1.0.7, the `Map` primary language (when custom) was no longer persistant on style update.
 
+
 ## 1.0.7
 ### New Features
 - The `apiKey` can now be specified in the `Map` constructor (will propagate to `config`)
@@ -245,30 +270,37 @@
 - `Map` now has the method `.getMaptilerSessionId()` to retrieve the MapTiler session ID
 Both `.getSdkConfig()` and `.getMaptilerSessionId()` are handy for layers or control built outside of the SDK that still need some of the configuration to interact with the server. Those components do not always have access to the internal of the SDK (especially that the config is scoped) but can access to the `Map` instance to which they are added with the implementation of the `.onAdd()` method.
 
+
 ## 1.0.6
 ### New Features
 - Now exposing `MaptilerGeolocateControl` for external initialization if needed
 - Now exposing `MaptilerTerrain` for external initialization if needed
 
+
 ## 1.0.5
 ### New Features
 - Terrain elevation is now using MapTiler's `terrain-rgb-v2`
+
 
 ## 1.0.4
 ### Others
 - Improved the geolocate control behavior by not zooming out
 
+
 ## 1.0.3
 ### Bug Fixes
 - Fixed the usage of relative path style JSON (in `Map` constructor and `.setStyle()`)
+
 
 ## 1.0.2
 ### Bug Fixes
 - Fixed the dependency scheme of MapLibre import.
 
+
 ## 1.0.1
 ### Others
 - Reducing the NPM size by ignoring documentation images
+
 
 ## 1.0.0
 ### Others
