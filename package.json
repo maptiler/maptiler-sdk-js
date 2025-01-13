@@ -1,6 +1,6 @@
 {
   "name": "@maptiler/sdk",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "The Javascript & TypeScript map SDK tailored for MapTiler Cloud",
   "module": "dist/maptiler-sdk.mjs",
   "types": "dist/maptiler-sdk.d.ts",
@@ -44,7 +44,7 @@
     "build": "npm run build-es; npm run build-umd; npm run build-css",
     "make": "npm run biome:fix && npm run build",
     "dev": "concurrently \"vite -c vite.config-dev.ts\" \"npm run dev-umd\"",
-    "dev-umd": "npm run build-css && tsc && NODE_ENV=dev vite build -w -c vite.config-umd.ts",
+    "dev-umd": "npm run build-css && tsc && NODE_ENV=development vite build -w -c vite.config-umd.ts",
     "ncu": "npx npm-check-updates"
   },
   "author": "MapTiler",
@@ -55,17 +55,17 @@
     "@xmldom/xmldom": "^0.8.10",
     "concurrently": "^9.1.2",
     "typedoc": "^0.27.6",
-    "typescript": "^5.7.2",
+    "typescript": "^5.7.3",
     "vite": "^6.0.7",
-    "vite-plugin-dts": "^4.4.0",
+    "vite-plugin-dts": "^4.5.0",
     "vitest": "^2.1.8"
   },
   "dependencies": {
-    "@maplibre/maplibre-gl-style-spec": "^22.0.1",
+    "@maplibre/maplibre-gl-style-spec": "^23.0.0",
     "@maptiler/client": "^2.2.0",
     "events": "^3.3.0",
     "js-base64": "^3.7.7",
-    "maplibre-gl": "^5.0.0",
-    "uuid": "^11.0.4"
+    "maplibre-gl": "^5.0.1",
+    "uuid": "^11.0.5"
   }
 }

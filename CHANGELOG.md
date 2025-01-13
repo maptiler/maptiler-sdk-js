@@ -1,5 +1,10 @@
 # MapTiler SDK Changelog
 
+## 3.0.1
+### New Features
+- Update Maplibre to v5.0.1
+
+
 ## 3.0.0
 ⚠️ Please keep in mind that if you use any additional [MapTiler modules](https://docs.maptiler.com/sdk-js/modules/), you must update them to a version that supports MapTiler SDK JS v3.
 
@@ -8,7 +13,7 @@
 * `MaptilerProjectionControl`  to toggle Globe/Mercator projection
 
 ## 🐛 Bug fixes
-* _None_
+* Navigation now relies on `Map` methods instead of `Transform` methods for bearing due to globe projection being available
 
 ## 🔧 Others
 * Using MapLibre GL JS 5.0.0
