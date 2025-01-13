@@ -329,13 +329,10 @@ This will overwrite the `projection` property from the style (if any) and will p
 
 - Use the built-in methods:
 ```ts
-const animate = false;
-map.enableGlobeProjection(animate);
+map.enableGlobeProjection();
 // or
-map.enableMercatorProjection(animate);
+map.enableMercatorProjection();
 ```
-
-The animated transition is enabled by default, but can be disabled by passing `false`, as in the example above. Similarly to the `projection` option in the constructor, this will overwrite the projection settings from style (if any) and persist it when the style is updated.
 
 The projection setter built in Maplibre GL JS is also usable:
 ```ts
@@ -343,7 +340,6 @@ map.setProjection({type: "mercator"});
 // or
 map.setProjection({type: "globe"});
 ```
-but this will not automatically animate the transition and may cause rendering glitches.
 
 - Using the `MaptilerProjectionControl`. Not mounted by default, it can easily be added with a single option in the `Map` constructor:
 ```ts
