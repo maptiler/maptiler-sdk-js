@@ -53,7 +53,7 @@ class SdkConfig extends EventEmitter {
    * - if terrain is activated at initialization [boolean]
    * - if globe projection is activated at initialization [boolean]
    *
-   * In addition, each official module will be add added to a list, alongside its version number.
+   * In addition, each official module will be added to a list, alongside its version number.
    */
   telemetry = true;
 
