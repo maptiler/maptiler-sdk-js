@@ -1570,3 +1570,25 @@ const tileXY = maptilersdk.math.wgs84ToTileIndex(montBlancPeakWgs84, 14);
 ```
 
 Please find out more about the math package in our [official documentation](https://docs.maptiler.com/client-js/math):
+
+# Telemetry
+The telemetry is very valuable to the team at MapTiler because it shares information about where to add the extra effort. It also helps spotting some incompatibility issues that may arise between the SDK and a specific version of a module.
+
+It consists in sending metrics about usage of the following features:
+- SDK version [string]
+- API key [string]
+- MapTiler sesion ID (if opted-in) [string]
+- if tile caching is enabled [boolean]
+- if language specified at initialization [boolean]
+- if terrain is activated at initialization [boolean]
+- if globe projection is activated at initialization [boolean]
+
+In addition, each official module will be added to a list, alongside its version number.
+
+Telemetry is enabled by default but can be opted-out by setting `telemetry` value of `config` to `false`.
+
+```ts
+import * as maptilersdk from '@maptiler/sdk';
+
+maptilersdk.config.telemetry = false;
+```
