@@ -39,16 +39,30 @@
       <input id="horizon-color" type="color" value="#09112F"></input>
     </div>
 
+      document.getElementById("sky-color").addEventListener("input", (e) => {
+        map.setSky({
+          "sky-color": e.target.value,
+        });
+      });
     <div>
       <label for="fog-color">fog-color</label>
       <input id="fog-color" type="color" value="#09112F"></input>
     </div>
 
+      document.getElementById("horizon-color").addEventListener("input", (e) => {
+        map.setSky({
+          "horizon-color": e.target.value,
+        });
+      });
     <div>
       <label for="fog-ground-blend">fog-ground-blend</label>
       <input id="fog-ground-blend" type="range" min="0" max="1" step="0.01" value="0.0"></input>
     </div>
 
+      document.getElementById("fog-color").addEventListener("input", (e) => {
+        map.setSky({
+          "fog-color": e.target.value,
+        });
     <div>
       <label for="horizon-fog-blend">horizon-fog-blend</label>
       <input id="horizon-fog-blend" type="range" min="0" max="1" step="0.01" value="0.1"></input>
@@ -97,24 +111,40 @@
       });
     });
 
+      document.getElementById("fog-ground-blend").addEventListener("input", (e) => {
+        map.setSky({
+          "fog-ground-blend": parseFloat(e.target.value),
+        });
     document.getElementById("horizon-color").addEventListener("input", (e) => {
       map.setSky({
         "horizon-color": e.target.value,
       });
     });
 
+      document.getElementById("horizon-fog-blend").addEventListener("input", (e) => {
+        map.setSky({
+          "horizon-fog-blend": parseFloat(e.target.value),
+        });
     document.getElementById("fog-color").addEventListener("input", (e) => {
       map.setSky({
         "fog-color": e.target.value,
       });
     });
 
+      document.getElementById("sky-horizon-blend").addEventListener("input", (e) => {
+        map.setSky({
+          "sky-horizon-blend": parseFloat(e.target.value),
+        });
     document.getElementById("fog-ground-blend").addEventListener("input", (e) => {
       map.setSky({
         "fog-ground-blend": parseFloat(e.target.value),
       });
     });
 
+      document.getElementById("atmosphere-blend").addEventListener("input", (e) => {
+        map.setSky({
+          "atmosphere-blend": parseFloat(e.target.value),
+        });
     document.getElementById("horizon-fog-blend").addEventListener("input", (e) => {
       map.setSky({
         "horizon-fog-blend": parseFloat(e.target.value),
@@ -127,6 +157,16 @@
       });
     });
 
+      map.on("ready", () => {
+        map.setSky({
+          "sky-color": "#0C2E4B",
+          "horizon-color": "#09112F",
+          "fog-color": "#09112F",
+          "fog-ground-blend": 0.0,
+          "horizon-fog-blend": 0.1,
+          "sky-horizon-blend": 1.0,
+          "atmosphere-blend": 0.5,
+        })
     document.getElementById("atmosphere-blend").addEventListener("input", (e) => {
       map.setSky({
         "atmosphere-blend": parseFloat(e.target.value),
