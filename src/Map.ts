@@ -46,6 +46,7 @@ import type { MinimapOptionsInput } from "./Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 import { MaptilerProjectionControl } from "./MaptilerProjectionControl";
 import { Telemetry } from "./Telemetry";
+import { Spacebox } from "./spacebox";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -197,6 +198,13 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * If not provided, the style takes precedence. If provided, overwrite the style.
    */
   projection?: ProjectionTypes;
+
+  /**
+   * Turn on/off spacebox.
+   * 
+   * Default: `false`
+   */
+  spacebox?: boolean;
 };
 
 /**
@@ -204,8 +212,9 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
  */
 // biome-ignore lint/suspicious/noShadowRestrictedNames: we want to keep consitency with MapLibre
 export class Map extends maplibregl.Map {
-  private options: MapOptions;
   public readonly telemetry: Telemetry;
+  
+  private options: MapOptions;
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
   private primaryLanguage: LanguageInfo;
@@ -222,6 +231,7 @@ export class Map extends maplibregl.Map {
   private originalLabelStyle = new window.Map<string, ExpressionSpecification | string>();
   private isStyleLocalized = false;
   private languageIsUpdated = false;
+  private isSpaceboxEnabled: boolean = false;
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -702,6 +712,43 @@ export class Map extends maplibregl.Map {
 
         this.fire("webglContextLost", event);
       });
+    });
+
+    const spacebox = new Spacebox({
+      map: this,
+      cubemap: {
+        path: "https://rs57cw.csb.app/spacebox/starmap_2020_4k",
+        opacity: 1,
+        chromaKey: {
+          color: [0, 0, 0],
+          threshold: 2,
+        },
+      },
+      gradient: {
+        // type: "linear",
+        type: "radial",
+        radius: 1,
+        stops: [
+          // [0.0, [0.0, 0.0, 1.0, 1.0]],
+          // [0.2, [0.2549, 0.4118, 0.8824, 1.0]],
+          // [0.4, [0.0, 1.0, 1.0, 1.0]],
+          // [0.6, [0.0, 1.0, 0.0, 1.0]],
+          // [0.8, [1.0, 1.0, 0.0, 1.0]],
+          // [1.0, [1.0, 0.0, 0.0, 1.0]],
+          [0.0, [0.8, 0.8, 1.0, 1.0]],
+          [1.0, [0.0, 0.0, 0.0, 1.0]],
+        ],
+      },
+    });
+
+    this.isSpaceboxEnabled = options.spacebox ?? true;
+
+    this.once("load", () => {
+      if (this.isSpaceboxEnabled === true) {
+        spacebox.show();
+      } else {
+        spacebox.hide();
+      }
     });
 
     this.telemetry = new Telemetry(this);

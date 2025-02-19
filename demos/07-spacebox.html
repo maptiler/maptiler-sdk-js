@@ -1,0 +1,36 @@
+<html>
+
+<head>
+  <title>MapTiler JS SDK example</title>
+  
+  <link rel="stylesheet" href="assets/demo-styles.css">
+  <script src="assets/demo-utils.js"></script>
+
+  <link rel="stylesheet" href="../build/maptiler-sdk.css">
+  <script src="../build/maptiler-sdk.umd.min.js"></script>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <script>
+    addPerformanceStats();
+    setupMapTilerApiKey();
+
+    const map = new maptilersdk.Map({
+      container: document.getElementById("map"),
+      style: maptilersdk.MapStyle.OUTDOOR.DARK,
+      hash: false,
+      geolocate: true,
+      scaleControl: true,
+      fullscreenControl: true,
+      terrainControl: true,
+      projectionControl: true,
+      zoom: 2,
+      projection: "globe",
+      spacebox: true
+    });
+  </script>
+</body>
+
+</html>
