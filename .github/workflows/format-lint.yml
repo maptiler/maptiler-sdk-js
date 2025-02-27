@@ -17,5 +17,5 @@ jobs:
       - name: Install Node.js dependencies
         run: npm ci
 
-      - name: Formatting and linting with Biome
-        run: npm run biome
+      - name: Formatting and linting
+        run: npm run lint
