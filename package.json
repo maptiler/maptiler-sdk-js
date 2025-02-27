@@ -49,7 +49,9 @@
     "ncu": "npx npm-check-updates",
     "prepare": "husky"
   },
-  "lint-staged": {},
+  "lint-staged": {
+    "*.ts": "npm run biome:fix"
+  },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@types/uuid": "^10.0.0",
