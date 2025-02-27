@@ -8,6 +8,13 @@
 
   <link rel="stylesheet" href="../build/maptiler-sdk.css">
   <script src="../build/maptiler-sdk.umd.min.js"></script>
+
+  <style>
+    #map {
+      background: rgb(255,0,0);
+      background: linear-gradient(0deg, rgba(255,0,0,1) 0%, rgba(0,255,0,1) 35%, rgba(0,0,255,1) 100%);
+    }
+  </style>
 </head>
 
 <body>
@@ -19,7 +26,7 @@
 
     const map = new maptilersdk.Map({
       container: document.getElementById("map"),
-      style: maptilersdk.MapStyle.OUTDOOR.DARK,
+      style: maptilersdk.MapStyle.OUTDOOR,
       hash: false,
       geolocate: true,
       scaleControl: true,
@@ -28,8 +35,30 @@
       projectionControl: true,
       zoom: 2,
       projection: "globe",
-      spacebox: true
+      spacebox: true,
+      center: [0, 0],
     });
+    
+    map.on("load", () => {
+      map.spacebox.setCubemap({
+        // path: "spacebox/dummy",
+        path: "spacebox/starmap_2020",
+        chromaKey: {
+          color: [0, 0, 0],
+          threshold: 1.0,
+        },
+      });
+      
+      map.spacebox.setGradient({
+        scale: 1,
+        stops: [
+          [0.5, [1.0, 0.0, 0.0, 1.0]],
+          [0.75, [0.0, 1.0, 0.0, 1.0]],
+          [1.0, [0.0, 0.0, 1.0, 0.0]],
+        ],
+      });
+    });
+
   </script>
 </body>
 

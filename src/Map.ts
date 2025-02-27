@@ -201,7 +201,7 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
 
   /**
    * Turn on/off spacebox.
-   * 
+   *
    * Default: `false`
    */
   spacebox?: boolean;
@@ -213,7 +213,12 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
 // biome-ignore lint/suspicious/noShadowRestrictedNames: we want to keep consitency with MapLibre
 export class Map extends maplibregl.Map {
   public readonly telemetry: Telemetry;
-  
+
+  private spacebox?: Spacebox;
+  public getSpacebox(): Spacebox | undefined {
+    return this.spacebox;
+  }
+
   private options: MapOptions;
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
@@ -714,42 +719,27 @@ export class Map extends maplibregl.Map {
       });
     });
 
-    const spacebox = new Spacebox({
-      map: this,
-      cubemap: {
-        path: "https://rs57cw.csb.app/spacebox/starmap_2020_4k",
-        opacity: 1,
-        chromaKey: {
-          color: [0, 0, 0],
-          threshold: 2,
-        },
-      },
-      gradient: {
-        // type: "linear",
-        type: "radial",
-        radius: 1,
-        stops: [
-          // [0.0, [0.0, 0.0, 1.0, 1.0]],
-          // [0.2, [0.2549, 0.4118, 0.8824, 1.0]],
-          // [0.4, [0.0, 1.0, 1.0, 1.0]],
-          // [0.6, [0.0, 1.0, 0.0, 1.0]],
-          // [0.8, [1.0, 1.0, 0.0, 1.0]],
-          // [1.0, [1.0, 0.0, 0.0, 1.0]],
-          [0.0, [0.8, 0.8, 1.0, 1.0]],
-          [1.0, [0.0, 0.0, 0.0, 1.0]],
-        ],
-      },
-    });
-
     this.isSpaceboxEnabled = options.spacebox ?? true;
 
-    this.once("load", () => {
-      if (this.isSpaceboxEnabled === true) {
-        spacebox.show();
-      } else {
-        spacebox.hide();
-      }
-    });
+    if (this.isSpaceboxEnabled === true) {
+      this.spacebox = new Spacebox({
+        map: this,
+        cubemap: {
+          path: "spacebox/starmap_2020",
+          chromaKey: {
+            color: [0, 0, 0],
+            threshold: 1.0,
+          },
+        },
+        gradient: {
+          scale: 1,
+          stops: [
+            [0.5, [0 / 255, 0 / 255, 255 / 255, 1.0]],
+            [1.0, [0 / 255, 0 / 255, 255 / 255, 0.0]],
+          ],
+        },
+      });
+    }
 
     this.telemetry = new Telemetry(this);
   }

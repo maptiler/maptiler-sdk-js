@@ -14,27 +14,27 @@ function loadCubemapTexture({
   const faces = [
     {
       target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
-      url: `${path}/px.png`,
+      url: `${path}/px.jpg`,
     },
     {
       target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
-      url: `${path}/nx.png`,
+      url: `${path}/nx.jpg`,
     },
     {
       target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
-      url: `${path}/py.png`,
+      url: `${path}/py.jpg`,
     },
     {
       target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
-      url: `${path}/ny.png`,
+      url: `${path}/ny.jpg`,
     },
     {
       target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
-      url: `${path}/pz.png`,
+      url: `${path}/pz.jpg`,
     },
     {
       target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
-      url: `${path}/nz.png`,
+      url: `${path}/nz.jpg`,
     },
   ];
 
@@ -48,12 +48,12 @@ function loadCubemapTexture({
     const image = new Image();
 
     image.crossOrigin = "anonymous";
-    
+
     image.onload = () => {
       gl.texImage2D(target, level, internalFormat, format, type, image);
-      
+
       amountOfLoadedTextures += 1;
-      
+
       if (amountOfLoadedTextures === faces.length) {
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
@@ -65,7 +65,7 @@ function loadCubemapTexture({
     };
 
     image.src = url;
-  };
+  }
 
   gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
   gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);

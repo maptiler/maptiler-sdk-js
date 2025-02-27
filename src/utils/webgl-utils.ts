@@ -1,18 +1,5 @@
 type WebGLContext = WebGLRenderingContext | WebGL2RenderingContext;
 
-type ProgramInfo<AttributeKey extends string, UniformKey extends string> = {
-  attributesLocations: Record<AttributeKey, number>;
-  uniformsLocations: Record<UniformKey, WebGLUniformLocation>;
-};
-
-type Object3D<AttributeKey extends string, UniformKey extends string> = {
-  shaderProgram: WebGLProgram;
-  programInfo: ProgramInfo<AttributeKey, UniformKey>;
-  positionBuffer: WebGLBuffer;
-  indexBuffer: WebGLBuffer;
-  indexBufferLength: number;
-};
-
 /**
  * Load a shader from a source string
  */
@@ -89,5 +76,82 @@ function getUniformLocation(
   return location;
 }
 
-export { loadShader, createShadersSetProgram, getUniformLocation };
-export type { WebGLContext, ProgramInfo, Object3D };
+type Object3D<Attribute extends string, Uniform extends string> = {
+  shaderProgram: WebGLProgram;
+  programInfo: {
+    attributesLocations: Record<Attribute, number>;
+    uniformsLocations: Record<Uniform, WebGLUniformLocation>;
+  };
+  positionBuffer: WebGLBuffer;
+  indexBuffer?: WebGLBuffer;
+  indexBufferLength?: number;
+}
+
+function createObject3D<Attribute extends string, Uniform extends string>({
+  gl,
+  vertexShaderSource,
+  fragmentShaderSource,
+  attributesKeys,
+  uniformsKeys,
+  vertices,
+  indices,
+}: {
+  gl: WebGLContext;
+  vertexShaderSource: string;
+  fragmentShaderSource: string;
+  attributesKeys: readonly Attribute[];
+  uniformsKeys: readonly Uniform[];
+  vertices: Array<number>;
+  indices?: Array<number>;
+}): Object3D<Attribute, Uniform> {
+  const shaderProgram = createShadersSetProgram({ gl, vertexShaderSource, fragmentShaderSource });
+
+  const attributesLocations = attributesKeys.reduce(
+    (acc, key) => {
+      acc[key] = gl.getAttribLocation(shaderProgram, `a_${key}`);
+
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
+  const uniformsLocations = uniformsKeys.reduce(
+    (acc, key) => {
+      acc[key] = getUniformLocation(gl, shaderProgram, `u_${key}`);
+
+      return acc;
+    },
+    {} as Record<string, WebGLUniformLocation>,
+  );
+
+  const positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+  let indexBuffer: WebGLBuffer | undefined;
+  let indexBufferLength: number | undefined;
+
+  if (indices !== undefined) {
+    indexBuffer = gl.createBuffer();
+    indexBufferLength = indices.length;
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+  }
+
+
+
+  return {
+    shaderProgram,
+    programInfo: {
+      attributesLocations,
+      uniformsLocations,
+    },
+    positionBuffer,
+    indexBuffer,
+    indexBufferLength,
+  };
+}
+
+
+export { loadShader, createShadersSetProgram, getUniformLocation, createObject3D };
+export type { WebGLContext, Object3D };

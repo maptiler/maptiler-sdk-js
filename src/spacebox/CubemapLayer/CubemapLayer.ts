@@ -2,49 +2,75 @@ import type { CustomLayerInterface, CustomRenderMethodInput } from "maplibre-gl"
 import { mat4 } from "gl-matrix";
 
 import type { Map as MapSDK } from "../../Map";
-import { createCubemap, loadCubemapTexture } from "./Cubemap";
-import type { ChromaKeyDefinition, CubemapDefinition, CubemapObject3D } from "./types";
+import { createObject3D, type WebGLContext, type Object3D } from "../../utils/webgl-utils";
+
+import { VERTICES, INDICES } from "./constants";
+import vertexShaderSource from "./cubemap.vert.glsl?raw";
+import fragmentShaderSource from "./cubemap.frag.glsl?raw";
+import { loadCubemapTexture } from "./loadCubemapTexture";
+import type { ChromaKeyDefinition, CubemapDefinition } from "./types";
 
 type Props = {
   cubemap: CubemapDefinition;
 };
+
+const ATTRIBUTES_KEYS = ["vertexPosition"] as const;
+const UNIFORMS_KEYS = ["projectionMatrix", "modelViewMatrix", "cubeSampler", "useChromaKey", "chromaKeyColor", "chromaKeyThreshold"] as const;
 
 class CubemapLayer implements CustomLayerInterface {
   public id: string = "cubemap-layer";
   public type: CustomLayerInterface["type"] = "custom";
   public renderingMode: CustomLayerInterface["renderingMode"] = "3d";
 
-  private map: MapSDK | null = null;
+  private map?: MapSDK;
   private cubemapPath: string;
-  private cubemapOpacity: number;
   private chromaKey?: ChromaKeyDefinition;
+  private cubeMapNeedsUpdate: boolean = false;
 
-  private cubemap?: CubemapObject3D;
+  private cubemap?: Object3D<typeof ATTRIBUTES_KEYS[number], typeof UNIFORMS_KEYS[number]>;
   private texture?: WebGLTexture;
 
   constructor({ cubemap }: Props) {
     this.cubemapPath = cubemap.path;
-    this.cubemapOpacity = cubemap.opacity;
     this.chromaKey = cubemap.chromaKey;
   }
-
+  
   public onAdd(map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
     this.map = map;
-    this.cubemap = createCubemap(gl);
-    this.texture = loadCubemapTexture({
+    this.cubemap = createObject3D({
       gl,
-      path: this.cubemapPath,
-      onLoadedCallback: () => {
-        this.map?.triggerRepaint();
-      },
+      vertexShaderSource,
+      fragmentShaderSource,
+      attributesKeys: ATTRIBUTES_KEYS,
+      uniformsKeys: UNIFORMS_KEYS,
+      vertices: VERTICES,
+      indices: INDICES,
     });
+
+    this.cubeMapNeedsUpdate = true;
   }
 
   public onRemove(_map: MapSDK, _gl: WebGLRenderingContext | WebGL2RenderingContext): void {}
 
-  public prerender(_gl: WebGLRenderingContext | WebGL2RenderingContext, _options: CustomRenderMethodInput): void {}
+  public prerender(gl: WebGLContext, _options: CustomRenderMethodInput): void {
+    if (this.cubeMapNeedsUpdate === true) {
+      this.cubeMapNeedsUpdate = false;
+
+      this.texture = loadCubemapTexture({
+        gl,
+        path: this.cubemapPath,
+        onLoadedCallback: () => {
+          this.map?.triggerRepaint();
+        },
+      });
+    }
+  }
 
   public render(gl: WebGLRenderingContext | WebGL2RenderingContext, _options: CustomRenderMethodInput): void {
+    if (this.map === undefined) {
+      throw new Error("Map is undefined");
+    }
+
     if (this.cubemap === undefined) {
       throw new Error("Cubemap is undefined");
     }
@@ -52,13 +78,6 @@ class CubemapLayer implements CustomLayerInterface {
     if (this.texture === undefined) {
       throw new Error("Texture is undefined");
     }
-
-    gl.depthFunc(gl.LESS);
-    gl.depthMask(true);
-    gl.enable(gl.CULL_FACE);
-    gl.frontFace(gl.CW);
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     gl.useProgram(this.cubemap.shaderProgram);
 
@@ -70,9 +89,7 @@ class CubemapLayer implements CustomLayerInterface {
     const far = 10000.0;
     const canvas = gl.canvas as HTMLCanvasElement;
     const aspect = canvas.clientWidth / canvas.clientHeight;
-    if (!this.map) {
-      throw new Error("Map is undefined");
-    }
+
     const transform = this.map.transform;
     const fov = transform.fov * (Math.PI / 180);
 
@@ -98,15 +115,12 @@ class CubemapLayer implements CustomLayerInterface {
      * Chroma key
      */
     if (this.chromaKey !== undefined) {
-      gl.uniform3fv(this.cubemap.programInfo.uniformsLocations.alphaColor, this.chromaKey.color);
-      gl.uniform1f(this.cubemap.programInfo.uniformsLocations.alphaThreshold, this.chromaKey.threshold);
+      gl.uniform1i(this.cubemap.programInfo.uniformsLocations.useChromaKey, 1);
+      gl.uniform3fv(this.cubemap.programInfo.uniformsLocations.chromaKeyColor, this.chromaKey.color);
+      gl.uniform1f(this.cubemap.programInfo.uniformsLocations.chromaKeyThreshold, this.chromaKey.threshold);
+    } else {
+      gl.uniform1i(this.cubemap.programInfo.uniformsLocations.useChromaKey, 0);
     }
-    /* *** */
-
-    /**
-     * Global alpha
-     */
-    gl.uniform1f(this.cubemap.programInfo.uniformsLocations.alpha, this.cubemapOpacity);
     /* *** */
 
     /**
@@ -120,9 +134,23 @@ class CubemapLayer implements CustomLayerInterface {
     /**
      * Draw
      */
+    if (this.cubemap.indexBuffer === undefined) {
+      throw new Error("Index buffer is undefined");
+    }
+
+    if (this.cubemap.indexBufferLength === undefined) {
+      throw new Error("Index buffer length is undefined");
+    }
+    
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.cubemap.indexBuffer);
     gl.drawElements(gl.TRIANGLES, this.cubemap.indexBufferLength, gl.UNSIGNED_SHORT, 0);
     /* *** */
+  }
+
+  public setCubemap(cubemap: CubemapDefinition): void {
+    this.cubemapPath = cubemap.path;
+    this.chromaKey = cubemap.chromaKey;
+    this.cubeMapNeedsUpdate = true;
   }
 }
 

@@ -1,8 +1,7 @@
 import type { Map as MapSDK } from "../Map";
-import { GradientLayer } from "./GradientLayer/GradientLayer";
-import type { GradientDefinition } from "./GradientLayer/types";
-import { CubemapLayer } from "./CubemapLayer/CubemapLayer";
-import type { CubemapDefinition } from "./CubemapLayer/types";
+
+import { CubemapLayer, type CubemapDefinition } from "./CubemapLayer";
+import { RadialGradientLayer, type GradientDefinition } from "./RadialGradientLayer";
 
 type Props = {
   map: MapSDK;
@@ -12,23 +11,23 @@ type Props = {
 
 class Spacebox {
   private map: MapSDK;
-  private gradientLayer: GradientLayer;
+  private gradientLayer: RadialGradientLayer;
   private cubemapLayer: CubemapLayer;
 
   constructor({ map, cubemap, gradient }: Props) {
     this.map = map;
 
-    const gradientLayer = new GradientLayer({ gradient });
+    const gradientLayer = new RadialGradientLayer({ gradient });
     this.gradientLayer = gradientLayer;
 
     const cubemapLayer = new CubemapLayer({ cubemap });
     this.cubemapLayer = cubemapLayer;
-    
+
     map.once("load", () => {
       const firstLayer = map.getLayersOrder()[0];
 
-      map.addLayer(gradientLayer, firstLayer);
       map.addLayer(cubemapLayer, firstLayer);
+      map.addLayer(gradientLayer, firstLayer);
     });
   }
 
@@ -40,6 +39,14 @@ class Spacebox {
   public hide(): void {
     this.map.setLayoutProperty(this.gradientLayer.id, "visibility", "none");
     this.map.setLayoutProperty(this.cubemapLayer.id, "visibility", "none");
+  }
+
+  public setCubemap(cubemap: CubemapDefinition): void {
+    this.cubemapLayer.setCubemap(cubemap);
+  }
+
+  public setGradient(gradient: GradientDefinition): void {
+    this.gradientLayer.setGradient(gradient);
   }
 }
 
