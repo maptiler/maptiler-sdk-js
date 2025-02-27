@@ -35,8 +35,8 @@
     "url": "https://github.com/maptiler/maptiler-sdk-js.git"
   },
   "scripts": {
-    "biome": "biome check --max-diagnostics=1000",
-    "biome:fix": "npx @biomejs/biome check --max-diagnostics=1000 --write",
+    "lint": "npx eslint src",
+    "lint:fix": "npx eslint src --fix",
     "doc": "rm -rf docs/* && typedoc --out docs && cp -r images docs/",
     "test": "vitest run -c vite.config-test.ts",
     "build-css": "mkdir -p dist build && node scripts/replace-path-with-content.js src/style/style_template.css dist/tmp_maptiler-sdk.css && cat node_modules/maplibre-gl/dist/maplibre-gl.css dist/tmp_maptiler-sdk.css > dist/maptiler-sdk.css && rm dist/tmp_maptiler-sdk.css && cp dist/maptiler-sdk.css build/maptiler-sdk.css",
@@ -50,18 +50,23 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.ts": "npm run biome:fix"
+    "*.ts": "npm run lint:fix"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@eslint/js": "^9.21.0",
     "@types/uuid": "^10.0.0",
     "@types/xmldom": "^0.1.31",
     "@xmldom/xmldom": "^0.8.10",
     "concurrently": "^9.1.2",
+    "eslint": "^9.21.0",
+    "eslint-config-prettier": "^10.0.2",
+    "eslint-plugin-prettier": "^5.2.3",
     "husky": "^8.0.0",
     "lint-staged": "^15.4.3",
+    "prettier": "3.5.2",
     "typedoc": "^0.27.6",
     "typescript": "^5.7.3",
+    "typescript-eslint": "^8.25.0",
     "vite": "^6.0.7",
     "vite-plugin-dts": "^4.5.0",
     "vitest": "^2.1.8"
