@@ -8,5 +8,4 @@ type CubemapDefinition = {
   chromaKey?: ChromaKeyDefinition;
 };
 
-
 export type { CubemapDefinition, ChromaKeyDefinition };

@@ -10,14 +10,7 @@ const bottomFace = [-hw, -hh, -hd, hw, -hh, -hd, hw, -hh, hd, -hw, -hh, hd];
 const rightFace = [hw, -hh, -hd, hw, hh, -hd, hw, hh, hd, hw, -hh, hd];
 const leftFace = [-hw, -hh, -hd, -hw, -hh, hd, -hw, hh, hd, -hw, hh, -hd];
 
-const VERTICES = [
-  ...frontFace,
-  ...backFace,
-  ...topFace,
-  ...bottomFace,
-  ...rightFace,
-  ...leftFace,
-];
+const VERTICES = [...frontFace, ...backFace, ...topFace, ...bottomFace, ...rightFace, ...leftFace];
 
 const INDICES = [
   // Front

@@ -85,7 +85,7 @@ type Object3D<Attribute extends string, Uniform extends string> = {
   positionBuffer: WebGLBuffer;
   indexBuffer?: WebGLBuffer;
   indexBufferLength?: number;
-}
+};
 
 function createObject3D<Attribute extends string, Uniform extends string>({
   gl,
@@ -138,8 +138,6 @@ function createObject3D<Attribute extends string, Uniform extends string>({
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
   }
 
-
-
   return {
     shaderProgram,
     programInfo: {
@@ -151,7 +149,6 @@ function createObject3D<Attribute extends string, Uniform extends string>({
     indexBufferLength,
   };
 }
-
 
 export { loadShader, createShadersSetProgram, getUniformLocation, createObject3D };
 export type { WebGLContext, Object3D };

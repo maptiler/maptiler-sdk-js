@@ -15,7 +15,14 @@ type Props = {
 };
 
 const ATTRIBUTES_KEYS = ["vertexPosition"] as const;
-const UNIFORMS_KEYS = ["projectionMatrix", "modelViewMatrix", "cubeSampler", "useChromaKey", "chromaKeyColor", "chromaKeyThreshold"] as const;
+const UNIFORMS_KEYS = [
+  "projectionMatrix",
+  "modelViewMatrix",
+  "cubeSampler",
+  "useChromaKey",
+  "chromaKeyColor",
+  "chromaKeyThreshold",
+] as const;
 
 class CubemapLayer implements CustomLayerInterface {
   public id: string = "cubemap-layer";
@@ -27,14 +34,14 @@ class CubemapLayer implements CustomLayerInterface {
   private chromaKey?: ChromaKeyDefinition;
   private cubeMapNeedsUpdate: boolean = false;
 
-  private cubemap?: Object3D<typeof ATTRIBUTES_KEYS[number], typeof UNIFORMS_KEYS[number]>;
+  private cubemap?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
   private texture?: WebGLTexture;
 
   constructor({ cubemap }: Props) {
     this.cubemapPath = cubemap.path;
     this.chromaKey = cubemap.chromaKey;
   }
-  
+
   public onAdd(map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
     this.map = map;
     this.cubemap = createObject3D({
@@ -141,7 +148,7 @@ class CubemapLayer implements CustomLayerInterface {
     if (this.cubemap.indexBufferLength === undefined) {
       throw new Error("Index buffer length is undefined");
     }
-    
+
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.cubemap.indexBuffer);
     gl.drawElements(gl.TRIANGLES, this.cubemap.indexBufferLength, gl.UNSIGNED_SHORT, 0);
     /* *** */

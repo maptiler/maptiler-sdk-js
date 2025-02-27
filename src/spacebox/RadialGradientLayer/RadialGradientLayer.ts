@@ -24,8 +24,8 @@ class RadialGradientLayer implements CustomLayerInterface {
   private gradient: GradientDefinition;
 
   private map?: MapSDK;
-  private plane?: Object3D<typeof ATTRIBUTES_KEYS[number], typeof UNIFORMS_KEYS[number]>;
-  
+  private plane?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
+
   constructor({ gradient }: Props) {
     this.gradient = gradient;
   }
@@ -107,7 +107,7 @@ class RadialGradientLayer implements CustomLayerInterface {
 
     /**
      * Rotation matrix
-     * 
+     *
      * Collumn 1: right
      * Collumn 2: up
      * Collumn 3: forward
@@ -132,7 +132,7 @@ class RadialGradientLayer implements CustomLayerInterface {
       1,
     );
 
-    const rotationMatrixLocation = this.plane.programInfo.uniformsLocations.rotationMatrix
+    const rotationMatrixLocation = this.plane.programInfo.uniformsLocations.rotationMatrix;
     gl.uniformMatrix4fv(rotationMatrixLocation, false, rotationMatrix);
 
     const stopsNumber = this.gradient.stops.length;
