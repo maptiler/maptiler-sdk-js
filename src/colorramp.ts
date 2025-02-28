@@ -1,4 +1,6 @@
-export type RgbaColor = [number, number, number] | [number, number, number, number];
+export type RgbaColor =
+  | [number, number, number]
+  | [number, number, number, number];
 
 export type ColorStop = {
   /**
@@ -84,19 +86,22 @@ export class ColorRamp extends Array<ColorStop> {
     super();
 
     if ("min" in options) {
-      this.min = options.min as number;
+      this.min = options.min!;
     }
 
     if ("max" in options) {
-      this.max = options.max as number;
+      this.max = options.max!;
     }
 
     if ("stops" in options) {
-      this.setStops(options.stops as ColorStop[], { clone: false });
+      this.setStops(options.stops!, { clone: false });
     }
   }
 
-  setStops(stops: Array<ColorStop>, options: { clone?: boolean } = { clone: true }): ColorRamp {
+  setStops(
+    stops: Array<ColorStop>,
+    options: { clone?: boolean } = { clone: true },
+  ): ColorRamp {
     const colorRamp = options.clone ? this.clone() : this;
 
     colorRamp.length = 0;
@@ -114,7 +119,9 @@ export class ColorRamp extends Array<ColorStop> {
       } as ColorStop);
     }
 
-    colorRamp.sort((a: ColorStop, b: ColorStop) => (a.value < b.value ? -1 : 1));
+    colorRamp.sort((a: ColorStop, b: ColorStop) =>
+      a.value < b.value ? -1 : 1,
+    );
 
     this.min = min;
     this.max = max;
@@ -122,7 +129,11 @@ export class ColorRamp extends Array<ColorStop> {
     return colorRamp;
   }
 
-  scale(min: number, max: number, options: { clone?: boolean } = { clone: true }): ColorRamp {
+  scale(
+    min: number,
+    max: number,
+    options: { clone?: boolean } = { clone: true },
+  ): ColorRamp {
     const clone = options.clone;
 
     const currentMin = this[0].value;
@@ -187,7 +198,10 @@ export class ColorRamp extends Array<ColorStop> {
     return { min: this.min, max: this.max };
   }
 
-  getColor(value: number, options: { smooth?: boolean } = { smooth: true }): RgbaColor {
+  getColor(
+    value: number,
+    options: { smooth?: boolean } = { smooth: true },
+  ): RgbaColor {
     if (value <= this[0].value) {
       return this[0].color;
     }
@@ -236,9 +250,15 @@ export class ColorRamp extends Array<ColorStop> {
   /**
    * Get the color of the color ramp at a relative position in [0, 1]
    */
-  getColorRelative(value: number, options: { smooth?: boolean } = { smooth: true }): RgbaColor {
+  getColorRelative(
+    value: number,
+    options: { smooth?: boolean } = { smooth: true },
+  ): RgbaColor {
     const bounds = this.getBounds();
-    return this.getColor(bounds.min + value * (bounds.max - bounds.min), options);
+    return this.getColor(
+      bounds.min + value * (bounds.max - bounds.min),
+      options,
+    );
   }
 
   getCanvasStrip(
@@ -249,8 +269,8 @@ export class ColorRamp extends Array<ColorStop> {
     },
   ) {
     const canvas = document.createElement("canvas");
-    canvas.width = options.horizontal ? (options.size as number) : 1;
-    canvas.height = options.horizontal ? 1 : (options.size as number);
+    canvas.width = options.horizontal ? options.size! : 1;
+    canvas.height = options.horizontal ? 1 : options.size!;
 
     const ctx = canvas.getContext("2d");
 
@@ -259,7 +279,7 @@ export class ColorRamp extends Array<ColorStop> {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const imageDataArray = imageData.data;
 
-    const size = options.size as number;
+    const size = options.size!;
     const startValue = this[0].value;
     const endValue = this.at(-1).value;
     const valueSpan = endValue - startValue;
@@ -272,7 +292,7 @@ export class ColorRamp extends Array<ColorStop> {
       imageDataArray[i * 4] = color[0];
       imageDataArray[i * 4 + 1] = color[1];
       imageDataArray[i * 4 + 2] = color[2];
-      imageDataArray[i * 4 + 3] = color.length > 3 ? (color[3] as number) : 255;
+      imageDataArray[i * 4 + 3] = color.length > 3 ? color[3]! : 255;
     }
 
     ctx.putImageData(imageData, 0, 0);
@@ -283,7 +303,13 @@ export class ColorRamp extends Array<ColorStop> {
    * Apply a non-linear ressampling. This will create a new instance of ColorRamp with the same bounds.
    */
   resample(
-    method: "ease-in-square" | "ease-out-square" | "ease-in-sqrt" | "ease-out-sqrt" | "ease-in-exp" | "ease-out-exp",
+    method:
+      | "ease-in-square"
+      | "ease-out-square"
+      | "ease-in-sqrt"
+      | "ease-out-sqrt"
+      | "ease-in-exp"
+      | "ease-out-exp",
     samples = 15,
   ): ColorRamp {
     const inputBounds = this.getBounds();

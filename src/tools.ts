@@ -1,5 +1,10 @@
 import maplibregl from "maplibre-gl";
-import type { RequestParameters, ResourceType, RequestTransformFunction, SymbolLayerSpecification } from "maplibre-gl";
+import type {
+  RequestParameters,
+  ResourceType,
+  RequestTransformFunction,
+  SymbolLayerSpecification,
+} from "maplibre-gl";
 import { defaults } from "./defaults";
 import { config } from "./config";
 import { MAPTILER_SESSION_ID } from "./config";
@@ -56,7 +61,10 @@ export function DOMremove(node: HTMLElement) {
  * It adds the session ID as well as the MapTiler Cloud key from the config to all the requests
  * performed on MapTiler Cloud servers.
  */
-export function maptilerCloudTransformRequest(url: string, resourceType?: ResourceType): RequestParameters {
+export function maptilerCloudTransformRequest(
+  url: string,
+  resourceType?: ResourceType,
+): RequestParameters {
   let reqUrl = null;
 
   try {
@@ -80,7 +88,10 @@ export function maptilerCloudTransformRequest(url: string, resourceType?: Resour
     }
   }
 
-  const localCacheTransformedReq = localCacheTransformRequest(reqUrl, resourceType);
+  const localCacheTransformedReq = localCacheTransformRequest(
+    reqUrl,
+    resourceType,
+  );
 
   return {
     url: localCacheTransformedReq,
@@ -91,7 +102,9 @@ export function maptilerCloudTransformRequest(url: string, resourceType?: Resour
  * This combines a user-defined tranformRequest function (optionnal)
  * with the MapTiler Cloud-specific one: maptilerCloudTransformRequest
  */
-export function combineTransformRequest(userDefinedRTF?: RequestTransformFunction | null): RequestTransformFunction {
+export function combineTransformRequest(
+  userDefinedRTF?: RequestTransformFunction | null,
+): RequestTransformFunction {
   return (url: string, resourceType?: ResourceType): RequestParameters => {
     if (userDefinedRTF !== undefined && userDefinedRTF !== null) {
       const rp = userDefinedRTF(url, resourceType);
@@ -119,7 +132,8 @@ export function generateRandomString(): string {
  */
 export function isUUID(s: string): boolean {
   // Regular expression to check if string is a valid UUID
-  const regexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
+  const regexExp =
+    /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
   return regexExp.test(s);
 }
 
@@ -140,7 +154,8 @@ export function jsonParseNoThrow<T>(doc: string): T | null {
  * Simple function to check if an object is a GeoJSON
  */
 export function isValidGeoJSON<T>(obj: T & { type: string }): boolean {
-  if (typeof obj !== "object" || Array.isArray(obj) || obj === null) return false;
+  if (typeof obj !== "object" || Array.isArray(obj) || obj === null)
+    return false;
   if (!("type" in obj)) return false;
 
   const validTypes = [
@@ -243,7 +258,9 @@ export function changeFirstLanguage(
 ): maplibregl.ExpressionSpecification {
   const expr = structuredClone(origExpr) as maplibregl.ExpressionSpecification;
 
-  const exploreNode = (subExpr: maplibregl.ExpressionSpecification | string) => {
+  const exploreNode = (
+    subExpr: maplibregl.ExpressionSpecification | string,
+  ) => {
     if (typeof subExpr === "string") return;
 
     for (let i = 0; i < subExpr.length; i += 1) {
@@ -269,7 +286,10 @@ export function changeFirstLanguage(
  * If `localized` is `false`, it check for {name}.
  * In a exact way or is a loose way (such as "foo {name:xx}" or "foo {name} bar")
  */
-export function checkNamePattern(str: string, localized: boolean): { contains: boolean; exactMatch: boolean } {
+export function checkNamePattern(
+  str: string,
+  localized: boolean,
+): { contains: boolean; exactMatch: boolean } {
   const regex = localized ? /\{name:\S+\}/ : /\{name\}/;
   return {
     contains: regex.test(str),
@@ -319,7 +339,9 @@ export function findLanguageStr(str: string): Array<string | null> {
   return languageUsed;
 }
 
-function isGetNameLanguageAndFind(subExpr: unknown): { isLanguage: boolean; localization: string | null } | null {
+function isGetNameLanguageAndFind(
+  subExpr: unknown,
+): { isLanguage: boolean; localization: string | null } | null {
   // Not language expression
   if (!Array.isArray(subExpr)) return null;
   if (subExpr.length !== 2) return null;
@@ -338,7 +360,7 @@ function isGetNameLanguageAndFind(subExpr: unknown): { isLanguage: boolean; loca
   if (subExpr[1].trim().startsWith("name:")) {
     return {
       isLanguage: true,
-      localization: subExpr[1].trim().split(":").pop() as string,
+      localization: subExpr[1].trim().split(":").pop()!,
     };
   }
 
@@ -350,12 +372,17 @@ function isGetNameLanguageAndFind(subExpr: unknown): { isLanguage: boolean; loca
  * The returned array contains languages such as "en", "fr" but
  * can also contain null that stand for the use of {name}
  */
-export function findLanguageObj(origExpr: maplibregl.ExpressionSpecification): Array<string | null> {
+export function findLanguageObj(
+  origExpr: maplibregl.ExpressionSpecification,
+): Array<string | null> {
   const languageUsed = [] as Array<string | null>;
   const expr = structuredClone(origExpr) as maplibregl.ExpressionSpecification;
 
   const exploreNode = (
-    subExpr: maplibregl.ExpressionSpecification | string | Array<maplibregl.ExpressionSpecification | string>,
+    subExpr:
+      | maplibregl.ExpressionSpecification
+      | string
+      | Array<maplibregl.ExpressionSpecification | string>,
   ) => {
     if (typeof subExpr === "string") return;
 
@@ -376,7 +403,7 @@ export function findLanguageObj(origExpr: maplibregl.ExpressionSpecification): A
 export function computeLabelsLocalizationMetrics(
   layers: maplibregl.LayerSpecification[],
   map: MapSDK,
-): { unlocalized: number; localized: { [k: string]: number } } {
+): { unlocalized: number; localized: Record<string, number> } {
   const languages: Array<string | null>[] = [];
 
   for (const genericLayer of layers) {
@@ -396,7 +423,8 @@ export function computeLabelsLocalizationMetrics(
       continue;
     }
 
-    const textFieldLayoutProp: string | maplibregl.ExpressionSpecification = map.getLayoutProperty(id, "text-field");
+    const textFieldLayoutProp: string | maplibregl.ExpressionSpecification =
+      map.getLayoutProperty(id, "text-field");
 
     if (!textFieldLayoutProp) {
       continue;
@@ -412,7 +440,10 @@ export function computeLabelsLocalizationMetrics(
   }
 
   const flatLanguages = languages.flat();
-  const localizationMetrics: { unlocalized: number; localized: { [k: string]: number } } = {
+  const localizationMetrics: {
+    unlocalized: number;
+    localized: Record<string, number>;
+  } = {
     unlocalized: 0,
     localized: {},
   };
