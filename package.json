@@ -2,6 +2,7 @@
   "name": "@maptiler/sdk",
   "version": "3.0.2",
   "description": "The Javascript & TypeScript map SDK tailored for MapTiler Cloud",
+  "author": "MapTiler",
   "module": "dist/maptiler-sdk.mjs",
   "types": "dist/maptiler-sdk.d.ts",
   "style": "dist/maptiler-sdk.css",
@@ -45,15 +46,20 @@
     "make": "npm run biome:fix && npm run build",
     "dev": "concurrently \"vite -c vite.config-dev.ts\" \"npm run dev-umd\"",
     "dev-umd": "npm run build-css && tsc && NODE_ENV=development vite build -w -c vite.config-umd.ts",
-    "ncu": "npx npm-check-updates"
+    "ncu": "npx npm-check-updates",
+    "prepare": "husky"
   },
-  "author": "MapTiler",
+  "lint-staged": {
+    "*.ts": "npm run biome:fix"
+  },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@types/uuid": "^10.0.0",
     "@types/xmldom": "^0.1.31",
     "@xmldom/xmldom": "^0.8.10",
     "concurrently": "^9.1.2",
+    "husky": "^8.0.0",
+    "lint-staged": "^15.4.3",
     "typedoc": "^0.27.6",
     "typescript": "^5.7.3",
     "vite": "^6.0.7",
