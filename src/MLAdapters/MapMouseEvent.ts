@@ -11,7 +11,7 @@ export class MapMouseEvent extends maplibregl.MapMouseEvent {
     type: string,
     map: SDKMap | MapMLGL,
     originalEvent: MouseEvent,
-    data: any = {},
+    data: Record<string, unknown> = {},
   ) {
     super(type, map as MapMLGL, originalEvent, data);
   }
