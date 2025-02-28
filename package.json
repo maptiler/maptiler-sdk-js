@@ -35,19 +35,20 @@
     "url": "https://github.com/maptiler/maptiler-sdk-js.git"
   },
   "scripts": {
+    "prepare": "husky",
+    "doc": "rm -rf docs/* && typedoc --out docs && cp -r images docs/",
+    "ncu": "npx npm-check-updates",
     "lint": "npx eslint src",
     "lint:fix": "npx eslint src --fix",
-    "doc": "rm -rf docs/* && typedoc --out docs && cp -r images docs/",
     "test": "vitest run -c vite.config-test.ts",
+    "install:clean": "rm -rf build/ dist/ node_modules/ && npm ci",
+    "dev": "concurrently \"vite -c vite.config-dev.ts\" \"npm run dev-umd\"",
+    "dev-umd": "npm run build-css && tsc && NODE_ENV=development vite build -w -c vite.config-umd.ts",
     "build-css": "mkdir -p dist build && node scripts/replace-path-with-content.js src/style/style_template.css dist/tmp_maptiler-sdk.css && cat node_modules/maplibre-gl/dist/maplibre-gl.css dist/tmp_maptiler-sdk.css > dist/maptiler-sdk.css && rm dist/tmp_maptiler-sdk.css && cp dist/maptiler-sdk.css build/maptiler-sdk.css",
     "build-umd": "tsc && NODE_ENV=production vite build -c vite.config-umd.ts",
     "build-es": "tsc && NODE_ENV=production vite build -c vite.config-es.ts",
     "build": "npm run build-es; npm run build-umd; npm run build-css",
-    "make": "npm run biome:fix && npm run build",
-    "dev": "concurrently \"vite -c vite.config-dev.ts\" \"npm run dev-umd\"",
-    "dev-umd": "npm run build-css && tsc && NODE_ENV=development vite build -w -c vite.config-umd.ts",
-    "ncu": "npx npm-check-updates",
-    "prepare": "husky"
+    "make": "npm run install:clean && npm run build"
   },
   "lint-staged": {
     "*.ts": "npm run lint:fix"

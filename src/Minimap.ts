@@ -309,8 +309,11 @@ export default class Minimap implements IControl {
       ],
     ];
 
-    const source = this.map.getSource("parentRect")!;
-    source.setData(this.#parentRect);
+    const source = this.map.getSource<GeoJSONSource>("parentRect");
+
+    if (source !== undefined) {
+      source.setData(this.#parentRect);
+    }
   }
 
   #syncMaps(): () => void {

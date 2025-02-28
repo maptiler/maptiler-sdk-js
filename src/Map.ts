@@ -207,7 +207,6 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
 /**
  * The Map class can be instanciated to display a map in a `<div>`
  */
-// biome-ignore lint/suspicious/noShadowRestrictedNames: we want to keep consitency with MapLibre
 export class Map extends maplibregl.Map {
   private options: MapOptions;
   public readonly telemetry: Telemetry;
@@ -287,7 +286,6 @@ export class Map extends maplibregl.Map {
     // a child call of super, meaning instance attributes cannot be initialized yet.
     // The styleInProcess instance attribute is necessary to track if a style has not fall into a CORS error, for which
     // Maplibre DOES NOT throw an AJAXError (hence does not track the URL of the failed http request)
-    // biome-ignore lint/performance/noDelete: <explanation>
     delete superOptions.style;
     super(superOptions);
 

@@ -81,7 +81,6 @@ export {
   getRTLTextPluginStatus,
   LngLat,
   LngLatBounds,
-  // biome-ignore lint/style/useExportType: Biome thinks those are only type while they are actually full fledge classes
   MercatorCoordinate,
   Evented,
   AJAXError,
