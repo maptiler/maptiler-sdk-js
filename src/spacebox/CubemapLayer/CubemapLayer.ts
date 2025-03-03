@@ -8,7 +8,7 @@ import { VERTICES, INDICES } from "./constants";
 import vertexShaderSource from "./cubemap.vert.glsl?raw";
 import fragmentShaderSource from "./cubemap.frag.glsl?raw";
 import { loadCubemapTexture } from "./loadCubemapTexture";
-import type { ChromaKeyDefinition, CubemapDefinition } from "./types";
+import type { CubemapDefinition } from "./types";
 
 type Props = {
   cubemap: CubemapDefinition;
@@ -19,9 +19,6 @@ const UNIFORMS_KEYS = [
   "projectionMatrix",
   "modelViewMatrix",
   "cubeSampler",
-  "useChromaKey",
-  "chromaKeyColor",
-  "chromaKeyThreshold",
 ] as const;
 
 class CubemapLayer implements CustomLayerInterface {
@@ -31,7 +28,6 @@ class CubemapLayer implements CustomLayerInterface {
 
   private map?: MapSDK;
   private cubemapPath: string;
-  private chromaKey?: ChromaKeyDefinition;
   private cubeMapNeedsUpdate: boolean = false;
 
   private cubemap?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
@@ -39,7 +35,6 @@ class CubemapLayer implements CustomLayerInterface {
 
   constructor({ cubemap }: Props) {
     this.cubemapPath = cubemap.path;
-    this.chromaKey = cubemap.chromaKey;
   }
 
   public onAdd(map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
@@ -119,18 +114,6 @@ class CubemapLayer implements CustomLayerInterface {
     gl.uniformMatrix4fv(this.cubemap.programInfo.uniformsLocations.modelViewMatrix, false, modelViewMatrix);
 
     /**
-     * Chroma key
-     */
-    if (this.chromaKey !== undefined) {
-      gl.uniform1i(this.cubemap.programInfo.uniformsLocations.useChromaKey, 1);
-      gl.uniform3fv(this.cubemap.programInfo.uniformsLocations.chromaKeyColor, this.chromaKey.color);
-      gl.uniform1f(this.cubemap.programInfo.uniformsLocations.chromaKeyThreshold, this.chromaKey.threshold);
-    } else {
-      gl.uniform1i(this.cubemap.programInfo.uniformsLocations.useChromaKey, 0);
-    }
-    /* *** */
-
-    /**
      * Texture
      */
     gl.activeTexture(gl.TEXTURE0);
@@ -156,7 +139,6 @@ class CubemapLayer implements CustomLayerInterface {
 
   public setCubemap(cubemap: CubemapDefinition): void {
     this.cubemapPath = cubemap.path;
-    this.chromaKey = cubemap.chromaKey;
     this.cubeMapNeedsUpdate = true;
   }
 }

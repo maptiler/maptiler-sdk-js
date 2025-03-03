@@ -726,10 +726,6 @@ export class Map extends maplibregl.Map {
         map: this,
         cubemap: {
           path: "spacebox/starmap_2020",
-          chromaKey: {
-            color: [0, 0, 0],
-            threshold: 1.0,
-          },
         },
         gradient: {
           scale: 1,
