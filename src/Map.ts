@@ -51,6 +51,7 @@ import type { MinimapOptionsInput } from "./Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 import { MaptilerProjectionControl } from "./MaptilerProjectionControl";
 import { Telemetry } from "./Telemetry";
+import { Spacebox } from "./spacebox";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -202,14 +203,27 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * If not provided, the style takes precedence. If provided, overwrite the style.
    */
   projection?: ProjectionTypes;
+
+  /**
+   * Turn on/off spacebox.
+   *
+   * Default: `false`
+   */
+  spacebox?: boolean;
 };
 
 /**
  * The Map class can be instanciated to display a map in a `<div>`
  */
 export class Map extends maplibregl.Map {
-  private options: MapOptions;
   public readonly telemetry: Telemetry;
+
+  private spacebox?: Spacebox;
+  public getSpacebox(): Spacebox | undefined {
+    return this.spacebox;
+  }
+
+  private options: MapOptions;
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
   private primaryLanguage: LanguageInfo;
@@ -229,6 +243,7 @@ export class Map extends maplibregl.Map {
   >();
   private isStyleLocalized = false;
   private languageIsUpdated = false;
+  private isSpaceboxEnabled: boolean = false;
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -750,6 +765,28 @@ export class Map extends maplibregl.Map {
         this.fire("webglContextLost", event);
       });
     });
+
+    this.isSpaceboxEnabled = options.spacebox ?? true;
+
+    if (this.isSpaceboxEnabled === true) {
+      this.spacebox = new Spacebox({
+        map: this,
+        cubemap: {
+          path: "spacebox/starmap_2020",
+          chromaKey: {
+            color: [0, 0, 0],
+            threshold: 1.0,
+          },
+        },
+        gradient: {
+          scale: 1,
+          stops: [
+            [0.5, [0 / 255, 0 / 255, 255 / 255, 1.0]],
+            [1.0, [0 / 255, 0 / 255, 255 / 255, 0.0]],
+          ],
+        },
+      });
+    }
 
     this.telemetry = new Telemetry(this);
   }
