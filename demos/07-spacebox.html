@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
   <title>MapTiler JS SDK example</title>
@@ -11,8 +12,11 @@
 
   <style>
     #map {
-      background: rgb(255,0,0);
-      background: linear-gradient(0deg, rgba(255,0,0,1) 0%, rgba(0,255,0,1) 35%, rgba(0,0,255,1) 100%);
+      background-color: #eee;
+      background-image: linear-gradient(45deg, rgb(150,150,150) 25%, transparent 25%, transparent 75%, rgb(150,150,150) 75%, rgb(150,150,150)),
+      linear-gradient(45deg, rgb(150,150,150) 25%, transparent 25%, transparent 75%, rgb(150,150,150) 75%, rgb(150,150,150));
+      background-size: 60px 60px;
+      background-position: 0 0, 30px 30px;
     }
   </style>
 </head>
@@ -40,19 +44,30 @@
     });
     
     map.on("load", () => {
-      map.spacebox.setCubemap({
-        // path: "spacebox/dummy",
-        path: "spacebox/starmap_2020",
-      });
+      // map.spacebox.setCubemap({
+        // path: {
+          // baseUrl: "spacebox/transparent/",
+          // format: "jpg",
+        // },
+      // })
+      //             faces: {
+      //       pX: "spacebox/starmap_2020/px.jpg",
+      //       nX: "spacebox/starmap_2020/nx.jpg",
+      //       pY: "spacebox/starmap_2020/py.jpg",
+      //       nY: "spacebox/starmap_2020/ny.jpg",
+      //       pZ: "spacebox/starmap_2020/pz.jpg",
+      //       nZ: "spacebox/starmap_2020/nz.jpg",
+      //     },
+      // });
       
-      map.spacebox.setGradient({
-        scale: 1,
-        stops: [
-          [0.5, [1.0, 0.0, 0.0, 1.0]],
-          [0.75, [0.0, 1.0, 0.0, 1.0]],
-          [1.0, [0.0, 0.0, 1.0, 0.0]],
-        ],
-      });
+      // map.spacebox.setGradient({
+      //   scale: 1,
+      //   stops: [
+      //     [0.5, [1.0, 0.0, 0.0, 1.0]],
+      //     [0.75, [0.0, 1.0, 0.0, 1.0]],
+      //     [1.0, [0.0, 0.0, 1.0, 0.0]],
+      //   ],
+      // });
     });
 
   </script>

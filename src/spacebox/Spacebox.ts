@@ -3,9 +3,9 @@ import type { Map as MapSDK } from "../Map";
 import { CubemapLayer, type CubemapDefinition } from "./CubemapLayer";
 import { RadialGradientLayer, type GradientDefinition } from "./RadialGradientLayer";
 
-type Props = {
+type SpaceboxConstructorOptions = {
   map: MapSDK;
-  cubemap: CubemapDefinition;
+  space: CubemapDefinition;
   gradient: GradientDefinition;
 };
 
@@ -14,13 +14,14 @@ class Spacebox {
   private gradientLayer: RadialGradientLayer;
   private cubemapLayer: CubemapLayer;
 
-  constructor({ map, cubemap, gradient }: Props) {
+  constructor({ map, space, gradient }: SpaceboxConstructorOptions) {
     this.map = map;
 
     const gradientLayer = new RadialGradientLayer({ gradient });
     this.gradientLayer = gradientLayer;
 
-    const cubemapLayer = new CubemapLayer({ cubemap });
+
+    const cubemapLayer = new CubemapLayer(space);
     this.cubemapLayer = cubemapLayer;
 
     map.once("load", () => {

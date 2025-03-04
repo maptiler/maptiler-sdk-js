@@ -719,13 +719,28 @@ export class Map extends maplibregl.Map {
       });
     });
 
-    this.isSpaceboxEnabled = options.spacebox ?? true;
-
+  this.isSpaceboxEnabled = options.spacebox ?? true;
     if (this.isSpaceboxEnabled === true) {
       this.spacebox = new Spacebox({
         map: this,
-        cubemap: {
-          path: "spacebox/starmap_2020",
+        space: {
+          // path: {
+          //   baseUrl: "spacebox/starmap_2020",
+          //   format: "jpg",
+          // },
+          path: {
+            baseUrl: "spacebox/transparent",
+            // format: "jpg",
+          },
+          // faces: {
+          //   pX: "spacebox/starmap_2020/px.jpg",
+          //   nX: "spacebox/starmap_2020/nx.jpg",
+          //   pY: "spacebox/starmap_2020/py.jpg",
+          //   nY: "spacebox/starmap_2020/ny.jpg",
+          //   pZ: "spacebox/starmap_2020/pz.jpg",
+          //   nZ: "spacebox/starmap_2020/nz.jpg",
+          // },
+          // preset: "universe-dark" as Cube,
         },
         gradient: {
           scale: 1,

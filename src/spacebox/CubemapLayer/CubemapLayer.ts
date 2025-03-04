@@ -8,17 +8,18 @@ import { VERTICES, INDICES } from "./constants";
 import vertexShaderSource from "./cubemap.vert.glsl?raw";
 import fragmentShaderSource from "./cubemap.frag.glsl?raw";
 import { loadCubemapTexture } from "./loadCubemapTexture";
-import type { CubemapDefinition } from "./types";
+import type { CubemapDefinition, CubemapFaces } from "./types";
+import colorString from "color-name";
+import colorConvert from "color-convert";
 
-type Props = {
-  cubemap: CubemapDefinition;
-};
+type CubemapLayerConstructorOptions = CubemapDefinition & {};
 
 const ATTRIBUTES_KEYS = ["vertexPosition"] as const;
 const UNIFORMS_KEYS = [
   "projectionMatrix",
   "modelViewMatrix",
   "cubeSampler",
+  "bgColor",
 ] as const;
 
 class CubemapLayer implements CustomLayerInterface {
@@ -27,14 +28,16 @@ class CubemapLayer implements CustomLayerInterface {
   public renderingMode: CustomLayerInterface["renderingMode"] = "3d";
 
   private map?: MapSDK;
-  private cubemapPath: string;
+  private faces!: CubemapFaces;
   private cubeMapNeedsUpdate: boolean = false;
+  // private bgColor: string;
 
   private cubemap?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
   private texture?: WebGLTexture;
 
-  constructor({ cubemap }: Props) {
-    this.cubemapPath = cubemap.path;
+  constructor(cubemapConfig: CubemapLayerConstructorOptions) {
+    // this.bgColor = cubemapConfig.color ?? "#000000";
+    this.faces = getCubemapFaces(cubemapConfig);
   }
 
   public onAdd(map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
@@ -48,7 +51,7 @@ class CubemapLayer implements CustomLayerInterface {
       vertices: VERTICES,
       indices: INDICES,
     });
-
+    console.log(this.cubemap);
     this.cubeMapNeedsUpdate = true;
   }
 
@@ -60,7 +63,7 @@ class CubemapLayer implements CustomLayerInterface {
 
       this.texture = loadCubemapTexture({
         gl,
-        path: this.cubemapPath,
+        faces: this.faces,
         onLoadedCallback: () => {
           this.map?.triggerRepaint();
         },
@@ -114,6 +117,11 @@ class CubemapLayer implements CustomLayerInterface {
     gl.uniformMatrix4fv(this.cubemap.programInfo.uniformsLocations.modelViewMatrix, false, modelViewMatrix);
 
     /**
+     * Background color
+    */
+    gl.uniform4iv(this.cubemap.programInfo.uniformsLocations.bgColor, new Int32Array([1, 0, 0, 0]));
+
+    /**
      * Texture
      */
     gl.activeTexture(gl.TEXTURE0);
@@ -138,9 +146,44 @@ class CubemapLayer implements CustomLayerInterface {
   }
 
   public setCubemap(cubemap: CubemapDefinition): void {
-    this.cubemapPath = cubemap.path;
+    this.faces = getCubemapFaces(cubemap);
     this.cubeMapNeedsUpdate = true;
   }
+}
+
+function getCubemapFaces(options: CubemapDefinition): CubemapFaces {
+  if (options.faces) {
+    return options.faces;
+  }
+
+  if (options.preset) {
+    return {
+      pX: `https://api.maptiler.com/resources/space/${options.preset}/px.webp`,
+      nX: `https://api.maptiler.com/resources/space/${options.preset}/nx.webp`,
+      pY: `https://api.maptiler.com/resources/space/${options.preset}/py.webp`,
+      nY: `https://api.maptiler.com/resources/space/${options.preset}/ny.webp`,
+      pZ: `https://api.maptiler.com/resources/space/${options.preset}/pz.webp`,
+      nZ: `https://api.maptiler.com/resources/space/${options.preset}/nz.webp`,
+    }
+
+  }
+
+  if (options.path) {
+
+    const baseUrl = options.path.baseUrl;
+    const format = options.path.format ?? "png";
+
+    return {
+      pX: `${baseUrl}/px.${format}`,
+      nX: `${baseUrl}/nx.${format}`,
+      pY: `${baseUrl}/py.${format}`,
+      nY: `${baseUrl}/ny.${format}`,
+      pZ: `${baseUrl}/pz.${format}`,
+      nZ: `${baseUrl}/nz.${format}`,
+    };
+  }
+
+  throw new Error("[Spacebox][createCubemapLayer] Invalid cubemap definition");
 }
 
 export { CubemapLayer };
