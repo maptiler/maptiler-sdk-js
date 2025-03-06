@@ -1,4 +1,8 @@
-import type { GetResourceResponse, RequestParameters, ResourceType } from "maplibre-gl";
+import type {
+  GetResourceResponse,
+  RequestParameters,
+  ResourceType,
+} from "maplibre-gl";
 
 import { config } from "./config";
 
@@ -16,10 +20,21 @@ const CACHE_LIMIT_ITEMS = 1000;
 const CACHE_LIMIT_CHECK_INTERVAL = 100;
 export const CACHE_API_AVAILABLE = typeof caches !== "undefined";
 
-export function localCacheTransformRequest(reqUrl: URL, resourceType?: ResourceType): string {
-  if (CACHE_API_AVAILABLE && config.caching && config.session && reqUrl.host === defaults.maptilerApiHost) {
+export function localCacheTransformRequest(
+  reqUrl: URL,
+  resourceType?: ResourceType,
+): string {
+  if (
+    CACHE_API_AVAILABLE &&
+    config.caching &&
+    config.session &&
+    reqUrl.host === defaults.maptilerApiHost
+  ) {
     if (resourceType === "Source" && reqUrl.href.includes("tiles.json")) {
-      return reqUrl.href.replace("https://", `${LOCAL_CACHE_PROTOCOL_SOURCE}://`);
+      return reqUrl.href.replace(
+        "https://",
+        `${LOCAL_CACHE_PROTOCOL_SOURCE}://`,
+      );
     }
 
     if (resourceType === "Tile" || resourceType === "Glyphs") {
@@ -58,7 +73,10 @@ export function registerLocalCacheProtocol() {
     ): Promise<GetResourceResponse<any>> => {
       if (!params.url) throw new Error("");
 
-      params.url = params.url.replace(`${LOCAL_CACHE_PROTOCOL_SOURCE}://`, "https://");
+      params.url = params.url.replace(
+        `${LOCAL_CACHE_PROTOCOL_SOURCE}://`,
+        "https://",
+      );
 
       const requestInit: RequestInit = params;
       requestInit.signal = abortController.signal;
@@ -79,10 +97,16 @@ export function registerLocalCacheProtocol() {
   );
   addProtocol(
     LOCAL_CACHE_PROTOCOL_DATA,
-    async (params: RequestParameters, abortController: AbortController): Promise<GetResourceResponse<any>> => {
+    async (
+      params: RequestParameters,
+      abortController: AbortController,
+    ): Promise<GetResourceResponse<any>> => {
       if (!params.url) throw new Error("");
 
-      params.url = params.url.replace(`${LOCAL_CACHE_PROTOCOL_DATA}://`, "https://");
+      params.url = params.url.replace(
+        `${LOCAL_CACHE_PROTOCOL_DATA}://`,
+        "https://",
+      );
 
       const url = new URL(params.url);
 
@@ -95,7 +119,9 @@ export function registerLocalCacheProtocol() {
       fetchableUrl.searchParams.delete("last-modified");
       const fetchUrl = fetchableUrl.toString();
 
-      const respond = async (response: Response): Promise<GetResourceResponse<any>> => {
+      const respond = async (
+        response: Response,
+      ): Promise<GetResourceResponse<any>> => {
         return {
           data: await response.arrayBuffer(),
           cacheControl: response.headers.get("Cache-Control"),

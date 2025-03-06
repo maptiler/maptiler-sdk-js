@@ -81,7 +81,6 @@ export {
   getRTLTextPluginStatus,
   LngLat,
   LngLatBounds,
-  // biome-ignore lint/style/useExportType: Biome thinks those are only type while they are actually full fledge classes
   MercatorCoordinate,
   Evented,
   AJAXError,
@@ -149,10 +148,18 @@ export type Point = InstanceType<typeof Point>;
 export type EdgeInsets = InstanceType<typeof EdgeInsets>;
 export type DragRotateHandler = InstanceType<typeof DragRotateHandler>;
 export type DragPanHandler = InstanceType<typeof DragPanHandler>;
-export type TwoFingersTouchZoomRotateHandler = InstanceType<typeof TwoFingersTouchZoomRotateHandler>;
-export type DoubleClickZoomHandler = InstanceType<typeof DoubleClickZoomHandler>;
-export type TwoFingersTouchZoomHandler = InstanceType<typeof TwoFingersTouchZoomHandler>;
-export type TwoFingersTouchRotateHandler = InstanceType<typeof TwoFingersTouchRotateHandler>;
+export type TwoFingersTouchZoomRotateHandler = InstanceType<
+  typeof TwoFingersTouchZoomRotateHandler
+>;
+export type DoubleClickZoomHandler = InstanceType<
+  typeof DoubleClickZoomHandler
+>;
+export type TwoFingersTouchZoomHandler = InstanceType<
+  typeof TwoFingersTouchZoomHandler
+>;
+export type TwoFingersTouchRotateHandler = InstanceType<
+  typeof TwoFingersTouchRotateHandler
+>;
 
 // The following items are only MapLibre adapted to MapTiler SDK Map class
 export { Marker } from "./MLAdapters/Marker";

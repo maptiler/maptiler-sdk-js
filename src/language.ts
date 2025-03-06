@@ -1,4 +1,8 @@
-import { Language as LanguageFromClient, getLanguageInfoFromCode, type LanguageInfo } from "@maptiler/client";
+import {
+  Language as LanguageFromClient,
+  getLanguageInfoFromCode,
+  type LanguageInfo,
+} from "@maptiler/client";
 
 // Adding some language entries that are specific to the SDK
 const Language = {
@@ -31,7 +35,14 @@ const Language = {
   /**
    * Language mode to display labels in a language enforced in the style.
    */
-  STYLE: { code: null, flag: "style", name: "Style", latin: false, isMode: true, geocoding: false } as LanguageInfo,
+  STYLE: {
+    code: null,
+    flag: "style",
+    name: "Style",
+    latin: false,
+    isMode: true,
+    geocoding: false,
+  } as LanguageInfo,
 
   /**
    * Language mode to display labels in a language enforced in the style. The language cannot be further modified.
@@ -61,7 +72,9 @@ export function getBrowserLanguage(): LanguageInfo {
     return Language.ENGLISH;
   }
 
-  const canditatelangs = Array.from(new Set(navigator.languages.map((l) => l.split("-")[0])))
+  const canditatelangs = Array.from(
+    new Set(navigator.languages.map((l) => l.split("-")[0])),
+  )
     .map((code) => getLanguageInfoFromCode(code))
     .filter((li) => li);
 

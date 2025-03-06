@@ -15,7 +15,10 @@ export class MaptilerNavigationControl extends NavigationControl {
 
     // Removing the default click event
     if (this._compass) {
-      this._compass.removeEventListener("click", (this._compass as HTMLButtonElementPlus).clickFunction);
+      this._compass.removeEventListener(
+        "click",
+        (this._compass as HTMLButtonElementPlus).clickFunction,
+      );
 
       // Adding custom click event
       this._compass.addEventListener("click", (e) => {
@@ -38,7 +41,10 @@ export class MaptilerNavigationControl extends NavigationControl {
   /**
    * Overloading: the button now stores its click callback so that we can later on delete it and replace it
    */
-  _createButton(className: string, fn: (e?: Event) => unknown): HTMLButtonElementPlus {
+  _createButton(
+    className: string,
+    fn: (e?: Event) => unknown,
+  ): HTMLButtonElementPlus {
     const button = super._createButton(className, fn) as HTMLButtonElementPlus;
     button.clickFunction = fn;
     return button;

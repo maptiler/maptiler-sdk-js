@@ -51,7 +51,8 @@ function getMapScreenshotBlob(map: MapSDK): Promise<Blob> {
     map.once("idle", () => {
       map.getCanvas().toBlob((blob) => {
         if (!blob) {
-          return reject(Error("Screenshot could not be created."));
+          reject(Error("Screenshot could not be created."));
+          return;
         }
 
         resolve(blob);

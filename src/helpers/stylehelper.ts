@@ -1,7 +1,15 @@
-import type { DataDrivenPropertyValueSpecification, ExpressionSpecification } from "maplibre-gl";
+import type {
+  DataDrivenPropertyValueSpecification,
+  ExpressionSpecification,
+} from "maplibre-gl";
 import { generateRandomString } from "../tools";
 import type { ColorRamp, RgbaColor } from "../colorramp";
-import type { DataDrivenStyle, PropertyValues, ZoomNumberValues, ZoomStringValues } from "./vectorlayerhelpers";
+import type {
+  DataDrivenStyle,
+  PropertyValues,
+  ZoomNumberValues,
+  ZoomStringValues,
+} from "./vectorlayerhelpers";
 
 export type ColorPalette = [string, string, string, string];
 
@@ -35,7 +43,9 @@ export const colorPalettes: Array<ColorPalette> = [
 ];
 
 export function getRandomColor(): string {
-  return colorPalettes[~~(Math.random() * colorPalettes.length)][~~(Math.random() * 4)];
+  return colorPalettes[~~(Math.random() * colorPalettes.length)][
+    ~~(Math.random() * 4)
+  ];
 }
 
 export function generateRandomSourceName(): string {
@@ -66,7 +76,8 @@ export function lerpZoomNumberValues(znv: ZoomNumberValues, z: number): number {
       const zoomRange = znv[i + 1].zoom - znv[i].zoom;
       const normalizedDistanceFromLowerBound = (z - znv[i].zoom) / zoomRange;
       return (
-        normalizedDistanceFromLowerBound * znv[i + 1].value + (1 - normalizedDistanceFromLowerBound) * znv[i].value
+        normalizedDistanceFromLowerBound * znv[i + 1].value +
+        (1 - normalizedDistanceFromLowerBound) * znv[i].value
       );
     }
   }
@@ -74,12 +85,26 @@ export function lerpZoomNumberValues(znv: ZoomNumberValues, z: number): number {
   return 0;
 }
 
-export function paintColorOptionsToPaintSpec(color: ZoomStringValues): DataDrivenPropertyValueSpecification<string> {
-  return ["interpolate", ["linear"], ["zoom"], ...color.flatMap((el) => [el.zoom, el.value])];
+export function paintColorOptionsToPaintSpec(
+  color: ZoomStringValues,
+): DataDrivenPropertyValueSpecification<string> {
+  return [
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+    ...color.flatMap((el) => [el.zoom, el.value]),
+  ];
 }
 
-export function rampedOptionsToLayerPaintSpec(ramp: ZoomNumberValues): DataDrivenPropertyValueSpecification<number> {
-  return ["interpolate", ["linear"], ["zoom"], ...ramp.flatMap((el) => [el.zoom, el.value])];
+export function rampedOptionsToLayerPaintSpec(
+  ramp: ZoomNumberValues,
+): DataDrivenPropertyValueSpecification<number> {
+  return [
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+    ...ramp.flatMap((el) => [el.zoom, el.value]),
+  ];
 }
 
 export function computeRampedOutlineWidth(
@@ -93,12 +118,22 @@ export function computeRampedOutlineWidth(
 
   // case 2: the line is ramped-width, the outline is fixed-width
   if (typeof outlineWidth === "number" && Array.isArray(lineWidth)) {
-    return ["interpolate", ["linear"], ["zoom"], ...lineWidth.flatMap((el) => [el.zoom, 2 * outlineWidth + el.value])];
+    return [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      ...lineWidth.flatMap((el) => [el.zoom, 2 * outlineWidth + el.value]),
+    ];
   }
 
   // case 3: the line is fixed-width, the outline is ramped-width
   if (typeof lineWidth === "number" && Array.isArray(outlineWidth)) {
-    return ["interpolate", ["linear"], ["zoom"], ...outlineWidth.flatMap((el) => [el.zoom, 2 * el.value + lineWidth])];
+    return [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      ...outlineWidth.flatMap((el) => [el.zoom, 2 * el.value + lineWidth]),
+    ];
   }
 
   // case 4: the line is ramped-width, the outline is ramped-width
@@ -106,14 +141,21 @@ export function computeRampedOutlineWidth(
     // We must create an artificial set of zoom stops that includes all the zoom stops from both lists
     // const allStops = [...lineWidth.map(el => el.zoom), ...outlineWidth.map(el => el.zoom)].sort((a: number, b: number) => a < b ? -1 : 1);
     const allStops = Array.from(
-      new Set([...lineWidth.map((el) => el.zoom), ...outlineWidth.map((el) => el.zoom)]),
+      new Set([
+        ...lineWidth.map((el) => el.zoom),
+        ...outlineWidth.map((el) => el.zoom),
+      ]),
     ).sort((a: number, b: number) => (a < b ? -1 : 1));
 
     return [
       "interpolate",
       ["linear"],
       ["zoom"],
-      ...allStops.flatMap((z) => [z, 2 * lerpZoomNumberValues(outlineWidth, z) + lerpZoomNumberValues(lineWidth, z)]),
+      ...allStops.flatMap((z) => [
+        z,
+        2 * lerpZoomNumberValues(outlineWidth, z) +
+          lerpZoomNumberValues(lineWidth, z),
+      ]),
     ];
   }
 
@@ -124,7 +166,12 @@ export function rampedPropertyValueWeight(
   ramp: PropertyValues,
   property: string,
 ): DataDrivenPropertyValueSpecification<number> {
-  return ["interpolate", ["linear"], ["get", property], ...ramp.flatMap((el) => [el.propertyValue, el.value])];
+  return [
+    "interpolate",
+    ["linear"],
+    ["get", property],
+    ...ramp.flatMap((el) => [el.propertyValue, el.value]),
+  ];
 }
 
 /**
@@ -138,12 +185,17 @@ export function dashArrayMaker(pattern: string): Array<number> {
 
   const isOnlyDashesAndSpaces = patternArr.every((c) => c === " " || c === "_");
   if (!isOnlyDashesAndSpaces) {
-    throw new Error("A dash pattern must be composed only of whitespace and underscore characters.");
+    throw new Error(
+      "A dash pattern must be composed only of whitespace and underscore characters.",
+    );
   }
 
-  const hasBothDashesAndWhitespaces = patternArr.some((c) => c === "_") && patternArr.some((c) => c === " ");
+  const hasBothDashesAndWhitespaces =
+    patternArr.some((c) => c === "_") && patternArr.some((c) => c === " ");
   if (!hasBothDashesAndWhitespaces) {
-    throw new Error("A dash pattern must contain at least one underscore and one whitespace character");
+    throw new Error(
+      "A dash pattern must contain at least one underscore and one whitespace character",
+    );
   }
 
   const dashArray = [1];
@@ -166,7 +218,12 @@ export function colorDrivenByProperty(
   style: DataDrivenStyle,
   property: string,
 ): DataDrivenPropertyValueSpecification<string> {
-  return ["interpolate", ["linear"], ["get", property], ...style.flatMap((el) => [el.value, el.color])];
+  return [
+    "interpolate",
+    ["linear"],
+    ["get", property],
+    ...style.flatMap((el) => [el.value, el.color]),
+  ];
 }
 
 export function radiusDrivenByProperty(
@@ -175,7 +232,12 @@ export function radiusDrivenByProperty(
   zoomCompensation = true,
 ): DataDrivenPropertyValueSpecification<number> {
   if (!zoomCompensation) {
-    return ["interpolate", ["linear"], ["get", property], ...style.flatMap((el) => [el.value, el.pointRadius])];
+    return [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.flatMap((el) => [el.value, el.pointRadius]),
+    ];
   }
 
   return [
@@ -184,19 +246,44 @@ export function radiusDrivenByProperty(
     ["zoom"],
 
     0,
-    ["interpolate", ["linear"], ["get", property], ...style.flatMap((el) => [el.value, el.pointRadius * 0.025])],
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.flatMap((el) => [el.value, el.pointRadius * 0.025]),
+    ],
 
     2,
-    ["interpolate", ["linear"], ["get", property], ...style.flatMap((el) => [el.value, el.pointRadius * 0.05])],
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.flatMap((el) => [el.value, el.pointRadius * 0.05]),
+    ],
 
     4,
-    ["interpolate", ["linear"], ["get", property], ...style.flatMap((el) => [el.value, el.pointRadius * 0.1])],
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.flatMap((el) => [el.value, el.pointRadius * 0.1]),
+    ],
 
     8,
-    ["interpolate", ["linear"], ["get", property], ...style.flatMap((el) => [el.value, el.pointRadius * 0.25])],
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.flatMap((el) => [el.value, el.pointRadius * 0.25]),
+    ],
 
     16,
-    ["interpolate", ["linear"], ["get", property], ...style.flatMap((el) => [el.value, el.pointRadius])],
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.flatMap((el) => [el.value, el.pointRadius]),
+    ],
   ];
 }
 
@@ -206,7 +293,12 @@ export function radiusDrivenByPropertyHeatmap(
   zoomCompensation = true,
 ): DataDrivenPropertyValueSpecification<number> {
   if (!zoomCompensation) {
-    return ["interpolate", ["linear"], ["get", property], ...style.flatMap((el) => [el.propertyValue, el.value])];
+    return [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.flatMap((el) => [el.propertyValue, el.value]),
+    ];
   }
 
   return [
@@ -215,19 +307,44 @@ export function radiusDrivenByPropertyHeatmap(
     ["zoom"],
 
     0,
-    ["interpolate", ["linear"], ["get", property], ...style.flatMap((el) => [el.propertyValue, el.value * 0.025])],
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.flatMap((el) => [el.propertyValue, el.value * 0.025]),
+    ],
 
     2,
-    ["interpolate", ["linear"], ["get", property], ...style.flatMap((el) => [el.propertyValue, el.value * 0.05])],
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.flatMap((el) => [el.propertyValue, el.value * 0.05]),
+    ],
 
     4,
-    ["interpolate", ["linear"], ["get", property], ...style.flatMap((el) => [el.propertyValue, el.value * 0.1])],
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.flatMap((el) => [el.propertyValue, el.value * 0.1]),
+    ],
 
     8,
-    ["interpolate", ["linear"], ["get", property], ...style.flatMap((el) => [el.propertyValue, el.value * 0.25])],
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.flatMap((el) => [el.propertyValue, el.value * 0.25]),
+    ],
 
     16,
-    ["interpolate", ["linear"], ["get", property], ...style.flatMap((el) => [el.propertyValue, el.value])],
+    [
+      "interpolate",
+      ["linear"],
+      ["get", property],
+      ...style.flatMap((el) => [el.propertyValue, el.value]),
+    ],
   ];
 }
 
@@ -255,7 +372,10 @@ export function opacityDrivenByProperty(
   ];
 }
 
-export function heatmapIntensityFromColorRamp(colorRamp: ColorRamp, steps = 10): ExpressionSpecification {
+export function heatmapIntensityFromColorRamp(
+  colorRamp: ColorRamp,
+  steps = 10,
+): ExpressionSpecification {
   return [
     "interpolate",
     ["linear"],
