@@ -254,7 +254,7 @@ export class Map extends maplibregl.Map {
       return;
     }
 
-    this.halo = new RadialGradientLayer({ gradient: halo });
+    this.halo = new RadialGradientLayer(halo);
 
     this.once("load", () => {
       const layersOrder = this.getLayersOrder()
