@@ -46,7 +46,8 @@ import type { MinimapOptionsInput } from "./Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 import { MaptilerProjectionControl } from "./MaptilerProjectionControl";
 import { Telemetry } from "./Telemetry";
-import { Spacebox } from "./spacebox";
+import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from "./custom-layers/CubemapLayer";
+import { GradientDefinition, RadialGradientLayer, RadialGradientLayerOptions } from "./custom-layers/RadialGradientLayer";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -202,9 +203,10 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   /**
    * Turn on/off spacebox.
    *
-   * Default: `false`
+   * Default: { color: "#1D29F1" }
    */
-  spacebox?: boolean;
+  space?: CubemapLayerConstructorOptions;
+  halo?: RadialGradientLayerOptions;
 };
 
 /**
@@ -214,9 +216,55 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
 export class Map extends maplibregl.Map {
   public readonly telemetry: Telemetry;
 
-  private spacebox?: Spacebox;
-  public getSpacebox(): Spacebox | undefined {
-    return this.spacebox;
+  private space?: CubemapLayer;
+  private halo?: RadialGradientLayer;
+
+  public getSpace(): CubemapLayer | undefined {
+    return this.space;
+  }
+
+  public setSpace(space: CubemapDefinition) {
+    if (this.space) {
+      console.log("Setting spacebox", space);
+      this.space.setCubemap(space);
+      return;
+    }
+
+    this.space = new CubemapLayer(space);
+
+    this.once("load", () => {
+      const firstLayer = this.getLayersOrder()[0];
+      if (this.space) {
+        this.addLayer(this.space, firstLayer);
+      }
+    });
+  }
+
+  public getHalo(): RadialGradientLayer | undefined {
+    return this.halo;
+  }
+
+  public setHalo(halo: GradientDefinition) {
+    if (this.halo) {
+      this.halo.setGradient(halo);
+      return;
+    }
+
+    this.halo = new RadialGradientLayer({ gradient: halo });
+
+    this.once("load", () => {
+      const layersOrder = this.getLayersOrder()
+      
+      const firstLayer = layersOrder[0];
+
+      const insertBeforeIndex = layersOrder
+        .indexOf(this.space?.id ?? "") + 2
+
+      const insertBefore = layersOrder[insertBeforeIndex]
+      if (this.halo) {
+        this.addLayer(this.halo, this.space ? insertBefore : firstLayer);
+      }
+    });
   }
 
   private options: MapOptions;
@@ -236,7 +284,6 @@ export class Map extends maplibregl.Map {
   private originalLabelStyle = new window.Map<string, ExpressionSpecification | string>();
   private isStyleLocalized = false;
   private languageIsUpdated = false;
-  private isSpaceboxEnabled: boolean = false;
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -717,40 +764,19 @@ export class Map extends maplibregl.Map {
 
         this.fire("webglContextLost", event);
       });
-    });
+          
+      const firstLayer = this.getLayersOrder()[0];
 
-  this.isSpaceboxEnabled = options.spacebox ?? true;
-    if (this.isSpaceboxEnabled === true) {
-      this.spacebox = new Spacebox({
-        map: this,
-        space: {
-          // path: {
-          //   baseUrl: "spacebox/starmap_2020",
-          //   format: "jpg",
-          // },
-          path: {
-            baseUrl: "spacebox/transparent",
-            // format: "jpg",
-          },
-          // faces: {
-          //   pX: "spacebox/starmap_2020/px.jpg",
-          //   nX: "spacebox/starmap_2020/nx.jpg",
-          //   pY: "spacebox/starmap_2020/py.jpg",
-          //   nY: "spacebox/starmap_2020/ny.jpg",
-          //   pZ: "spacebox/starmap_2020/pz.jpg",
-          //   nZ: "spacebox/starmap_2020/nz.jpg",
-          // },
-          // preset: "universe-dark" as Cube,
-        },
-        gradient: {
-          scale: 1,
-          stops: [
-            [0.5, [0 / 255, 0 / 255, 255 / 255, 1.0]],
-            [1.0, [0 / 255, 0 / 255, 255 / 255, 0.0]],
-          ],
-        },
-      });
-    }
+      if (options.space) {
+        this.space = new CubemapLayer(options.space)
+        this.addLayer(this.space, firstLayer);
+      }
+
+      if (options.halo) {
+        this.halo = new RadialGradientLayer(options.halo)
+        this.addLayer(this.halo, firstLayer);
+      }
+    });
 
     this.telemetry = new Telemetry(this);
   }

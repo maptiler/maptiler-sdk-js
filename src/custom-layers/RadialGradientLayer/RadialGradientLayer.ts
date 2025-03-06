@@ -2,31 +2,53 @@ import type { CustomLayerInterface, CustomRenderMethodInput } from "maplibre-gl"
 import { mat4, vec3 } from "gl-matrix";
 
 import type { Map as MapSDK } from "../../Map";
-import { createObject3D, type Object3D } from "../../utils/webgl-utils";
+import { createObject3D, parseColorStringToVec4, type Object3D } from "../../utils/webgl-utils";
 
 import vertexShaderSource from "./radialGradient.vert.glsl?raw";
 import fragmentShaderSource from "./radialGradient.frag.glsl?raw";
-import type { GradientDefinition } from "./types";
+import type { GradientDefinition, RadialGradientLayerOptions } from "./types";
 
-type Props = {
-  gradient: GradientDefinition;
-};
+
+const HALO_MAX_DISTANCE = 2;
+// 1 = globe radius
 
 const ATTRIBUTES_KEYS = ["position"] as const;
-const UNIFORMS_KEYS = ["matrix", "rotationMatrix", "stopsNumber", "stops", "colors", "maxDistance"] as const;
-const VERTICES = [-1, -1, 0, 1, -1, 0, -1, 1, 0, 1, 1, 0];
+const UNIFORMS_KEYS = [
+  "matrix",
+  "rotationMatrix",
+  "stopsNumber",
+  "stops",
+  "colors",
+  "maxDistance",
+  "scale",
+] as const;
+const VERTICES = [
+  -HALO_MAX_DISTANCE,
+  -HALO_MAX_DISTANCE,
+  0,
+  HALO_MAX_DISTANCE,
+  -HALO_MAX_DISTANCE,
+  0,
+  -HALO_MAX_DISTANCE,
+  HALO_MAX_DISTANCE,
+  0,
+  HALO_MAX_DISTANCE,
+  HALO_MAX_DISTANCE,
+  0
+];
 
-class RadialGradientLayer implements CustomLayerInterface {
-  public id: string = "gradient-layer";
+export class RadialGradientLayer implements CustomLayerInterface {
+  public id: string = "Halo Layer";
   public type: CustomLayerInterface["type"] = "custom";
   public renderingMode: CustomLayerInterface["renderingMode"] = "3d";
 
   private gradient: GradientDefinition;
+  private scale: number = 0.0;
 
-  private map?: MapSDK;
+  private map!: MapSDK;
   private plane?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
 
-  constructor({ gradient }: Props) {
+  constructor(gradient: RadialGradientLayerOptions) {
     this.gradient = gradient;
   }
 
@@ -40,6 +62,15 @@ class RadialGradientLayer implements CustomLayerInterface {
       uniformsKeys: UNIFORMS_KEYS,
       vertices: VERTICES,
     });
+
+    const animate = () => {
+      if (this.scale < this.gradient.scale) {
+      this.scale += 0.05;
+      this.map?.triggerRepaint();
+      requestAnimationFrame(animate);
+      }
+    }
+    animate();
   }
 
   public onRemove(_map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
@@ -81,7 +112,11 @@ class RadialGradientLayer implements CustomLayerInterface {
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
 
     const scaleMatrix = mat4.create();
-    const scale = this.gradient.scale + 1; // Since globe size is 1 we assume that the plane size is 2
+
+    // Since globe size is 1 we assume that the plane size is 2
+    // This means that halo radius from origin is 3 * globe radius
+    // and from the globe surface to end is 2 * globe radius
+    const scale = this.scale;
     mat4.scale(scaleMatrix, scaleMatrix, [scale, scale, scale]);
 
     const matrix = mat4.create();
@@ -136,34 +171,25 @@ class RadialGradientLayer implements CustomLayerInterface {
     gl.uniformMatrix4fv(rotationMatrixLocation, false, rotationMatrix);
 
     const stopsNumber = this.gradient.stops.length;
-    const stopsArray = new Float32Array(stopsNumber);
-    const colorsArray = new Float32Array(stopsNumber * 4);
 
-    for (let i = 0; i < stopsNumber; i++) {
+    const stopsArray: Array<number> = [];
+    const colorsArray: Array<number> = [];
+
+    for (let i = 0; i <= stopsNumber; i++) {
       if (i < stopsNumber) {
+        
         stopsArray[i] = this.gradient.stops[i][0];
 
-        const color = this.gradient.stops[i][1];
-        colorsArray[i * 4 + 0] = color[0];
-        colorsArray[i * 4 + 1] = color[1];
-        colorsArray[i * 4 + 2] = color[2];
-        colorsArray[i * 4 + 3] = color[3];
-      } else {
-        // Last stop is repeated to fill the array
-        stopsArray[i] = this.gradient.stops[stopsNumber - 1][0];
-
-        const color = this.gradient.stops[stopsNumber - 1][1];
-        colorsArray[i * 4 + 0] = color[0];
-        colorsArray[i * 4 + 1] = color[1];
-        colorsArray[i * 4 + 2] = color[2];
-        colorsArray[i * 4 + 3] = color[3];
+        const color = parseColorStringToVec4(this.gradient.stops[i][1]);
+        colorsArray.push(...color);
       }
     }
 
     gl.uniform1i(this.plane.programInfo.uniformsLocations.stopsNumber, stopsNumber);
-    gl.uniform1fv(this.plane.programInfo.uniformsLocations.stops, stopsArray);
-    gl.uniform4fv(this.plane.programInfo.uniformsLocations.colors, colorsArray);
-    gl.uniform1f(this.plane.programInfo.uniformsLocations.maxDistance, 1);
+    gl.uniform1fv(this.plane.programInfo.uniformsLocations.stops, new Float32Array(stopsArray));
+    gl.uniform4fv(this.plane.programInfo.uniformsLocations.colors, new Float32Array(colorsArray));
+    gl.uniform1f(this.plane.programInfo.uniformsLocations.maxDistance, HALO_MAX_DISTANCE);
+    gl.uniform1f(this.plane.programInfo.uniformsLocations.scale, scale);
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
@@ -176,7 +202,15 @@ class RadialGradientLayer implements CustomLayerInterface {
     this.gradient = gradient;
   }
 
+  public show(): void {
+    // TODO in future we can ease / animate this
+    this.map.setLayoutProperty(this.id, "visibility", "visible");
+  }
+
+  public hide(): void {
+    // TODO in future we can ease / animate this
+    this.map.setLayoutProperty(this.id, "visibility", "none");
+  }
+
   /* *** */
 }
-
-export { RadialGradientLayer };

@@ -6,19 +6,22 @@ export function loadCubemapTexture({
   onLoadedCallback,
 }: {
   gl: WebGLRenderingContext | WebGL2RenderingContext;
-  faces: CubemapFaces;
+  faces?: CubemapFaces;
   onLoadedCallback?: () => void;
 }) {
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
 
+  if (!faces) {
+    console.warn("[CubemapLayer][loadCubemapTexture]: Faces are null");
+    return
+  }
 
   Object.entries(faces as CubemapFaces).forEach(([key, face], faceIndex) => {
     if (face === undefined) {
       console.warn(`[CubemapLayer][loadCubemapTexture]: Face ${key} is undefined`);
       return;
     }
-
     const glCubemapTarget = getGlCubemapTarget(gl, key as CubemapFaceNames);
 
     if (glCubemapTarget) {
@@ -32,7 +35,6 @@ export function loadCubemapTexture({
       image.crossOrigin = "anonymous";
   
       image.onload = () => {
-        console.log("loaded", image)
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
