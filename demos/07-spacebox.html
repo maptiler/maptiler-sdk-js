@@ -12,7 +12,7 @@
 
   <style>
     #map {
-      background-color: #eee;
+      background-color: #333;
       background-image: linear-gradient(45deg, rgb(150,150,150) 25%, transparent 25%, transparent 75%, rgb(150,150,150) 75%, rgb(150,150,150)),
       linear-gradient(45deg, rgb(150,150,150) 25%, transparent 25%, transparent 75%, rgb(150,150,150) 75%, rgb(150,150,150));
       background-size: 60px 60px;
@@ -37,38 +37,76 @@
       fullscreenControl: true,
       terrainControl: true,
       projectionControl: true,
-      zoom: 2,
+      zoom: 1,
       projection: "globe",
-      spacebox: true,
-      center: [0, 0],
+      center: [0, -20],
+      space: {
+        color: "#111122",
+        path: {
+          baseUrl: "spacebox/transparent",
+          // format: "png", defaults to png
+        },
+        // OR
+        // faces: {
+          // pX: '/som-path-to-an-image/pX',
+          // nX: '/som-path-to-an-image/nX',
+          // pY: '/som-path-to-an-image/pY',
+          // nY: '/som-path-to-an-image/nY',
+          // pZ: '/som-path-to-an-image/pZ',
+          // nZ: '/som-path-to-an-image/nZ'
+        // };
+        // OR
+        // preset?: "universe-dark";
+      },
+      halo: {
+        scale: 2,
+        stops: [
+          // pretty wild in here...
+          [0.0, "yellow"],
+          [0.1, "yellow"],
+          [0.1, "hotpink"],
+          [0.2, "hotpink"],
+          [0.2, "#55ff33"],
+          [0.3, "#55ff33"],
+          [0.3, "transparent"],
+          [0.4, "transparent"],
+          [0.4, "#ffaa1199"],
+          [0.5, "#ffaa1199"],
+          [0.5, "rgba(100,100,255, 0.75)"],
+          [0.8, "rgba(100,100,255, 0.0)"],
+        ],
+        //
+        // activate this for something a bit more mellow...
+        // scale: 1,
+        // stops: [
+        //   [0.0, "transparent"],
+        //   [0.2, "skyblue"],
+        //   [0.3, "transparent"]
+        // ],
+      }
     });
-    
-    map.on("load", () => {
-      // map.spacebox.setCubemap({
-        // path: {
-          // baseUrl: "spacebox/transparent/",
-          // format: "jpg",
-        // },
-      // })
-      //             faces: {
-      //       pX: "spacebox/starmap_2020/px.jpg",
-      //       nX: "spacebox/starmap_2020/nx.jpg",
-      //       pY: "spacebox/starmap_2020/py.jpg",
-      //       nY: "spacebox/starmap_2020/ny.jpg",
-      //       pZ: "spacebox/starmap_2020/pz.jpg",
-      //       nZ: "spacebox/starmap_2020/nz.jpg",
-      //     },
-      // });
-      
-      // map.spacebox.setGradient({
-      //   scale: 1,
-      //   stops: [
-      //     [0.5, [1.0, 0.0, 0.0, 1.0]],
-      //     [0.75, [0.0, 1.0, 0.0, 1.0]],
-      //     [1.0, [0.0, 0.0, 1.0, 0.0]],
-      //   ],
-      // });
-    });
+
+    // Or alternatively, you can set the space and halo imperatively
+    // map.on("load", () => {
+    //   console.log("Map loaded");
+    //   const marker = new maptilersdk.Marker()
+    //     .setLngLat([0, -20])
+    //     .addTo(map);
+    //   map.setSpace({
+    //     color: "red",
+    //     path: {
+    //       baseUrl: "spacebox/transparent",
+    //     },
+    //   });
+    //   map.setHalo({
+    //     scale: 2,
+    //     stops: [
+    //       [0.0, "rgba(135,206,250,1)"],
+    //       [0.5, "rgba(0,0,250,0.75)"],
+    //       [0.75, "rgba(250,0,0,0.0)"],
+    //     ],
+    //   });
+    // });
 
   </script>
 </body>
