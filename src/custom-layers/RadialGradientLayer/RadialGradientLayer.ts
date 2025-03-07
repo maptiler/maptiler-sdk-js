@@ -8,20 +8,11 @@ import vertexShaderSource from "./radialGradient.vert.glsl?raw";
 import fragmentShaderSource from "./radialGradient.frag.glsl?raw";
 import type { GradientDefinition, RadialGradientLayerOptions } from "./types";
 
-
 const HALO_MAX_DISTANCE = 2;
 // 1 = globe radius
 
 const ATTRIBUTES_KEYS = ["position"] as const;
-const UNIFORMS_KEYS = [
-  "matrix",
-  "rotationMatrix",
-  "stopsNumber",
-  "stops",
-  "colors",
-  "maxDistance",
-  "scale",
-] as const;
+const UNIFORMS_KEYS = ["matrix", "rotationMatrix", "stopsNumber", "stops", "colors", "maxDistance", "scale"] as const;
 const VERTICES = [
   -HALO_MAX_DISTANCE,
   -HALO_MAX_DISTANCE,
@@ -34,7 +25,7 @@ const VERTICES = [
   0,
   HALO_MAX_DISTANCE,
   HALO_MAX_DISTANCE,
-  0
+  0,
 ];
 
 export class RadialGradientLayer implements CustomLayerInterface {
@@ -65,11 +56,11 @@ export class RadialGradientLayer implements CustomLayerInterface {
 
     const animate = () => {
       if (this.scale < this.gradient.scale) {
-      this.scale += 0.05;
-      this.map?.triggerRepaint();
-      requestAnimationFrame(animate);
+        this.scale += 0.05;
+        this.map.triggerRepaint();
+        requestAnimationFrame(animate);
       }
-    }
+    };
     animate();
   }
 
@@ -147,25 +138,7 @@ export class RadialGradientLayer implements CustomLayerInterface {
      * Collumn 2: up
      * Collumn 3: forward
      */
-    mat4.set(
-      rotationMatrix,
-      right[0],
-      right[1],
-      right[2],
-      0,
-      billboardUp[0],
-      billboardUp[1],
-      billboardUp[2],
-      0,
-      forward[0],
-      forward[1],
-      forward[2],
-      0,
-      0,
-      0,
-      0,
-      1,
-    );
+    mat4.set(rotationMatrix, right[0], right[1], right[2], 0, billboardUp[0], billboardUp[1], billboardUp[2], 0, forward[0], forward[1], forward[2], 0, 0, 0, 0, 1);
 
     const rotationMatrixLocation = this.plane.programInfo.uniformsLocations.rotationMatrix;
     gl.uniformMatrix4fv(rotationMatrixLocation, false, rotationMatrix);
@@ -177,7 +150,6 @@ export class RadialGradientLayer implements CustomLayerInterface {
 
     for (let i = 0; i <= stopsNumber; i++) {
       if (i < stopsNumber) {
-        
         stopsArray[i] = this.gradient.stops[i][0];
 
         const color = parseColorStringToVec4(this.gradient.stops[i][1]);

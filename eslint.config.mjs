@@ -27,6 +27,7 @@ export default tseslint.config(
       "@typescript-eslint/no-base-to-string": "warn",
       "@typescript-eslint/no-confusing-void-expression": "warn",
       "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-empty-function": "warn", // this is to satisfy maplibre-gl custom layer interface
       "@typescript-eslint/no-floating-promises": "warn",
       "@typescript-eslint/no-inferrable-types": "off",
       "@typescript-eslint/no-misused-promises": "warn",

@@ -19,15 +19,8 @@ export class MaptilerTerrainControl implements IControl {
   onAdd(map: SDKMap): HTMLElement {
     this._map = map;
     this._container = DOMcreate("div", "maplibregl-ctrl maplibregl-ctrl-group");
-    this._terrainButton = DOMcreate(
-      "button",
-      "maplibregl-ctrl-terrain",
-      this._container,
-    );
-    DOMcreate("span", "maplibregl-ctrl-icon", this._terrainButton).setAttribute(
-      "aria-hidden",
-      "true",
-    );
+    this._terrainButton = DOMcreate("button", "maplibregl-ctrl-terrain", this._container);
+    DOMcreate("span", "maplibregl-ctrl-icon", this._terrainButton).setAttribute("aria-hidden", "true");
     this._terrainButton.type = "button";
     this._terrainButton.addEventListener("click", this._toggleTerrain);
 
@@ -59,14 +52,10 @@ export class MaptilerTerrainControl implements IControl {
     // if (this._map.terrain) {
     if (this._map.hasTerrain()) {
       this._terrainButton.classList.add("maplibregl-ctrl-terrain-enabled");
-      this._terrainButton.title = this._map._getUIString(
-        "TerrainControl.Disable",
-      );
+      this._terrainButton.title = this._map._getUIString("TerrainControl.Disable");
     } else {
       this._terrainButton.classList.add("maplibregl-ctrl-terrain");
-      this._terrainButton.title = this._map._getUIString(
-        "TerrainControl.Enable",
-      );
+      this._terrainButton.title = this._map._getUIString("TerrainControl.Enable");
     }
   }
 }

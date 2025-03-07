@@ -2,13 +2,7 @@ import type { CustomLayerInterface, CustomRenderMethodInput } from "maplibre-gl"
 import { mat4 } from "gl-matrix";
 
 import type { Map as MapSDK } from "../../Map";
-import {
-  createObject3D,
-  type WebGLContext,
-  type Object3D,
-  parseColorStringToVec4,
-  Vec4,
-} from "../../utils/webgl-utils";
+import { createObject3D, type WebGLContext, type Object3D, parseColorStringToVec4, Vec4 } from "../../utils/webgl-utils";
 
 import { VERTICES, INDICES } from "./constants";
 import vertexShaderSource from "./cubemap.vert.glsl?raw";
@@ -19,13 +13,7 @@ import type { CubemapDefinition, CubemapFaces, CubemapLayerConstructorOptions } 
 const SPACE_IMAGES_BASE_URL = "api.maptiler.com/resources/space";
 
 const ATTRIBUTES_KEYS = ["vertexPosition"] as const;
-const UNIFORMS_KEYS = [
-  "projectionMatrix",
-  "modelViewMatrix",
-  "cubeSampler",
-  "bgColor",
-  "fadeOpacity",
-] as const;
+const UNIFORMS_KEYS = ["projectionMatrix", "modelViewMatrix", "cubeSampler", "bgColor", "fadeOpacity"] as const;
 
 const GL_USE_TEXTURE_MACRO_MARKER = "%USE_TEXTURE_MACRO_MARKER%";
 const GL_USE_TEXTURE_MACRO = "#define USE_TEXTURE";
@@ -55,14 +43,13 @@ class CubemapLayer implements CustomLayerInterface {
   public updateCubemap(): void {
     this.useCubemapTexture = this.faces !== null;
 
-    const uniformsKeys = UNIFORMS_KEYS
-    .filter((uniformKey) => {
+    const uniformsKeys = UNIFORMS_KEYS.filter((uniformKey) => {
       if (uniformKey === "cubeSampler") {
         return this.useCubemapTexture;
       }
 
       return true;
-    })
+    });
 
     this.cubemap = createObject3D({
       gl: this.gl,
@@ -83,10 +70,14 @@ class CubemapLayer implements CustomLayerInterface {
     this.map = map;
     this.gl = gl;
     this.updateCubemap();
-
   }
 
-  public onRemove(_map: MapSDK, _gl: WebGLRenderingContext | WebGL2RenderingContext): void {}
+  public onRemove(_map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
+    if (this.cubemap) {
+      gl.deleteProgram(this.cubemap.shaderProgram);
+      gl.deleteBuffer(this.cubemap.positionBuffer);
+    }
+  }
 
   public prerender(gl: WebGLContext, _options: CustomRenderMethodInput): void {
     if (this.cubeMapNeedsUpdate === true) {
@@ -110,9 +101,9 @@ class CubemapLayer implements CustomLayerInterface {
       if (this.currentFadeOpacity < 1.0) {
         requestAnimationFrame(animateIn);
         this.currentFadeOpacity += 0.05;
-        this.map?.triggerRepaint();
+        this.map.triggerRepaint();
       }
-    }
+    };
     requestAnimationFrame(animateIn);
   }
 
@@ -163,7 +154,7 @@ class CubemapLayer implements CustomLayerInterface {
 
     /**
      * Background color
-    */
+     */
     gl.uniform4fv(this.cubemap.programInfo.uniformsLocations.bgColor, new Float32Array(this.bgColor));
 
     /**
@@ -224,12 +215,10 @@ function getCubemapFaces(options: CubemapDefinition): CubemapFaces | undefined {
       nY: `//${SPACE_IMAGES_BASE_URL}/${options.preset}/ny.webp`,
       pZ: `//${SPACE_IMAGES_BASE_URL}/${options.preset}/pz.webp`,
       nZ: `//${SPACE_IMAGES_BASE_URL}/${options.preset}/nz.webp`,
-    }
-
+    };
   }
 
   if (options.path) {
-
     const baseUrl = options.path.baseUrl;
     const format = options.path.format ?? "png";
 

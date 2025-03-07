@@ -1,10 +1,5 @@
 import { takeScreenshot } from "./screenshot";
-import {
-  addPolyline,
-  addPolygon,
-  addPoint,
-  addHeatmap,
-} from "./vectorlayerhelpers";
+import { addPolyline, addPolygon, addPoint, addHeatmap } from "./vectorlayerhelpers";
 
 export type {
   ZoomStringValues,
