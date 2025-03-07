@@ -39,7 +39,15 @@ jobs:
 
       - name: Send Dispatch Event to CDN Repo
         run: |
-            curl -X POST -H "Authorization: token ${{ secrets.CDN_MAPTILER_TOKEN }}" \
+            curl -X POST \
+              -H "Authorization: token ${{ secrets.CDN_MAPTILER_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
               https://api.github.com/repos/maptiler/cdn.maptiler.com/dispatches \
-              -d '{"event_type": "repo_release", "client_payload": {"repo": "${{ github.repository }}", "tag": "${{ github.event.release.tag_name }}"}}'
+              -d '{ \
+                "event_type": "repo_release", \
+                "client_payload": { \
+                  "repo": "${{ github.repository }}", \
+                  "tag": "${{ github.event.release.tag_name }}", \
+                  "build_dir": "build" \
+                }
+              }'
