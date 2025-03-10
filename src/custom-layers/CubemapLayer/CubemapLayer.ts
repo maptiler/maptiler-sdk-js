@@ -18,6 +18,11 @@ const UNIFORMS_KEYS = ["projectionMatrix", "modelViewMatrix", "cubeSampler", "bg
 const GL_USE_TEXTURE_MACRO_MARKER = "%USE_TEXTURE_MACRO_MARKER%";
 const GL_USE_TEXTURE_MACRO = "#define USE_TEXTURE";
 
+const defaultConstructorOptions: CubemapLayerConstructorOptions = {
+  color: "black",
+  preset: "universe-dark",
+};
+
 class CubemapLayer implements CustomLayerInterface {
   public id: string = "Cubemap Layer";
   public type: CustomLayerInterface["type"] = "custom";
@@ -34,9 +39,17 @@ class CubemapLayer implements CustomLayerInterface {
   private cubemap?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
   private texture?: WebGLTexture;
 
-  constructor(cubemapConfig: CubemapLayerConstructorOptions) {
-    this.bgColor = parseColorStringToVec4(cubemapConfig.color);
-    this.faces = getCubemapFaces(cubemapConfig);
+  constructor(cubemapConfig: CubemapLayerConstructorOptions | boolean) {
+    const options =
+      typeof cubemapConfig === "boolean"
+        ? defaultConstructorOptions
+        : {
+            ...defaultConstructorOptions,
+            ...cubemapConfig,
+          };
+
+    this.bgColor = parseColorStringToVec4(options.color);
+    this.faces = getCubemapFaces(options as CubemapDefinition);
     this.useCubemapTexture = this.faces !== null;
   }
 

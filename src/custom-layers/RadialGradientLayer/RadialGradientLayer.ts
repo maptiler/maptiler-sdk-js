@@ -28,6 +28,18 @@ const VERTICES = [
   0,
 ];
 
+const defaultConstructorOptions: RadialGradientLayerOptions = {
+  scale: 1,
+  stops: [
+    [0.0, "rgba(176, 208, 240, 1)"],
+    [0.2, "rgba(98, 168, 229, 0.8)"],
+    [0.4, "rgba(32, 112, 208, 0.6)"],
+    [0.6, "rgba(16, 42, 85, 0.4)"],
+    [0.8, "rgba(10, 15, 37, 0.2)"],
+    [1.0, "rgba(0, 0, 0, 0)"],
+  ],
+}
+
 export class RadialGradientLayer implements CustomLayerInterface {
   public id: string = "Halo Layer";
   public type: CustomLayerInterface["type"] = "custom";
@@ -39,8 +51,16 @@ export class RadialGradientLayer implements CustomLayerInterface {
   private map!: MapSDK;
   private plane?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
 
-  constructor(gradient: RadialGradientLayerOptions) {
-    this.gradient = gradient;
+  constructor(gradient: RadialGradientLayerOptions | boolean) {
+    if (typeof gradient === "boolean") {
+      this.gradient = defaultConstructorOptions;
+      return;
+    }
+
+    this.gradient = {
+      ...defaultConstructorOptions,
+      ...gradient,
+    };
   }
 
   public onAdd(map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
