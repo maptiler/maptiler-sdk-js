@@ -38,7 +38,7 @@ const defaultConstructorOptions: RadialGradientLayerOptions = {
     [0.8, "rgba(10, 15, 37, 0.2)"],
     [1.0, "rgba(0, 0, 0, 0)"],
   ],
-}
+};
 
 export class RadialGradientLayer implements CustomLayerInterface {
   public id: string = "Halo Layer";
