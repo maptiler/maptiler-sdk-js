@@ -30,7 +30,7 @@
 
   <script src="../build/maptiler-sdk.umd.min.js"></script>
   <script>
-    maptilersdk.config.apiKey = new URLSearchParams(location.search).get("key") || "API_KEY";
+    maptilersdk.config.apiKey = new URLSearchParams(location.search).get("key") || "A2RINqe9bM3UVjpxsPxc";
 
     if (maptilersdk.config.apiKey === "API_KEY") {
       const errorMessage = "MapTiler API key is missing. Please use URL `key` parameter to set it (`?key=XXXXX`).";
@@ -43,6 +43,7 @@
       container: document.getElementById("map-container"),
       hash: true,
       maptilerLogo: true,
+      navigationControl: false
     });
 
     /*
@@ -58,7 +59,7 @@
     map.on("load", async (e) => {
       console.log(e);
       const scaleControl = new maptilersdk.ScaleControl();
-      map.addControl(scaleControl, "bottom-left")
+      
     });
   </script>
 </body>

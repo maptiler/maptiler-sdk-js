@@ -5,13 +5,38 @@ type HTMLButtonElementPlus = HTMLButtonElement & {
   clickFunction: (e?: Event) => unknown;
 };
 
+type MaptilerNavigationControlOptions = NavigationControlOptions & {
+  removeDefaultDOM?: boolean;
+  compassElement?: HTMLElement;
+  zoomInElement?: HTMLElement;
+  zoomOutElement?: HTMLElement;
+};
+
 export class MaptilerNavigationControl extends NavigationControl {
-  constructor(options: NavigationControlOptions = {}) {
+  private externalCompass?: HTMLElement;
+  private externalZoomIn?: HTMLElement;
+  private externalZoomOut?: HTMLElement;
+
+  constructor(options: MaptilerNavigationControlOptions = {}) {
     super({
       showCompass: options.showCompass ?? true,
       showZoom: options.showZoom ?? true,
       visualizePitch: options.visualizePitch ?? true,
     });
+
+    this.externalCompass = options.compassElement;
+    this.externalZoomIn = options.zoomInElement;
+    this.externalZoomOut = options.zoomOutElement;
+
+    if (options.removeDefaultDOM) {
+      // Remove default DOM elements
+      if (this._container) {
+        this._container.style.display = "none";
+      }
+
+      // Setup external elements if provided
+      this.setupExternalElements();
+    }
 
     // Removing the default click event
     if (this._compass) {
@@ -34,6 +59,35 @@ export class MaptilerNavigationControl extends NavigationControl {
             }
           }
         }
+      });
+    }
+  }
+
+  private setupExternalElements() {
+    if (this.externalCompass) {
+      this.externalCompass.addEventListener("click", (e) => {
+        const currentPitch = this._map.getPitch();
+        if (currentPitch === 0) {
+          this._map.easeTo({ pitch: Math.min(this._map.getMaxPitch(), 80) });
+        } else {
+          if (this.options.visualizePitch) {
+            this._map.resetNorthPitch({}, { originalEvent: e });
+          } else {
+            this._map.resetNorth({}, { originalEvent: e });
+          }
+        }
+      });
+    }
+
+    if (this.externalZoomIn) {
+      this.externalZoomIn.addEventListener("click", () => {
+        this._map.zoomIn();
+      });
+    }
+
+    if (this.externalZoomOut) {
+      this.externalZoomOut.addEventListener("click", () => {
+        this._map.zoomOut();
       });
     }
   }

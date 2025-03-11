@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>External Controls Example - MapTiler SDK</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+      #custom-controls {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: white;
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        z-index: 1;
+      }
+      .control-button {
+        display: block;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border: none;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        margin: 5px 0;
+        font-size: 18px;
+        line-height: 30px;
+        text-align: center;
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+      }
+      .control-button:hover {
+        background: #f8f8f8;
+      }
+      #compass {
+        font-size: 16px;
+      }
+      #projection {
+        font-size: 16px;
+      }
+    </style>
+    
+  </head>
+  <body>
+
+    <script src="../build/maptiler-sdk.umd.min.js"></script>
+    <div id="map"></div>
+    <div id="custom-controls">
+      <button id="compass" class="control-button" title="Reset bearing to north">⇧</button>
+      <button id="zoom-in" class="control-button" title="Zoom in">+</button>
+      <button id="zoom-out" class="control-button" title="Zoom out">−</button>
+      <button id="projection" class="control-button" title="Toggle projection">🌐</button>
+      <button id="terrain" class="control-button" title="Toggle terrain">⛰️</button>
+      <button id="geolocate" class="control-button" title="Show my location">📍</button>
+    </div>
+
+    <script>
+      maptilersdk.config.apiKey = 'A2RINqe9bM3UVjpxsPxc';
+
+      const map = new maptilersdk.Map({
+        container: document.getElementById('map'),
+        style: maptilersdk.MapStyle.STREETS,
+        center: [0, 0],
+        projection: 'globe', //enable globe projection
+        zoom: 1,
+        defaultControls: false
+      });
+
+      // Add navigation control with custom elements
+      const navControl = new maptilersdk.MaptilerNavigationControl({
+        removeDefaultDOM: true,
+        compassElement: document.getElementById('compass'),
+        zoomInElement: document.getElementById('zoom-in'),
+        zoomOutElement: document.getElementById('zoom-out')
+      });
+
+      // Add projection control with custom element
+      const projectionControl = new maptilersdk.MaptilerProjectionControl({
+        removeDefaultDOM: true,
+        projectionElement: document.getElementById('projection')
+      });
+
+      // Add terrain control with custom element
+      const terrainControl = new maptilersdk.MaptilerTerrainControl({
+        removeDefaultDOM: true,
+        terrainElement: document.getElementById('terrain')
+      });
+
+      // Add geolocate control with custom element
+      const geolocateControl = new maptilersdk.MaptilerGeolocateControl({
+        removeDefaultDOM: true,
+        geolocateElement: document.getElementById('geolocate'),
+        positionOptions: {
+          enableHighAccuracy: true,
+          timeout: 6000
+        },
+        trackUserLocation: true,
+        showAccuracyCircle: true,
+        showUserLocation: true
+      });
+
+      // Add the controls to the map
+      map.addControl(navControl);
+      map.addControl(projectionControl);
+      map.addControl(terrainControl);
+      map.addControl(geolocateControl);
+
+      // Update compass rotation when map bearing changes
+      map.on('rotate', () => {
+        const bearing = map.getBearing();
+        document.getElementById('compass').style.transform = `rotate(${bearing}deg)`;
+      });
+    </script>
+  </body>
+</html>
