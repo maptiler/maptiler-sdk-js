@@ -1,9 +1,7 @@
 import colorConvert from "color-convert";
-import { HSL, KEYWORD as NamedColor } from "color-convert/conversions";
-
-import ColorName from "color-name";
 // Note, we use these because they are already used by MapLibre
 // Saving us an additional dep.
+// Although treeshaking should remove the unused parts anyway.
 
 export type WebGLContext = WebGLRenderingContext | WebGL2RenderingContext;
 
@@ -155,24 +153,21 @@ export function parseColorStringToVec4(color?: string): Vec4 {
   }
 
   try {
-    // If the color is a named color eg 'rebeccapurple'
-    if ((color as string) in ColorName) {
-      return [...colorConvert.keyword.rgb(color as NamedColor).map((c) => c / 255), 1.0] as Vec4;
-    }
+    const parsedColor = colorToRgbOrHex(color);
 
-    const isHexColor = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})?$/i.exec(color);
+    const isHexColor = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})?$/i.exec(parsedColor);
     // if the color is a hex color eg #ff00ff or #ff00ff00
     if (isHexColor?.length) {
       const hasAlphaChannel = Boolean(isHexColor[4]);
 
-      return [...colorConvert.hex.rgb(color).map((c) => c / 255), hasAlphaChannel ? parseInt(isHexColor[4], 16) / 255 : 1.0] as Vec4;
+      return [...colorConvert.hex.rgb(parsedColor).map((c) => c / 255), hasAlphaChannel ? parseInt(isHexColor[4], 16) / 255 : 1.0] as Vec4;
     }
 
     // extracts the numbers from an RGB(A) or HSL(A) color string
-    const colorAsArray = color.match(/(\d\.\d(\d+)?|\d{3}|\d{2}|\d{1})/gi) ?? ["0", "0", "0"];
+    const colorAsArray = parsedColor.match(/(\d\.\d(\d+)?|\d{3}|\d{2}|\d{1})/gi) ?? ["0", "0", "0"];
     // If the color is an RGB(A) color eg rgb(255, 0, 255) or rgba(255, 0, 255, 0.5)
-    if (color.includes("rgb")) {
-      const hasAlphaChannel = color.includes("rgba");
+    if (parsedColor.includes("rgb")) {
+      const hasAlphaChannel = parsedColor.includes("rgba");
       const rgbArray = [
         ...colorAsArray.map((c) => parseFloat(c)).map((c, i) => (i < 3 ? c / 255 : c)), // because alpha is in the range 0 - 1, not 0 - 255
       ];
@@ -183,31 +178,6 @@ export function parseColorStringToVec4(color?: string): Vec4 {
 
       return rgbArray as Vec4;
     }
-
-    // If the color is an HSL(A) color eg hsl(300deg, 100%, 50%) or hsla(1.4rad, 100%, 50%, 0.5)
-    if (color.includes("hsl")) {
-      const hasAlphaChannel = color.includes("hsla");
-
-      const usesRadians = color.includes("rad");
-
-      const RGBArray = [
-        ...colorConvert.hsl.rgb(
-          colorAsArray.map((c, i) => {
-            const number = parseFloat(c);
-            if (usesRadians && i === 0) {
-              // because not everyone uses degrees,
-              // but color convert expects degrees.
-              // The first entry is the hue angle
-              return (number * 180) / Math.PI;
-            }
-            return number;
-          }) as HSL,
-        ),
-        hasAlphaChannel ? parseFloat(colorAsArray[3]) : 1.0,
-      ];
-
-      return RGBArray as Vec4;
-    }
   } catch (e) {}
 
   // Because we are not supporting HWB, HSV or CMYK at the moment.
@@ -217,4 +187,21 @@ export function parseColorStringToVec4(color?: string): Vec4 {
 
 export function degreesToRadians(degrees: number) {
   return (degrees * Math.PI) / 180;
+}
+
+// to avoid recreating the ctx each time
+const colorConvertCtx = document.createElement("canvas").getContext("2d");
+
+function colorToRgbOrHex(color: string): string {
+  // because cavnas 2D context automagically converts
+  // any valid css color to a hex string
+  // or an RGBA string
+  const ctx = colorConvertCtx;
+  if (!ctx) {
+    return "#000000";
+  }
+
+  ctx.fillStyle = color;
+
+  return ctx.fillStyle;
 }
