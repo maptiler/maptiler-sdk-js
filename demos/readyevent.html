@@ -30,7 +30,7 @@
 
   <script src="../build/maptiler-sdk.umd.min.js"></script>
   <script>
-    maptilersdk.config.apiKey = new URLSearchParams(location.search).get("key") || "A2RINqe9bM3UVjpxsPxc";
+    maptilersdk.config.apiKey = new URLSearchParams(location.search).get("key") || "API_KEY";
 
     if (maptilersdk.config.apiKey === "API_KEY") {
       const errorMessage = "MapTiler API key is missing. Please use URL `key` parameter to set it (`?key=XXXXX`).";
