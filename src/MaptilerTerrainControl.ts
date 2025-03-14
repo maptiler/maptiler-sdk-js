@@ -1,114 +1,100 @@
-import { DOMcreate, DOMremove } from "./tools";
+import { bindAll, DOMcreate, DOMremove } from "./tools";
+
 import type { Map as SDKMap } from "./Map";
 import type { IControl } from "maplibre-gl";
 
+/**
+ * A `MaptilerTerrainControl` control adds a button to turn terrain on and off
+ * by triggering the terrain logic that is already deployed in the Map object.
+ */
 type MaptilerTerrainControlOptions = {
   removeDefaultDOM?: boolean;
   terrainElement?: HTMLElement;
 };
 
-/**
- * A `MaptilerTerrainControl` control adds a button to enable/disable terrain.
- */
 export class MaptilerTerrainControl implements IControl {
-  private map!: SDKMap;
-  private container!: HTMLElement;
-  private terrainButton!: HTMLButtonElement;
+  _map!: SDKMap;
+  _container!: HTMLElement;
+  _terrainButton!: HTMLButtonElement;
   private externalTerrain?: HTMLElement;
   private options: MaptilerTerrainControlOptions;
-  private boundToggleTerrain: (e: Event) => void;
 
   constructor(options: MaptilerTerrainControlOptions = {}) {
     this.options = options;
     this.externalTerrain = options.terrainElement;
-    // Bind the method once in constructor to maintain reference
-    this.boundToggleTerrain = this.toggleTerrain.bind(this);
+
+    bindAll(["_toggleTerrain", "_updateTerrainIcon"], this);
   }
 
   onAdd(map: SDKMap): HTMLElement {
-    this.map = map;
+    this._map = map;
 
-    if (this.options.removeDefaultDOM) {
-      // Create an empty container that won't be visible
-      this.container = DOMcreate("div");
+    if (this.options.removeDefaultDOM && this.externalTerrain) {
       this.setupExternalElements();
-      return this.container;
+      return DOMcreate("div");
+    } else {
+      return this.setupInternalElements();
     }
+  }
 
-    // Default DOM implementation
-    this.container = DOMcreate("div", "maplibregl-ctrl maplibregl-ctrl-group");
-    this.terrainButton = DOMcreate(
+  private setupInternalElements(): HTMLElement {
+    this._container = DOMcreate("div", "maplibregl-ctrl maplibregl-ctrl-group");
+    this._terrainButton = DOMcreate(
       "button",
       "maplibregl-ctrl-terrain",
-      this.container,
+      this._container,
     );
-    DOMcreate("span", "maplibregl-ctrl-icon", this.terrainButton).setAttribute(
+    DOMcreate("span", "maplibregl-ctrl-icon", this._terrainButton).setAttribute(
       "aria-hidden",
       "true",
     );
-    this.terrainButton.type = "button";
-    this.terrainButton.addEventListener("click", this.boundToggleTerrain);
-
-    map.on("terrain", this.updateTerrainIcon.bind(this));
-
-    this.updateTerrainIcon();
-    return this.container;
-  }
-
-  onRemove(): void {
-    if (this.externalTerrain) {
-      this.externalTerrain.removeEventListener(
-        "click",
-        this.boundToggleTerrain,
-      );
-    }
-    DOMremove(this.container);
-    this.map.off("terrain", this.updateTerrainIcon);
-    // @ts-expect-error: map will only be undefined on remove
-    this.map = undefined;
+    this._terrainButton.type = "button";
+    this._terrainButton.addEventListener("click", this._toggleTerrain);
+    this._updateTerrainIcon();
+    this._map.on("terrain", this._updateTerrainIcon);
+    return this._container;
   }
 
   private setupExternalElements(): void {
-    if (this.externalTerrain) {
-      this.externalTerrain.addEventListener("click", this.boundToggleTerrain);
-      // Set initial title
-      this.updateExternalTitle();
-      // Listen for terrain changes
-      this.map.on("terrain", this.updateExternalTitle.bind(this));
+    this.externalTerrain?.addEventListener("click", this._toggleTerrain);
+    if (!this.externalTerrain) {
+      throw new Error("Terrain element not found");
     }
   }
 
-  private toggleTerrain(): void {
-    if (this.map.terrain) {
-      this.map.disableTerrain();
+  onRemove(): void {
+    DOMremove(this._container);
+    this._map.off("terrain", this._updateTerrainIcon);
+    // @ts-expect-error: map will only be undefined on remove
+    this._map = undefined;
+  }
+
+  _toggleTerrain(): void {
+    if (this._map.hasTerrain()) {
+      this._map.disableTerrain();
     } else {
-      this.map.enableTerrain();
+      this._map.enableTerrain();
     }
+
     if (!this.options.removeDefaultDOM) {
-      this.updateTerrainIcon();
+      this._updateTerrainIcon();
     }
   }
 
-  private updateExternalTitle(): void {
-    if (this.externalTerrain) {
-      this.externalTerrain.title = this.map.terrain
-        ? "Disable terrain"
-        : "Enable terrain";
-    }
-  }
-
-  private updateTerrainIcon(): void {
-    if (!this.terrainButton) return;
-
-    this.terrainButton.classList.remove("maplibregl-ctrl-terrain-enabled");
-    this.terrainButton.classList.remove("maplibregl-ctrl-terrain-disabled");
-
-    if (this.map.terrain) {
-      this.terrainButton.classList.add("maplibregl-ctrl-terrain-enabled");
-      this.terrainButton.title = "Disable terrain";
+  _updateTerrainIcon(): void {
+    this._terrainButton.classList.remove("maplibregl-ctrl-terrain");
+    this._terrainButton.classList.remove("maplibregl-ctrl-terrain-enabled");
+    // if (this._map.terrain) {
+    if (this._map.hasTerrain()) {
+      this._terrainButton.classList.add("maplibregl-ctrl-terrain-enabled");
+      this._terrainButton.title = this._map._getUIString(
+        "TerrainControl.Disable",
+      );
     } else {
-      this.terrainButton.classList.add("maplibregl-ctrl-terrain-disabled");
-      this.terrainButton.title = "Enable terrain";
+      this._terrainButton.classList.add("maplibregl-ctrl-terrain");
+      this._terrainButton.title = this._map._getUIString(
+        "TerrainControl.Enable",
+      );
     }
   }
 }

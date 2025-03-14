@@ -1,4 +1,9 @@
-import type { LngLatLike, MapLibreEvent } from "maplibre-gl";
+import type {
+  GeolocateControlOptions,
+  LngLatLike,
+  Map,
+  MapLibreEvent,
+} from "maplibre-gl";
 import maplibregl from "maplibre-gl";
 import { GeolocateControl } from "./MLAdapters/GeolocateControl";
 import { DOMcreate } from "./tools";
@@ -11,14 +16,9 @@ type MoveEndEvent = MapLibreEvent<
   MouseEvent | TouchEvent | WheelEvent | undefined
 > & { geolocateSource?: boolean };
 
-type MaptilerGeolocateControlOptions = {
-  removeDefaultDOM?: boolean;
+type MaptilerGeolocateControlOptions = GeolocateControlOptions & {
   geolocateElement?: HTMLElement;
-  positionOptions?: PositionOptions;
-  fitBoundsOptions?: maplibregl.FitBoundsOptions;
-  trackUserLocation?: boolean;
-  showAccuracyCircle?: boolean;
-  showUserLocation?: boolean;
+  removeDefaultDOM?: boolean;
 };
 
 /**
@@ -29,70 +29,24 @@ type MaptilerGeolocateControlOptions = {
  */
 export class MaptilerGeolocateControl extends GeolocateControl {
   private lastUpdatedCenter = new LngLat(0, 0);
-  private externalGeolocate?: HTMLElement;
-  public options: MaptilerGeolocateControlOptions;
-  private boundTriggerGeolocate: (e: Event) => void;
+  private removeDefaultDOM = false;
+  private externalGeolocateElement?: HTMLElement;
 
   constructor(options: MaptilerGeolocateControlOptions = {}) {
-    // Pass core geolocate options to parent class
-    super({
-      positionOptions: options.positionOptions,
-      fitBoundsOptions: options.fitBoundsOptions,
-      trackUserLocation: options.trackUserLocation,
-      showAccuracyCircle: options.showAccuracyCircle,
-      showUserLocation: options.showUserLocation,
-    });
-
-    // Store full options for our extended functionality
-    this.options = options;
-    this.externalGeolocate = options.geolocateElement;
-    this.boundTriggerGeolocate = this.trigger.bind(this);
-  }
-
-  onAdd(map: maplibregl.Map): HTMLElement {
-    const container = super.onAdd(map);
-
-    if (this.options.removeDefaultDOM) {
-      // Hide the default container
-      container.style.display = "none";
-      this.setupExternalElements();
-      return container;
-    }
-
-    return container;
-  }
-
-  onRemove(): void {
-    if (this.externalGeolocate) {
-      this.externalGeolocate.removeEventListener(
-        "click",
-        this.boundTriggerGeolocate,
-      );
-    }
-    super.onRemove();
-  }
-
-  private setupExternalElements(): void {
-    if (this.externalGeolocate) {
-      this.externalGeolocate.addEventListener(
-        "click",
-        this.boundTriggerGeolocate,
-      );
-      // Set initial title
-      this.updateExternalTitle();
-      // Listen for geolocate events
-      this._map.on("geolocate", this.updateExternalTitle.bind(this));
+    super(options);
+    this.removeDefaultDOM = options.removeDefaultDOM ?? false;
+    this.externalGeolocateElement = options.geolocateElement;
+    console.log(this.removeDefaultDOM);
+    if (this.removeDefaultDOM) {
+      this._setupExternalElements();
     }
   }
 
-  private updateExternalTitle(): void {
-    if (this.externalGeolocate) {
-      this.externalGeolocate.title =
-        this._watchState === "ACTIVE_LOCK"
-          ? "Stop following location"
-          : "Show my location";
-    }
-  }
+  _setupExternalElements = () => {
+    this.externalGeolocateElement?.addEventListener("click", () =>
+      this.trigger(),
+    );
+  };
 
   /**
    * Update the camera location to center on the current position
@@ -129,14 +83,14 @@ export class MaptilerGeolocateControl extends GeolocateControl {
       hasFittingBeenDisrupted = true;
     };
 
-    void this._map.once("click", flagFittingDisruption);
-    void this._map.once("dblclick", flagFittingDisruption);
-    void this._map.once("dragstart", flagFittingDisruption);
-    void this._map.once("mousedown", flagFittingDisruption);
-    void this._map.once("touchstart", flagFittingDisruption);
-    void this._map.once("wheel", flagFittingDisruption);
+    this._map.once("click", flagFittingDisruption);
+    this._map.once("dblclick", flagFittingDisruption);
+    this._map.once("dragstart", flagFittingDisruption);
+    this._map.once("mousedown", flagFittingDisruption);
+    this._map.once("touchstart", flagFittingDisruption);
+    this._map.once("wheel", flagFittingDisruption);
 
-    void this._map.once("moveend", () => {
+    this._map.once("moveend", () => {
       // Removing the events if not used
       this._map.off("click", flagFittingDisruption);
       this._map.off("dblclick", flagFittingDisruption);
@@ -151,8 +105,6 @@ export class MaptilerGeolocateControl extends GeolocateControl {
 
       this.lastUpdatedCenter = this._map.getCenter();
     });
-
-    this.updateExternalTitle();
   };
 
   _finishSetupUI = (supported: boolean) => {
@@ -318,13 +270,5 @@ export class MaptilerGeolocateControl extends GeolocateControl {
       default:
         throw new Error(`Unexpected watchState ${this._watchState}`);
     }
-
-    this.updateExternalTitle();
   }
-
-  // Change from method to property arrow function
-  _onError = (error: GeolocationPositionError): void => {
-    GeolocateControl.prototype._onError.call(this, error);
-    this.updateExternalTitle();
-  };
 }

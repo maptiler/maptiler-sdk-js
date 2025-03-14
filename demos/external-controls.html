@@ -51,12 +51,27 @@
       #projection {
         font-size: 16px;
       }
+      #scale-container {
+        display: flex;
+        align-items: center;
+        margin-top: 10px;
+        padding: 4px 8px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 4px;
+        
+      }
+      #scale-icon {
+        font-size: 14px;
+      }
+      
     </style>
+    <link rel="stylesheet" href="../build/maptiler-sdk.css">
     
   </head>
   <body>
 
     <script src="../build/maptiler-sdk.umd.min.js"></script>
+
     <div id="map"></div>
     <div id="custom-controls">
       <button id="compass" class="control-button" title="Reset bearing to north">⇧</button>
@@ -65,6 +80,10 @@
       <button id="projection" class="control-button" title="Toggle projection">🌐</button>
       <button id="terrain" class="control-button" title="Toggle terrain">⛰️</button>
       <button id="geolocate" class="control-button" title="Show my location">📍</button>
+      <button id="scale-container" class="control-button" title="Scale">
+        <span id="scale-icon">📏</span>
+      
+      </button>
     </div>
 
     <script>
@@ -98,7 +117,12 @@
         removeDefaultDOM: true,
         terrainElement: document.getElementById('terrain')
       });
-
+      const geolocateControl = new maptilersdk.MaptilerGeolocateControl({
+        removeDefaultDOM: true,
+        geolocateElement: document.getElementById('geolocate'),
+      });
+      
+/* 
       // Add geolocate control with custom element
       const geolocateControl = new maptilersdk.MaptilerGeolocateControl({
         removeDefaultDOM: true,
@@ -110,13 +134,14 @@
         trackUserLocation: true,
         showAccuracyCircle: true,
         showUserLocation: true
-      });
+      }); */
+
+    
 
       // Add the controls to the map
-      map.addControl(navControl);
-      map.addControl(projectionControl);
-      map.addControl(terrainControl);
       map.addControl(geolocateControl);
+      map.addControl(navControl);
+      map.addControl(terrainControl);
 
       // Update compass rotation when map bearing changes
       map.on('rotate', () => {

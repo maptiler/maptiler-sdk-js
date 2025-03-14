@@ -526,6 +526,7 @@ export class Map extends maplibregl.Map {
       }
 
       // Check if default controls are enabled (using the default value)
+      const defaultControlsEnabled = options.defaultControls;
 
       // The attribution and logo must show when required
       if (options.forceNoAttributionControl !== true) {
@@ -533,15 +534,16 @@ export class Map extends maplibregl.Map {
           const logoURL: string = tileJsonContent.logo;
 
           this.addControl(
-            new MaptilerLogoControl({ logoURL }),
+            new MaptilerLogoControl({ defaultControlsEnabled, logoURL }),
             options.logoPosition,
           );
         } else if (options.maptilerLogo) {
-          this.addControl(new MaptilerLogoControl(), options.logoPosition);
+          this.addControl(
+            new MaptilerLogoControl({ defaultControlsEnabled }),
+            options.logoPosition,
+          );
         }
       }
-
-      const defaultControlsEnabled = options.defaultControls;
 
       // Only add default controls if defaultControls is not false
       if (defaultControlsEnabled) {
