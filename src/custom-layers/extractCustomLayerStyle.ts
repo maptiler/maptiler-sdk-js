@@ -19,8 +19,7 @@ export interface IExtractCustomLayerStyleOptions {
   property: "halo" | "space";
 }
 
-export type CustomLayerDefinitionType = CubemapLayerConstructorOptions | RadialGradientLayerOptions | null
-;
+export type CustomLayerDefinitionType = CubemapLayerConstructorOptions | RadialGradientLayerOptions | null;
 
 export default function extractCustomLayerStyle(options: IExtractCustomLayerStyleOptions): CustomLayerDefinitionType {
   const { map, property } = options;

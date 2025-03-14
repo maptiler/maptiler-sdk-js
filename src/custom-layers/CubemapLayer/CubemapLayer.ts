@@ -23,6 +23,36 @@ const defaultConstructorOptions: CubemapLayerConstructorOptions = {
   preset: "universe-dark",
 };
 
+function configureOptions(inputOptions: CubemapLayerConstructorOptions | true, defaults: CubemapLayerConstructorOptions) {
+  if (inputOptions === true) {
+    return defaults;
+  }
+
+  const outputOptions = {
+    ...defaults,
+    ...inputOptions,
+  };
+
+  // if  input has faces defined, this takes precendence
+  if (inputOptions.faces) {
+    delete outputOptions.preset;
+    return outputOptions as CubemapLayerConstructorOptions;
+  }
+
+  // - Use path if defined.
+  // - Path takes precendence over preset.
+  // - Because we would have returned faces if it was defined
+  // we don't need to delete it
+  if (inputOptions.path) {
+    delete outputOptions.preset;
+    return outputOptions as CubemapLayerConstructorOptions;
+  }
+
+  // path / faces will not be defined at this point
+  // so we don't need to delete them
+  return outputOptions as CubemapLayerConstructorOptions;
+}
+
 class CubemapLayer implements CustomLayerInterface {
   public id: string = "Cubemap Layer";
   public type: CustomLayerInterface["type"] = "custom";
@@ -39,14 +69,8 @@ class CubemapLayer implements CustomLayerInterface {
   private cubemap?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
   private texture?: WebGLTexture;
 
-  constructor(cubemapConfig: CubemapLayerConstructorOptions | boolean) {
-    const options =
-      typeof cubemapConfig === "boolean"
-        ? defaultConstructorOptions
-        : {
-            ...defaultConstructorOptions,
-            ...cubemapConfig,
-          };
+  constructor(cubemapConfig: CubemapLayerConstructorOptions | true) {
+    const options = configureOptions(cubemapConfig, defaultConstructorOptions);
 
     this.bgColor = parseColorStringToVec4(options.color);
     this.faces = getCubemapFaces(options as CubemapDefinition);
