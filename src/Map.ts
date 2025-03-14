@@ -41,6 +41,7 @@ import { MaptilerProjectionControl } from "./MaptilerProjectionControl";
 import { Telemetry } from "./Telemetry";
 import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from "./custom-layers/CubemapLayer";
 import { GradientDefinition, RadialGradientLayer, RadialGradientLayerOptions } from "./custom-layers/RadialGradientLayer";
+import extractCustomLayerStyle from "./custom-layers/extractCustomLayerStyle";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -198,8 +199,8 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    *
    * Default: { color: "#1D29F1" }
    */
-  space?: CubemapLayerConstructorOptions;
-  halo?: RadialGradientLayerOptions;
+  space?: CubemapLayerConstructorOptions | boolean;
+  halo?: RadialGradientLayerOptions | boolean;
 };
 
 /**
@@ -716,6 +717,7 @@ export class Map extends maplibregl.Map {
     }
 
     // Display a message if WebGL context is lost
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.once("load", () => {
       this.getCanvas().addEventListener("webglcontextlost", (event) => {
         if (this._removed === true) {
@@ -734,12 +736,14 @@ export class Map extends maplibregl.Map {
       const firstLayer = this.getLayersOrder()[0];
 
       if (options.space) {
-        this.space = new CubemapLayer(options.space);
+        const optionsFromStyleSpec = extractCustomLayerStyle({ map: this, property: "space" });
+        this.space = new CubemapLayer(options.space ?? optionsFromStyleSpec);
         this.addLayer(this.space, firstLayer);
       }
 
       if (options.halo) {
-        this.halo = new RadialGradientLayer(options.halo);
+        const optionsFromStyleSpec = extractCustomLayerStyle({ map: this, property: "halo" });
+        this.halo = new RadialGradientLayer(options.halo ?? optionsFromStyleSpec);
         this.addLayer(this.halo, firstLayer);
       }
     });
@@ -865,7 +869,6 @@ export class Map extends maplibregl.Map {
     this.once("idle", () => {
       this.forceLanguageUpdate = false;
     });
-
     const styleInfo = styleToStyle(style);
 
     if (styleInfo.requiresUrlMonitoring) {

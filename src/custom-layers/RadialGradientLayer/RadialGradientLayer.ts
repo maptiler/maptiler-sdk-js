@@ -29,14 +29,11 @@ const VERTICES = [
 ];
 
 const defaultConstructorOptions: RadialGradientLayerOptions = {
-  scale: 1,
+  scale: 0.9,
   stops: [
     [0.0, "rgba(176, 208, 240, 1)"],
-    [0.2, "rgba(98, 168, 229, 0.8)"],
-    [0.4, "rgba(32, 112, 208, 0.6)"],
-    [0.6, "rgba(16, 42, 85, 0.4)"],
-    [0.8, "rgba(10, 15, 37, 0.2)"],
-    [1.0, "rgba(0, 0, 0, 0)"],
+    [0.1, "rgba(98, 168, 229, 0.3)"],
+    [0.2, "rgba(98, 168, 229, 0.0)"],
   ],
 };
 

@@ -40,12 +40,17 @@
       zoom: 1,
       projection: "globe",
       center: [0, -20],
+      // space: {
+        // color: "red",
+      // },
+      halo: true,
+      // space: true,
       space: {
         color: "#111122",
-        path: {
-          baseUrl: "spacebox/transparent",
-          format: "png", //defaults to png
-        },
+      //   path: {
+      //     baseUrl: "spacebox/transparent",
+      //     format: "png", //defaults to png
+      //   },
         // OR
         // faces: {
           // pX: '/som-path-to-an-image/pX',
@@ -58,14 +63,14 @@
         // OR
         // preset?: "universe-dark";
       },
-      halo: {
-        scale: 1,
-        stops: [
-          [0.0, "transparent"],
-          [0.2, "skyblue"],
-          [0.3, "transparent"]
-        ],
-      }
+      // halo: {
+      //   scale: 1,
+      //   stops: [
+      //     [0.0, "transparent"],
+      //     [0.2, "skyblue"],
+      //     [0.3, "transparent"]
+      //   ],
+      // }
     });
 
     // Or alternatively, you can set the space and halo imperatively
