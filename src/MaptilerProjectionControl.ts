@@ -23,18 +23,17 @@ export class MaptilerProjectionControl implements IControl {
     this.externalProjection = options.projectionElement;
     // Bind the method once in constructor to maintain reference
     this.boundToggleProjection = this.toggleProjection.bind(this);
+    if (options.removeDefaultDOM) {
+      this.setupExternalElements();
+    }
   }
 
   onAdd(map: SDKMap): HTMLElement {
     this.map = map;
-    console.log(this.map.getProjection());
     if (this.options.removeDefaultDOM) {
-      // Create an empty container that won't be visible
       this.container = DOMcreate("div");
-      this.setupExternalElements();
       return this.container;
     }
-
     // Default DOM implementation
     this.container = DOMcreate("div", "maplibregl-ctrl maplibregl-ctrl-group");
     this.projectionButton = DOMcreate(

@@ -63,6 +63,15 @@
       #scale-icon {
         font-size: 14px;
       }
+      .scale-control-button {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        display: flex;
+        align-items: center;
+        margin-top: 10px;
+        padding: 4px 8px;
+        background: rgba(255, 255, 255, 0.9);
       
     </style>
     <link rel="stylesheet" href="../build/maptiler-sdk.css">
@@ -80,11 +89,11 @@
       <button id="projection" class="control-button" title="Toggle projection">🌐</button>
       <button id="terrain" class="control-button" title="Toggle terrain">⛰️</button>
       <button id="geolocate" class="control-button" title="Show my location">📍</button>
-      <button id="scale-container" class="control-button" title="Scale">
+    </div>
+      <button id="scale-container" class="scale-control-button" title="Scale">
         <span id="scale-icon">📏</span>
       
       </button>
-    </div>
 
     <script>
       maptilersdk.config.apiKey = 'A2RINqe9bM3UVjpxsPxc';
@@ -107,10 +116,10 @@
       });
 
       // Add projection control with custom element
-      const projectionControl = new maptilersdk.MaptilerProjectionControl({
+      /* const projectionControl = new maptilersdk.MaptilerProjectionControl({
         removeDefaultDOM: true,
         projectionElement: document.getElementById('projection')
-      });
+      }); */
 
       // Add terrain control with custom element
       const terrainControl = new maptilersdk.MaptilerTerrainControl({
@@ -121,28 +130,16 @@
         removeDefaultDOM: true,
         geolocateElement: document.getElementById('geolocate'),
       });
-      
-/* 
-      // Add geolocate control with custom element
-      const geolocateControl = new maptilersdk.MaptilerGeolocateControl({
+      const scaleControl = new maptilersdk.MaptilerScaleControl({
         removeDefaultDOM: true,
-        geolocateElement: document.getElementById('geolocate'),
-        positionOptions: {
-          enableHighAccuracy: true,
-          timeout: 6000
-        },
-        trackUserLocation: true,
-        showAccuracyCircle: true,
-        showUserLocation: true
-      }); */
-
-    
+        scaleElement: document.getElementById('scale-container')
+      });
 
       // Add the controls to the map
       map.addControl(geolocateControl);
       map.addControl(navControl);
       map.addControl(terrainControl);
-
+      map.addControl(scaleControl);
       // Update compass rotation when map bearing changes
       map.on('rotate', () => {
         const bearing = map.getBearing();

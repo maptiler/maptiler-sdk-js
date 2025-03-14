@@ -1,12 +1,11 @@
 import type {
   GeolocateControlOptions,
   LngLatLike,
-  Map,
   MapLibreEvent,
 } from "maplibre-gl";
 import maplibregl from "maplibre-gl";
 import { GeolocateControl } from "./MLAdapters/GeolocateControl";
-import { DOMcreate } from "./tools";
+import { DOMcreate, DOMremove } from "./tools";
 
 const Marker = maplibregl.Marker;
 const LngLat = maplibregl.LngLat;
@@ -36,13 +35,13 @@ export class MaptilerGeolocateControl extends GeolocateControl {
     super(options);
     this.removeDefaultDOM = options.removeDefaultDOM ?? false;
     this.externalGeolocateElement = options.geolocateElement;
-    console.log(this.removeDefaultDOM);
+
     if (this.removeDefaultDOM) {
-      this._setupExternalElements();
+      this.setupExternalElements();
     }
   }
 
-  _setupExternalElements = () => {
+  setupExternalElements = () => {
     this.externalGeolocateElement?.addEventListener("click", () =>
       this.trigger(),
     );
@@ -112,6 +111,9 @@ export class MaptilerGeolocateControl extends GeolocateControl {
     if (!this._map) {
       // control has since been removed
       return;
+    }
+    if (this.removeDefaultDOM) {
+      DOMremove(this._geolocateButton);
     }
 
     if (supported === false) {

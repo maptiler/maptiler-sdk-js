@@ -22,15 +22,16 @@ export class MaptilerTerrainControl implements IControl {
   constructor(options: MaptilerTerrainControlOptions = {}) {
     this.options = options;
     this.externalTerrain = options.terrainElement;
-
+    if (this.options.removeDefaultDOM) {
+      this.setupExternalElements();
+    }
     bindAll(["_toggleTerrain", "_updateTerrainIcon"], this);
   }
 
   onAdd(map: SDKMap): HTMLElement {
     this._map = map;
 
-    if (this.options.removeDefaultDOM && this.externalTerrain) {
-      this.setupExternalElements();
+    if (this.options.removeDefaultDOM) {
       return DOMcreate("div");
     } else {
       return this.setupInternalElements();

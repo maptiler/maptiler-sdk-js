@@ -43,7 +43,6 @@ import {
   toLanguageInfo,
 } from "@maptiler/client";
 import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
-import { ScaleControl } from "./MLAdapters/ScaleControl";
 import { FullscreenControl } from "./MLAdapters/FullscreenControl";
 
 import Minimap from "./Minimap";
@@ -51,6 +50,7 @@ import type { MinimapOptionsInput } from "./Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 import { MaptilerProjectionControl } from "./MaptilerProjectionControl";
 import { Telemetry } from "./Telemetry";
+import { MaptilerScaleControl } from "./MaptilerScaleControl";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -555,7 +555,7 @@ export class Map extends maplibregl.Map {
               : options.scaleControl
           ) as ControlPosition;
 
-          const scaleControl = new ScaleControl({ unit: config.unit });
+          const scaleControl = new MaptilerScaleControl({ unit: config.unit });
           this.addControl(scaleControl, position);
           config.on("unit", (unit) => {
             scaleControl.setUnit(unit);

@@ -176,7 +176,6 @@ export { NavigationControl } from "./MLAdapters/NavigationControl";
 export { GeolocateControl } from "./MLAdapters/GeolocateControl";
 export { AttributionControl } from "./MLAdapters/AttributionControl";
 export { LogoControl } from "./MLAdapters/LogoControl";
-export { ScaleControl } from "./MLAdapters/ScaleControl";
 export { FullscreenControl } from "./MLAdapters/FullscreenControl";
 export { TerrainControl } from "./MLAdapters/TerrainControl";
 export { BoxZoomHandler } from "./MLAdapters/BoxZoomHandler";
@@ -200,6 +199,7 @@ export * from "./MaptilerLogoControl";
 export * from "./MaptilerTerrainControl";
 export * from "./MaptilerNavigationControl";
 export * from "./MaptilerProjectionControl";
+export * from "./MaptilerScaleControl";
 export {
   type AutomaticStaticMapOptions,
   type BoundedStaticMapOptions,
