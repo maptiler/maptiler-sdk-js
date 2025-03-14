@@ -1,10 +1,5 @@
 import maplibregl from "maplibre-gl";
-import type {
-  RequestParameters,
-  ResourceType,
-  RequestTransformFunction,
-  SymbolLayerSpecification,
-} from "maplibre-gl";
+import type { RequestParameters, ResourceType, RequestTransformFunction, SymbolLayerSpecification } from "maplibre-gl";
 import { defaults } from "./defaults";
 import { config } from "./config";
 import { MAPTILER_SESSION_ID } from "./config";
@@ -37,11 +32,7 @@ export function bindAll(fns: Array<string>, context: any): void {
 
 // This comes from:
 // https://github.com/maplibre/maplibre-gl-js/blob/v2.4.0/src/util/dom.ts#L22
-export function DOMcreate<K extends keyof HTMLElementTagNameMap>(
-  tagName: K,
-  className?: string,
-  container?: HTMLElement,
-): HTMLElementTagNameMap[K] {
+export function DOMcreate<K extends keyof HTMLElementTagNameMap>(tagName: K, className?: string, container?: HTMLElement): HTMLElementTagNameMap[K] {
   const el = window.document.createElement(tagName);
   if (className !== undefined) el.className = className;
   if (container) container.appendChild(el);
@@ -61,10 +52,7 @@ export function DOMremove(node: HTMLElement) {
  * It adds the session ID as well as the MapTiler Cloud key from the config to all the requests
  * performed on MapTiler Cloud servers.
  */
-export function maptilerCloudTransformRequest(
-  url: string,
-  resourceType?: ResourceType,
-): RequestParameters {
+export function maptilerCloudTransformRequest(url: string, resourceType?: ResourceType): RequestParameters {
   let reqUrl = null;
 
   try {
@@ -88,10 +76,7 @@ export function maptilerCloudTransformRequest(
     }
   }
 
-  const localCacheTransformedReq = localCacheTransformRequest(
-    reqUrl,
-    resourceType,
-  );
+  const localCacheTransformedReq = localCacheTransformRequest(reqUrl, resourceType);
 
   return {
     url: localCacheTransformedReq,
@@ -102,9 +87,7 @@ export function maptilerCloudTransformRequest(
  * This combines a user-defined tranformRequest function (optionnal)
  * with the MapTiler Cloud-specific one: maptilerCloudTransformRequest
  */
-export function combineTransformRequest(
-  userDefinedRTF?: RequestTransformFunction | null,
-): RequestTransformFunction {
+export function combineTransformRequest(userDefinedRTF?: RequestTransformFunction | null): RequestTransformFunction {
   return (url: string, resourceType?: ResourceType): RequestParameters => {
     if (userDefinedRTF !== undefined && userDefinedRTF !== null) {
       const rp = userDefinedRTF(url, resourceType);
@@ -132,8 +115,7 @@ export function generateRandomString(): string {
  */
 export function isUUID(s: string): boolean {
   // Regular expression to check if string is a valid UUID
-  const regexExp =
-    /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
+  const regexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
   return regexExp.test(s);
 }
 
@@ -154,21 +136,10 @@ export function jsonParseNoThrow<T>(doc: string): T | null {
  * Simple function to check if an object is a GeoJSON
  */
 export function isValidGeoJSON<T>(obj: T & { type: string }): boolean {
-  if (typeof obj !== "object" || Array.isArray(obj) || obj === null)
-    return false;
+  if (typeof obj !== "object" || Array.isArray(obj) || obj === null) return false;
   if (!("type" in obj)) return false;
 
-  const validTypes = [
-    "Feature",
-    "FeatureCollection",
-    "Point",
-    "MultiPoint",
-    "LineString",
-    "MultiLineString",
-    "Polygon",
-    "MultiPolygon",
-    "GeometryCollection",
-  ];
+  const validTypes = ["Feature", "FeatureCollection", "Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon", "GeometryCollection"];
 
   if (validTypes.includes(obj.type)) return true;
   return false;
@@ -258,9 +229,7 @@ export function changeFirstLanguage(
 ): maplibregl.ExpressionSpecification {
   const expr = structuredClone(origExpr) as maplibregl.ExpressionSpecification;
 
-  const exploreNode = (
-    subExpr: maplibregl.ExpressionSpecification | string,
-  ) => {
+  const exploreNode = (subExpr: maplibregl.ExpressionSpecification | string) => {
     if (typeof subExpr === "string") return;
 
     for (let i = 0; i < subExpr.length; i += 1) {
@@ -286,10 +255,7 @@ export function changeFirstLanguage(
  * If `localized` is `false`, it check for {name}.
  * In a exact way or is a loose way (such as "foo {name:xx}" or "foo {name} bar")
  */
-export function checkNamePattern(
-  str: string,
-  localized: boolean,
-): { contains: boolean; exactMatch: boolean } {
+export function checkNamePattern(str: string, localized: boolean): { contains: boolean; exactMatch: boolean } {
   const regex = localized ? /\{name:\S+\}/ : /\{name\}/;
   return {
     contains: regex.test(str),
@@ -300,17 +266,11 @@ export function checkNamePattern(
 /**
  * Replaces the occurences of {name:xx} in a string by a provided object-expression to return a concat object expression
  */
-export function replaceLanguage(
-  origLang: string,
-  newLang: maplibregl.ExpressionSpecification,
-  localized: boolean,
-): maplibregl.ExpressionSpecification {
+export function replaceLanguage(origLang: string, newLang: maplibregl.ExpressionSpecification, localized: boolean): maplibregl.ExpressionSpecification {
   const regex = localized ? /\{name:\S+\}/ : /\{name\}/;
   const elementsToConcat = origLang.split(regex);
 
-  const allElements = elementsToConcat.flatMap((item, i) =>
-    i === elementsToConcat.length - 1 ? [item] : [item, newLang],
-  );
+  const allElements = elementsToConcat.flatMap((item, i) => (i === elementsToConcat.length - 1 ? [item] : [item, newLang]));
 
   const expr = ["concat", ...allElements] as maplibregl.ExpressionSpecification;
   return expr;
@@ -339,9 +299,7 @@ export function findLanguageStr(str: string): Array<string | null> {
   return languageUsed;
 }
 
-function isGetNameLanguageAndFind(
-  subExpr: unknown,
-): { isLanguage: boolean; localization: string | null } | null {
+function isGetNameLanguageAndFind(subExpr: unknown): { isLanguage: boolean; localization: string | null } | null {
   // Not language expression
   if (!Array.isArray(subExpr)) return null;
   if (subExpr.length !== 2) return null;
@@ -372,18 +330,11 @@ function isGetNameLanguageAndFind(
  * The returned array contains languages such as "en", "fr" but
  * can also contain null that stand for the use of {name}
  */
-export function findLanguageObj(
-  origExpr: maplibregl.ExpressionSpecification,
-): Array<string | null> {
+export function findLanguageObj(origExpr: maplibregl.ExpressionSpecification): Array<string | null> {
   const languageUsed = [] as Array<string | null>;
   const expr = structuredClone(origExpr) as maplibregl.ExpressionSpecification;
 
-  const exploreNode = (
-    subExpr:
-      | maplibregl.ExpressionSpecification
-      | string
-      | Array<maplibregl.ExpressionSpecification | string>,
-  ) => {
+  const exploreNode = (subExpr: maplibregl.ExpressionSpecification | string | Array<maplibregl.ExpressionSpecification | string>) => {
     if (typeof subExpr === "string") return;
 
     for (let i = 0; i < subExpr.length; i += 1) {
@@ -400,10 +351,7 @@ export function findLanguageObj(
   return languageUsed;
 }
 
-export function computeLabelsLocalizationMetrics(
-  layers: maplibregl.LayerSpecification[],
-  map: MapSDK,
-): { unlocalized: number; localized: Record<string, number> } {
+export function computeLabelsLocalizationMetrics(layers: maplibregl.LayerSpecification[], map: MapSDK): { unlocalized: number; localized: Record<string, number> } {
   const languages: Array<string | null>[] = [];
 
   for (const genericLayer of layers) {
@@ -423,8 +371,7 @@ export function computeLabelsLocalizationMetrics(
       continue;
     }
 
-    const textFieldLayoutProp: string | maplibregl.ExpressionSpecification =
-      map.getLayoutProperty(id, "text-field");
+    const textFieldLayoutProp: string | maplibregl.ExpressionSpecification = map.getLayoutProperty(id, "text-field");
 
     if (!textFieldLayoutProp) {
       continue;

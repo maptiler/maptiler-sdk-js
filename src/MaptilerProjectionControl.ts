@@ -13,21 +13,10 @@ export class MaptilerProjectionControl implements IControl {
   onAdd(map: SDKMap): HTMLElement {
     this.map = map;
     this.container = DOMcreate("div", "maplibregl-ctrl maplibregl-ctrl-group");
-    this.projectionButton = DOMcreate(
-      "button",
-      "maplibregl-ctrl-projection",
-      this.container,
-    );
-    DOMcreate(
-      "span",
-      "maplibregl-ctrl-icon",
-      this.projectionButton,
-    ).setAttribute("aria-hidden", "true");
+    this.projectionButton = DOMcreate("button", "maplibregl-ctrl-projection", this.container);
+    DOMcreate("span", "maplibregl-ctrl-icon", this.projectionButton).setAttribute("aria-hidden", "true");
     this.projectionButton.type = "button";
-    this.projectionButton.addEventListener(
-      "click",
-      this.toggleProjection.bind(this),
-    );
+    this.projectionButton.addEventListener("click", this.toggleProjection.bind(this));
 
     map.on("projectiontransition", this.updateProjectionIcon.bind(this));
 
@@ -56,13 +45,9 @@ export class MaptilerProjectionControl implements IControl {
 
   private updateProjectionIcon(): void {
     this.projectionButton.classList.remove("maplibregl-ctrl-projection-globe");
-    this.projectionButton.classList.remove(
-      "maplibregl-ctrl-projection-mercator",
-    );
+    this.projectionButton.classList.remove("maplibregl-ctrl-projection-mercator");
     if (this.map.isGlobeProjection()) {
-      this.projectionButton.classList.add(
-        "maplibregl-ctrl-projection-mercator",
-      );
+      this.projectionButton.classList.add("maplibregl-ctrl-projection-mercator");
       this.projectionButton.title = "Enable Mercator projection";
     } else {
       this.projectionButton.classList.add("maplibregl-ctrl-projection-globe");

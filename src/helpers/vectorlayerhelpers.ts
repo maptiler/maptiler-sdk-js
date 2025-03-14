@@ -1,9 +1,5 @@
 import type { Geometry, FeatureCollection, GeoJsonProperties } from "geojson";
-import type {
-  DataDrivenPropertyValueSpecification,
-  GetResourceResponse,
-  PropertyValueSpecification,
-} from "maplibre-gl";
+import type { DataDrivenPropertyValueSpecification, GetResourceResponse, PropertyValueSpecification } from "maplibre-gl";
 import type { Map as SDKMap } from "../Map";
 import { config } from "../config";
 import { isUUID, jsonParseNoThrow } from "../tools";
@@ -536,9 +532,7 @@ export async function addPolyline(
 }> {
   // We need to have the sourceId of the sourceData
   if (!options.sourceId && !options.data) {
-    throw new Error(
-      "Creating a polyline layer requires an existing .sourceId or a valid .data property",
-    );
+    throw new Error("Creating a polyline layer requires an existing .sourceId or a valid .data property");
   }
 
   // We are going to evaluate the content of .data, if provided
@@ -569,17 +563,12 @@ export async function addPolyline(
     } else {
       // From this point, we consider that the string content provided could
       // be the string content of one of the compatible format (GeoJSON, KML, GPX)
-      const tmpData =
-        jsonParseNoThrow<FeatureCollection<Geometry, GeoJsonProperties>>(
-          data,
-        ) ?? gpxOrKml(data);
+      const tmpData = jsonParseNoThrow<FeatureCollection<Geometry, GeoJsonProperties>>(data) ?? gpxOrKml(data);
       if (tmpData) data = tmpData;
     }
 
     if (!data) {
-      throw new Error(
-        "Polyline data was provided as string but is incompatible with valid formats.",
-      );
+      throw new Error("Polyline data was provided as string but is incompatible with valid formats.");
     }
   }
 
@@ -613,9 +602,7 @@ function addGeoJSONPolyline(
   polylineSourceId: string;
 } {
   if (options.layerId && map.getLayer(options.layerId)) {
-    throw new Error(
-      `A layer already exists with the layer id: ${options.layerId}`,
-    );
+    throw new Error(`A layer already exists with the layer id: ${options.layerId}`);
   }
 
   const sourceId = options.sourceId ?? generateRandomSourceName();
@@ -668,19 +655,10 @@ function addGeoJSONPolyline(
         minzoom: options.minzoom ?? 0,
         maxzoom: options.maxzoom ?? 23,
         paint: {
-          "line-opacity":
-            typeof outlineOpacity === "number"
-              ? outlineOpacity
-              : rampedOptionsToLayerPaintSpec(outlineOpacity),
-          "line-color":
-            typeof outlineColor === "string"
-              ? outlineColor
-              : paintColorOptionsToPaintSpec(outlineColor),
+          "line-opacity": typeof outlineOpacity === "number" ? outlineOpacity : rampedOptionsToLayerPaintSpec(outlineOpacity),
+          "line-color": typeof outlineColor === "string" ? outlineColor : paintColorOptionsToPaintSpec(outlineColor),
           "line-width": computeRampedOutlineWidth(lineWidth, outlineWidth),
-          "line-blur":
-            typeof outlineBlur === "number"
-              ? outlineBlur
-              : rampedOptionsToLayerPaintSpec(outlineBlur),
+          "line-blur": typeof outlineBlur === "number" ? outlineBlur : rampedOptionsToLayerPaintSpec(outlineBlur),
         },
       },
       options.beforeId,
@@ -699,28 +677,13 @@ function addGeoJSONPolyline(
       minzoom: options.minzoom ?? 0,
       maxzoom: options.maxzoom ?? 23,
       paint: {
-        "line-opacity":
-          typeof lineOpacity === "number"
-            ? lineOpacity
-            : rampedOptionsToLayerPaintSpec(lineOpacity),
-        "line-color":
-          typeof lineColor === "string"
-            ? lineColor
-            : paintColorOptionsToPaintSpec(lineColor),
-        "line-width":
-          typeof lineWidth === "number"
-            ? lineWidth
-            : rampedOptionsToLayerPaintSpec(lineWidth),
+        "line-opacity": typeof lineOpacity === "number" ? lineOpacity : rampedOptionsToLayerPaintSpec(lineOpacity),
+        "line-color": typeof lineColor === "string" ? lineColor : paintColorOptionsToPaintSpec(lineColor),
+        "line-width": typeof lineWidth === "number" ? lineWidth : rampedOptionsToLayerPaintSpec(lineWidth),
 
-        "line-blur":
-          typeof lineBlur === "number"
-            ? lineBlur
-            : rampedOptionsToLayerPaintSpec(lineBlur),
+        "line-blur": typeof lineBlur === "number" ? lineBlur : rampedOptionsToLayerPaintSpec(lineBlur),
 
-        "line-gap-width":
-          typeof lineGapWidth === "number"
-            ? lineGapWidth
-            : rampedOptionsToLayerPaintSpec(lineGapWidth),
+        "line-gap-width": typeof lineGapWidth === "number" ? lineGapWidth : rampedOptionsToLayerPaintSpec(lineGapWidth),
 
         // For some reasons passing "line-dasharray" with the value "undefined"
         // results in no showing the line while it should have the same behavior
@@ -760,9 +723,7 @@ export function addPolygon(
   polygonSourceId: string;
 } {
   if (options.layerId && map.getLayer(options.layerId)) {
-    throw new Error(
-      `A layer already exists with the layer id: ${options.layerId}`,
-    );
+    throw new Error(`A layer already exists with the layer id: ${options.layerId}`);
   }
 
   const sourceId = options.sourceId ?? generateRandomSourceName();
@@ -813,15 +774,9 @@ export function addPolygon(
         minzoom: options.minzoom ?? 0,
         maxzoom: options.maxzoom ?? 23,
         paint: {
-          "fill-color":
-            typeof fillColor === "string"
-              ? fillColor
-              : paintColorOptionsToPaintSpec(fillColor),
+          "fill-color": typeof fillColor === "string" ? fillColor : paintColorOptionsToPaintSpec(fillColor),
 
-          "fill-opacity":
-            typeof fillOpacity === "number"
-              ? fillOpacity
-              : rampedOptionsToLayerPaintSpec(fillOpacity),
+          "fill-opacity": typeof fillOpacity === "number" ? fillOpacity : rampedOptionsToLayerPaintSpec(fillOpacity),
 
           // Adding a pattern if provided
           ...(patternImageId && { "fill-pattern": patternImageId }),
@@ -832,9 +787,7 @@ export function addPolygon(
 
     // We want to create an outline for this line layer
     if (options.outline === true) {
-      let computedOutlineOffset:
-        | DataDrivenPropertyValueSpecification<number>
-        | number;
+      let computedOutlineOffset: DataDrivenPropertyValueSpecification<number> | number;
 
       if (outlinePosition === "inside") {
         if (typeof outlineWidth === "number") {
@@ -874,22 +827,10 @@ export function addPolygon(
           minzoom: options.minzoom ?? 0,
           maxzoom: options.maxzoom ?? 23,
           paint: {
-            "line-opacity":
-              typeof outlineOpacity === "number"
-                ? outlineOpacity
-                : rampedOptionsToLayerPaintSpec(outlineOpacity),
-            "line-color":
-              typeof outlineColor === "string"
-                ? outlineColor
-                : paintColorOptionsToPaintSpec(outlineColor),
-            "line-width":
-              typeof outlineWidth === "number"
-                ? outlineWidth
-                : rampedOptionsToLayerPaintSpec(outlineWidth),
-            "line-blur":
-              typeof outlineBlur === "number"
-                ? outlineBlur
-                : rampedOptionsToLayerPaintSpec(outlineBlur),
+            "line-opacity": typeof outlineOpacity === "number" ? outlineOpacity : rampedOptionsToLayerPaintSpec(outlineOpacity),
+            "line-color": typeof outlineColor === "string" ? outlineColor : paintColorOptionsToPaintSpec(outlineColor),
+            "line-width": typeof outlineWidth === "number" ? outlineWidth : rampedOptionsToLayerPaintSpec(outlineWidth),
+            "line-blur": typeof outlineBlur === "number" ? outlineBlur : rampedOptionsToLayerPaintSpec(outlineBlur),
 
             "line-offset": computedOutlineOffset,
 
@@ -899,9 +840,7 @@ export function addPolygon(
             // As a workaround, we are inlining the addition of the prop with a conditional
             // which is less readable.
             ...(outlineDashArray && {
-              "line-dasharray": outlineDashArray as PropertyValueSpecification<
-                number[]
-              >,
+              "line-dasharray": outlineDashArray as PropertyValueSpecification<number[]>,
             }),
           },
         },
@@ -965,21 +904,14 @@ export function addPoint(
   pointSourceId: string;
 } {
   if (options.layerId && map.getLayer(options.layerId)) {
-    throw new Error(
-      `A layer already exists with the layer id: ${options.layerId}`,
-    );
+    throw new Error(`A layer already exists with the layer id: ${options.layerId}`);
   }
 
   const minPointRadius = options.minPointRadius ?? 10;
   const maxPointRadius = options.maxPointRadius ?? 50;
   const cluster = options.cluster ?? false;
   const nbDefaultDataDrivenStyleSteps = 20;
-  const colorramp = Array.isArray(options.pointColor)
-    ? options.pointColor
-    : ColorRampCollection.TURBO.scale(
-        10,
-        options.cluster ? 10000 : 1000,
-      ).resample("ease-out-square");
+  const colorramp = Array.isArray(options.pointColor) ? options.pointColor : ColorRampCollection.TURBO.scale(10, options.cluster ? 10000 : 1000).resample("ease-out-square");
   const colorRampBounds = colorramp.getBounds();
   const sourceId = options.sourceId ?? generateRandomSourceName();
   const layerId = options.layerId ?? generateRandomLayerName();
@@ -1041,23 +973,14 @@ export function addPoint(
 
     returnedInfo.clusterLayerId = `${layerId}_cluster`;
 
-    const clusterStyle: DataDrivenStyle = Array.from(
-      { length: nbDefaultDataDrivenStyleSteps },
-      (_, i) => {
-        const value =
-          colorRampBounds.min +
-          (i * (colorRampBounds.max - colorRampBounds.min)) /
-            (nbDefaultDataDrivenStyleSteps - 1);
-        return {
-          value,
-          pointRadius:
-            minPointRadius +
-            (maxPointRadius - minPointRadius) *
-              (i / (nbDefaultDataDrivenStyleSteps - 1)) ** 0.5,
-          color: colorramp.getColorHex(value),
-        };
-      },
-    );
+    const clusterStyle: DataDrivenStyle = Array.from({ length: nbDefaultDataDrivenStyleSteps }, (_, i) => {
+      const value = colorRampBounds.min + (i * (colorRampBounds.max - colorRampBounds.min)) / (nbDefaultDataDrivenStyleSteps - 1);
+      return {
+        value,
+        pointRadius: minPointRadius + (maxPointRadius - minPointRadius) * (i / (nbDefaultDataDrivenStyleSteps - 1)) ** 0.5,
+        color: colorramp.getColorHex(value),
+      };
+    });
 
     map.addLayer(
       {
@@ -1067,10 +990,7 @@ export function addPoint(
         filter: ["has", "point_count"],
         paint: {
           // 'circle-color': options.pointColor ?? colorDrivenByProperty(clusterStyle, "point_count"),
-          "circle-color":
-            typeof options.pointColor === "string"
-              ? options.pointColor
-              : colorDrivenByProperty(clusterStyle, "point_count"),
+          "circle-color": typeof options.pointColor === "string" ? options.pointColor : colorDrivenByProperty(clusterStyle, "point_count"),
 
           "circle-radius":
             typeof options.pointRadius === "number"
@@ -1083,20 +1003,11 @@ export function addPoint(
           "circle-pitch-scale": "map", // scale with camera distance regardless of viewport/biewport alignement
           "circle-opacity": pointOpacity,
           ...(outline && {
-            "circle-stroke-opacity":
-              typeof outlineOpacity === "number"
-                ? outlineOpacity
-                : rampedOptionsToLayerPaintSpec(outlineOpacity),
+            "circle-stroke-opacity": typeof outlineOpacity === "number" ? outlineOpacity : rampedOptionsToLayerPaintSpec(outlineOpacity),
 
-            "circle-stroke-width":
-              typeof outlineWidth === "number"
-                ? outlineWidth
-                : rampedOptionsToLayerPaintSpec(outlineWidth),
+            "circle-stroke-width": typeof outlineWidth === "number" ? outlineWidth : rampedOptionsToLayerPaintSpec(outlineWidth),
 
-            "circle-stroke-color":
-              typeof outlineColor === "string"
-                ? outlineColor
-                : paintColorOptionsToPaintSpec(outlineColor),
+            "circle-stroke-color": typeof outlineColor === "string" ? outlineColor : paintColorOptionsToPaintSpec(outlineColor),
           }),
         },
         minzoom,
@@ -1116,10 +1027,7 @@ export function addPoint(
           "circle-pitch-alignment": alignOnViewport ? "viewport" : "map",
           "circle-pitch-scale": "map", // scale with camera distance regardless of viewport/biewport alignement
           // 'circle-color':  options.pointColor ?? clusterStyle[0].color,
-          "circle-color":
-            typeof options.pointColor === "string"
-              ? options.pointColor
-              : colorramp.getColorHex(colorramp.getBounds().min),
+          "circle-color": typeof options.pointColor === "string" ? options.pointColor : colorramp.getColorHex(colorramp.getBounds().min),
           "circle-radius":
             typeof options.pointRadius === "number"
               ? options.pointRadius
@@ -1128,20 +1036,11 @@ export function addPoint(
                 : clusterStyle[0].pointRadius * 0.75,
           "circle-opacity": pointOpacity,
           ...(outline && {
-            "circle-stroke-opacity":
-              typeof outlineOpacity === "number"
-                ? outlineOpacity
-                : rampedOptionsToLayerPaintSpec(outlineOpacity),
+            "circle-stroke-opacity": typeof outlineOpacity === "number" ? outlineOpacity : rampedOptionsToLayerPaintSpec(outlineOpacity),
 
-            "circle-stroke-width":
-              typeof outlineWidth === "number"
-                ? outlineWidth
-                : rampedOptionsToLayerPaintSpec(outlineWidth),
+            "circle-stroke-width": typeof outlineWidth === "number" ? outlineWidth : rampedOptionsToLayerPaintSpec(outlineWidth),
 
-            "circle-stroke-color":
-              typeof outlineColor === "string"
-                ? outlineColor
-                : paintColorOptionsToPaintSpec(outlineColor),
+            "circle-stroke-color": typeof outlineColor === "string" ? outlineColor : paintColorOptionsToPaintSpec(outlineColor),
           }),
         },
         minzoom,
@@ -1185,34 +1084,17 @@ export function addPoint(
 
     // If the styling depends on a property, then we build a custom style
     if (options.property && Array.isArray(options.pointColor)) {
-      const dataDrivenStyle: DataDrivenStyle = Array.from(
-        { length: nbDefaultDataDrivenStyleSteps },
-        (_, i) => {
-          const value =
-            colorRampBounds.min +
-            (i * (colorRampBounds.max - colorRampBounds.min)) /
-              (nbDefaultDataDrivenStyleSteps - 1);
-          return {
-            value,
-            pointRadius:
-              typeof options.pointRadius === "number"
-                ? options.pointRadius
-                : minPointRadius +
-                  (maxPointRadius - minPointRadius) *
-                    (i / (nbDefaultDataDrivenStyleSteps - 1)) ** 0.5,
-            color:
-              typeof options.pointColor === "string"
-                ? options.pointColor
-                : colorramp.getColorHex(value),
-          };
-        },
-      );
+      const dataDrivenStyle: DataDrivenStyle = Array.from({ length: nbDefaultDataDrivenStyleSteps }, (_, i) => {
+        const value = colorRampBounds.min + (i * (colorRampBounds.max - colorRampBounds.min)) / (nbDefaultDataDrivenStyleSteps - 1);
+        return {
+          value,
+          pointRadius:
+            typeof options.pointRadius === "number" ? options.pointRadius : minPointRadius + (maxPointRadius - minPointRadius) * (i / (nbDefaultDataDrivenStyleSteps - 1)) ** 0.5,
+          color: typeof options.pointColor === "string" ? options.pointColor : colorramp.getColorHex(value),
+        };
+      });
       pointColor = colorDrivenByProperty(dataDrivenStyle, options.property);
-      pointRadius = radiusDrivenByProperty(
-        dataDrivenStyle,
-        options.property,
-        zoomCompensation,
-      );
+      pointRadius = radiusDrivenByProperty(dataDrivenStyle, options.property, zoomCompensation);
     }
 
     // Adding the layer of unclustered point
@@ -1223,9 +1105,7 @@ export function addPoint(
         source: sourceId,
         layout: {
           // Contrary to labels, we want to see the small one in front. Weirdly "circle-sort-key" works in the opposite direction as "symbol-sort-key".
-          "circle-sort-key": options.property
-            ? ["/", 1, ["get", options.property]]
-            : 0,
+          "circle-sort-key": options.property ? ["/", 1, ["get", options.property]] : 0,
         },
         paint: {
           "circle-pitch-alignment": alignOnViewport ? "viewport" : "map",
@@ -1235,20 +1115,11 @@ export function addPoint(
           "circle-radius": pointRadius,
 
           ...(outline && {
-            "circle-stroke-opacity":
-              typeof outlineOpacity === "number"
-                ? outlineOpacity
-                : rampedOptionsToLayerPaintSpec(outlineOpacity),
+            "circle-stroke-opacity": typeof outlineOpacity === "number" ? outlineOpacity : rampedOptionsToLayerPaintSpec(outlineOpacity),
 
-            "circle-stroke-width":
-              typeof outlineWidth === "number"
-                ? outlineWidth
-                : rampedOptionsToLayerPaintSpec(outlineWidth),
+            "circle-stroke-width": typeof outlineWidth === "number" ? outlineWidth : rampedOptionsToLayerPaintSpec(outlineWidth),
 
-            "circle-stroke-color":
-              typeof outlineColor === "string"
-                ? outlineColor
-                : paintColorOptionsToPaintSpec(outlineColor),
+            "circle-stroke-color": typeof outlineColor === "string" ? outlineColor : paintColorOptionsToPaintSpec(outlineColor),
           }),
         },
         minzoom,
@@ -1271,17 +1142,11 @@ export function addPoint(
         source: sourceId,
         filter: ["has", options.cluster ? "point_count" : options.property!],
         layout: {
-          "text-field": options.cluster
-            ? "{point_count_abbreviated}"
-            : `{${options.property!}}`,
+          "text-field": options.cluster ? "{point_count_abbreviated}" : `{${options.property!}}`,
           "text-font": ["Noto Sans Regular"],
           "text-size": labelSize,
           "text-pitch-alignment": alignOnViewport ? "viewport" : "map",
-          "symbol-sort-key": [
-            "/",
-            1,
-            ["get", options.cluster ? "point_count" : options.property!],
-          ], // so that the largest value goes on top
+          "symbol-sort-key": ["/", 1, ["get", options.cluster ? "point_count" : options.property!]], // so that the largest value goes on top
         },
         paint: {
           "text-color": labelColor,
@@ -1318,9 +1183,7 @@ export function addHeatmap(
   heatmapSourceId: string;
 } {
   if (options.layerId && map.getLayer(options.layerId)) {
-    throw new Error(
-      `A layer already exists with the layer id: ${options.layerId}`,
-    );
+    throw new Error(`A layer already exists with the layer id: ${options.layerId}`);
   }
 
   const sourceId = options.sourceId ?? generateRandomSourceName();
@@ -1337,9 +1200,7 @@ export function addHeatmap(
   ];
 
   // const colorRamp = "colorRamp" in options
-  let colorRamp = Array.isArray(options.colorRamp)
-    ? options.colorRamp
-    : ColorRampCollection.TURBO.transparentStart();
+  let colorRamp = Array.isArray(options.colorRamp) ? options.colorRamp : ColorRampCollection.TURBO.transparentStart();
 
   // making sure the color ramp has [0, 1] bounds
   const crBounds = colorRamp.getBounds();
@@ -1369,24 +1230,18 @@ export function addHeatmap(
 
       // In case this numerical weight was provided by the user and not be the default value:
       if (typeof options.weight === "number") {
-        console.warn(
-          "The option `.property` is ignored when `.propertyValueWeights` is not of type `PropertyValueWeights`",
-        );
+        console.warn("The option `.property` is ignored when `.propertyValueWeights` is not of type `PropertyValueWeights`");
       }
     } else if (Array.isArray(propertyValueWeight)) {
       heatmapWeight = rampedPropertyValueWeight(propertyValueWeight, property);
     } else {
-      console.warn(
-        "The option `.property` is ignored when `.propertyValueWeights` is not of type `PropertyValueWeights`",
-      );
+      console.warn("The option `.property` is ignored when `.propertyValueWeights` is not of type `PropertyValueWeights`");
     }
   } else {
     if (typeof propertyValueWeight === "number") {
       heatmapWeight = propertyValueWeight;
     } else if (Array.isArray(propertyValueWeight)) {
-      console.warn(
-        "The options `.propertyValueWeights` can only be used when `.property` is provided.",
-      );
+      console.warn("The options `.propertyValueWeights` can only be used when `.property` is provided.");
     }
   }
 
@@ -1398,8 +1253,7 @@ export function addHeatmap(
     { zoom: 16, value: 50 },
   ];
 
-  const radius =
-    options.radius ?? (zoomCompensation ? defaultRadiusZoomRamping : 10);
+  const radius = options.radius ?? (zoomCompensation ? defaultRadiusZoomRamping : 10);
 
   let radiusHeatmap: DataDrivenPropertyValueSpecification<number> = 1;
 
@@ -1414,26 +1268,12 @@ export function addHeatmap(
 
   // Radius is provided as data driven
   else if (property && Array.isArray(radius) && "propertyValue" in radius[0]) {
-    radiusHeatmap = radiusDrivenByPropertyHeatmap(
-      radius as unknown as PropertyValues,
-      property,
-      zoomCompensation,
-    );
-  } else if (
-    !property &&
-    Array.isArray(radius) &&
-    "propertyValue" in radius[0]
-  ) {
-    radiusHeatmap = rampedOptionsToLayerPaintSpec(
-      defaultRadiusZoomRamping as ZoomNumberValues,
-    );
-    console.warn(
-      "The option `.radius` can only be property-driven if the option `.property` is provided.",
-    );
+    radiusHeatmap = radiusDrivenByPropertyHeatmap(radius as unknown as PropertyValues, property, zoomCompensation);
+  } else if (!property && Array.isArray(radius) && "propertyValue" in radius[0]) {
+    radiusHeatmap = rampedOptionsToLayerPaintSpec(defaultRadiusZoomRamping as ZoomNumberValues);
+    console.warn("The option `.radius` can only be property-driven if the option `.property` is provided.");
   } else {
-    radiusHeatmap = rampedOptionsToLayerPaintSpec(
-      defaultRadiusZoomRamping as ZoomNumberValues,
-    );
+    radiusHeatmap = rampedOptionsToLayerPaintSpec(defaultRadiusZoomRamping as ZoomNumberValues);
   }
 
   const returnedInfo = {
@@ -1467,23 +1307,13 @@ export function addHeatmap(
       paint: {
         "heatmap-weight": heatmapWeight,
 
-        "heatmap-intensity":
-          typeof intensity === "number"
-            ? intensity
-            : (rampedOptionsToLayerPaintSpec(
-                intensity,
-              ) as PropertyValueSpecification<number>),
+        "heatmap-intensity": typeof intensity === "number" ? intensity : (rampedOptionsToLayerPaintSpec(intensity) as PropertyValueSpecification<number>),
 
         "heatmap-color": heatmapIntensityFromColorRamp(colorRamp),
 
         "heatmap-radius": radiusHeatmap,
 
-        "heatmap-opacity":
-          typeof opacity === "number"
-            ? opacity
-            : (rampedOptionsToLayerPaintSpec(
-                opacity,
-              ) as PropertyValueSpecification<number>),
+        "heatmap-opacity": typeof opacity === "number" ? opacity : (rampedOptionsToLayerPaintSpec(opacity) as PropertyValueSpecification<number>),
       },
     },
     options.beforeId,

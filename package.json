@@ -1,6 +1,6 @@
 {
   "name": "@maptiler/sdk",
-  "version": "3.0.1",
+  "version": "3.1.0rc1",
   "description": "The Javascript & TypeScript map SDK tailored for MapTiler Cloud",
   "author": "MapTiler",
   "module": "dist/maptiler-sdk.mjs",
@@ -55,6 +55,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@types/color-convert": "^2.0.4",
+    "@types/color-name": "^2.0.0",
     "@types/uuid": "^10.0.0",
     "@types/xmldom": "^0.1.31",
     "@xmldom/xmldom": "^0.8.10",
@@ -76,6 +78,7 @@
     "@maplibre/maplibre-gl-style-spec": "^23.0.0",
     "@maptiler/client": "^2.2.0",
     "events": "^3.3.0",
+    "gl-matrix": "^3.4.3",
     "js-base64": "^3.7.7",
     "maplibre-gl": "^5.0.1",
     "uuid": "^11.0.5"
