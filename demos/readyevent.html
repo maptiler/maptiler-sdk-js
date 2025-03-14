@@ -43,6 +43,7 @@
       container: document.getElementById("map-container"),
       hash: true,
       maptilerLogo: true,
+      
     });
 
     /*
@@ -57,8 +58,8 @@
      */
     map.on("load", async (e) => {
       console.log(e);
-      const scaleControl = new maptilersdk.ScaleControl();
-      map.addControl(scaleControl, "bottom-left")
+      const scaleControl = new maptilersdk.MaptilerScaleControl();
+      
     });
   </script>
 </body>

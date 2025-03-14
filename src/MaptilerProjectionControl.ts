@@ -2,6 +2,11 @@ import { DOMcreate, DOMremove } from "./tools";
 import type { Map as SDKMap } from "./Map";
 import type { IControl } from "maplibre-gl";
 
+type MaptilerProjectionControlOptions = {
+  removeDefaultDOM?: boolean;
+  projectionElement?: HTMLElement;
+};
+
 /**
  * A `MaptilerProjectionControl` control adds a button to switch from Mercator to Globe projection.
  */
@@ -9,9 +14,27 @@ export class MaptilerProjectionControl implements IControl {
   map!: SDKMap;
   container!: HTMLElement;
   projectionButton!: HTMLButtonElement;
+  private externalProjection?: HTMLElement;
+  private options: MaptilerProjectionControlOptions;
+  private boundToggleProjection: (e: Event) => void;
+
+  constructor(options: MaptilerProjectionControlOptions = {}) {
+    this.options = options;
+    this.externalProjection = options.projectionElement;
+    // Bind the method once in constructor to maintain reference
+    this.boundToggleProjection = this.toggleProjection.bind(this);
+    if (options.removeDefaultDOM) {
+      this.setupExternalElements();
+    }
+  }
 
   onAdd(map: SDKMap): HTMLElement {
     this.map = map;
+    if (this.options.removeDefaultDOM) {
+      this.container = DOMcreate("div");
+      return this.container;
+    }
+    // Default DOM implementation
     this.container = DOMcreate("div", "maplibregl-ctrl maplibregl-ctrl-group");
     this.projectionButton = DOMcreate(
       "button",
@@ -24,10 +47,7 @@ export class MaptilerProjectionControl implements IControl {
       this.projectionButton,
     ).setAttribute("aria-hidden", "true");
     this.projectionButton.type = "button";
-    this.projectionButton.addEventListener(
-      "click",
-      this.toggleProjection.bind(this),
-    );
+    this.projectionButton.addEventListener("click", this.boundToggleProjection);
 
     map.on("projectiontransition", this.updateProjectionIcon.bind(this));
 
@@ -36,22 +56,48 @@ export class MaptilerProjectionControl implements IControl {
   }
 
   onRemove(): void {
+    if (this.externalProjection) {
+      this.externalProjection.removeEventListener(
+        "click",
+        this.boundToggleProjection,
+      );
+    }
     DOMremove(this.container);
     this.map.off("projectiontransition", this.updateProjectionIcon);
     // @ts-expect-error: map will only be undefined on remove
     this.map = undefined;
   }
 
-  private toggleProjection(): void {
-    if (this.map.getProjection() === undefined) {
-      this.map.setProjection({ type: "mercator" });
+  private setupExternalElements(): void {
+    if (this.externalProjection) {
+      this.externalProjection.addEventListener(
+        "click",
+        this.boundToggleProjection,
+      );
+      // Set initial title
+      this.updateExternalTitle();
+      // Listen for projection changes
+      this.map.on("projectiontransition", this.updateExternalTitle.bind(this));
     }
+  }
+
+  private toggleProjection(): void {
     if (this.map.isGlobeProjection()) {
       this.map.enableMercatorProjection();
     } else {
       this.map.enableGlobeProjection();
     }
-    this.updateProjectionIcon();
+    if (!this.options.removeDefaultDOM) {
+      this.updateProjectionIcon();
+    }
+  }
+
+  private updateExternalTitle(): void {
+    if (this.externalProjection) {
+      this.externalProjection.title = this.map.isGlobeProjection()
+        ? "Enable Mercator projection"
+        : "Enable Globe projection";
+    }
   }
 
   private updateProjectionIcon(): void {

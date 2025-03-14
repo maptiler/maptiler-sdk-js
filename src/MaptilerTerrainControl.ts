@@ -7,17 +7,38 @@ import type { IControl } from "maplibre-gl";
  * A `MaptilerTerrainControl` control adds a button to turn terrain on and off
  * by triggering the terrain logic that is already deployed in the Map object.
  */
+type MaptilerTerrainControlOptions = {
+  removeDefaultDOM?: boolean;
+  terrainElement?: HTMLElement;
+};
+
 export class MaptilerTerrainControl implements IControl {
   _map!: SDKMap;
   _container!: HTMLElement;
   _terrainButton!: HTMLButtonElement;
+  private externalTerrain?: HTMLElement;
+  private options: MaptilerTerrainControlOptions;
 
-  constructor() {
+  constructor(options: MaptilerTerrainControlOptions = {}) {
+    this.options = options;
+    this.externalTerrain = options.terrainElement;
+    if (this.options.removeDefaultDOM) {
+      this.setupExternalElements();
+    }
     bindAll(["_toggleTerrain", "_updateTerrainIcon"], this);
   }
 
   onAdd(map: SDKMap): HTMLElement {
     this._map = map;
+
+    if (this.options.removeDefaultDOM) {
+      return DOMcreate("div");
+    } else {
+      return this.setupInternalElements();
+    }
+  }
+
+  private setupInternalElements(): HTMLElement {
     this._container = DOMcreate("div", "maplibregl-ctrl maplibregl-ctrl-group");
     this._terrainButton = DOMcreate(
       "button",
@@ -30,10 +51,16 @@ export class MaptilerTerrainControl implements IControl {
     );
     this._terrainButton.type = "button";
     this._terrainButton.addEventListener("click", this._toggleTerrain);
-
     this._updateTerrainIcon();
     this._map.on("terrain", this._updateTerrainIcon);
     return this._container;
+  }
+
+  private setupExternalElements(): void {
+    this.externalTerrain?.addEventListener("click", this._toggleTerrain);
+    if (!this.externalTerrain) {
+      throw new Error("Terrain element not found");
+    }
   }
 
   onRemove(): void {
@@ -50,7 +77,9 @@ export class MaptilerTerrainControl implements IControl {
       this._map.enableTerrain();
     }
 
-    this._updateTerrainIcon();
+    if (!this.options.removeDefaultDOM) {
+      this._updateTerrainIcon();
+    }
   }
 
   _updateTerrainIcon(): void {
