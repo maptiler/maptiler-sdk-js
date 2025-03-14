@@ -30,6 +30,7 @@ import {
   combineTransformRequest,
   computeLabelsLocalizationMetrics,
   displayNoWebGlWarning,
+  DOMremove,
   replaceLanguage,
 } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
@@ -545,6 +546,10 @@ export class Map extends maplibregl.Map {
         }
       }
 
+      if (!defaultControlsEnabled) {
+        this._controlContainer.style.display = "none";
+        DOMremove(this._controlContainer);
+      }
       // Only add default controls if defaultControls is not false
       if (defaultControlsEnabled) {
         // By default, no scale control

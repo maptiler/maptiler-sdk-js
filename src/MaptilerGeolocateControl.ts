@@ -2,10 +2,12 @@ import type {
   GeolocateControlOptions,
   LngLatLike,
   MapLibreEvent,
+  Map as MapMLGL,
 } from "maplibre-gl";
 import maplibregl from "maplibre-gl";
 import { GeolocateControl } from "./MLAdapters/GeolocateControl";
 import { DOMcreate, DOMremove } from "./tools";
+import type { Map as SDKMap } from "./Map";
 
 const Marker = maplibregl.Marker;
 const LngLat = maplibregl.LngLat;
@@ -35,10 +37,15 @@ export class MaptilerGeolocateControl extends GeolocateControl {
     super(options);
     this.removeDefaultDOM = options.removeDefaultDOM ?? false;
     this.externalGeolocateElement = options.geolocateElement;
+  }
 
+  onAdd(map: SDKMap | MapMLGL) {
     if (this.removeDefaultDOM) {
       this.setupExternalElements();
+
+      return DOMcreate("div");
     }
+    return super.onAdd(map as MapMLGL);
   }
 
   setupExternalElements = () => {

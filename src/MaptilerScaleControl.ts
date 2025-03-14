@@ -13,7 +13,6 @@ type MaptilerScaleControlOptions = ScaleControlOptions & {
 };
 
 export class MaptilerScaleControl extends maplibregl.ScaleControl {
-  private _map!: SDKMap;
   private externalScale?: HTMLElement;
   private removeDefaultDOM?: boolean;
 

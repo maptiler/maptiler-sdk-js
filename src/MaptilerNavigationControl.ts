@@ -1,21 +1,23 @@
-import type { NavigationControlOptions } from "maplibre-gl";
 import { NavigationControl } from "./MLAdapters/NavigationControl";
+import type { Map as MapMLGL, NavigationControlOptions } from "maplibre-gl";
+import type { Map as SDKMap } from "./Map";
 
 type HTMLButtonElementPlus = HTMLButtonElement & {
   clickFunction: (e?: Event) => unknown;
 };
 
 type MaptilerNavigationControlOptions = NavigationControlOptions & {
-  removeDefaultDOM?: boolean;
   compassElement?: HTMLElement;
   zoomInElement?: HTMLElement;
   zoomOutElement?: HTMLElement;
+  removeDefaultDOM?: boolean;
 };
 
 export class MaptilerNavigationControl extends NavigationControl {
   private externalCompass?: HTMLElement;
   private externalZoomIn?: HTMLElement;
   private externalZoomOut?: HTMLElement;
+  private removeDefaultDOM?: boolean;
 
   constructor(options: MaptilerNavigationControlOptions = {}) {
     super({
@@ -27,15 +29,13 @@ export class MaptilerNavigationControl extends NavigationControl {
     this.externalCompass = options.compassElement;
     this.externalZoomIn = options.zoomInElement;
     this.externalZoomOut = options.zoomOutElement;
+    this.removeDefaultDOM = options.removeDefaultDOM;
 
     if (options.removeDefaultDOM) {
       // Remove default DOM elements
       if (this._container) {
         this._container.style.display = "none";
       }
-
-      // Setup external elements if provided
-      this.setupExternalElements();
     }
 
     // Removing the default click event
@@ -61,6 +61,14 @@ export class MaptilerNavigationControl extends NavigationControl {
         }
       });
     }
+  }
+
+  onAdd(map: SDKMap | MapMLGL) {
+    this._map = map as SDKMap;
+    if (this.removeDefaultDOM) {
+      this.setupExternalElements();
+    }
+    return super.onAdd(map as MapMLGL);
   }
 
   private setupExternalElements() {
