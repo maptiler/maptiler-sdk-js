@@ -51,6 +51,10 @@ import type { MinimapOptionsInput } from "./Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 import { MaptilerProjectionControl } from "./MaptilerProjectionControl";
 import { Telemetry } from "./Telemetry";
+import { AttributionControl } from "@maptiler/sdk";
+import MapTilerExternallyMountedControl, {
+  ECustomControlTypes,
+} from "./MapTilerExternallyMountedControl";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -202,6 +206,11 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * If not provided, the style takes precedence. If provided, overwrite the style.
    */
   projection?: ProjectionTypes;
+
+  /**
+   * disable rendering of default controls and assume the user will provide custom controls
+   */
+  useCustomControls?: boolean;
 };
 
 /**
@@ -223,6 +232,11 @@ export class Map extends maplibregl.Map {
   private monitoredStyleUrls!: Set<string>;
   private styleInProcess = false;
   private curentProjection: ProjectionTypes = undefined;
+  private mountedCustomControls: Record<
+    string,
+    MapTilerExternallyMountedControl
+  > = {};
+
   private originalLabelStyle = new window.Map<
     string,
     ExpressionSpecification | string
@@ -490,6 +504,7 @@ export class Map extends maplibregl.Map {
     });
 
     // Update logo and attibution
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises, @typescript-eslint/no-misused-promises
     this.once("load", async () => {
       let tileJsonContent = { logo: null };
 
@@ -530,6 +545,67 @@ export class Map extends maplibregl.Map {
         } else if (options.maptilerLogo) {
           this.addControl(new MaptilerLogoControl(), options.logoPosition);
         }
+      }
+
+      // add any custom controls
+      // rather than pass this option we could also just check against
+      // each data atrribute value
+      if (options.useCustomControls) {
+        const customControls = Array.from(
+          document.querySelectorAll("[data-maptiler-control]"),
+        ).filter(Boolean) as HTMLElement[];
+
+        customControls.forEach((controlElement) => {
+          const controlType = controlElement.dataset
+            .maptilerControl as ECustomControlTypes;
+
+          const control = new MapTilerExternallyMountedControl({
+            element: controlElement as HTMLElement,
+            type: controlType as ECustomControlTypes,
+          });
+
+          this.mountedCustomControls[controlType] = control;
+
+          this.addControl(control);
+        });
+
+        // setup mutation observer to mount new elements with
+        // data-maptiler-control attribute and unmount removed ones
+        // this is only relevant for when using SPAs etc
+
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+              if (node instanceof HTMLElement) {
+                const controlType = node.dataset
+                  .maptilerControl as ECustomControlTypes;
+                if (controlType) {
+                  this.addControl(
+                    new MapTilerExternallyMountedControl({
+                      element: node,
+                      type: controlType,
+                    }),
+                  );
+                }
+              }
+            });
+
+            mutation.removedNodes.forEach((node) => {
+              if (node instanceof HTMLElement) {
+                const controlType = node.dataset
+                  .maptilerControl as ECustomControlTypes;
+                if (controlType) {
+                  this.removeControl(controlType);
+                }
+              }
+            });
+          });
+        });
+
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true,
+        });
       }
 
       // the other controls at init time but be after
@@ -855,6 +931,28 @@ export class Map extends maplibregl.Map {
     const cleanUrl = new URL(url);
     cleanUrl.search = "";
     this.monitoredStyleUrls.add(cleanUrl.href);
+  }
+
+  override addControl(
+    control: maplibregl.IControl & {
+      isCustomControl?: boolean;
+      controlType?: ECustomControlTypes;
+    },
+    position?: ControlPosition,
+  ): maplibregl.Map {
+    // if custom controls are activated
+    if (this.options?.useCustomControls && control.isCustomControl) {
+      return super.addControl(control, position);
+    }
+
+    if (
+      control instanceof maplibregl.AttributionControl ||
+      control instanceof MaptilerLogoControl
+    ) {
+      return super.addControl(control, position);
+    }
+
+    return this;
   }
 
   /**
