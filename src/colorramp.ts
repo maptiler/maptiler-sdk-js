@@ -1,6 +1,4 @@
-export type RgbaColor =
-  | [number, number, number]
-  | [number, number, number, number];
+export type RgbaColor = [number, number, number] | [number, number, number, number];
 
 export type ColorStop = {
   /**
@@ -98,10 +96,7 @@ export class ColorRamp extends Array<ColorStop> {
     }
   }
 
-  setStops(
-    stops: Array<ColorStop>,
-    options: { clone?: boolean } = { clone: true },
-  ): ColorRamp {
+  setStops(stops: Array<ColorStop>, options: { clone?: boolean } = { clone: true }): ColorRamp {
     const colorRamp = options.clone ? this.clone() : this;
 
     colorRamp.length = 0;
@@ -119,9 +114,7 @@ export class ColorRamp extends Array<ColorStop> {
       } as ColorStop);
     }
 
-    colorRamp.sort((a: ColorStop, b: ColorStop) =>
-      a.value < b.value ? -1 : 1,
-    );
+    colorRamp.sort((a: ColorStop, b: ColorStop) => (a.value < b.value ? -1 : 1));
 
     this.min = min;
     this.max = max;
@@ -129,11 +122,7 @@ export class ColorRamp extends Array<ColorStop> {
     return colorRamp;
   }
 
-  scale(
-    min: number,
-    max: number,
-    options: { clone?: boolean } = { clone: true },
-  ): ColorRamp {
+  scale(min: number, max: number, options: { clone?: boolean } = { clone: true }): ColorRamp {
     const clone = options.clone;
 
     const currentMin = this[0].value;
@@ -198,10 +187,7 @@ export class ColorRamp extends Array<ColorStop> {
     return { min: this.min, max: this.max };
   }
 
-  getColor(
-    value: number,
-    options: { smooth?: boolean } = { smooth: true },
-  ): RgbaColor {
+  getColor(value: number, options: { smooth?: boolean } = { smooth: true }): RgbaColor {
     if (value <= this[0].value) {
       return this[0].color;
     }
@@ -226,9 +212,7 @@ export class ColorRamp extends Array<ColorStop> {
       const colorAfter = this[i + 1].color;
 
       const beforeRatio = (valueAfter - value) / (valueAfter - valueBefore);
-      return colorBefore.map((chan, i) =>
-        Math.round(chan * beforeRatio + colorAfter[i] * (1 - beforeRatio)),
-      ) as RgbaColor;
+      return colorBefore.map((chan, i) => Math.round(chan * beforeRatio + colorAfter[i] * (1 - beforeRatio))) as RgbaColor;
     }
 
     return [0, 0, 0] as RgbaColor;
@@ -250,15 +234,9 @@ export class ColorRamp extends Array<ColorStop> {
   /**
    * Get the color of the color ramp at a relative position in [0, 1]
    */
-  getColorRelative(
-    value: number,
-    options: { smooth?: boolean } = { smooth: true },
-  ): RgbaColor {
+  getColorRelative(value: number, options: { smooth?: boolean } = { smooth: true }): RgbaColor {
     const bounds = this.getBounds();
-    return this.getColor(
-      bounds.min + value * (bounds.max - bounds.min),
-      options,
-    );
+    return this.getColor(bounds.min + value * (bounds.max - bounds.min), options);
   }
 
   getCanvasStrip(
@@ -302,16 +280,7 @@ export class ColorRamp extends Array<ColorStop> {
   /**
    * Apply a non-linear ressampling. This will create a new instance of ColorRamp with the same bounds.
    */
-  resample(
-    method:
-      | "ease-in-square"
-      | "ease-out-square"
-      | "ease-in-sqrt"
-      | "ease-out-sqrt"
-      | "ease-in-exp"
-      | "ease-out-exp",
-    samples = 15,
-  ): ColorRamp {
+  resample(method: "ease-in-square" | "ease-out-square" | "ease-in-sqrt" | "ease-out-sqrt" | "ease-in-exp" | "ease-out-exp", samples = 15): ColorRamp {
     const inputBounds = this.getBounds();
     const inputNormalized = this.scale(0, 1);
     const step = 1 / (samples - 1);

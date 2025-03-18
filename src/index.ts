@@ -148,18 +148,10 @@ export type Point = InstanceType<typeof Point>;
 export type EdgeInsets = InstanceType<typeof EdgeInsets>;
 export type DragRotateHandler = InstanceType<typeof DragRotateHandler>;
 export type DragPanHandler = InstanceType<typeof DragPanHandler>;
-export type TwoFingersTouchZoomRotateHandler = InstanceType<
-  typeof TwoFingersTouchZoomRotateHandler
->;
-export type DoubleClickZoomHandler = InstanceType<
-  typeof DoubleClickZoomHandler
->;
-export type TwoFingersTouchZoomHandler = InstanceType<
-  typeof TwoFingersTouchZoomHandler
->;
-export type TwoFingersTouchRotateHandler = InstanceType<
-  typeof TwoFingersTouchRotateHandler
->;
+export type TwoFingersTouchZoomRotateHandler = InstanceType<typeof TwoFingersTouchZoomRotateHandler>;
+export type DoubleClickZoomHandler = InstanceType<typeof DoubleClickZoomHandler>;
+export type TwoFingersTouchZoomHandler = InstanceType<typeof TwoFingersTouchZoomHandler>;
+export type TwoFingersTouchRotateHandler = InstanceType<typeof TwoFingersTouchRotateHandler>;
 
 // The following items are only MapLibre adapted to MapTiler SDK Map class
 export { Marker } from "./MLAdapters/Marker";
@@ -189,17 +181,8 @@ export { MapTouchEvent } from "./MLAdapters/MapTouchEvent";
 export { MapMouseEvent } from "./MLAdapters/MapMouseEvent";
 
 // SDK specific
-export {
-  Map,
-  GeolocationType,
-  type MapOptions,
-  type LoadWithTerrainEvent,
-} from "./Map";
-export * from "./MaptilerGeolocateControl";
-export * from "./MaptilerLogoControl";
-export * from "./MaptilerTerrainControl";
-export * from "./MaptilerNavigationControl";
-export * from "./MaptilerProjectionControl";
+export { Map, GeolocationType, type MapOptions, type LoadWithTerrainEvent } from "./Map";
+export * from "./controls";
 export {
   type AutomaticStaticMapOptions,
   type BoundedStaticMapOptions,
@@ -269,8 +252,8 @@ export {
 export { getWebGLSupportError, displayWebGLContextLostWarning } from "./tools";
 export { config, SdkConfig } from "./config";
 export * from "./language";
-export type { Unit } from "./unit";
+export type { Unit } from "./constants";
 export * from "./Minimap";
 export * from "./converters";
-export * from "./colorramp";
-export * from "./helpers";
+export * from "./ColorRamp";
+export * from "./utils";
