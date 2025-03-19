@@ -237,6 +237,7 @@ export class Map extends maplibregl.Map {
   >();
   private isStyleLocalized = false;
   private languageIsUpdated = false;
+  private defaultControls?: boolean = true;
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -296,6 +297,10 @@ export class Map extends maplibregl.Map {
     // Maplibre DOES NOT throw an AJAXError (hence does not track the URL of the failed http request)
     delete superOptions.style;
     super(superOptions);
+
+    if (options.defaultControls) {
+      this.defaultControls = options.defaultControls;
+    }
 
     this.options = options;
 
@@ -527,7 +532,7 @@ export class Map extends maplibregl.Map {
       }
 
       // Check if default controls are enabled (using the default value)
-      const defaultControlsEnabled = options.defaultControls;
+      const defaultControlsEnabled = this.defaultControls;
 
       // The attribution and logo must show when required
       if (options.forceNoAttributionControl !== true) {
@@ -786,7 +791,7 @@ export class Map extends maplibregl.Map {
   }
 
   private checkControlsConfiguration(options: MapOptions): void {
-    if (options.defaultControls === false) {
+    if (this.defaultControls === false) {
       const controlOptions = [
         { name: "navigationControl", value: options.navigationControl },
         { name: "geolocateControl", value: options.geolocateControl },
