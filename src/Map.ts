@@ -34,8 +34,8 @@ import { MaptilerGeolocateControl } from "./controls/MaptilerGeolocateControl";
 import { ScaleControl } from "./MLAdapters/ScaleControl";
 import { FullscreenControl } from "./MLAdapters/FullscreenControl";
 
-import Minimap from "./Minimap";
-import type { MinimapOptionsInput } from "./Minimap";
+import Minimap from "./controls/Minimap";
+import type { MinimapOptionsInput } from "./controls/Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 import { MaptilerProjectionControl } from "./controls/MaptilerProjectionControl";
 import { Telemetry } from "./Telemetry";

@@ -27,9 +27,13 @@
 
 <body>
   <div id="map-container"></div>
-
   <script src="../build/maptiler-sdk.umd.min.js"></script>
+  <script src="assets/demo-utils.js"></script>
+
   <script>
+    addPerformanceStats();
+    setupMapTilerApiKey();
+
     maptilersdk.config.apiKey = new URLSearchParams(location.search).get("key") || "API_KEY";
 
     if (maptilersdk.config.apiKey === "API_KEY") {
