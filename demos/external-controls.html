@@ -102,7 +102,7 @@
         container: document.getElementById('map'),
         style: maptilersdk.MapStyle.STREETS,
         center: [0, 0],
-        projection: 'globe', 
+        projection: 'mercator', 
         zoom: 1,
         defaultControls: false
       });
@@ -117,10 +117,10 @@
       });
 
       // Add projection control with custom element
-      /* const projectionControl = new maptilersdk.MaptilerProjectionControl({
+      const projectionControl = new maptilersdk.MaptilerProjectionControl({
         removeDefaultDOM: true,
         projectionElement: document.getElementById('projection')
-      }); */
+      });
 
       // Add terrain control with custom element
       const terrainControl = new maptilersdk.MaptilerTerrainControl({
@@ -130,6 +130,10 @@
       const geolocateControl = new maptilersdk.MaptilerGeolocateControl({
         removeDefaultDOM: true,
         geolocateElement: document.getElementById('geolocate'),
+        positionOptions: {
+          enableHighAccuracy: true
+        },
+        trackUserLocation: true
       });
       const scaleControl = new maptilersdk.MaptilerScaleControl({
         removeDefaultDOM: true,
@@ -141,11 +145,13 @@
       map.addControl(navControl);
       map.addControl(terrainControl);
       map.addControl(scaleControl);
+      map.addControl(projectionControl);
       // Update compass rotation when map bearing changes
       map.on('rotate', () => {
         const bearing = map.getBearing();
         document.getElementById('compass').style.transform = `rotate(${bearing}deg)`;
       });
+
     </script>
   </body>
 </html>

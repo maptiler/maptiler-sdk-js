@@ -1,5 +1,11 @@
 # MapTiler SDK Changelog
 
+
+## 3.1.0
+### New Features
+* Option to externalize controls
+
+
 ## 3.0.1
 ### New Features
 - Update Maplibre to v5.0.1
