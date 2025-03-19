@@ -1,4 +1,4 @@
-import { bindAll, DOMcreate, DOMRemove } from "./tools";
+import { DOMcreate, DOMRemove } from "./tools";
 
 import type { Map as SDKMap } from "./Map";
 import type { IControl } from "maplibre-gl";
@@ -25,7 +25,6 @@ export class MaptilerTerrainControl implements IControl {
     if (this.options.removeDefaultDOM) {
       this.setupExternalElements();
     }
-    bindAll(["_toggleTerrain", "_updateTerrainIcon"], this);
   }
 
   onAdd(map: SDKMap): HTMLElement {
@@ -70,7 +69,7 @@ export class MaptilerTerrainControl implements IControl {
     this._map = undefined;
   }
 
-  _toggleTerrain(): void {
+  _toggleTerrain = () => {
     if (this._map.hasTerrain()) {
       this._map.disableTerrain();
     } else {
@@ -80,9 +79,9 @@ export class MaptilerTerrainControl implements IControl {
     if (!this.options.removeDefaultDOM) {
       this._updateTerrainIcon();
     }
-  }
+  };
 
-  _updateTerrainIcon(): void {
+  _updateTerrainIcon = () => {
     this._terrainButton.classList.remove("maplibregl-ctrl-terrain");
     this._terrainButton.classList.remove("maplibregl-ctrl-terrain-enabled");
     // if (this._map.terrain) {
@@ -97,5 +96,5 @@ export class MaptilerTerrainControl implements IControl {
         "TerrainControl.Enable",
       );
     }
-  }
+  };
 }

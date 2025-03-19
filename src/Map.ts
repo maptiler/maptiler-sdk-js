@@ -1736,9 +1736,9 @@ export class Map extends maplibregl.Map {
    * Returns whether a globe projection is currently being used
    */
   isGlobeProjection(): boolean {
-    const projection = this.style.projection?.name;
+    const projection = this.getProjection();
 
-    return projection === "globe";
+    return projection.type === "globe";
   }
 
   /**
