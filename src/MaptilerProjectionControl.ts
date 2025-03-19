@@ -1,4 +1,4 @@
-import { DOMcreate, DOMremove } from "./tools";
+import { DOMcreate, DOMRemove } from "./tools";
 import type { Map as SDKMap } from "./Map";
 import type { IControl } from "maplibre-gl";
 
@@ -62,7 +62,7 @@ export class MaptilerProjectionControl implements IControl {
         this.boundToggleProjection,
       );
     }
-    DOMremove(this.container);
+    DOMRemove(this.container);
     this.map.off("projectiontransition", this.updateProjectionIcon);
     // @ts-expect-error: map will only be undefined on remove
     this.map = undefined;

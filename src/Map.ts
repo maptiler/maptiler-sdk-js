@@ -30,7 +30,7 @@ import {
   combineTransformRequest,
   computeLabelsLocalizationMetrics,
   displayNoWebGlWarning,
-  DOMremove,
+  DOMRemove,
   replaceLanguage,
 } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
@@ -548,37 +548,40 @@ export class Map extends maplibregl.Map {
 
       if (!defaultControlsEnabled) {
         this._controlContainer.style.display = "none";
-        DOMremove(this._controlContainer);
+        DOMRemove(this._controlContainer);
       }
       // Only add default controls if defaultControls is not false
-      if (defaultControlsEnabled) {
+      if (defaultControlsEnabled !== false) {
         // By default, no scale control
         if (options.scaleControl) {
-          const position = (
+          const shouldUseCustomScaleControlPosition = (
             options.scaleControl === true || options.scaleControl === undefined
               ? "bottom-right"
               : options.scaleControl
           ) as ControlPosition;
 
           const scaleControl = new MaptilerScaleControl({ unit: config.unit });
-          this.addControl(scaleControl, position);
+          this.addControl(scaleControl, shouldUseCustomScaleControlPosition);
           config.on("unit", (unit) => {
             scaleControl.setUnit(unit);
           });
         }
 
         if (options.navigationControl !== false) {
-          const position = (
+          const shouldUseCustomNavigationControlPosition = (
             options.navigationControl === true ||
             options.navigationControl === undefined
               ? "top-right"
               : options.navigationControl
           ) as ControlPosition;
-          this.addControl(new MaptilerNavigationControl(), position);
+          this.addControl(
+            new MaptilerNavigationControl(),
+            shouldUseCustomNavigationControlPosition,
+          );
         }
 
         if (options.geolocateControl !== false) {
-          const position = (
+          const shouldUseCustomGeolocateControlPosition = (
             options.geolocateControl === true ||
             options.geolocateControl === undefined
               ? "top-right"
@@ -599,39 +602,48 @@ export class Map extends maplibregl.Map {
               showAccuracyCircle: true,
               showUserLocation: true,
             }),
-            position,
+            shouldUseCustomGeolocateControlPosition,
           );
         }
 
         if (options.terrainControl) {
-          const position = (
+          const shouldUseCustomTerrainControlPosition = (
             options.terrainControl === true ||
             options.terrainControl === undefined
               ? "top-right"
               : options.terrainControl
           ) as ControlPosition;
-          this.addControl(new MaptilerTerrainControl(), position);
+          this.addControl(
+            new MaptilerTerrainControl(),
+            shouldUseCustomTerrainControlPosition,
+          );
         }
 
         if (options.projectionControl) {
-          const position = (
+          const shouldUseCustomProjectionControlPosition = (
             options.projectionControl === true ||
             options.projectionControl === undefined
               ? "top-right"
               : options.projectionControl
           ) as ControlPosition;
-          this.addControl(new MaptilerProjectionControl(), position);
+          this.addControl(
+            new MaptilerProjectionControl(),
+            shouldUseCustomProjectionControlPosition,
+          );
         }
 
         if (options.fullscreenControl) {
-          const position = (
+          const shouldUseCustomFullscreenControlPosition = (
             options.fullscreenControl === true ||
             options.fullscreenControl === undefined
               ? "top-right"
               : options.fullscreenControl
           ) as ControlPosition;
 
-          this.addControl(new FullscreenControl({}), position);
+          this.addControl(
+            new FullscreenControl({}),
+            shouldUseCustomFullscreenControlPosition,
+          );
         }
       }
 

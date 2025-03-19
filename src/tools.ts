@@ -50,7 +50,7 @@ export function DOMcreate<K extends keyof HTMLElementTagNameMap>(
 
 // This comes from:
 // https://github.com/maplibre/maplibre-gl-js/blob/v2.4.0/src/util/dom.ts#L111
-export function DOMremove(node: HTMLElement) {
+export function DOMRemove(node: HTMLElement) {
   if (node.parentNode) {
     node.parentNode.removeChild(node);
   }

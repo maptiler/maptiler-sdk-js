@@ -6,7 +6,7 @@ import type {
 } from "maplibre-gl";
 import maplibregl from "maplibre-gl";
 import { GeolocateControl } from "./MLAdapters/GeolocateControl";
-import { DOMcreate, DOMremove } from "./tools";
+import { DOMcreate, DOMRemove } from "./tools";
 import type { Map as SDKMap } from "./Map";
 
 const Marker = maplibregl.Marker;
@@ -120,7 +120,7 @@ export class MaptilerGeolocateControl extends GeolocateControl {
       return;
     }
     if (this.removeDefaultDOM) {
-      DOMremove(this._geolocateButton);
+      DOMRemove(this._geolocateButton);
     }
 
     if (supported === false) {

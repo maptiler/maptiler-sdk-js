@@ -5,7 +5,7 @@
 import maplibregl from "maplibre-gl";
 import type { Map as MapMLGL, ScaleControlOptions } from "maplibre-gl";
 import type { Map as SDKMap } from "./Map";
-import { DOMcreate, DOMremove } from "./tools";
+import { DOMcreate, DOMRemove } from "./tools";
 
 type MaptilerScaleControlOptions = ScaleControlOptions & {
   removeDefaultDOM?: boolean;
@@ -44,7 +44,7 @@ export class MaptilerScaleControl extends maplibregl.ScaleControl {
   onRemove() {
     if (this.externalScale) {
       this._map.off("move", this._onMove);
-      DOMremove(this.externalScale);
+      DOMRemove(this.externalScale);
     }
     super.onRemove();
   }

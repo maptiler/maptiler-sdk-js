@@ -1,4 +1,4 @@
-import { bindAll, DOMcreate, DOMremove } from "./tools";
+import { bindAll, DOMcreate, DOMRemove } from "./tools";
 
 import type { Map as SDKMap } from "./Map";
 import type { IControl } from "maplibre-gl";
@@ -64,7 +64,7 @@ export class MaptilerTerrainControl implements IControl {
   }
 
   onRemove(): void {
-    DOMremove(this._container);
+    DOMRemove(this._container);
     this._map.off("terrain", this._updateTerrainIcon);
     // @ts-expect-error: map will only be undefined on remove
     this._map = undefined;
