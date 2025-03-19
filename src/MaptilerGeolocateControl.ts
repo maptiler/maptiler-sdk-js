@@ -40,19 +40,9 @@ export class MaptilerGeolocateControl extends GeolocateControl {
   }
 
   onAdd(map: SDKMap | MapMLGL) {
-    if (this.removeDefaultDOM) {
-      this.setupExternalElements();
-
-      return DOMcreate("div");
-    }
+    this._map = map as SDKMap;
     return super.onAdd(map as MapMLGL);
   }
-
-  setupExternalElements = () => {
-    this.externalGeolocateElement?.addEventListener("click", () =>
-      this.trigger(),
-    );
-  };
 
   /**
    * Update the camera location to center on the current position
@@ -161,8 +151,14 @@ export class MaptilerGeolocateControl extends GeolocateControl {
 
       this._map.on("move", this._onZoom);
     }
-
-    this._geolocateButton.addEventListener("click", this.trigger.bind(this));
+    if (this.externalGeolocateElement) {
+      this.externalGeolocateElement.addEventListener(
+        "click",
+        this.trigger.bind(this),
+      );
+    } else {
+      this._geolocateButton.addEventListener("click", this.trigger.bind(this));
+    }
 
     this._setup = true;
 
