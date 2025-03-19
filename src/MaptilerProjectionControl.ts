@@ -16,21 +16,17 @@ export class MaptilerProjectionControl implements IControl {
   projectionButton!: HTMLButtonElement;
   private externalProjection?: HTMLElement;
   private options: MaptilerProjectionControlOptions;
-  private boundToggleProjection: (e: Event) => void;
 
   constructor(options: MaptilerProjectionControlOptions = {}) {
     this.options = options;
     this.externalProjection = options.projectionElement;
-    // Bind the method once in constructor to maintain reference
-    this.boundToggleProjection = this.toggleProjection.bind(this);
-    if (options.removeDefaultDOM) {
-      this.setupExternalElements();
-    }
   }
 
   onAdd(map: SDKMap): HTMLElement {
     this.map = map;
+
     if (this.options.removeDefaultDOM) {
+      this.setupExternalElements();
       this.container = DOMcreate("div");
       return this.container;
     }
@@ -47,11 +43,12 @@ export class MaptilerProjectionControl implements IControl {
       this.projectionButton,
     ).setAttribute("aria-hidden", "true");
     this.projectionButton.type = "button";
-    this.projectionButton.addEventListener("click", this.boundToggleProjection);
+    this.projectionButton.addEventListener("click", this.toggleProjection);
 
     map.on("projectiontransition", this.updateProjectionIcon.bind(this));
 
     this.updateProjectionIcon();
+
     return this.container;
   }
 
@@ -59,21 +56,18 @@ export class MaptilerProjectionControl implements IControl {
     if (this.externalProjection) {
       this.externalProjection.removeEventListener(
         "click",
-        this.boundToggleProjection,
+        this.toggleProjection,
       );
     }
     DOMRemove(this.container);
-    this.map.off("projectiontransition", this.updateProjectionIcon);
+    this.map.off("projectiontransition", this.updateProjectionIcon.bind(this));
     // @ts-expect-error: map will only be undefined on remove
     this.map = undefined;
   }
 
   private setupExternalElements(): void {
     if (this.externalProjection) {
-      this.externalProjection.addEventListener(
-        "click",
-        this.boundToggleProjection,
-      );
+      this.externalProjection.addEventListener("click", this.toggleProjection);
       // Set initial title
       this.updateExternalTitle();
       // Listen for projection changes
@@ -81,7 +75,7 @@ export class MaptilerProjectionControl implements IControl {
     }
   }
 
-  private toggleProjection(): void {
+  private toggleProjection = () => {
     if (this.map.isGlobeProjection()) {
       this.map.enableMercatorProjection();
     } else {
@@ -90,7 +84,7 @@ export class MaptilerProjectionControl implements IControl {
     if (!this.options.removeDefaultDOM) {
       this.updateProjectionIcon();
     }
-  }
+  };
 
   private updateExternalTitle(): void {
     if (this.externalProjection) {
