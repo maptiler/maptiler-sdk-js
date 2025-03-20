@@ -28,6 +28,7 @@
     "src",
     "./eslint.config.mjs",
     "test",
-    "./vite.config-test.ts"
+    "./vite.config-test.ts",
+    "./vitest-setup-tests.ts"
   ],
 }
