@@ -503,7 +503,7 @@ export class Map extends maplibregl.Map {
     });
 
     // Update logo and attibution
-    this.once("load", async () => {
+    void this.once("load", () => {
       let tileJsonContent = { logo: null };
 
       try {
@@ -524,133 +524,16 @@ export class Map extends maplibregl.Map {
         if (!styleUrl.searchParams.has("key")) {
           styleUrl.searchParams.append("key", config.apiKey);
         }
-
-        const tileJsonRes = await fetch(styleUrl.href);
-        tileJsonContent = await tileJsonRes.json();
+        const fetchTileJson = async () => {
+          const tileJsonRes = await fetch(styleUrl.href);
+          tileJsonContent = await tileJsonRes.json();
+        };
+        void fetchTileJson();
       } catch (e) {
         // No tiles.json found (should not happen on maintained styles)
       }
 
-      // Check if default controls are enabled (using the default value)
-      const defaultControlsEnabled = this.defaultControls;
-
-      // The attribution and logo must show when required
-      if (options.forceNoAttributionControl !== true) {
-        if ("logo" in tileJsonContent && tileJsonContent.logo) {
-          const logoURL: string = tileJsonContent.logo;
-
-          this.addControl(
-            new MaptilerLogoControl({ defaultControlsEnabled, logoURL }),
-            options.logoPosition,
-          );
-        } else if (options.maptilerLogo) {
-          this.addControl(
-            new MaptilerLogoControl({ defaultControlsEnabled }),
-            options.logoPosition,
-          );
-        }
-      }
-
-      if (!defaultControlsEnabled) {
-        this._controlContainer.style.display = "none";
-        DOMRemove(this._controlContainer);
-      }
-      // Only add default controls if defaultControls is not false
-      if (defaultControlsEnabled !== false) {
-        // By default, no scale control
-        if (options.scaleControl) {
-          const shouldUseCustomScaleControlPosition = (
-            options.scaleControl === true || options.scaleControl === undefined
-              ? "bottom-right"
-              : options.scaleControl
-          ) as ControlPosition;
-
-          const scaleControl = new MaptilerScaleControl({ unit: config.unit });
-          this.addControl(scaleControl, shouldUseCustomScaleControlPosition);
-          config.on("unit", (unit) => {
-            scaleControl.setUnit(unit);
-          });
-        }
-
-        if (options.navigationControl !== false) {
-          const shouldUseCustomNavigationControlPosition = (
-            options.navigationControl === true ||
-            options.navigationControl === undefined
-              ? "top-right"
-              : options.navigationControl
-          ) as ControlPosition;
-          this.addControl(
-            new MaptilerNavigationControl(),
-            shouldUseCustomNavigationControlPosition,
-          );
-        }
-
-        if (options.geolocateControl !== false) {
-          const shouldUseCustomGeolocateControlPosition = (
-            options.geolocateControl === true ||
-            options.geolocateControl === undefined
-              ? "top-right"
-              : options.geolocateControl
-          ) as ControlPosition;
-
-          this.addControl(
-            new MaptilerGeolocateControl({
-              positionOptions: {
-                enableHighAccuracy: true,
-                maximumAge: 0,
-                timeout: 6000,
-              },
-              fitBoundsOptions: {
-                maxZoom: 15,
-              },
-              trackUserLocation: true,
-              showAccuracyCircle: true,
-              showUserLocation: true,
-            }),
-            shouldUseCustomGeolocateControlPosition,
-          );
-        }
-
-        if (options.terrainControl) {
-          const shouldUseCustomTerrainControlPosition = (
-            options.terrainControl === true ||
-            options.terrainControl === undefined
-              ? "top-right"
-              : options.terrainControl
-          ) as ControlPosition;
-          this.addControl(
-            new MaptilerTerrainControl(),
-            shouldUseCustomTerrainControlPosition,
-          );
-        }
-
-        if (options.projectionControl) {
-          const shouldUseCustomProjectionControlPosition = (
-            options.projectionControl === true ||
-            options.projectionControl === undefined
-              ? "top-right"
-              : options.projectionControl
-          ) as ControlPosition;
-          this.addControl(
-            new MaptilerProjectionControl(),
-            shouldUseCustomProjectionControlPosition,
-          );
-        }
-
-        if (options.fullscreenControl) {
-          const shouldUseCustomFullscreenControlPosition = (
-            options.fullscreenControl === true ||
-            options.fullscreenControl === undefined
-              ? "top-right"
-              : options.fullscreenControl
-          ) as ControlPosition;
-
-          this.addControl(
-            new FullscreenControl({}),
-            shouldUseCustomFullscreenControlPosition,
-          );
-        }
-      }
+      this.initControls(options, tileJsonContent);
 
       this.isReady = true;
       this.fire("ready", { target: this });
@@ -789,6 +672,128 @@ export class Map extends maplibregl.Map {
     // Check for potential control configuration issues
     this.checkControlsConfiguration(options);
   }
+  private initControls = (options: MapOptions, tileJsonContent: any) => {
+    // Check if default controls are enabled (using the default value)
+    const defaultControlsEnabled = this.defaultControls;
+
+    // The attribution and logo must show when required
+    if (options.forceNoAttributionControl !== true) {
+      if ("logo" in tileJsonContent && tileJsonContent.logo) {
+        const logoURL: string = tileJsonContent.logo;
+
+        this.addControl(
+          new MaptilerLogoControl({ defaultControlsEnabled, logoURL }),
+          options.logoPosition,
+        );
+      } else if (options.maptilerLogo) {
+        this.addControl(
+          new MaptilerLogoControl({ defaultControlsEnabled }),
+          options.logoPosition,
+        );
+      }
+    }
+
+    if (!defaultControlsEnabled) {
+      this._controlContainer.style.display = "none";
+      DOMRemove(this._controlContainer);
+    }
+    // Only add default controls if defaultControls is not false
+    if (defaultControlsEnabled !== false) {
+      // By default, no scale control
+      if (options.scaleControl) {
+        const shouldUseCustomScaleControlPosition = (
+          options.scaleControl === true || options.scaleControl === undefined
+            ? "bottom-right"
+            : options.scaleControl
+        ) as ControlPosition;
+
+        const scaleControl = new MaptilerScaleControl({ unit: config.unit });
+        this.addControl(scaleControl, shouldUseCustomScaleControlPosition);
+        config.on("unit", (unit: maplibregl.Unit) => {
+          scaleControl.setUnit(unit);
+        });
+      }
+
+      if (options.navigationControl !== false) {
+        const shouldUseCustomNavigationControlPosition = (
+          options.navigationControl === true ||
+          options.navigationControl === undefined
+            ? "top-right"
+            : options.navigationControl
+        ) as ControlPosition;
+        this.addControl(
+          new MaptilerNavigationControl(),
+          shouldUseCustomNavigationControlPosition,
+        );
+      }
+
+      if (options.geolocateControl !== false) {
+        const shouldUseCustomGeolocateControlPosition = (
+          options.geolocateControl === true ||
+          options.geolocateControl === undefined
+            ? "top-right"
+            : options.geolocateControl
+        ) as ControlPosition;
+
+        this.addControl(
+          new MaptilerGeolocateControl({
+            positionOptions: {
+              enableHighAccuracy: true,
+              maximumAge: 0,
+              timeout: 6000,
+            },
+            fitBoundsOptions: {
+              maxZoom: 15,
+            },
+            trackUserLocation: true,
+            showAccuracyCircle: true,
+            showUserLocation: true,
+          }),
+          shouldUseCustomGeolocateControlPosition,
+        );
+      }
+
+      if (options.terrainControl) {
+        const shouldUseCustomTerrainControlPosition = (
+          options.terrainControl === true ||
+          options.terrainControl === undefined
+            ? "top-right"
+            : options.terrainControl
+        ) as ControlPosition;
+        this.addControl(
+          new MaptilerTerrainControl(),
+          shouldUseCustomTerrainControlPosition,
+        );
+      }
+
+      if (options.projectionControl) {
+        const shouldUseCustomProjectionControlPosition = (
+          options.projectionControl === true ||
+          options.projectionControl === undefined
+            ? "top-right"
+            : options.projectionControl
+        ) as ControlPosition;
+        this.addControl(
+          new MaptilerProjectionControl(),
+          shouldUseCustomProjectionControlPosition,
+        );
+      }
+
+      if (options.fullscreenControl) {
+        const shouldUseCustomFullscreenControlPosition = (
+          options.fullscreenControl === true ||
+          options.fullscreenControl === undefined
+            ? "top-right"
+            : options.fullscreenControl
+        ) as ControlPosition;
+
+        this.addControl(
+          new FullscreenControl({}),
+          shouldUseCustomFullscreenControlPosition,
+        );
+      }
+    }
+  };
 
   private checkControlsConfiguration(options: MapOptions): void {
     if (this.defaultControls === false) {
