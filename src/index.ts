@@ -252,7 +252,7 @@ export {
 export { getWebGLSupportError, displayWebGLContextLostWarning } from "./tools";
 export { config, SdkConfig } from "./config";
 export * from "./language";
-export type { Unit } from "./constants";
+export type { Unit } from "./types";
 export * from "./converters";
 export * from "./ColorRamp";
 export * from "./utils";

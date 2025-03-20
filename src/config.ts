@@ -2,7 +2,7 @@ import EventEmitter from "events";
 import type { LanguageInfo } from "./language";
 import { config as clientConfig, type FetchFunction } from "@maptiler/client";
 import { v4 as uuidv4 } from "uuid";
-import type { Unit } from "./constants";
+import type { Unit } from "./types";
 import { defaults } from "./constants/defaults";
 
 export const MAPTILER_SESSION_ID = uuidv4();
