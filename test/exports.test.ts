@@ -3,7 +3,7 @@ import packagejson from "../package.json";
 import * as language from "../src/language";
 import * as controls from "../src/controls";
 import * as converters from "../src/converters";
-import * as ColorRamp from "../src/ColorRamp_";
+import * as ColorRamp from "../src/ColorRamp";
 import * as helpers from "../src/utils";
 
 // List of expected exports
