@@ -254,5 +254,5 @@ export { config, SdkConfig } from "./config";
 export * from "./language";
 export type { Unit } from "./types";
 export * from "./converters";
-export * from "./ColorRamp";
+export * from "./ColorRamp_";
 export * from "./utils";
