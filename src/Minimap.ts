@@ -3,7 +3,7 @@
  */
 
 import { Map as SDKMap } from "./Map";
-import { DOMcreate, DOMremove } from "./tools";
+import { DOMcreate, DOMRemove } from "./tools";
 
 import type {
   ControlPosition,
@@ -226,7 +226,7 @@ export default class Minimap implements IControl {
 
   onRemove(): void {
     this.#desync?.();
-    DOMremove(this.#container);
+    DOMRemove(this.#container);
   }
 
   #addParentRect(rect?: ParentRect): void {

@@ -30,6 +30,7 @@ import {
   combineTransformRequest,
   computeLabelsLocalizationMetrics,
   displayNoWebGlWarning,
+  DOMRemove,
   replaceLanguage,
 } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
@@ -43,7 +44,6 @@ import {
   toLanguageInfo,
 } from "@maptiler/client";
 import { MaptilerGeolocateControl } from "./MaptilerGeolocateControl";
-import { ScaleControl } from "./MLAdapters/ScaleControl";
 import { FullscreenControl } from "./MLAdapters/FullscreenControl";
 
 import Minimap from "./Minimap";
@@ -51,6 +51,7 @@ import type { MinimapOptionsInput } from "./Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 import { MaptilerProjectionControl } from "./MaptilerProjectionControl";
 import { Telemetry } from "./Telemetry";
+import { MaptilerScaleControl } from "./MaptilerScaleControl";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -202,6 +203,13 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * If not provided, the style takes precedence. If provided, overwrite the style.
    */
   projection?: ProjectionTypes;
+
+  /**
+   * Enable or disable all default controls. When false, no default controls will be added.
+   * Individual controls can still be added manually using addControl().
+   * @default true
+   */
+  defaultControls?: boolean;
 };
 
 /**
@@ -229,6 +237,7 @@ export class Map extends maplibregl.Map {
   >();
   private isStyleLocalized = false;
   private languageIsUpdated = false;
+  private defaultControls?: boolean = true;
 
   constructor(options: MapOptions) {
     displayNoWebGlWarning(options.container);
@@ -288,6 +297,10 @@ export class Map extends maplibregl.Map {
     // Maplibre DOES NOT throw an AJAXError (hence does not track the URL of the failed http request)
     delete superOptions.style;
     super(superOptions);
+
+    if (options.defaultControls) {
+      this.defaultControls = options.defaultControls;
+    }
 
     this.options = options;
 
@@ -490,7 +503,7 @@ export class Map extends maplibregl.Map {
     });
 
     // Update logo and attibution
-    this.once("load", async () => {
+    void this.once("load", () => {
       let tileJsonContent = { logo: null };
 
       try {
@@ -511,119 +524,16 @@ export class Map extends maplibregl.Map {
         if (!styleUrl.searchParams.has("key")) {
           styleUrl.searchParams.append("key", config.apiKey);
         }
-
-        const tileJsonRes = await fetch(styleUrl.href);
-        tileJsonContent = await tileJsonRes.json();
+        const fetchTileJson = async () => {
+          const tileJsonRes = await fetch(styleUrl.href);
+          tileJsonContent = await tileJsonRes.json();
+        };
+        void fetchTileJson();
       } catch (e) {
         // No tiles.json found (should not happen on maintained styles)
       }
 
-      // The attribution and logo must show when required
-      if (options.forceNoAttributionControl !== true) {
-        if ("logo" in tileJsonContent && tileJsonContent.logo) {
-          const logoURL: string = tileJsonContent.logo;
-
-          this.addControl(
-            new MaptilerLogoControl({ logoURL }),
-            options.logoPosition,
-          );
-        } else if (options.maptilerLogo) {
-          this.addControl(new MaptilerLogoControl(), options.logoPosition);
-        }
-      }
-
-      // the other controls at init time but be after
-      // (due to the async nature of logo control)
-
-      // By default, no scale control
-      if (options.scaleControl) {
-        // default position, if not provided, is top left corner
-        const position = (
-          options.scaleControl === true || options.scaleControl === undefined
-            ? "bottom-right"
-            : options.scaleControl
-        ) as ControlPosition;
-
-        const scaleControl = new ScaleControl({ unit: config.unit });
-        this.addControl(scaleControl, position);
-        config.on("unit", (unit) => {
-          scaleControl.setUnit(unit);
-        });
-      }
-
-      if (options.navigationControl !== false) {
-        // default position, if not provided, is top left corner
-        const position = (
-          options.navigationControl === true ||
-          options.navigationControl === undefined
-            ? "top-right"
-            : options.navigationControl
-        ) as ControlPosition;
-        this.addControl(new MaptilerNavigationControl(), position);
-      }
-
-      if (options.geolocateControl !== false) {
-        // default position, if not provided, is top left corner
-        const position = (
-          options.geolocateControl === true ||
-          options.geolocateControl === undefined
-            ? "top-right"
-            : options.geolocateControl
-        ) as ControlPosition;
-
-        this.addControl(
-          // new maplibregl.GeolocateControl({
-          new MaptilerGeolocateControl({
-            positionOptions: {
-              enableHighAccuracy: true,
-              maximumAge: 0,
-              timeout: 6000 /* 6 sec */,
-            },
-            fitBoundsOptions: {
-              maxZoom: 15,
-            },
-            trackUserLocation: true,
-            showAccuracyCircle: true,
-            showUserLocation: true,
-          }),
-          position,
-        );
-      }
-
-      if (options.terrainControl) {
-        // default position, if not provided, is top left corner
-        const position = (
-          options.terrainControl === true ||
-          options.terrainControl === undefined
-            ? "top-right"
-            : options.terrainControl
-        ) as ControlPosition;
-        this.addControl(new MaptilerTerrainControl(), position);
-      }
-
-      if (options.projectionControl) {
-        // default position, if not provided, is top left corner
-        const position = (
-          options.projectionControl === true ||
-          options.projectionControl === undefined
-            ? "top-right"
-            : options.projectionControl
-        ) as ControlPosition;
-        this.addControl(new MaptilerProjectionControl(), position);
-      }
-
-      // By default, no fullscreen control
-      if (options.fullscreenControl) {
-        // default position, if not provided, is top left corner
-        const position = (
-          options.fullscreenControl === true ||
-          options.fullscreenControl === undefined
-            ? "top-right"
-            : options.fullscreenControl
-        ) as ControlPosition;
-
-        this.addControl(new FullscreenControl({}), position);
-      }
+      this.initControls(options, tileJsonContent);
 
       this.isReady = true;
       this.fire("ready", { target: this });
@@ -639,14 +549,14 @@ export class Map extends maplibregl.Map {
     let terrainEventTriggered = false;
     let terrainEventData: LoadWithTerrainEvent;
 
-    this.once("ready", () => {
+    void this.once("ready", () => {
       loadEventTriggered = true;
       if (terrainEventTriggered) {
         this.fire("loadWithTerrain", terrainEventData);
       }
     });
 
-    this.once("style.load", () => {
+    void this.once("style.load", () => {
       const { minimap } = options;
       if (typeof minimap === "object") {
         const {
@@ -732,7 +642,7 @@ export class Map extends maplibregl.Map {
     }
 
     // Display a message if WebGL context is lost
-    this.once("load", () => {
+    void this.once("load", () => {
       this.getCanvas().addEventListener("webglcontextlost", (event) => {
         if (this._removed === true) {
           /**
@@ -752,6 +662,159 @@ export class Map extends maplibregl.Map {
     });
 
     this.telemetry = new Telemetry(this);
+
+    // Set default value for defaultControls
+    options = {
+      defaultControls: true,
+      ...options,
+    };
+
+    // Check for potential control configuration issues
+    this.checkControlsConfiguration(options);
+  }
+  private initControls = (options: MapOptions, tileJsonContent: any) => {
+    // Check if default controls are enabled (using the default value)
+    const defaultControlsEnabled = this.defaultControls;
+
+    // The attribution and logo must show when required
+    if (options.forceNoAttributionControl !== true) {
+      if ("logo" in tileJsonContent && tileJsonContent.logo) {
+        const logoURL: string = tileJsonContent.logo;
+
+        this.addControl(
+          new MaptilerLogoControl({ defaultControlsEnabled, logoURL }),
+          options.logoPosition,
+        );
+      } else if (options.maptilerLogo) {
+        this.addControl(
+          new MaptilerLogoControl({ defaultControlsEnabled }),
+          options.logoPosition,
+        );
+      }
+    }
+
+    if (!defaultControlsEnabled) {
+      this._controlContainer.style.display = "none";
+      DOMRemove(this._controlContainer);
+    }
+    // Only add default controls if defaultControls is not false
+    if (defaultControlsEnabled !== false) {
+      // By default, no scale control
+      if (options.scaleControl) {
+        const shouldUseCustomScaleControlPosition = (
+          options.scaleControl === true || options.scaleControl === undefined
+            ? "bottom-right"
+            : options.scaleControl
+        ) as ControlPosition;
+
+        const scaleControl = new MaptilerScaleControl({ unit: config.unit });
+        this.addControl(scaleControl, shouldUseCustomScaleControlPosition);
+        config.on("unit", (unit: maplibregl.Unit) => {
+          scaleControl.setUnit(unit);
+        });
+      }
+
+      if (options.navigationControl !== false) {
+        const shouldUseCustomNavigationControlPosition = (
+          options.navigationControl === true ||
+          options.navigationControl === undefined
+            ? "top-right"
+            : options.navigationControl
+        ) as ControlPosition;
+        this.addControl(
+          new MaptilerNavigationControl(),
+          shouldUseCustomNavigationControlPosition,
+        );
+      }
+
+      if (options.geolocateControl !== false) {
+        const shouldUseCustomGeolocateControlPosition = (
+          options.geolocateControl === true ||
+          options.geolocateControl === undefined
+            ? "top-right"
+            : options.geolocateControl
+        ) as ControlPosition;
+
+        this.addControl(
+          new MaptilerGeolocateControl({
+            positionOptions: {
+              enableHighAccuracy: true,
+              maximumAge: 0,
+              timeout: 6000,
+            },
+            fitBoundsOptions: {
+              maxZoom: 15,
+            },
+            trackUserLocation: true,
+            showAccuracyCircle: true,
+            showUserLocation: true,
+          }),
+          shouldUseCustomGeolocateControlPosition,
+        );
+      }
+
+      if (options.terrainControl) {
+        const shouldUseCustomTerrainControlPosition = (
+          options.terrainControl === true ||
+          options.terrainControl === undefined
+            ? "top-right"
+            : options.terrainControl
+        ) as ControlPosition;
+        this.addControl(
+          new MaptilerTerrainControl(),
+          shouldUseCustomTerrainControlPosition,
+        );
+      }
+
+      if (options.projectionControl) {
+        const shouldUseCustomProjectionControlPosition = (
+          options.projectionControl === true ||
+          options.projectionControl === undefined
+            ? "top-right"
+            : options.projectionControl
+        ) as ControlPosition;
+        this.addControl(
+          new MaptilerProjectionControl(),
+          shouldUseCustomProjectionControlPosition,
+        );
+      }
+
+      if (options.fullscreenControl) {
+        const shouldUseCustomFullscreenControlPosition = (
+          options.fullscreenControl === true ||
+          options.fullscreenControl === undefined
+            ? "top-right"
+            : options.fullscreenControl
+        ) as ControlPosition;
+
+        this.addControl(
+          new FullscreenControl({}),
+          shouldUseCustomFullscreenControlPosition,
+        );
+      }
+    }
+  };
+
+  private checkControlsConfiguration(options: MapOptions): void {
+    if (this.defaultControls === false) {
+      const controlOptions = [
+        { name: "navigationControl", value: options.navigationControl },
+        { name: "geolocateControl", value: options.geolocateControl },
+        { name: "terrainControl", value: options.terrainControl },
+        { name: "projectionControl", value: options.projectionControl },
+        { name: "scaleControl", value: options.scaleControl },
+        { name: "fullscreenControl", value: options.fullscreenControl },
+      ];
+
+      controlOptions.forEach(({ name, value }) => {
+        if (value !== undefined && value !== false) {
+          console.warn(
+            `Warning: ${name} is set but will be ignored because defaultControls is false. ` +
+              `If you want to use ${name}, either remove defaultControls: false or add the control manually using addControl().`,
+          );
+        }
+      });
+    }
   }
 
   /**
@@ -770,7 +833,7 @@ export class Map extends maplibregl.Map {
 
     Object.assign(this, new Map({ ...this.options }));
 
-    this.once("load", () => {
+    void this.once("load", () => {
       this.jumpTo(cameraOptions);
     });
   }
@@ -796,7 +859,7 @@ export class Map extends maplibregl.Map {
         return;
       }
 
-      this.once("load", () => {
+      void this.once("load", () => {
         resolve(this);
       });
     });
@@ -817,7 +880,7 @@ export class Map extends maplibregl.Map {
         return;
       }
 
-      this.once("ready", () => {
+      void this.once("ready", () => {
         resolve(this);
       });
     });
@@ -837,7 +900,7 @@ export class Map extends maplibregl.Map {
         return;
       }
 
-      this.once("loadWithTerrain", () => {
+      void this.once("loadWithTerrain", () => {
         resolve(this);
       });
     });
@@ -877,7 +940,7 @@ export class Map extends maplibregl.Map {
     this.minimap?.setStyle(style);
     this.forceLanguageUpdate = true;
 
-    this.once("idle", () => {
+    void this.once("idle", () => {
       this.forceLanguageUpdate = false;
     });
 
@@ -1683,9 +1746,9 @@ export class Map extends maplibregl.Map {
    * Returns whether a globe projection is currently being used
    */
   isGlobeProjection(): boolean {
-    const projection = this.getProjection();
+    const projection = this.style.projection?.name;
 
-    return projection.type === "globe";
+    return projection === "globe";
   }
 
   /**

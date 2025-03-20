@@ -6,6 +6,7 @@ import type { Map as SDKMap } from "./Map";
 type LogoControlOptions = LogoControlOptionsML & {
   logoURL?: string;
   linkURL?: string;
+  defaultControlsEnabled?: boolean;
 };
 
 /**
@@ -16,20 +17,35 @@ export class MaptilerLogoControl extends LogoControl {
   declare _compact: boolean;
   private logoURL = "";
   private linkURL = "";
+  private defaultControlsEnabled = false;
 
   constructor(options: LogoControlOptions = {}) {
     super(options);
 
     this.logoURL = options.logoURL ?? defaults.maptilerLogoURL;
     this.linkURL = options.linkURL ?? defaults.maptilerURL;
+    this.defaultControlsEnabled = options.defaultControlsEnabled ?? false;
   }
 
   onAdd(map: SDKMap): HTMLElement {
     this._map = map;
     this._compact = this.options.compact ?? false;
     this._container = window.document.createElement("div");
-    this._container.className = "maplibregl-ctrl";
+
+    if (this.defaultControlsEnabled) {
+      this._container.className = "maplibregl-ctrl";
+      this._container.appendChild(this._createAnchor());
+      this._container.style.display = "block";
+    } else {
+      this._externalControlsEnabled();
+    }
+
+    return this._container;
+  }
+
+  _createAnchor() {
     const anchor = window.document.createElement("a");
+
     anchor.style.backgroundRepeat = "no-repeat";
     anchor.style.cursor = "pointer";
     anchor.style.display = "block";
@@ -47,12 +63,36 @@ export class MaptilerLogoControl extends LogoControl {
     anchor.href = this.linkURL;
     anchor.setAttribute("aria-label", "MapTiler logo");
     anchor.setAttribute("rel", "noopener");
-    this._container.appendChild(anchor);
-    this._container.style.display = "block";
+    return anchor;
+  }
 
-    this._map.on("resize", this._updateCompact);
-    this._updateCompact();
+  _externalControlsEnabled() {
+    if (!this.defaultControlsEnabled) {
+      const containerLogo = window.document.createElement("div");
+      containerLogo.className = "maptiler-logo";
+      containerLogo.style.position = "absolute";
+      containerLogo.style.bottom = "0";
+      containerLogo.style.right = "0";
+      containerLogo.style.width = "100%";
+      containerLogo.style.height = "100%";
+      containerLogo.style.margin = "0 0 4px 4px";
+      containerLogo.style.display = "flex";
+      containerLogo.style.alignItems = "flex-end";
+      containerLogo.style.justifyContent = "space-between";
+      containerLogo.style.pointerEvents = "none";
 
-    return this._container;
+      containerLogo.appendChild(this._createAnchor());
+
+      const oldAttr = this._map._container.querySelector(
+        ".maplibregl-ctrl-attrib",
+      );
+      if (oldAttr) {
+        const newAttr = oldAttr.cloneNode(true) as HTMLElement;
+        oldAttr.remove();
+        containerLogo.appendChild(newAttr);
+      }
+
+      this._map._container.appendChild(containerLogo);
+    }
   }
 }

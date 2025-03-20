@@ -1,7 +1,13 @@
-import type { LngLatLike, MapLibreEvent } from "maplibre-gl";
+import type {
+  GeolocateControlOptions,
+  LngLatLike,
+  MapLibreEvent,
+  Map as MapMLGL,
+} from "maplibre-gl";
 import maplibregl from "maplibre-gl";
 import { GeolocateControl } from "./MLAdapters/GeolocateControl";
-import { DOMcreate } from "./tools";
+import { DOMcreate, DOMRemove } from "./tools";
+import type { Map as SDKMap } from "./Map";
 
 const Marker = maplibregl.Marker;
 const LngLat = maplibregl.LngLat;
@@ -11,6 +17,11 @@ type MoveEndEvent = MapLibreEvent<
   MouseEvent | TouchEvent | WheelEvent | undefined
 > & { geolocateSource?: boolean };
 
+type MaptilerGeolocateControlOptions = GeolocateControlOptions & {
+  geolocateElement?: HTMLElement;
+  removeDefaultDOM?: boolean;
+};
+
 /**
  * The MaptilerGeolocateControl is an extension of the original GeolocateControl
  * with a few changes. In this version, the active mode persists as long as the
@@ -19,6 +30,19 @@ type MoveEndEvent = MapLibreEvent<
  */
 export class MaptilerGeolocateControl extends GeolocateControl {
   private lastUpdatedCenter = new LngLat(0, 0);
+  private removeDefaultDOM = false;
+  private externalGeolocateElement?: HTMLElement;
+
+  constructor(options: MaptilerGeolocateControlOptions = {}) {
+    super(options);
+    this.removeDefaultDOM = options.removeDefaultDOM ?? false;
+    this.externalGeolocateElement = options.geolocateElement;
+  }
+
+  onAdd(map: SDKMap | MapMLGL) {
+    this._map = map as SDKMap;
+    return super.onAdd(map as MapMLGL);
+  }
 
   /**
    * Update the camera location to center on the current position
@@ -85,6 +109,9 @@ export class MaptilerGeolocateControl extends GeolocateControl {
       // control has since been removed
       return;
     }
+    if (this.removeDefaultDOM) {
+      DOMRemove(this._geolocateButton);
+    }
 
     if (supported === false) {
       // warnOnce('Geolocation support is not available so the GeolocateControl will be disabled.');
@@ -124,8 +151,14 @@ export class MaptilerGeolocateControl extends GeolocateControl {
 
       this._map.on("move", this._onZoom);
     }
-
-    this._geolocateButton.addEventListener("click", this.trigger.bind(this));
+    if (this.externalGeolocateElement) {
+      this.externalGeolocateElement.addEventListener(
+        "click",
+        this.trigger.bind(this),
+      );
+    } else {
+      this._geolocateButton.addEventListener("click", this.trigger.bind(this));
+    }
 
     this._setup = true;
 

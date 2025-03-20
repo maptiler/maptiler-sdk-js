@@ -200,6 +200,7 @@ export * from "./MaptilerLogoControl";
 export * from "./MaptilerTerrainControl";
 export * from "./MaptilerNavigationControl";
 export * from "./MaptilerProjectionControl";
+export * from "./MaptilerScaleControl";
 export {
   type AutomaticStaticMapOptions,
   type BoundedStaticMapOptions,
