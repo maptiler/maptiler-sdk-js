@@ -85,6 +85,7 @@
 
     addPerformanceStats();
     setupMapTilerApiKey();
+
     const map = new maptilersdk.Map({
       container: document.getElementById("map-container"),
       style: maptilersdk.MapStyle.OUTDOOR.DARK,
@@ -106,10 +107,12 @@
       });
     });
 
-      document.getElementById("fog-ground-blend").addEventListener("input", (e) => {
-        map.setSky({
-          "fog-ground-blend": parseFloat(e.target.value),
-        });
+    document.getElementById("fog-ground-blend").addEventListener("input", (e) => {
+      map.setSky({
+        "fog-ground-blend": parseFloat(e.target.value),
+      });
+    });
+
     document.getElementById("horizon-color").addEventListener("input", (e) => {
       map.setSky({
         "horizon-color": e.target.value,
@@ -120,6 +123,7 @@
         map.setSky({
           "horizon-fog-blend": parseFloat(e.target.value),
         });
+      });
     document.getElementById("fog-color").addEventListener("input", (e) => {
       map.setSky({
         "fog-color": e.target.value,
@@ -130,6 +134,7 @@
         map.setSky({
           "sky-horizon-blend": parseFloat(e.target.value),
         });
+      });
     document.getElementById("fog-ground-blend").addEventListener("input", (e) => {
       map.setSky({
         "fog-ground-blend": parseFloat(e.target.value),
@@ -140,6 +145,8 @@
         map.setSky({
           "atmosphere-blend": parseFloat(e.target.value),
         });
+      });
+
     document.getElementById("horizon-fog-blend").addEventListener("input", (e) => {
       map.setSky({
         "horizon-fog-blend": parseFloat(e.target.value),
@@ -162,6 +169,8 @@
           "sky-horizon-blend": 1.0,
           "atmosphere-blend": 0.5,
         })
+      });
+
     document.getElementById("atmosphere-blend").addEventListener("input", (e) => {
       map.setSky({
         "atmosphere-blend": parseFloat(e.target.value),
@@ -181,5 +190,4 @@
     });
   </script>
 </body>
-
 </html>
