@@ -1,5 +1,15 @@
 # MapTiler SDK Changelog
 
+## 3.0.2
+## ✨ Features and improvements
+None
+
+## 🐛 Bug fixes
+None
+
+## 🔧 Others
+Restructuring of repo, additon of tests to check consistency of library exports.
+
 ## 3.0.1
 ### New Features
 - Update Maplibre to v5.0.1
