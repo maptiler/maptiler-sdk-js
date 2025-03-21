@@ -53,6 +53,7 @@ const expectedExports = Array.from(
     "prewarm",
     "clearPrewarmedResources",
     "Hash",
+    "helpers",
     "Point",
     "EdgeInsets",
     "DragRotateHandler",

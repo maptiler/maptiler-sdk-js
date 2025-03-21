@@ -1,4 +1,3 @@
-import packagejson from "../package.json";
 import { enableRTL } from "./tools";
 
 import maplibregl from "maplibre-gl";
@@ -10,10 +9,11 @@ export type * from "maplibre-gl";
 enableRTL();
 
 /**
- * Get the version of MapTiler SDK
+ * Get the version of MapTiler SDK, this is declared in the vite config
+ * to avoid importing the entire package.json
  */
 export function getVersion(): string {
-  return packagejson.version;
+  return __MT_SDK_VERSION__;
 }
 
 const MapMLGL = maplibregl.Map;
@@ -148,10 +148,18 @@ export type Point = InstanceType<typeof Point>;
 export type EdgeInsets = InstanceType<typeof EdgeInsets>;
 export type DragRotateHandler = InstanceType<typeof DragRotateHandler>;
 export type DragPanHandler = InstanceType<typeof DragPanHandler>;
-export type TwoFingersTouchZoomRotateHandler = InstanceType<typeof TwoFingersTouchZoomRotateHandler>;
-export type DoubleClickZoomHandler = InstanceType<typeof DoubleClickZoomHandler>;
-export type TwoFingersTouchZoomHandler = InstanceType<typeof TwoFingersTouchZoomHandler>;
-export type TwoFingersTouchRotateHandler = InstanceType<typeof TwoFingersTouchRotateHandler>;
+export type TwoFingersTouchZoomRotateHandler = InstanceType<
+  typeof TwoFingersTouchZoomRotateHandler
+>;
+export type DoubleClickZoomHandler = InstanceType<
+  typeof DoubleClickZoomHandler
+>;
+export type TwoFingersTouchZoomHandler = InstanceType<
+  typeof TwoFingersTouchZoomHandler
+>;
+export type TwoFingersTouchRotateHandler = InstanceType<
+  typeof TwoFingersTouchRotateHandler
+>;
 
 // The following items are only MapLibre adapted to MapTiler SDK Map class
 export { Marker } from "./MLAdapters/Marker";
@@ -181,7 +189,12 @@ export { MapTouchEvent } from "./MLAdapters/MapTouchEvent";
 export { MapMouseEvent } from "./MLAdapters/MapMouseEvent";
 
 // SDK specific
-export { Map, GeolocationType, type MapOptions, type LoadWithTerrainEvent } from "./Map";
+export {
+  Map,
+  GeolocationType,
+  type MapOptions,
+  type LoadWithTerrainEvent,
+} from "./Map";
 export * from "./controls";
 export {
   type AutomaticStaticMapOptions,
@@ -254,5 +267,6 @@ export { config, SdkConfig } from "./config";
 export * from "./language";
 export type { Unit } from "./types";
 export * from "./converters";
+export * as helpers from "./helpers";
 export * from "./ColorRamp";
 export * from "./utils";
