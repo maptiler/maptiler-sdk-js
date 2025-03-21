@@ -1,17 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import MTAnimation from "../../src/utils/MTAnimation";
-import { AnimationEventTypes, EasingFunction, Keyframe } from "../../src/utils/MTAnimation/types";
-import { lerp, lerpArrayValues } from "../../src/utils/MTAnimation/animation-helpers";
+import {
+  AnimationEventTypes,
+  EasingFunction,
+  Keyframe,
+} from "../../src/utils/MTAnimation/types";
+import {
+  lerp,
+  lerpArrayValues,
+} from "../../src/utils/MTAnimation/animation-helpers";
 
 const keyframes: Keyframe[] = [
   {
-    delta: 0, props: { x: 0, y: 0 }, easing: EasingFunction.Linear, id: "start",
+    delta: 0,
+    props: { x: 0, y: 0 },
+    easing: EasingFunction.Linear,
+    id: "start",
   },
   {
-    delta: 0.5, props: { x: 50, y: 20 }, easing: EasingFunction.Linear, id: "middle"
+    delta: 0.5,
+    props: { x: 50, y: 20 },
+    easing: EasingFunction.Linear,
+    id: "middle",
   },
   {
-    delta: 1, props: { x: 100, y: 0 }, easing: EasingFunction.Linear, id: "end"
+    delta: 1,
+    props: { x: 100, y: 0 },
+    easing: EasingFunction.Linear,
+    id: "end",
   },
 ];
 
@@ -19,7 +35,7 @@ const duration = 1000;
 const iterations = 2;
 
 describe("MTAnimation", () => {
-  let animation;
+  let animation: MTAnimation;
 
   beforeEach(() => {
     animation = new MTAnimation({ keyframes, duration, iterations });
@@ -58,14 +74,18 @@ describe("MTAnimation", () => {
   });
 
   it("should update animation state", () => {
-    //@ts-expect-error
+    //@ts-expect-error we only use the now method, so this is fine
     vi.spyOn(global, "performance", "get").mockReturnValue({ now: () => 500 });
     animation.play();
+
     const lastTime = animation.getCurrentTime();
     const lastDelta = animation.getCurrentDelta();
-    //@ts-expect-error
+
+    //@ts-expect-error we only use the now method, so this is fine
     vi.spyOn(global, "performance", "get").mockReturnValue({ now: () => 1000 });
+
     animation.update();
+
     expect(animation.getCurrentDelta()).toBeGreaterThan(lastDelta);
     expect(animation.getCurrentTime()).toBeGreaterThan(lastTime);
   });
@@ -122,7 +142,7 @@ describe("Animation helpers", () => {
     expect(lerp(0, 100, 0.5)).toBe(50);
     expect(lerp(0, 100, 0.35)).toBe(35);
     expect(lerp(0, 100, 0.75)).toBe(75);
-  })
+  });
 
   it("lerpArrayValues should interpolate between numerical array values, filling all null values to the end and from the start", () => {
     const arr1 = [0, null, 100, null, 200];

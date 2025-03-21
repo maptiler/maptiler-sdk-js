@@ -41,7 +41,6 @@ const AnimationManager = {
     }
     const loop = () => {
       if (this.animations.size === 0) {
-
         this.running = false;
         return;
       }
@@ -54,10 +53,10 @@ const AnimationManager = {
       }
 
       requestAnimationFrame(loop);
-    }
+    };
 
-    loop()
-  }
-}
+    loop();
+  },
+};
 
 export default AnimationManager;

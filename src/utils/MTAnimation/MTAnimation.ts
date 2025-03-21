@@ -32,6 +32,10 @@ export interface AnimationOptions {
   manualMode?: boolean;
 }
 
+export type InterpolatedKeyFrame = Keyframe & {
+  props: Record<string, number>;
+};
+
 /**
  * Animation controller for keyframe-based animation sequences.
  *
@@ -95,7 +99,7 @@ export default class MTAnimation implements IMTAnimation {
   private currentIteration: number = 0;
 
   // an array of keyframes animations to interpolate between
-  private keyframes: Keyframe[];
+  private keyframes: InterpolatedKeyFrame[];
 
   // the duration of the animation in milliseconds
   private duration: number;
@@ -141,7 +145,7 @@ export default class MTAnimation implements IMTAnimation {
     // iterate over keyframes and ensure all properties are present
     // if not, add them with the value in next keyframe that has this property defined
 
-    this.keyframes = keyframes
+    const keyframesWithAllProps = keyframes
       // order keyframes by delta
       .sort((a, b) => a.delta - b.delta)
       // ensure animated properties are present in all keyframes
@@ -168,11 +172,11 @@ export default class MTAnimation implements IMTAnimation {
       });
 
     // transform keyframes into a format that is easier to interpolate
-    const valuesForAllProps = this.keyframes
+    const valuesForAllProps = keyframesWithAllProps
       .map(({ props }) => props)
       .reduce<Record<string, (number | null)[]>>((acc, keyframeProps) => {
         for (const [prop, value] of Object.entries(keyframeProps)) {
-          if (acc[prop] === undefined) {
+          if (!(prop in acc)) {
             acc[prop] = [];
           }
 
@@ -191,14 +195,14 @@ export default class MTAnimation implements IMTAnimation {
     }, {});
 
     // update keyframes with interpolated values
-    this.keyframes = this.keyframes.map((keyframe, _) => {
+    this.keyframes = keyframesWithAllProps.map((keyframe, _) => {
       return {
         ...keyframe,
         props: animatedProperties.reduce<Keyframe["props"]>((props, prop) => {
           props[prop] = interpolatedValues[prop][_];
           return props;
         }, {}),
-      };
+      } as InterpolatedKeyFrame;
     });
 
     this.duration = duration;
@@ -275,12 +279,12 @@ export default class MTAnimation implements IMTAnimation {
       this.emitEvent(AnimationEventTypes.Keyframe, current);
     }
 
-    const iterpolatedProps = Object.keys(current?.props || {}).reduce<
+    const iterpolatedProps = Object.keys(current?.props ?? {}).reduce<
       Record<string, number>
     >((acc, prop) => {
       if (current && next) {
-        const currentValue = current.props[prop]!;
-        const nextValue = next.props[prop]!;
+        const currentValue = current.props[prop];
+        const nextValue = next.props[prop];
         // this will change
         const easingFunction = lerp;
         const t =
@@ -300,11 +304,11 @@ export default class MTAnimation implements IMTAnimation {
 
   getCurrentAndNextKeyFramesAtDelta(delta: number) {
     const next =
-      this.keyframes.find((keyframe) => keyframe.delta > delta) || null;
+      this.keyframes.find((keyframe) => keyframe.delta > delta) ?? null;
     const current =
       [...this.keyframes]
         .reverse()
-        .find((keyframe) => keyframe.delta <= delta) || null;
+        .find((keyframe) => keyframe.delta <= delta) ?? null;
 
     return { current, next };
   }
