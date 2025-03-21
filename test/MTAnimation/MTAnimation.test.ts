@@ -137,11 +137,13 @@ describe("Animation helpers", () => {
 
   it("lerpArrayValues should throw an error if all values are null", () => {
     const arr = [null, null, null];
-    expect(() => lerpArrayValues(arr)).toThrowError("Cannot interpolate an array where all values are `null`");
+    expect(() => lerpArrayValues(arr)).toThrowError(
+      "Cannot interpolate an array where all values are `null`",
+    );
   });
 
   it("lerpArrayValues should return an empty array if the input is empty", () => {
-    const arr = [];
+    const arr: number[] = [];
     expect(lerpArrayValues(arr)).toEqual([]);
   });
 });

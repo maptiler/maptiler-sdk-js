@@ -5,13 +5,13 @@ export function lerp(a: number, b: number, alpha: number) {
 }
 
 export function lerpArrayValues(numericArray: NumericArrayWithNull): number[] {
-  if (numericArray.every((value) => value === null)) {
-    throw new Error("Cannot interpolate an array where all values are `null`");
-  }
-
   if (numericArray.length === 0) {
     console.warn("Array emtpy, nothing to interpolate");
     return [];
+  }
+
+  if (numericArray.every((value) => value === null)) {
+    throw new Error("Cannot interpolate an array where all values are `null`");
   }
 
   return numericArray.map((value, index, arr): number => {
