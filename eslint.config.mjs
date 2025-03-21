@@ -43,7 +43,7 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-member-access": "warn",
       "@typescript-eslint/no-unsafe-return": "warn",
       "@typescript-eslint/no-non-null-assertion": "warn",
-      "@typescript-eslint/non-nullable-type-assertion-style": "warn",
+      "@typescript-eslint/non-nullable-type-assertion-style": "off",
       "@typescript-eslint/prefer-for-of": "off",
       "@typescript-eslint/prefer-nullish-coalescing": "warn",
       "@typescript-eslint/prefer-optional-chain": "off",
