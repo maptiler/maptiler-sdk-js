@@ -285,7 +285,8 @@ export default class MTAnimation implements IMTAnimation {
       if (current && next) {
         const currentValue = current.props[prop];
         const nextValue = next.props[prop];
-        // this will change
+        // this will change to use the specified easing function
+        // for this keyframe
         const easingFunction = lerp;
         const t =
           (this.currentDelta - current.delta) / (next.delta - current.delta);

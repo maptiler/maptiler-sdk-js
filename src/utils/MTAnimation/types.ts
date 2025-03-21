@@ -145,10 +145,7 @@ export type Keyframe = {
   delta: number;
 
   // the easing function to use between this keyframe and the next
-  easing: EasingFunction;
-
-  // a unique id for the keyframe
-  id: string;
+  easing?: EasingFunction;
 };
 
 export enum AnimationEventTypes {

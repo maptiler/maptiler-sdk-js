@@ -15,19 +15,16 @@ const keyframes: Keyframe[] = [
     delta: 0,
     props: { x: 0, y: 0 },
     easing: EasingFunction.Linear,
-    id: "start",
   },
   {
     delta: 0.5,
     props: { x: 50, y: 20 },
     easing: EasingFunction.Linear,
-    id: "middle",
   },
   {
     delta: 1,
     props: { x: 100, y: 0 },
     easing: EasingFunction.Linear,
-    id: "end",
   },
 ];
 
