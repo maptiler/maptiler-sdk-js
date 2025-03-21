@@ -1,67 +1,74 @@
+import { NumericArrayWithNull } from "./types";
+
 export function lerp(a: number, b: number, alpha: number) {
   return a + (b - a) * alpha;
 }
 
-export function lerpArrayValues(arr: (number | null)[]): number[] {
-  return arr.map((value, index) => {
-    // If value exists, return it directly
-    if (value !== null) return value;
+export function lerpArrayValues(numericArray: NumericArrayWithNull): number[] {
+  if (numericArray.every((value) => value === null)) {
+    throw new Error("Cannot interpolate an array where all values are `null`");
+  }
 
-    // Find nearest indices with valid values
-    const leftIndex = findNearestIndex(arr, index, -1);
-    const rightIndex = findNearestIndex(arr, index, 1);
+  if (numericArray.length === 0) {
+    console.warn("Array emtpy, nothing to interpolate");
+    return [];
+  }
 
-    // Handle edge cases
-    if (leftIndex === null && rightIndex === null) {
-      throw new Error(`Cannot interpolate array with all null values`);
+  return numericArray.map((value, index, arr): number => {
+    // if  value is a number, return it
+    if (typeof value === "number") {
+      return value;
     }
 
-    if (leftIndex === null && rightIndex !== null) {
-      const rightValue = arr[rightIndex];
-      return rightValue !== null ? rightValue : 0; // Use right value if available
+    const [prevIndex, prevValue] = findPreviousEntryAndIndexWithValue(
+      arr,
+      index,
+    );
+
+    const [nextIndex, nextValue] = findNextEntryAndIndexWithValue(arr, index);
+
+    // if there is no previous value, eg all values are null before this index
+    // return the value of the next entry that has a value
+    // "fill all the way to the start"
+    if (prevIndex === null || prevValue === null) {
+      return arr[index + 1] as number;
     }
 
-    if (rightIndex === null && leftIndex !== null) {
-      const leftValue = arr[leftIndex];
-      return leftValue !== null ? leftValue : 0; // Use left value if available
+    // if there is no next value, eg all values are null after this index
+    // return the value of the previous entry that has a value
+    // "fill all the way to the end
+    if (nextIndex === null || nextValue === null) {
+      return prevValue;
     }
 
-    // Both indices are valid, do the interpolation
-    if (leftIndex !== null && rightIndex !== null) {
-      const leftValue = arr[leftIndex];
-      const rightValue = arr[rightIndex];
+    // this means that anything else is null that sits between
+    // two values that are not null, meaning we can interpolate
+    const alpha = (index - prevIndex) / (nextIndex - prevIndex);
 
-      if (leftValue !== null && rightValue !== null) {
-        const t = (index - leftIndex) / (rightIndex - leftIndex);
-        return lerp(leftValue, rightValue, t);
-      }
-    }
-
-    // Fallback case (shouldn't happen with proper type guards)
-    return 0;
+    return lerp(prevValue, nextValue, alpha);
   });
 }
 
-// function findNearestIndex(arr: (number | null)[], startIndex: number, direction: 1 | -1) {
-//   let index = startIndex + direction;
-//   while (index >= 0 && index < arr.length) {
-//       if (arr[index] !== null) return index;
-//       index += direction;
-//   }
-//   return null;
-// }
+function findNextEntryAndIndexWithValue(
+  arr: NumericArrayWithNull,
+  currentIndex: number,
+) {
+  for (let i = currentIndex + 1; i < arr.length; i++) {
+    if (arr[i] !== null) {
+      return [i, arr[i]];
+    }
+  }
+  return [null, null];
+}
 
-export function findNearestIndex(
-  arr: (number | null)[],
-  startIndex: number,
-  direction: 1 | -1,
-): number | null {
-  return (
-    arr
-      .map((val, idx) => (val !== null ? idx : null)) // Get valid indices
-      .filter((idx) => idx !== null) // Remove nulls
-      .find((idx) =>
-        direction === 1 ? idx! > startIndex : idx! < startIndex,
-      ) ?? null
-  );
+function findPreviousEntryAndIndexWithValue(
+  arr: NumericArrayWithNull,
+  currentIndex: number,
+) {
+  for (let i = currentIndex - 1; i >= 0; i--) {
+    if (arr[i] !== null) {
+      return [i, arr[i]];
+    }
+  }
+  return [null, null];
 }

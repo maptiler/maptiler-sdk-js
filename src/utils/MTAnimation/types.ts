@@ -1,5 +1,7 @@
 import MTAnimation from "./MTAnimation";
 
+// at present we only have one easing type
+// but in future we will add more
 export enum EasingFunction {
   Linear = "linear",
 }
@@ -162,6 +164,8 @@ export enum AnimationEventTypes {
   Keyframe = "keyframe",
   Iteration = "iteration",
 }
+
+export type NumericArrayWithNull = (number | null)[];
 
 export type AnimationEvent = {
   type: AnimationEventTypes;

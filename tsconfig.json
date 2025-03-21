@@ -27,5 +27,5 @@
   "include": [
     "src",
     "./eslint.config.mjs"
-  ],
+, "test/MTAnimation/MTAnimation.test.ts"  ],
 }

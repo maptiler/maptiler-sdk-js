@@ -1,8 +1,18 @@
 import MTAnimation from "./MTAnimation";
 
-// This is not a class as it never needs to be
-// instantiated, it's just a singeton object
-// that manages all animations
+/**
+ * Manager for handling animation lifecycle and updates.
+ *
+ * The AnimationManager provides a centralized system for registering and
+ * coordinating multiple animations. To avoid individual calls to request animation frame
+ * for each animation, it maintains an animation loop
+ *
+ * This is not a class as it never needs to be instantiated,
+ * it's just a singeton object.
+ *
+ * It's not called directly but used within the MTAnimation class.
+ *
+ */
 const AnimationManager = {
   animations: new Set<MTAnimation>(),
   running: false,
