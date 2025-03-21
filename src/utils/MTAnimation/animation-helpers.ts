@@ -6,7 +6,7 @@ export function lerp(a: number, b: number, alpha: number) {
 
 export function lerpArrayValues(numericArray: NumericArrayWithNull): number[] {
   if (numericArray.length === 0) {
-    console.warn("Array emtpy, nothing to interpolate");
+    console.warn("Array empty, nothing to interpolate");
     return [];
   }
 
