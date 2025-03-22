@@ -2,8 +2,26 @@ import MTAnimation from "./MTAnimation";
 
 // at present we only have one easing type
 // but in future we will add more
-export enum EasingFunction {
+export enum EasingFunctionName {
   Linear = "linear",
+  QuadraticIn = "Quadratic.I",
+  QuadraticOut = "Quadratic.Out",
+  QuadraticInOut = "Quadratic.InOut",
+  CubicIn = "Cubic.In",
+  CubicOut = "Cubic.Out",
+  CubicInOut = "Cubic.InOut",
+  SinusoidalIn = "Sinusoidal.In",
+  SinusoidalOut = "Sinusoidal.Out",
+  SinusoidalInOut = "Sinusoidal.InOut",
+  ExponentialIn = "Exponential.In",
+  ExponentialOut = "Exponential.Out",
+  ExponentialInOut = "Exponential.InOut",
+  ElasticIn = "Elastic.In",
+  ElasticOut = "Elastic.Out",
+  ElasticInOut = "Elastic.InOut",
+  BounceIn = "Bounce.In",
+  BounceOut = "Bounce.Out",
+  BounceInOut = "Bounce.InOut",
 }
 
 /**
@@ -145,7 +163,7 @@ export type Keyframe = {
   delta: number;
 
   // the easing function to use between this keyframe and the next
-  easing?: EasingFunction;
+  easing?: EasingFunctionName | string;
 };
 
 export enum AnimationEventTypes {
@@ -181,3 +199,5 @@ export type AnimationEventListenersRecord = Record<
 >;
 
 export type AnimationEventCallback = (event: AnimationEvent) => void;
+
+export type EasingFunctionsModule = typeof import("./easing").default;

@@ -1,9 +1,11 @@
-import { lerp, lerpArrayValues } from "./animation-helpers";
+import { lerp, lerpArrayValues, linear } from "./animation-helpers";
 import AnimationManager from "./AnimationManager";
 import {
   AnimationEventCallback,
   AnimationEventListenersRecord,
   AnimationEventTypes,
+  EasingFunctionName,
+  EasingFunctionsModule,
   IMTAnimation,
   Keyframe,
 } from "./types";
@@ -91,6 +93,10 @@ export default class MTAnimation implements IMTAnimation {
   get isPlaying() {
     return this.playing;
   }
+
+  // the easing functions to use for interpolation
+  // we load this asynchronously to avoid package bloat
+  private easingFunctions: null | EasingFunctionsModule = null;
 
   // the number of times to repeat the animation
   // 0 is no repeat, Infinity is infinite repeat
@@ -215,6 +221,17 @@ export default class MTAnimation implements IMTAnimation {
     if (!manualMode) {
       AnimationManager.add(this);
     }
+
+    this.init()
+  }
+
+  async init() {
+    try {
+      const { default: module } = (await import("./easing"));
+      this.easingFunctions = module
+    } catch (e) {
+      console.error("Failed to load easing functions", e)
+    }
   }
 
   play() {
@@ -285,12 +302,16 @@ export default class MTAnimation implements IMTAnimation {
       if (current && next) {
         const currentValue = current.props[prop];
         const nextValue = next.props[prop];
-        // this will change to use the specified easing function
-        // for this keyframe
-        const easingFunction = lerp;
+
         const t =
           (this.currentDelta - current.delta) / (next.delta - current.delta);
-        acc[prop] = easingFunction(currentValue, nextValue, t);
+
+        const easingFunc = this.easingFunctions ? this.easingFunctions[current.easing as EasingFunctionName] : linear;
+        console.log
+        const alpha = easingFunc(t);
+
+        acc[prop] = lerp(currentValue, nextValue, alpha);
+
       }
       return acc;
     }, {});

@@ -14,10 +14,10 @@ import MTAnimation from "./MTAnimation";
  *
  */
 const AnimationManager = {
-  animations: new Set<MTAnimation>(),
+  animations: new Array<MTAnimation>(),
   running: false,
   add(animation: MTAnimation) {
-    this.animations.add(animation);
+    this.animations.push(animation);
     if (!this.running) {
       this.running = true;
       this.start();
@@ -25,8 +25,8 @@ const AnimationManager = {
   },
 
   remove(animation: MTAnimation) {
-    this.animations.delete(animation);
-    if (this.animations.size === 0) {
+    this.animations = this.animations.filter((a) => a !== animation);
+    if (this.animations.length === 0) {
       this.stop();
     }
   },
@@ -40,17 +40,16 @@ const AnimationManager = {
       return;
     }
     const loop = () => {
-      if (this.animations.size === 0) {
+      if (this.animations.length === 0) {
         this.running = false;
         return;
       }
 
-      for (const animation of this.animations) {
-        if (!animation.isPlaying) {
-          continue;
+      this.animations.forEach((animation) => {
+        if (animation.isPlaying) {
+          animation.update();
         }
-        animation.update();
-      }
+      });
 
       requestAnimationFrame(loop);
     };
