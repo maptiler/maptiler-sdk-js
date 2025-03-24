@@ -108,7 +108,11 @@ export default class MTAnimation {
   private keyframes: InterpolatedKeyFrame[];
 
   // the duration of the animation in milliseconds
-  private duration: number;
+  readonly duration: number;
+
+  // the duration of the animation affected by the playback rate
+  // if playback rate is 2, the effective duration is double
+  private effectiveDuration: number;
 
   // the rate at which the animation is playing
   private playbackRate: number;
@@ -121,6 +125,8 @@ export default class MTAnimation {
 
   private animationStartTime: number = 0;
 
+  private lastFrameAt: number = 0;
+  
   private listeners: AnimationEventListenersRecord = Object.values(
     AnimationEventTypes,
   ).reduce((acc, type) => {
@@ -215,6 +221,7 @@ export default class MTAnimation {
     this.duration = duration;
     this.iterations = iterations;
     this.playbackRate = 1;
+    this.effectiveDuration = duration / this.playbackRate;
     this.currentTime = 0;
     this.currentDelta = 0;
 
@@ -246,6 +253,7 @@ export default class MTAnimation {
   play() {
     this.playing = true;
     this.animationStartTime = performance.now();
+    this.lastFrameAt = this.animationStartTime;
     this.emitEvent(AnimationEventTypes.Play);
     return this;
   }
@@ -301,12 +309,15 @@ export default class MTAnimation {
 
     const currentTime = performance.now();
 
+    const frameLength = currentTime - this.lastFrameAt;
     const timeElapsed = currentTime - this.animationStartTime;
 
-    const timeDelta = timeElapsed * this.playbackRate;
+    this.lastFrameAt = currentTime;
 
+    const timeDelta = timeElapsed * this.playbackRate;
     this.currentTime = timeDelta;
-    this.currentDelta = timeDelta / this.duration;
+
+    this.currentDelta += frameLength / this.effectiveDuration;
 
     if (this.currentDelta >= 1) {
       this.currentIteration += 1;
@@ -367,7 +378,7 @@ export default class MTAnimation {
    * @returns Object containing current and next keyframes, which may be null
    */
   getCurrentAndNextKeyFramesAtTime(time: number) {
-    return this.getCurrentAndNextKeyFramesAtDelta(time / this.duration);
+    return this.getCurrentAndNextKeyFramesAtDelta(time / this.effectiveDuration);
   }
 
   /**
@@ -402,14 +413,14 @@ export default class MTAnimation {
    * @emits AnimationEventTypes.Scrub
    */
   setCurrentTime(time: number) {
-    if (time > this.duration) {
+    if (time > this.effectiveDuration) {
       throw new Error(`Cannot set time greater than duration`);
     }
 
     this.play();
 
     this.currentTime = time;
-    this.currentDelta = time / this.duration;
+    this.currentDelta = time / this.effectiveDuration;
     this.emitEvent(AnimationEventTypes.Scrub);
     return this;
   }
@@ -437,7 +448,7 @@ export default class MTAnimation {
     this.play();
 
     this.currentDelta = delta;
-    this.currentTime = delta * this.duration;
+    this.currentTime = delta * this.effectiveDuration;
     this.emitEvent(AnimationEventTypes.Scrub);
     return this;
   }
@@ -450,6 +461,7 @@ export default class MTAnimation {
    */
   setPlaybackRate(rate: number) {
     this.playbackRate = rate;
+    this.effectiveDuration = this.duration / this.playbackRate;
     this.emitEvent(AnimationEventTypes.PlaybackRateChange);
     return this;
   }
