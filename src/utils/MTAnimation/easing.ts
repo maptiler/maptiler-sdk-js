@@ -1,26 +1,28 @@
-import Easing from "easing-functions"
-import { EasingFunctionName } from "./types"
+import Easing from "easing-functions";
+import { EasingFunctionName } from "./types";
 
+// We are wrapping these in arrow functions to avoid ts complaining about
+// unboud `this` in the easing functions.
 const EasingFunctions: Record<EasingFunctionName, (K: number) => number> = {
-  [EasingFunctionName.Linear]: Easing.Linear,
-  [EasingFunctionName.QuadraticIn]: Easing.quadratic.In,
-  [EasingFunctionName.QuadraticOut]: Easing.quadratic.Out,
-  [EasingFunctionName.QuadraticInOut]: Easing.quadratic.InOut,
-  [EasingFunctionName.CubicIn]: Easing.cubic.In,
-  [EasingFunctionName.CubicOut]: Easing.cubic.Out,
-  [EasingFunctionName.CubicInOut]: Easing.cubic.InOut,
-  [EasingFunctionName.SinusoidalIn]: Easing.sinusoidal.In,
-  [EasingFunctionName.SinusoidalOut]: Easing.sinusoidal.Out,
-  [EasingFunctionName.SinusoidalInOut]: Easing.sinusoidal.InOut,
-  [EasingFunctionName.ExponentialIn]: Easing.exponential.In,
-  [EasingFunctionName.ExponentialOut]: Easing.exponential.Out,
-  [EasingFunctionName.ExponentialInOut]: Easing.exponential.InOut,
-  [EasingFunctionName.ElasticIn]: Easing.elastic.In,
-  [EasingFunctionName.ElasticOut]: Easing.elastic.Out,
-  [EasingFunctionName.ElasticInOut]: Easing.elastic.InOut,
-  [EasingFunctionName.BounceIn]: Easing.bounce.In,
-  [EasingFunctionName.BounceOut]: Easing.bounce.Out,
-  [EasingFunctionName.BounceInOut]: Easing.bounce.InOut,
-}
+  [EasingFunctionName.Linear]: (n: number) => Easing.Linear(n),
+  [EasingFunctionName.QuadraticIn]: (n: number) => Easing.quadratic.In(n),
+  [EasingFunctionName.QuadraticOut]: (n: number) => Easing.quadratic.Out(n),
+  [EasingFunctionName.QuadraticInOut]: (n: number) => Easing.quadratic.InOut(n),
+  [EasingFunctionName.CubicIn]: (n: number) => Easing.cubic.In(n),
+  [EasingFunctionName.CubicOut]: (n: number) => Easing.cubic.Out(n),
+  [EasingFunctionName.CubicInOut]: (n: number) => Easing.cubic.InOut(n),
+  [EasingFunctionName.SinusoidalIn]: (n: number) => Easing.sinusoidal.In(n),
+  [EasingFunctionName.SinusoidalOut]: (n: number) => Easing.sinusoidal.Out(n),
+  [EasingFunctionName.SinusoidalInOut]: (n: number) => Easing.sinusoidal.InOut(n),
+  [EasingFunctionName.ExponentialIn]: (n: number) => Easing.exponential.In(n),
+  [EasingFunctionName.ExponentialOut]: (n: number) => Easing.exponential.Out(n),
+  [EasingFunctionName.ExponentialInOut]: (n: number) => Easing.exponential.InOut(n),
+  [EasingFunctionName.ElasticIn]: (n: number) => Easing.elastic.In(n),
+  [EasingFunctionName.ElasticOut]: (n: number) => Easing.elastic.Out(n),
+  [EasingFunctionName.ElasticInOut]: (n: number) => Easing.elastic.InOut(n),
+  [EasingFunctionName.BounceIn]: (n: number) => Easing.bounce.In(n),
+  [EasingFunctionName.BounceOut]: (n: number) => Easing.bounce.Out(n),
+  [EasingFunctionName.BounceInOut]: (n: number) => Easing.bounce.InOut(n),
+};
 
-export default EasingFunctions
+export default EasingFunctions;

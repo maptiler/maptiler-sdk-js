@@ -123,10 +123,12 @@ export default class MTAnimation {
   // 0 start of the animation, 1 end of the animation
   private currentDelta: number;
 
+  // the time the animation started
   private animationStartTime: number = 0;
 
+  // the time the last frame was rendered
   private lastFrameAt: number = 0;
-  
+
   private listeners: AnimationEventListenersRecord = Object.values(
     AnimationEventTypes,
   ).reduce((acc, type) => {
@@ -378,7 +380,9 @@ export default class MTAnimation {
    * @returns Object containing current and next keyframes, which may be null
    */
   getCurrentAndNextKeyFramesAtTime(time: number) {
-    return this.getCurrentAndNextKeyFramesAtDelta(time / this.effectiveDuration);
+    return this.getCurrentAndNextKeyFramesAtDelta(
+      time / this.effectiveDuration,
+    );
   }
 
   /**
