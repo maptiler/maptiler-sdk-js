@@ -4,6 +4,8 @@ export function lerp(a: number, b: number, alpha: number) {
   return a + (b - a) * alpha;
 }
 
+export const linear = (k: number) => k;
+
 export function lerpArrayValues(numericArray: NumericArrayWithNull): number[] {
   if (numericArray.length === 0) {
     console.warn("Array empty, nothing to interpolate");
