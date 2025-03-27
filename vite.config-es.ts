@@ -1,6 +1,7 @@
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
+import packagejson from "./package.json";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -43,6 +44,9 @@ export default defineConfig({
         globals: {},
       },
     },
+  },
+    define: {
+    __MT_SDK_VERSION__: JSON.stringify(packagejson.version),
   },
   plugins,
 })

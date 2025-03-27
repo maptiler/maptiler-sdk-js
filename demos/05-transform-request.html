@@ -22,7 +22,7 @@
     }
   </style>
 
-  <link rel="stylesheet" href="../build/maptiler-sdk.css">
+  <link rel="stylesheet" href="../dist/maptiler-sdk.css">
 </head>
 
 <body>
@@ -31,26 +31,23 @@
     <select name="mapstyles" id="mapstyles-picker"></select>
   </div>
 
-  <script src="../build/maptiler-sdk.umd.min.js"></script>
+  <script src="assets/demo-utils.js"></script>
   <script>
-    maptilersdk.config.apiKey = new URLSearchParams(location.search).get("key") || "API_KEY";
 
-    if (maptilersdk.config.apiKey === "API_KEY") {
-      const errorMessage = "MapTiler API key is missing. Please use URL `key` parameter to set it (`?key=XXXXX`).";
-      
-      alert(errorMessage);
-      throw new Error(errorMessage);
-    }
-
+    addPerformanceStats();
+    setupMapTilerApiKey();
     const map = new maptilersdk.Map({
       container: document.getElementById("map-container"),
       style: maptilersdk.MapStyle.OUTDOOR.DARK,
       hash: true,
-      geolocate: true,
-      scaleControl: true,
-      fullscreenControl: true,
-      terrainControl: true,
-      projectionControl: true,
+      transformRequest: function (url) {
+        const reqUrl = new URL(url);
+        reqUrl.searchParams.append("some-extra-param", "some-extra-value");
+
+        return {
+          url: reqUrl.href,
+        }
+      }
     });
 
     const styleDropDown = document.getElementById("mapstyles-picker");
@@ -64,6 +61,15 @@
       styleOption.value = maptilersdk.MapStyle[s].DEFAULT.id;
       styleOption.innerHTML = s.replace("_", " ").toLowerCase();
       styleDropDown.appendChild(styleOption);
+    });
+
+    // This will end up being used instead of the one defined in the constructor
+    map.setTransformRequest((url) => {
+      const reqUrl = new URL(url);
+      reqUrl.searchParams.append("some-extra-param-two", "some-extra-value-two");
+      return {
+        url: reqUrl.href,
+      }
     });
   </script>
 </body>

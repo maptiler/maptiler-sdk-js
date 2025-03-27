@@ -1,8 +1,12 @@
 import { defineConfig } from "vitest/config";
+import packagejson from "./package.json";
 
 export default defineConfig({
   server: {
     port: 3000,
+  },
+  define: {
+    __MT_SDK_VERSION__: JSON.stringify(packagejson.version),
   },
   plugins: [
     {

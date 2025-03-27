@@ -1,15 +1,13 @@
 import type { LngLatLike, MapLibreEvent } from "maplibre-gl";
 import maplibregl from "maplibre-gl";
-import { GeolocateControl } from "./MLAdapters/GeolocateControl";
-import { DOMcreate } from "./tools";
+import { GeolocateControl } from "../MLAdapters/GeolocateControl";
+import { DOMcreate } from "../utils/dom";
 
 const Marker = maplibregl.Marker;
 const LngLat = maplibregl.LngLat;
 const LngLatBounds = maplibregl.LngLatBounds;
 
-type MoveEndEvent = MapLibreEvent<
-  MouseEvent | TouchEvent | WheelEvent | undefined
-> & { geolocateSource?: boolean };
+type MoveEndEvent = MapLibreEvent<MouseEvent | TouchEvent | WheelEvent | undefined> & { geolocateSource?: boolean };
 
 /**
  * The MaptilerGeolocateControl is an extension of the original GeolocateControl
@@ -27,10 +25,7 @@ export class MaptilerGeolocateControl extends GeolocateControl {
    * @private
    */
   _updateCamera = (position: GeolocationPosition) => {
-    const center = new LngLat(
-      position.coords.longitude,
-      position.coords.latitude,
-    );
+    const center = new LngLat(position.coords.longitude, position.coords.latitude);
     const radius = position.coords.accuracy;
     const bearing = this._map.getBearing();
     const options = {
@@ -88,9 +83,7 @@ export class MaptilerGeolocateControl extends GeolocateControl {
 
     if (supported === false) {
       // warnOnce('Geolocation support is not available so the GeolocateControl will be disabled.');
-      const title = this._map._getUIString(
-        "GeolocateControl.LocationNotAvailable",
-      );
+      const title = this._map._getUIString("GeolocateControl.LocationNotAvailable");
       this._geolocateButton.disabled = true;
       this._geolocateButton.title = title;
       this._geolocateButton.setAttribute("aria-label", title);
@@ -111,10 +104,7 @@ export class MaptilerGeolocateControl extends GeolocateControl {
       this._dotElement = DOMcreate("div", "maplibregl-user-location-dot");
       this._userLocationDotMarker = new Marker({ element: this._dotElement });
 
-      this._circleElement = DOMcreate(
-        "div",
-        "maplibregl-user-location-accuracy-circle",
-      );
+      this._circleElement = DOMcreate("div", "maplibregl-user-location-accuracy-circle");
       this._accuracyCircleMarker = new Marker({
         element: this._circleElement,
         pitchAlignment: "map",
@@ -137,25 +127,13 @@ export class MaptilerGeolocateControl extends GeolocateControl {
     // mode ON.
     if (this.options.trackUserLocation) {
       this._map.on("moveend", (event: MoveEndEvent) => {
-        const fromResize =
-          event.originalEvent && event.originalEvent.type === "resize";
-        const movingDistance = this.lastUpdatedCenter.distanceTo(
-          this._map.getCenter(),
-        );
+        const fromResize = event.originalEvent && event.originalEvent.type === "resize";
+        const movingDistance = this.lastUpdatedCenter.distanceTo(this._map.getCenter());
 
-        if (
-          !event.geolocateSource &&
-          this._watchState === "ACTIVE_LOCK" &&
-          !fromResize &&
-          movingDistance > 1
-        ) {
+        if (!event.geolocateSource && this._watchState === "ACTIVE_LOCK" && !fromResize && movingDistance > 1) {
           this._watchState = "BACKGROUND";
-          this._geolocateButton.classList.add(
-            "maplibregl-ctrl-geolocate-background",
-          );
-          this._geolocateButton.classList.remove(
-            "maplibregl-ctrl-geolocate-active",
-          );
+          this._geolocateButton.classList.add("maplibregl-ctrl-geolocate-background");
+          this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-active");
 
           this.fire(new Event("trackuserlocationend"));
         }
@@ -164,24 +142,15 @@ export class MaptilerGeolocateControl extends GeolocateControl {
   };
 
   _updateCircleRadius() {
-    if (
-      this._watchState !== "BACKGROUND" &&
-      this._watchState !== "ACTIVE_LOCK"
-    ) {
+    if (this._watchState !== "BACKGROUND" && this._watchState !== "ACTIVE_LOCK") {
       return;
     }
 
-    const lastKnownLocation: LngLatLike = [
-      this._lastKnownPosition.coords.longitude,
-      this._lastKnownPosition.coords.latitude,
-    ];
+    const lastKnownLocation: LngLatLike = [this._lastKnownPosition.coords.longitude, this._lastKnownPosition.coords.latitude];
 
     const projectedLocation = this._map.project(lastKnownLocation);
     const a = this._map.unproject([projectedLocation.x, projectedLocation.y]);
-    const b = this._map.unproject([
-      projectedLocation.x + 20,
-      projectedLocation.y,
-    ]);
+    const b = this._map.unproject([projectedLocation.x + 20, projectedLocation.y]);
     const metersPerPixel = a.distanceTo(b) / 20;
 
     const circleDiameter = Math.ceil((2.0 * this._accuracy) / metersPerPixel);
@@ -202,37 +171,21 @@ export class MaptilerGeolocateControl extends GeolocateControl {
     switch (this._watchState) {
       case "WAITING_ACTIVE":
         this._watchState = "ACTIVE_ERROR";
-        this._geolocateButton.classList.remove(
-          "maplibregl-ctrl-geolocate-active",
-        );
-        this._geolocateButton.classList.add(
-          "maplibregl-ctrl-geolocate-active-error",
-        );
+        this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-active");
+        this._geolocateButton.classList.add("maplibregl-ctrl-geolocate-active-error");
         break;
       case "ACTIVE_LOCK":
         this._watchState = "ACTIVE_ERROR";
-        this._geolocateButton.classList.remove(
-          "maplibregl-ctrl-geolocate-active",
-        );
-        this._geolocateButton.classList.add(
-          "maplibregl-ctrl-geolocate-active-error",
-        );
-        this._geolocateButton.classList.add(
-          "maplibregl-ctrl-geolocate-waiting",
-        );
+        this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-active");
+        this._geolocateButton.classList.add("maplibregl-ctrl-geolocate-active-error");
+        this._geolocateButton.classList.add("maplibregl-ctrl-geolocate-waiting");
         // turn marker grey
         break;
       case "BACKGROUND":
         this._watchState = "BACKGROUND_ERROR";
-        this._geolocateButton.classList.remove(
-          "maplibregl-ctrl-geolocate-background",
-        );
-        this._geolocateButton.classList.add(
-          "maplibregl-ctrl-geolocate-background-error",
-        );
-        this._geolocateButton.classList.add(
-          "maplibregl-ctrl-geolocate-waiting",
-        );
+        this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-background");
+        this._geolocateButton.classList.add("maplibregl-ctrl-geolocate-background-error");
+        this._geolocateButton.classList.add("maplibregl-ctrl-geolocate-waiting");
         // turn marker grey
         break;
       case "ACTIVE_ERROR":
