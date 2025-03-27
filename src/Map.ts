@@ -735,20 +735,45 @@ export class Map extends maplibregl.Map {
 
       const firstLayer = this.getLayersOrder()[0];
 
-      if (options.space) {
-        const optionsFromStyleSpec = extractCustomLayerStyle({ map: this, property: "space" });
-        this.space = new CubemapLayer(options.space ?? optionsFromStyleSpec);
-        this.addLayer(this.space, firstLayer);
-      }
-
-      if (options.halo) {
-        const optionsFromStyleSpec = extractCustomLayerStyle({ map: this, property: "halo" });
-        this.halo = new RadialGradientLayer(options.halo ?? optionsFromStyleSpec);
-        this.addLayer(this.halo, firstLayer);
-      }
+      this.initSpace(options, firstLayer);
+      this.initHalo(options, firstLayer);
     });
 
     this.telemetry = new Telemetry(this);
+  }
+
+  private initSpace(options: MapOptions, before: string) {
+    if (options.space === false) return;
+
+    const spaceOptionsFromStyleSpec = extractCustomLayerStyle<CubemapDefinition>({ map: this, property: "space" });
+
+    if (options.space) {
+      this.space = new CubemapLayer(options.space);
+      this.addLayer(this.space, before);
+      return;
+    }
+
+    if (spaceOptionsFromStyleSpec) {
+      this.space = new CubemapLayer(spaceOptionsFromStyleSpec);
+      this.addLayer(this.space, before);
+    }
+  }
+
+  private initHalo(options: MapOptions, before: string) {
+    if (options.halo === false) return;
+
+    const haloOptionsFromStyleSpec = extractCustomLayerStyle<GradientDefinition>({ map: this, property: "halo" });
+
+    if (options.halo) {
+      this.halo = new RadialGradientLayer(options.halo);
+      this.addLayer(this.halo, before);
+      return;
+    }
+
+    if (haloOptionsFromStyleSpec) {
+      this.halo = new RadialGradientLayer(haloOptionsFromStyleSpec);
+      this.addLayer(this.halo, before);
+    }
   }
 
   /**
