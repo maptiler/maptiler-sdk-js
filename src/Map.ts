@@ -39,6 +39,9 @@ import type { MinimapOptionsInput } from "./controls/Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 import { MaptilerProjectionControl } from "./controls/MaptilerProjectionControl";
 import { Telemetry } from "./Telemetry";
+import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from "./custom-layers/CubemapLayer";
+import { GradientDefinition, RadialGradientLayer, RadialGradientLayerOptions } from "./custom-layers/RadialGradientLayer";
+import extractCustomLayerStyle from "./custom-layers/extractCustomLayerStyle";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -190,14 +193,73 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * If not provided, the style takes precedence. If provided, overwrite the style.
    */
   projection?: ProjectionTypes;
+
+  /**
+   * Turn on/off spacebox.
+   *
+   * Default: { color: "#1D29F1" }
+   */
+  space?: CubemapLayerConstructorOptions | boolean;
+  halo?: RadialGradientLayerOptions | boolean;
 };
 
 /**
  * The Map class can be instanciated to display a map in a `<div>`
  */
 export class Map extends maplibregl.Map {
-  private options: MapOptions;
   public readonly telemetry: Telemetry;
+
+  private space?: CubemapLayer;
+  private halo?: RadialGradientLayer;
+
+  public getSpace(): CubemapLayer | undefined {
+    return this.space;
+  }
+
+  public setSpace(space: CubemapDefinition) {
+    if (this.space) {
+      console.log("Setting spacebox", space);
+      this.space.setCubemap(space);
+      return;
+    }
+
+    this.space = new CubemapLayer(space);
+
+    this.once("load", () => {
+      const firstLayer = this.getLayersOrder()[0];
+      if (this.space) {
+        this.addLayer(this.space, firstLayer);
+      }
+    });
+  }
+
+  public getHalo(): RadialGradientLayer | undefined {
+    return this.halo;
+  }
+
+  public setHalo(halo: GradientDefinition) {
+    if (this.halo) {
+      this.halo.setGradient(halo);
+      return;
+    }
+
+    this.halo = new RadialGradientLayer(halo);
+
+    this.once("load", () => {
+      const layersOrder = this.getLayersOrder();
+
+      const firstLayer = layersOrder[0];
+
+      const insertBeforeIndex = layersOrder.indexOf(this.space?.id ?? "") + 2;
+
+      const insertBefore = layersOrder[insertBeforeIndex];
+      if (this.halo) {
+        this.addLayer(this.halo, this.space ? insertBefore : firstLayer);
+      }
+    });
+  }
+
+  private options: MapOptions;
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
   private primaryLanguage: LanguageInfo;
@@ -655,6 +717,7 @@ export class Map extends maplibregl.Map {
     }
 
     // Display a message if WebGL context is lost
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.once("load", () => {
       this.getCanvas().addEventListener("webglcontextlost", (event) => {
         if (this._removed === true) {
@@ -669,9 +732,48 @@ export class Map extends maplibregl.Map {
 
         this.fire("webglContextLost", event);
       });
+
+      const firstLayer = this.getLayersOrder()[0];
+
+      this.initSpace(options, firstLayer);
+      this.initHalo(options, firstLayer);
     });
 
     this.telemetry = new Telemetry(this);
+  }
+
+  private initSpace(options: MapOptions, before: string) {
+    if (options.space === false) return;
+
+    const spaceOptionsFromStyleSpec = extractCustomLayerStyle<CubemapDefinition>({ map: this, property: "space" });
+
+    if (options.space) {
+      this.space = new CubemapLayer(options.space);
+      this.addLayer(this.space, before);
+      return;
+    }
+
+    if (spaceOptionsFromStyleSpec) {
+      this.space = new CubemapLayer(spaceOptionsFromStyleSpec);
+      this.addLayer(this.space, before);
+    }
+  }
+
+  private initHalo(options: MapOptions, before: string) {
+    if (options.halo === false) return;
+
+    const haloOptionsFromStyleSpec = extractCustomLayerStyle<GradientDefinition>({ map: this, property: "halo" });
+
+    if (options.halo) {
+      this.halo = new RadialGradientLayer(options.halo);
+      this.addLayer(this.halo, before);
+      return;
+    }
+
+    if (haloOptionsFromStyleSpec) {
+      this.halo = new RadialGradientLayer(haloOptionsFromStyleSpec);
+      this.addLayer(this.halo, before);
+    }
   }
 
   /**
@@ -792,7 +894,6 @@ export class Map extends maplibregl.Map {
     this.once("idle", () => {
       this.forceLanguageUpdate = false;
     });
-
     const styleInfo = styleToStyle(style);
 
     if (styleInfo.requiresUrlMonitoring) {
