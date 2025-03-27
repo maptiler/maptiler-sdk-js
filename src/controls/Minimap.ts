@@ -2,8 +2,8 @@
  * This is an extension adds support for adding a minimap to one of the map's control containers.
  */
 
-import { Map as SDKMap } from "./Map";
-import { DOMcreate, DOMremove } from "./tools";
+import { Map as SDKMap } from "../Map";
+import { DOMcreate, DOMremove } from "../utils/dom";
 
 import type {
   ControlPosition,
@@ -20,7 +20,7 @@ import type {
   StyleSpecification,
   StyleSwapOptions,
 } from "maplibre-gl";
-import type { MapOptions } from "./Map";
+import type { MapOptions } from "../Map";
 import type { MapStyleVariant, ReferenceMapStyle } from "@maptiler/client";
 
 export interface ParentRect {

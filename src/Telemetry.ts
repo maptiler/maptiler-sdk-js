@@ -1,6 +1,6 @@
 import type { Map as MapSDK } from "./Map";
 import { config, MAPTILER_SESSION_ID } from "./config";
-import { defaults } from "./defaults";
+import { defaults } from "./constants/defaults";
 import packagejson from "../package.json";
 
 /**

@@ -26,7 +26,14 @@ function addPerformanceStats() {
  * If you don't want to use the URL parameter, you can set the key directly in the code.
  */
 function setupMapTilerApiKey() {
-  maptilersdk.config.apiKey = new URLSearchParams(location.search).get("key") ?? "API_KEY";
+  maptilersdk.config.apiKey = localStorage.getItem('MT_DEMO_API_KEY') ?? new URLSearchParams(location.search).get("key") ?? "API_KEY";
+  
+  if (localStorage.getItem('MT_DEMO_API_KEY') === null) {
+    localStorage.setItem(
+      'MT_DEMO_API_KEY',
+      maptilersdk.config.apiKey
+    );
+  }
 
   if (maptilersdk.config.apiKey === "API_KEY") {
     const errorMessage = "MapTiler API key is missing. Please use URL `key` parameter to set it (`?key=XXXXX`).";

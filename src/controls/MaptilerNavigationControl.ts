@@ -1,5 +1,5 @@
 import type { NavigationControlOptions } from "maplibre-gl";
-import { NavigationControl } from "./MLAdapters/NavigationControl";
+import { NavigationControl } from "../MLAdapters/NavigationControl";
 
 type HTMLButtonElementPlus = HTMLButtonElement & {
   clickFunction: (e?: Event) => unknown;

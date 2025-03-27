@@ -1,7 +1,8 @@
-import { bindAll, DOMcreate, DOMremove } from "./tools";
+import { DOMcreate, DOMremove } from "../utils/dom";
 
-import type { Map as SDKMap } from "./Map";
+import type { Map as SDKMap } from "../Map";
 import type { IControl } from "maplibre-gl";
+import { bindAll } from "../tools";
 
 /**
  * A `MaptilerTerrainControl` control adds a button to turn terrain on and off

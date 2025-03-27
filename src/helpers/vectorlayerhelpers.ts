@@ -20,7 +20,7 @@ import {
 } from "./stylehelper";
 
 import { gpx, gpxOrKml, kml } from "../converters";
-import { ColorRampCollection, type ColorRamp } from "../colorramp";
+import { ColorRampCollection, type ColorRamp } from "../ColorRamp";
 
 /**
  * Array of string values that depend on zoom level

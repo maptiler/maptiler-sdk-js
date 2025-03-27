@@ -4,6 +4,22 @@
 ### New features
 - Now able to include cubemap background images and Earth radial gradient halo via `space` and `halo` in map constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style spec.
 
+## 🐛 Bug fixes
+None
+
+## 🔧 Others
+None
+
+## 3.0.2
+## ✨ Features and improvements
+None
+
+## 🐛 Bug fixes
+None
+
+## 🔧 Others
+Restructuring of repo, additon of tests to check consistency of library exports.
+
 ## 3.0.1
 ### New Features
 - Update Maplibre to v5.0.1

@@ -1,7 +1,7 @@
 import type { LngLatLike, MapLibreEvent } from "maplibre-gl";
 import maplibregl from "maplibre-gl";
-import { GeolocateControl } from "./MLAdapters/GeolocateControl";
-import { DOMcreate } from "./tools";
+import { GeolocateControl } from "../MLAdapters/GeolocateControl";
+import { DOMcreate } from "../utils/dom";
 
 const Marker = maplibregl.Marker;
 const LngLat = maplibregl.LngLat;

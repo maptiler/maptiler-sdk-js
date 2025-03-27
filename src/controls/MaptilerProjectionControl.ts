@@ -1,5 +1,5 @@
-import { DOMcreate, DOMremove } from "./tools";
-import type { Map as SDKMap } from "./Map";
+import { DOMcreate, DOMremove } from "../utils/dom";
+import type { Map as SDKMap } from "../Map";
 import type { IControl } from "maplibre-gl";
 
 /**

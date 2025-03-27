@@ -1,4 +1,3 @@
-import packagejson from "../package.json";
 import { enableRTL } from "./tools";
 
 import maplibregl from "maplibre-gl";
@@ -10,10 +9,11 @@ export type * from "maplibre-gl";
 enableRTL();
 
 /**
- * Get the version of MapTiler SDK
+ * Get the version of MapTiler SDK, this is declared in the vite config
+ * to avoid importing the entire package.json
  */
 export function getVersion(): string {
-  return packagejson.version;
+  return __MT_SDK_VERSION__;
 }
 
 const MapMLGL = maplibregl.Map;
@@ -182,11 +182,7 @@ export { MapMouseEvent } from "./MLAdapters/MapMouseEvent";
 
 // SDK specific
 export { Map, GeolocationType, type MapOptions, type LoadWithTerrainEvent } from "./Map";
-export * from "./MaptilerGeolocateControl";
-export * from "./MaptilerLogoControl";
-export * from "./MaptilerTerrainControl";
-export * from "./MaptilerNavigationControl";
-export * from "./MaptilerProjectionControl";
+export * from "./controls";
 export {
   type AutomaticStaticMapOptions,
   type BoundedStaticMapOptions,
@@ -256,8 +252,8 @@ export {
 export { getWebGLSupportError, displayWebGLContextLostWarning } from "./tools";
 export { config, SdkConfig } from "./config";
 export * from "./language";
-export type { Unit } from "./unit";
-export * from "./Minimap";
+export type { Unit } from "./types";
 export * from "./converters";
-export * from "./colorramp";
-export * from "./helpers";
+export * as helpers from "./helpers";
+export * from "./ColorRamp";
+export * from "./utils";

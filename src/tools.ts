@@ -1,10 +1,13 @@
 import maplibregl from "maplibre-gl";
 import type { RequestParameters, ResourceType, RequestTransformFunction, SymbolLayerSpecification } from "maplibre-gl";
-import { defaults } from "./defaults";
+import { defaults } from "./constants/defaults";
 import { config } from "./config";
 import { MAPTILER_SESSION_ID } from "./config";
 import { localCacheTransformRequest } from "./caching";
 import type { Map as MapSDK } from "./Map";
+
+// TODO These function should gradually be moved to
+// to utils directory
 
 export function enableRTL() {
   // Prevent this from running server side
@@ -27,23 +30,6 @@ export function bindAll(fns: Array<string>, context: any): void {
   for (const fn of fns) {
     if (typeof context[fn] !== "function") continue;
     context[fn] = context[fn].bind(context);
-  }
-}
-
-// This comes from:
-// https://github.com/maplibre/maplibre-gl-js/blob/v2.4.0/src/util/dom.ts#L22
-export function DOMcreate<K extends keyof HTMLElementTagNameMap>(tagName: K, className?: string, container?: HTMLElement): HTMLElementTagNameMap[K] {
-  const el = window.document.createElement(tagName);
-  if (className !== undefined) el.className = className;
-  if (container) container.appendChild(el);
-  return el;
-}
-
-// This comes from:
-// https://github.com/maplibre/maplibre-gl-js/blob/v2.4.0/src/util/dom.ts#L111
-export function DOMremove(node: HTMLElement) {
-  if (node.parentNode) {
-    node.parentNode.removeChild(node);
   }
 }
 

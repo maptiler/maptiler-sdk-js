@@ -26,6 +26,9 @@
   },
   "include": [
     "src",
-    "./eslint.config.mjs"
+    "./eslint.config.mjs",
+    "test",
+    "./vite.config-test.ts",
+    "./vitest-setup-tests.ts"
   ],
 }

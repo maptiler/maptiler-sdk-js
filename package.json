@@ -38,9 +38,10 @@
     "prepare": "husky",
     "doc": "rm -rf docs/* && typedoc --out docs && cp -r images docs/",
     "ncu": "npx npm-check-updates",
-    "lint": "npx eslint src",
-    "lint:fix": "npx eslint src --fix",
-    "test": "vitest run -c vite.config-test.ts",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "test:watch": "vitest watch -c vite.config-test.ts --dom",
+    "test": "vitest run -c vite.config-test.ts --dom",
     "install:clean": "rm -rf build/ dist/ node_modules/ && npm ci",
     "dev": "concurrently \"vite -c vite.config-dev.ts\" \"npm run dev-umd\"",
     "dev-umd": "npm run build-css && tsc && NODE_ENV=development vite build -w -c vite.config-umd.ts",
@@ -54,16 +55,19 @@
     "*.ts": "npm run lint:fix"
   },
   "devDependencies": {
+    "@canvas/image-data": "^1.0.0",
     "@eslint/js": "^9.21.0",
     "@types/color-convert": "^2.0.4",
     "@types/color-name": "^2.0.0",
     "@types/uuid": "^10.0.0",
     "@types/xmldom": "^0.1.31",
+    "@vitest/web-worker": "^3.0.9",
     "@xmldom/xmldom": "^0.8.10",
     "concurrently": "^9.1.2",
     "eslint": "^9.21.0",
     "eslint-config-prettier": "^10.0.2",
     "eslint-plugin-prettier": "^5.2.3",
+    "happy-dom": "^17.4.4",
     "husky": "^8.0.0",
     "lint-staged": "^15.4.3",
     "prettier": "3.5.2",
@@ -72,7 +76,7 @@
     "typescript-eslint": "^8.25.0",
     "vite": "^6.0.7",
     "vite-plugin-dts": "^4.5.0",
-    "vitest": "^2.1.8"
+    "vitest": "^3.0.9"
   },
   "dependencies": {
     "@maplibre/maplibre-gl-style-spec": "^23.0.0",

@@ -2,11 +2,9 @@ import type { GetResourceResponse, RequestParameters, ResourceType } from "mapli
 
 import { config } from "./config";
 
-import maplibregl from "maplibre-gl";
+import { addProtocol } from "maplibre-gl";
 
-import { defaults } from "./defaults";
-
-const { addProtocol } = maplibregl;
+import { defaults } from "./constants/defaults";
 
 const LOCAL_CACHE_PROTOCOL_SOURCE = "localcache_source";
 const LOCAL_CACHE_PROTOCOL_DATA = "localcache";

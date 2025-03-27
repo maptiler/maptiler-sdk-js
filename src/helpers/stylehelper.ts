@@ -1,6 +1,6 @@
 import type { DataDrivenPropertyValueSpecification, ExpressionSpecification } from "maplibre-gl";
 import { generateRandomString } from "../tools";
-import type { ColorRamp, RgbaColor } from "../colorramp";
+import type { ColorRamp, RgbaColor } from "../ColorRamp";
 import type { DataDrivenStyle, PropertyValues, ZoomNumberValues, ZoomStringValues } from "./vectorlayerhelpers";
 
 export type ColorPalette = [string, string, string, string];
