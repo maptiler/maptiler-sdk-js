@@ -1,8 +1,4 @@
-import {
-  Language as LanguageFromClient,
-  getLanguageInfoFromCode,
-  type LanguageInfo,
-} from "@maptiler/client";
+import { Language as LanguageFromClient, getLanguageInfoFromCode, type LanguageInfo } from "@maptiler/client";
 
 // Adding some language entries that are specific to the SDK
 const Language = {
@@ -72,9 +68,7 @@ export function getBrowserLanguage(): LanguageInfo {
     return Language.ENGLISH;
   }
 
-  const canditatelangs = Array.from(
-    new Set(navigator.languages.map((l) => l.split("-")[0])),
-  )
+  const canditatelangs = Array.from(new Set(navigator.languages.map((l) => l.split("-")[0])))
     .map((code) => getLanguageInfoFromCode(code))
     .filter((li) => li);
 

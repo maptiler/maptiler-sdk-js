@@ -80,15 +80,11 @@
   </div>
 
   <script src="../build/maptiler-sdk.umd.min.js"></script>
+  <script src="assets/demo-utils.js"></script>
   <script>
-    maptilersdk.config.apiKey = new URLSearchParams(location.search).get("key") || "API_KEY";
 
-    if (maptilersdk.config.apiKey === "API_KEY") {
-      const errorMessage = "MapTiler API key is missing. Please use URL `key` parameter to set it (`?key=XXXXX`).";
-
-      alert(errorMessage);
-      throw new Error(errorMessage);
-    }
+    addPerformanceStats();
+    setupMapTilerApiKey();
 
     const map = new maptilersdk.Map({
       container: document.getElementById("map-container"),
@@ -111,10 +107,12 @@
       });
     });
 
-      document.getElementById("fog-ground-blend").addEventListener("input", (e) => {
-        map.setSky({
-          "fog-ground-blend": parseFloat(e.target.value),
-        });
+    document.getElementById("fog-ground-blend").addEventListener("input", (e) => {
+      map.setSky({
+        "fog-ground-blend": parseFloat(e.target.value),
+      });
+    });
+
     document.getElementById("horizon-color").addEventListener("input", (e) => {
       map.setSky({
         "horizon-color": e.target.value,
@@ -125,6 +123,7 @@
         map.setSky({
           "horizon-fog-blend": parseFloat(e.target.value),
         });
+      });
     document.getElementById("fog-color").addEventListener("input", (e) => {
       map.setSky({
         "fog-color": e.target.value,
@@ -135,6 +134,7 @@
         map.setSky({
           "sky-horizon-blend": parseFloat(e.target.value),
         });
+      });
     document.getElementById("fog-ground-blend").addEventListener("input", (e) => {
       map.setSky({
         "fog-ground-blend": parseFloat(e.target.value),
@@ -145,6 +145,8 @@
         map.setSky({
           "atmosphere-blend": parseFloat(e.target.value),
         });
+      });
+
     document.getElementById("horizon-fog-blend").addEventListener("input", (e) => {
       map.setSky({
         "horizon-fog-blend": parseFloat(e.target.value),
@@ -167,6 +169,8 @@
           "sky-horizon-blend": 1.0,
           "atmosphere-blend": 0.5,
         })
+      });
+
     document.getElementById("atmosphere-blend").addEventListener("input", (e) => {
       map.setSky({
         "atmosphere-blend": parseFloat(e.target.value),
@@ -186,5 +190,4 @@
     });
   </script>
 </body>
-
 </html>

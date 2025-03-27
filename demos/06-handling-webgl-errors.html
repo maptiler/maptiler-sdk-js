@@ -38,8 +38,12 @@
 
 <body>
   <script src="../build/maptiler-sdk.umd.min.js"></script>
-
+  <script src="assets/demo-utils.js"></script>
   <script>
+
+    addPerformanceStats();
+    setupMapTilerApiKey();
+
     function getRandomMapStyle() {
       const styles = Object.keys(maptilersdk.MapStyle);
       const style = maptilersdk.MapStyle[styles[Math.floor(Math.random() * styles.length)]];
@@ -69,8 +73,6 @@
   </script>
 
   <script>
-    maptilersdk.config.apiKey = "YOUR_API_KEY";
-
     /*
      * The mapLeftTop will lose the WebGL context because it is removed
      * so the event will not be called.

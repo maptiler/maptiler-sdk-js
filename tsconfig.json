@@ -27,6 +27,8 @@
   "include": [
     "src",
     "./eslint.config.mjs",
-    "test"
+    "test",
+    "./vite.config-test.ts",
+    "./vitest-setup-tests.ts"
   ],
 }

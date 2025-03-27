@@ -64,10 +64,7 @@ export function hasChildNodeWithName(doc: Document, nodeName: string): boolean {
 
   for (const childNode of Array.from(doc.childNodes)) {
     const currentNodeName = childNode.nodeName;
-    if (
-      typeof currentNodeName === "string" &&
-      currentNodeName.trim().toLowerCase() === nodeName.toLowerCase()
-    ) {
+    if (typeof currentNodeName === "string" && currentNodeName.trim().toLowerCase() === nodeName.toLowerCase()) {
       return true;
     }
   }
@@ -122,10 +119,7 @@ export function gpx(doc: string | Document): GeoJSON.FeatureCollection {
 /**
  * Given a XML document using the KML spec, return GeoJSON
  */
-export function kml(
-  doc: string | Document,
-  xml2string?: (node: Node) => string,
-): GeoJSON.FeatureCollection {
+export function kml(doc: string | Document, xml2string?: (node: Node) => string): GeoJSON.FeatureCollection {
   let actualDoc = doc;
   if (typeof actualDoc === "string") actualDoc = str2xml(actualDoc);
 
@@ -149,29 +143,21 @@ export function kml(
   const styleMaps = get(actualDoc, "StyleMap");
 
   for (const style of Array.from(styles)) {
-    const hash = okhash(
-      xml2string !== undefined ? xml2string(style) : xml2str(style),
-    ).toString(16);
+    const hash = okhash(xml2string !== undefined ? xml2string(style) : xml2str(style)).toString(16);
     styleIndex[`#${attr(style, "id")}`] = hash;
     styleByHash[hash] = style;
   }
   for (const styleMap of Array.from(styleMaps)) {
-    styleIndex[`#${attr(styleMap, "id")}`] = okhash(
-      xml2string !== undefined ? xml2string(styleMap) : xml2str(styleMap),
-    ).toString(16);
+    styleIndex[`#${attr(styleMap, "id")}`] = okhash(xml2string !== undefined ? xml2string(styleMap) : xml2str(styleMap)).toString(16);
     const pairs = get(styleMap, "Pair");
     const pairsMap: Record<string, string | null> = {};
     for (const pair of Array.from(pairs)) {
-      pairsMap[nodeVal(get1(pair, "key")) ?? ""] = nodeVal(
-        get1(pair, "styleUrl"),
-      );
+      pairsMap[nodeVal(get1(pair, "key")) ?? ""] = nodeVal(get1(pair, "styleUrl"));
     }
     styleMapIndex[`#${attr(styleMap, "id")}`] = pairsMap;
   }
   for (const placemark of Array.from(placemarks)) {
-    gj.features = gj.features.concat(
-      getPlacemark(placemark, styleIndex, styleByHash, styleMapIndex),
-    );
+    gj.features = gj.features.concat(getPlacemark(placemark, styleIndex, styleByHash, styleMapIndex));
   }
   return gj;
 }
@@ -281,12 +267,7 @@ function getGeometry(root: Element): {
 }
 
 // build geojson feature sets with all their attributes and property data
-function getPlacemark(
-  root: Element,
-  styleIndex: Record<string, string>,
-  styleByHash: Record<string, Element>,
-  styleMapIndex: Record<string, Record<string, string | null>>,
-) {
+function getPlacemark(root: Element, styleIndex: Record<string, string>, styleByHash: Record<string, Element>, styleMapIndex: Record<string, Record<string, string | null>>) {
   const geomsAndTimes = getGeometry(root);
   const properties: PlacemarkProperties & Record<string, string> = {};
   const name = nodeVal(get1(root, "name"));
@@ -338,8 +319,7 @@ function getPlacemark(
     if (begin && end) properties.timespan = { begin, end };
   }
   if (timeStamp !== null) {
-    properties.timestamp =
-      nodeVal(get1(timeStamp, "when")) ?? new Date().toISOString();
+    properties.timestamp = nodeVal(get1(timeStamp, "when")) ?? new Date().toISOString();
   }
   if (lineStyle !== null) {
     const linestyles = kmlColor(nodeVal(get1(lineStyle, "color")));
@@ -358,34 +338,25 @@ function getPlacemark(
     const outline = nodeVal(get1(polyStyle, "outline"));
     if (pcolor) properties.fill = pcolor;
     if (!Number.isNaN(popacity)) properties["fill-opacity"] = popacity;
-    if (fill)
-      properties["fill-opacity"] =
-        fill === "1" ? properties["fill-opacity"] || 1 : 0;
-    if (outline)
-      properties["stroke-opacity"] =
-        outline === "1" ? properties["stroke-opacity"] || 1 : 0;
+    if (fill) properties["fill-opacity"] = fill === "1" ? properties["fill-opacity"] || 1 : 0;
+    if (outline) properties["stroke-opacity"] = outline === "1" ? properties["stroke-opacity"] || 1 : 0;
   }
   if (extendedData) {
     const datas = get(extendedData, "Data");
     const simpleDatas = get(extendedData, "SimpleData");
 
     for (i = 0; i < datas.length; i++) {
-      properties[datas[i].getAttribute("name") ?? ""] =
-        nodeVal(get1(datas[i], "value")) ?? "";
+      properties[datas[i].getAttribute("name") ?? ""] = nodeVal(get1(datas[i], "value")) ?? "";
     }
     for (i = 0; i < simpleDatas.length; i++) {
-      properties[simpleDatas[i].getAttribute("name") ?? ""] =
-        nodeVal(simpleDatas[i]) ?? "";
+      properties[simpleDatas[i].getAttribute("name") ?? ""] = nodeVal(simpleDatas[i]) ?? "";
     }
   }
   if (visibility !== null) {
     properties.visibility = nodeVal(visibility) ?? "";
   }
   if (geomsAndTimes.coordTimes.length !== 0) {
-    properties.coordTimes =
-      geomsAndTimes.coordTimes.length === 1
-        ? geomsAndTimes.coordTimes[0]
-        : geomsAndTimes.coordTimes;
+    properties.coordTimes = geomsAndTimes.coordTimes.length === 1 ? geomsAndTimes.coordTimes[0] : geomsAndTimes.coordTimes;
   }
   const feature: GeoJSON.Feature = {
     type: "Feature",
@@ -468,8 +439,7 @@ function getTrack(node: Element): undefined | GeoJSON.Feature {
     ...getProperties(node),
     ...getLineStyle(get1(node, "extensions")),
   };
-  if (times.length !== 0)
-    properties.coordTimes = track.length === 1 ? times[0] : times;
+  if (times.length !== 0) properties.coordTimes = track.length === 1 ? times[0] : times;
   if (heartRates.length !== 0) {
     properties.heartRates = track.length === 1 ? heartRates[0] : heartRates;
   }
@@ -523,17 +493,13 @@ function getPoint(node: Element): GeoJSON.Feature {
   };
 }
 
-function getLineStyle(
-  extensions: Element | null,
-): Record<string, string | number> {
+function getLineStyle(extensions: Element | null): Record<string, string | number> {
   const style: Record<string, string | number> = {};
   if (extensions) {
     const lineStyle = get1(extensions, "line");
     if (lineStyle) {
       const color = nodeVal(get1(lineStyle, "color"));
-      const opacity = Number.parseFloat(
-        nodeVal(get1(lineStyle, "opacity")) ?? "0",
-      );
+      const opacity = Number.parseFloat(nodeVal(get1(lineStyle, "opacity")) ?? "0");
       const width = Number.parseFloat(nodeVal(get1(lineStyle, "width")) ?? "0");
       if (color) style.stroke = color;
       if (!Number.isNaN(opacity)) style["stroke-opacity"] = opacity;
@@ -545,14 +511,7 @@ function getLineStyle(
 }
 
 function getProperties(node: Element): XMLProperties & Record<string, string> {
-  const prop: XMLProperties & Record<string, string> = getMulti(node, [
-    "name",
-    "cmt",
-    "desc",
-    "type",
-    "time",
-    "keywords",
-  ]);
+  const prop: XMLProperties & Record<string, string> = getMulti(node, ["name", "cmt", "desc", "type", "time", "keywords"]);
   const links = get(node, "link");
   if (links.length !== 0) {
     prop.links = [];
@@ -601,9 +560,7 @@ function norm(el: Element): Element {
 
 // cast array x into numbers
 function numarray(x: string[]): number[] {
-  return x
-    .map(Number.parseFloat)
-    .map((n) => (Number.isNaN(n) ? null : n)) as number[];
+  return x.map(Number.parseFloat).map((n) => (Number.isNaN(n) ? null : n)) as number[];
 }
 
 // get the content of a text node, if any
@@ -656,14 +613,11 @@ function coordPair(x: Element): {
   return {
     coordinates: ll,
     time: time ? nodeVal(time) : null,
-    heartRate:
-      heartRate !== null ? Number.parseFloat(nodeVal(heartRate) ?? "0") : null,
+    heartRate: heartRate !== null ? Number.parseFloat(nodeVal(heartRate) ?? "0") : null,
   };
 }
 
-export function gpxOrKml(
-  doc: string | Document,
-): GeoJSON.FeatureCollection | null {
+export function gpxOrKml(doc: string | Document): GeoJSON.FeatureCollection | null {
   let actualDoc = doc;
   try {
     // Converting only once rather than in each converter

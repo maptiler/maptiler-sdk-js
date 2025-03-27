@@ -1,7 +1,7 @@
 import type { LogoControlOptions as LogoControlOptionsML } from "maplibre-gl";
-import { defaults } from "./defaults";
-import { LogoControl } from "./MLAdapters/LogoControl";
-import type { Map as SDKMap } from "./Map";
+import { defaults } from "../constants/defaults";
+import { LogoControl } from "../MLAdapters/LogoControl";
+import type { Map as SDKMap } from "../Map";
 
 type LogoControlOptions = LogoControlOptionsML & {
   logoURL?: string;
