@@ -18,12 +18,23 @@
       background-size: 60px 60px;
       background-position: 0 0, 30px 30px;
     }
+
+    #btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1;
+      background-color: #fff;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
 
 <body>
   <div id="map"></div>
-
+  <button id="btn">setStyle</button>
   <script>
     addPerformanceStats();
     setupMapTilerApiKey();
@@ -36,7 +47,7 @@
       scaleControl: true,
       fullscreenControl: true,
       terrainControl: true,
-      projectionControl: true,
+      // projectionControl: true,
       zoom: 1,
       projection: "globe",
       center: [0, -20],
@@ -97,6 +108,12 @@
     //     ],
     //   });
     // });
+      let on = false
+
+      document.getElementById("btn").addEventListener("click", () => {
+        map.setStyle(on ? maptilersdk.MapStyle.SATELLITE : maptilersdk.MapStyle.OUTDOOR);
+        on = !on
+      });
 
   </script>
 </body>

@@ -218,7 +218,6 @@ export class Map extends maplibregl.Map {
 
   public setSpace(space: CubemapDefinition) {
     if (this.space) {
-      console.log("Setting spacebox", space);
       this.space.setCubemap(space);
       return;
     }
@@ -735,14 +734,18 @@ export class Map extends maplibregl.Map {
 
       const firstLayer = this.getLayersOrder()[0];
 
-      this.initSpace(options, firstLayer);
-      this.initHalo(options, firstLayer);
+      this.initSpace({ options, before: firstLayer });
+      this.initHalo({ options, before: firstLayer });
     });
 
     this.telemetry = new Telemetry(this);
   }
 
-  private initSpace(options: MapOptions, before: string) {
+  private initSpace({ options = this.options, before }: { options?: MapOptions; before: string }) {
+    if (this.space) {
+      this.removeLayer(this.space.id);
+    }
+
     if (options.space === false) return;
 
     const spaceOptionsFromStyleSpec = extractCustomLayerStyle<CubemapDefinition>({ map: this, property: "space" });
@@ -759,7 +762,11 @@ export class Map extends maplibregl.Map {
     }
   }
 
-  private initHalo(options: MapOptions, before: string) {
+  private initHalo({ options = this.options, before }: { options?: MapOptions; before: string }) {
+    if (this.halo) {
+      this.removeLayer(this.halo.id);
+    }
+
     if (options.halo === false) return;
 
     const haloOptionsFromStyleSpec = extractCustomLayerStyle<GradientDefinition>({ map: this, property: "halo" });
@@ -916,6 +923,21 @@ export class Map extends maplibregl.Map {
     }
 
     this.styleInProcess = true;
+
+    // reload spacebox when the new style loads
+    void this.once("style.load", () => {
+
+      const before = this.getLayersOrder()[0];
+      if (this.space) {
+        console.log(this.space);
+        this.initSpace({ before });
+      }
+
+      if (this.halo) {
+        this.initHalo({ before });
+      }
+    });
+
     super.setStyle(styleInfo.style, options);
     return this;
   }
