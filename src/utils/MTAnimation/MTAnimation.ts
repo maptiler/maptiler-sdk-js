@@ -1,13 +1,6 @@
 import { lerp, lerpArrayValues, linear } from "./animation-helpers";
 import AnimationManager from "./AnimationManager";
-import {
-  AnimationEventCallback,
-  AnimationEventListenersRecord,
-  AnimationEventTypes,
-  EasingFunctionName,
-  EasingFunctionsModule,
-  Keyframe,
-} from "./types";
+import { AnimationEventCallback, AnimationEventListenersRecord, AnimationEventTypes, EasingFunctionName, EasingFunctionsModule, Keyframe } from "./types";
 
 /**
  * Configuration options for creating an animation.
@@ -123,25 +116,16 @@ export default class MTAnimation {
   // 0 start of the animation, 1 end of the animation
   private currentDelta: number;
 
-  // the time the animation started
   private animationStartTime: number = 0;
 
-  // the time the last frame was rendered
   private lastFrameAt: number = 0;
 
-  private listeners: AnimationEventListenersRecord = Object.values(
-    AnimationEventTypes,
-  ).reduce((acc, type) => {
+  private listeners: AnimationEventListenersRecord = Object.values(AnimationEventTypes).reduce((acc, type) => {
     acc[type] = [];
     return acc;
   }, {} as AnimationEventListenersRecord);
 
-  constructor({
-    keyframes,
-    duration,
-    iterations,
-    manualMode,
-  }: AnimationOptions) {
+  constructor({ keyframes, duration, iterations, manualMode }: AnimationOptions) {
     // collate all properties that are animated
     const animatedProperties = keyframes
       .map(({ props }: Keyframe) => {
@@ -164,20 +148,17 @@ export default class MTAnimation {
       .sort((a, b) => a.delta - b.delta)
       // ensure animated properties are present in all keyframes
       .map((keyframe) => {
-        const newProps = animatedProperties.reduce(
-          (props: Keyframe["props"], prop: string) => {
-            if (prop in props) {
-              return props;
-            }
-            return {
-              ...props,
-              // set as null to infer that this proprty
-              // does not have a value but will need to be
-              [prop]: null,
-            };
-          },
-          keyframe.props,
-        );
+        const newProps = animatedProperties.reduce((props: Keyframe["props"], prop: string) => {
+          if (prop in props) {
+            return props;
+          }
+          return {
+            ...props,
+            // set as null to infer that this proprty
+            // does not have a value but will need to be
+            [prop]: null,
+          };
+        }, keyframe.props);
 
         return {
           ...keyframe,
@@ -201,9 +182,7 @@ export default class MTAnimation {
       }, {});
 
     // interpolate values for each property
-    const interpolatedValues = Object.entries(valuesForAllProps).reduce<
-      Record<string, number[]>
-    >((acc, [prop, values]) => {
+    const interpolatedValues = Object.entries(valuesForAllProps).reduce<Record<string, number[]>>((acc, [prop, values]) => {
       acc[prop] = lerpArrayValues(values);
       return acc;
     }, {});
@@ -240,10 +219,7 @@ export default class MTAnimation {
       const { default: module } = await import("./easing");
       this.easingFunctions = module;
     } catch (e) {
-      console.error(
-        "Failed to load easing functions module, all easing will deault to linear",
-        e,
-      );
+      console.error("Failed to load easing functions module, all easing will deault to linear", e);
     }
   }
 
@@ -287,12 +263,26 @@ export default class MTAnimation {
    * @returns This animation instance for method chaining
    * @emits AnimationEventTypes.Reset
    */
-  reset() {
+  reset(manual: boolean = true) {
     this.currentTime = 0;
-    this.currentDelta = 0;
+    this.currentDelta = this.playbackRate < 0 ? 1 : 0;
     this.emitEvent(AnimationEventTypes.Reset);
-    this.play();
+
+    if (!manual) this.play();
+
     return this;
+  }
+  /**
+   * Updates the animation state if playing, this is used by the AnimationManager
+   * to update all animations in the loop
+   * @returns This animation instance for method chaining
+   */
+
+  updateInternal() {
+    if (!this.playing) {
+      return this;
+    }
+    return this.update(false);
   }
 
   /**
@@ -304,14 +294,10 @@ export default class MTAnimation {
    * @emits AnimationEventTypes.AnimationEnd
    * @returns This animation instance for method chaining
    */
-  update() {
-    if (!this.playing) {
-      return this;
-    }
-
+  update(manual = true) {
     const currentTime = performance.now();
 
-    const frameLength = currentTime - this.lastFrameAt;
+    const frameLength = manual ? 16 : currentTime - this.lastFrameAt;
     const timeElapsed = currentTime - this.animationStartTime;
 
     this.lastFrameAt = currentTime;
@@ -321,11 +307,11 @@ export default class MTAnimation {
 
     this.currentDelta += frameLength / this.effectiveDuration;
 
-    if (this.currentDelta >= 1) {
+    if (this.currentDelta >= 1 || this.currentDelta < 0) {
       this.currentIteration += 1;
       this.emitEvent(AnimationEventTypes.Iteration, null, {});
       if (this.iterations === 0 || this.currentIteration < this.iterations) {
-        this.reset();
+        this.reset(manual);
         return this;
       }
 
@@ -334,25 +320,20 @@ export default class MTAnimation {
       return this;
     }
 
-    const { next, current } = this.getCurrentAndNextKeyFramesAtDelta(
-      this.currentDelta,
-    );
+    const { next, current } = this.getCurrentAndNextKeyFramesAtDelta(this.currentDelta);
 
     if (current?.delta === this.currentDelta) {
       this.emitEvent(AnimationEventTypes.Keyframe, current);
     }
 
-    const iterpolatedProps = Object.keys(current?.props ?? {}).reduce<
-      Record<string, number>
-    >((acc, prop) => {
+    const iterpolatedProps = Object.keys(current?.props ?? {}).reduce<Record<string, number>>((acc, prop) => {
       if (current && next) {
         const currentValue = current.props[prop];
         const nextValue = next.props[prop];
 
         // get the current step in the interpolation
         // eg 0 = current keyframe, 1 = next keyframe
-        const t =
-          (this.currentDelta - current.delta) / (next.delta - current.delta);
+        const t = (this.currentDelta - current.delta) / (next.delta - current.delta);
 
         // get the easing function to use
         const easingFunc = this.easingFunctions?.[current.easing] ?? linear;
@@ -380,9 +361,7 @@ export default class MTAnimation {
    * @returns Object containing current and next keyframes, which may be null
    */
   getCurrentAndNextKeyFramesAtTime(time: number) {
-    return this.getCurrentAndNextKeyFramesAtDelta(
-      time / this.effectiveDuration,
-    );
+    return this.getCurrentAndNextKeyFramesAtDelta(time / this.effectiveDuration);
   }
 
   /**
@@ -391,12 +370,8 @@ export default class MTAnimation {
    * @returns Object containing current and next keyframes, which may be null
    */
   getCurrentAndNextKeyFramesAtDelta(delta: number) {
-    const next =
-      this.keyframes.find((keyframe) => keyframe.delta > delta) ?? null;
-    const current =
-      [...this.keyframes]
-        .reverse()
-        .find((keyframe) => keyframe.delta <= delta) ?? null;
+    const next = this.keyframes.find((keyframe) => keyframe.delta > delta) ?? null;
+    const current = [...this.keyframes].reverse().find((keyframe) => keyframe.delta <= delta) ?? null;
 
     return { current, next };
   }
@@ -484,10 +459,7 @@ export default class MTAnimation {
    * @param callback - The callback function to execute when the event occurs
    * @returns This animation instance for method chaining
    */
-  addEventListener(
-    type: AnimationEventTypes,
-    callback: AnimationEventCallback,
-  ) {
+  addEventListener(type: AnimationEventTypes, callback: AnimationEventCallback) {
     // "value is always falsy" - TS
     // this is to catch any dynamically set events
     if (!(type in this.listeners)) {
@@ -506,10 +478,7 @@ export default class MTAnimation {
    * @param callback - The callback function to remove
    * @returns This animation instance for method chaining
    */
-  removeEventListener(
-    type: AnimationEventTypes,
-    callback: AnimationEventCallback,
-  ) {
+  removeEventListener(type: AnimationEventTypes, callback: AnimationEventCallback) {
     // "value is always falsy" - TS
     // this is to catch any dynamically set events
     if (!(type in this.listeners)) {
@@ -528,11 +497,7 @@ export default class MTAnimation {
    * @param keyframe - The keyframe that triggered the event
    * @param props - The interpolated properties at the current delta
    */
-  emitEvent(
-    event: AnimationEventTypes,
-    keyframe?: Keyframe | null,
-    props: Record<string, number> = {},
-  ) {
+  emitEvent(event: AnimationEventTypes, keyframe?: Keyframe | null, props: Record<string, number> = {}) {
     this.listeners[event].forEach((fn: AnimationEventCallback) => {
       fn({
         type: event,

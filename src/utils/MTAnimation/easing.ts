@@ -13,12 +13,10 @@ const EasingFunctions: Record<EasingFunctionName, (K: number) => number> = {
   [EasingFunctionName.CubicInOut]: (n: number) => Easing.cubic.InOut(n),
   [EasingFunctionName.SinusoidalIn]: (n: number) => Easing.sinusoidal.In(n),
   [EasingFunctionName.SinusoidalOut]: (n: number) => Easing.sinusoidal.Out(n),
-  [EasingFunctionName.SinusoidalInOut]: (n: number) =>
-    Easing.sinusoidal.InOut(n),
+  [EasingFunctionName.SinusoidalInOut]: (n: number) => Easing.sinusoidal.InOut(n),
   [EasingFunctionName.ExponentialIn]: (n: number) => Easing.exponential.In(n),
   [EasingFunctionName.ExponentialOut]: (n: number) => Easing.exponential.Out(n),
-  [EasingFunctionName.ExponentialInOut]: (n: number) =>
-    Easing.exponential.InOut(n),
+  [EasingFunctionName.ExponentialInOut]: (n: number) => Easing.exponential.InOut(n),
   [EasingFunctionName.ElasticIn]: (n: number) => Easing.elastic.In(n),
   [EasingFunctionName.ElasticOut]: (n: number) => Easing.elastic.Out(n),
   [EasingFunctionName.ElasticInOut]: (n: number) => Easing.elastic.InOut(n),
