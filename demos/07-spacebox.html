@@ -47,7 +47,7 @@
       scaleControl: true,
       fullscreenControl: true,
       terrainControl: true,
-      // projectionControl: true,
+      projectionControl: true,
       zoom: 1,
       projection: "globe",
       center: [0, -20],
@@ -108,13 +108,6 @@
     //     ],
     //   });
     // });
-      let on = false
-
-      document.getElementById("btn").addEventListener("click", () => {
-        map.setStyle(on ? maptilersdk.MapStyle.SATELLITE : maptilersdk.MapStyle.OUTDOOR);
-        on = !on
-      });
-
   </script>
 </body>
 
