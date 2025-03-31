@@ -128,6 +128,8 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
     };
   }, {});
 
+  // for now we flatten the geometry to a single array
+  // this means that polygons with holes will be treated as a single array
   const parseableGeometry = flattenGeometry ? geometry.coordinates.flat() : geometry.coordinates;
   const parseableDeltas = deltas ?? parseableGeometry.map((_, index) => index / parseableGeometry.length);
   const parseableEasings = easings ?? parseableDeltas.map(() => defaultEasing ?? EasingFunctionName.Linear);
