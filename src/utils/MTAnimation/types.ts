@@ -63,10 +63,7 @@ export type AnimationEvent = {
   iteration?: number;
 };
 
-export type AnimationEventListenersRecord = Record<
-  AnimationEventTypes,
-  AnimationEventCallback[]
->;
+export type AnimationEventListenersRecord = Record<AnimationEventTypes, AnimationEventCallback[]>;
 
 export type AnimationEventCallback = (event: AnimationEvent) => void;
 

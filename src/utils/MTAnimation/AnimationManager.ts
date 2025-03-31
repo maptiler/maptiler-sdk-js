@@ -47,7 +47,7 @@ const AnimationManager = {
 
       this.animations.forEach((animation) => {
         if (animation.isPlaying) {
-          animation.update();
+          animation.updateInternal();
         }
       });
 
