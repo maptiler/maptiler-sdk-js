@@ -926,7 +926,6 @@ export class Map extends maplibregl.Map {
 
     // reload spacebox when the new style loads
     void this.once("style.load", () => {
-
       const before = this.getLayersOrder()[0];
       if (this.space) {
         console.log(this.space);
