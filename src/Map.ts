@@ -959,7 +959,7 @@ export class Map extends maplibregl.Map {
       return this;
     }
 
-    void this.once("style.load", (e) => {
+    void this.once("style.load", () => {
       if (this.space) {
         this.setSpaceFromCurrentStyle();
       } else {
