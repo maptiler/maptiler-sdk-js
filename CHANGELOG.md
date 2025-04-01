@@ -1,5 +1,15 @@
 # MapTiler SDK Changelog
 
+## 3.0.3
+## ✨ Features and improvements
+None
+
+## 🐛 Bug fixes
+Fixes a bug that accesses undefined `projection` object in `Map.getProjection` method
+
+## 🔧 Others
+None
+
 ## 3.0.2
 ## ✨ Features and improvements
 None
