@@ -222,7 +222,7 @@ class CubemapLayer implements CustomLayerInterface {
   }
 
   public setCubemap(cubemap: CubemapDefinition): void {
-    console.log("Setting cubemap", cubemap);
+    this.bgColor = parseColorStringToVec4(cubemap.color);
     this.faces = getCubemapFaces(cubemap);
     this.updateCubemap();
     this.cubeMapNeedsUpdate = true;

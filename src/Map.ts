@@ -232,6 +232,62 @@ export class Map extends maplibregl.Map {
     });
   }
 
+  private setSpaceFromCurrentStyle() {
+    const spaceOptionsFromStyleSpec = extractCustomLayerStyle<CubemapDefinition>({ map: this, property: "space" });
+    if (spaceOptionsFromStyleSpec && this.space) {
+      this.space.setCubemap(spaceOptionsFromStyleSpec);
+      return;
+    }
+  }
+
+  private setHaloFromCurrentStyle() {
+    const haloOptionsFromStyleSpec = extractCustomLayerStyle<GradientDefinition>({ map: this, property: "halo" });
+    if (haloOptionsFromStyleSpec && this.halo) {
+      this.halo.setGradient(haloOptionsFromStyleSpec);
+      return;
+    }
+  }
+
+  private initSpace({ options = this.options, before }: { options?: MapOptions; before: string }) {
+    if (this.space) {
+      this.removeLayer(this.space.id);
+    }
+
+    if (options.space === false) return;
+
+    const spaceOptionsFromStyleSpec = extractCustomLayerStyle<CubemapDefinition>({ map: this, property: "space" });
+    if (options.space) {
+      this.space = new CubemapLayer(options.space);
+      this.addLayer(this.space, before);
+      return;
+    }
+
+    if (spaceOptionsFromStyleSpec) {
+      this.space = new CubemapLayer(spaceOptionsFromStyleSpec);
+      this.addLayer(this.space, before);
+    }
+  }
+
+  private initHalo({ options = this.options, before }: { options?: MapOptions; before: string }) {
+    if (this.halo) {
+      this.removeLayer(this.halo.id);
+    }
+
+    if (options.halo === false) return;
+
+    const haloOptionsFromStyleSpec = extractCustomLayerStyle<GradientDefinition>({ map: this, property: "halo" });
+    if (options.halo) {
+      this.halo = new RadialGradientLayer(options.halo);
+      this.addLayer(this.halo, before);
+      return;
+    }
+
+    if (haloOptionsFromStyleSpec) {
+      this.halo = new RadialGradientLayer(haloOptionsFromStyleSpec);
+      this.addLayer(this.halo, before);
+    }
+  }
+
   public getHalo(): RadialGradientLayer | undefined {
     return this.halo;
   }
@@ -741,48 +797,6 @@ export class Map extends maplibregl.Map {
     this.telemetry = new Telemetry(this);
   }
 
-  private initSpace({ options = this.options, before }: { options?: MapOptions; before: string }) {
-    if (this.space) {
-      this.removeLayer(this.space.id);
-    }
-
-    if (options.space === false) return;
-
-    const spaceOptionsFromStyleSpec = extractCustomLayerStyle<CubemapDefinition>({ map: this, property: "space" });
-
-    if (options.space) {
-      this.space = new CubemapLayer(options.space);
-      this.addLayer(this.space, before);
-      return;
-    }
-
-    if (spaceOptionsFromStyleSpec) {
-      this.space = new CubemapLayer(spaceOptionsFromStyleSpec);
-      this.addLayer(this.space, before);
-    }
-  }
-
-  private initHalo({ options = this.options, before }: { options?: MapOptions; before: string }) {
-    if (this.halo) {
-      this.removeLayer(this.halo.id);
-    }
-
-    if (options.halo === false) return;
-
-    const haloOptionsFromStyleSpec = extractCustomLayerStyle<GradientDefinition>({ map: this, property: "halo" });
-
-    if (options.halo) {
-      this.halo = new RadialGradientLayer(options.halo);
-      this.addLayer(this.halo, before);
-      return;
-    }
-
-    if (haloOptionsFromStyleSpec) {
-      this.halo = new RadialGradientLayer(haloOptionsFromStyleSpec);
-      this.addLayer(this.halo, before);
-    }
-  }
-
   /**
    * Recreates the map instance with the same options.
    * Useful for WebGL context loss.
@@ -901,6 +915,7 @@ export class Map extends maplibregl.Map {
     this.once("idle", () => {
       this.forceLanguageUpdate = false;
     });
+
     const styleInfo = styleToStyle(style);
 
     if (styleInfo.requiresUrlMonitoring) {
@@ -923,21 +938,41 @@ export class Map extends maplibregl.Map {
     }
 
     this.styleInProcess = true;
+    super.setStyle(styleInfo.style, options);
 
     // reload spacebox when the new style loads
-    void this.once("style.load", () => {
-      const before = this.getLayersOrder()[0];
+    const before = this.getLayersOrder()[0];
+
+    if (typeof styleInfo.style !== "string" && !styleInfo.requiresUrlMonitoring) {
       if (this.space) {
-        console.log(this.space);
+        this.setSpaceFromCurrentStyle();
+      } else {
         this.initSpace({ before });
       }
 
       if (this.halo) {
+        this.setHaloFromCurrentStyle();
+      } else {
+        this.initHalo({ before });
+      }
+
+      return this;
+    }
+
+    void this.once("style.load", (e) => {
+      if (this.space) {
+        this.setSpaceFromCurrentStyle();
+      } else {
+        this.initSpace({ before });
+      }
+
+      if (this.halo) {
+        this.setHaloFromCurrentStyle();
+      } else {
         this.initHalo({ before });
       }
     });
 
-    super.setStyle(styleInfo.style, options);
     return this;
   }
 
