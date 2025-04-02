@@ -92,11 +92,11 @@ export class RadialGradientLayer implements CustomLayerInterface {
 
   public render(gl: WebGLRenderingContext | WebGL2RenderingContext, options: CustomRenderMethodInput): void {
     if (this.map === undefined) {
-      throw new Error("Map is undefined");
+      throw new Error("[RadialGradientLayer]: Map is undefined");
     }
 
     if (this.plane === undefined) {
-      throw new Error("Plane is undefined");
+      throw new Error("[RadialGradientLayer]: Plane is undefined");
     }
 
     gl.disable(gl.DEPTH_TEST);

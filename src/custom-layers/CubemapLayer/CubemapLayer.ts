@@ -146,15 +146,15 @@ class CubemapLayer implements CustomLayerInterface {
 
   public render(gl: WebGLRenderingContext | WebGL2RenderingContext, _options: CustomRenderMethodInput): void {
     if (this.map === undefined) {
-      throw new Error("Map is undefined");
+      throw new Error("[CubemapLayer]: Map is undefined");
     }
 
     if (this.cubemap === undefined) {
-      throw new Error("Cubemap is undefined");
+      throw new Error("[CubemapLayer]: Cubemap is undefined");
     }
 
     if (this.texture === undefined) {
-      throw new Error("Texture is undefined");
+      console.warn("[CubemapLayer]: Texture is undefined, no teture will be rendered to cubemap");
     }
 
     gl.useProgram(this.cubemap.shaderProgram);
