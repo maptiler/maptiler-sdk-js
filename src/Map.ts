@@ -1674,6 +1674,11 @@ export class Map extends maplibregl.Map {
    */
   isGlobeProjection(): boolean {
     const projection = this.getProjection();
+    // this type is incorrect, `projection` can be undefined
+
+    if (!projection) {
+      return false;
+    }
 
     return projection.type === "globe";
   }

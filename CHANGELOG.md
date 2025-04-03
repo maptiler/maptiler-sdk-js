@@ -7,6 +7,14 @@
 ## 🐛 Bug fixes
 None
 
+
+## 3.0.3
+## ✨ Features and improvements
+None
+
+## 🐛 Bug fixes
+Fixes a bug that accesses undefined `projection` object in `Map.getProjection` method
+
 ## 🔧 Others
 None
 
