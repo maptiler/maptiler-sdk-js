@@ -197,7 +197,11 @@ class CubemapLayer implements CustomLayerInterface {
     /**
      * Texture
      */
-    if (this.useCubemapTexture) {
+    if (this.texture === undefined) {
+      console.warn("[CubemapLayer]: Texture is undefined, no texture will be rendered to cubemap");
+    }
+
+    if (this.useCubemapTexture && this.texture) {
       gl.uniform1f(this.cubemap.programInfo.uniformsLocations.fadeOpacity, this.currentFadeOpacity);
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);
