@@ -1,6 +1,7 @@
-import { lerp, lerpArrayValues, linear } from "./animation-helpers";
+import { lerp, lerpArrayValues } from "./animation-helpers";
 import AnimationManager from "./AnimationManager";
-import { AnimationEventCallback, AnimationEventListenersRecord, AnimationEventTypes, EasingFunctionName, EasingFunctionsModule, Keyframe } from "./types";
+import { AnimationEventCallback, AnimationEventListenersRecord, AnimationEventTypes, EasingFunctionName, Keyframe } from "./types";
+import EasingFunctions from "./easing";
 
 /**
  * Configuration options for creating an animation.
@@ -29,6 +30,7 @@ export interface AnimationOptions {
 export type InterpolatedKeyFrame = Keyframe & {
   props: Record<string, number>;
   easing: EasingFunctionName;
+  id: string;
 };
 
 /**
@@ -87,10 +89,6 @@ export default class MTAnimation {
     return this.playing;
   }
 
-  // the easing functions to use for interpolation
-  // we load this asynchronously to avoid package bloat
-  private easingFunctions: null | EasingFunctionsModule = null;
-
   // the number of times to repeat the animation
   // 0 is no repeat, Infinity is infinite repeat
   private iterations: number;
@@ -99,6 +97,8 @@ export default class MTAnimation {
 
   // an array of keyframes animations to interpolate between
   private keyframes: InterpolatedKeyFrame[];
+
+  private currentKeyframe?: string;
 
   // the duration of the animation in milliseconds
   readonly duration: number;
@@ -125,6 +125,8 @@ export default class MTAnimation {
     return acc;
   }, {} as AnimationEventListenersRecord);
 
+  private previousProps!: Record<string, number>;
+
   constructor({ keyframes, duration, iterations, manualMode }: AnimationOptions) {
     // collate all properties that are animated
     const animatedProperties = keyframes
@@ -133,7 +135,6 @@ export default class MTAnimation {
       })
       .flat()
       .reduce<string[]>((props, prop: string) => {
-        // WAT
         if (prop && !props.includes(prop)) {
           props.push(prop);
         }
@@ -196,6 +197,7 @@ export default class MTAnimation {
           return props;
         }, {}),
         easing: keyframe.easing ?? EasingFunctionName.Linear,
+        id: crypto.randomUUID(),
       } as InterpolatedKeyFrame;
     });
 
@@ -210,19 +212,7 @@ export default class MTAnimation {
     if (!manualMode) {
       AnimationManager.add(this);
     }
-
-    void this.loadEasingFuncs();
   }
-
-  async loadEasingFuncs() {
-    try {
-      const { default: module } = await import("./easing");
-      this.easingFunctions = module;
-    } catch (e) {
-      console.error("Failed to load easing functions module, all easing will deault to linear", e);
-    }
-  }
-
   /**
    * Starts or resumes the animation
    * @returns This animation instance for method chaining
@@ -309,7 +299,7 @@ export default class MTAnimation {
 
     if (this.currentDelta >= 1 || this.currentDelta < 0) {
       this.currentIteration += 1;
-      this.emitEvent(AnimationEventTypes.Iteration, null, {});
+      this.emitEvent(AnimationEventTypes.Iteration, null, null, {});
       if (this.iterations === 0 || this.currentIteration < this.iterations) {
         this.reset(manual);
         return this;
@@ -322,9 +312,11 @@ export default class MTAnimation {
 
     const { next, current } = this.getCurrentAndNextKeyFramesAtDelta(this.currentDelta);
 
-    if (current?.delta === this.currentDelta) {
-      this.emitEvent(AnimationEventTypes.Keyframe, current);
+    if (current?.id !== this.currentKeyframe) {
+      this.emitEvent(AnimationEventTypes.Keyframe, current, next);
     }
+
+    this.currentKeyframe = current?.id;
 
     const iterpolatedProps = Object.keys(current?.props ?? {}).reduce<Record<string, number>>((acc, prop) => {
       if (current && next) {
@@ -336,8 +328,9 @@ export default class MTAnimation {
         const t = (this.currentDelta - current.delta) / (next.delta - current.delta);
 
         // get the easing function to use
-        const easingFunc = this.easingFunctions?.[current.easing] ?? linear;
-
+        // ts complains about this, but given that easing function might
+        // come from user input, we need to check if it is a function
+        const easingFunc = EasingFunctions[current.easing] ?? EasingFunctions[EasingFunctionName.Linear];
         // get the alpha value from the easing function
         // this value is the amount to interpolate between
         // the current and next value
@@ -348,10 +341,20 @@ export default class MTAnimation {
         // how much of each value to use
         acc[prop] = lerp(currentValue, nextValue, alpha);
       }
+
+      if (current && !next) {
+        acc[prop] = current.props[prop];
+      }
       return acc;
     }, {});
+    if (!this.previousProps) {
+      this.previousProps = this.keyframes[0].props;
+    }
 
-    this.emitEvent(AnimationEventTypes.TimeUpdate, current, iterpolatedProps);
+    this.emitEvent(AnimationEventTypes.TimeUpdate, current, next, iterpolatedProps, this.previousProps);
+
+    this.previousProps = { ...iterpolatedProps };
+
     return this;
   }
 
@@ -497,7 +500,7 @@ export default class MTAnimation {
    * @param keyframe - The keyframe that triggered the event
    * @param props - The interpolated properties at the current delta
    */
-  emitEvent(event: AnimationEventTypes, keyframe?: Keyframe | null, props: Record<string, number> = {}) {
+  emitEvent(event: AnimationEventTypes, keyframe?: Keyframe | null, nextKeyframe?: Keyframe | null, props: Record<string, number> = {}, previousProps?: Record<string, number>) {
     this.listeners[event].forEach((fn: AnimationEventCallback) => {
       fn({
         type: event,
@@ -506,7 +509,9 @@ export default class MTAnimation {
         currentDelta: this.currentDelta,
         playbackRate: this.playbackRate,
         keyframe,
+        nextKeyframe: nextKeyframe ?? keyframe,
         props,
+        previousProps: previousProps ?? props,
       });
     });
   }

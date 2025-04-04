@@ -32,7 +32,7 @@ export default tseslint.config(
       "@typescript-eslint/no-inferrable-types": "off",
       "@typescript-eslint/no-misused-promises": "warn",
       "@typescript-eslint/no-unnecessary-boolean-literal-compare": "off",
-      "@typescript-eslint/no-unnecessary-condition": "warn",
+      "@typescript-eslint/no-unnecessary-condition": "off", // we have the potential for a lot of user input that is not validated
       "@typescript-eslint/no-unnecessary-type-arguments": "off",
       "@typescript-eslint/no-unnecessary-type-assertion": "off",
       "@typescript-eslint/no-unnecessary-type-parameters": "warn",
@@ -53,6 +53,7 @@ export default tseslint.config(
       "@typescript-eslint/restrict-plus-operands": "warn",
       "@typescript-eslint/restrict-template-expressions": "warn",
       "@typescript-eslint/related-getter-setter-pairs": "off",
+      "@typescript-restrict-template-expressions": "off",
       "@typescript-eslint/unbound-method": "warn",
       "@typescript-eslint/use-unknown-in-catch-callback-variable": "warn",
     },
