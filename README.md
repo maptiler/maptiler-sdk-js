@@ -533,7 +533,125 @@ map.on("terrainAnimationStop", (e) => {
   });
 });
 ```
+# Halo and Space Options
 
+The `halo` and `space` options allow for enhanced visual customization of the map, especially for globe projections.  
+
+## `halo` (Atmospheric Glow)  
+The `halo` option adds a gradient-based atmospheric glow around the globe, simulating the visual effect of Earth's atmosphere when viewed from space.  
+
+### Usage:  
+You can enable a simple halo by setting it to `true`:  
+```ts
+const map = new maptilersdk.Map({
+  container: document.getElementById("map"),
+  style: maptilersdk.MapStyle.OUTDOOR,
+  halo: true,
+});
+```
+For more customization, you can define a radial gradient with scale and stops:
+```ts
+
+const map = new maptilersdk.Map({
+  container: document.getElementById("map"),
+  style: maptilersdk.MapStyle.OUTDOOR,
+  halo: {
+    scale: 1.5, // Controls the halo size
+    stops: [
+      [0.2, "transparent"],
+      [0.2, "red"],
+      [0.4, "red"],
+      [0.4, "transparent"],
+      [0.6, "transparent"],
+      [0.6, "red"],
+      [0.8, "red"],
+      [0.8, "transparent"],
+      [1.0, "transparent"],
+    ],
+  },
+});
+```
+You can also set the halo dynamically after the map loads:
+```ts
+map.on("load", () => {
+  map.setHalo({
+    scale: 2,
+    stops: [
+      [0.0, "rgba(135,206,250,1)"],
+      [0.5, "rgba(0,0,250,0.75)"],
+      [0.75, "rgba(250,0,0,0.0)"],
+    ],
+  });
+});
+```
+## `space` (Background Environment)
+
+The space option allows customizing the background environment of the globe, simulating deep space or skybox effects.
+### Usage
+
+You can enable a simple space background with a solid color:
+```ts
+const map = new maptilersdk.Map({
+  container: document.getElementById("map"),
+  style: maptilersdk.MapStyle.OUTDOOR,
+  space: {
+    color: "#111122", // Dark space-like color
+  },
+});
+```
+Alternatively, you can provide a cubemap for a realistic skybox effect using one of the following methods:
+
+    Predefined Presets:
+```ts
+const map = new maptilersdk.Map({
+  container: document.getElementById("map"),
+  style: maptilersdk.MapStyle.OUTDOOR,
+  space: {
+    preset: "universe-dark",
+  },
+});
+```
+Cubemap Images (Custom Skybox):
+```ts
+const map = new maptilersdk.Map({
+  container: document.getElementById("map"),
+  style: maptilersdk.MapStyle.OUTDOOR,
+  space: {
+    faces: {
+      pX: '/path-to-image/pX.png',
+      nX: '/path-to-image/nX.png',
+      pY: '/path-to-image/pY.png',
+      nY: '/path-to-image/nY.png',
+      pZ: '/path-to-image/pZ.png',
+      nZ: '/path-to-image/nZ.png',
+    },
+  },
+});
+```
+Cubemap Path with image format, fetches all images from a path, this assumes all files are named px, nx, py, ny, pz, nz and suffixed with the appropriate extension specified in `format`.
+```ts
+    const map = new maptilersdk.Map({
+      container: document.getElementById("map"),
+      style: maptilersdk.MapStyle.OUTDOOR,
+      space: {
+        path: {
+          baseUrl: "spacebox/transparent",
+          format: "png", // Defaults to PNG
+        },
+      },
+    });
+```
+You can also set the space background dynamically:
+```ts
+map.on("load", () => {
+  map.setSpace({
+    color: "red",
+    path: {
+      baseUrl: "spacebox/transparent",
+    },
+  });
+});
+```
 
 # Easy language switching
 The language generally depends on the style but we made it possible to easily set and update from a built-in list of languages.
