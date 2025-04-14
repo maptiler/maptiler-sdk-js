@@ -112,7 +112,7 @@ export default class MTAnimation {
 
   private delay: number = 0;
 
-  private delayTimeoutID?: number | NodeJS.Timeout;
+  private delayTimeoutID?: number;
 
   private listeners: AnimationEventListenersRecord = Object.values(AnimationEventTypes).reduce((acc, type) => {
     acc[type] = [];
@@ -351,7 +351,7 @@ export default class MTAnimation {
     if ((this.currentDelta >= 1 || this.currentDelta < 0) && !ignoreIteration) {
       this.currentIteration += 1;
       this.emitEvent(AnimationEventTypes.Iteration, null, null, {});
-      if (this.iterations === 0 || this.currentIteration <= this.iterations) {
+      if (this.iterations === 0 || this.currentIteration < this.iterations) {
         this.reset(manual);
         return this;
       }

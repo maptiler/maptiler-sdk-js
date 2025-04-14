@@ -1,6 +1,7 @@
 import { Feature, LineString, MultiLineString, MultiPoint, Polygon } from "geojson";
 import { EasingFunctionName, Keyframe, NumericArrayWithNull } from "./types";
 import { arraysAreTheSameLength } from "../array";
+import { LngLat } from "maplibre-gl";
 
 /**
  * Performs simple linear interpolation between two numbers.
@@ -14,8 +15,6 @@ import { arraysAreTheSameLength } from "../array";
 export function lerp(a: number, b: number, alpha: number) {
   return a + (b - a) * alpha;
 }
-
-const f = 1;
 
 /**
  * Interpolates an array of numbers, replacing null values with interpolated values.
@@ -54,7 +53,7 @@ export function lerpArrayValues(numericArray: NumericArrayWithNull): number[] {
 
     // if there is no next value, eg all values are null after this index
     // return the value of the previous entry that has a value
-    // "fill all the way to the end
+    // "fill all the way to the end"
     if (nextIndex === null || nextValue === null) {
       return prevValue;
     }
@@ -99,7 +98,7 @@ function findPreviousEntryAndIndexWithValue(arr: NumericArrayWithNull, currentIn
   return [null, null];
 }
 
-interface IParseGeoJSONToKeyframesOptions {
+interface IparseGeoJSONToKeyframesOptions {
   defaultEasing?: EasingFunctionName;
   pathSmoothing?:
     | {
@@ -109,9 +108,12 @@ interface IParseGeoJSONToKeyframesOptions {
     | false;
 }
 
-const parseGeoJSONFeatureToKeyframesDefaultOptions: IParseGeoJSONToKeyframesOptions = {
+const defaultOptions: IparseGeoJSONToKeyframesOptions = {
   defaultEasing: EasingFunctionName.Linear,
-  pathSmoothing: false,
+  pathSmoothing: {
+    resolution: 20,
+    epsilon: 5,
+  },
 };
 
 const ACCEPTED_GEOMETRY_TYPES = ["MultiPoint", "LineString", "MultiLineString", "Polygon"];
@@ -122,6 +124,10 @@ export type KeyframeableGeoJSONFeature = Feature<KeyframeableGeometry> & {
   properties: Record<string, number[]> & {
     "@easing"?: EasingFunctionName[];
     "@delta"?: number[];
+    "@duration"?: number;
+    "@delay"?: number;
+    "@iterations"?: number;
+    "@autoplay"?: boolean;
   };
 };
 
@@ -149,13 +155,14 @@ export type KeyframeableGeoJSONFeature = Feature<KeyframeableGeometry> & {
  * @throws {Error} When no geometry is found in the feature
  * @throws {Error} When the geometry type is not supported
  */
-export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeature, options: IParseGeoJSONToKeyframesOptions = {}): Keyframe[] {
+export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeature, options: IparseGeoJSONToKeyframesOptions = {}): Keyframe[] {
   const { defaultEasing } = {
-    ...parseGeoJSONFeatureToKeyframesDefaultOptions,
+    ...defaultOptions,
     ...options,
-  };
+  } as IparseGeoJSONToKeyframesOptions;
 
-  const { geometry, properties } = feature;
+  const geometry = feature.geometry;
+  const properties = feature.properties;
 
   const easings = properties["@easing"];
 
@@ -173,7 +180,7 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
   }
 
   if (!ACCEPTED_GEOMETRY_TYPES.includes(geometry.type)) {
-    throw new Error(`[parseGeoJSONFeatureToKeyframes]: Geometry type ${geometry.type} not supported. Accepted types are: ${ACCEPTED_GEOMETRY_TYPES.join(", ")}`);
+    throw new Error(`[parseGeoJSONFeatureToKeyframes]: Geometry type ${geometry.type} is not supported. Accepted types are: ${ACCEPTED_GEOMETRY_TYPES.join(", ")}`);
   }
 
   // if the geometry is an array of arrays of coordinates
@@ -318,55 +325,64 @@ function getKeyframes(coordinates: number[][], deltas: number[], easings: Easing
  *                                  creating the curves.
  * @returns An array of [x, y] coordinates representing the smoothed path
  */
-export function createBezierPathFromCoordinates(inputPath: [number, number][], outputResolution: number = 20, simplificationThreshold?: number): [number, number][] {
-  const workingPath = typeof simplificationThreshold === "number" ? simplifyPath(inputPath, simplificationThreshold) : inputPath;
+export function createBezierPathFromCoordinates(inputPath: [number, number][], outputResolution: number = 20, epsilon?: number): [number, number][] {
+  const path = typeof epsilon === "number" ? simplifyPath(inputPath, epsilon) : inputPath;
 
-  if (workingPath.length < 4) return workingPath; // Need at least 4 points
+  if (path.length < 4) return path; // Need at least 4 points
 
-  const smoothedPath: [number, number][] = [];
+  const smoothPath: [number, number][] = [];
 
-  for (let i = 1; i < workingPath.length - 2; i++) {
-    const previousPoint = workingPath[i - 1];
-    const currentPoint = workingPath[i];
-    const nextPoint = workingPath[i + 1];
-    const afterNextPoint = workingPath[i + 2];
+  for (let i = 1; i < path.length - 2; i++) {
+    const p0 = path[i - 1];
+    const p1 = path[i];
+    const p2 = path[i + 1];
+    const p3 = path[i + 2];
 
-    // Compute control points
-    const firstControlPoint: [number, number] = [currentPoint[0] + (nextPoint[0] - previousPoint[0]) / 6, currentPoint[1] + (nextPoint[1] - previousPoint[1]) / 6];
-    const secondControlPoint: [number, number] = [nextPoint[0] - (afterNextPoint[0] - currentPoint[0]) / 6, nextPoint[1] - (afterNextPoint[1] - currentPoint[1]) / 6];
+    // Compute control points...
+    const c1: [number, number] = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2: [number, number] = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
 
-    // Generate points along the Bezier curve
-    for (let curvePosition = 0; curvePosition <= 1; curvePosition += 1 / outputResolution) {
-      const interpolatedX =
-        (1 - curvePosition) ** 3 * currentPoint[0] +
-        3 * (1 - curvePosition) ** 2 * curvePosition * firstControlPoint[0] +
-        3 * (1 - curvePosition) * curvePosition ** 2 * secondControlPoint[0] +
-        curvePosition ** 3 * nextPoint[0];
+    // Generate points along the curve...
+    for (let t = 0; t <= 1; t += 1 / outputResolution) {
+      const x = (1 - t) ** 3 * p1[0] + 3 * (1 - t) ** 2 * t * c1[0] + 3 * (1 - t) * t ** 2 * c2[0] + t ** 3 * p2[0];
 
-      const interpolatedY =
-        (1 - curvePosition) ** 3 * currentPoint[1] +
-        3 * (1 - curvePosition) ** 2 * curvePosition * firstControlPoint[1] +
-        3 * (1 - curvePosition) * curvePosition ** 2 * secondControlPoint[1] +
-        curvePosition ** 3 * nextPoint[1];
+      const y = (1 - t) ** 3 * p1[1] + 3 * (1 - t) ** 2 * t * c1[1] + 3 * (1 - t) * t ** 2 * c2[1] + t ** 3 * p2[1];
 
-      smoothedPath.push([interpolatedX, interpolatedY]);
+      smoothPath.push([x, y]);
     }
   }
 
-  return smoothedPath;
+  return smoothPath;
+}
+
+export function getAverageDistance(arr: [number, number][]): number {
+  return (
+    arr
+      .map((point, index) => {
+        if (index === 0) return 0;
+        const lastPoint = arr[index - 1];
+        const lngLat = new LngLat(point[0], point[1]);
+        const lastLngLat = new LngLat(lastPoint[0], lastPoint[1]);
+        return lngLat.distanceTo(lastLngLat);
+      })
+      .reduce((acc, dist) => acc + dist, 0) / arr.length
+  );
 }
 
 /**
- * Simplifies a path by removing points that are closer than a specified distance to the last retained point.
- * Note that this is euclidean distance only, so for lat lng coordinates
- * there will be some inaccuracies on larger distances and closer to the poles.
+ * Simplfies a path by removing points that are too close together.
  *
- * @param path - An array of [x, y] coordinates representing the original path
- * @param distance - The minimum distance threshold between consecutive points in the simplified path
- * @returns A new array containing the simplified path with fewer points
+ * This function first resamples the path based on the average distance between points,
+ * then filters out points that are closer than the specified distance from the last included point.
+ * The first and last points of the original path are always preserved.
  *
+ * @param points - An array of coordinate pairs [longitude, latitude]
+ * @param distance - The minimum distance between points in the simplified path
+ * @returns A new array containing a simplified version of the input path
  */
-export function simplifyPath(path: [number, number][], distance: number): [number, number][] {
+export function simplifyPath(points: [number, number][], distance: number): [number, number][] {
+  const path = resamplePath(points, getAverageDistance(points) * distance);
+
   if (path.length < 2) return path;
 
   const simplifiedPath: [number, number][] = [path[0]]; // Start with the first point
@@ -375,8 +391,10 @@ export function simplifyPath(path: [number, number][], distance: number): [numbe
 
   for (let i = 1; i < path.length; i++) {
     const currentPoint = path[i];
-    const dist = Math.sqrt((currentPoint[0] - lastPoint[0]) ** 2 + (currentPoint[1] - lastPoint[1]) ** 2);
 
+    const lastLngLat = new LngLat(lastPoint[0], lastPoint[1]);
+    const currentLngLat = new LngLat(currentPoint[0], currentPoint[1]);
+    const dist = lastLngLat.distanceTo(currentLngLat);
     // Add the point if it is farther than the specified distance
     if (dist >= distance) {
       simplifiedPath.push(currentPoint);
@@ -384,5 +402,44 @@ export function simplifyPath(path: [number, number][], distance: number): [numbe
     }
   }
 
+  simplifiedPath.push(path[path.length - 1]); // Add the last point
+
   return simplifiedPath;
+}
+
+/**
+ * Resamples a geographic path to have points spaced at approximately equal distances.
+ * If the original path has fewer than 2 points, it is returned unchanged.
+ *
+ * @param path - An array of coordinate pairs [longitude, latitude] representing the path to resample
+ * @param spacing - The desired spacing between points in the resampled path (in the same unit as used by the distanceTo method), defaults to 10
+ * @returns A new array of coordinate pairs representing the resampled path with approximately equal spacing between points
+ *
+ */
+export function resamplePath(path: [number, number][], spacing: number = 10): [number, number][] {
+  if (path.length < 2) return path;
+
+  const result: [number, number][] = [path[0]];
+  let remaining = spacing;
+
+  for (let i = 0; i < path.length - 1; ) {
+    const p1 = LngLat.convert(path[i]);
+    const p2 = LngLat.convert(path[i + 1]);
+    const segDist = p1.distanceTo(p2);
+
+    if (segDist < remaining) {
+      remaining -= segDist;
+      i++;
+    } else {
+      const t = remaining / segDist;
+
+      const newPoint: [number, number] = [lerp(p1.lng, p2.lng, t), lerp(p1.lat, p2.lat, t)];
+
+      result.push(newPoint);
+      path[i] = newPoint; // insert newPoint into segment
+      remaining = spacing;
+    }
+  }
+
+  return result;
 }
