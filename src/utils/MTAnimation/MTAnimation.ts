@@ -222,13 +222,21 @@ export default class MTAnimation {
       return this;
     }
 
-    this.delayTimeoutID = setTimeout(() => {
+    const doPlay = () => {
       this.playing = true;
       this.animationStartTime = performance.now();
       this.lastFrameAt = this.animationStartTime;
       this.emitEvent(AnimationEventTypes.Play);
-      this.delayTimeoutID = undefined;
-    }, this.delay / this.playbackRate);
+    };
+
+    if (this.delay > 0) {
+      this.delayTimeoutID = window.setTimeout(() => {
+        doPlay();
+        this.delayTimeoutID = undefined;
+      }, this.delay / this.playbackRate);
+    } else {
+      doPlay();
+    }
 
     return this;
   }
@@ -249,9 +257,9 @@ export default class MTAnimation {
    * @returns This animation instance for method chaining
    * @emits AnimationEventTypes.Stop
    */
-  stop() {
+  stop(silent: boolean = false) {
     this.playing = false;
-    this.emitEvent(AnimationEventTypes.Stop);
+    if (!silent) this.emitEvent(AnimationEventTypes.Stop);
     return this;
   }
 
@@ -261,7 +269,8 @@ export default class MTAnimation {
    * @emits AnimationEventTypes.Reset
    */
   reset(manual: boolean = true) {
-    this.playing = false;
+    this.stop(true);
+    window.clearTimeout(this.delayTimeoutID);
     this.currentTime = 0;
     this.currentDelta = this.playbackRate < 0 ? 1 : 0;
     this.emitEvent(AnimationEventTypes.Reset);
@@ -295,16 +304,18 @@ export default class MTAnimation {
    */
   update(manual = true, ignoreIteration = false) {
     const currentTime = performance.now();
+    if (!ignoreIteration) {
+      const frameLength = manual ? 16 : currentTime - this.lastFrameAt;
+      const timeElapsed = currentTime - this.animationStartTime;
 
-    const frameLength = manual ? 16 : currentTime - this.lastFrameAt;
-    const timeElapsed = currentTime - this.animationStartTime;
+      this.lastFrameAt = currentTime;
 
-    this.lastFrameAt = currentTime;
+      const timeDelta = timeElapsed * this.playbackRate;
 
-    const timeDelta = timeElapsed * this.playbackRate;
-    this.currentTime = timeDelta;
+      this.currentTime = timeDelta;
 
-    this.currentDelta += frameLength / this.effectiveDuration;
+      this.currentDelta += frameLength / this.effectiveDuration;
+    }
 
     const { next, current } = this.getCurrentAndNextKeyFramesAtDelta(this.currentDelta);
 
@@ -406,8 +417,6 @@ export default class MTAnimation {
     if (time > this.effectiveDuration) {
       throw new Error(`Cannot set time greater than duration`);
     }
-
-    this.play();
 
     this.currentTime = time;
     this.currentDelta = time / this.effectiveDuration;
