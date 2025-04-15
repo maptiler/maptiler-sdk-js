@@ -166,16 +166,8 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
       const { activeColor, inactiveColor } = this.pathStrokeAnimation;
 
       if (currentDelta >= 1) {
-        // when the animation is
-        this.map.setPaintProperty(this.source.layerID, "line-gradient", [
-          "interpolate",
-          ["linear"],
-          ["line-progress"], // Progress along the line
-          0,
-          ["rgba", ...activeColor],
-          1,
-          ["rgba", ...activeColor],
-        ]);
+        // when the animation is finished, set the color to the active color
+        this.map.setPaintProperty(this.source.layerID, "line-gradient", ["interpolate", ["linear"], ["line-progress"], 0, ["rgba", ...activeColor], 1, ["rgba", ...activeColor]]);
       } else {
         this.map.setPaintProperty(this.source.layerID, "line-gradient", [
           "interpolate",
