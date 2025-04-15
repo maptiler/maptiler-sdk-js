@@ -547,7 +547,6 @@ export default class MTAnimation {
 
   /**
    * Destroys the animation instance, removing all event listeners and stopping playback
-   * @returns This animation instance for method chaining
    */
   destroy() {
     this.stop();

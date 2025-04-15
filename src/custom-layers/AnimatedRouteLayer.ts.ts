@@ -221,64 +221,67 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
   async getAnimationOptions(): Promise<AnimationOptions & { autoplay: boolean }> {
     const map = this.map;
     if (this.source) {
-      const source = map.getSource(this.source.id) as GeoJSONSource | undefined;
+      const source = map.getSource(this.source.id);
 
-      const featureCollection = await source?.getData();
+      if (source) {
+        // this weird type assertion is here to appease typescript
+        const featureCollection = await (source as unknown as GeoJSONSource)?.getData();
 
-      if (!featureCollection || featureCollection.type !== "FeatureCollection" || !featureCollection.features) {
-        throw new Error("[AnimatedRouteLayer.onAdd]: No featureCollection found in source data");
+        if (!featureCollection || featureCollection.type !== "FeatureCollection" || !featureCollection.features) {
+          throw new Error("[AnimatedRouteLayer.onAdd]: No featureCollection found in source data");
+        }
+
+        const feature = featureCollection.features[this.source.featureSetIndex];
+        if (!feature) {
+          throw new Error(`[AnimatedRouteLayer.onAdd]: No feature found at index ${this.source.featureSetIndex}`);
+        }
+
+        const keyframeableFeature = feature as KeyframeableGeoJSONFeature;
+
+        if (keyframeableFeature.properties["@duration"]) {
+          this.duration = keyframeableFeature.properties["@duration"] ?? 1000;
+        }
+
+        if (keyframeableFeature.properties["@iterations"]) {
+          this.iterations = keyframeableFeature.properties["@iterations"] ?? 0;
+        }
+
+        if (keyframeableFeature.properties["@delay"]) {
+          this.delay = keyframeableFeature.properties["@delay"] ?? 0;
+        }
+
+        if (keyframeableFeature.properties["@autoplay"]) {
+          this.autoplay = keyframeableFeature.properties["@autoplay"] ?? false;
+        }
+
+        const keyframes = parseGeoJSONFeatureToKeyframes(keyframeableFeature, {
+          pathSmoothing: this.cameraAnimationOptions ? this.cameraAnimationOptions.pathSmoothing : false,
+          defaultEasing: this.easing,
+        });
+
+        const duration = this.duration;
+        const iterations = this.iterations;
+        const delay = this.delay;
+        const autoplay = this.autoplay;
+
+        return {
+          keyframes,
+          duration,
+          iterations,
+          delay,
+          autoplay,
+        };
       }
 
-      const feature = featureCollection.features[this.source.featureSetIndex];
-      if (!feature) {
-        throw new Error(`[AnimatedRouteLayer.onAdd]: No feature found at index ${this.source.featureSetIndex}`);
+      if (this.keyframes) {
+        return {
+          keyframes: this.keyframes,
+          duration: this.duration,
+          iterations: this.iterations,
+          delay: this.delay,
+          autoplay: this.autoplay,
+        };
       }
-
-      const keyframeableFeature = feature as KeyframeableGeoJSONFeature;
-
-      if (keyframeableFeature.properties["@duration"]) {
-        this.duration = keyframeableFeature.properties["@duration"] ?? 1000;
-      }
-
-      if (keyframeableFeature.properties["@iterations"]) {
-        this.iterations = keyframeableFeature.properties["@iterations"] ?? 0;
-      }
-
-      if (keyframeableFeature.properties["@delay"]) {
-        this.delay = keyframeableFeature.properties["@delay"] ?? 0;
-      }
-
-      if (keyframeableFeature.properties["@autoplay"]) {
-        this.autoplay = keyframeableFeature.properties["@autoplay"] ?? false;
-      }
-
-      const keyframes = parseGeoJSONFeatureToKeyframes(keyframeableFeature, {
-        pathSmoothing: this.cameraAnimationOptions ? this.cameraAnimationOptions.pathSmoothing : false,
-        defaultEasing: this.easing,
-      });
-
-      const duration = this.duration;
-      const iterations = this.iterations;
-      const delay = this.delay;
-      const autoplay = this.autoplay;
-
-      return {
-        keyframes,
-        duration,
-        iterations,
-        delay,
-        autoplay,
-      };
-    }
-
-    if (this.keyframes) {
-      return {
-        keyframes: this.keyframes,
-        duration: this.duration,
-        iterations: this.iterations,
-        delay: this.delay,
-        autoplay: this.autoplay,
-      };
     }
 
     throw new Error("[AnimatedRouteLayer.onAdd]: No keyframes or source provided");
