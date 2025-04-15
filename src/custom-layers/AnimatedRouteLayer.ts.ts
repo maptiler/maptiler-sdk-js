@@ -53,10 +53,10 @@ type AnimatedRouteLayerOptions = {
 
 type FrameCallback = (event: AnimationEvent) => void;
 
-const ANIN_LAYER_PREFIX = "animated-route-layer";
+const ANIM_LAYER_PREFIX = "animated-route-layer";
 
 export class AnimatedRouteLayer implements CustomLayerInterface {
-  readonly id = `${ANIN_LAYER_PREFIX}-${uuidv4()}`;
+  readonly id = `${ANIM_LAYER_PREFIX}-${uuidv4()}`;
   readonly type = "custom";
   private animationInstance!: MTAnimation;
 
@@ -94,10 +94,6 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
     autoplay,
     manualUpdate = false,
   }: AnimatedRouteLayerOptions) {
-    this.keyframes = keyframes ?? null;
-
-    this.source = source ?? null;
-
     this.keyframes = keyframes ?? null;
 
     this.source = source ?? null;
@@ -140,9 +136,9 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
 
   async onAdd(map: Map): Promise<void> {
     this.map = map;
-    if (this.map.getLayersOrder().some((current) => current.includes(ANIN_LAYER_PREFIX) && this.id !== current)) {
+    if (this.map.getLayersOrder().some((current) => current.includes(ANIM_LAYER_PREFIX) && this.id !== current)) {
       throw new Error(
-        `[AnimatedRouteLayer.onAdd]: Currently, ou can only have one active AnimatedRouteLayer at a time. Please remove any existing instances before adding a new one.`,
+        `[AnimatedRouteLayer.onAdd]: Currently, you can only have one active AnimatedRouteLayer at a time. Please remove any existing instances before adding a new one.`,
       );
     }
 
