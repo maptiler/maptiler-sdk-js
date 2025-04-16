@@ -1,5 +1,15 @@
 # MapTiler SDK Changelog
 
+## 3.1.0
+## ✨ Features and improvements
+Updates MapTiler Client JS version to include new MapStyles
+
+## 🐛 Bug fixes
+None
+
+## 🔧 Others
+None
+
 ## 3.0.3
 ## ✨ Features and improvements
 None
