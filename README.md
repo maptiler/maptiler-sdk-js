@@ -40,7 +40,7 @@ In addition to the details and examples provided in this readme, check out the [
 **Recommended for:** advanced applications
 
 ```ts
-import {config, Map} from '@maptiler/sdk';
+import { config, Map } from '@maptiler/sdk';
 
 // Add your MapTiler Cloud API key to the config
 // (Go to https://cloud.maptiler.com/account/keys/ to get one for free!)
@@ -57,7 +57,7 @@ const map = new Map({
 
 Alternatively, the `apiKey` can be set as Map option instead of in the `config` object. Yet, this will still internally propagate to the `config` object:
 ```ts
-import {Map} from '@maptiler/sdk';
+import { Map } from '@maptiler/sdk';
 
 // Let's say you have a DIV ready to receive a map
 const mapContainer = document.getElementById('my-container-div');
