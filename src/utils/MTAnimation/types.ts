@@ -59,12 +59,12 @@ export type AnimationEvent = {
   currentDelta: number;
   playbackRate: number;
   keyframe?: Keyframe | null;
-  props?: Record<string, number>;
+  nextKeyframe?: Keyframe | null;
+  props: Record<string, number>;
+  previousProps: Record<string, number>;
   iteration?: number;
 };
 
 export type AnimationEventListenersRecord = Record<AnimationEventTypes, AnimationEventCallback[]>;
 
 export type AnimationEventCallback = (event: AnimationEvent) => void;
-
-export type EasingFunctionsModule = typeof import("./easing").default;

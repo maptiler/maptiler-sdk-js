@@ -1,28 +1,165 @@
-import Easing from "easing-functions";
 import { EasingFunctionName } from "./types";
 
-// We are wrapping these in arrow functions to avoid ts complaining about
-// unboud `this` in the easing functions.
 const EasingFunctions: Record<EasingFunctionName, (K: number) => number> = {
-  [EasingFunctionName.Linear]: (n: number) => Easing.Linear(n),
-  [EasingFunctionName.QuadraticIn]: (n: number) => Easing.quadratic.In(n),
-  [EasingFunctionName.QuadraticOut]: (n: number) => Easing.quadratic.Out(n),
-  [EasingFunctionName.QuadraticInOut]: (n: number) => Easing.quadratic.InOut(n),
-  [EasingFunctionName.CubicIn]: (n: number) => Easing.cubic.In(n),
-  [EasingFunctionName.CubicOut]: (n: number) => Easing.cubic.Out(n),
-  [EasingFunctionName.CubicInOut]: (n: number) => Easing.cubic.InOut(n),
-  [EasingFunctionName.SinusoidalIn]: (n: number) => Easing.sinusoidal.In(n),
-  [EasingFunctionName.SinusoidalOut]: (n: number) => Easing.sinusoidal.Out(n),
-  [EasingFunctionName.SinusoidalInOut]: (n: number) => Easing.sinusoidal.InOut(n),
-  [EasingFunctionName.ExponentialIn]: (n: number) => Easing.exponential.In(n),
-  [EasingFunctionName.ExponentialOut]: (n: number) => Easing.exponential.Out(n),
-  [EasingFunctionName.ExponentialInOut]: (n: number) => Easing.exponential.InOut(n),
-  [EasingFunctionName.ElasticIn]: (n: number) => Easing.elastic.In(n),
-  [EasingFunctionName.ElasticOut]: (n: number) => Easing.elastic.Out(n),
-  [EasingFunctionName.ElasticInOut]: (n: number) => Easing.elastic.InOut(n),
-  [EasingFunctionName.BounceIn]: (n: number) => Easing.bounce.In(n),
-  [EasingFunctionName.BounceOut]: (n: number) => Easing.bounce.Out(n),
-  [EasingFunctionName.BounceInOut]: (n: number) => Easing.bounce.InOut(n),
+  [EasingFunctionName.Linear]: easingLinear,
+  [EasingFunctionName.QuadraticIn]: easingQuadraticIn,
+  [EasingFunctionName.QuadraticOut]: easingQuadraticOut,
+  [EasingFunctionName.QuadraticInOut]: easingQuadraticInOut,
+  [EasingFunctionName.CubicIn]: easingCubicIn,
+  [EasingFunctionName.CubicOut]: easingCubicOut,
+  [EasingFunctionName.CubicInOut]: easingCubicInOut,
+  [EasingFunctionName.SinusoidalIn]: easingSinusoidalIn,
+  [EasingFunctionName.SinusoidalOut]: easingSinusoidalOut,
+  [EasingFunctionName.SinusoidalInOut]: easingSinusoidalInOut,
+  [EasingFunctionName.ExponentialIn]: easingExponentialIn,
+  [EasingFunctionName.ExponentialOut]: easingExponentialOut,
+  [EasingFunctionName.ExponentialInOut]: easingExponentialInOut,
+  [EasingFunctionName.ElasticIn]: easingElasticIn,
+  [EasingFunctionName.ElasticOut]: easingElasticOut,
+  [EasingFunctionName.ElasticInOut]: easingElasticInOut,
+  [EasingFunctionName.BounceIn]: easingBounceIn,
+  [EasingFunctionName.BounceOut]: easingBounceOut,
+  [EasingFunctionName.BounceInOut]: easingBounceInOut,
 };
 
 export default EasingFunctions;
+
+function easingLinear(n: number): number {
+  return n;
+}
+
+function easingQuadraticIn(n: number): number {
+  return n * n;
+}
+
+function easingQuadraticOut(n: number): number {
+  return n * (2 - n);
+}
+
+function easingQuadraticInOut(n: number): number {
+  let dn = n * 2;
+  if (dn < 1) {
+    return 0.5 * dn * dn;
+  }
+  dn -= 1;
+  return -0.5 * (dn * (dn - 2) - 1);
+}
+
+function easingCubicIn(n: number): number {
+  return n * n * n;
+}
+
+function easingCubicOut(n: number): number {
+  return --n * n * n + 1;
+}
+
+function easingCubicInOut(n: number): number {
+  let dn = n * 2;
+  if (dn < 1) {
+    return 0.5 * dn * dn * dn;
+  }
+  dn -= 2;
+  return 0.5 * (dn * dn * dn + 2);
+}
+function easingSinusoidalIn(n: number): number {
+  return 1 - Math.cos((n * Math.PI) / 2);
+}
+
+function easingSinusoidalOut(n: number): number {
+  return Math.sin((n * Math.PI) / 2);
+}
+
+function easingSinusoidalInOut(n: number): number {
+  return 0.5 * (1 - Math.cos(Math.PI * n));
+}
+function easingExponentialIn(n: number): number {
+  return n === 0 ? 0 : 1024 ** (n - 1);
+}
+
+function easingExponentialOut(n: number): number {
+  return n === 1 ? 1 : 1 - 2 ** (-10 * n);
+}
+
+function easingExponentialInOut(n: number): number {
+  if (n === 0) return 0;
+  if (n === 1) return 1;
+  const dn = n * 2;
+  if (dn < 1) {
+    return 0.5 * 1024 ** (dn - 1);
+  }
+  return 0.5 * (-(2 ** (-10 * (dn - 1))) + 2);
+}
+function easingElasticIn(n: number): number {
+  let a = 0.1;
+  const p = 0.4;
+  let s;
+  if (n === 0) return 0;
+  if (n === 1) return 1;
+  if (a < 1) {
+    a = 1;
+    s = p / 4;
+  } else {
+    s = (p * Math.asin(1 / a)) / (2 * Math.PI);
+  }
+  n -= 1;
+  return -(a * 2 ** (10 * n) * Math.sin(((n - s) * (2 * Math.PI)) / p));
+}
+
+function easingElasticOut(n: number): number {
+  let a = 0.1;
+  const p = 0.4;
+  let s;
+  if (n === 0) return 0;
+  if (n === 1) return 1;
+  if (a < 1) {
+    a = 1;
+    s = p / 4;
+  } else {
+    s = (p * Math.asin(1 / a)) / (2 * Math.PI);
+  }
+  return a * 2 ** (-10 * n) * Math.sin(((n - s) * (2 * Math.PI)) / p) + 1;
+}
+
+function easingElasticInOut(n: number): number {
+  let a = 0.1;
+  const p = 0.4;
+  let s;
+  if (n === 0) return 0;
+  if (n === 1) return 1;
+  if (a < 1) {
+    a = 1;
+    s = p / 4;
+  } else {
+    s = (p * Math.asin(1 / a)) / (2 * Math.PI);
+  }
+  const dn = n * 2;
+  if (dn < 1) {
+    const nInner = dn - 1;
+    return -0.5 * (a * 2 ** (10 * nInner) * Math.sin(((nInner - s) * (2 * Math.PI)) / p));
+  }
+  const nInner = dn - 1;
+  return a * 2 ** (-10 * nInner) * Math.sin(((nInner - s) * (2 * Math.PI)) / p) * 0.5 + 1;
+}
+
+function easingBounceIn(n: number): number {
+  return 1 - easingBounceOut(1 - n);
+}
+
+function easingBounceOut(n: number): number {
+  if (n < 1 / 2.75) {
+    return 7.5625 * n * n;
+  } else if (n < 2 / 2.75) {
+    const n2 = n - 1.5 / 2.75;
+    return 7.5625 * n2 * n2 + 0.75;
+  } else if (n < 2.5 / 2.75) {
+    const n2 = n - 2.25 / 2.75;
+    return 7.5625 * n2 * n2 + 0.9375;
+  }
+  const n2 = n - 2.625 / 2.75;
+  return 7.5625 * n2 * n2 + 0.984375;
+}
+
+function easingBounceInOut(n: number): number {
+  if (n < 0.5) return easingBounceIn(n * 2) * 0.5;
+  return easingBounceOut(n * 2 - 1) * 0.5 + 0.5;
+}

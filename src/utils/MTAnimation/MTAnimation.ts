@@ -1,6 +1,7 @@
-import { lerp, lerpArrayValues, linear } from "./animation-helpers";
+import { lerp, lerpArrayValues } from "./animation-helpers";
 import AnimationManager from "./AnimationManager";
-import { AnimationEventCallback, AnimationEventListenersRecord, AnimationEventTypes, EasingFunctionName, EasingFunctionsModule, Keyframe } from "./types";
+import { AnimationEventCallback, AnimationEventListenersRecord, AnimationEventTypes, EasingFunctionName, Keyframe } from "./types";
+import EasingFunctions from "./easing";
 
 /**
  * Configuration options for creating an animation.
@@ -9,6 +10,7 @@ import { AnimationEventCallback, AnimationEventListenersRecord, AnimationEventTy
  * @property {Keyframe[]} keyframes - The keyframes that define the animation states at various points in time.
  * @property {number} duration - The total duration of the animation in milliseconds.
  * @property {number} iterations - The number of times the animation should repeat. Use 0 for no repeat, or Infinity for an infinite loop.
+ * @property {delay} [delay] - Optional. The delay before the animation starts, in milliseconds. Defaults to 0 if not specified.
  * @property {boolean} [manualMode] - Optional. If true, the animation will not be automatically managed by the animation manager
  *                                   and must be updated manually by calling update(). Defaults to false if not specified.
  */
@@ -24,11 +26,15 @@ export interface AnimationOptions {
   // animation manager and will need to be updated manually
   // by calling update()
   manualMode?: boolean;
+
+  // the delay before the animation starts in milliseconds
+  delay?: number;
 }
 
 export type InterpolatedKeyFrame = Keyframe & {
   props: Record<string, number>;
   easing: EasingFunctionName;
+  id: string;
 };
 
 /**
@@ -66,30 +72,12 @@ export type InterpolatedKeyFrame = Keyframe & {
  *
  * When not using manualMode, animations are automatically added to the AnimationManager.
  */
-export interface AnimationOptions {
-  // the keyframes to animate between
-  keyframes: Keyframe[];
-  // the duration of the animation in milliseconds
-  duration: number;
-  // the number of times to repeat the
-  // animation, 0 is no repeat, Infinity is infinite repeat
-  iterations: number;
-  // if true, the animation will not be added to the
-  // animation manager and will need to be updated manually
-  // by calling update()
-  manualMode?: boolean;
-}
-
 export default class MTAnimation {
   private playing: boolean = false;
 
   get isPlaying() {
     return this.playing;
   }
-
-  // the easing functions to use for interpolation
-  // we load this asynchronously to avoid package bloat
-  private easingFunctions: null | EasingFunctionsModule = null;
 
   // the number of times to repeat the animation
   // 0 is no repeat, Infinity is infinite repeat
@@ -99,6 +87,8 @@ export default class MTAnimation {
 
   // an array of keyframes animations to interpolate between
   private keyframes: InterpolatedKeyFrame[];
+
+  private currentKeyframe?: string;
 
   // the duration of the animation in milliseconds
   readonly duration: number;
@@ -120,12 +110,18 @@ export default class MTAnimation {
 
   private lastFrameAt: number = 0;
 
+  private delay: number = 0;
+
+  private delayTimeoutID?: number;
+
   private listeners: AnimationEventListenersRecord = Object.values(AnimationEventTypes).reduce((acc, type) => {
     acc[type] = [];
     return acc;
   }, {} as AnimationEventListenersRecord);
 
-  constructor({ keyframes, duration, iterations, manualMode }: AnimationOptions) {
+  private previousProps!: Record<string, number>;
+
+  constructor({ keyframes, duration, iterations, manualMode, delay }: AnimationOptions) {
     // collate all properties that are animated
     const animatedProperties = keyframes
       .map(({ props }: Keyframe) => {
@@ -133,7 +129,6 @@ export default class MTAnimation {
       })
       .flat()
       .reduce<string[]>((props, prop: string) => {
-        // WAT
         if (prop && !props.includes(prop)) {
           props.push(prop);
         }
@@ -196,11 +191,13 @@ export default class MTAnimation {
           return props;
         }, {}),
         easing: keyframe.easing ?? EasingFunctionName.Linear,
+        id: crypto.randomUUID(),
       } as InterpolatedKeyFrame;
     });
 
     this.duration = duration;
     this.iterations = iterations;
+    this.delay = delay ?? 0;
     this.playbackRate = 1;
     this.effectiveDuration = duration / this.playbackRate;
     this.currentTime = 0;
@@ -210,29 +207,37 @@ export default class MTAnimation {
     if (!manualMode) {
       AnimationManager.add(this);
     }
-
-    void this.loadEasingFuncs();
   }
-
-  async loadEasingFuncs() {
-    try {
-      const { default: module } = await import("./easing");
-      this.easingFunctions = module;
-    } catch (e) {
-      console.error("Failed to load easing functions module, all easing will deault to linear", e);
-    }
-  }
-
   /**
    * Starts or resumes the animation
    * @returns This animation instance for method chaining
    * @emits AnimationEventTypes.Play
    */
   play() {
-    this.playing = true;
-    this.animationStartTime = performance.now();
-    this.lastFrameAt = this.animationStartTime;
-    this.emitEvent(AnimationEventTypes.Play);
+    if (this.playing) {
+      return this;
+    }
+
+    if (this.delayTimeoutID) {
+      return this;
+    }
+
+    const doPlay = () => {
+      this.playing = true;
+      this.animationStartTime = performance.now();
+      this.lastFrameAt = this.animationStartTime;
+      this.emitEvent(AnimationEventTypes.Play);
+    };
+
+    if (this.delay > 0) {
+      this.delayTimeoutID = window.setTimeout(() => {
+        doPlay();
+        this.delayTimeoutID = undefined;
+      }, this.delay / this.playbackRate);
+    } else {
+      doPlay();
+    }
+
     return this;
   }
 
@@ -252,9 +257,9 @@ export default class MTAnimation {
    * @returns This animation instance for method chaining
    * @emits AnimationEventTypes.Stop
    */
-  stop() {
+  stop(silent: boolean = false) {
     this.playing = false;
-    this.emitEvent(AnimationEventTypes.Stop);
+    if (!silent) this.emitEvent(AnimationEventTypes.Stop);
     return this;
   }
 
@@ -264,9 +269,12 @@ export default class MTAnimation {
    * @emits AnimationEventTypes.Reset
    */
   reset(manual: boolean = true) {
+    this.stop(true);
+    window.clearTimeout(this.delayTimeoutID);
     this.currentTime = 0;
     this.currentDelta = this.playbackRate < 0 ? 1 : 0;
     this.emitEvent(AnimationEventTypes.Reset);
+    this.update(false, true);
 
     if (!manual) this.play();
 
@@ -294,37 +302,28 @@ export default class MTAnimation {
    * @emits AnimationEventTypes.AnimationEnd
    * @returns This animation instance for method chaining
    */
-  update(manual = true) {
+  update(manual = true, ignoreIteration = false) {
     const currentTime = performance.now();
+    if (!ignoreIteration) {
+      const frameLength = manual ? 16 : currentTime - this.lastFrameAt;
+      const timeElapsed = currentTime - this.animationStartTime;
 
-    const frameLength = manual ? 16 : currentTime - this.lastFrameAt;
-    const timeElapsed = currentTime - this.animationStartTime;
+      this.lastFrameAt = currentTime;
 
-    this.lastFrameAt = currentTime;
+      const timeDelta = timeElapsed * this.playbackRate;
 
-    const timeDelta = timeElapsed * this.playbackRate;
-    this.currentTime = timeDelta;
+      this.currentTime = timeDelta;
 
-    this.currentDelta += frameLength / this.effectiveDuration;
-
-    if (this.currentDelta >= 1 || this.currentDelta < 0) {
-      this.currentIteration += 1;
-      this.emitEvent(AnimationEventTypes.Iteration, null, {});
-      if (this.iterations === 0 || this.currentIteration < this.iterations) {
-        this.reset(manual);
-        return this;
-      }
-
-      this.stop();
-      this.emitEvent(AnimationEventTypes.AnimationEnd);
-      return this;
+      this.currentDelta += frameLength / this.effectiveDuration;
     }
 
     const { next, current } = this.getCurrentAndNextKeyFramesAtDelta(this.currentDelta);
 
-    if (current?.delta === this.currentDelta) {
-      this.emitEvent(AnimationEventTypes.Keyframe, current);
+    if (current?.id !== this.currentKeyframe) {
+      this.emitEvent(AnimationEventTypes.Keyframe, current, next);
     }
+
+    this.currentKeyframe = current?.id;
 
     const iterpolatedProps = Object.keys(current?.props ?? {}).reduce<Record<string, number>>((acc, prop) => {
       if (current && next) {
@@ -336,7 +335,7 @@ export default class MTAnimation {
         const t = (this.currentDelta - current.delta) / (next.delta - current.delta);
 
         // get the easing function to use
-        const easingFunc = this.easingFunctions?.[current.easing] ?? linear;
+        const easingFunc = EasingFunctions[current.easing];
 
         // get the alpha value from the easing function
         // this value is the amount to interpolate between
@@ -348,10 +347,33 @@ export default class MTAnimation {
         // how much of each value to use
         acc[prop] = lerp(currentValue, nextValue, alpha);
       }
+
+      if (current && !next) {
+        acc[prop] = current.props[prop];
+      }
       return acc;
     }, {});
+    if (!this.previousProps) {
+      this.previousProps = this.keyframes[0].props;
+    }
 
-    this.emitEvent(AnimationEventTypes.TimeUpdate, current, iterpolatedProps);
+    this.emitEvent(AnimationEventTypes.TimeUpdate, current, next, iterpolatedProps, this.previousProps);
+
+    if ((this.currentDelta >= 1 || this.currentDelta < 0) && !ignoreIteration) {
+      this.currentIteration += 1;
+      this.emitEvent(AnimationEventTypes.Iteration, null, null, {});
+      if (this.iterations === 0 || this.currentIteration < this.iterations) {
+        this.reset(manual);
+        return this;
+      }
+
+      this.stop();
+      this.emitEvent(AnimationEventTypes.AnimationEnd);
+      return this;
+    }
+
+    this.previousProps = { ...iterpolatedProps };
+
     return this;
   }
 
@@ -395,8 +417,6 @@ export default class MTAnimation {
     if (time > this.effectiveDuration) {
       throw new Error(`Cannot set time greater than duration`);
     }
-
-    this.play();
 
     this.currentTime = time;
     this.currentDelta = time / this.effectiveDuration;
@@ -497,7 +517,7 @@ export default class MTAnimation {
    * @param keyframe - The keyframe that triggered the event
    * @param props - The interpolated properties at the current delta
    */
-  emitEvent(event: AnimationEventTypes, keyframe?: Keyframe | null, props: Record<string, number> = {}) {
+  emitEvent(event: AnimationEventTypes, keyframe?: Keyframe | null, nextKeyframe?: Keyframe | null, props: Record<string, number> = {}, previousProps?: Record<string, number>) {
     this.listeners[event].forEach((fn: AnimationEventCallback) => {
       fn({
         type: event,
@@ -506,7 +526,9 @@ export default class MTAnimation {
         currentDelta: this.currentDelta,
         playbackRate: this.playbackRate,
         keyframe,
+        nextKeyframe: nextKeyframe ?? keyframe,
         props,
+        previousProps: previousProps ?? props,
       });
     });
   }
@@ -521,5 +543,17 @@ export default class MTAnimation {
       duration: this.duration,
       iterations: this.iterations,
     });
+  }
+
+  /**
+   * Destroys the animation instance, removing all event listeners and stopping playback
+   */
+  destroy() {
+    this.stop();
+    this.listeners = Object.values(AnimationEventTypes).reduce((acc, type) => {
+      acc[type] = [];
+      return acc;
+    }, {} as AnimationEventListenersRecord);
+    AnimationManager.remove(this);
   }
 }
