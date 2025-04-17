@@ -190,13 +190,14 @@ export function degreesToRadians(degrees: number) {
 }
 
 // to avoid recreating the ctx each time
-const colorConvertCtx = document.createElement("canvas").getContext("2d");
+let ctx: CanvasRenderingContext2D | null;
 
 function colorToRgbOrHex(color: string): string {
-  // because cavnas 2D context automagically converts
+  // because canvas 2D context automagically converts
   // any valid css color to a hex string
   // or an RGBA string
-  const ctx = colorConvertCtx;
+  ctx = ctx ?? document.createElement("canvas").getContext("2d");
+
   if (!ctx) {
     return "#000000";
   }
