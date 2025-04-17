@@ -1,5 +1,15 @@
 # MapTiler SDK Changelog
 
+## 3.2.0
+## ✨ Features and improvements
+Updates Maplibre-gl to 5.3.1
+
+## 🐛 Bug fixes
+None
+
+## 🔧 Others
+None
+
 ## 3.1.0
 ## ✨ Features and improvements
 Updates MapTiler Client JS version to include new MapStyles
