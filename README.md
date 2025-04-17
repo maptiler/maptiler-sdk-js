@@ -230,6 +230,13 @@ Here is the full list:
   - `MapStyle.TONER.BACKGROUND` (variant)
   - `MapStyle.TONER.LITE` (variant)
   - `MapStyle.TONER.LINES` (variant)
+- `MapStyle.OCEAN` reference style with bathymetric highlights, does not have any variants.
+- `MapStyle.LANDSCAPE` reference style terrain map for data overlays and visualisations
+  - `MapStyle.LANDSCAPE.DARK` (variant)
+  - `MapStyle.LANDSCAPE.VIVID` (variant)
+- `MapStyle.AQUARELLE` reference style watercolor map for creative use
+  - `MapStyle.AQUARELLE.DARK` (variant)
+  - `MapStyle.AQUARELLE.VIVID` (variant)
 - `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variants)
 
 
