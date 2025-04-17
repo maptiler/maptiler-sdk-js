@@ -1,5 +1,15 @@
 # MapTiler SDK Changelog
 
+## 3.3.0
+## ✨ Features and improvements
+- Now able to include cubemap background images and Earth radial gradient halo via `space` and `halo` in map constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style spec.
+
+## 🐛 Bug fixes
+None
+
+## 🔧 Others
+None
+
 ## 3.1.0
 ## ✨ Features and improvements
 Updates MapTiler Client JS version to include new MapStyles
