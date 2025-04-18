@@ -21,7 +21,7 @@ export function lerp(a: number, b: number, alpha: number) {
  *
  * `null` is treated as an empty value where an interpolation is needed.
  *
- * @param numericArray - The array of numbers to interpolate, which may contain null values
+ * @param {NumericArrayWithNull} numericArray - The array of numbers to interpolate, which may contain null values
  * @returns A new array with null values replaced by interpolated values
  */
 export function lerpArrayValues(numericArray: NumericArrayWithNull): number[] {
@@ -355,6 +355,15 @@ export function createBezierPathFromCoordinates(inputPath: [number, number][], o
   return smoothPath;
 }
 
+/**
+ * Calculates the average distance between points in an array of coordinates.
+ *
+ * This function computes the average distance between consecutive points in the array.
+ * It uses the LngLat class from MapLibre to calculate distances based on geographical coordinates.
+ *
+ * @param arr - An array of coordinate pairs [longitude, latitude]
+ * @returns The average distance between points in the array
+ */
 export function getAverageDistance(arr: [number, number][]): number {
   return (
     arr

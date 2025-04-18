@@ -15,22 +15,22 @@ import EasingFunctions from "./easing";
  *                                   and must be updated manually by calling update(). Defaults to false if not specified.
  */
 export interface AnimationOptions {
-  // the keyframes to animate between
   keyframes: Keyframe[];
-  // the duration of the animation in milliseconds
   duration: number;
-  // the number of times to repeat the
-  // animation, 0 is no repeat, Infinity is infinite repeat
   iterations: number;
-  // if true, the animation will not be added to the
-  // animation manager and will need to be updated manually
-  // by calling update()
   manualMode?: boolean;
-
-  // the delay before the animation starts in milliseconds
   delay?: number;
 }
 
+/**
+ * A keyframe in the animation sequence where null or undefined values
+ * are interpolated to fill in the gaps between keyframes.
+ *
+ * @extends Keyframe
+ * @property {Record<string, number>} props - The properties to be animated at this keyframe.
+ * @property {EasingFunctionName} easing - The easing function to use for this keyframe.
+ * @property {string} id - A unique identifier for this keyframe.
+ */
 export type InterpolatedKeyFrame = Keyframe & {
   props: Record<string, number>;
   easing: EasingFunctionName;
@@ -75,50 +75,65 @@ export type InterpolatedKeyFrame = Keyframe & {
 export default class MTAnimation {
   private playing: boolean = false;
 
+  /**
+   * Indicates if the animation is currently playing
+   * @returns {boolean} - true if the animation is playing, false otherwise
+   */
   get isPlaying() {
     return this.playing;
   }
 
-  // the number of times to repeat the animation
-  // 0 is no repeat, Infinity is infinite repeat
+  /**
+   * The number of times to repeat the animation
+   * 0 is no repeat, Infinity is infinite repeat
+   */
   private iterations: number;
 
   private currentIteration: number = 0;
 
-  // an array of keyframes animations to interpolate between
+  /** An array of keyframes animations to interpolate between */
   private keyframes: InterpolatedKeyFrame[];
 
+  /** The current keyframe id */
   private currentKeyframe?: string;
 
-  // the duration of the animation in milliseconds
+  /**The duration of the animation in milliseconds (when playbackRate === 1) */
   readonly duration: number;
 
-  // the duration of the animation affected by the playback rate
-  // if playback rate is 2, the effective duration is double
+  /**
+   * The duration of the animation affected by the playback rate
+   * if playback rate is 2, the effective duration is double
+   */
   private effectiveDuration: number;
 
-  // the rate at which the animation is playing
+  /** the rate at which the animation is playing */
   private playbackRate: number;
 
-  // the current time in milliseconds
+  /** the current time in milliseconds */
   private currentTime: number;
 
-  // 0 start of the animation, 1 end of the animation
+  /** 0 start of the animation, 1 end of the animation */
   private currentDelta: number;
 
+  /** The time at which the animation started */
   private animationStartTime: number = 0;
 
+  /** The time at which the last frame was rendered */
   private lastFrameAt: number = 0;
 
+  /** The delay before the animation starts */
   private delay: number = 0;
 
+  /** The timeout ID for the delay before the animation starts */
   private delayTimeoutID?: number;
 
+  /** The listeners added for each event */
   private listeners: AnimationEventListenersRecord = Object.values(AnimationEventTypes).reduce((acc, type) => {
     acc[type] = [];
     return acc;
   }, {} as AnimationEventListenersRecord);
 
+  /** The props from the previous frame */
   private previousProps!: Record<string, number>;
 
   constructor({ keyframes, duration, iterations, manualMode, delay }: AnimationOptions) {
