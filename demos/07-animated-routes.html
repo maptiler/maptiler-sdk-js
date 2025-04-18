@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animations and Animated Routes</title>
+  <style>
+    html {
+      height: 100%;
+      font-family: sans-serif;
+      font-size: 13px;
+    }
+
+    body {
+      height: 100%;
+      margin: 0;
+      display: grid;
+      /* grid-template: 1fr 1fr / 1fr 1fr; */
+      /* gap: 16px; */
+      box-sizing: border-box;
+      padding: 16px;
+    }
+
+    .map {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 3px 0 rgba(0, 0, 0, 0.5);
+    }
+  </style>
+  <link rel="stylesheet" href="../build/maptiler-sdk.css">
+</head>
+<body>
+  <script src="../build/maptiler-sdk.umd.min.js"></script>
+  <script src="assets/demo-utils.js"></script>
+  <script>
+
+    addPerformanceStats();
+    setupMapTilerApiKey();
+
+    function getRandomMapStyle() {
+      const styles = Object.keys(maptilersdk.MapStyle);
+      const style = maptilersdk.MapStyle[styles[Math.floor(Math.random() * styles.length)]];
+      const variants = Object.keys(style.variants);
+      const variant = style[variants[Math.floor(Math.random() * variants.length)]];
+      return variant;
+    }
+
+    async function createMap(id, nextMapId) {
+      const element = document.createElement("div");
+      element.className = "map";
+      document.body.appendChild(element);
+
+      console.log(maptilersdk.MapStyle);
+      const map = new maptilersdk.Map({
+        container: element,
+        style: maptilersdk.MapStyle.OUTDOOR.VIVID,
+        hash: false,
+        geolocateControl: false,
+        navigationControl: false,
+        terrain: true,
+        bearing: -180,
+        maxPitch: 65,
+        pitch: 65,
+        zoom: 15,
+        center: [
+          -7.455514,
+          39.414262,
+        ]
+      });
+      window.map = map
+
+      // const animatedRouteLayer = new maptilersdk.AnimatedRoutelayer({
+      //   id,
+      // });
+
+      return map;
+    }
+
+    async function loadGeoJSON() {
+
+    }
+
+    async function main() {
+      const tl = await createMap('map-map');
+    }
+
+    main()
+  </script>
+</body>
+</html>

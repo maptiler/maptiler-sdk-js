@@ -27,7 +27,9 @@ function addPerformanceStats() {
  */
 function setupMapTilerApiKey() {
   maptilersdk.config.apiKey = localStorage.getItem('MT_DEMO_API_KEY') ?? new URLSearchParams(location.search).get("key") ?? "API_KEY";
-  
+  if (maptilersdk.config.apiKey) {
+    console.info("MapTiler API key loaded from localStorage");
+  }
   if (localStorage.getItem('MT_DEMO_API_KEY') === null) {
     localStorage.setItem(
       'MT_DEMO_API_KEY',
