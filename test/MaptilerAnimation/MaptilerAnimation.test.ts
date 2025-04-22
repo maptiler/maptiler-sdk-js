@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import MTAnimation from "../../src/utils/MaptilerAnimation";
+import MaptilerAnimation from "../../src/utils/MaptilerAnimation";
 import { AnimationEventTypes, EasingFunctionName, Keyframe } from "../../src/utils/MaptilerAnimation/types";
 import { lerp, lerpArrayValues } from "../../src/utils/MaptilerAnimation/animation-helpers";
 
@@ -24,11 +24,11 @@ const keyframes: Keyframe[] = [
 const duration = 1000;
 const iterations = 2;
 
-describe("MTAnimation", () => {
+describe("MaptilerAnimation", () => {
   beforeEach(() => {});
 
   it("should initialize with correct properties", () => {
-    const animation = new MTAnimation({ keyframes, duration, iterations });
+    const animation = new MaptilerAnimation({ keyframes, duration, iterations });
 
     expect(animation.getCurrentTime()).toBe(0);
     expect(animation.getCurrentDelta()).toBe(0);
@@ -37,27 +37,27 @@ describe("MTAnimation", () => {
   });
 
   it("should play the animation", () => {
-    const animation = new MTAnimation({ keyframes, duration, iterations });
+    const animation = new MaptilerAnimation({ keyframes, duration, iterations });
     animation.play();
     expect(animation.isPlaying).toBe(true);
   });
 
   it("should pause the animation", () => {
-    const animation = new MTAnimation({ keyframes, duration, iterations });
+    const animation = new MaptilerAnimation({ keyframes, duration, iterations });
     animation.play();
     animation.pause();
     expect(animation.isPlaying).toBe(false);
   });
 
   it("should stop the animation", () => {
-    const animation = new MTAnimation({ keyframes, duration, iterations });
+    const animation = new MaptilerAnimation({ keyframes, duration, iterations });
     animation.play();
     animation.stop();
     expect(animation.isPlaying).toBe(false);
   });
 
   it("should reset the animation", () => {
-    const animation = new MTAnimation({ keyframes, duration, iterations });
+    const animation = new MaptilerAnimation({ keyframes, duration, iterations });
     expect(animation.getCurrentTime()).toBe(0);
     animation.play();
     animation.reset(true);
@@ -70,7 +70,7 @@ describe("MTAnimation", () => {
   it("should update animation state", () => {
     //@ts-expect-error we only use the now method, so this is fine
     vi.spyOn(global, "performance", "get").mockReturnValue({ now: () => 500 });
-    const animation = new MTAnimation({ keyframes, duration, iterations });
+    const animation = new MaptilerAnimation({ keyframes, duration, iterations });
     animation.play();
 
     const lastTime = animation.getCurrentTime();
@@ -86,7 +86,7 @@ describe("MTAnimation", () => {
   });
 
   it("should fire events on play, pause, stop", () => {
-    const animation = new MTAnimation({ keyframes, duration, iterations });
+    const animation = new MaptilerAnimation({ keyframes, duration, iterations });
     const playListener = vi.fn();
     const pauseListener = vi.fn();
     const stopListener = vi.fn();
@@ -105,7 +105,7 @@ describe("MTAnimation", () => {
   });
 
   it("should scrub to a specific time and fire the correct event", () => {
-    const animation = new MTAnimation({ keyframes, duration, iterations });
+    const animation = new MaptilerAnimation({ keyframes, duration, iterations });
     const scrubListener = vi.fn();
     animation.addEventListener(AnimationEventTypes.Scrub, scrubListener);
     animation.setCurrentTime(500);
@@ -114,7 +114,7 @@ describe("MTAnimation", () => {
   });
 
   it("should scrub to a specific delta", () => {
-    const animation = new MTAnimation({ keyframes, duration, iterations });
+    const animation = new MaptilerAnimation({ keyframes, duration, iterations });
     const scrubListener = vi.fn();
     animation.addEventListener(AnimationEventTypes.Scrub, scrubListener);
     animation.setCurrentDelta(0.5);
@@ -123,13 +123,13 @@ describe("MTAnimation", () => {
   });
 
   it("should change playback rate", () => {
-    const animation = new MTAnimation({ keyframes, duration, iterations });
+    const animation = new MaptilerAnimation({ keyframes, duration, iterations });
     animation.setPlaybackRate(2);
     expect(animation.getPlaybackRate()).toBe(2);
   });
 
   it("should clone the animation", () => {
-    const animation = new MTAnimation({ keyframes, duration, iterations });
+    const animation = new MaptilerAnimation({ keyframes, duration, iterations });
     const clone = animation.clone();
     expect(clone.getCurrentTime()).toBe(0);
     expect(clone.getPlaybackRate()).toBe(1);
