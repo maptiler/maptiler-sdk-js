@@ -40,12 +40,12 @@ export type InterpolatedKeyFrame = Keyframe & {
 /**
  * Animation controller for keyframe-based animation sequences.
  *
- * MTAnimation handles interpolation between keyframes, timing control,
+ * MaptilerAnimation handles interpolation between keyframes, timing control,
  * and event dispatching during animation playback.
  *
  * @example
  * ```typescript
- * const animation = new MTAnimation({
+ * const animation = new MaptilerAnimation({
  *   keyframes: [
  *     { delta: 0, props: { x: 0, y: 0 } },
  *     { delta: 0.5, props: { x: 50, y: 20 } },
@@ -72,7 +72,7 @@ export type InterpolatedKeyFrame = Keyframe & {
  *
  * When not using manualMode, animations are automatically added to the AnimationManager.
  */
-export default class MTAnimation {
+export default class MaptilerAnimation {
   private playing: boolean = false;
 
   /**
@@ -350,7 +350,7 @@ export default class MTAnimation {
         const t = (this.currentDelta - current.delta) / (next.delta - current.delta);
 
         // get the easing function to use
-        const easingFunc = EasingFunctions[current.easing];
+        const easingFunc = EasingFunctions[current.easing] ?? ((n: number) => n);
 
         // get the alpha value from the easing function
         // this value is the amount to interpolate between
@@ -553,7 +553,7 @@ export default class MTAnimation {
    * @returns A new animation instance with the same properties as this one
    */
   clone() {
-    return new MTAnimation({
+    return new MaptilerAnimation({
       keyframes: this.keyframes,
       duration: this.duration,
       iterations: this.iterations,

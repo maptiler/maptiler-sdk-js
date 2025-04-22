@@ -1,2 +1,2 @@
 export * from "./dom";
-export * from "./MTAnimation";
+export * from "./MaptilerAnimation";

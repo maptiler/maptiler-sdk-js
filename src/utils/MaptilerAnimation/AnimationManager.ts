@@ -1,4 +1,4 @@
-import MTAnimation from "./MTAnimation";
+import MTAnimation from "./MaptilerAnimation";
 
 /**
  * Manager for handling animation lifecycle and updates.

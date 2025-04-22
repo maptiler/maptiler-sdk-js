@@ -206,6 +206,8 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
 
   // if smoothing options are provided, we need to smooth the path
   // this is generally used for camera animations to avoid jerky motion
+  // NOTE: any 3rd "altitude" coordinate is ignored for smoothing
+  // this means that the path will be smoothed only in 2D space
   if (options.pathSmoothing) {
     const smoothedPath = createBezierPathFromCoordinates(parseableGeometry as [number, number][], options.pathSmoothing.resolution, options.pathSmoothing.epsilon);
     const smoothedDeltas = smoothedPath.map((_, index) => index / smoothedPath.length);
@@ -213,21 +215,12 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
 
     const smoothedProperties = Object.entries(nonReservedProperties as Record<string, number[]>).reduce((acc, [key, value]) => {
       const newArrayLength = smoothedPath.length;
-      const currentArrayLength = value.length;
-      const newArrayToOldArrayRatio = Math.floor(newArrayLength / currentArrayLength);
 
       // "stretch" the array to the new length
       // this means that if the smoothed path array is longer than the old one
       // we need to fill the new array with the old values and leave `null`
       // for interpolation between those values
-      const newArray = new Array(newArrayLength).fill(null).map((_, index) => {
-        const newIndex = index / newArrayToOldArrayRatio;
-        if (isFloat(newIndex)) {
-          return null;
-        }
-
-        return value[newIndex] ?? null;
-      });
+      const newArray = stretchNumericalArray(value, newArrayLength);
 
       return {
         ...acc,
@@ -244,9 +237,21 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
   return getKeyframes(parseableGeometry, parseableDeltas, parseableEasings, nonReservedProperties);
 }
 
-// ...
-function isFloat(n: number) {
-  return n % 1 !== 0;
+/**
+ *
+ * "Stretches" an array of numbers to a new length, filling in null values for the new indices.
+ *
+ * @param source the array to stretch
+ * @param targetLength the length to stretch to
+ * @returns {number[]} the stretched array with null values
+ */
+function stretchNumericalArray(source: number[], targetLength: number): (number | null)[] {
+  const indexMap = source.map((_, i) => {
+    const t = i / (source.length - 1);
+    return Math.round(t * (targetLength - 1));
+  });
+
+  return Array.from({ length: targetLength }, (_, i) => (indexMap.includes(i) ? source[indexMap.indexOf(i)] : null));
 }
 
 /**
@@ -267,7 +272,7 @@ function isFloat(n: number) {
  * const keyframes = getKeyframes(
  *   [[0, 0, 10], [10, 10, 20]], // coordinates
  *   [1000, 2000], // deltas (in milliseconds)
- *   ['linear', 'ease-in'], // easings
+ *   [EasingFunctionName.Linear, EasingFunctionName.ElasticIn], // easings
  *   { zoom: [10, 15] } // additional properties
  * );
  */

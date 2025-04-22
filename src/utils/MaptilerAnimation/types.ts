@@ -1,4 +1,4 @@
-import MTAnimation from "./MTAnimation";
+import MTAnimation from "./MaptilerAnimation";
 
 // at present we only have one easing type
 // but in future we will add more
@@ -34,6 +34,9 @@ export type Keyframe = {
 
   // the easing function to use between this keyframe and the next
   easing?: EasingFunctionName;
+
+  // custom data to pass to the keyframe
+  userData?: Record<string, any>;
 };
 
 export enum AnimationEventTypes {
@@ -68,3 +71,5 @@ export type AnimationEvent = {
 export type AnimationEventListenersRecord = Record<AnimationEventTypes, AnimationEventCallback[]>;
 
 export type AnimationEventCallback = (event: AnimationEvent) => void;
+
+export { MTAnimation };

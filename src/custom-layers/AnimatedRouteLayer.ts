@@ -1,10 +1,10 @@
 import { CustomLayerInterface, Map } from "maplibre-gl";
-import { AnimationEvent, AnimationEventTypes, EasingFunctionName, Keyframe } from "../utils/MTAnimation/types";
+import { AnimationEvent, AnimationEventListenersRecord, AnimationEventTypes, EasingFunctionName, Keyframe } from "../utils/MaptilerAnimation/types";
 import { v4 as uuidv4 } from "uuid";
-import MTAnimation, { AnimationOptions } from "../utils/MTAnimation/MTAnimation";
+import MaptilerAnimation, { AnimationOptions } from "../utils/MaptilerAnimation/MaptilerAnimation";
 
 import { GeoJSONSource } from "@maptiler/sdk";
-import { KeyframeableGeoJSONFeature, parseGeoJSONFeatureToKeyframes } from "../utils/MTAnimation/animation-helpers";
+import { KeyframeableGeoJSONFeature, parseGeoJSONFeatureToKeyframes } from "../utils/MaptilerAnimation/animation-helpers";
 
 type SourceData = {
   id: string;
@@ -120,8 +120,8 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
 
   readonly type = "custom";
 
-  /** The MTAnimation instance that handles the animation */
-  private animationInstance!: MTAnimation;
+  /** The MaptilerAnimation instance that handles the animation */
+  private animationInstance!: MaptilerAnimation;
 
   /**
    * Keyframes for the animation
@@ -167,6 +167,13 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
   /** Whether the animation will be managed manually */
   private manualUpdate: boolean = false;
 
+  private enquedEventHandlers: AnimationEventListenersRecord = Object.values(AnimationEventTypes).reduce((acc, type) => {
+    acc[type] = [];
+    return acc;
+  }, {} as AnimationEventListenersRecord);
+
+  private enquedCommands: (() => void)[] = [];
+
   constructor({
     keyframes,
     source,
@@ -183,7 +190,7 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
     manualUpdate = false,
   }: AnimatedRouteLayerOptions) {
     this.keyframes = keyframes ?? null;
-
+    console.log("keyframes", keyframes, this.keyframes);
     this.source = source ?? null;
 
     if (duration) {
@@ -231,16 +238,26 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
   async onAdd(map: Map): Promise<void> {
     this.map = map;
     if (this.map.getLayersOrder().some((current) => current.includes(ANIM_LAYER_PREFIX) && this.id !== current)) {
-      throw new Error(
-        `[AnimatedRouteLayer.onAdd]: Currently, you can only have one active AnimatedRouteLayer at a time. Please remove any existing instances before adding a new one.`,
-      );
+      throw new Error(`[AnimatedRouteLayer.onAdd]: Currently, you can only have one active AnimatedRouteLayer at a time. Please`);
     }
 
     const animationOptions = await this.getAnimationOptions();
 
-    this.animationInstance = new MTAnimation({ ...animationOptions, manualMode: this.manualUpdate });
+    this.animationInstance = new MaptilerAnimation({ ...animationOptions, manualMode: this.manualUpdate });
 
     this.animationInstance.addEventListener(AnimationEventTypes.TimeUpdate, this.update.bind(this));
+
+    Object.entries(this.enquedEventHandlers).forEach(([type, handlers]) => {
+      handlers.forEach((handler) => {
+        this.animationInstance.addEventListener(type as AnimationEventTypes, handler);
+      });
+    });
+
+    this.enquedCommands.forEach((command) => {
+      command();
+    });
+
+    this.enquedCommands = [];
 
     if (this.autoplay) this.animationInstance.play();
   }
@@ -263,8 +280,17 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
    * @param {AnimationEventTypes} type - The type of event to listen for
    * @param {FrameCallback} callback - The callback function to execute when the event occurs
    */
-  addEventListener(type: AnimationEventTypes, callback: FrameCallback): void {
+  addEventListener(type: AnimationEventTypes, callback: FrameCallback): AnimatedRouteLayer {
+    if (!this.animationInstance) {
+      this.enquedEventHandlers[type].push(callback);
+      console.info(
+        `[AnimatedRouteLayer.addEventListener]: The MaptilerAnimation instance has not been created yet. Event handler for "${type}" will be added once the animation instance is ready.`,
+      );
+      return this;
+    }
+
     this.animationInstance.addEventListener(type, callback);
+    return this;
   }
 
   /**
@@ -273,8 +299,13 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
    * @param {AnimationEventTypes} type - The type of event to remove
    * @param {FrameCallback} callback - The callback function to remove
    */
-  removeEventListener(type: AnimationEventTypes, callback: FrameCallback): void {
+  removeEventListener(type: AnimationEventTypes, callback: FrameCallback): AnimatedRouteLayer {
+    if (!this.animationInstance) {
+      console.warn(`[AnimatedRouteLayer.removeEventListener]: Animation instance not yet created. Event handler for "${type}" will not be removed.`);
+      return this;
+    }
     this.animationInstance.removeEventListener(type, callback);
+    return this;
   }
 
   /**
@@ -310,6 +341,7 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
 
     if (props && this.cameraAnimationOptions && this.cameraAnimationOptions.follow) {
       const { lng, lat, bearing, zoom, pitch } = props;
+
       this.map.jumpTo({
         center: [lng, lat],
         pitch: pitch ?? this.map.getPitch(),
@@ -325,6 +357,12 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
    * @returns {AnimatedRouteLayer} - The current instance of AnimatedRouteLayer
    */
   play(): AnimatedRouteLayer {
+    if (!this.animationInstance) {
+      this.enquedCommands.push(() => {
+        this.animationInstance.play();
+      });
+      return this;
+    }
     this.animationInstance.play();
     return this;
   }
@@ -342,7 +380,7 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
   /**
    * Gets the source GeoJSON data from the map instance, parses it, and returns the animation options.
    *
-   * @returns {Promise<AnimationOptions>} - The MTAnimation constructor options
+   * @returns {Promise<AnimationOptions>} - The MaptilerAnimation constructor options
    */
   async getAnimationOptions(): Promise<AnimationOptions & { autoplay: boolean }> {
     const map = this.map;
@@ -398,16 +436,16 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
           autoplay,
         };
       }
+    }
 
-      if (this.keyframes) {
-        return {
-          keyframes: this.keyframes,
-          duration: this.duration,
-          iterations: this.iterations,
-          delay: this.delay,
-          autoplay: this.autoplay,
-        };
-      }
+    if (this.keyframes) {
+      return {
+        keyframes: this.keyframes,
+        duration: this.duration,
+        iterations: this.iterations,
+        delay: this.delay,
+        autoplay: this.autoplay,
+      };
     }
 
     throw new Error("[AnimatedRouteLayer.onAdd]: No keyframes or source provided");

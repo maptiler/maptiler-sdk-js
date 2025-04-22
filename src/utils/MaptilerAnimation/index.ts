@@ -1,6 +1,6 @@
-import MTAnimation from "./MTAnimation";
+import MaptilerAnimation from "./MaptilerAnimation";
 
-export default MTAnimation;
+export default MaptilerAnimation;
 export * from "./types";
 export * from "./easing";
 export * from "./animation-helpers";
