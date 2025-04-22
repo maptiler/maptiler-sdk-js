@@ -1136,22 +1136,22 @@ const animation = new MaptilerAnimation({
   iterations: Infinity // loop forever
 });
 
-  const marker = new Marker().setLngLat(
-    new LngLat(
-      -7.449346225791231,
-      39.399728941536836,
-    )
-  ).addTo(map);
+const marker = new Marker().setLngLat(
+  new LngLat(
+    -7.449346225791231,
+    39.399728941536836,
+  )
+).addTo(map);
 
-  // TimeUpdate is fired every frame
-  anim.addEventListener(AnimationEventTypes.TimeUpdate, (e) => {
-    marker.setLngLat(
-      new LngLat(
-        e.props.lon,
-      39.399728941536836,
-      )
+// TimeUpdate is fired every frame
+animation.addEventListener(AnimationEventTypes.TimeUpdate, (e) => {
+  marker.setLngLat(
+    new LngLat(
+      e.props.lon,
+    39.399728941536836,
     )
-  })
+  )
+})
 // fired when the keyframe changes
 animation.addEventListener(AnimationEventTypes.Keyframe, ({ userData }) => {
   console.log(userData.mydata) // "whoa!"
