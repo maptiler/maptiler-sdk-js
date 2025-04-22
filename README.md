@@ -1179,15 +1179,15 @@ Further documentation can be found in the generated typedocs `npm run docs`
 
 ### 🗺️ `AnimatedRouteLayer`
 
-`AnimatedRouteLayer` is a maplibre-gl custom layer that animates a path or route on the map based on keyframes or GeoJSON data. It supports animated line styling and camera following, making it ideal for visualizing routes, playback tracks, or timeline-based geographic events.
+`AnimatedRouteLayer` is custom layer that animates a path or route on the map based on keyframes or GeoJSON data. It supports animated line styling and camera following, making it ideal for visualizing routes, playback tracks, or timeline-based geographic events.
 
 #### ✨ Features
   - Animate a path using keyframes or GeoJSON data
   - Optional animated stroke styles to indicate progress
-  - Smooth camera following along the route
-  - Configurable duration, easing, delay, and iterations
-  - Event-based lifecycle hooks for precise control
-  - Optional manual frame advancement (e.g., for scrubbing or syncing with timeline)
+  - Camera movement smoothing, following along the route
+  - Configurable duration, easing, delay, and iterations via geojson properties
+  - Event-based lifecycle hooks for adaptibility.
+  - Optional manual frame advancement (e.g., for scrubbing or syncing with map events, scroll etc etc)
 
 #### 🚀 Basic Usage
 ```ts
