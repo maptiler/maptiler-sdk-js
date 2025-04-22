@@ -1181,6 +1181,8 @@ Further documentation can be found in the generated typedocs `npm run docs`
 
 `AnimatedRouteLayer` is custom layer that animates a path or route on the map based on keyframes or GeoJSON data. It supports animated line styling and camera following, making it ideal for visualizing routes, playback tracks, or timeline-based geographic events.
 
+Note: At present, to avoid problems arising from the camera being manipulated by two animatioons at any one time, there can only ever be one instance of `AnimatedRouteLayer` on the map at any time. This API may change in the future, but at present you must remove each instance of `AnimatedRouteLayer` from the map before adding another.
+
 #### ✨ Features
   - Animate a path using keyframes or GeoJSON data
   - Optional animated stroke styles to indicate progress
