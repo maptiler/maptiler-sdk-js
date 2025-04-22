@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import MaptilerAnimation from "../../src/utils/MaptilerAnimation";
+
 import { AnimationEventTypes, EasingFunctionName, Keyframe } from "../../src/utils/MaptilerAnimation/types";
 import { lerp, lerpArrayValues } from "../../src/utils/MaptilerAnimation/animation-helpers";
 
@@ -25,8 +26,6 @@ const duration = 1000;
 const iterations = 2;
 
 describe("MaptilerAnimation", () => {
-  beforeEach(() => {});
-
   it("should initialize with correct properties", () => {
     const animation = new MaptilerAnimation({ keyframes, duration, iterations });
 
