@@ -1,27 +1,25 @@
-import MTAnimation from "./MaptilerAnimation";
+import MaptilerAnimation from "./MaptilerAnimation";
 
-// at present we only have one easing type
-// but in future we will add more
-export enum EasingFunctionName {
-  Linear = "linear",
-  QuadraticIn = "Quadratic.In",
-  QuadraticOut = "Quadratic.Out",
-  QuadraticInOut = "Quadratic.InOut",
-  CubicIn = "Cubic.In",
-  CubicOut = "Cubic.Out",
-  CubicInOut = "Cubic.InOut",
-  SinusoidalIn = "Sinusoidal.In",
-  SinusoidalOut = "Sinusoidal.Out",
-  SinusoidalInOut = "Sinusoidal.InOut",
-  ExponentialIn = "Exponential.In",
-  ExponentialOut = "Exponential.Out",
-  ExponentialInOut = "Exponential.InOut",
-  ElasticIn = "Elastic.In",
-  ElasticOut = "Elastic.Out",
-  ElasticInOut = "Elastic.InOut",
-  BounceIn = "Bounce.In",
-  BounceOut = "Bounce.Out",
-  BounceInOut = "Bounce.InOut",
+export const enum EasingFunctionName {
+  Linear = "Linear",
+  QuadraticIn = "QuadraticIn",
+  QuadraticOut = "QuadraticOut",
+  QuadraticInOut = "QuadraticInOut",
+  CubicIn = "CubicIn",
+  CubicOut = "CubicOut",
+  CubicInOut = "CubicInOut",
+  SinusoidalIn = "SinusoidalIn",
+  SinusoidalOut = "SinusoidalOut",
+  SinusoidalInOut = "SinusoidalInOut",
+  ExponentialIn = "ExponentialIn",
+  ExponentialOut = "ExponentialOut",
+  ExponentialInOut = "ExponentialInOut",
+  ElasticIn = "ElasticIn",
+  ElasticOut = "ElasticOut",
+  ElasticInOut = "ElasticInOut",
+  BounceIn = "BounceIn",
+  BounceOut = "BounceOut",
+  BounceInOut = "BounceInOut",
 }
 
 export type Keyframe = {
@@ -57,7 +55,7 @@ export type NumericArrayWithNull = (number | null)[];
 
 export type AnimationEvent = {
   type: AnimationEventTypes;
-  target: MTAnimation;
+  target: MaptilerAnimation;
   currentTime: number;
   currentDelta: number;
   playbackRate: number;
@@ -72,4 +70,4 @@ export type AnimationEventListenersRecord = Record<AnimationEventTypes, Animatio
 
 export type AnimationEventCallback = (event: AnimationEvent) => void;
 
-export { MTAnimation };
+export { MaptilerAnimation };
