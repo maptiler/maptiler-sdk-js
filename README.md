@@ -230,6 +230,13 @@ Here is the full list:
   - `MapStyle.TONER.BACKGROUND` (variant)
   - `MapStyle.TONER.LITE` (variant)
   - `MapStyle.TONER.LINES` (variant)
+- `MapStyle.OCEAN` reference style with bathymetric highlights, does not have any variants.
+- `MapStyle.LANDSCAPE` reference style terrain map for data overlays and visualisations
+  - `MapStyle.LANDSCAPE.DARK` (variant)
+  - `MapStyle.LANDSCAPE.VIVID` (variant)
+- `MapStyle.AQUARELLE` reference style watercolor map for creative use
+  - `MapStyle.AQUARELLE.DARK` (variant)
+  - `MapStyle.AQUARELLE.VIVID` (variant)
 - `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variants)
 
 
@@ -1102,6 +1109,157 @@ Turning off *zoom compensation* allows for more accurate adjustments to the visu
 All the other options are documented on [our reference page](https://docs.maptiler.com/sdk-js/api/helpers/#heatmap) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/?q=heatmap+helper).
 
 # Other helpers
+
+## Camera routes and animations
+
+The SDK comes with several classes to help with animations, particularly route animations.
+
+See `demos/07-animated-routes.html` for examples.
+
+### 🧩 `MaptilerAnimation`
+
+MaptilerAnimation is a utility class for smoothly animating between keyframes using custom easing and playback control. It supports event-based hooks for frame updates and completion, and works well within rendering loops or UI transitions.
+
+#### 🚀 Usage
+
+```ts
+// linearly animated between values
+const animation = new MaptilerAnimation({
+  keyframes: [
+    // `props` are interpolated across the duration
+    { delta: 0, props: { lon: -7.445, } },
+    // `userData` can hold any type of custom data to pass with the keyframe
+    { delta: 0.5, userData: { mydata: "whoa!" } },
+    { delta: 1, props: { lon: -7.455 } }
+  ],
+  duration: 1000, // 1 second
+  iterations: Infinity // loop forever
+});
+
+const marker = new Marker().setLngLat(
+  new LngLat(
+    -7.449346225791231,
+    39.399728941536836,
+  )
+).addTo(map);
+
+// TimeUpdate is fired every frame
+animation.addEventListener(AnimationEventTypes.TimeUpdate, (e) => {
+  marker.setLngLat(
+    new LngLat(
+      e.props.lon,
+    39.399728941536836,
+    )
+  )
+})
+// fired when the keyframe changes
+animation.addEventListener(AnimationEventTypes.Keyframe, ({ userData }) => {
+  console.log(userData.mydata) // "whoa!"
+});
+
+animation.play();
+```
+![](images/animate-linear-trimmed.gif)
+
+```ts
+// eased between values
+const animation = new MaptilerAnimation({
+  keyframes: [
+    // `props` are interpolated across the duration
+    { delta: 0, easing: EasingFunctionName.ElasticInOut, props: { lon: -7.445, } },
+    { delta: 1, props: { lon: -7.455 } }
+  ],
+  duration: 1000, // 1 second
+  iterations: Infinity // loop forever
+});
+```
+![](images/animate-elastic-trimmed.gif)
+
+Further documentation can be found in the generated typedocs `npm run docs`
+
+### 🗺️ `AnimatedRouteLayer`
+
+`AnimatedRouteLayer` is custom layer that animates a path or route on the map based on keyframes or GeoJSON data. It supports animated line styling and camera following, making it ideal for visualizing routes, playback tracks, or timeline-based geographic events.
+
+Note: At present, to avoid problems arising from the camera being manipulated by two animatioons at any one time, there can only ever be one instance of `AnimatedRouteLayer` on the map at any time. This API may change in the future, but at present you must remove each instance of `AnimatedRouteLayer` from the map before adding another.
+
+#### ✨ Features
+  - Animate a path using keyframes or GeoJSON data
+  - Optional animated stroke styles to indicate progress
+  - Camera movement smoothing, following along the route
+  - Configurable duration, easing, delay, and iterations via geojson properties
+  - Event-based lifecycle hooks for adaptibility.
+  - Optional manual frame advancement (e.g., for scrubbing or syncing with map events, scroll etc etc)
+
+#### 🚀 Basic Usage
+```ts
+const myGeoJSONSource = {
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-74.0060, 40.7128],
+          [-73.9352, 40.7306],
+          [-73.9851, 40.7580]
+        ]
+      },
+      "properties": {
+        "@duration": 5000, // animation params are prepended with '@'
+        "@iterations": 3,
+        "@delay": 1000,
+        "@autoplay": true,
+        "bearing": [
+          40,
+          30,
+          10,
+          10,
+          20,
+          40,
+        ]
+      }
+    }
+  ]
+}
+
+const animatedRoute = new AnimatedRouteLayer({
+  source: {
+    // assumes that the source is already added to the map with the given layer ID
+    id: "my-geojson-source", // the name of the source
+    layerID: "route-layer", // the name of the layer
+    featureSetIndex: 0, // the index of the featureset within the geojson
+  },
+  // OR
+  keyframes: [], // an array of keyframes
+
+  duration: 5000,
+  pathStrokeAnimation: {
+    // will only be appliued to LineString GeoJSON types
+    activeColor: [0, 128, 0, 1], // color of the line that has already been traversed
+    inactiveColor: [128, 128, 128, 0.5],
+  },
+  cameraAnimation: {
+    follow: true, // should the camera follow the route?
+    pathSmoothing: {
+      resolution: 20, // the resolution of the smoothness 
+      epsilon: 10, // how much the path is simplified before smoothing
+    },
+  },
+  autoplay: true,
+});
+
+// Add to map
+map.addLayer(animatedRoute);
+
+// Playback controls
+animatedRoute.play();
+animatedRoute.pause();
+```
+
+For a full example of how to use this, look at [the example](./demos/07-animated-routes.html)
+
 ## Convert GPX and KML to GeoJSON
 In the [Polyline helper section](#polyline-layer-helper) above, we have seen that one can feed the helper directly with a path to a GPX or KML file, that is then converted under the hood client-side into a GeoJSON `FeatureCollection` object. This conversion feature is also exposed and can be used as such:
 

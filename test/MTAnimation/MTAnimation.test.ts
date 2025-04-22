@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import MTAnimation from "../../src/utils/MTAnimation";
-import { AnimationEventTypes, EasingFunctionName, Keyframe } from "../../src/utils/MTAnimation/types";
-import { lerp, lerpArrayValues } from "../../src/utils/MTAnimation/animation-helpers";
+import MTAnimation from "../../src/utils/MaptilerAnimation";
+import { AnimationEventTypes, EasingFunctionName, Keyframe } from "../../src/utils/MaptilerAnimation/types";
+import { lerp, lerpArrayValues } from "../../src/utils/MaptilerAnimation/animation-helpers";
 
 const keyframes: Keyframe[] = [
   {

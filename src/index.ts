@@ -257,3 +257,4 @@ export * from "./converters";
 export * as helpers from "./helpers";
 export * from "./ColorRamp";
 export * from "./utils";
+export { AnimatedRouteLayer } from "./custom-layers/AnimatedRouteLayer";
