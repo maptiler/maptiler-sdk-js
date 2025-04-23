@@ -1,26 +1,26 @@
 import { EasingFunctionName } from "./types";
 
 const EasingFunctions: Record<EasingFunctionName, (K: number) => number> = {
-  [EasingFunctionName.Linear]: easingLinear,
-  [EasingFunctionName.QuadraticIn]: easingQuadraticIn,
-  [EasingFunctionName.QuadraticOut]: easingQuadraticOut,
-  [EasingFunctionName.QuadraticInOut]: easingQuadraticInOut,
-  [EasingFunctionName.CubicIn]: easingCubicIn,
-  [EasingFunctionName.CubicOut]: easingCubicOut,
-  [EasingFunctionName.CubicInOut]: easingCubicInOut,
-  [EasingFunctionName.SinusoidalIn]: easingSinusoidalIn,
-  [EasingFunctionName.SinusoidalOut]: easingSinusoidalOut,
-  [EasingFunctionName.SinusoidalInOut]: easingSinusoidalInOut,
-  [EasingFunctionName.ExponentialIn]: easingExponentialIn,
-  [EasingFunctionName.ExponentialOut]: easingExponentialOut,
-  [EasingFunctionName.ExponentialInOut]: easingExponentialInOut,
-  [EasingFunctionName.ElasticIn]: easingElasticIn,
-  [EasingFunctionName.ElasticOut]: easingElasticOut,
-  [EasingFunctionName.ElasticInOut]: easingElasticInOut,
-  [EasingFunctionName.BounceIn]: easingBounceIn,
-  [EasingFunctionName.BounceOut]: easingBounceOut,
-  [EasingFunctionName.BounceInOut]: easingBounceInOut,
-};
+  Linear: easingLinear,
+  QuadraticIn: easingQuadraticIn,
+  QuadraticOut: easingQuadraticOut,
+  QuadraticInOut: easingQuadraticInOut,
+  CubicIn: easingCubicIn,
+  CubicOut: easingCubicOut,
+  CubicInOut: easingCubicInOut,
+  SinusoidalIn: easingSinusoidalIn,
+  SinusoidalOut: easingSinusoidalOut,
+  SinusoidalInOut: easingSinusoidalInOut,
+  ExponentialIn: easingExponentialIn,
+  ExponentialOut: easingExponentialOut,
+  ExponentialInOut: easingExponentialInOut,
+  ElasticIn: easingElasticIn,
+  ElasticOut: easingElasticOut,
+  ElasticInOut: easingElasticInOut,
+  BounceIn: easingBounceIn,
+  BounceOut: easingBounceOut,
+  BounceInOut: easingBounceInOut,
+} as const;
 
 export default EasingFunctions;
 

@@ -1,4 +1,4 @@
-import MTAnimation from "./MaptilerAnimation";
+import MaptilerAnimation from "./MaptilerAnimation";
 
 /**
  * Manager for handling animation lifecycle and updates.
@@ -10,18 +10,18 @@ import MTAnimation from "./MaptilerAnimation";
  * This is not a class as it never needs to be instantiated,
  * it's just a singeton object.
  *
- * It's not called directly but used within the MTAnimation class.
+ * It's not called directly but used within the MaptilerAnimation class.
  */
 const AnimationManager = {
-  animations: new Array<MTAnimation>(),
+  animations: new Array<MaptilerAnimation>(),
   running: false,
   /**
    * Adds an animation to the manager. If this is the first animation added,
    * it starts the animation loop.
    *
-   * @param {MTAnimation} animation - The animation to add.
+   * @param {MaptilerAnimation} animation - The animation to add.
    */
-  add(animation: MTAnimation) {
+  add(animation: MaptilerAnimation) {
     this.animations.push(animation);
     if (!this.running) {
       this.running = true;
@@ -32,9 +32,9 @@ const AnimationManager = {
    * Removes an animation from the manager. If there are no more animations,
    * it stops the animation loop.
    *
-   * @param {MTAnimation} animation - The animation to remove.
+   * @param {MaptilerAnimation} animation - The animation to remove.
    */
-  remove(animation: MTAnimation) {
+  remove(animation: MaptilerAnimation) {
     this.animations = this.animations.filter((a) => a !== animation);
     if (this.animations.length === 0) {
       this.stop();
