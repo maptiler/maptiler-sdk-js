@@ -26,12 +26,11 @@ export function lerp(a: number, b: number, alpha: number) {
  */
 export function lerpArrayValues(numericArray: NumericArrayWithNull): number[] {
   if (numericArray.length === 0) {
-    console.warn("Array empty, nothing to interpolate");
-    return [];
+    throw new Error("[lerpArrayValues]: Array empty, nothing to interpolate");
   }
 
   if (numericArray.every((value) => value === null)) {
-    throw new Error("Cannot interpolate an array where all values are `null`");
+    throw new Error("[lerpArrayValues]: Cannot interpolate an array where all values are `null`");
   }
 
   return numericArray.map((value, index, arr): number => {
@@ -71,9 +70,9 @@ export function lerpArrayValues(numericArray: NumericArrayWithNull): number[] {
  *
  * @param arr - The array to search through
  * @param currentIndex - The index to start searching from
- * @returns A tuple containing the index of the next entry and its value, or null if not found
+ * @returns [index, value] A tuple containing the index of the next entry and its value, or null if not found
  */
-function findNextEntryAndIndexWithValue(arr: NumericArrayWithNull, currentIndex: number) {
+export function findNextEntryAndIndexWithValue(arr: NumericArrayWithNull, currentIndex: number) {
   for (let i = currentIndex + 1; i < arr.length; i++) {
     if (arr[i] !== null) {
       return [i, arr[i]];
@@ -87,9 +86,9 @@ function findNextEntryAndIndexWithValue(arr: NumericArrayWithNull, currentIndex:
  *
  * @param arr - The array to search through
  * @param currentIndex - The index to start searching from
- * @returns A tuple containing the index of the previous entry and its value, or null if not found
+ * @returns [index, value] A tuple containing the index of the previous entry and its value, or null if not found
  */
-function findPreviousEntryAndIndexWithValue(arr: NumericArrayWithNull, currentIndex: number) {
+export function findPreviousEntryAndIndexWithValue(arr: NumericArrayWithNull, currentIndex: number) {
   for (let i = currentIndex - 1; i >= 0; i--) {
     if (arr[i] !== null) {
       return [i, arr[i]];
@@ -162,7 +161,7 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
   } as IparseGeoJSONToKeyframesOptions;
 
   const geometry = feature.geometry;
-  const properties = feature.properties;
+  const properties = feature.properties ?? {};
 
   const easings = properties["@easing"];
 
@@ -180,7 +179,7 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
   }
 
   if (!ACCEPTED_GEOMETRY_TYPES.includes(geometry.type)) {
-    throw new Error(`[parseGeoJSONFeatureToKeyframes]: Geometry type ${geometry.type} is not supported. Accepted types are: ${ACCEPTED_GEOMETRY_TYPES.join(", ")}`);
+    throw new Error(`[parseGeoJSONFeatureToKeyframes]: Geometry type '${geometry.type}' is not supported. Accepted types are: ${ACCEPTED_GEOMETRY_TYPES.join(", ")}`);
   }
 
   // if the geometry is an array of arrays of coordinates
@@ -245,13 +244,13 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
  * @param targetLength the length to stretch to
  * @returns {number[]} the stretched array with null values
  */
-function stretchNumericalArray(source: number[], targetLength: number): (number | null)[] {
-  const indexMap = source.map((_, i) => {
+export function stretchNumericalArray(source: number[], targetLength: number): (number | null)[] {
+  const mapOfIndices = source.map((_, i) => {
     const t = i / (source.length - 1);
     return Math.round(t * (targetLength - 1));
   });
 
-  return Array.from({ length: targetLength }, (_, i) => (indexMap.includes(i) ? source[indexMap.indexOf(i)] : null));
+  return Array.from({ length: targetLength }, (_, i) => (mapOfIndices.includes(i) ? source[mapOfIndices.indexOf(i)] : null));
 }
 
 /**
@@ -276,7 +275,7 @@ function stretchNumericalArray(source: number[], targetLength: number): (number 
  *   { zoom: [10, 15] } // additional properties
  * );
  */
-function getKeyframes(coordinates: number[][], deltas: number[], easings: EasingFunctionName[], properties: Record<string, number[]> = {}): Keyframe[] {
+export function getKeyframes(coordinates: number[][], deltas: number[], easings: EasingFunctionName[], properties: Record<string, number[]> = {}): Keyframe[] {
   if (!arraysAreTheSameLength(coordinates, deltas, easings, ...Object.values(properties))) {
     throw new Error(`
       [parseGeoJSONFeatureToKeyframes]: If smoothing is not applied, coordinates, deltas, easings and property arrays must be the same length\n
@@ -304,7 +303,7 @@ function getKeyframes(coordinates: number[][], deltas: number[], easings: Easing
       ...propertyValuesForThisKeyframe,
       lng: coordinate[0],
       lat: coordinate[1],
-      altitude: coordinate[2] ?? 0,
+      altitude: coordinate[2] ?? null,
     };
 
     return {

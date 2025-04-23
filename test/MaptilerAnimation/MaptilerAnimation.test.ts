@@ -135,32 +135,3 @@ describe("MaptilerAnimation", () => {
     expect(clone.getCurrentDelta()).toBe(0);
   });
 });
-
-describe("Animation helpers", () => {
-  it("lerp should linearly interpolate between two values", () => {
-    expect(lerp(0, 100, 0.5)).toBe(50);
-    expect(lerp(0, 100, 0.35)).toBe(35);
-    expect(lerp(0, 100, 0.75)).toBe(75);
-  });
-
-  it("lerpArrayValues should interpolate between numerical array values, filling all null values to the end and from the start", () => {
-    const arr1 = [0, null, 100, null, 200];
-    expect(lerpArrayValues(arr1)).toEqual([0, 50, 100, 150, 200]);
-
-    const arr2 = [null, 0, null, 100, null, null, null];
-    expect(lerpArrayValues(arr2)).toEqual([0, 0, 50, 100, 100, 100, 100]);
-
-    const arr3 = [0, 1, null, 3, null, 4, null, null];
-    expect(lerpArrayValues(arr3)).toEqual([0, 1, 2, 3, 3.5, 4, 4, 4]);
-  });
-
-  it("lerpArrayValues should throw an error if all values are null", () => {
-    const arr = [null, null, null];
-    expect(() => lerpArrayValues(arr)).toThrowError("Cannot interpolate an array where all values are `null`");
-  });
-
-  it("lerpArrayValues should return an empty array if the input is empty", () => {
-    const arr: number[] = [];
-    expect(lerpArrayValues(arr)).toEqual([]);
-  });
-});
