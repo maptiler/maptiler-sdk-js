@@ -5,7 +5,6 @@ import easingsDictionary from "../fixtures/animations/easings.json";
 
 describe("Easing Function:", () => {
   test("Each easing function returns the expected values", () => {
-    // const easings = EasingFunctions;
     Object.entries(EasingFunctions).forEach(([key, fn]) => {
       const expected = easingsDictionary[key as keyof typeof easingsDictionary];
       Array.from({ length: 21 }, (_, i) => fn(i / 20)).forEach((value, index) => {
