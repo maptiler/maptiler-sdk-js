@@ -2,7 +2,8 @@
 
 ## 3.2.0
 ## ✨ Features and improvements
-Updates Maplibre-gl to 5.3.1
+- Updates Maplibre-gl to 5.3.1
+- Updates MapTiler Client to 2.3.2
 
 ## 🐛 Bug fixes
 None
