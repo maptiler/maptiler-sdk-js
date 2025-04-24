@@ -5,11 +5,15 @@
 - Updates Maplibre-gl to 5.3.1
 - Updates MapTiler Client to 2.3.2
 
+## 3.1.1
+## ✨ Features and improvements
+None
+
 ## 🐛 Bug fixes
 None
 
 ## 🔧 Others
-None
+Version bump for maptiler-client-js
 
 ## 3.1.0
 ## ✨ Features and improvements
