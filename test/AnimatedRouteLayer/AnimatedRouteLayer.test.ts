@@ -1,6 +1,6 @@
-import { describe, expect, vi, test } from "vitest";
+import { describe, expect, vi, test, beforeEach } from "vitest";
 // import { AnimatedRouteLayer } from "../../src/custom-layers/AnimatedRouteLayer";
-import { EasingFunctionName, Keyframe, MaptilerAnimation } from "../../src/utils";
+import { AnimationEventTypes, EasingFunctionName, Keyframe, MaptilerAnimation } from "../../src/utils";
 import { AnimatedRouteLayer } from "../../src/custom-layers/AnimatedRouteLayer";
 import { validFixture, validFixtureExpectedKeyframes } from "../fixtures/animations/keyframes.fixture";
 
@@ -52,6 +52,12 @@ class MockMap {
 describe("AnimatedRouteLayer", () => {
   const map = new MockMap();
 
+  vi.spyOn(MaptilerAnimation.prototype, "addEventListener");
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   test("Instantiates correctly with the correct options", () => {
     const layer = new AnimatedRouteLayer({
       keyframes,
@@ -65,7 +71,7 @@ describe("AnimatedRouteLayer", () => {
     expect(layer.id).toBe("animated-route-layer-PHONEY-UUID");
   });
 
-  test("Throws / rejects if the map already has an AnimatedRouteLayer added", () => {
+  test("Throws / rejects if the map already has an AnimatedRouteLayer added", async () => {
     // fake add a new map
     map.getLayersOrder.mockImplementation(() => ["animated-route-layer-PHONEY-UUID-2"]);
 
@@ -82,7 +88,7 @@ describe("AnimatedRouteLayer", () => {
       await layer.onAdd(map);
     };
 
-    expect(testFn).rejects.toThrowError(
+    await expect(testFn).rejects.toThrowError(
       `[AnimatedRouteLayer.onAdd]: Currently, you can only have one active AnimatedRouteLayer at a time. Please remove the existing one before adding a new one.`,
     );
   });
@@ -137,11 +143,8 @@ describe("AnimatedRouteLayer", () => {
 
     expect(layer.animationInstance).toBeInstanceOf(MaptilerAnimation);
 
-    const boundHandler = layer.animationInstance.update.bind(layer.animationInstance);
-
-    layer.animationInstance.addEventListener = vi.fn();
-
-    expect(layer.animationInstance.addEventListener).toHaveBeenCalledWith("timeupdate", boundHandler);
+    //@ts-expect-error silencing "uninentional this" comment
+    expect(layer.animationInstance.addEventListener).toHaveBeenCalledWith("timeupdate", layer.update);
 
     validFixtureExpectedKeyframes.forEach((keyframe, index) => {
       expect(keyframe.delta).toEqual(validFixtureExpectedKeyframes[index].delta);
@@ -154,5 +157,96 @@ describe("AnimatedRouteLayer", () => {
 
     //@ts-expect-error it is private but we can access it here...
     expect(layer.animationInstance.iterations).toEqual(5);
+  });
+
+  test("enqueus calls to addEventListener call to the MapTilerAnimation instance method if the animation instance has not been created yet.", async () => {
+    map.getLayersOrder.mockImplementation(() => []);
+
+    const layer = new AnimatedRouteLayer({
+      keyframes,
+      duration: 1000,
+      iterations: 2,
+      easing: EasingFunctionName.Linear,
+      autoplay: true,
+    });
+
+    const testFn = vi.fn();
+    const testFn2 = vi.fn();
+
+    layer.addEventListener(AnimationEventTypes.AnimationEnd, testFn);
+    layer.addEventListener(AnimationEventTypes.Iteration, testFn2);
+
+    //@ts-expect-error its not private for tests
+    expect(layer.enquedEventHandlers).toHaveProperty("animationend", [testFn]);
+    //@ts-expect-error its not private for tests
+    expect(layer.enquedEventHandlers).toHaveProperty("iteration", [testFn2]);
+
+    //@ts-expect-error map is mocked to avoid webgl explosions...
+    await layer.onAdd(map);
+
+    expect(layer.animationInstance.addEventListener).toHaveBeenCalledWith(AnimationEventTypes.AnimationEnd, testFn);
+
+    expect(layer.animationInstance.addEventListener).toHaveBeenCalledWith(AnimationEventTypes.Iteration, testFn2);
+
+    //@ts-expect-error its not private for tests
+    expect(layer.enquedEventHandlers[AnimationEventTypes.AnimationEnd]).toEqual([]);
+
+    //@ts-expect-error its not private for tests
+    expect(layer.enquedEventHandlers[AnimationEventTypes.Iteration]).toEqual([]);
+  });
+
+  test("maps addEventListener calls to the animation instance if it has been created", async () => {
+    map.getLayersOrder.mockImplementation(() => []);
+
+    const layer = new AnimatedRouteLayer({
+      keyframes,
+      duration: 1000,
+      iterations: 2,
+      easing: EasingFunctionName.Linear,
+      autoplay: true,
+    });
+
+    //@ts-expect-error map is mocked to avoid webgl explosions...
+    await layer.onAdd(map);
+
+    const testFn = vi.fn();
+    const testFn2 = vi.fn();
+
+    layer.addEventListener(AnimationEventTypes.AnimationEnd, testFn);
+    layer.addEventListener(AnimationEventTypes.Iteration, testFn2);
+
+    expect(layer.animationInstance.addEventListener).toHaveBeenCalledWith(AnimationEventTypes.AnimationEnd, testFn);
+
+    expect(layer.animationInstance.addEventListener).toHaveBeenCalledWith(AnimationEventTypes.Iteration, testFn2);
+  });
+
+  test("enques commands to the animation instance if it has not been created yet.", async () => {
+    map.getLayersOrder.mockImplementation(() => []);
+
+    const layer = new AnimatedRouteLayer({
+      keyframes,
+      duration: 1000,
+      iterations: 2,
+      easing: EasingFunctionName.Linear,
+      autoplay: true,
+    });
+
+    vi.spyOn(MaptilerAnimation.prototype, "play");
+    vi.spyOn(MaptilerAnimation.prototype, "pause");
+
+    layer.play();
+    layer.pause();
+
+    //@ts-expect-error its not private for tests
+    expect(layer.enquedCommands).toHaveLength(2);
+
+    //@ts-expect-error map is mocked to avoid webgl explosions...
+    await layer.onAdd(map);
+
+    expect(layer.animationInstance.play).toHaveBeenCalled();
+    expect(layer.animationInstance.pause).toHaveBeenCalled();
+
+    //@ts-expect-error its not private for tests
+    expect(layer.enquedCommands).toHaveLength(0);
   });
 });
