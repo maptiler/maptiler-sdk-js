@@ -121,7 +121,7 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
   readonly type = "custom";
 
   /** The MaptilerAnimation instance that handles the animation */
-  private animationInstance!: MaptilerAnimation;
+  animationInstance!: MaptilerAnimation;
 
   /**
    * Keyframes for the animation
@@ -190,7 +190,7 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
     manualUpdate = false,
   }: AnimatedRouteLayerOptions) {
     this.keyframes = keyframes ?? null;
-    console.log("keyframes", keyframes, this.keyframes);
+
     this.source = source ?? null;
 
     if (duration) {
@@ -227,6 +227,8 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
     this.autoplay = autoplay ?? false;
 
     this.manualUpdate = manualUpdate;
+
+    this.update = this.update.bind(this);
   }
 
   /**
@@ -238,19 +240,23 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
   async onAdd(map: Map): Promise<void> {
     this.map = map;
     if (this.map.getLayersOrder().some((current) => current.includes(ANIM_LAYER_PREFIX) && this.id !== current)) {
-      throw new Error(`[AnimatedRouteLayer.onAdd]: Currently, you can only have one active AnimatedRouteLayer at a time. Please`);
+      throw new Error(`[AnimatedRouteLayer.onAdd]: Currently, you can only have one active AnimatedRouteLayer at a time. Please remove the existing one before adding a new one.`);
     }
 
     const animationOptions = await this.getAnimationOptions();
 
     this.animationInstance = new MaptilerAnimation({ ...animationOptions, manualMode: this.manualUpdate });
 
-    this.animationInstance.addEventListener(AnimationEventTypes.TimeUpdate, this.update.bind(this));
+    this.animationInstance.addEventListener(AnimationEventTypes.TimeUpdate, this.update);
 
     Object.entries(this.enquedEventHandlers).forEach(([type, handlers]) => {
+      const animationEventKey = type as AnimationEventTypes;
+
       handlers.forEach((handler) => {
-        this.animationInstance.addEventListener(type as AnimationEventTypes, handler);
+        this.animationInstance.addEventListener(animationEventKey, handler);
       });
+
+      this.enquedEventHandlers[animationEventKey] = [];
     });
 
     this.enquedCommands.forEach((command) => {
@@ -258,7 +264,6 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
     });
 
     this.enquedCommands = [];
-
     if (this.autoplay) this.animationInstance.play();
   }
 
@@ -283,9 +288,6 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
   addEventListener(type: AnimationEventTypes, callback: FrameCallback): AnimatedRouteLayer {
     if (!this.animationInstance) {
       this.enquedEventHandlers[type].push(callback);
-      console.info(
-        `[AnimatedRouteLayer.addEventListener]: The MaptilerAnimation instance has not been created yet. Event handler for "${type}" will be added once the animation instance is ready.`,
-      );
       return this;
     }
 
@@ -301,7 +303,6 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
    */
   removeEventListener(type: AnimationEventTypes, callback: FrameCallback): AnimatedRouteLayer {
     if (!this.animationInstance) {
-      console.warn(`[AnimatedRouteLayer.removeEventListener]: Animation instance not yet created. Event handler for "${type}" will not be removed.`);
       return this;
     }
     this.animationInstance.removeEventListener(type, callback);
@@ -373,6 +374,12 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
    * @returns {AnimatedRouteLayer} - The current instance of AnimatedRouteLayer
    */
   pause(): AnimatedRouteLayer {
+    if (!this.animationInstance) {
+      this.enquedCommands.push(() => {
+        this.animationInstance.pause();
+      });
+      return this;
+    }
     this.animationInstance.pause();
     return this;
   }

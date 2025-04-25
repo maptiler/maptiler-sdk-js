@@ -288,6 +288,8 @@ export function getKeyframes(coordinates: number[][], deltas: number[], easings:
     `);
   }
 
+  const includeAltitude = !coordinates.every((coordinate) => coordinate.length < 3);
+
   return coordinates.map((coordinate: number[], index: number) => {
     const delta = deltas[index];
     const easing = easings[index];
@@ -303,7 +305,7 @@ export function getKeyframes(coordinates: number[][], deltas: number[], easings:
       ...propertyValuesForThisKeyframe,
       lng: coordinate[0],
       lat: coordinate[1],
-      altitude: coordinate[2] ?? null,
+      ...(includeAltitude && { altitude: coordinate[2] ?? null }),
     };
 
     return {
