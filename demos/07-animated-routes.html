@@ -76,20 +76,11 @@
     </div>
   </div>
   <script src="../build/maptiler-sdk.umd.min.js"></script>
-  <script src="//cdn.maptiler.com/maptiler-3d/v2.0.2/maptiler-3d.umd.min.js"></script>
   <script src="assets/demo-utils.js"></script>
   <script>
 
     addPerformanceStats();
     setupMapTilerApiKey();
-
-    function getRandomMapStyle() {
-      const styles = Object.keys(maptilersdk.MapStyle);
-      const style = maptilersdk.MapStyle[styles[Math.floor(Math.random() * styles.length)]];
-      const variants = Object.keys(style.variants);
-      const variant = style[variants[Math.floor(Math.random() * variants.length)]];
-      return variant;
-    }
 
     function getElementsByIds(ids) {
       return ids.map(id => document.getElementById(id));

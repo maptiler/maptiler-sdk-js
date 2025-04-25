@@ -1,0 +1,11 @@
+Model Information:
+* title:	Burj Khalifa
+* source:	https://sketchfab.com/3d-models/burj-khalifa-59e6dd74e5f647158de568b5a7f9cab7
+* author:	ManySince910 (https://sketchfab.com/noears6)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Burj Khalifa" (https://sketchfab.com/3d-models/burj-khalifa-59e6dd74e5f647158de568b5a7f9cab7) by ManySince910 (https://sketchfab.com/noears6) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animations and Animated Routes</title>
+  <style>
+    html {
+      height: 100%;
+      font-family: sans-serif;
+      font-size: 13px;
+    }
+
+    body {
+      height: 100%;
+      margin: 0;
+      display: grid;
+      /* grid-template: 1fr 1fr / 1fr 1fr; */
+      /* gap: 16px; */
+      box-sizing: border-box;
+    }
+
+    .map {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .controls-container {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      gap: 8px;
+      z-index: 1;
+    }
+
+    .controls {
+      display: flex;
+    }
+
+    .padded, button {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 8px;
+      background-color: white;
+      padding: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      margin-right: 4px;
+    }
+
+    button {
+      cursor: pointer;
+    }
+  </style>
+  <link rel="stylesheet" href="../build/maptiler-sdk.css">
+</head>
+<body>
+  <div class="controls-container">
+    <div class="controls">
+      <button id="play">
+        Play
+      </button>
+      <button id="pause">
+        Pause
+      </button>
+      <button id="faster">
+        Faster
+      </button>
+      <button id="slower">
+        Slower
+      </button>
+      <div id="playbackRate" class="padded">1.0x</div>
+    </div>
+    <div id="keyframeName" class="padded" style="display: none">
+    </div>
+  </div>
+  <script src="../build/maptiler-sdk.umd.min.js"></script>
+  <script src="//cdn.maptiler.com/maptiler-3d/v2.0.2/maptiler-3d.umd.min.js"></script>
+  <script src="assets/demo-utils.js"></script>
+  <script>
+
+    addPerformanceStats();
+    setupMapTilerApiKey();
+
+    function getElementsByIds(ids) {
+      return ids.map(id => document.getElementById(id));
+    }
+
+    async function createMap(id, nextMapId) {
+      const element = document.createElement("div");
+      element.className = "map";
+      document.body.appendChild(element);
+
+      const map = new maptilersdk.Map({
+        container: element,
+        style: maptilersdk.MapStyle.STREETS.DARK,
+        hash: false,
+        geolocateControl: false,
+        navigationControl: false,
+        terrain: true,
+        bearing: -30,
+        maxPitch: 60,
+        minPitch: 60,
+        labels: false,
+        pitch: 60,
+        zoom: 16.3,
+        maxZoom: 16.3,
+        minZoom: 16.3,
+        center: [
+          55.2743164,
+          25.1973882,
+        ],
+      });
+      window.map = map
+
+      return map;
+    }
+
+    
+    async function main() {
+      const map = await createMap('map-map');
+
+      await map.onReadyAsync()
+
+      const layerId = 'Building 3D'; // update with actual ID
+
+      const animation = new maptilersdk.MaptilerAnimation({
+        keyframes: getKeyframes(),
+        duration: 2500,
+        iterations: Infinity,
+      })
+
+      const layer3D = new maptiler3d.Layer3D('3d-scene')
+      map.addLayer(layer3D)
+
+      await layer3D.addMeshFromURL(
+        // ID to give to this mesh, unique within this Layer3D instance
+        "khalifa",
+
+        // The URL of the mesh
+        "/demos/assets/models/burj_khalifa/scene.gltf",
+
+        // A set of options, these can be modified later
+        {
+          lngLat: [
+            55.2743164,
+            25.1973882,
+          ],
+          heading: -2,
+          scale: 0.013
+        }
+      );
+
+      await layer3D.addMeshFromURL(
+        // ID to give to this mesh, unique within this Layer3D instance
+        "ufo",
+
+        // The URL of the mesh
+        "/demos/assets/models/ufo/scene.gltf",
+
+        // A set of options, these can be modified later
+        {
+          lngLat: [
+            55.2730,
+            25.1970,
+          ],
+          altitude: 500,
+          scale: 10
+        }
+      );
+
+      const keyframeNameElement = document.getElementById('keyframeName');
+
+      animation.addEventListener('timeupdate', (e) => {
+        frames += 1;
+        map.setBearing(map.getBearing() + 0.1);
+        layer3D.modifyMesh('ufo', {
+          lngLat: [
+            e.props.lng,
+            e.props.lat
+          ],
+          altitude: e.props.altitude,
+        })
+      })
+
+      animation.addEventListener('playbackratechange', (e) => {
+        const playbackRateElement = document.getElementById('playbackRate');
+         playbackRateElement.innerText = e.playbackRate.toFixed(1) + 'x';
+      });
+
+      const [
+        playButton,
+        pauseButton,
+        fasterButton,
+        slowerButton
+      ] = getElementsByIds([
+        'play',
+        'pause',
+        'faster',
+        'slower'
+      ]);
+      
+      playButton.addEventListener('click', () => {
+        animation.play();
+      });
+
+      pauseButton.addEventListener('click', () => {
+        animation.pause();
+      });
+
+      fasterButton.addEventListener('click', () => {
+        const currentSpeed = animation.getPlaybackRate();
+        animation.setPlaybackRate(currentSpeed + 0.2);
+      });
+
+      slowerButton.addEventListener('click', () => {
+        const currentSpeed = animation.getPlaybackRate();
+        animation.setPlaybackRate(currentSpeed - 0.2);
+      });
+    }
+
+    main()
+
+    function getKeyframes() {
+      return [
+        {
+          delta: 0,
+          easing: 'ElasticInOut',
+          props: {
+            lng: 55.2730,
+            lat: 25.1970,
+            altitude: 500,
+          }
+        },
+        {
+          delta: 0.33333,
+          easing: 'ElasticInOut',
+          props: {
+            lng: 55.27439873444448,
+            lat: 25.198719685352263,
+            altitude: 350,
+          }
+        },
+        {
+          delta: 0.666666,
+          easing: 'ElasticInOut',
+          props: {
+            lng: 55.2753633312754,
+            lat: 25.195489657613702,
+            altitude: 450,
+          }
+        },
+        {
+          delta: 1.0,
+          easing: 'ElasticInOut',
+          props: {
+            lng: 55.2730,
+            lat: 25.1970,
+            altitude: 500,
+          }
+        },
+      ]
+    }
+  </script>
+</body>
+</html>
