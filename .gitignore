@@ -107,6 +107,5 @@ typings/
 .vscode
 demos/tmp_*
 dist
-docs
 docsmd
 build

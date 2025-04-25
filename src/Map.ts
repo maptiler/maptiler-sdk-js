@@ -67,6 +67,8 @@ type MapTerrainDataEvent = MapDataEvent & {
 /**
  * The type of projection, `undefined` means it's decided by the style and if the style does not contain any projection info,
  * if falls back to the default Mercator
+ *
+ * @typedef {string | undefined} ProjectionTypes
  */
 export type ProjectionTypes = "mercator" | "globe" | undefined;
 

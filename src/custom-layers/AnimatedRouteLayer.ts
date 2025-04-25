@@ -1,27 +1,45 @@
 import { CustomLayerInterface, Map } from "maplibre-gl";
 import { AnimationEvent, AnimationEventListenersRecord, AnimationEventTypes, EasingFunctionName, Keyframe } from "../utils/MaptilerAnimation/types";
 import { v4 as uuidv4 } from "uuid";
-import MaptilerAnimation, { AnimationOptions } from "../utils/MaptilerAnimation/MaptilerAnimation";
+import MaptilerAnimation, { MaptilerAnimationOptions } from "../utils/MaptilerAnimation/MaptilerAnimation";
 
 import { GeoJSONSource } from "@maptiler/sdk";
 import { KeyframeableGeoJSONFeature, parseGeoJSONFeatureToKeyframes } from "../utils/MaptilerAnimation/animation-helpers";
 
-type SourceData = {
+export type SourceData = {
   id: string;
   featureSetIndex: number;
   layerID: string;
 };
 
-type AnimatedStrokeOptions =
+/**
+ * Options for configuring the animated stroke effect for routes.
+ * When an object is provided, it defines colors for active and inactive parts of the route.
+ * When `false`, the animated stroke effect is disabled.
+ *
+ * @typedef {Object|boolean} AnimatedStrokeOptions
+ * @property {[number, number, number, number]} activeColor - The color of the path that has been progressed, in RGBA format.
+ * @property {[number, number, number, number]} inactiveColor - The base color of the path, in RGBA format.
+ */
+export type AnimatedStrokeOptions =
   | {
-      /** The color of the path that has been progressed */
       activeColor: [number, number, number, number];
-      /** The base color of the path */
       inactiveColor: [number, number, number, number];
     }
   | false;
 
-type AnimatedCameraOptions =
+/**
+ * Options for configuring the animated camera movement
+ * along the route.
+ *
+ * @typedef {Object|boolean} AnimatedCameraOptions
+ * @property {boolean} [follow] - Whether the camera should follow the animation.
+ * @property {Object|boolean} [pathSmoothing] - Whether the camera path should be smoothed.
+ * @property {number} [pathSmoothing.resolution] - The resolution of the smoothing, higher resolution means more fidelity to the path.
+ * @property {number} [pathSmoothing.epsilon] - How much to simplify the path beforehand.
+ * @property {false} [pathSmoothing] - Whether the camera path should be smoothed.
+ */
+export type AnimatedCameraOptions =
   | {
       /** Whether the camera should follow the animation */
       follow?: boolean;
@@ -37,7 +55,23 @@ type AnimatedCameraOptions =
     }
   | false;
 
-type AnimatedRouteLayerOptions = {
+/**
+ * Configuration options for the AnimatedRouteLayer.
+ * This type supports either providing keyframes directly OR source data for the animation.
+ *
+ * @typedef AnimatedRouteLayerOptions
+ * @property {number} [duration] - The duration of the animation in milliseconds
+ * @property {number} [iterations] - The number of animation iterations to perform
+ * @property {number} [delay] - The delay in milliseconds before starting the animation
+ * @property {EasingFunctionName} [easing] - The default easing function to use if not provided in the GeoJSON
+ * @property {AnimatedCameraOptions} [cameraAnimation] - Options for camera animation
+ * @property {AnimatedStrokeOptions} [pathStrokeAnimation] - Options for stroke animation, only applicable for LineString geometries
+ * @property {boolean} [autoplay] - Whether the animation should start playing automatically
+ * @property {boolean} [manualUpdate] - Whether the animation should update automatically or require manual frameAdvance calls
+ * @property {Keyframe[]} [keyframes] - The keyframes for the animation (mutually exclusive with source)
+ * @property {SourceData} [source] - The source data for the animation (mutually exclusive with keyframes)
+ */
+export type AnimatedRouteLayerOptions = {
   /** The Duration in ms */
   duration?: number;
   /** The number of iterations */
@@ -67,16 +101,19 @@ type AnimatedRouteLayerOptions = {
     }
 );
 
-type FrameCallback = (event: AnimationEvent) => void;
+/**
+ * A callback function that gets executed for each animation frame. This is simply a utility type.
+ * @param {AnimationEvent} event - The animation event data provided during animation frame updates.
+ */
+export type FrameCallback = (event: AnimationEvent) => void;
 
-const ANIM_LAYER_PREFIX = "animated-route-layer";
+export const ANIM_LAYER_PREFIX = "animated-route-layer";
 
 /**
  * This layer allows you to create animated paths on a map by providing keyframes or a GeoJSON source
  * with route data. The animation can control both the visual appearance of the path (using color transitions)
  * and optionally animate the camera to follow along the route path.
- *
- * @implements {CustomLayerInterface}
+ * @class AnimatedRouteLayer
  *
  * @example
  * ```typescript
@@ -153,7 +190,7 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
   private map!: Map;
 
   /** The camera animation options */
-  private cameraAnimationOptions?: AnimatedCameraOptions;
+  private cameraMaptilerAnimationOptions?: AnimatedCameraOptions;
 
   /**
    * The path stroke animation options
@@ -207,7 +244,7 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
 
     this.easing = easing;
 
-    this.cameraAnimationOptions = cameraAnimation
+    this.cameraMaptilerAnimationOptions = cameraAnimation
       ? {
           ...{
             pathSmoothing: {
@@ -243,9 +280,9 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
       throw new Error(`[AnimatedRouteLayer.onAdd]: Currently, you can only have one active AnimatedRouteLayer at a time. Please remove the existing one before adding a new one.`);
     }
 
-    const animationOptions = await this.getAnimationOptions();
+    const MaptilerAnimationOptions = await this.getMaptilerAnimationOptions();
 
-    this.animationInstance = new MaptilerAnimation({ ...animationOptions, manualMode: this.manualUpdate });
+    this.animationInstance = new MaptilerAnimation({ ...MaptilerAnimationOptions, manualMode: this.manualUpdate });
 
     this.animationInstance.addEventListener(AnimationEventTypes.TimeUpdate, this.update);
 
@@ -340,7 +377,7 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
       }
     }
 
-    if (props && this.cameraAnimationOptions && this.cameraAnimationOptions.follow) {
+    if (props && this.cameraMaptilerAnimationOptions && this.cameraMaptilerAnimationOptions.follow) {
       const { lng, lat, bearing, zoom, pitch } = props;
 
       this.map.jumpTo({
@@ -387,9 +424,9 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
   /**
    * Gets the source GeoJSON data from the map instance, parses it, and returns the animation options.
    *
-   * @returns {Promise<AnimationOptions>} - The MaptilerAnimation constructor options
+   * @returns {Promise<MaptilerAnimationOptions>} - The MaptilerAnimation constructor options
    */
-  async getAnimationOptions(): Promise<AnimationOptions & { autoplay: boolean }> {
+  async getMaptilerAnimationOptions(): Promise<MaptilerAnimationOptions & { autoplay: boolean }> {
     const map = this.map;
     if (this.source) {
       const source = map.getSource(this.source.id);
@@ -426,7 +463,7 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
         }
 
         const keyframes = parseGeoJSONFeatureToKeyframes(keyframeableFeature, {
-          pathSmoothing: this.cameraAnimationOptions ? this.cameraAnimationOptions.pathSmoothing : false,
+          pathSmoothing: this.cameraMaptilerAnimationOptions ? this.cameraMaptilerAnimationOptions.pathSmoothing : false,
           defaultEasing: this.easing,
         });
 

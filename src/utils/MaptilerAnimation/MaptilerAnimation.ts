@@ -6,7 +6,7 @@ import EasingFunctions from "./easing";
 /**
  * Configuration options for creating an animation.
  *
- * @interface AnimationOptions
+ * @interface MaptilerAnimationOptions
  * @property {Keyframe[]} keyframes - The keyframes that define the animation states at various points in time.
  * @property {number} duration - The total duration of the animation in milliseconds.
  * @property {number} iterations - The number of times the animation should repeat. Use 0 for no repeat, or Infinity for an infinite loop.
@@ -14,7 +14,7 @@ import EasingFunctions from "./easing";
  * @property {boolean} [manualMode] - Optional. If true, the animation will not be automatically managed by the animation manager
  *                                   and must be updated manually by calling update(). Defaults to false if not specified.
  */
-export interface AnimationOptions {
+export interface MaptilerAnimationOptions {
   keyframes: Keyframe[];
   duration: number;
   iterations: number;
@@ -136,7 +136,7 @@ export default class MaptilerAnimation {
   /** The props from the previous frame */
   private previousProps!: Record<string, number>;
 
-  constructor({ keyframes, duration, iterations, manualMode, delay }: AnimationOptions) {
+  constructor({ keyframes, duration, iterations, manualMode, delay }: MaptilerAnimationOptions) {
     // collate all properties that are animated
     const animatedProperties = keyframes
       .map(({ props }: Keyframe) => {
@@ -226,7 +226,7 @@ export default class MaptilerAnimation {
   /**
    * Starts or resumes the animation
    * @returns This animation instance for method chaining
-   * @emits AnimationEventTypes.Play
+   * @event AnimationEventTypes.Play
    */
   play() {
     if (this.playing) {
@@ -259,7 +259,7 @@ export default class MaptilerAnimation {
   /**
    * Pauses the animation
    * @returns This animation instance for method chaining
-   * @emits AnimationEventTypes.Pause
+   * @event AnimationEventTypes.Pause
    */
   pause() {
     this.playing = false;
@@ -270,7 +270,7 @@ export default class MaptilerAnimation {
   /**
    * Stops the animation and resets to initial state
    * @returns This animation instance for method chaining
-   * @emits AnimationEventTypes.Stop
+   * @event AnimationEventTypes.Stop
    */
   stop(silent: boolean = false) {
     this.playing = false;
@@ -281,7 +281,7 @@ export default class MaptilerAnimation {
   /**
    * Resets the animation to its initial state without stopping
    * @returns This animation instance for method chaining
-   * @emits AnimationEventTypes.Reset
+   * @event AnimationEventTypes.Reset
    */
   reset(manual: boolean = true) {
     this.stop(true);
@@ -311,10 +311,10 @@ export default class MaptilerAnimation {
   /**
    * Updates the animation state, interpolating between keyframes
    * and emitting events as necessary
-   * @emits AnimationEventTypes.TimeUpdate
-   * @emits AnimationEventTypes.Keyframe
-   * @emits AnimationEventTypes.Iteration
-   * @emits AnimationEventTypes.AnimationEnd
+   * @event AnimationEventTypes.TimeUpdate
+   * @event AnimationEventTypes.Keyframe
+   * @event AnimationEventTypes.Iteration
+   * @event AnimationEventTypes.AnimationEnd
    * @returns This animation instance for method chaining
    */
   update(manual = true, ignoreIteration = false) {
@@ -426,7 +426,7 @@ export default class MaptilerAnimation {
    * @param time - The time to set in milliseconds
    * @returns This animation instance for method chaining
    * @throws Error if time is greater than the duration
-   * @emits AnimationEventTypes.Scrub
+   * @event AnimationEventTypes.Scrub
    */
   setCurrentTime(time: number) {
     if (time > this.effectiveDuration) {
@@ -452,7 +452,7 @@ export default class MaptilerAnimation {
    * @param delta - The delta value to set (normalized progress between 0 and 1)
    * @returns This animation instance for method chaining
    * @throws Error if delta is greater than 1
-   * @emits AnimationEventTypes.Scrub
+   * @event AnimationEventTypes.Scrub
    */
   setCurrentDelta(delta: number) {
     if (delta > 1) {
@@ -471,7 +471,7 @@ export default class MaptilerAnimation {
    * Sets the playback rate of the animation
    * @param rate - The playback rate (1.0 is normal speed)
    * @returns This animation instance for method chaining
-   * @emits AnimationEventTypes.PlaybackRateChange
+   * @event AnimationEventTypes.PlaybackRateChange
    */
   setPlaybackRate(rate: number) {
     this.playbackRate = rate;

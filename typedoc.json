@@ -1,7 +1,10 @@
 {
-  "entryPoints": ["./src/index.ts"],
+  "plugin": ["typedoc-plugin-markdown"],
+  "out": "./docs",
+  "entryPoints": [
+    "./src/index.ts",
+  ],
   "name": "MapTiler SDK",
-  "out": "docs",
   "excludePrivate": true,
   "excludeProtected": true,
   "excludeExternals": true,
@@ -9,5 +12,6 @@
   "excludeInternal": true,
   "theme": "default",
   "customCss": "typedoc.css",
-  "includeVersion": true
+  "includeVersion": true,
+  "readme": "none"
 }

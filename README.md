@@ -32,7 +32,7 @@ npm install --save @maptiler/sdk
 ⚠️ Please keep in mind that if you use any additional [MapTiler modules](https://docs.maptiler.com/sdk-js/modules/), you must update them to a version that supports MapTiler SDK JS v3.
 
 # API documentation
-In addition to the details and examples provided in this readme, check out the [complete API documentation](https://docs.maptiler.com/sdk-js/api/)
+In addition to the [docs](./docs/README.md) and examples provided in this readme, check out [docs.maptiler.com](https://docs.maptiler.com/sdk-js/api/) for additional code examples and documentation.
 
 # Quick start
 
@@ -1175,8 +1175,6 @@ const animation = new MaptilerAnimation({
 ```
 ![](images/animate-elastic-trimmed.gif)
 
-Further documentation can be found in the generated typedocs `npm run docs`
-
 ### 🗺️ `AnimatedRouteLayer`
 
 `AnimatedRouteLayer` is custom layer that animates a path or route on the map based on keyframes or GeoJSON data. It supports animated line styling and camera following, making it ideal for visualizing routes, playback tracks, or timeline-based geographic events.
@@ -1259,6 +1257,18 @@ animatedRoute.pause();
 ```
 
 For a full example of how to use this, look at [the example](./demos/07-animated-routes.html)
+
+### Helper Functions 🧰
+
+The animation modules come with an array of helper functions (some of which are useful for more than just animations).
+
+#### `createBezierPathFromCoordinates` 
+
+Given an array of lng-lat coords, simplifies and then smooths the path using Catmull-Rom smoothing. This is used internally for camera path smoothing. 
+
+#### `
+
+Full api documentation for these can all be found in the [typedocs](#typedocs).
 
 ## Convert GPX and KML to GeoJSON
 In the [Polyline helper section](#polyline-layer-helper) above, we have seen that one can feed the helper directly with a path to a GPX or KML file, that is then converted under the hood client-side into a GeoJSON `FeatureCollection` object. This conversion feature is also exposed and can be used as such:

@@ -97,7 +97,16 @@ export function findPreviousEntryAndIndexWithValue(arr: NumericArrayWithNull, cu
   return [null, null];
 }
 
-interface IparseGeoJSONToKeyframesOptions {
+/**
+ * Options for parsing GeoJSON data into animation keyframes.
+ *
+ * @interface IparseGeoJSONToKeyframesOptions
+ * @property {EasingFunctionName} [defaultEasing] - The default easing function to apply to the animation.
+ * @property {Object|false} [pathSmoothing] - Configuration for path smoothing, or false to disable smoothing.
+ * @property {number} [pathSmoothing.resolution] - The resolution used for path smoothing, higher values produce more detailed paths.
+ * @property {number} [pathSmoothing.epsilon] - Optional tolerance parameter for path simplification.
+ */
+export interface IparseGeoJSONToKeyframesOptions {
   defaultEasing?: EasingFunctionName;
   pathSmoothing?:
     | {
@@ -117,8 +126,28 @@ const defaultOptions: IparseGeoJSONToKeyframesOptions = {
 
 const ACCEPTED_GEOMETRY_TYPES = ["MultiPoint", "LineString", "MultiLineString", "Polygon"];
 
+/**
+ * Represents geometry types that can be animated using keyframes.
+ *
+ * This type includes geometries like MultiPoint, LineString, MultiLineString, and Polygon
+ * which can be interpolated or transformed over time in animations.
+ */
 export type KeyframeableGeometry = MultiPoint | LineString | MultiLineString | Polygon;
 
+/**
+ * Represents a GeoJSON Feature that can be animated with keyframes.
+ * Extends the standard GeoJSON Feature with animation-specific properties.
+ *
+ * @typedef {Object} KeyframeableGeoJSONFeature
+ * @extends {Feature<KeyframeableGeometry>}
+ * @property {Object} properties - Contains both standard GeoJSON properties (as number arrays) and animation controls
+ * @property {EasingFunctionName[]} [properties.@easing] - Easing functions to apply to property animations
+ * @property {number[]} [properties.@delta] - Delta values for animation calculations
+ * @property {number} [properties.@duration] - Duration of the animation in milliseconds
+ * @property {number} [properties.@delay] - Delay before animation starts in milliseconds
+ * @property {number} [properties.@iterations] - Number of times the animation should repeat
+ * @property {boolean} [properties.@autoplay] - Whether the animation should start automatically
+ */
 export type KeyframeableGeoJSONFeature = Feature<KeyframeableGeometry> & {
   properties: Record<string, number[]> & {
     "@easing"?: EasingFunctionName[];
@@ -138,16 +167,8 @@ export type KeyframeableGeoJSONFeature = Feature<KeyframeableGeometry> & {
  * control parameters (easing functions, delta values). Non-reserved properties are preserved
  * and passed to the keyframe objects as props that will be interpolated
  *
- * @param feature - The GeoJSON feature to convert to keyframes
- * @param feature.geometry - The geometry object containing coordinates
- * @param feature.properties - Properties object that may contain animation controls:
- *   - `@easing`: Array of easing function names for each keyframe
- *   - `@delta`: Array of timing values (0-1) representing the progress for each keyframe
- * @param options - Configuration options
- * @param options.defaultEasing - Default easing function to use when not specified in properties
- * @param options.pathSmoothing - Optional path smoothing configuration
- * @param options.pathSmoothing.resolution - Resolution factor for the smoothing algorithm
- * @param options.pathSmoothing.epsilon - Epsilon value for the smoothing algorithm
+ * @param {KeyframeableGeoJSONFeature} feature - The GeoJSON feature to convert to keyframes
+ * @param {IparseGeoJSONToKeyframesOptions} options - Configuration options
  *
  * @returns Array of keyframe objects that can be used for animation
  *
@@ -331,8 +352,8 @@ export function getKeyframes(coordinates: number[][], deltas: number[], easings:
  *                                  creating the curves.
  * @returns An array of [x, y] coordinates representing the smoothed path
  */
-export function createBezierPathFromCoordinates(inputPath: [number, number][], outputResolution: number = 20, epsilon?: number): [number, number][] {
-  const path = typeof epsilon === "number" ? simplifyPath(inputPath, epsilon) : inputPath;
+export function createBezierPathFromCoordinates(inputPath: [number, number][], outputResolution: number = 20, simplificationThreshold?: number): [number, number][] {
+  const path = typeof simplificationThreshold === "number" ? simplifyPath(inputPath, simplificationThreshold) : inputPath;
 
   if (path.length < 4) return path; // Need at least 4 points
 
