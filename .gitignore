@@ -110,3 +110,6 @@ dist
 docs
 docsmd
 build
+
+# Test output
+test-results

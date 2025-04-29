@@ -1,6 +1,6 @@
-import MaptilerAnimation from "./MaptilerAnimation";
+import type MaptilerAnimation from "./MaptilerAnimation";
 
-export const enum EasingFunctionName {
+export enum EasingFunctionName {
   Linear = "Linear",
   QuadraticIn = "QuadraticIn",
   QuadraticOut = "QuadraticOut",
