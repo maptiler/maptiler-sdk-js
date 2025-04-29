@@ -36,7 +36,8 @@
   },
   "scripts": {
     "prepare": "husky",
-    "docs": "rm -rf docs/* && typedoc",
+    "docs": "rm -rf docs/* && typedoc --plugin typedoc-plugin-markdown --out docs --readme none",
+    "docs:html": "rm -rf docs-html/* && typedoc --out docs-html",
     "ncu": "npx npm-check-updates",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",

@@ -1,6 +1,4 @@
 {
-  "plugin": ["typedoc-plugin-markdown"],
-  "out": "./docs",
   "entryPoints": [
     "./src/index.ts",
   ],
@@ -12,6 +10,5 @@
   "excludeInternal": true,
   "theme": "default",
   "customCss": "typedoc.css",
-  "includeVersion": true,
-  "readme": "none"
+  "includeVersion": true
 }
