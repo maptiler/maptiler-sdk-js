@@ -1,11 +1,14 @@
 # MapTiler SDK Changelog
 
-
-
 ## 3.2.1
 ## ✨ Features and improvements
+None
+
 ## 🐛 Bug fixes
-[RD-902](https://maptiler.atlassian.net/browse/RD-902?atlOrigin=eyJpIjoiNGM2NGQxNzg0ZjEzNGJlMGI3M2Y1YTM3YTIyNjdkMDkiLCJwIjoiaiJ9) Changes to use default import for maplibre-gl as it uses commonjs modules under the hood.
+- [RD-902](https://maptiler.atlassian.net/browse/RD-902?atlOrigin=eyJpIjoiNGM2NGQxNzg0ZjEzNGJlMGI3M2Y1YTM3YTIyNjdkMDkiLCJwIjoiaiJ9) Changes to use default import for maplibre-gl as it uses commonjs modules under the hood.
+
+## 🔧 Others
+- Adds linting config to check for non default maplibre defaults. Named imports from CJS modules fail on some build pipelines.
 
 ## 3.2.0
 ## ✨ Features and improvements
