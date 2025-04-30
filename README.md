@@ -32,7 +32,12 @@ npm install --save @maptiler/sdk
 ⚠️ Please keep in mind that if you use any additional [MapTiler modules](https://docs.maptiler.com/sdk-js/modules/), you must update them to a version that supports MapTiler SDK JS v3.
 
 # API documentation
-In addition to the details and examples provided in this readme, check out the [complete API documentation](https://docs.maptiler.com/sdk-js/api/)
+For further documentation and examples, check out [docs.maptiler.com](https://docs.maptiler.com/sdk-js/api/). 
+
+Full api typedoc documentation can also be generated via the commands:
+
+`npm run docs:md` to generate markdown in `docs`
+`npm run docs:html` to generate html docs in `docs-html`
 
 # Quick start
 
@@ -1174,8 +1179,6 @@ const animation = new MaptilerAnimation({
 });
 ```
 ![](images/animate-elastic-trimmed.gif)
-
-Further documentation can be found in the generated typedocs `npm run docs`
 
 ### 🗺️ `AnimatedRouteLayer`
 

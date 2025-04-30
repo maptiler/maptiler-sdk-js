@@ -1,10 +1,29 @@
 import type { Map as MapSDK } from "./Map";
 import { config, MAPTILER_SESSION_ID } from "./config";
 import { defaults } from "./constants/defaults";
-import packagejson from "../package.json";
+import { ANIM_LAYER_PREFIX, getVersion } from "./";
 
 /**
- * A Telemetry instance sends some usage and merics to a dedicated endpoint at MapTiler Cloud.
+ * @class Telemetry
+ * A Telemetry instance sends some usage and merics to a dedicated endpoint at MapTiler Cloud:
+ * - SDK version
+ * - Registered modules and their versions
+ * - Feature usage (terrain, globe projection, etc.)
+ * - Configuration settings (session usage, tile caching)
+ *
+ * The telemetry data is sent once after initialization with a configurable delay.
+ * Telemetry can be disabled by setting `config.telemetry` to false.
+ *
+ * @remarks
+ * The collected data helps improve the SDK by providing insights into which features
+ * are commonly used and how the SDK is configured in real-world applications.
+ *
+ * @example
+ * ```typescript
+ * const map = new MapSDK(...);
+ * const telemetry = new Telemetry(map);
+ * telemetry.registerModule("@maptiler/module-foo", "1.0.0");
+ * ```
  */
 export class Telemetry {
   private map: MapSDK;
@@ -55,7 +74,7 @@ export class Telemetry {
     const telemetryUrl = new URL(defaults.telemetryURL);
 
     // Adding the version of the SDK
-    telemetryUrl.searchParams.append("sdk", packagejson.version);
+    telemetryUrl.searchParams.append("sdk", getVersion());
 
     // Adding the API key
     telemetryUrl.searchParams.append("key", config.apiKey);
@@ -77,6 +96,9 @@ export class Telemetry {
 
     // Is globe enabled?
     telemetryUrl.searchParams.append("globe", this.map.isGlobeProjection() ? "1" : "0");
+
+    // Does the map using AnimatedRouteLayer?
+    telemetryUrl.searchParams.append("animated-route-layer", this.map.getLayersOrder().includes(ANIM_LAYER_PREFIX) ? "1" : "0");
 
     // Adding the modules
     // the list of modules are separated by a "|". For each module, a ":" is used to separate the name and the version:
