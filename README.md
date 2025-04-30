@@ -1263,16 +1263,6 @@ animatedRoute.pause();
 
 For a full example of how to use this, look at [the example](./demos/07-animated-routes.html)
 
-### Helper Functions 🧰
-
-The animation modules come with an array of helper functions (some of which are useful for more than just animations).
-
-#### `createBezierPathFromCoordinates` 
-
-Given an array of lng-lat coords, simplifies and then smooths the path using Catmull-Rom smoothing. This is used internally for camera path smoothing. 
-
-#### `
-
 ## Convert GPX and KML to GeoJSON
 In the [Polyline helper section](#polyline-layer-helper) above, we have seen that one can feed the helper directly with a path to a GPX or KML file, that is then converted under the hood client-side into a GeoJSON `FeatureCollection` object. This conversion feature is also exposed and can be used as such:
 
