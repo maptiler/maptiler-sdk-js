@@ -32,7 +32,12 @@ npm install --save @maptiler/sdk
 ⚠️ Please keep in mind that if you use any additional [MapTiler modules](https://docs.maptiler.com/sdk-js/modules/), you must update them to a version that supports MapTiler SDK JS v3.
 
 # API documentation
-In addition to the [docs](./docs/README.md) and examples provided in this readme, check out [docs.maptiler.com](https://docs.maptiler.com/sdk-js/api/) for additional code examples and documentation.
+For further documentation and examples, check out [docs.maptiler.com](https://docs.maptiler.com/sdk-js/api/). 
+
+Full api typedoc documentation can also be generated via the commands:
+
+`npm run docs:md` to generate markdown in `docs`
+`npm run docs:html` to generate html docs in `docs-html`
 
 # Quick start
 
@@ -1267,8 +1272,6 @@ The animation modules come with an array of helper functions (some of which are 
 Given an array of lng-lat coords, simplifies and then smooths the path using Catmull-Rom smoothing. This is used internally for camera path smoothing. 
 
 #### `
-
-Full api documentation for these can all be found in the [typedocs](#typedocs).
 
 ## Convert GPX and KML to GeoJSON
 In the [Polyline helper section](#polyline-layer-helper) above, we have seen that one can feed the helper directly with a path to a GPX or KML file, that is then converted under the hood client-side into a GeoJSON `FeatureCollection` object. This conversion feature is also exposed and can be used as such:

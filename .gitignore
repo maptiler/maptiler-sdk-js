@@ -104,6 +104,7 @@ typings/
 .tern-port
 .DS_Store
 
+docs
 docs-html
 .vscode
 demos/tmp_*
