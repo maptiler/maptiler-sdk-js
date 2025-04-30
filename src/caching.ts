@@ -2,7 +2,7 @@ import type { GetResourceResponse, RequestParameters, ResourceType } from "mapli
 
 import { config } from "./config";
 
-import { addProtocol } from "maplibre-gl";
+import maplibregl from "maplibre-gl";
 
 import { defaults } from "./constants/defaults";
 
@@ -13,6 +13,8 @@ const LOCAL_CACHE_NAME = "maptiler_sdk";
 const CACHE_LIMIT_ITEMS = 1000;
 const CACHE_LIMIT_CHECK_INTERVAL = 100;
 export const CACHE_API_AVAILABLE = typeof caches !== "undefined";
+
+const { addProtocol } = maplibregl;
 
 export function localCacheTransformRequest(reqUrl: URL, resourceType?: ResourceType): string {
   if (CACHE_API_AVAILABLE && config.caching && config.session && reqUrl.host === defaults.maptilerApiHost) {
