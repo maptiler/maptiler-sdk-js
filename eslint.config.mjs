@@ -70,7 +70,7 @@ export default tseslint.config(
       "import/default-imports-only": [
         "error",
         {
-          "maplibre-gl(.*)": {
+          "maplibre-gl$": {
             locations: ["^(?!.*\.d\.ts$).*\.((ts|js))$"],
             message: `Maplibre-gl uses CJS modules, only default imports are supported, named imports may fail on some setups.`,
             ignoreTypeImports: true,
