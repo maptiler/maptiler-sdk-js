@@ -1,6 +1,6 @@
 # MapTiler SDK Changelog
 
-## 3.2.1
+## 3.2.2
 ## ✨ Features and improvements
 None
 
@@ -9,6 +9,10 @@ None
 
 ## 🔧 Others
 - Adds linting config to check for non default maplibre defaults. Named imports from CJS modules fail on some build pipelines.
+
+## 3.2.1
+### ⚠️ Warning
+- This version was published in error. Please use `3.2.2` instead.
 
 ## 3.2.0
 ## ✨ Features and improvements

@@ -21,8 +21,24 @@ jobs:
           node-version: 18
           registry-url: https://registry.npmjs.org/
       - run: npm ci
+
       - run: npm run make
-      
+
+      - name: Clear NPM cache
+        run: npm cache clean --force
+
+      - name: Install dependencies and build
+        run: npm ci
+
+      - name: Make release
+        run: npm run make
+        id: makeRelease
+
+      - name: Fail job if makeRelease failed
+        if: steps.makeRelease.outcome == 'failure'
+        run: exit 1
+
+        id: check-build-status
       - name: Publish NPM package (regular)
         if: "!github.event.release.prerelease"
         run: |
