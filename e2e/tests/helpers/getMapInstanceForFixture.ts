@@ -62,7 +62,7 @@ export default async function getMapInstanceForFixture({ fixture, page, mockStyl
   try {
     const map = await page.evaluateHandle(() => {
       return Promise.race([
-        new Promise(async (resolve, reject) => {
+        new Promise(async (resolve) => {
           console.log("Window.__map", window.__map);
           window.__map.on("idle", () => {;
             resolve(window.__map);

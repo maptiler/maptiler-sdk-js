@@ -2,8 +2,8 @@ import { expect, test } from "@playwright/test";
 
 import getMapInstanceForFixture from "./helpers/getMapInstanceForFixture";
 
-test("Awaits until map ready and takes snapshot", async ({ page }, testInfo) => {
-  const { map } = await getMapInstanceForFixture({
+test("Awaits until map ready and takes snapshot", async ({ page }) => {
+  await getMapInstanceForFixture({
     fixture: "mapLoad",
     page,
   });
