@@ -113,3 +113,4 @@ build
 
 # Test output
 test-results
+playwright-report
