@@ -1,7 +1,6 @@
 import { AnimatedRouteLayer } from "../../src/custom-layers/AnimatedRouteLayer";
 import { Map as MapTiler, MapStyle } from "@maptiler/sdk";
 import fetchGeoJSON from "../tests/helpers/fetchGeojson";
-import { AnimationEventTypes } from "utils";
 
 async function main() {
   const map = new MapTiler({
@@ -58,19 +57,16 @@ async function main() {
     cameraAnimation: {
       pathSmoothing: {
         resolution: 20,
-        epsilon: 0.1,
+        epsilon: 2,
       },
     },
   });
 
   map.addLayer(animatedRouteLayer);
 
-  // animatedRouteLayer.addEventListener(AnimationEventTypes.TimeUpdate, () => {
-    // console.log("Animation ended");
-  // });
-
-  animatedRouteLayer.updateManual();
-  
+  window.__pageObjects = {
+    animatedRouteLayer,
+  };
 }
 
 main();
