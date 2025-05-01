@@ -115,10 +115,10 @@ const ANIM_LAYER_PREFIX = "animated-route-layer";
  */
 /**
  * Creates an animated route layer for MapTiler maps.
- * 
+ *
  * The `AnimatedRouteLayer` allows you to animate paths on a map with visual effects and optional camera following.
  * You can define animations either through explicit keyframes or by referencing GeoJSON data with animation metadata.
- * 
+ *
  * Features:
  * - Animate route paths with color transitions (active/inactive segments)
  * - Optional camera following along the route
@@ -126,7 +126,7 @@ const ANIM_LAYER_PREFIX = "animated-route-layer";
  * - Configure animation properties (duration, iterations, delay, easing)
  * - Support for manual or automatic animation updates
  * - Event system for animation state changes
- * 
+ *
  * @example
  * ```typescript
  * // Create an animated route from GeoJSON source
@@ -148,20 +148,20 @@ const ANIM_LAYER_PREFIX = "animated-route-layer";
  *     inactiveColor: [0, 0, 255, 1]
  *   }
  * });
- * 
+ *
  * // Add the layer to the map
  * map.addLayer(animatedRoute);
- * 
+ *
  * // Control playback
  * animatedRoute.pause();
  * animatedRoute.play();
- * 
+ *
  * // Listen for animation events
  * animatedRoute.addEventListener(AnimationEventTypes.Finish, () => {
  *   console.log('Animation completed');
  * });
  * ```
- * 
+ *
  * @implements {CustomLayerInterface}
  */
 export class AnimatedRouteLayer implements CustomLayerInterface {
@@ -358,7 +358,6 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
     this.animationInstance.removeEventListener(type, callback);
     return this;
   }
-
 
   public updateManual() {
     if (this.animationInstance && this.manualUpdate) {
