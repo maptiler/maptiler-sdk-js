@@ -1,9 +1,8 @@
-import { CustomLayerInterface, Map } from "maplibre-gl";
 import { AnimationEvent, AnimationEventListenersRecord, AnimationEventTypes, EasingFunctionName, Keyframe } from "../utils/MaptilerAnimation/types";
 import { v4 as uuidv4 } from "uuid";
 import MaptilerAnimation, { MaptilerAnimationOptions } from "../utils/MaptilerAnimation/MaptilerAnimation";
 
-import { GeoJSONSource } from "@maptiler/sdk";
+import { GeoJSONSource, CustomLayerInterface, Map } from "@maptiler/sdk";
 import { KeyframeableGeoJSONFeature, parseGeoJSONFeatureToKeyframes } from "../utils/MaptilerAnimation/animation-helpers";
 
 export type SourceData = {
@@ -151,6 +150,57 @@ export const ANIM_LAYER_PREFIX = "animated-route-layer";
  *
  * Only one AnimatedRouteLayer can be active at a time on a map.
  */
+/**
+ * Creates an animated route layer for MapTiler maps.
+ *
+ * The `AnimatedRouteLayer` allows you to animate paths on a map with visual effects and optional camera following.
+ * You can define animations either through explicit keyframes or by referencing GeoJSON data with animation metadata.
+ *
+ * Features:
+ * - Animate route paths with color transitions (active/inactive segments)
+ * - Optional camera following along the route
+ * - Control animation playback (play, pause)
+ * - Configure animation properties (duration, iterations, delay, easing)
+ * - Support for manual or automatic animation updates
+ * - Event system for animation state changes
+ *
+ * @example
+ * ```typescript
+ * // Create an animated route from GeoJSON source
+ * const animatedRoute = new AnimatedRouteLayer({
+ *   source: {
+ *     id: 'route-source',
+ *     layerID: 'route-layer',
+ *     featureSetIndex: 0
+ *   },
+ *   duration: 5000,
+ *   iterations: 1,
+ *   autoplay: true,
+ *   cameraAnimation: {
+ *     follow: true,
+ *     pathSmoothing: { resolution: 20, epsilon: 5 }
+ *   },
+ *   pathStrokeAnimation: {
+ *     activeColor: [255, 0, 0, 1],
+ *     inactiveColor: [0, 0, 255, 1]
+ *   }
+ * });
+ *
+ * // Add the layer to the map
+ * map.addLayer(animatedRoute);
+ *
+ * // Control playback
+ * animatedRoute.pause();
+ * animatedRoute.play();
+ *
+ * // Listen for animation events
+ * animatedRoute.addEventListener(AnimationEventTypes.Finish, () => {
+ *   console.log('Animation completed');
+ * });
+ * ```
+ *
+ * @implements {CustomLayerInterface}
+ */
 export class AnimatedRouteLayer implements CustomLayerInterface {
   /** Unique ID for the layer */
   readonly id = `${ANIM_LAYER_PREFIX}-${uuidv4()}`;
@@ -218,7 +268,7 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
     iterations,
     easing,
     delay,
-    cameraAnimation,
+    cameraAnimation = {},
     pathStrokeAnimation = {
       activeColor: [255, 0, 0, 1],
       inactiveColor: [0, 0, 255, 1],
@@ -344,6 +394,12 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
     }
     this.animationInstance.removeEventListener(type, callback);
     return this;
+  }
+
+  public updateManual() {
+    if (this.animationInstance && this.manualUpdate) {
+      this.animationInstance.update(true);
+    }
   }
 
   /**

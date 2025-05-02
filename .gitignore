@@ -111,3 +111,7 @@ demos/tmp_*
 dist
 docsmd
 build
+
+# Test output
+test-results
+playwright-report

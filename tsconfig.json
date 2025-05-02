@@ -26,8 +26,11 @@
   },
   "include": [
     "src",
+    "e2e",
     "./eslint.config.mjs",
     "./vite.config-test.ts",
+    "./vite.config-e2e.ts",
+    "./playwright.config.ts",
     "./vitest-setup-tests.ts"
   ],
 }
