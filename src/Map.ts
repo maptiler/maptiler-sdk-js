@@ -232,14 +232,14 @@ export class Map extends maplibregl.Map {
     });
   }
 
-  private setSpaceFromStyle({ style }: { style?: StyleSpecificationWithMetaData }) {
+  private setSpaceFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
     if (!style?.metadata?.maptiler?.space) {
       return;
     }
     this.space?.setCubemap(style.metadata.maptiler.space);
   }
 
-  private setHaloFromStyle({ style }: { style?: StyleSpecificationWithMetaData }) {
+  private setHaloFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
     if (!style?.metadata?.maptiler?.halo) {
       return;
     }
@@ -959,13 +959,15 @@ export class Map extends maplibregl.Map {
 
     if (typeof styleInfo.style !== "string" && !styleInfo.requiresUrlMonitoring) {
       if (this.space) {
-        this.setSpaceFromStyle({ style });
+        const styleWithMetaData = styleInfo.style as StyleSpecificationWithMetaData;
+        this.setSpaceFromStyle({ style: styleWithMetaData });
       } else {
         this.initSpace({ before });
       }
 
       if (this.halo) {
-        this.setHaloFromStyle({ style });
+        const styleWithMetaData = styleInfo.style as StyleSpecificationWithMetaData;
+        this.setHaloFromStyle({ style: styleWithMetaData });
       } else {
         this.initHalo({ before });
       }
