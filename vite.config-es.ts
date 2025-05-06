@@ -24,7 +24,7 @@ export default defineConfig({
       fileName: (format, entryName) => "maptiler-sdk.mjs",
       formats: ['es'],
     },
-    
+
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
       // into your library
@@ -45,7 +45,7 @@ export default defineConfig({
       },
     },
   },
-    define: {
+  define: {
     __MT_SDK_VERSION__: JSON.stringify(packagejson.version),
   },
   plugins,

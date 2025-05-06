@@ -257,4 +257,11 @@ export * from "./converters";
 export * as helpers from "./helpers";
 export * from "./ColorRamp";
 export * from "./utils";
-export * from "./custom-layers/AnimatedRouteLayer";
+export {
+  AnimatedRouteLayer,
+  type AnimatedRouteLayerOptions,
+  type SourceData,
+  type AnimatedStrokeOptions,
+  type AnimatedCameraOptions,
+  type FrameCallback,
+} from "./custom-layers/AnimatedRouteLayer";

@@ -156,6 +156,7 @@ export type KeyframeableGeoJSONFeature = Feature<KeyframeableGeometry> & {
     "@delay"?: number;
     "@iterations"?: number;
     "@autoplay"?: boolean;
+    altitude?: (number | null)[];
   };
 };
 
@@ -207,8 +208,18 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
   // we need to flatten it to a single array of coordinates
   const flattenGeometry = geometry.type !== "LineString" && geometry.type !== "MultiPoint";
 
+  const altitude = geometry.coordinates.map((coordinate) => {
+    if (coordinate.length > 2) {
+      return coordinate[2];
+    }
+    return null;
+  });
+
+  // if the altitude is an array of `null`, it cannot be interpolated so it's ignored
+  const altitudeIsEntirelyNull = altitude.every((value) => value === null);
+
   // extract the properties that are not reserved for animation control
-  const nonReservedProperties = Object.entries(properties).reduce((acc, [key, value]: [string, number]) => {
+  const nonReservedProperties = Object.entries({ ...properties, ...(!altitudeIsEntirelyNull && { altitude }) }).reduce((acc, [key, value]) => {
     if (key.startsWith("@")) {
       return acc;
     }
@@ -228,6 +239,10 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
   // this is generally used for camera animations to avoid jerky motion
   // NOTE: any 3rd "altitude" coordinate is ignored for smoothing
   // this means that the path will be smoothed only in 2D space
+  if (parseableGeometry.some((coordinate) => coordinate.length > 2)) {
+    console.warn("[parseGeoJSONFeatureToKeyframes]: Smoothing is not supported for 3D paths, only 2D smoothing will be applied, ignoring altitude");
+  }
+
   if (options.pathSmoothing) {
     const smoothedPath = createBezierPathFromCoordinates(parseableGeometry as [number, number][], options.pathSmoothing.resolution, options.pathSmoothing.epsilon);
     const smoothedDeltas = smoothedPath.map((_, index) => index / smoothedPath.length);

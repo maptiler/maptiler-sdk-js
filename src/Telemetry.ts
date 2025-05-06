@@ -1,7 +1,8 @@
 import type { Map as MapSDK } from "./Map";
 import { config, MAPTILER_SESSION_ID } from "./config";
 import { defaults } from "./constants/defaults";
-import { ANIM_LAYER_PREFIX, getVersion } from "./";
+import { getVersion } from "./";
+import { ANIM_LAYER_PREFIX } from "./custom-layers/AnimatedRouteLayer";
 
 /**
  * @class Telemetry
@@ -98,7 +99,7 @@ export class Telemetry {
     telemetryUrl.searchParams.append("globe", this.map.isGlobeProjection() ? "1" : "0");
 
     // Does the map using AnimatedRouteLayer?
-    telemetryUrl.searchParams.append("animated-route-layer", this.map.getLayersOrder().includes(ANIM_LAYER_PREFIX) ? "1" : "0");
+    telemetryUrl.searchParams.append("animated-route-layer", this.map.getLayersOrder().some((e) => e.includes(ANIM_LAYER_PREFIX)) ? "1" : "0");
 
     // Adding the modules
     // the list of modules are separated by a "|". For each module, a ":" is used to separate the name and the version:

@@ -247,7 +247,7 @@
       "propertyTwo": 90,
       "lng": 1.3602886772403666,
       "lat": 1.3602886772403666,
-      "altitude": null
+      "altitude": 10
     },
     "delta": 0.1,
     "easing": "Linear"
@@ -731,7 +731,7 @@
       "propertyTwo": 70,
       "lng": 3.174730281351382,
       "lat": 3.174730281351382,
-      "altitude": null
+      "altitude": 50
     },
     "delta": 0.3,
     "easing": "Linear"
@@ -973,7 +973,7 @@
       "propertyTwo": 60,
       "lng": 4.082507505373025,
       "lat": 4.082507505373025,
-      "altitude": null
+      "altitude": 40
     },
     "delta": 0.4,
     "easing": "Linear"
@@ -1446,7 +1446,7 @@
       "propertyTwo": 40,
       "lng": 5.899767826871917,
       "lat": 5.899767826871917,
-      "altitude": null
+      "altitude": 60
     },
     "delta": 0.5954545454545455,
     "easing": "Linear"
@@ -1688,7 +1688,7 @@
       "propertyTwo": 30,
       "lng": 6.809510902687343,
       "lat": 6.809510902687343,
-      "altitude": null
+      "altitude": 3.141592653589793
     },
     "delta": 0.6954545454545454,
     "easing": "Linear"
@@ -1930,7 +1930,7 @@
       "propertyTwo": 20,
       "lng": 7.720138410198507,
       "lat": 7.720138410198507,
-      "altitude": null
+      "altitude": 1000
     },
     "delta": 0.7954545454545454,
     "easing": "Linear"
@@ -2414,7 +2414,7 @@
       "propertyTwo": 0,
       "lng": 9.54447037648844,
       "lat": 9.54447037648844,
-      "altitude": null
+      "altitude": 0
     },
     "delta": 0.9954545454545455,
     "easing": "Linear"
