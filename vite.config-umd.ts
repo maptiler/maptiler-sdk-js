@@ -16,6 +16,18 @@ export default defineConfig({
       name: 'maptilersdk',
       fileName: (format, entryName) => "maptiler-sdk.umd.min.js",
       formats: ['umd'],
+    },
+    rollupOptions: {
+      // make sure to externalize deps that shouldn't be bundled
+      // into your library
+      external: [
+        "./e2e",
+      ],
+      output: {
+        // Provide global variables to use in the UMD build
+        // for externalized deps
+        globals: {},
+      },
     }
   },
   define: {

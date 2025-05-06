@@ -29,6 +29,7 @@ export default defineConfig({
       // make sure to externalize deps that shouldn't be bundled
       // into your library
       external: [
+        "./e2e/",
         "maplibre-gl", 
         "@maptiler/client", 
         "@mapbox/point-geometry", 

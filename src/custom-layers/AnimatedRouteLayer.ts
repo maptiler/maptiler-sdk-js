@@ -2,7 +2,7 @@ import { AnimationEvent, AnimationEventListenersRecord, AnimationEventTypes, Eas
 import { v4 as uuidv4 } from "uuid";
 import MaptilerAnimation, { MaptilerAnimationOptions } from "../utils/MaptilerAnimation/MaptilerAnimation";
 
-import { GeoJSONSource, CustomLayerInterface, Map } from "@maptiler/sdk";
+import { GeoJSONSource, CustomLayerInterface, Map } from "../index";
 import { KeyframeableGeoJSONFeature, parseGeoJSONFeatureToKeyframes } from "../utils/MaptilerAnimation/animation-helpers";
 
 export type SourceData = {
