@@ -23,14 +23,14 @@
     "declaration": true,
     "allowSyntheticDefaultImports": true,
     "allowJs": true,
+    "noEmitOnError": true,
   },
   "include": [
     "src",
-    "e2e",
-    "./eslint.config.mjs",
     "test",
     "./vite.config-test.ts",
     "./vite.config-e2e.ts",
+    "./vite.config-umd.ts",
     "./playwright.config.ts",
     "./vitest-setup-tests.ts"
   ],

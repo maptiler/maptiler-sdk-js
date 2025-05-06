@@ -397,7 +397,6 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
   }
 
   public updateManual() {
-    console.log("updateManual");
     if (this.animationInstance && this.manualUpdate) {
       this.animationInstance.update(true);
     }
