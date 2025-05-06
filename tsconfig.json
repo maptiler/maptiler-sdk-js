@@ -28,6 +28,7 @@
     "src",
     "e2e",
     "./eslint.config.mjs",
+    "test",
     "./vite.config-test.ts",
     "./vite.config-e2e.ts",
     "./playwright.config.ts",
