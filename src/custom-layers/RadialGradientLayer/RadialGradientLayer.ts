@@ -7,6 +7,7 @@ import { createObject3D, parseColorStringToVec4, type Object3D } from "../../uti
 import vertexShaderSource from "./radialGradient.vert.glsl?raw";
 import fragmentShaderSource from "./radialGradient.frag.glsl?raw";
 import type { GradientDefinition, RadialGradientLayerOptions } from "./types";
+import { lerp } from "../../utils/math-utils";
 
 const HALO_MAX_DISTANCE = 2;
 // 1 = globe radius
@@ -37,6 +38,8 @@ const defaultConstructorOptions: RadialGradientLayerOptions = {
   ],
 };
 
+const DELTA_CHANGE = 0.075;
+
 export class RadialGradientLayer implements CustomLayerInterface {
   public id: string = "Halo Layer";
   public type: CustomLayerInterface["type"] = "custom";
@@ -44,6 +47,8 @@ export class RadialGradientLayer implements CustomLayerInterface {
 
   private gradient: GradientDefinition;
   private scale: number = 0.0;
+
+  private animationDelta: number = 0.0;
 
   private map!: MapSDK;
   private plane?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
@@ -71,14 +76,41 @@ export class RadialGradientLayer implements CustomLayerInterface {
       vertices: VERTICES,
     });
 
-    const animate = () => {
-      if (this.scale < this.gradient.scale) {
-        this.scale += 0.05;
-        this.map.triggerRepaint();
-        requestAnimationFrame(animate);
-      }
-    };
-    animate();
+    void this.animateIn();
+  }
+
+  private async animateIn() {
+    return new Promise<void>((resolve) => {
+      this.animationDelta = 0;
+      const animate = () => {
+        if (this.animationDelta < 1) {
+          this.scale = lerp(0, this.gradient.scale, this.animationDelta);
+          this.animationDelta += DELTA_CHANGE;
+          this.map.triggerRepaint();
+          requestAnimationFrame(animate);
+          return;
+        }
+        resolve();
+      };
+      animate();
+    });
+  }
+
+  private async animateOut() {
+    this.animationDelta = 0;
+    return new Promise<void>((resolve) => {
+      const animate = () => {
+        if (this.animationDelta < 1) {
+          this.scale = lerp(this.gradient.scale, 0, this.animationDelta);
+          this.animationDelta += DELTA_CHANGE;
+          this.map.triggerRepaint();
+          requestAnimationFrame(animate);
+          return;
+        }
+        resolve();
+      };
+      animate();
+    });
   }
 
   public onRemove(_map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
@@ -187,8 +219,10 @@ export class RadialGradientLayer implements CustomLayerInterface {
    * Value settings methods
    */
 
-  public setGradient(gradient: GradientDefinition): void {
+  public async setGradient(gradient: GradientDefinition): Promise<void> {
+    await this.animateOut();
     this.gradient = gradient;
+    await this.animateIn();
   }
 
   public show(): void {

@@ -41,7 +41,7 @@ import { MaptilerProjectionControl } from "./controls/MaptilerProjectionControl"
 import { Telemetry } from "./Telemetry";
 import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from "./custom-layers/CubemapLayer";
 import { GradientDefinition, RadialGradientLayer, RadialGradientLayerOptions } from "./custom-layers/RadialGradientLayer";
-import extractCustomLayerStyle from "./custom-layers/extractCustomLayerStyle";
+import extractCustomLayerStyle, { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -232,6 +232,20 @@ export class Map extends maplibregl.Map {
     });
   }
 
+  private setSpaceFromStyle({ style }: { style?: StyleSpecificationWithMetaData }) {
+    if (!style?.metadata?.maptiler?.space) {
+      return;
+    }
+    this.space?.setCubemap(style.metadata.maptiler.space);
+  }
+
+  private setHaloFromStyle({ style }: { style?: StyleSpecificationWithMetaData }) {
+    if (!style?.metadata?.maptiler?.halo) {
+      return;
+    }
+    void this.halo?.setGradient(style.metadata.maptiler.halo);
+  }
+
   private setSpaceFromCurrentStyle() {
     const spaceOptionsFromStyleSpec = extractCustomLayerStyle<CubemapDefinition>({ map: this, property: "space" });
     if (spaceOptionsFromStyleSpec && this.space) {
@@ -243,7 +257,7 @@ export class Map extends maplibregl.Map {
   private setHaloFromCurrentStyle() {
     const haloOptionsFromStyleSpec = extractCustomLayerStyle<GradientDefinition>({ map: this, property: "halo" });
     if (haloOptionsFromStyleSpec && this.halo) {
-      this.halo.setGradient(haloOptionsFromStyleSpec);
+      void this.halo.setGradient(haloOptionsFromStyleSpec);
       return;
     }
   }
@@ -945,13 +959,13 @@ export class Map extends maplibregl.Map {
 
     if (typeof styleInfo.style !== "string" && !styleInfo.requiresUrlMonitoring) {
       if (this.space) {
-        this.setSpaceFromCurrentStyle();
+        this.setSpaceFromStyle({ style });
       } else {
         this.initSpace({ before });
       }
 
       if (this.halo) {
-        this.setHaloFromCurrentStyle();
+        this.setHaloFromStyle({ style });
       } else {
         this.initHalo({ before });
       }

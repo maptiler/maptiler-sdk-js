@@ -9,6 +9,7 @@ import vertexShaderSource from "./cubemap.vert.glsl?raw";
 import fragmentShaderSource from "./cubemap.frag.glsl?raw";
 import { loadCubemapTexture } from "./loadCubemapTexture";
 import type { CubemapDefinition, CubemapFaces, CubemapLayerConstructorOptions } from "./types";
+import { lerpVec4 } from "../../utils/math-utils";
 
 const SPACE_IMAGES_BASE_URL = "api.maptiler.com/resources/space";
 
@@ -64,6 +65,12 @@ class CubemapLayer implements CustomLayerInterface {
   private currentFadeOpacity: number = 0.0;
   private cubeMapNeedsUpdate: boolean = false;
   private bgColor: Vec4;
+
+  private previousBgColor: Vec4 = [0, 0, 0, 0];
+  private targetBgColor: Vec4 = [0, 0, 0, 0];
+
+  private transitionDelta: number = 0.0;
+
   private gl!: WebGLContext;
 
   private cubemap?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
@@ -79,7 +86,6 @@ class CubemapLayer implements CustomLayerInterface {
 
   public updateCubemap(): void {
     this.useCubemapTexture = this.faces !== null;
-
     const uniformsKeys = UNIFORMS_KEYS.filter((uniformKey) => {
       if (uniformKey === "cubeSampler") {
         return this.useCubemapTexture;
@@ -101,6 +107,7 @@ class CubemapLayer implements CustomLayerInterface {
       indices: INDICES,
     });
     this.cubeMapNeedsUpdate = true;
+    this.animateTo();
   }
 
   public onAdd(map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
@@ -131,6 +138,18 @@ class CubemapLayer implements CustomLayerInterface {
         },
       });
     }
+  }
+
+  private animateTo() {
+    const animateTo = () => {
+      if (this.transitionDelta < 1.0) {
+        requestAnimationFrame(animateTo);
+        this.bgColor = lerpVec4(this.previousBgColor, this.targetBgColor, this.transitionDelta);
+        this.transitionDelta += 0.075;
+        this.map.triggerRepaint();
+      }
+    };
+    requestAnimationFrame(animateTo);
   }
 
   private animateIn(): void {
@@ -226,7 +245,9 @@ class CubemapLayer implements CustomLayerInterface {
   }
 
   public setCubemap(cubemap: CubemapDefinition): void {
-    this.bgColor = parseColorStringToVec4(cubemap.color);
+    this.targetBgColor = parseColorStringToVec4(cubemap.color);
+    this.previousBgColor = this.bgColor;
+    this.transitionDelta = 0.0;
     this.faces = getCubemapFaces(cubemap);
     this.updateCubemap();
     this.cubeMapNeedsUpdate = true;
