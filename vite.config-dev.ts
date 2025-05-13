@@ -1,10 +1,7 @@
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
 import packagejson from "./package.json";
 import { readdirSync } from 'fs';
-import path from "path"
-
 
 function green(text: string) {
   return `\x1b[32m${text}\x1b[0m`;
