@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="/demo-styles.css">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <style>
+    body {
+      margin: 10px;
+      padding: 0;
+      font-family: sans-serif;
+    }
+
+    #colorramp-container > * {
+      margin-bottom: 6px;
+      display: flex;
+    }
+
+    #colorramp-container > div > span {
+      width: 185px;
+      height: 20px;
+      line-height: 20px;
+      background: #eeeeee;
+      text-align: center;
+      margin-right: 5px;
+      border-radius: 3px;
+      color: #04040496;
+      font-size: 12px;
+    }
+
+    #colorramp-container > div > canvas {
+      width: calc(100% - 190px);
+      border-radius: 3px;
+    }
+
+
+    #colorramp-container > div:nth-of-type(1) > canvas {
+      border: 1px dashed #00000059;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="colorramp-container"></div>
+
+
+  <script type="module" src="/src/00-color-ramps.ts"></script>
+ 
+  </script>
+</body>
+
+</html>
