@@ -39,30 +39,16 @@
       <input id="horizon-color" type="color" value="#09112F"></input>
     </div>
 
-      document.getElementById("sky-color").addEventListener("input", (e) => {
-        map.setSky({
-          "sky-color": e.target.value,
-        });
-      });
     <div>
       <label for="fog-color">fog-color</label>
       <input id="fog-color" type="color" value="#09112F"></input>
     </div>
 
-      document.getElementById("horizon-color").addEventListener("input", (e) => {
-        map.setSky({
-          "horizon-color": e.target.value,
-        });
-      });
     <div>
       <label for="fog-ground-blend">fog-ground-blend</label>
       <input id="fog-ground-blend" type="range" min="0" max="1" step="0.01" value="0.0"></input>
     </div>
 
-      document.getElementById("fog-color").addEventListener("input", (e) => {
-        map.setSky({
-          "fog-color": e.target.value,
-        });
     <div>
       <label for="horizon-fog-blend">horizon-fog-blend</label>
       <input id="horizon-fog-blend" type="range" min="0" max="1" step="0.01" value="0.1"></input>
