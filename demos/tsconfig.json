@@ -6,5 +6,8 @@
     "noUnusedParameters": false,
     "moduleResolution": "node",
     "resolveJsonModule": true
-  }
+  },
+  "exclude": [
+    "eslint.config.mjs",
+  ]
 }

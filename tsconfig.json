@@ -24,6 +24,12 @@
     "allowSyntheticDefaultImports": true,
     "allowJs": true,
   },
+  "exclude": [
+    "vite.config-es.ts",
+    "vite.config-umd.ts",
+    "eslint.config.mjs",
+    "./demos/eslint.config.mjs"
+  ],
   "include": [
     "demos",
     "src",
