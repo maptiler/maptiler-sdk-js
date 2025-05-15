@@ -1,8 +1,9 @@
-import { Map, config, MapStyle } from "@maptiler/sdk";
+import { Map, config, MapStyle } from "../../src";
 import { addPerformanceStats, setupMapTilerApiKey } from "./demo-utils";
 
 addPerformanceStats();
 setupMapTilerApiKey({ config });
+
 const container = document.getElementById("map-container")!;
 const map = new Map({
   container,

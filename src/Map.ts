@@ -471,7 +471,7 @@ export class Map extends maplibregl.Map {
 
         const tileJsonRes = await fetch(styleUrl.href);
         tileJsonContent = await tileJsonRes.json();
-      } catch (e) {
+      } catch (_e) {
         // No tiles.json found (should not happen on maintained styles)
       }
 

@@ -622,7 +622,7 @@ export function gpxOrKml(doc: string | Document): GeoJSON.FeatureCollection | nu
   try {
     // Converting only once rather than in each converter
     if (typeof actualDoc === "string") actualDoc = str2xml(actualDoc);
-  } catch (e) {
+  } catch (_e) {
     // The doc is a string but not valid XML
     return null;
   }
@@ -630,14 +630,14 @@ export function gpxOrKml(doc: string | Document): GeoJSON.FeatureCollection | nu
   try {
     const result = gpx(actualDoc);
     return result;
-  } catch (e) {
+  } catch (_e) {
     // The doc is valid XML but not valid GPX
   }
 
   try {
     const result = kml(actualDoc);
     return result;
-  } catch (e) {
+  } catch (_e) {
     // The doc is valid XML but not valid KML
   }
 

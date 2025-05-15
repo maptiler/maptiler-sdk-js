@@ -105,7 +105,7 @@ export function urlToAbsoluteUrl(url: string): string {
   try {
     const u = new URL(url);
     return u.href;
-  } catch (e) {
+  } catch (_e) {
     // nothing to raise
   }
 
@@ -130,7 +130,7 @@ export function convertToStyleSpecificationString(str: string): StyleValidationR
       isValidStyle: styleErrs.length === 0,
       styleObject: styleErrs.length === 0 ? (styleObj as maplibregl.StyleSpecification) : null,
     };
-  } catch (e) {
+  } catch (_e) {
     return {
       isValidJSON: false,
       isValidStyle: false,
