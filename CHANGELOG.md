@@ -1,5 +1,15 @@
 # MapTiler SDK Changelog
 
+## 3.2.3
+## ✨ Features and improvements
+None
+
+## 🐛 Bug fixes
+- Fixes incorrect exports of some types from sdk helper functions.
+
+## 🔧 Others
+None
+
 ## 3.2.2
 ## ✨ Features and improvements
 None
