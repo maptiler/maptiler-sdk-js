@@ -1,7 +1,0 @@
-`import { $imports } from "maplibre-gl"` where {
-  $imports <: "value",
-  register_diagnostic(
-    span = $imports,
-    message = "Named value imports from 'maplibre-gl' are not allowed. Use 'import type' instead."
-  )
-}
