@@ -8,7 +8,7 @@ None
 - Fixes incorrect exports of some types from sdk helper functions.
 
 ## 🔧 Others
-None
+- Migrates Demos to use vite for better dx
 
 ## 3.2.2
 ## ✨ Features and improvements
