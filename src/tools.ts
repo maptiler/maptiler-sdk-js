@@ -18,7 +18,7 @@ export function enableRTL() {
   if (status === "unavailable" || status === "requested") {
     try {
       maplibregl.setRTLTextPlugin(defaults.rtlPluginURL, true);
-    } catch (e) {
+    } catch (_e) {
       // nothing
     }
   }
@@ -46,7 +46,7 @@ export function maptilerCloudTransformRequest(url: string, resourceType?: Resour
     // Yet, if it's local we just return it without assuming a 'base' url (in the URL constructor)
     // and we let the URL be locally resolved with a potential base path.
     reqUrl = new URL(url);
-  } catch (e) {
+  } catch (_e) {
     return {
       url,
     };
@@ -111,7 +111,7 @@ export function isUUID(s: string): boolean {
 export function jsonParseNoThrow<T>(doc: string): T | null {
   try {
     return JSON.parse(doc);
-  } catch (e) {
+  } catch (_e) {
     // pass
   }
 
@@ -268,7 +268,7 @@ export function replaceLanguage(origLang: string, newLang: maplibregl.Expression
  * can also contain null that stand for the use of {name}
  */
 export function findLanguageStr(str: string): Array<string | null> {
-  const regex = /\{name(?:\:(?<language>\S+))?\}/g;
+  const regex = /\{name(?::(?<language>\S+))?\}/g;
   const languageUsed = [] as Array<string | null>;
 
   while (true) {
