@@ -50,8 +50,6 @@ const entrypoints = readdirSync(resolve(__dirname, 'demos/public')).filter((file
   }
 }, {})
 
-// console.log('Demos being server from:', Object.values(entrypoints).map((entry) => entry).join('\n'));
-
 export default defineConfig({
   mode: "development",
   root: "./demos",
