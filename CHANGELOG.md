@@ -1,5 +1,9 @@
 # MapTiler SDK Changelog
 
+## 3.4.0
+## ✨ Features and improvements
+- Maplibre-gl version bump to 5.5.0
+
 ## 3.2.3
 ## ✨ Features and improvements
 None
