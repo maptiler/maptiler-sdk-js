@@ -3,6 +3,18 @@
 import tseslint from "typescript-eslint";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 
+import { TSESTree } from "@typescript-eslint/utils";
+import { RuleContext } from "@typescript-eslint/utils/dist/ts-eslint";
+
+type Node = TSESTree.ImportDeclaration;
+
+type CustomRuleOptions = {
+  locations: string[];
+  message?: string;
+  fixedLocation?: string;
+  ignoreTypeImports?: boolean;
+};
+
 export default tseslint.config(
   // https://typescript-eslint.io/getting-started/typed-linting/
   tseslint.configs.strictTypeChecked,
@@ -27,7 +39,7 @@ export default tseslint.config(
                 },
               ],
             },
-            create: function (context) {
+            create: function (context: RuleContext<"bannedImport", Node[]>) {
               const filePath = context.getFilename();
               const options = context.options[0] || {
                 "^/(.*)": {
@@ -36,8 +48,8 @@ export default tseslint.config(
               };
 
               return {
-                ImportDeclaration: (node) => {
-                  Object.entries(options).forEach(([bannedImport, config]) => {
+                ImportDeclaration: (node: Node) => {
+                  Object.entries(options).forEach(([bannedImport, config]: [string, CustomRuleOptions]) => {
                     const importLocationRegex = new RegExp(bannedImport);
 
                     if (config.ignoreTypeImports && node.importKind === "type") return;
