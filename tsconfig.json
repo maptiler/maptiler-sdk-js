@@ -25,10 +25,6 @@
     "allowJs": true,
   },
   "include": [
-    "demos",
     "src",
-    "test",
-    "./vite.config-test.ts",
-    "./vitest-setup-tests.ts"
   ],
 }
