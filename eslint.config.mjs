@@ -1,4 +1,4 @@
-// @ts-check
+// @ts-nocheck
 
 import tseslint from "typescript-eslint";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";

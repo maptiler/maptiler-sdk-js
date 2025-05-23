@@ -36,7 +36,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'maptilersdk',
       // the proper extensions will be added
-      fileName: (format, entryName) => "maptiler-sdk.mjs",
+      fileName: (_, __) => "maptiler-sdk.mjs",
       formats: ['es'],
     },
     
