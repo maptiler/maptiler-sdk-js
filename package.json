@@ -1,6 +1,6 @@
 {
   "name": "@maptiler/sdk",
-  "version": "3.2.3",
+  "version": "3.3.0",
   "description": "The Javascript & TypeScript map SDK tailored for MapTiler Cloud",
   "author": "MapTiler",
   "module": "dist/maptiler-sdk.mjs",
@@ -43,7 +43,7 @@
     "test:watch": "vitest watch -c vite.config-test.ts --dom",
     "test": "vitest run -c vite.config-test.ts --dom",
     "install:clean": "rm -rf build/ dist/ node_modules/ && npm ci",
-    "dev": "vite -c vite.config-dev.ts",
+    "dev": "npm run build-css && vite -c vite.config-dev.ts",
     "dev-umd": "npm run build-css && tsc && NODE_ENV=development vite build -w -c vite.config-umd.ts",
     "build-css": "mkdir -p dist build && node scripts/replace-path-with-content.js src/style/style_template.css dist/tmp_maptiler-sdk.css && cat node_modules/maplibre-gl/dist/maplibre-gl.css dist/tmp_maptiler-sdk.css > dist/maptiler-sdk.css && rm dist/tmp_maptiler-sdk.css && cp dist/maptiler-sdk.css build/maptiler-sdk.css",
     "build-umd": "tsc && NODE_ENV=production vite build -c vite.config-umd.ts",
@@ -84,7 +84,7 @@
     "@maptiler/client": "^2.3.2",
     "events": "^3.3.0",
     "js-base64": "^3.7.7",
-    "maplibre-gl": "^5.3.1",
+    "maplibre-gl": "^5.5.0",
     "uuid": "^11.0.5"
   }
 }

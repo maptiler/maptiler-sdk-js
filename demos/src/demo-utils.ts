@@ -1,3 +1,4 @@
+import "../../dist/maptiler-sdk.css";
 import { SdkConfig } from "../../src/config";
 import Stats from "stats.js";
 /**

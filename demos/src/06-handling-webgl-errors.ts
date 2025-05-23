@@ -1,4 +1,3 @@
-import "@maptiler/sdk/style.css";
 import { Map, config, getVersion, displayWebGLContextLostWarning } from "../../src/index";
 import { addPerformanceStats, setupMapTilerApiKey } from "./demo-utils";
 
