@@ -24,11 +24,19 @@
     "allowSyntheticDefaultImports": true,
     "allowJs": true,
   },
+  "exclude": [
+    "vite.config-*.ts",
+    "vitest-setup-tests.ts",
+    "dist"
+  ],
   "include": [
-    "demos",
+    "vite.config-dev.ts",
+    "vite.config-es.ts",
+    "vite.config-umd.ts",
+    "vite.config-test.ts",
+    "vitest-setup-tests.ts",
     "src",
-    "test",
-    "./vite.config-test.ts",
-    "./vitest-setup-tests.ts"
+    "demos",
+    "test"
   ],
 }

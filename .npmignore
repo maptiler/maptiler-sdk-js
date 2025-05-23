@@ -1,6 +1,7 @@
 docs
 docsmd
 images
+demos
 scripts
 test
 demos
@@ -12,3 +13,5 @@ src
 .github
 .vscode
 build
+vite.config-*
+vite-setup-tests.ts

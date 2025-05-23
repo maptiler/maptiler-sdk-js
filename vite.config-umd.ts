@@ -14,7 +14,7 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'maptilersdk',
-      fileName: (format, entryName) => "maptiler-sdk.umd.min.js",
+      fileName: (_, __) => "maptiler-sdk.umd.min.js",
       formats: ['umd'],
     }
   },
