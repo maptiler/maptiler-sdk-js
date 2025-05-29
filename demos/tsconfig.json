@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "baseUrl": ".",
+  "compilerOptions": {
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "moduleResolution": "node",
+    "resolveJsonModule": true
+  }
+}

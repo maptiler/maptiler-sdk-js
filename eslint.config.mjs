@@ -1,4 +1,4 @@
-// @ts-check
+// @ts-nocheck
 
 import tseslint from "typescript-eslint";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
@@ -8,6 +8,78 @@ export default tseslint.config(
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
   tseslint.configs.recommendedTypeChecked,
+  {
+    // forked from https://www.npmjs.com/package/eslint-plugin-restrict-imports
+    plugins: {
+      import: {
+        rules: {
+          "default-imports-only": {
+            meta: {
+              type: "suggestion",
+              docs: {},
+              schema: [
+                {
+                  bannedImport: {
+                    locations: ["filePaths"],
+                    message: "string",
+                    fixedLocation: "string",
+                  },
+                },
+              ],
+            },
+            create: function (context) {
+              const filePath = context.getFilename();
+              const options = context.options[0] || {
+                "^/(.*)": {
+                  locations: ["(.*)"],
+                },
+              };
+
+              return {
+                ImportDeclaration: (node) => {
+                  Object.entries(options).forEach(([bannedImport, config]) => {
+                    const importLocationRegex = new RegExp(bannedImport);
+
+                    if (config.ignoreTypeImports && node.importKind === "type") return;
+
+                    if (importLocationRegex.test(node.source.value)) {
+                      config.locations.forEach((fp) => {
+                        const bannedLocationRegex = new RegExp(fp);
+
+                        if (bannedLocationRegex.test(filePath)) {
+                          node.specifiers.forEach((specifier) => {
+                            if (specifier.type !== "ImportDefaultSpecifier") {
+                              context.report({
+                                // @ts-expect-error `message` seems to work with this...
+                                message: config.message ?? `Importing from '${bannedImport}' is banned in '${fp}'`,
+                                node,
+                              });
+                            }
+                          });
+                        }
+                      });
+                    }
+                  });
+                },
+              };
+            },
+          },
+        },
+      },
+    },
+    rules: {
+      "import/default-imports-only": [
+        "error",
+        {
+          "maplibre-gl$": {
+            locations: ["^(?!.*\.d\.ts$).*\.((ts|js))$"],
+            message: `Maplibre-gl uses CJS modules, only default imports are supported, named imports may fail on some setups.`,
+            ignoreTypeImports: true,
+          },
+        },
+      ],
+    },
+  },
   {
     languageOptions: {
       parserOptions: {

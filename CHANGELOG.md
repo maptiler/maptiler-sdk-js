@@ -1,14 +1,51 @@
 # MapTiler SDK Changelog
 
-## 3.3.0
+## 3.4.0
 ## ✨ Features and improvements
 - Now able to include cubemap background images and Earth radial gradient halo via `space` and `halo` in map constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style spec.
+
+## 3.3.0
+## ✨ Features and improvements
+- Maplibre-gl version bump to 5.5.0
+
+## 3.2.3
+## ✨ Features and improvements
+None
+
+## 🐛 Bug fixes
+- Fixes incorrect exports of some types from sdk helper functions.
+
+## 🔧 Others
+- Migrates Demos to use vite for better dx
+
+## 3.2.2
+## ✨ Features and improvements
+None
+
+## 🐛 Bug fixes
+- [RD-902](https://maptiler.atlassian.net/browse/RD-902?atlOrigin=eyJpIjoiNGM2NGQxNzg0ZjEzNGJlMGI3M2Y1YTM3YTIyNjdkMDkiLCJwIjoiaiJ9) Changes to use default import for maplibre-gl as it uses commonjs modules under the hood.
+
+## 🔧 Others
+- Adds linting config to check for non default maplibre defaults. Named imports from CJS modules fail on some build pipelines.
+
+## 3.2.1
+### ⚠️ Warning
+- This version was published in error. Please use `3.2.2` instead.
+
+## 3.2.0
+## ✨ Features and improvements
+- Updates Maplibre-gl to 5.3.1
+- Updates MapTiler Client to 2.3.2
+
+## 3.1.1
+## ✨ Features and improvements
+None
 
 ## 🐛 Bug fixes
 None
 
 ## 🔧 Others
-None
+Version bump for maptiler-client-js
 
 ## 3.1.0
 ## ✨ Features and improvements
