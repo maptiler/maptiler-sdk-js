@@ -6,7 +6,7 @@ import { createObject3D, parseColorStringToVec4, type Object3D } from "../../uti
 
 import vertexShaderSource from "./radialGradient.vert.glsl?raw";
 import fragmentShaderSource from "./radialGradient.frag.glsl?raw";
-import type { GradientDefinition, RadialGradientLayerOptions } from "./types";
+import type { GradientDefinition, RadialGradientLayerConstructorOptions } from "./types";
 import { lerp } from "../../utils/math-utils";
 
 const HALO_MAX_DISTANCE = 2;
@@ -29,7 +29,7 @@ const VERTICES = [
   0,
 ];
 
-const defaultConstructorOptions: RadialGradientLayerOptions = {
+const defaultConstructorOptions: RadialGradientLayerConstructorOptions = {
   scale: 0.9,
   stops: [
     [0.0, "rgba(176, 208, 240, 1)"],
@@ -53,7 +53,7 @@ export class RadialGradientLayer implements CustomLayerInterface {
   private map!: MapSDK;
   private plane?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
 
-  constructor(gradient: RadialGradientLayerOptions | boolean) {
+  constructor(gradient: RadialGradientLayerConstructorOptions | boolean) {
     if (typeof gradient === "boolean") {
       this.gradient = defaultConstructorOptions;
       return;
@@ -133,6 +133,7 @@ export class RadialGradientLayer implements CustomLayerInterface {
 
     gl.disable(gl.DEPTH_TEST);
     gl.enable(gl.BLEND);
+
     // gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
     // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     // gl.blendFuncSeparate(gl.SRC_COLOR, gl.ONE_MINUS_SRC_COLOR, gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
