@@ -5,7 +5,7 @@ import { addPerformanceStats, setupMapTilerApiKey } from "./demo-utils";
 addPerformanceStats();
 setupMapTilerApiKey({ config });
 
-const container = document.getElementById("map")!;
+const container = document.getElementById("map") as HTMLDivElement;
 
 const map = new Map({
   container,
@@ -19,8 +19,6 @@ const map = new Map({
 });
 
 document.getElementsByTagName("button")[0].addEventListener("click", () => {
-  console.log(MapStyle.TONER.DEFAULT.getImageURL());
-  console.log(MapStyle.TONER.DEFAULT.getExpandedStyleURL());
   map.setStyle(MapStyle.TONER.DEFAULT);
-  // map.flyTo({ zoom: 12, center: [-7.39468, 39.32507] });
+  map.flyTo({ zoom: 12, center: [-7.39468, 39.32507] });
 });
