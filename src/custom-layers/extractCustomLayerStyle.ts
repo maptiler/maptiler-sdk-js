@@ -1,12 +1,12 @@
 import { Map as MapSDK } from "../Map";
-import { StyleSpecification } from "maplibre-gl";
-import type { CubemapLayerConstructorOptions, RadialGradientLayerOptions } from "custom-layers";
+import type { StyleSpecification } from "maplibre-gl";
+import type { CubemapLayerConstructorOptions, RadialGradientLayerConstructorOptions } from "../custom-layers";
 
 export type StyleSpecificationWithMetaData = StyleSpecification & {
   metadata?: {
     "maptiler:copyright": string;
     maptiler?: {
-      halo: RadialGradientLayerOptions;
+      halo: RadialGradientLayerConstructorOptions;
       space: CubemapLayerConstructorOptions;
     };
   };
@@ -17,7 +17,9 @@ export interface IExtractCustomLayerStyleOptions {
   property: "halo" | "space";
 }
 
-export default function extractCustomLayerStyle<T extends CubemapLayerConstructorOptions | RadialGradientLayerOptions | null>(options: IExtractCustomLayerStyleOptions): T | null {
+export default function extractCustomLayerStyle<T extends CubemapLayerConstructorOptions | RadialGradientLayerConstructorOptions | null>(
+  options: IExtractCustomLayerStyleOptions,
+): T | null {
   const { map, property } = options;
 
   const style = map.getStyle() as StyleSpecificationWithMetaData;

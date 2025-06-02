@@ -9,7 +9,7 @@ import vertexShaderSource from "./cubemap.vert.glsl?raw";
 import fragmentShaderSource from "./cubemap.frag.glsl?raw";
 import { loadCubemapTexture } from "./loadCubemapTexture";
 import type { CubemapDefinition, CubemapFaces, CubemapLayerConstructorOptions } from "./types";
-import { lerpVec4 } from "../../utils/math-utils";
+import { lerp, lerpVec4 } from "../../utils/math-utils";
 
 const SPACE_IMAGES_BASE_URL = "api.maptiler.com/resources/space";
 
@@ -76,10 +76,16 @@ class CubemapLayer implements CustomLayerInterface {
   private cubemap?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
   private texture?: WebGLTexture;
 
+  public currentDefinitionKey: string = "";
+
   constructor(cubemapConfig: CubemapLayerConstructorOptions | true) {
     const options = configureOptions(cubemapConfig, defaultConstructorOptions);
 
-    this.bgColor = parseColorStringToVec4(options.color);
+    this.currentDefinitionKey = JSON.stringify(options);
+
+    this.bgColor = [0, 0, 0, 0];
+    this.targetBgColor = parseColorStringToVec4(options.color);
+
     this.faces = getCubemapFaces(options as CubemapDefinition);
     this.useCubemapTexture = this.faces !== null;
   }
@@ -106,8 +112,10 @@ class CubemapLayer implements CustomLayerInterface {
       vertices: VERTICES,
       indices: INDICES,
     });
+
     this.cubeMapNeedsUpdate = true;
-    this.animateTo();
+
+    this.animateColorChange();
   }
 
   public onAdd(map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
@@ -123,7 +131,7 @@ class CubemapLayer implements CustomLayerInterface {
     }
   }
 
-  public prerender(gl: WebGLContext, _options: CustomRenderMethodInput): void {
+  updateTexture(gl: WebGLContext, faces: CubemapFaces): void {
     if (this.cubeMapNeedsUpdate === true) {
       this.cubeMapNeedsUpdate = false;
       if (!this.useCubemapTexture) {
@@ -132,7 +140,7 @@ class CubemapLayer implements CustomLayerInterface {
 
       this.texture = loadCubemapTexture({
         gl,
-        faces: this.faces,
+        faces,
         onLoadedCallback: () => {
           this.animateIn();
         },
@@ -140,27 +148,69 @@ class CubemapLayer implements CustomLayerInterface {
     }
   }
 
-  private animateTo() {
-    const animateTo = () => {
+  public prerender(gl: WebGLContext, _options: CustomRenderMethodInput): void {
+    this.updateTexture(gl, this.faces!);
+  }
+
+  private animateColorChange() {
+    const animateColorChange = () => {
       if (this.transitionDelta < 1.0) {
-        requestAnimationFrame(animateTo);
+        requestAnimationFrame(animateColorChange);
+
         this.bgColor = lerpVec4(this.previousBgColor, this.targetBgColor, this.transitionDelta);
         this.transitionDelta += 0.075;
         this.map.triggerRepaint();
       }
     };
-    requestAnimationFrame(animateTo);
+    requestAnimationFrame(animateColorChange);
   }
 
-  private animateIn(): void {
+  private imageIsAnimating: boolean = false;
+  private imageFadeInDelta: number = 0.0;
+
+  private animateIn() {
+    if (this.imageIsAnimating) {
+      return;
+    }
+
     const animateIn = () => {
-      if (this.currentFadeOpacity < 1.0) {
+      this.imageFadeInDelta = Math.min(this.imageFadeInDelta + 0.05, 1.0);
+      this.currentFadeOpacity = lerp(0.0, 1.0, this.imageFadeInDelta);
+      this.map.triggerRepaint();
+
+      if (this.imageFadeInDelta < 1.0) {
+        this.imageIsAnimating = true;
         requestAnimationFrame(animateIn);
-        this.currentFadeOpacity += 0.05;
-        this.map.triggerRepaint();
+        return;
       }
+      this.imageIsAnimating = false;
+      this.imageFadeInDelta = 0.0;
     };
+
     requestAnimationFrame(animateIn);
+  }
+
+  private animateOut(): Promise<void> {
+    if (this.imageIsAnimating) {
+      return Promise.resolve(); // If already animating, just resolve
+    }
+    return new Promise((resolve) => {
+      const animateIn = () => {
+        this.imageFadeInDelta = Math.min(this.imageFadeInDelta + 0.05, 1.0);
+        this.currentFadeOpacity = lerp(1.0, 0.0, this.imageFadeInDelta);
+        this.map.triggerRepaint();
+
+        if (this.imageFadeInDelta >= 1.0) {
+          this.imageIsAnimating = false;
+          this.imageFadeInDelta = 0.0;
+          resolve();
+          return;
+        }
+        requestAnimationFrame(animateIn);
+      };
+
+      requestAnimationFrame(animateIn);
+    });
   }
 
   public render(gl: WebGLRenderingContext | WebGL2RenderingContext, _options: CustomRenderMethodInput): void {
@@ -244,10 +294,17 @@ class CubemapLayer implements CustomLayerInterface {
     /* *** */
   }
 
-  public setCubemap(cubemap: CubemapDefinition): void {
+  public async setCubemap(cubemap: CubemapDefinition): Promise<void> {
+    const incomingDefinitionKey = JSON.stringify(cubemap);
+
+    if (this.currentDefinitionKey === incomingDefinitionKey) return;
+
     this.targetBgColor = parseColorStringToVec4(cubemap.color);
     this.previousBgColor = this.bgColor;
     this.transitionDelta = 0.0;
+
+    await this.animateOut();
+
     this.faces = getCubemapFaces(cubemap);
     this.updateCubemap();
     this.cubeMapNeedsUpdate = true;

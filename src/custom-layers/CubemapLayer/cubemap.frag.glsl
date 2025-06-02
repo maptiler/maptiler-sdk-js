@@ -15,13 +15,17 @@ void main(void) {
   #ifdef USE_TEXTURE
   vec4 texColor = textureCube(u_cubeSampler, vTextureCoord);
 
-  gl_FragColor = mix(
-    u_bgColor,
-    texColor,
-    min(texColor.a, u_fadeOpacity)
-  );
 
-  gl_FragColor.a = u_bgColor.a;
+  if (texColor.a < 1.0) {
+    gl_FragColor = mix(
+      u_bgColor,
+      texColor,
+      min(texColor.a, u_fadeOpacity)
+    );
+  } else {
+    gl_FragColor = mix(u_bgColor, texColor, u_fadeOpacity);
+  }
+
   #else
   gl_FragColor = u_bgColor;
   #endif

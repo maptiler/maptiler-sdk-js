@@ -255,5 +255,6 @@ export * from "./language";
 export type { Unit } from "./types";
 export * from "./converters";
 export * as helpers from "./helpers";
+export type * from "./helpers";
 export * from "./ColorRamp";
 export * from "./utils";

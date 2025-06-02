@@ -40,7 +40,7 @@ import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 import { MaptilerProjectionControl } from "./controls/MaptilerProjectionControl";
 import { Telemetry } from "./Telemetry";
 import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from "./custom-layers/CubemapLayer";
-import { GradientDefinition, RadialGradientLayer, RadialGradientLayerOptions } from "./custom-layers/RadialGradientLayer";
+import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructorOptions } from "./custom-layers/RadialGradientLayer";
 import extractCustomLayerStyle, { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 
 export type LoadWithTerrainEvent = {
@@ -200,7 +200,7 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * Default: { color: "#1D29F1" }
    */
   space?: CubemapLayerConstructorOptions | boolean;
-  halo?: RadialGradientLayerOptions | boolean;
+  halo?: RadialGradientLayerConstructorOptions | boolean;
 };
 
 /**
@@ -264,7 +264,7 @@ export class Map extends maplibregl.Map {
 
   private initSpace({ options = this.options, before }: { options?: MapOptions; before: string }) {
     if (this.space) {
-      this.removeLayer(this.space.id);
+      return;
     }
 
     if (options.space === false) return;
@@ -284,7 +284,7 @@ export class Map extends maplibregl.Map {
 
   private initHalo({ options = this.options, before }: { options?: MapOptions; before: string }) {
     if (this.halo) {
-      this.removeLayer(this.halo.id);
+      return;
     }
 
     if (options.halo === false) return;
@@ -308,13 +308,13 @@ export class Map extends maplibregl.Map {
 
   public setHalo(halo: GradientDefinition) {
     if (this.halo) {
-      this.halo.setGradient(halo);
+      void this.halo.setGradient(halo);
       return;
     }
 
     this.halo = new RadialGradientLayer(halo);
 
-    this.once("load", () => {
+    void this.once("load", () => {
       const layersOrder = this.getLayersOrder();
 
       const firstLayer = layersOrder[0];
@@ -602,7 +602,7 @@ export class Map extends maplibregl.Map {
 
         const tileJsonRes = await fetch(styleUrl.href);
         tileJsonContent = await tileJsonRes.json();
-      } catch (e) {
+      } catch (_e) {
         // No tiles.json found (should not happen on maintained styles)
       }
 
@@ -976,16 +976,18 @@ export class Map extends maplibregl.Map {
     }
 
     void this.once("style.load", () => {
+      const targetBeforeLayer = this.getLayersOrder()[0];
+
       if (this.space) {
         this.setSpaceFromCurrentStyle();
       } else {
-        this.initSpace({ before });
+        this.initSpace({ before: targetBeforeLayer });
       }
 
       if (this.halo) {
         this.setHaloFromCurrentStyle();
       } else {
-        this.initHalo({ before });
+        this.initHalo({ before: targetBeforeLayer });
       }
     });
 
