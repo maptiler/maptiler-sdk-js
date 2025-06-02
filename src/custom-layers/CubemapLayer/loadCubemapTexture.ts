@@ -1,11 +1,78 @@
 import { CubemapFaceNames, CubemapFaces } from "./types";
 
-export function loadCubemapTexture({ gl, faces, onLoadedCallback }: { gl: WebGLRenderingContext | WebGL2RenderingContext; faces?: CubemapFaces; onLoadedCallback?: () => void }) {
+interface LoadCubemapTextureOptions {
+  gl: WebGLRenderingContext | WebGL2RenderingContext;
+  faces?: CubemapFaces;
+  onLoadedCallback?: () => void;
+  forceRefresh?: boolean;
+}
+
+/**
+ * Stores the result of the last successful execution of {@link loadCubemapTexture}.
+ * @type {WebGLTexture | undefined}
+ * @private
+ */
+let memoizedReturnValue: WebGLTexture | undefined = undefined;
+
+/**
+ * Stores the stringified content of the 'faces' object from the last successful execution.
+ * Used for memoization by {@link loadCubemapTexture}.
+ * @type {string | undefined}
+ * @private
+ */
+let facesKey: string | undefined = undefined;
+
+/**
+ * Loads a cubemap texture from a set of image URLs.
+ *
+ * This function creates and configures a WebGL cubemap texture from a set of images.
+ * It memoizes the created texture to avoid redundant loading of the same faces,
+ * unless the `forceRefresh` flag is set.
+ *
+ * @param {Object} options - The options object.
+ * @param {WebGLRenderingContext | WebGL2RenderingContext} options.gl - The WebGL rendering context.
+ * @param {CubemapFaces} options.faces - An object containing URLs for each face of the cubemap.
+ *                                        Must contain exactly 6 faces.
+ * @param {Function} [options.onLoadedCallback] - Optional callback function to be called when all faces are loaded.
+ * @param {boolean} [options.forceRefresh] - If true, forces creation of a new texture instead of returning the memoized one.
+ *
+ * @returns {WebGLTexture | undefined} The created WebGL cubemap texture, or undefined if there was an error.
+ *
+ * @see {@link facesKey}
+ * @see {@link memoizedReturnValue}
+ * @example
+ * const texture = loadCubemapTexture({
+ *   gl: webglContext,
+ *   faces: {
+ *     px: 'right.jpg',
+ *     nx: 'left.jpg',
+ *     py: 'top.jpg',
+ *     ny: 'bottom.jpg',
+ *     pz: 'front.jpg',
+ *     nz: 'back.jpg'
+ *   },
+ *   onLoadedCallback: () => console.log('Cubemap loaded')
+ * });
+ */
+export function loadCubemapTexture({ gl, faces, onLoadedCallback, forceRefresh }: LoadCubemapTextureOptions): WebGLTexture | undefined {
+  if (memoizedReturnValue && !forceRefresh && facesKey === JSON.stringify(faces)) {
+    return memoizedReturnValue;
+  }
+
+  facesKey = JSON.stringify(faces);
+
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
 
   if (!faces) {
     console.warn("[CubemapLayer][loadCubemapTexture]: Faces are null");
+    return;
+  }
+
+  const numFaces = Object.keys(faces).length;
+
+  if (numFaces !== 6) {
+    console.warn(`[CubemapLayer][loadCubemapTexture]: Faces should contain exactly 6 images, but found ${numFaces}`);
     return;
   }
 
@@ -50,6 +117,8 @@ export function loadCubemapTexture({ gl, faces, onLoadedCallback }: { gl: WebGLR
 
   gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
   gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  console.log("COMPLETE RUN THROUGH");
+  memoizedReturnValue = texture;
 
   return texture;
 }

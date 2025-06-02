@@ -4,7 +4,7 @@ export type Color = string;
 
 export type GradientStop = number;
 
-export type RadialGradientLayerOptions = GradientDefinition;
+export type RadialGradientLayerConstructorOptions = GradientDefinition;
 
 export type GradientDefinition = {
   stops: Array<[GradientStop, Color]>;
