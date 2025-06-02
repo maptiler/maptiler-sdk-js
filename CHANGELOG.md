@@ -1,31 +1,37 @@
 # MapTiler SDK Changelog
 
-## 3.4.0
+## NEXT
 ## ✨ Features and improvements
 - Now able to include cubemap background images and Earth radial gradient halo via `space` and `halo` in map constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style spec.
 
+### 🐛 Bug fixes
+- Fix for [RD-900](https://maptiler.atlassian.net/browse/RD-900?atlOrigin=eyJpIjoiOTRjZGRhYjg2Y2JhNGY2NGI2NzM2M2E1MGNkNjBmYWYiLCJwIjoiaiJ9)
+
+### 🔧 Others
+None
+
 ## 3.3.0
-## ✨ Features and improvements
+### ✨ Features and improvements
 - Maplibre-gl version bump to 5.5.0
 
 ## 3.2.3
-## ✨ Features and improvements
+### ✨ Features and improvements
 None
 
-## 🐛 Bug fixes
+### 🐛 Bug fixes
 - Fixes incorrect exports of some types from sdk helper functions.
 
-## 🔧 Others
+### 🔧 Others
 - Migrates Demos to use vite for better dx
 
 ## 3.2.2
-## ✨ Features and improvements
+### ✨ Features and improvements
 None
 
-## 🐛 Bug fixes
+### 🐛 Bug fixes
 - [RD-902](https://maptiler.atlassian.net/browse/RD-902?atlOrigin=eyJpIjoiNGM2NGQxNzg0ZjEzNGJlMGI3M2Y1YTM3YTIyNjdkMDkiLCJwIjoiaiJ9) Changes to use default import for maplibre-gl as it uses commonjs modules under the hood.
 
-## 🔧 Others
+### 🔧 Others
 - Adds linting config to check for non default maplibre defaults. Named imports from CJS modules fail on some build pipelines.
 
 ## 3.2.1
@@ -33,48 +39,48 @@ None
 - This version was published in error. Please use `3.2.2` instead.
 
 ## 3.2.0
-## ✨ Features and improvements
+### ✨ Features and improvements
 - Updates Maplibre-gl to 5.3.1
 - Updates MapTiler Client to 2.3.2
 
 ## 3.1.1
-## ✨ Features and improvements
+### ✨ Features and improvements
 None
 
-## 🐛 Bug fixes
+### 🐛 Bug fixes
 None
 
-## 🔧 Others
+### 🔧 Others
 Version bump for maptiler-client-js
 
 ## 3.1.0
-## ✨ Features and improvements
+### ✨ Features and improvements
 Updates MapTiler Client JS version to include new MapStyles
 
-## 🐛 Bug fixes
+### 🐛 Bug fixes
 None
 
-## 🔧 Others
+### 🔧 Others
 None
 
 ## 3.0.3
-## ✨ Features and improvements
+### ✨ Features and improvements
 None
 
-## 🐛 Bug fixes
+### 🐛 Bug fixes
 Fixes a bug that accesses undefined `projection` object in `Map.getProjection` method
 
-## 🔧 Others
+### 🔧 Others
 None
 
 ## 3.0.2
-## ✨ Features and improvements
+### ✨ Features and improvements
 None
 
-## 🐛 Bug fixes
+### 🐛 Bug fixes
 None
 
-## 🔧 Others
+### 🔧 Others
 Restructuring of repo, additon of tests to check consistency of library exports.
 
 ## 3.0.1
