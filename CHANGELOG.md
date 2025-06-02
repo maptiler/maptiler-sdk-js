@@ -4,6 +4,11 @@
 ## ✨ Features and improvements
 - Now able to include cubemap background images and Earth radial gradient halo via `space` and `halo` in map constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style spec.
 
+## 🐛 Bug fixes
+- Fixes incorrect exports of some types from sdk helper functions.
+
+## 🔧 Others
+- 
 ## 3.3.0
 ## ✨ Features and improvements
 - Maplibre-gl version bump to 5.5.0
