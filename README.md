@@ -670,6 +670,10 @@ map.on("load", () => {
 });
 ```
 
+Note: if `space.color` or `space.<faces | path | preset>` are not explicitly set in the call to `setSpace`, then the previous value will remain for this field.
+
+Further code examples can be found in `~/demos/`
+
 # Easy language switching
 The language generally depends on the style but we made it possible to easily set and update from a built-in list of languages.
 

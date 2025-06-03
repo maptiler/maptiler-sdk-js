@@ -11,7 +11,7 @@ import { loadCubemapTexture } from "./loadCubemapTexture";
 import { cubemapPresets, type CubemapDefinition, type CubemapFaces, type CubemapLayerConstructorOptions } from "./types";
 import { lerp, lerpVec4 } from "../../utils/math-utils";
 
-const SPACE_IMAGES_BASE_URL = "api.maptiler.com/resources/space";
+const SPACE_IMAGES_BASE_URL = "https://api.maptiler.com/resources/space";
 
 const ATTRIBUTES_KEYS = ["vertexPosition"] as const;
 const UNIFORMS_KEYS = ["projectionMatrix", "modelViewMatrix", "cubeSampler", "bgColor", "fadeOpacity"] as const;
@@ -63,7 +63,7 @@ class CubemapLayer implements CustomLayerInterface {
   public renderingMode: CustomLayerInterface["renderingMode"] = "3d";
 
   private map!: MapSDK;
-  private faces?: CubemapFaces;
+  private faces?: CubemapFaces | null;
   private useCubemapTexture: boolean = true;
   private currentFadeOpacity: number = 0.0;
   private cubeMapNeedsUpdate: boolean = false;
@@ -79,12 +79,12 @@ class CubemapLayer implements CustomLayerInterface {
   private cubemap?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
   private texture?: WebGLTexture;
 
-  public currentDefinitionKey: string = "";
+  public currentFacesDefinitionKey: string = "";
 
   constructor(cubemapConfig: CubemapLayerConstructorOptions | true) {
     const options = configureOptions(cubemapConfig, defaultConstructorOptions);
 
-    this.currentDefinitionKey = JSON.stringify(options);
+    this.currentFacesDefinitionKey = JSON.stringify(options.faces ?? options.preset ?? options.path);
 
     this.bgColor = [0, 0, 0, 0];
     this.targetBgColor = parseColorStringToVec4(options.color);
@@ -96,7 +96,7 @@ class CubemapLayer implements CustomLayerInterface {
   public updateCubemap(): void {
     this.useCubemapTexture = this.faces !== null;
     const uniformsKeys = UNIFORMS_KEYS.filter((uniformKey) => {
-      if (uniformKey === "cubeSampler") {
+      if (uniformKey === "cubeSampler" || uniformKey === "fadeOpacity") {
         return this.useCubemapTexture;
       }
 
@@ -229,6 +229,11 @@ class CubemapLayer implements CustomLayerInterface {
       console.warn("[CubemapLayer]: Texture is undefined, no teture will be rendered to cubemap");
     }
 
+    gl.disable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+
+    gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
+
     gl.useProgram(this.cubemap.shaderProgram);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.cubemap.positionBuffer);
@@ -297,20 +302,32 @@ class CubemapLayer implements CustomLayerInterface {
     /* *** */
   }
 
-  public async setCubemap(cubemap: CubemapDefinition): Promise<void> {
-    const incomingDefinitionKey = JSON.stringify(cubemap);
-
-    if (this.currentDefinitionKey === incomingDefinitionKey) return;
-
-    this.targetBgColor = parseColorStringToVec4(cubemap.color);
+  private setBgColor(color: Vec4): void {
+    this.targetBgColor = color;
     this.previousBgColor = this.bgColor;
     this.transitionDelta = 0.0;
+  }
 
+  private async setCubemapFaces(cubemap: CubemapDefinition): Promise<void> {
     await this.animateOut();
 
     this.faces = getCubemapFaces(cubemap);
+    this.currentFacesDefinitionKey = JSON.stringify(cubemap.faces ?? cubemap.preset ?? cubemap.path);
+  }
+
+  public async setCubemap(cubemap: CubemapDefinition): Promise<void> {
+    const color = parseColorStringToVec4(cubemap.color);
+    if (cubemap.color && this.targetBgColor.toString() !== color.toString()) {
+      this.setBgColor(color);
+    }
+
+    const facesKey = JSON.stringify(cubemap.faces ?? cubemap.preset ?? cubemap.path);
+    console.log(cubemap)
+    if (facesKey && this.currentFacesDefinitionKey !== facesKey) {
+      await this.setCubemapFaces(cubemap);
+    }
+
     this.updateCubemap();
-    this.cubeMapNeedsUpdate = true;
   }
 
   public show(): void {
@@ -324,19 +341,19 @@ class CubemapLayer implements CustomLayerInterface {
   }
 }
 
-function getCubemapFaces(options: CubemapDefinition): CubemapFaces | undefined {
+function getCubemapFaces(options: CubemapDefinition): CubemapFaces | null {
   if (options.faces) {
     return options.faces;
   }
 
   if (options.preset) {
     return {
-      pX: `//${SPACE_IMAGES_BASE_URL}/${options.preset}/px.webp`,
-      nX: `//${SPACE_IMAGES_BASE_URL}/${options.preset}/nx.webp`,
-      pY: `//${SPACE_IMAGES_BASE_URL}/${options.preset}/py.webp`,
-      nY: `//${SPACE_IMAGES_BASE_URL}/${options.preset}/ny.webp`,
-      pZ: `//${SPACE_IMAGES_BASE_URL}/${options.preset}/pz.webp`,
-      nZ: `//${SPACE_IMAGES_BASE_URL}/${options.preset}/nz.webp`,
+      pX: `${SPACE_IMAGES_BASE_URL}/${options.preset}/px.webp`,
+      nX: `${SPACE_IMAGES_BASE_URL}/${options.preset}/nx.webp`,
+      pY: `${SPACE_IMAGES_BASE_URL}/${options.preset}/py.webp`,
+      nY: `${SPACE_IMAGES_BASE_URL}/${options.preset}/ny.webp`,
+      pZ: `${SPACE_IMAGES_BASE_URL}/${options.preset}/pz.webp`,
+      nZ: `${SPACE_IMAGES_BASE_URL}/${options.preset}/nz.webp`,
     };
   }
 
@@ -354,7 +371,7 @@ function getCubemapFaces(options: CubemapDefinition): CubemapFaces | undefined {
     };
   }
 
-  return;
+  return null;
 }
 
 export { CubemapLayer };

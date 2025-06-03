@@ -20,29 +20,15 @@ function main() {
     halo: true, // same here, RadialGradientLayerConstructorOptions
   });
 
-  const imageOptions = [
-    ["starmap_2020", "jpg"],
-    ["dummy", "jpg"],
-    ["transparent", "png"],
-  ];
-
-  let currentIndex = 0;
   let currentHaloIndex = 0;
-  let currentPresetIndex = 0;
 
-  const randomBgBtn = document.getElementById("random-bg") as HTMLButtonElement;
-  randomBgBtn.addEventListener("click", () => {
-    const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
-    const [randomImage, suffix] = imageOptions[currentIndex] as [string, "jpg" | "png"];
-
-    currentIndex = (currentIndex + 1) % imageOptions.length;
-
+  const randomBgBtn = document.getElementById("bg-color") as HTMLButtonElement;
+  randomBgBtn.addEventListener("input", (e: Event) => {
+    const input = e.target as HTMLInputElement;
+    const color = input.value;
+    console.log("Setting background color to:", color);
     map.setSpace({
-      color: randomColor, // or any other color
-      path: {
-        baseUrl: `spacebox/${randomImage}`, // or any other spacebox path
-        format: suffix, //defaults to png
-      },
+      color, // or any other color
     });
   });
 
@@ -109,14 +95,30 @@ function main() {
 
   const presets = ["stars", "space", "milkyway", "milkyway-subtle", "milkyway-bright"];
 
-  const randomPresetBtn = document.getElementById("random-preset") as HTMLButtonElement;
-  randomPresetBtn.addEventListener("click", () => {
-    currentPresetIndex = (currentPresetIndex + 1) % presets.length;
-    const preset = presets[currentPresetIndex];
+  const presetSelect = document.getElementById("preset-select") as HTMLSelectElement;
+  presets.forEach((preset) => {
+    const option = document.createElement("option");
+    option.value = preset;
+    option.textContent = preset.charAt(0).toUpperCase() + preset.slice(1);
+    presetSelect.appendChild(option);
+  });
+  presetSelect.addEventListener("change", (e: Event) => {
+    const select = e.target as HTMLSelectElement;
+    const preset = select.value;
+    console.log("Setting space preset to:", preset);
     map.setSpace({
-      preset,
+      preset, // or any other preset
     });
   });
+
+  // const randomPresetBtn = document.getElementById("random-preset") as HTMLButtonElement;
+  // randomPresetBtn.addEventListener("click", () => {
+  //   currentPresetIndex = (currentPresetIndex + 1) % presets.length;
+  //   const preset = presets[currentPresetIndex];
+  //   map.setSpace({
+  //     preset,
+  //   });
+  // });
 }
 
 main();

@@ -20,6 +20,7 @@
         top: 10px;
         left: 10px;
         z-index: 1;
+        display: flex;
       }
 
       .btn {
@@ -28,6 +29,17 @@
         border: none;
         padding: 10px;
         cursor: pointer;
+        height: 2rem;
+        margin-right: 0.5rem;
+      }
+
+      .color-input {
+        z-index: 1;
+        width: 50px;
+        border: none;
+        cursor: pointer;
+        padding: 2px;
+        display: inline-block;
       }
     </style>
   </head>
@@ -35,9 +47,13 @@
   <body>
     <div id="map"></div>
     <div class="btn-group">
-      <button class="btn" id="random-bg">Random Background Color</button>
+      <input type="color" class="btn color-input" id="bg-color" value="#ffffff" />
+
+      <select id="preset-select">
+
+      </select>
+      <!-- <button class="btn" id="random-preset">Set Preset</button> -->
       <button class="btn" id="random-halo">Random Halo</button>
-      <button class="btn" id="random-preset">Random Preset</button>
     </div>
     <script src="/src/07-spacebox.ts" type="module"></script>
   </body>
