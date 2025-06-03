@@ -991,6 +991,12 @@ export class Map extends maplibregl.Map {
       }
     });
 
+    try {
+      super.setStyle(styleInfo.style, options);
+    } catch (e) {
+      this.styleInProcess = false;
+      console.error("Error while setting style:", e);
+    }
     return this;
   }
 
