@@ -8,7 +8,7 @@ import { VERTICES, INDICES } from "./constants";
 import vertexShaderSource from "./cubemap.vert.glsl?raw";
 import fragmentShaderSource from "./cubemap.frag.glsl?raw";
 import { loadCubemapTexture } from "./loadCubemapTexture";
-import type { CubemapDefinition, CubemapFaces, CubemapLayerConstructorOptions } from "./types";
+import { cubemapPresets, type CubemapDefinition, type CubemapFaces, type CubemapLayerConstructorOptions } from "./types";
 import { lerp, lerpVec4 } from "../../utils/math-utils";
 
 const SPACE_IMAGES_BASE_URL = "api.maptiler.com/resources/space";
@@ -19,10 +19,7 @@ const UNIFORMS_KEYS = ["projectionMatrix", "modelViewMatrix", "cubeSampler", "bg
 const GL_USE_TEXTURE_MACRO_MARKER = "%USE_TEXTURE_MACRO_MARKER%";
 const GL_USE_TEXTURE_MACRO = "#define USE_TEXTURE";
 
-const defaultConstructorOptions: CubemapLayerConstructorOptions = {
-  color: "black",
-  preset: "universe-dark",
-};
+const defaultConstructorOptions: CubemapLayerConstructorOptions = cubemapPresets.stars;
 
 function configureOptions(inputOptions: CubemapLayerConstructorOptions | true, defaults: CubemapLayerConstructorOptions) {
   if (inputOptions === true) {
@@ -47,6 +44,12 @@ function configureOptions(inputOptions: CubemapLayerConstructorOptions | true, d
   if (inputOptions.path) {
     delete outputOptions.preset;
     return outputOptions as CubemapLayerConstructorOptions;
+  }
+
+  const presetName = inputOptions.preset!;
+
+  if (!(presetName in cubemapPresets)) {
+    throw new Error(`[CubemapLayer]: Invalid preset "${presetName}". Available presets: ${Object.keys(cubemapPresets).join(", ")}`);
   }
 
   // path / faces will not be defined at this point

@@ -4,6 +4,29 @@ export enum CubemapImagesPresets {
 
 export type CubemapLayerConstructorOptions = CubemapDefinition & {};
 
+export const cubemapPresets: Record<string, CubemapDefinition> = {
+  stars: {
+    color: "black",
+    preset: "stars",
+  },
+  space: {
+    color: "hsl(210, 100%, 4%)",
+    preset: "space",
+  },
+  milkyway: {
+    color: "hsl(233,100%,92%)",
+    preset: "milkyway",
+  },
+  "milkyway-subtle": {
+    color: "hsl(233,100%,92%)",
+    preset: "milkyway-subtle",
+  },
+  "milkyway-bright": {
+    color: "hsl(233,100%,92%)",
+    preset: "milkyway-bright",
+  },
+};
+
 // This is not the most elegant but it's more readable than some of the alternatives.
 // see here for additional options:
 // https://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types
@@ -24,9 +47,7 @@ export type CubemapDefinition =
       color?: string;
     }
   | {
-      // TODO we might need to change this once cloud decides to support more presets
-      preset: string;
-      // This will probably require and update to the `MapStyle` types in the client-js repo
+      preset: keyof typeof cubemapPresets;
       path?: never;
       faces?: never;
       color?: string;
