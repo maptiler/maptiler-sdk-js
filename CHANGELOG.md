@@ -1,12 +1,10 @@
 # MapTiler SDK Changelog
 
 ## NEXT
-
 ### ✨ Features and improvements
-- Now able to include cubemap background images and Earth radial gradient halo via `space` and `halo` in map constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style spec.
+None
 
 ### 🐛 Bug fixes
-- Fixes incorrect exports of some types from sdk helper functions.
 - Fix for [RD-900](https://maptiler.atlassian.net/browse/RD-900?atlOrigin=eyJpIjoiOTRjZGRhYjg2Y2JhNGY2NGI2NzM2M2E1MGNkNjBmYWYiLCJwIjoiaiJ9)
 
 ### 🔧 Others

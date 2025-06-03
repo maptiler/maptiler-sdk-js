@@ -952,6 +952,7 @@ export class Map extends maplibregl.Map {
     }
 
     this.styleInProcess = true;
+
     super.setStyle(styleInfo.style, options);
 
     // reload spacebox when the new style loads
@@ -995,8 +996,9 @@ export class Map extends maplibregl.Map {
       super.setStyle(styleInfo.style, options);
     } catch (e) {
       this.styleInProcess = false;
-      console.error("Error while setting style:", e);
+      console.error("[Map.setStyle]: Error while setting style:", e);
     }
+
     return this;
   }
 
