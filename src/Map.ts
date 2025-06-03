@@ -815,7 +815,12 @@ export class Map extends maplibregl.Map {
     }
 
     this.styleInProcess = true;
-    super.setStyle(styleInfo.style, options);
+    try {
+      super.setStyle(styleInfo.style, options);
+    } catch (e) {
+      this.styleInProcess = false;
+      console.error("Error while setting style:", e);
+    }
     return this;
   }
 
