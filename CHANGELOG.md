@@ -9,7 +9,7 @@
 - Fixes incorrect exports of some types from sdk helper functions.
 - Fix for [RD-900](https://maptiler.atlassian.net/browse/RD-900?atlOrigin=eyJpIjoiOTRjZGRhYjg2Y2JhNGY2NGI2NzM2M2E1MGNkNjBmYWYiLCJwIjoiaiJ9)
 
-## 🔧 Others
+### 🔧 Others
 - None
 
 ## 3.3.0
