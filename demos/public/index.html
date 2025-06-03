@@ -58,18 +58,9 @@
       <a href="04-ready-event.html">Ready Event →</a>
       <a href="05-transform-request.html">Transform request →</a>
       <a href="06-handling-webgl-errors.html">Handling WebGL Errors →</a>
+      <a href="07-spacebox.html">SpaceBox →</a>
     </div>
   </div>
-
-  <script type="module">
-    /**
-     * To not make examples vite dependent, we add the API key to the links.
-     * Thay way they can still be opened in the browser with double click :)
-     */
-    document.querySelectorAll("a").forEach((a) => {
-      a.href += import.meta.env.VITE_API_KEY ?? "";
-    });
-  </script>
 </body>
 
 </html>

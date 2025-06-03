@@ -39,6 +39,9 @@ import type { MinimapOptionsInput } from "./controls/Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 import { MaptilerProjectionControl } from "./controls/MaptilerProjectionControl";
 import { Telemetry } from "./Telemetry";
+import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from "./custom-layers/CubemapLayer";
+import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructorOptions } from "./custom-layers/RadialGradientLayer";
+import extractCustomLayerStyle, { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -190,14 +193,142 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * If not provided, the style takes precedence. If provided, overwrite the style.
    */
   projection?: ProjectionTypes;
+
+  /**
+   * Turn on/off spacebox.
+   *
+   * Default: { color: "#1D29F1" }
+   */
+  space?: CubemapLayerConstructorOptions | boolean;
+  halo?: RadialGradientLayerConstructorOptions | boolean;
 };
 
 /**
  * The Map class can be instanciated to display a map in a `<div>`
  */
 export class Map extends maplibregl.Map {
-  private options: MapOptions;
   public readonly telemetry: Telemetry;
+
+  private space?: CubemapLayer;
+  private halo?: RadialGradientLayer;
+
+  public getSpace(): CubemapLayer | undefined {
+    return this.space;
+  }
+
+  public setSpace(space: CubemapDefinition) {
+    if (this.space) {
+      this.space.setCubemap(space);
+      return;
+    }
+
+    this.space = new CubemapLayer(space);
+
+    this.once("load", () => {
+      const firstLayer = this.getLayersOrder()[0];
+      if (this.space) {
+        this.addLayer(this.space, firstLayer);
+      }
+    });
+  }
+
+  private setSpaceFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
+    if (!style?.metadata?.maptiler?.space) {
+      return;
+    }
+    this.space?.setCubemap(style.metadata.maptiler.space);
+  }
+
+  private setHaloFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
+    if (!style?.metadata?.maptiler?.halo) {
+      return;
+    }
+    void this.halo?.setGradient(style.metadata.maptiler.halo);
+  }
+
+  private setSpaceFromCurrentStyle() {
+    const spaceOptionsFromStyleSpec = extractCustomLayerStyle<CubemapDefinition>({ map: this, property: "space" });
+    if (spaceOptionsFromStyleSpec && this.space) {
+      this.space.setCubemap(spaceOptionsFromStyleSpec);
+      return;
+    }
+  }
+
+  private setHaloFromCurrentStyle() {
+    const haloOptionsFromStyleSpec = extractCustomLayerStyle<GradientDefinition>({ map: this, property: "halo" });
+    if (haloOptionsFromStyleSpec && this.halo) {
+      void this.halo.setGradient(haloOptionsFromStyleSpec);
+      return;
+    }
+  }
+
+  private initSpace({ options = this.options, before }: { options?: MapOptions; before: string }) {
+    if (this.space) {
+      return;
+    }
+
+    if (options.space === false) return;
+
+    const spaceOptionsFromStyleSpec = extractCustomLayerStyle<CubemapDefinition>({ map: this, property: "space" });
+    if (options.space) {
+      this.space = new CubemapLayer(options.space);
+      this.addLayer(this.space, before);
+      return;
+    }
+
+    if (spaceOptionsFromStyleSpec) {
+      this.space = new CubemapLayer(spaceOptionsFromStyleSpec);
+      this.addLayer(this.space, before);
+    }
+  }
+
+  private initHalo({ options = this.options, before }: { options?: MapOptions; before: string }) {
+    if (this.halo) {
+      return;
+    }
+
+    if (options.halo === false) return;
+
+    const haloOptionsFromStyleSpec = extractCustomLayerStyle<GradientDefinition>({ map: this, property: "halo" });
+    if (options.halo) {
+      this.halo = new RadialGradientLayer(options.halo);
+      this.addLayer(this.halo, before);
+      return;
+    }
+
+    if (haloOptionsFromStyleSpec) {
+      this.halo = new RadialGradientLayer(haloOptionsFromStyleSpec);
+      this.addLayer(this.halo, before);
+    }
+  }
+
+  public getHalo(): RadialGradientLayer | undefined {
+    return this.halo;
+  }
+
+  public setHalo(halo: GradientDefinition) {
+    if (this.halo) {
+      void this.halo.setGradient(halo);
+      return;
+    }
+
+    this.halo = new RadialGradientLayer(halo);
+
+    void this.once("load", () => {
+      const layersOrder = this.getLayersOrder();
+
+      const firstLayer = layersOrder[0];
+
+      const insertBeforeIndex = layersOrder.indexOf(this.space?.id ?? "") + 2;
+
+      const insertBefore = layersOrder[insertBeforeIndex];
+      if (this.halo) {
+        this.addLayer(this.halo, this.space ? insertBefore : firstLayer);
+      }
+    });
+  }
+
+  private options: MapOptions;
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
   private primaryLanguage: LanguageInfo;
@@ -655,6 +786,7 @@ export class Map extends maplibregl.Map {
     }
 
     // Display a message if WebGL context is lost
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.once("load", () => {
       this.getCanvas().addEventListener("webglcontextlost", (event) => {
         if (this._removed === true) {
@@ -669,6 +801,11 @@ export class Map extends maplibregl.Map {
 
         this.fire("webglContextLost", event);
       });
+
+      const firstLayer = this.getLayersOrder()[0];
+
+      this.initSpace({ options, before: firstLayer });
+      this.initHalo({ options, before: firstLayer });
     });
 
     this.telemetry = new Telemetry(this);
@@ -815,12 +952,53 @@ export class Map extends maplibregl.Map {
     }
 
     this.styleInProcess = true;
+
+    super.setStyle(styleInfo.style, options);
+
+    // reload spacebox when the new style loads
+    const before = this.getLayersOrder()[0];
+
+    if (typeof styleInfo.style !== "string" && !styleInfo.requiresUrlMonitoring) {
+      if (this.space) {
+        const styleWithMetaData = styleInfo.style as StyleSpecificationWithMetaData;
+        this.setSpaceFromStyle({ style: styleWithMetaData });
+      } else {
+        this.initSpace({ before });
+      }
+
+      if (this.halo) {
+        const styleWithMetaData = styleInfo.style as StyleSpecificationWithMetaData;
+        this.setHaloFromStyle({ style: styleWithMetaData });
+      } else {
+        this.initHalo({ before });
+      }
+
+      return this;
+    }
+
+    void this.once("style.load", () => {
+      const targetBeforeLayer = this.getLayersOrder()[0];
+
+      if (this.space) {
+        this.setSpaceFromCurrentStyle();
+      } else {
+        this.initSpace({ before: targetBeforeLayer });
+      }
+
+      if (this.halo) {
+        this.setHaloFromCurrentStyle();
+      } else {
+        this.initHalo({ before: targetBeforeLayer });
+      }
+    });
+
     try {
       super.setStyle(styleInfo.style, options);
     } catch (e) {
       this.styleInProcess = false;
-      console.error("Error while setting style:", e);
+      console.error("[Map.setStyle]: Error while setting style:", e);
     }
+
     return this;
   }
 

@@ -7,6 +7,7 @@
   "types": "dist/maptiler-sdk.d.ts",
   "style": "dist/maptiler-sdk.css",
   "type": "module",
+  "main": "dist/maptiler-sdk.mjs",
   "exports": {
     ".": {
       "import": "./dist/maptiler-sdk.mjs",
@@ -54,9 +55,14 @@
   "lint-staged": {
     "*.ts": "npm run lint:fix"
   },
+  "ts-typecheck": {
+    "*.ts": "npm tsc --noEmit"
+  },
   "devDependencies": {
     "@canvas/image-data": "^1.0.0",
     "@eslint/js": "^9.21.0",
+    "@types/color-convert": "^2.0.4",
+    "@types/color-name": "^2.0.0",
     "@types/stats.js": "^0.17.4",
     "@types/uuid": "^10.0.0",
     "@types/xmldom": "^0.1.31",
@@ -83,6 +89,7 @@
     "@maplibre/maplibre-gl-style-spec": "^23.0.0",
     "@maptiler/client": "^2.3.2",
     "events": "^3.3.0",
+    "gl-matrix": "^3.4.3",
     "js-base64": "^3.7.7",
     "maplibre-gl": "^5.5.0",
     "uuid": "^11.0.5"
