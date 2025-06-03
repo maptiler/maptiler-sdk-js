@@ -110,15 +110,6 @@ function main() {
       preset, // or any other preset
     });
   });
-
-  // const randomPresetBtn = document.getElementById("random-preset") as HTMLButtonElement;
-  // randomPresetBtn.addEventListener("click", () => {
-  //   currentPresetIndex = (currentPresetIndex + 1) % presets.length;
-  //   const preset = presets[currentPresetIndex];
-  //   map.setSpace({
-  //     preset,
-  //   });
-  // });
 }
 
 main();
