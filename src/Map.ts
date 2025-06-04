@@ -809,7 +809,6 @@ export class Map extends maplibregl.Map {
     });
 
     this.telemetry = new Telemetry(this);
-    window.__map = this
   }
 
   /**
