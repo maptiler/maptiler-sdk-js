@@ -8,7 +8,7 @@ None
 - Fix for [RD-900](https://maptiler.atlassian.net/browse/RD-900?atlOrigin=eyJpIjoiOTRjZGRhYjg2Y2JhNGY2NGI2NzM2M2E1MGNkNjBmYWYiLCJwIjoiaiJ9)
 
 ### 🔧 Others
-- Migrates Demos to use vite for better dx
+- None
 
 ## 3.3.0
 ### ✨ Features and improvements

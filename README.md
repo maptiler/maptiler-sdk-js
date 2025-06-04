@@ -607,36 +607,45 @@ const map = new maptilersdk.Map({
   },
 });
 ```
-Alternatively, you can provide a cubemap for a realistic skybox effect using one of the following methods:
+Alternatively, you can provide a cubemap for a space backround using one of the following methods:
 
-    Predefined Presets:
+#### Predefined Presets:
+
+- `space`: Dark blue hsl(210, 100%, 4%) background and white stars (transparent background image). Space color changes the background color, stars always stay white.
+- `stars` (default): Black background (image mask), space color changes the stars color, background always stays black. 
+- `milkyway`: Black half-transparent background with standard milkyway and stars. Space color changes the stars and milkyway color, background always stays black. 
+- `milkyway-subtle`: Black half-transparent background with subtle milkyway and less stars.   Space color changes the stars and milkyway color, background always stays black.Black half-transparent background with standard milkyway and stars.   Space color changes the stars and milkyway color, background always stays black.
+- `milkyway-bright`: Black half-transparent background with bright milkyway and more stars.   Space color changes the stars and milkyway color, background always stays black.
+
 ```ts
 const map = new maptilersdk.Map({
   container: document.getElementById("map"),
   style: maptilersdk.MapStyle.OUTDOOR,
   space: {
-    preset: "universe-dark",
+    preset: "space",
   },
 });
 ```
-Cubemap Images (Custom Skybox):
+#### Cubemap Images (Custom Skybox):
 ```ts
 const map = new maptilersdk.Map({
   container: document.getElementById("map"),
   style: maptilersdk.MapStyle.OUTDOOR,
   space: {
     faces: {
-      pX: '/path-to-image/pX.png',
       nX: '/path-to-image/nX.png',
-      pY: '/path-to-image/pY.png',
       nY: '/path-to-image/nY.png',
-      pZ: '/path-to-image/pZ.png',
       nZ: '/path-to-image/nZ.png',
+      pX: '/path-to-image/pX.png',
+      pY: '/path-to-image/pY.png',
+      pZ: '/path-to-image/pZ.png',
     },
   },
 });
 ```
-Cubemap Path with image format, fetches all images from a path, this assumes all files are named px, nx, py, ny, pz, nz and suffixed with the appropriate extension specified in `format`.
+#### Cubemap Path with image format
+
+This fetches all images from a path, this assumes all files are named px, nx, py, ny, pz, nz and suffixed with the appropriate extension specified in `format`.
 ```ts
     const map = new maptilersdk.Map({
       container: document.getElementById("map"),
@@ -649,7 +658,7 @@ Cubemap Path with image format, fetches all images from a path, this assumes all
       },
     });
 ```
-You can also set the space background dynamically:
+#### Set the space background dynamically:
 ```ts
 map.on("load", () => {
   map.setSpace({
@@ -660,6 +669,10 @@ map.on("load", () => {
   });
 });
 ```
+
+Note: if `space.color` or `space.<faces | path | preset>` are not explicitly set in the call to `setSpace`, then the previous value will remain for this field.
+
+Further code examples can be found in `~/demos/`
 
 # Easy language switching
 The language generally depends on the style but we made it possible to easily set and update from a built-in list of languages.

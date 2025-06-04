@@ -117,7 +117,7 @@ export function loadCubemapTexture({ gl, faces, onLoadedCallback, forceRefresh }
 
   gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
   gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  console.log("COMPLETE RUN THROUGH");
+
   memoizedReturnValue = texture;
 
   return texture;

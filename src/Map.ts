@@ -233,14 +233,14 @@ export class Map extends maplibregl.Map {
   }
 
   private setSpaceFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
-    if (!style?.metadata?.maptiler?.space) {
+    if (!style.metadata?.maptiler?.space) {
       return;
     }
     this.space?.setCubemap(style.metadata.maptiler.space);
   }
 
   private setHaloFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
-    if (!style?.metadata?.maptiler?.halo) {
+    if (!style.metadata?.maptiler?.halo) {
       return;
     }
     void this.halo?.setGradient(style.metadata.maptiler.halo);
@@ -263,7 +263,7 @@ export class Map extends maplibregl.Map {
   }
 
   private initSpace({ options = this.options, before }: { options?: MapOptions; before: string }) {
-    if (this.space) {
+    if (this.space && this.getLayer(this.space.id)) {
       return;
     }
 
@@ -283,7 +283,7 @@ export class Map extends maplibregl.Map {
   }
 
   private initHalo({ options = this.options, before }: { options?: MapOptions; before: string }) {
-    if (this.halo) {
+    if (this.halo && this.getLayer(this.halo.id)) {
       return;
     }
 
@@ -993,6 +993,7 @@ export class Map extends maplibregl.Map {
     });
 
     try {
+      console.log("[Map.setStyle]: Setting style:", styleInfo.style);
       super.setStyle(styleInfo.style, options);
     } catch (e) {
       this.styleInProcess = false;

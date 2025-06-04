@@ -40,19 +40,84 @@ const defaultConstructorOptions: RadialGradientLayerConstructorOptions = {
 
 const DELTA_CHANGE = 0.075;
 
+/**
+ * A custom map layer that renders a radial gradient effect, typically used as a halo around a globe.
+ * This layer uses WebGL for rendering and provides animation capabilities.
+ *
+ * The layer is implemented as a 3D custom layer that renders a billboard quad with a radial gradient shader.
+ * The gradient can be configured with multiple color stops and can be animated.
+ *
+ * @example
+ * ```typescript
+ * // Create a simple halo layer with default settings
+ * const haloLayer = new RadialGradientLayer(true);
+ * map.addLayer(haloLayer);
+ *
+ * // Create a customized halo layer
+ * const customHalo = new RadialGradientLayer({
+ *   scale: 1.5,
+ *   stops: [
+ *     [0, "rgba(255, 255, 255, 0.8)"],
+ *     [1, "rgba(255, 255, 255, 0)"]
+ *   ]
+ * });
+ * map.addLayer(customHalo);
+ * ```
+ * @remarks You shouldn't have to use this class directly.
+ * Instead, use the `Map.setHalo` method to create and add a halo layer to the map.
+ */
 export class RadialGradientLayer implements CustomLayerInterface {
   public id: string = "Halo Layer";
   public type: CustomLayerInterface["type"] = "custom";
   public renderingMode: CustomLayerInterface["renderingMode"] = "3d";
 
+  /**
+   * The gradient definition used by this layer.
+   * It contains the stops and scale for the radial gradient.
+   * @private
+   * @type {GradientDefinition}
+   */
   private gradient: GradientDefinition;
+  /**
+   * The scale of the radial gradient, which determines its size.
+   * This value is animated from 0 to the target scale during the layer's appearance.
+   * @private
+   * @type {number}
+   */
   private scale: number = 0.0;
 
+  /**
+   * The animation delta value used to control the progress of the gradient's appearance animation.
+   * It is incremented during each frame of the animation until it reaches 1.
+   * @private
+   * @type {number}
+   */
   private animationDelta: number = 0.0;
 
+  /**
+   * The MapSDK instance to which this layer is added.
+   * This is set when the layer is added to the map.
+   * @private
+   * @type {MapSDK}
+   */
   private map!: MapSDK;
+
+  /**
+   * The 3D object representing the radial gradient plane.
+   * This object is created when the layer is added to the map and contains the shader program and buffers.
+   * It is used for rendering the radial gradient effect.
+   * @private
+   * @type {Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>}
+   */
   private plane?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
 
+  /**
+   * Creates a new RadialGradientLayer instance.
+   *
+   * @param {RadialGradientLayerConstructorOptions | boolean} gradient - Configuration options for the radial gradient or a boolean value.
+   * If a boolean is provided, default configuration options will be used.
+   * If an `RadialGradientLayerConstructorOptions` is provided, it will be merged with default options.
+   */
   constructor(gradient: RadialGradientLayerConstructorOptions | boolean) {
     if (typeof gradient === "boolean") {
       this.gradient = defaultConstructorOptions;
@@ -65,6 +130,14 @@ export class RadialGradientLayer implements CustomLayerInterface {
     };
   }
 
+  /**
+   * Adds the radial gradient layer to the specified map.
+   * This method is called by the map when the layer is added to it.
+   *
+   * @param {MapSDK} map - The MapSDK instance to which this layer is being added
+   * @param {WebGLRenderingContext | WebGL2RenderingContext} gl - The WebGL rendering context used for rendering the layer
+   * @returns void
+   */
   public onAdd(map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
     this.map = map;
     this.plane = createObject3D({
@@ -79,6 +152,18 @@ export class RadialGradientLayer implements CustomLayerInterface {
     void this.animateIn();
   }
 
+  /**
+   * Animates the radial gradient into view by gradually scaling from 0 to the target scale.
+   *
+   * This method uses requestAnimationFrame to create a smooth scaling animation effect.
+   * During each frame, it:
+   *   1. Interpolates the scale value between 0 and the target scale
+   *   2. Increments the animation progress (animationDelta)
+   *   3. Triggers a map repaint
+   *
+   * @private
+   * @returns {Promise<void>} A promise that resolves when the animation completes
+   */
   private async animateIn() {
     return new Promise<void>((resolve) => {
       this.animationDelta = 0;
@@ -96,6 +181,18 @@ export class RadialGradientLayer implements CustomLayerInterface {
     });
   }
 
+  /**
+   * Animates the radial gradient layer out by gradually reducing its scale to zero.
+   *
+   * This method creates a smooth transition effect by linearly interpolating the scale
+   * from its current value to zero over multiple animation frames. During each frame,
+   * the animation progresses by incrementing the internal animation delta value.
+   *
+   * The map is repainted after each animation step to reflect the updated scale.
+   *
+   * @private
+   * @returns A Promise that resolves when the animation is complete.
+   */
   private async animateOut() {
     this.animationDelta = 0;
     return new Promise<void>((resolve) => {
@@ -133,17 +230,6 @@ export class RadialGradientLayer implements CustomLayerInterface {
 
     gl.disable(gl.DEPTH_TEST);
     gl.enable(gl.BLEND);
-
-    // gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
-    // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    // gl.blendFuncSeparate(gl.SRC_COLOR, gl.ONE_MINUS_SRC_COLOR, gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-    // gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA, gl.DST_ALPHA);
-
-    // Left here for future experiments
-    // gl.blendEquation(gl.FUNC_ADD);
-    // gl.blendEquation(gl.FUNC_SUBTRACT);
-    // gl.blendEquation(gl.FUNC_REVERSE_SUBTRACT);
 
     gl.useProgram(this.plane.shaderProgram);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.plane.positionBuffer);
@@ -217,9 +303,14 @@ export class RadialGradientLayer implements CustomLayerInterface {
   }
 
   /**
-   * Value settings methods
+   * Sets a new gradient for the radial gradient layer and animates the transition.
+   *
+   * This method first animates the current gradient out, then updates the gradient
+   * property with the new gradient definition, and finally animates the new gradient in.
+   *
+   * @param {GradientDefinition} gradient - The new gradient definition to set for this layer.
+   * @returns {Promise<void>} A promise that resolves when the new gradient is set and animated in.
    */
-
   public async setGradient(gradient: GradientDefinition): Promise<void> {
     await this.animateOut();
     this.gradient = gradient;
@@ -235,6 +326,4 @@ export class RadialGradientLayer implements CustomLayerInterface {
     // TODO in future we can ease / animate this
     this.map.setLayoutProperty(this.id, "visibility", "none");
   }
-
-  /* *** */
 }
