@@ -70,7 +70,10 @@ function configureOptions(inputOptions: CubemapLayerConstructorOptions | true, d
 
   // path / faces will not be defined at this point
   // so we don't need to delete them
-  return outputOptions as CubemapLayerConstructorOptions;
+  return {
+    ...outputOptions,
+    color: outputOptions.color ?? cubemapPresets[presetName].color ?? "hsl(233,100%,92%)",
+  } as CubemapLayerConstructorOptions;
 }
 
 class CubemapLayer implements CustomLayerInterface {
@@ -346,6 +349,7 @@ class CubemapLayer implements CustomLayerInterface {
       }
       this.imageIsAnimating = false;
       this.imageFadeInDelta = 0.0;
+      return;
     };
 
     requestAnimationFrame(animateIn);
@@ -362,7 +366,7 @@ class CubemapLayer implements CustomLayerInterface {
       return Promise.resolve(); // If already animating, just resolve
     }
     return new Promise((resolve) => {
-      const animateIn = () => {
+      const animateOut = () => {
         this.imageFadeInDelta = Math.min(this.imageFadeInDelta + 0.05, 1.0);
         this.currentFadeOpacity = lerp(1.0, 0.0, this.imageFadeInDelta);
         this.map.triggerRepaint();
@@ -373,10 +377,10 @@ class CubemapLayer implements CustomLayerInterface {
           resolve();
           return;
         }
-        requestAnimationFrame(animateIn);
+        requestAnimationFrame(animateOut);
       };
 
-      requestAnimationFrame(animateIn);
+      requestAnimationFrame(animateOut);
     });
   }
 
@@ -500,15 +504,18 @@ class CubemapLayer implements CustomLayerInterface {
    * Finally, it calls `updateCubemap` to apply the changes and trigger a repaint of the map.
    */
   public async setCubemap(cubemap: CubemapDefinition): Promise<void> {
-    const color = parseColorStringToVec4(cubemap.color);
-    if (cubemap.color && this.targetBgColor.toString() !== color.toString()) {
-      this.setBgColor(color);
-    }
-
     const facesKey = JSON.stringify(cubemap.faces ?? cubemap.preset ?? cubemap.path);
 
     if (facesKey && this.currentFacesDefinitionKey !== facesKey) {
       await this.setCubemapFaces(cubemap);
+    }
+
+    const color = parseColorStringToVec4(cubemap.color);
+    if (cubemap.color && this.targetBgColor.toString() !== color.toString()) {
+      this.setBgColor(color);
+    } else if (cubemap.preset && cubemap.preset in cubemapPresets) {
+      const preset = cubemapPresets[cubemap.preset];
+      this.setBgColor(parseColorStringToVec4(preset.color));
     }
 
     this.updateCubemap();

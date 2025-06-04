@@ -10,7 +10,7 @@ export type CubemapLayerConstructorOptions = CubemapDefinition & {};
 
 export const cubemapPresets: Record<string, CubemapDefinition> = {
   stars: {
-    color: "white",
+    color: "hsl(233,100%,92%)",
     preset: "stars",
   },
   space: {

@@ -263,7 +263,11 @@ export class Map extends maplibregl.Map {
   }
 
   private initSpace({ options = this.options, before }: { options?: MapOptions; before: string }) {
-    if (this.space && this.getLayer(this.space.id)) {
+    if (this.space) {
+      if (!this.getLayer(this.space.id)) {
+        // If the space layer is already initialized but not added to the map, we add it now
+        this.addLayer(this.space, before);
+      }
       return;
     }
 
@@ -993,10 +997,9 @@ export class Map extends maplibregl.Map {
     });
 
     try {
-      console.log("[Map.setStyle]: Setting style:", styleInfo.style);
       super.setStyle(styleInfo.style, options);
     } catch (e) {
-      this.styleInProcess = false;
+      // this.styleInProcess = false;
       console.error("[Map.setStyle]: Error while setting style:", e);
     }
 
