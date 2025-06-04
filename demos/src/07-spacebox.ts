@@ -1,4 +1,4 @@
-import { Map, MapStyle, config } from "../../src";
+import { CubemapDefinition, Map, MapStyle, config } from "../../src";
 import { addPerformanceStats, setupMapTilerApiKey } from "./demo-utils";
 
 function main() {
@@ -7,7 +7,7 @@ function main() {
 
   const map = new Map({
     container: document.getElementById("map")!,
-    style: MapStyle.SATELLITE,
+    style: MapStyle.SATELLITE.DEFAULT,
     hash: false,
     geolocate: true,
     scaleControl: true,
@@ -93,22 +93,43 @@ function main() {
     });
   });
 
-  const presets = ["stars", "space", "milkyway", "milkyway-subtle", "milkyway-bright"];
+  const configs: (CubemapDefinition & { name: string })[] = [
+    { preset: "stars", name: "Using Preset: `stars`" },
+    { preset: "space", name: "Using Preset: `space`" },
+    { preset: "milkyway", name: "Using Preset: `milkyway`" },
+    { preset: "milkyway-subtle", name: "Using Preset: `milkyway-subtle`" },
+    { preset: "milkyway-bright", name: "Using Preset: `milkyway-bright`" },
+    { path: { baseUrl: "/spacebox/maptiler-transparent", format: "png" }, name: "Using Path: `/spacebox/maptiler-transparent`" },
+    {
+      faces: {
+        pX: "/spacebox/scene/front.png",
+        nX: "/spacebox/scene/back.png",
+        pZ: "/spacebox/scene/left.png",
+        nZ: "/spacebox/scene/right.png",
+        nY: "/spacebox/scene/top.png",
+        pY: "/spacebox/scene/bottom.png",
+      },
+      name: "Using Faces Object: `/spacebox/scene/*`",
+    },
+  ];
 
   const presetSelect = document.getElementById("preset-select") as HTMLSelectElement;
-  presets.forEach((preset) => {
+  configs.forEach((preset) => {
     const option = document.createElement("option");
-    option.value = preset;
-    option.textContent = preset.charAt(0).toUpperCase() + preset.slice(1);
+    option.value = preset.name;
+    option.textContent = preset.name;
     presetSelect.appendChild(option);
   });
+
   presetSelect.addEventListener("change", (e: Event) => {
     const select = e.target as HTMLSelectElement;
-    const preset = select.value;
-    console.log("Setting space preset to:", preset);
-    map.setSpace({
-      preset, // or any other preset
-    });
+    const { value, textContent } = select;
+    const config = configs.find((c) => c.name === value);
+    if (config) {
+      console.log("Setting spacebox config:", config);
+      map.setSpace(config);
+    }
+    console.log("Selected preset:", textContent);
   });
 }
 

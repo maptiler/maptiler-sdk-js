@@ -21,6 +21,22 @@ const GL_USE_TEXTURE_MACRO = "#define USE_TEXTURE";
 
 const defaultConstructorOptions: CubemapLayerConstructorOptions = cubemapPresets.stars;
 
+/**
+ * Configures options for the CubemapLayer by merging defaults with provided options.
+ *
+ * @param inputOptions - Options to configure the cubemap layer. Can be a configuration object or `true` to use defaults.
+ * @param defaults - Default configuration options to use as a base.
+ * @returns The configured options with properly resolved properties.
+ *
+ * @remarks
+ * The function applies the following priority rules:
+ * 1. If `inputOptions` is `true`, returns the default options.
+ * 2. If `inputOptions.faces` is defined, it takes precedence and `preset` is removed.
+ * 3. If `inputOptions.path` is defined, it takes precedence over `preset`.
+ * 4. If neither `faces` nor `path` is defined, the `preset` property is used and validated.
+ *
+ * @throws Error if an invalid preset name is provided.
+ */
 function configureOptions(inputOptions: CubemapLayerConstructorOptions | true, defaults: CubemapLayerConstructorOptions) {
   if (inputOptions === true) {
     return defaults;
@@ -62,25 +78,108 @@ class CubemapLayer implements CustomLayerInterface {
   public type: CustomLayerInterface["type"] = "custom";
   public renderingMode: CustomLayerInterface["renderingMode"] = "3d";
 
+  /**
+   * The map instance to which this layer is added.
+   * @type {MapSDK}
+   * @private
+   */
   private map!: MapSDK;
+  /**
+   * The cubemap faces definition, which can be either a preset, path, or explicit face URLs.
+   * @type {CubemapFaces | null}
+   * @remarks
+   * This property is set during the initialization of the layer and can be updated later.
+   * If no faces are defined, it will be `null`.
+   */
   private faces?: CubemapFaces | null;
+  /**
+   * Indicates whether to use a cubemap texture for rendering.
+   * @type {boolean}
+   * @private
+   * @default true
+   */
   private useCubemapTexture: boolean = true;
+  /**
+   * The current opacity of the fade effect applied to the cubemap image texture, used for fading in and out.
+   * @type {number}
+   * @private
+   * @default 0.0
+   */
   private currentFadeOpacity: number = 0.0;
+  /**
+   * Indicates whether the cubemap needs to be updated, typically when the faces or texture changes.
+   * @type {boolean}
+   * @private
+   * @default false
+   */
   private cubeMapNeedsUpdate: boolean = false;
+  /**
+   * The background color of the cubemap layer, represented as a Vec4 (RGBA).
+   * @type {Vec4}
+   * @private
+   */
   private bgColor: Vec4;
 
+  /**
+   * The previous background color used for transition animations.
+   * @type {Vec4}
+   * @private
+   */
   private previousBgColor: Vec4 = [0, 0, 0, 0];
+  /**
+   * The target background color to which the layer will transition.
+   * @type {Vec4}
+   * @private
+   */
   private targetBgColor: Vec4 = [0, 0, 0, 0];
 
+  /**
+   * The delta value used for transitioning the background color. 0 = start of transition, 1 = end of transition.
+   * This value is incremented over time to create a smooth transition effect.
+   * @type {number}
+   * @private
+   */
   private transitionDelta: number = 0.0;
 
+  /**
+   * The WebGL context used for rendering the cubemap layer.
+   * @type {WebGLContext}
+   * @private
+   */
   private gl!: WebGLContext;
 
+  /**
+   * The cubemap object that contains the shader program, buffers and uniform locations for rendering.
+   * @type {Object3D}
+   * @private
+   */
   private cubemap?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
+  /**
+   * The WebGL texture used for the cubemap, which is created from the defined faces.
+   * This texture is used to render the cubemap in the scene.
+   * @type {WebGLTexture | undefined}
+   * @private
+   */
   private texture?: WebGLTexture;
 
+  /**
+   * The key representing the current faces definition, used to diff / track changes in the cubemap faces.
+   * @type {string}
+   */
   public currentFacesDefinitionKey: string = "";
 
+  /**
+   * Creates a new instance of CubemapLayer
+   *
+   * @param {CubemapLayerConstructorOptions | true} cubemapConfig - Configuration options for the cubemap layer or `true` to use default options.
+   * Can specify faces, preset, path, and color properties to configure the cubemap.
+   *
+   * @remarks You shouldn't have to use this class directly.
+   * Instead, use the `Map.setHalo` method to create and add a halo layer to the map.
+   * The constructor initializes the cubemap with the provided configuration.
+   * It processes the faces definition, sets up background colors, and determines
+   * whether to use a cubemap texture based on the provided options.
+   */
   constructor(cubemapConfig: CubemapLayerConstructorOptions | true) {
     const options = configureOptions(cubemapConfig, defaultConstructorOptions);
 
@@ -93,6 +192,14 @@ class CubemapLayer implements CustomLayerInterface {
     this.useCubemapTexture = this.faces !== null;
   }
 
+  /**
+   * Updates the cubemap object with the current faces and shader configuration.
+   * This method is called when the cubemap faces change or when the layer is initialized.
+   * @returns {void}
+   * @remarks
+   * It creates a new Object3D instance with the specified vertex and fragment shaders,
+   * attributes, and uniforms. The cubemap will be rendered using this configuration.
+   */
   public updateCubemap(): void {
     this.useCubemapTexture = this.faces !== null;
     const uniformsKeys = UNIFORMS_KEYS.filter((uniformKey) => {
@@ -121,12 +228,26 @@ class CubemapLayer implements CustomLayerInterface {
     this.animateColorChange();
   }
 
+  /**
+   * Called when the layer is added to the map.
+   * Initializes the cubemap and sets up the WebGL context.
+   *
+   * @param {MapSDK} map - The map instance to which this layer is added.
+   * @param {WebGLRenderingContext | WebGL2RenderingContext} gl - The WebGL context used for rendering.
+   */
   public onAdd(map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
     this.map = map;
     this.gl = gl;
     this.updateCubemap();
   }
 
+  /**
+   * Called when the layer is removed from the map.
+   * Cleans up the cubemap resources and WebGL buffers.
+   *
+   * @param {MapSDK} _map - The map instance from which this layer is removed.
+   * @param {WebGLRenderingContext | WebGL2RenderingContext} gl - The WebGL context used for rendering.
+   */
   public onRemove(_map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
     if (this.cubemap) {
       gl.deleteProgram(this.cubemap.shaderProgram);
@@ -134,7 +255,14 @@ class CubemapLayer implements CustomLayerInterface {
     }
   }
 
-  updateTexture(gl: WebGLContext, faces: CubemapFaces): void {
+  /**
+   * Updates the cubemap texture with the provided faces.
+   * This method is called when the cubemap faces change or when the layer is initialized.
+   *
+   * @param {WebGLContext} gl - The WebGL context used for rendering.
+   * @param {CubemapFaces} faces - The cubemap faces to be loaded into the texture.
+   */
+  public updateTexture(gl: WebGLContext, faces: CubemapFaces): void {
     if (this.cubeMapNeedsUpdate === true) {
       this.cubeMapNeedsUpdate = false;
       if (!this.useCubemapTexture) {
@@ -151,10 +279,23 @@ class CubemapLayer implements CustomLayerInterface {
     }
   }
 
+  /**
+   * Called before the layer is rendered.
+   * Updates the cubemap texture with the current faces.
+   *
+   * @param {WebGLContext} gl - The WebGL context used for rendering.
+   * @param {CustomRenderMethodInput} _options - Additional options for the render method.
+   */
   public prerender(gl: WebGLContext, _options: CustomRenderMethodInput): void {
     this.updateTexture(gl, this.faces!);
   }
 
+  /**
+   * Lerps the background color transition of the cubemap layer.
+   * This method smoothly transitions the background color from the previous color to the target color.
+   *
+   * @private
+   */
   private animateColorChange() {
     const animateColorChange = () => {
       if (this.transitionDelta < 1.0) {
@@ -168,9 +309,26 @@ class CubemapLayer implements CustomLayerInterface {
     requestAnimationFrame(animateColorChange);
   }
 
+  /**
+   * Animates the cubemap image fading in.
+   * This method gradually increases the opacity of the cubemap image to create a fade-in effect.
+   *
+   * @private
+   */
   private imageIsAnimating: boolean = false;
+  /**
+   * The delta value used for the image fade-in animation.
+   * This value is incremented over time to create a smooth fade-in effect.
+   * @type {number}
+   * @private
+   */
   private imageFadeInDelta: number = 0.0;
 
+  /**
+   * Animates the cubemap image fading in.
+   * This method gradually increases the opacity of the cubemap image to create a fade-in effect.
+   * @private
+   */
   private animateIn() {
     if (this.imageIsAnimating) {
       return;
@@ -193,6 +351,12 @@ class CubemapLayer implements CustomLayerInterface {
     requestAnimationFrame(animateIn);
   }
 
+  /**
+   * Animates the cubemap image fading out.
+   * This method gradually decreases the opacity of the cubemap image to create a fade-out effect.
+   * @returns {Promise<void>} A promise that resolves when the animation is complete.
+   * @private
+   */
   private animateOut(): Promise<void> {
     if (this.imageIsAnimating) {
       return Promise.resolve(); // If already animating, just resolve
@@ -216,6 +380,14 @@ class CubemapLayer implements CustomLayerInterface {
     });
   }
 
+  /**
+   * Renders the cubemap layer to the WebGL context.
+   * This method is called internally during the rendering phase of the map.
+   *
+   * @param {WebGLRenderingContext | WebGL2RenderingContext} gl - The WebGL context used for rendering.
+   * @param {CustomRenderMethodInput} _options - Additional options for the render method.
+   * @throws Error if the map, cubemap, or texture is undefined.
+   */
   public render(gl: WebGLRenderingContext | WebGL2RenderingContext, _options: CustomRenderMethodInput): void {
     if (this.map === undefined) {
       throw new Error("[CubemapLayer]: Map is undefined");
@@ -315,6 +487,18 @@ class CubemapLayer implements CustomLayerInterface {
     this.currentFacesDefinitionKey = JSON.stringify(cubemap.faces ?? cubemap.preset ?? cubemap.path);
   }
 
+  /**
+   * Sets the cubemap for the layer based on the provided definition.
+   * This method updates the cubemap faces, background color, and triggers a repaint of the map.
+   *
+   * @param {CubemapDefinition} cubemap - The cubemap definition containing faces, preset, path, or color.
+   * @returns {Promise<void>} A promise that resolves when the cubemap is set and the map is updated.
+   * @remarks
+   * This method checks if the provided cubemap definition has a color, and if so, it updates the background color.
+   * It also checks if the faces definition has changed compared to the current one,
+   * and if so, it updates the cubemap faces.
+   * Finally, it calls `updateCubemap` to apply the changes and trigger a repaint of the map.
+   */
   public async setCubemap(cubemap: CubemapDefinition): Promise<void> {
     const color = parseColorStringToVec4(cubemap.color);
     if (cubemap.color && this.targetBgColor.toString() !== color.toString()) {
@@ -322,7 +506,7 @@ class CubemapLayer implements CustomLayerInterface {
     }
 
     const facesKey = JSON.stringify(cubemap.faces ?? cubemap.preset ?? cubemap.path);
-    console.log(cubemap)
+
     if (facesKey && this.currentFacesDefinitionKey !== facesKey) {
       await this.setCubemapFaces(cubemap);
     }
@@ -330,17 +514,38 @@ class CubemapLayer implements CustomLayerInterface {
     this.updateCubemap();
   }
 
+  /**
+   * Shows the cubemap layer by setting its visibility to "visible".
+   * This method is used to make the cubemap layer visible on the map.
+   */
   public show(): void {
     // TODO in future we can ease / animate this
     this.map.setLayoutProperty(this.id, "visibility", "visible");
   }
 
+  /**
+   * Hides the cubemap layer by setting its visibility to "none".
+   * This method is used to remove the cubemap layer from the map without deleting it.
+   */
   public hide(): void {
     // TODO in future we can ease / animate this
     this.map.setLayoutProperty(this.id, "visibility", "none");
   }
 }
 
+/**
+ * Retrieves the cubemap faces based on the provided options.
+ * This function checks if the faces are explicitly defined, uses a preset, or constructs the faces from a path.
+ *
+ * @param {CubemapDefinition} options - The cubemap definition containing faces, preset, or path.
+ * @returns {CubemapFaces | null} The cubemap faces object containing URLs for each face, or null if no faces are defined.
+ * @remarks
+ * - If `options.faces` is defined, it returns the provided faces.
+ * - If `options.preset` is defined, it constructs the faces URLs based on the preset name.
+ * - If `options.path` is defined, it constructs the faces URLs based on the base URL and format.
+ * - If none of the above are defined, it returns null.
+ * @throws Error if an invalid preset name is provided.
+ */
 function getCubemapFaces(options: CubemapDefinition): CubemapFaces | null {
   if (options.faces) {
     return options.faces;
