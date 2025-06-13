@@ -64,7 +64,8 @@ function configureOptions(inputOptions: CubemapLayerConstructorOptions | true, d
 
   const presetName = inputOptions.preset!;
 
-  //@ts-check it _should_ be defined but we need to check anyway as the preset can come from an outside source
+  // "Unnecessary conditional"
+  // It _should_ be defined but we need to check anyway as the preset can come from an outside source
   const presetIsUndefined = presetName === undefined;
 
   if (!presetIsUndefined && !(presetName in cubemapPresets)) {
