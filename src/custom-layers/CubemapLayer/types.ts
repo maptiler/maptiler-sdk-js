@@ -29,6 +29,10 @@ export const cubemapPresets: Record<string, CubemapDefinition> = {
     color: "hsl(233,100%,92%)",
     preset: "milkyway-bright",
   },
+  "milkyway-colored": {
+    color: "black",
+    preset: "milkyway-colored",
+  },
 };
 
 // This is not the most elegant but it's more readable than some of the alternatives.

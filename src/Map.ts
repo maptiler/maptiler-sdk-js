@@ -216,15 +216,22 @@ export class Map extends maplibregl.Map {
     return this.space;
   }
 
+  /**
+   * Sets the space for the map.
+   * @param {CubemapDefinition} space the `CubemapDefinition` options to set.
+   * @remarks This method, at present, ** overwrites ** the current config.
+   * If an option is not set it will internally revert to the default option
+   * unless explicitly set when calling.
+   */
   public setSpace(space: CubemapDefinition) {
     if (this.space) {
-      this.space.setCubemap(space);
+      void this.space.setCubemap(space);
       return;
     }
 
     this.space = new CubemapLayer(space);
 
-    this.once("load", () => {
+    void this.once("load", () => {
       const firstLayer = this.getLayersOrder()[0];
       if (this.space) {
         this.addLayer(this.space, firstLayer);
@@ -236,14 +243,50 @@ export class Map extends maplibregl.Map {
     if (!style.metadata?.maptiler?.space) {
       return;
     }
-    this.space?.setCubemap(style.metadata.maptiler.space);
+    const space = style.metadata.maptiler.space;
+
+    const updateSpace = () => {
+      if (this.space) {
+        const before = this.getLayersOrder()[0];
+        this.addLayer(this.space, before);
+        void this.space.setCubemap(space);
+      }
+    };
+
+    if (!this.styleInProcess) {
+      updateSpace();
+      return;
+    }
+
+    void this.once("style.load", () => {
+      updateSpace();
+    });
   }
 
   private setHaloFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
-    if (!style.metadata?.maptiler?.halo) {
+    const maptiler = style.metadata?.maptiler;
+
+    if (!maptiler?.halo) {
       return;
     }
-    void this.halo?.setGradient(style.metadata.maptiler.halo);
+
+    const updateHalo = () => {
+      if (this.halo) {
+        const beforeIndex = this.getLayersOrder().indexOf(this.space?.id ?? "") + 1;
+        const before = this.getLayersOrder()[beforeIndex];
+        this.addLayer(this.halo, before);
+        void this.halo.setGradient(maptiler.halo);
+      }
+    };
+
+    if (!this.styleInProcess) {
+      updateHalo();
+      return;
+    }
+
+    void this.once("style.load", () => {
+      updateHalo();
+    });
   }
 
   private setSpaceFromCurrentStyle() {
@@ -482,7 +525,6 @@ export class Map extends maplibregl.Map {
         this.setProjection({ type: "globe" });
       }
     });
-
     // Map centering and geolocation
     this.once("styledata", async () => {
       // Not using geolocation centering if...
@@ -963,18 +1005,18 @@ export class Map extends maplibregl.Map {
     const before = this.getLayersOrder()[0];
 
     if (typeof styleInfo.style !== "string" && !styleInfo.requiresUrlMonitoring) {
-      if (this.space) {
-        const styleWithMetaData = styleInfo.style as StyleSpecificationWithMetaData;
-        this.setSpaceFromStyle({ style: styleWithMetaData });
-      } else {
-        this.initSpace({ before });
-      }
-
       if (this.halo) {
         const styleWithMetaData = styleInfo.style as StyleSpecificationWithMetaData;
         this.setHaloFromStyle({ style: styleWithMetaData });
       } else {
         this.initHalo({ before });
+      }
+
+      if (this.space) {
+        const styleWithMetaData = styleInfo.style as StyleSpecificationWithMetaData;
+        this.setSpaceFromStyle({ style: styleWithMetaData });
+      } else {
+        this.initSpace({ before });
       }
 
       return this;
