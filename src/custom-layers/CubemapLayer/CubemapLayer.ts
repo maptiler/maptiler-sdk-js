@@ -64,7 +64,10 @@ function configureOptions(inputOptions: CubemapLayerConstructorOptions | true, d
 
   const presetName = inputOptions.preset!;
 
-  if (!(presetName in cubemapPresets)) {
+  //@ts-check it _should_ be defined but we need to check anyway as the preset can come from an outside source
+  const presetIsUndefined = presetName === undefined;
+
+  if (!presetIsUndefined && !(presetName in cubemapPresets)) {
     throw new Error(`[CubemapLayer]: Invalid preset "${presetName}". Available presets: ${Object.keys(cubemapPresets).join(", ")}`);
   }
 
@@ -72,7 +75,8 @@ function configureOptions(inputOptions: CubemapLayerConstructorOptions | true, d
   // so we don't need to delete them
   return {
     ...outputOptions,
-    color: outputOptions.color ?? cubemapPresets[presetName].color ?? "hsl(233,100%,92%)",
+    // this _could_ be nullish_
+    color: outputOptions.color ?? cubemapPresets[presetName]?.color ?? "hsl(233,100%,92%)",
   } as CubemapLayerConstructorOptions;
 }
 
@@ -172,6 +176,13 @@ class CubemapLayer implements CustomLayerInterface {
   public currentFacesDefinitionKey: string = "";
 
   /**
+   * The configuration options for the cubemap layer.
+   * @type {CubemapLayerConstructorOptions}
+   * @private
+   */
+  private options: CubemapLayerConstructorOptions;
+
+  /**
    * Creates a new instance of CubemapLayer
    *
    * @param {CubemapLayerConstructorOptions | true} cubemapConfig - Configuration options for the cubemap layer or `true` to use default options.
@@ -185,7 +196,7 @@ class CubemapLayer implements CustomLayerInterface {
    */
   constructor(cubemapConfig: CubemapLayerConstructorOptions | true) {
     const options = configureOptions(cubemapConfig, defaultConstructorOptions);
-
+    this.options = options;
     this.currentFacesDefinitionKey = JSON.stringify(options.faces ?? options.preset ?? options.path);
 
     this.bgColor = [0, 0, 0, 0];
@@ -240,6 +251,7 @@ class CubemapLayer implements CustomLayerInterface {
    */
   public onAdd(map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
     this.map = map;
+
     this.gl = gl;
     this.updateCubemap();
   }
@@ -251,7 +263,7 @@ class CubemapLayer implements CustomLayerInterface {
    * @param {MapSDK} _map - The map instance from which this layer is removed.
    * @param {WebGLRenderingContext | WebGL2RenderingContext} gl - The WebGL context used for rendering.
    */
-  public onRemove(_map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
+  public onRemove(_map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext) {
     if (this.cubemap) {
       gl.deleteProgram(this.cubemap.shaderProgram);
       gl.deleteBuffer(this.cubemap.positionBuffer);
@@ -290,7 +302,7 @@ class CubemapLayer implements CustomLayerInterface {
    * @param {CustomRenderMethodInput} _options - Additional options for the render method.
    */
   public prerender(gl: WebGLContext, _options: CustomRenderMethodInput): void {
-    this.updateTexture(gl, this.faces!);
+    if (this.faces) this.updateTexture(gl, this.faces!);
   }
 
   /**
@@ -303,9 +315,9 @@ class CubemapLayer implements CustomLayerInterface {
     const animateColorChange = () => {
       if (this.transitionDelta < 1.0) {
         requestAnimationFrame(animateColorChange);
-
         this.bgColor = lerpVec4(this.previousBgColor, this.targetBgColor, this.transitionDelta);
         this.transitionDelta += 0.075;
+
         this.map.triggerRepaint();
       }
     };
@@ -370,7 +382,6 @@ class CubemapLayer implements CustomLayerInterface {
         this.imageFadeInDelta = Math.min(this.imageFadeInDelta + 0.05, 1.0);
         this.currentFadeOpacity = lerp(1.0, 0.0, this.imageFadeInDelta);
         this.map.triggerRepaint();
-
         if (this.imageFadeInDelta >= 1.0) {
           this.imageIsAnimating = false;
           this.imageFadeInDelta = 0.0;
@@ -402,7 +413,7 @@ class CubemapLayer implements CustomLayerInterface {
     }
 
     if (this.texture === undefined) {
-      console.warn("[CubemapLayer]: Texture is undefined, no teture will be rendered to cubemap");
+      console.warn("[CubemapLayer]: Texture is undefined, no texture will be rendered to cubemap");
     }
 
     gl.disable(gl.DEPTH_TEST);
@@ -447,15 +458,10 @@ class CubemapLayer implements CustomLayerInterface {
      */
     gl.uniform4fv(this.cubemap.programInfo.uniformsLocations.bgColor, new Float32Array(this.bgColor));
 
-    /**
-     * Texture
-     */
-    if (this.texture === undefined) {
-      console.warn("[CubemapLayer]: Texture is undefined, no texture will be rendered to cubemap");
-    }
+    gl.uniform1f(this.cubemap.programInfo.uniformsLocations.fadeOpacity, this.currentFadeOpacity);
+
 
     if (this.useCubemapTexture && this.texture) {
-      gl.uniform1f(this.cubemap.programInfo.uniformsLocations.fadeOpacity, this.currentFadeOpacity);
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);
       gl.uniform1i(this.cubemap.programInfo.uniformsLocations.cubeSampler, 0);
@@ -484,8 +490,24 @@ class CubemapLayer implements CustomLayerInterface {
     this.transitionDelta = 0.0;
   }
 
+  /**
+   * Returns the current configuration options for the cubemap layer.
+   * @returns {CubemapLayerConstructorOptions} The current configuration options.
+   */
+  public getConfig() {
+    return this.options;
+  }
+
   private async setCubemapFaces(cubemap: CubemapDefinition): Promise<void> {
     await this.animateOut();
+
+    if (!cubemap.faces && !cubemap.preset && !cubemap.path) {
+      this.faces = null;
+      this.useCubemapTexture = false;
+      this.currentFacesDefinitionKey = "";
+      this.animateIn();
+      return;
+    }
 
     this.faces = getCubemapFaces(cubemap);
     this.currentFacesDefinitionKey = JSON.stringify(cubemap.faces ?? cubemap.preset ?? cubemap.path);
@@ -504,13 +526,16 @@ class CubemapLayer implements CustomLayerInterface {
    * Finally, it calls `updateCubemap` to apply the changes and trigger a repaint of the map.
    */
   public async setCubemap(cubemap: CubemapDefinition): Promise<void> {
+    this.options = cubemap;
+
     const facesKey = JSON.stringify(cubemap.faces ?? cubemap.preset ?? cubemap.path);
 
-    if (facesKey && this.currentFacesDefinitionKey !== facesKey) {
+    if (this.currentFacesDefinitionKey !== facesKey) {
       await this.setCubemapFaces(cubemap);
     }
 
     const color = parseColorStringToVec4(cubemap.color);
+
     if (cubemap.color && this.targetBgColor.toString() !== color.toString()) {
       this.setBgColor(color);
     } else if (cubemap.preset && cubemap.preset in cubemapPresets) {

@@ -28,8 +28,10 @@ function main() {
     const color = input.value;
     console.log("Setting background color to:", color);
     map.setSpace({
+      ...map.getSpace()?.getConfig(),
       color, // or any other color
     });
+    console.log("Config: ", map.getSpace()?.getConfig());
   });
 
   const stopsSelection: { stops: [number, string][]; scale: number }[] = [
@@ -123,13 +125,17 @@ function main() {
 
   presetSelect.addEventListener("change", (e: Event) => {
     const select = e.target as HTMLSelectElement;
-    const { value, textContent } = select;
+    const { value } = select;
     const config = configs.find((c) => c.name === value);
     if (config) {
       console.log("Setting spacebox config:", config);
-      map.setSpace(config);
+      const currentConfig = map.getSpace()?.getConfig();
+      map.setSpace({
+        ...config,
+        color: currentConfig?.color,
+      } as CubemapDefinition);
     }
-    console.log("Selected preset:", textContent);
+    console.log("Current config:", map.getSpace()?.getConfig());
   });
 }
 

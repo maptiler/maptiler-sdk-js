@@ -616,6 +616,7 @@ Alternatively, you can provide a cubemap for a space backround using one of the 
 - `milkyway`: Black half-transparent background with standard milkyway and stars. Space color changes the stars and milkyway color, background always stays black. 
 - `milkyway-subtle`: Black half-transparent background with subtle milkyway and less stars.   Space color changes the stars and milkyway color, background always stays black.Black half-transparent background with standard milkyway and stars.   Space color changes the stars and milkyway color, background always stays black.
 - `milkyway-bright`: Black half-transparent background with bright milkyway and more stars.   Space color changes the stars and milkyway color, background always stays black.
+- `milkyway-colored`: Full background image with natural space colors.   Space color doesn’t change anything (non transparent image).
 
 ```ts
 const map = new maptilersdk.Map({
