@@ -3,25 +3,18 @@
 ## 3.4.1 
 
 ### ✨ Features and improvements
-- Version bumps Maplibre to 5.6.0
-
-### 🐛 Bug fixes
-- Minor bug fixes to spacebox
-
-### 🔧 Others
-- None
-
-### ⚠️ Warning
-- This versionis deprecated use 3.4.1 instead
-## 3.4.0
-### ✨ Features and improvements
 - Now able to include cubemap background images and Earth radial gradient halo via `space` and `halo` in map constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style spec.
+- Additional bugfixes to  spacebox
+- Update Maplibre to 5.6.0
 
 ### 🐛 Bug fixes
 - Fix for [RD-900](https://maptiler.atlassian.net/browse/RD-900?atlOrigin=eyJpIjoiOTRjZGRhYjg2Y2JhNGY2NGI2NzM2M2E1MGNkNjBmYWYiLCJwIjoiaiJ9)
 
-### 🔧 Others
+### Others
 - None
+
+## 3.4.0
+### ⚠️ Warning This version is deprecated use 3.4.1 instead
 
 ## 3.3.0
 ### ✨ Features and improvements
