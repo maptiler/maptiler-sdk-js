@@ -77,7 +77,7 @@ function configureOptions(inputOptions: CubemapLayerConstructorOptions | true, d
   return {
     ...outputOptions,
     // this _could_ be nullish_
-    color: outputOptions.color ?? cubemapPresets[presetName]?.color ?? "hsl(233,100%,92%)",
+    color: outputOptions.color ?? cubemapPresets[presetName].color ?? "hsl(233,100%,92%)",
   } as CubemapLayerConstructorOptions;
 }
 
@@ -460,7 +460,6 @@ class CubemapLayer implements CustomLayerInterface {
     gl.uniform4fv(this.cubemap.programInfo.uniformsLocations.bgColor, new Float32Array(this.bgColor));
 
     gl.uniform1f(this.cubemap.programInfo.uniformsLocations.fadeOpacity, this.currentFadeOpacity);
-
 
     if (this.useCubemapTexture && this.texture) {
       gl.activeTexture(gl.TEXTURE0);
