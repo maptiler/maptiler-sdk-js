@@ -413,7 +413,7 @@ class CubemapLayer implements CustomLayerInterface {
       throw new Error("[CubemapLayer]: Cubemap is undefined");
     }
 
-    if (this.texture === undefined) {
+    if (this.texture === undefined && process.env.NODE_ENV === "development") {
       console.warn("[CubemapLayer]: Texture is undefined, no texture will be rendered to cubemap");
     }
 
