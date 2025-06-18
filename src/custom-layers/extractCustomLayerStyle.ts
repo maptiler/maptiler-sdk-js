@@ -25,7 +25,9 @@ export default function extractCustomLayerStyle<T extends CubemapLayerConstructo
   const style = map.getStyle() as StyleSpecificationWithMetaData;
 
   if (!style) {
-    console.warn("[extractCustomLayerStyle]: `Map.getStyle()` is returning undefined, are you initiating before style is ready?");
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[extractCustomLayerStyle]: `Map.getStyle()` is returning undefined, are you initiating before style is ready?");
+    }
     return null;
   }
 
