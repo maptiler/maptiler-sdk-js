@@ -77,7 +77,7 @@ export function loadCubemapTexture({ gl, faces, onReady, forceRefresh }: LoadCub
     return;
   }
 
-  const promises = Object.entries(faces as CubemapFaces).map(([key, face], faceIndex) => {
+  const promises = Object.entries(faces as CubemapFaces).map(([key, face]) => {
     return new Promise<HTMLImageElement>((resolve, reject) => {
       if (face === undefined) {
         console.warn(`[CubemapLayer][loadCubemapTexture]: Face ${key} is undefined`);
