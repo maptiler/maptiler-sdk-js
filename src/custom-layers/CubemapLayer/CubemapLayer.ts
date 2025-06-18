@@ -240,6 +240,10 @@ class CubemapLayer implements CustomLayerInterface {
 
     this.cubeMapNeedsUpdate = true;
 
+    if (this.useCubemapTexture) {
+      this.updateTexture(this.gl, this.faces!);
+    }
+
     this.animateColorChange();
   }
 
@@ -279,16 +283,17 @@ class CubemapLayer implements CustomLayerInterface {
    * @param {CubemapFaces} faces - The cubemap faces to be loaded into the texture.
    */
   public updateTexture(gl: WebGLContext, faces: CubemapFaces): void {
-    if (this.cubeMapNeedsUpdate === true) {
+    if (this.cubeMapNeedsUpdate === true && !this.imageIsAnimating) {
       this.cubeMapNeedsUpdate = false;
       if (!this.useCubemapTexture) {
         return;
       }
 
-      this.texture = loadCubemapTexture({
+      loadCubemapTexture({
         gl,
         faces,
-        onLoadedCallback: () => {
+        onReady: (texture) => {
+          this.texture = texture;
           this.animateIn();
         },
       });
@@ -302,8 +307,8 @@ class CubemapLayer implements CustomLayerInterface {
    * @param {WebGLContext} gl - The WebGL context used for rendering.
    * @param {CustomRenderMethodInput} _options - Additional options for the render method.
    */
-  public prerender(gl: WebGLContext, _options: CustomRenderMethodInput): void {
-    if (this.faces) this.updateTexture(gl, this.faces!);
+  public prerender(_gl: WebGLContext, _options: CustomRenderMethodInput): void {
+    if (this.faces) this.updateTexture(this.gl, this.faces!);
   }
 
   /**
@@ -350,13 +355,14 @@ class CubemapLayer implements CustomLayerInterface {
       return;
     }
 
+    this.imageIsAnimating = true;
+
     const animateIn = () => {
       this.imageFadeInDelta = Math.min(this.imageFadeInDelta + 0.05, 1.0);
       this.currentFadeOpacity = lerp(0.0, 1.0, this.imageFadeInDelta);
       this.map.triggerRepaint();
 
       if (this.imageFadeInDelta < 1.0) {
-        this.imageIsAnimating = true;
         requestAnimationFrame(animateIn);
         return;
       }
@@ -504,7 +510,7 @@ class CubemapLayer implements CustomLayerInterface {
     if (!cubemap.faces && !cubemap.preset && !cubemap.path) {
       this.faces = null;
       this.useCubemapTexture = false;
-      this.currentFacesDefinitionKey = "";
+      this.currentFacesDefinitionKey = "empty";
       this.animateIn();
       return;
     }
@@ -527,11 +533,11 @@ class CubemapLayer implements CustomLayerInterface {
    */
   public async setCubemap(cubemap: CubemapDefinition): Promise<void> {
     this.options = cubemap;
-
     const facesKey = JSON.stringify(cubemap.faces ?? cubemap.preset ?? cubemap.path);
 
     if (this.currentFacesDefinitionKey !== facesKey) {
       await this.setCubemapFaces(cubemap);
+      this.cubeMapNeedsUpdate = true;
     }
 
     const color = parseColorStringToVec4(cubemap.color);

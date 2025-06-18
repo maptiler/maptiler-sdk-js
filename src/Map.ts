@@ -243,6 +243,7 @@ export class Map extends maplibregl.Map {
     if (!style.metadata?.maptiler?.space) {
       return;
     }
+
     const space = style.metadata.maptiler.space;
 
     const updateSpace = () => {
@@ -258,9 +259,7 @@ export class Map extends maplibregl.Map {
       return;
     }
 
-    void this.once("style.load", () => {
-      updateSpace();
-    });
+    updateSpace();
   }
 
   private setHaloFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
@@ -279,14 +278,7 @@ export class Map extends maplibregl.Map {
       }
     };
 
-    if (!this.styleInProcess) {
-      updateHalo();
-      return;
-    }
-
-    void this.once("style.load", () => {
-      updateHalo();
-    });
+    updateHalo();
   }
 
   private setSpaceFromCurrentStyle() {
@@ -971,7 +963,6 @@ export class Map extends maplibregl.Map {
     this.originalLabelStyle.clear();
     this.minimap?.setStyle(style);
     this.forceLanguageUpdate = true;
-
     this.once("idle", () => {
       this.forceLanguageUpdate = false;
     });
