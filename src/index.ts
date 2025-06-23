@@ -5,6 +5,10 @@ import maplibregl from "maplibre-gl";
 // Types from MapLibre are not re-exported one by one
 export type * from "maplibre-gl";
 
+// Maplibre 5.6.0 Exports a new ColorRamp type
+// to avoid breaking our module we export it as ColorRampML
+export type { ColorRamp as ColorRampML } from "maplibre-gl";
+
 // Enabling the right-to-left text compatibility plugin early to avoid blinking
 enableRTL();
 
@@ -256,5 +260,6 @@ export type { Unit } from "./types";
 export * from "./converters";
 export * as helpers from "./helpers";
 export type * from "./helpers";
-export * from "./ColorRamp";
+export { ColorRamp, ColorRampCollection } from "./ColorRamp";
+export type { RgbaColor, ColorStop, ArrayColor, ArrayColorRampStop, ArrayColorRamp, ColorRampOptions } from "./ColorRamp";
 export * from "./utils";
