@@ -80,11 +80,11 @@
     "vitest": "^3.0.9"
   },
   "dependencies": {
-    "@maplibre/maplibre-gl-style-spec": "^23.0.0",
-    "@maptiler/client": "^2.3.2",
+    "@maplibre/maplibre-gl-style-spec": "~23.3.0",
+    "@maptiler/client": "~2.3.2",
     "events": "^3.3.0",
     "js-base64": "^3.7.7",
-    "maplibre-gl": "^5.5.0",
+    "maplibre-gl": "~5.6.0",
     "uuid": "^11.0.5"
   }
 }
