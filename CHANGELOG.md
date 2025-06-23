@@ -2,10 +2,10 @@
 
 ## 3.4.1 
 
-#### ✨ Features and improvements
+### ✨ Features and improvements
 - Update Maplibre to 5.6.0
 
-#### 🐛 Bug fixes
+### 🐛 Bug fixes
 - Fix for [RD-900](https://maptiler.atlassian.net/browse/RD-900?atlOrigin=eyJpIjoiOTRjZGRhYjg2Y2JhNGY2NGI2NzM2M2E1MGNkNjBmYWYiLCJwIjoiaiJ9)
 
 ### Others
