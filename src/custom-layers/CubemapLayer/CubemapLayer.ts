@@ -43,7 +43,6 @@ function configureOptions(inputOptions: CubemapLayerConstructorOptions | true, d
   }
 
   const outputOptions = {
-    ...defaults,
     ...inputOptions,
   };
 

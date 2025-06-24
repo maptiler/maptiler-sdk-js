@@ -245,19 +245,16 @@ export class Map extends maplibregl.Map {
     }
 
     const space = style.metadata.maptiler.space;
-
     const updateSpace = () => {
       if (this.space) {
-        const before = this.getLayersOrder()[0];
-        this.addLayer(this.space, before);
+        if (!this.getLayer(this.space.id)) {
+          const before = this.getLayersOrder()[0];
+          this.addLayer(this.space, before);
+        }
+
         void this.space.setCubemap(space);
       }
     };
-
-    if (!this.styleInProcess) {
-      updateSpace();
-      return;
-    }
 
     updateSpace();
   }
@@ -990,7 +987,12 @@ export class Map extends maplibregl.Map {
 
     this.styleInProcess = true;
 
-    super.setStyle(styleInfo.style, options);
+    try {
+      super.setStyle(styleInfo.style, options);
+    } catch (e) {
+      // this.styleInProcess = false;
+      console.error("[Map.setStyle]: Error while setting style:", e);
+    }
 
     // reload spacebox when the new style loads
     const before = this.getLayersOrder()[0];
@@ -1028,13 +1030,6 @@ export class Map extends maplibregl.Map {
         this.initHalo({ before: targetBeforeLayer });
       }
     });
-
-    try {
-      super.setStyle(styleInfo.style, options);
-    } catch (e) {
-      // this.styleInProcess = false;
-      console.error("[Map.setStyle]: Error while setting style:", e);
-    }
 
     return this;
   }
