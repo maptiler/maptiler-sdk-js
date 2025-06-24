@@ -1,0 +1,66 @@
+# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
+# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+
+name: Node.js Package
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.target_commitish }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: https://registry.npmjs.org/
+
+      - name: Clear NPM cache
+        run: npm cache clean --force
+
+      - name: Install dependencies and build
+        run: npm ci
+
+      - name: Make release
+        run: npm run make
+        id: makeRelease
+
+      - name: Fail job if makeRelease failed
+        if: steps.makeRelease.outcome == 'failure'
+        run: exit 1
+
+        id: check-build-status
+      - name: Publish NPM package (regular)
+        if: "!github.event.release.prerelease"
+        run: |
+          npm publish --dry-run
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+
+      - name: Publish NPM package (pre-release)
+        if: "github.event.release.prerelease"
+        run: |
+          npm publish --tag next --dry-run
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+
+      - name: Send Dispatch Event to CDN Repo
+        run: |
+            curl -X POST \
+              -H "Authorization: token ${{ secrets.CDN_MAPTILER_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/maptiler/cdn.maptiler.com/dispatches \
+              -d '{ \
+                "event_type": "repo_release", \
+                "client_payload": { \
+                  "repo": "${{ github.repository }}", \
+                  "tag": "${{ github.event.release.tag_name }}", \
+                  "build_dir": "build" \
+                }
+              }'

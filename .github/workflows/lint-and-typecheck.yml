@@ -1,0 +1,28 @@
+name: Node.js Package
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.target_commitish }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: https://registry.npmjs.org/
+
+      - name: Clear NPM cache
+        run: npm cache clean --force
+
+      - name: Install dependencies and build
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint

@@ -1,10 +1,12 @@
 # MapTiler SDK Changelog
 
+## 3.5.0
+- Now able to include cubemap background images and Earth radial gradient halo via `space` and `halo` in map constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style spec.
+- Additional bugfixes to  spacebox
+
 ## 3.4.1 
 
 ### ✨ Features and improvements
-- Now able to include cubemap background images and Earth radial gradient halo via `space` and `halo` in map constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style spec.
-- Additional bugfixes to  spacebox
 - Update Maplibre to 5.6.0
 
 ### 🐛 Bug fixes
@@ -97,14 +99,14 @@ Restructuring of repo, additon of tests to check consistency of library exports.
 ## 3.0.0
 ⚠️ Please keep in mind that if you use any additional [MapTiler modules](https://docs.maptiler.com/sdk-js/modules/), you must update them to a version that supports MapTiler SDK JS v3.
 
-## ✨ Features and improvements
+### ✨ Features and improvements
 * Globe projection support
 * `MaptilerProjectionControl`  to toggle Globe/Mercator projection
 
-## 🐛 Bug fixes
+### 🐛 Bug fixes
 * Navigation now relies on `Map` methods instead of `Transform` methods for bearing due to globe projection being available
 
-## 🔧 Others
+### 🔧 Others
 * Using MapLibre GL JS 5.0.0
 * Using MapTiler Client JS 2.2.0
 
