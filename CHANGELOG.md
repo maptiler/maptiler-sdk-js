@@ -1,10 +1,20 @@
 # MapTiler SDK Changelog
 
-## 3.5.0
+## __NEXT__
 
 ### ✨ Features and improvements
-- Now able to include cubemap background images and Earth radial gradient halo via `space` and `halo` in map constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style spec.
-- Additional bugfixes to  spacebox
+- None 
+
+### 🐛 Bug fixes
+- Fixes bug where terrain does not load when `map.enableTerrain()` is called directly after `.flyTo`
+
+### Others
+- None
+
+## 3.5.0
+### ✨ Features and improvements
+- Now able to include cubemap background images and Earth radial gradient halo via `space` and `halo` in map 
+constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style spec.
 
 ### Others
 - Version bump client-js to the latest version
