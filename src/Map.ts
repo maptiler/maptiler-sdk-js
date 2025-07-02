@@ -1566,7 +1566,7 @@ export class Map extends maplibregl.Map {
         }
 
         addTerrain();
-      }
+      };
 
       this.once("load", () => {
         checkSourceAndAddTerrain();
