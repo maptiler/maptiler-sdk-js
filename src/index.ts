@@ -260,6 +260,7 @@ export type { Unit } from "./types";
 export * from "./converters";
 export * as helpers from "./helpers";
 export type * from "./helpers";
+export * from "./custom-layers/index";
 export { ColorRamp, ColorRampCollection } from "./ColorRamp";
 export type { RgbaColor, ColorStop, ArrayColor, ArrayColorRampStop, ArrayColorRamp, ColorRampOptions } from "./ColorRamp";
 export * from "./utils";

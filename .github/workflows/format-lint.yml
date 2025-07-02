@@ -19,3 +19,6 @@ jobs:
 
       - name: Formatting and linting
         run: npm run lint
+
+      - name: TypeScript Type Check
+        run: npx tsc --noEmit

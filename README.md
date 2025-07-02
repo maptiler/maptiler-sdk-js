@@ -541,7 +541,139 @@ map.on("terrainAnimationStop", (e) => {
   });
 });
 ```
+# Halo and Space Options
 
+The `halo` and `space` options allow for enhanced visual customization of the map, especially for globe projections.  
+
+## `halo` (Atmospheric Glow)  
+The `halo` option adds a gradient-based atmospheric glow around the globe, simulating the visual effect of Earth's atmosphere when viewed from space.  
+
+### Usage:  
+You can enable a simple halo by setting it to `true`:  
+```ts
+const map = new maptilersdk.Map({
+  container: document.getElementById("map"),
+  style: maptilersdk.MapStyle.OUTDOOR,
+  halo: true,
+});
+```
+For more customization, you can define a radial gradient with scale and stops:
+```ts
+
+const map = new maptilersdk.Map({
+  container: document.getElementById("map"),
+  style: maptilersdk.MapStyle.OUTDOOR,
+  halo: {
+    scale: 1.5, // Controls the halo size
+    stops: [
+      [0.2, "transparent"],
+      [0.2, "red"],
+      [0.4, "red"],
+      [0.4, "transparent"],
+      [0.6, "transparent"],
+      [0.6, "red"],
+      [0.8, "red"],
+      [0.8, "transparent"],
+      [1.0, "transparent"],
+    ],
+  },
+});
+```
+You can also set the halo dynamically after the map loads:
+```ts
+map.on("load", () => {
+  map.setHalo({
+    scale: 2,
+    stops: [
+      [0.0, "rgba(135,206,250,1)"],
+      [0.5, "rgba(0,0,250,0.75)"],
+      [0.75, "rgba(250,0,0,0.0)"],
+    ],
+  });
+});
+```
+## `space` (Background Environment)
+
+The space option allows customizing the background environment of the globe, simulating deep space or skybox effects.
+### Usage
+
+You can enable a simple space background with a solid color:
+```ts
+const map = new maptilersdk.Map({
+  container: document.getElementById("map"),
+  style: maptilersdk.MapStyle.OUTDOOR,
+  space: {
+    color: "#111122", // Dark space-like color
+  },
+});
+```
+Alternatively, you can provide a cubemap for a space backround using one of the following methods:
+
+#### Predefined Presets:
+
+- `space`: Dark blue hsl(210, 100%, 4%) background and white stars (transparent background image). Space color changes the background color, stars always stay white.
+- `stars` (default): Black background (image mask), space color changes the stars color, background always stays black. 
+- `milkyway`: Black half-transparent background with standard milkyway and stars. Space color changes the stars and milkyway color, background always stays black. 
+- `milkyway-subtle`: Black half-transparent background with subtle milkyway and less stars.   Space color changes the stars and milkyway color, background always stays black.Black half-transparent background with standard milkyway and stars.   Space color changes the stars and milkyway color, background always stays black.
+- `milkyway-bright`: Black half-transparent background with bright milkyway and more stars.   Space color changes the stars and milkyway color, background always stays black.
+- `milkyway-colored`: Full background image with natural space colors.   Space color doesn’t change anything (non transparent image).
+
+```ts
+const map = new maptilersdk.Map({
+  container: document.getElementById("map"),
+  style: maptilersdk.MapStyle.OUTDOOR,
+  space: {
+    preset: "space",
+  },
+});
+```
+#### Cubemap Images (Custom Skybox):
+```ts
+const map = new maptilersdk.Map({
+  container: document.getElementById("map"),
+  style: maptilersdk.MapStyle.OUTDOOR,
+  space: {
+    faces: {
+      nX: '/path-to-image/nX.png',
+      nY: '/path-to-image/nY.png',
+      nZ: '/path-to-image/nZ.png',
+      pX: '/path-to-image/pX.png',
+      pY: '/path-to-image/pY.png',
+      pZ: '/path-to-image/pZ.png',
+    },
+  },
+});
+```
+#### Cubemap Path with image format
+
+This fetches all images from a path, this assumes all files are named px, nx, py, ny, pz, nz and suffixed with the appropriate extension specified in `format`.
+```ts
+    const map = new maptilersdk.Map({
+      container: document.getElementById("map"),
+      style: maptilersdk.MapStyle.OUTDOOR,
+      space: {
+        path: {
+          baseUrl: "spacebox/transparent",
+          format: "png", // Defaults to PNG
+        },
+      },
+    });
+```
+#### Set the space background dynamically:
+```ts
+map.on("load", () => {
+  map.setSpace({
+    color: "red",
+    path: {
+      baseUrl: "spacebox/transparent",
+    },
+  });
+});
+```
+
+Note: if `space.color` or `space.<faces | path | preset>` are not explicitly set in the call to `setSpace`, then the previous value will remain for this field.
+
+Further code examples can be found in `~/demos/`
 
 # Easy language switching
 The language generally depends on the style but we made it possible to easily set and update from a built-in list of languages.

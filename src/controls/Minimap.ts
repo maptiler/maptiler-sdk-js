@@ -61,7 +61,7 @@ export interface MinimapOptionsInput {
   parentRect?: ParentRect;
 }
 
-export interface MinimapOptions extends MapOptions {
+export interface MinimapOptions extends Omit<MapOptions, "space" | "halo"> {
   zoomAdjust: number;
   pitchAdjust: boolean;
   containerStyle: Record<string, string>;
