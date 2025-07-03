@@ -7,6 +7,7 @@
 
 ### 🐛 Bug fixes
 - Fixes bug where terrain does not load when `map.enableTerrain()` is called directly after `.flyTo`
+- Minor Fixes to spacebox where image was fading in and out when only color was changed.
 
 ### Others
 - None
