@@ -62,7 +62,7 @@ export function loadCubemapTexture({ gl, faces, onReady, forceRefresh }: LoadCub
 
   facesKey = JSON.stringify(faces);
 
-  const texture = gl.createTexture();
+  const texture = memoizedTexture ?? gl.createTexture();
   gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
 
   if (!faces) {
@@ -79,10 +79,10 @@ export function loadCubemapTexture({ gl, faces, onReady, forceRefresh }: LoadCub
 
   const promises = Object.entries(faces as CubemapFaces).map(([key, face]) => {
     return new Promise<HTMLImageElement>((resolve, reject) => {
-      if (face === undefined) {
-        console.warn(`[CubemapLayer][loadCubemapTexture]: Face ${key} is undefined`);
-        return;
+      if (!face) {
+        throw new Error(`[CubemapLayer][loadCubemapTexture]: Face ${key} is undefined`);
       }
+
       const glCubemapTarget = getGlCubemapTarget(gl, key as CubemapFaceNames);
 
       if (glCubemapTarget) {
@@ -108,16 +108,16 @@ export function loadCubemapTexture({ gl, faces, onReady, forceRefresh }: LoadCub
 
         image.src = face;
 
+        image.onerror = () => {
+          reject(new Error(`[CubemapLayer][loadCubemapTexture]: Error loading image ${face}`));
+        };
+
         // in case the image is loaded from the cache.
         if (image.complete && image.naturalWidth > 0) {
           handleLoad();
         } else {
           image.onload = handleLoad;
         }
-
-        image.onerror = () => {
-          reject(new Error(`[CubemapLayer][loadCubemapTexture]: Error loading image ${face}`));
-        };
       }
     });
   });
