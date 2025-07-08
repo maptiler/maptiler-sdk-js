@@ -1567,11 +1567,20 @@ export class Map extends maplibregl.Map {
     if (this.loaded() || this.isTerrainEnabled) {
       addTerrain();
     } else {
-      this.once("load", () => {
+      const checkSourceAndAddTerrain = () => {
         if (this.getTerrain() && this.getSource(defaults.terrainSourceId)) {
           return;
         }
+
         addTerrain();
+      };
+
+      this.once("load", () => {
+        checkSourceAndAddTerrain();
+      });
+
+      this.once("moveend", () => {
+        checkSourceAndAddTerrain();
       });
     }
   }
