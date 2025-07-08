@@ -9,6 +9,7 @@ import packagejson from "../package.json";
 export class Telemetry {
   private map: MapSDK;
   private registeredModules = new Set<string>();
+  private viewerType: string;
 
   /**
    *
@@ -17,6 +18,8 @@ export class Telemetry {
    */
   constructor(map: MapSDK, delay: number = 2000) {
     this.map = map;
+
+    this.viewerType = "Map";
 
     setTimeout(
       async () => {
@@ -51,6 +54,10 @@ export class Telemetry {
     this.registeredModules.add(`${name}:${version}`);
   }
 
+  registerViewerType(viewerType: string = "Map") {
+    this.viewerType = viewerType;
+  }
+
   private preparePayload(): string {
     const telemetryUrl = new URL(defaults.telemetryURL);
 
@@ -77,6 +84,9 @@ export class Telemetry {
 
     // Is globe enabled?
     telemetryUrl.searchParams.append("globe", this.map.isGlobeProjection() ? "1" : "0");
+
+    // Is this a stadnard map or a different viewer?
+    telemetryUrl.searchParams.append("viewerType", this.viewerType);
 
     // Adding the modules
     // the list of modules are separated by a "|". For each module, a ":" is used to separate the name and the version:
