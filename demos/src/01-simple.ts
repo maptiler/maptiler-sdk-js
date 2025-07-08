@@ -19,6 +19,8 @@ const map = new Map({
 
 const styleDropDown = document.getElementById("mapstyles-picker") as HTMLOptionElement;
 
+window._map = map;
+
 styleDropDown.onchange = () => {
   map.setStyle(styleDropDown.value);
 };

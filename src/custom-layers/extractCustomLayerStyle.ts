@@ -33,7 +33,7 @@ export default function extractCustomLayerStyle<T extends CubemapLayerConstructo
 
   if (!style.metadata?.maptiler) {
     if (process.env.NODE_ENV === "development") {
-      console.warn(`[extractCustomLayerStyle]: Attempting to find styling for "${property}" in metadata. No MapTiler metadata found in the style.`);
+      console.warn(`[extractCustomLayerStyle]: Attempting to find styling for "${property}" in "metadata.maptiler". But no MapTiler metadata entry was found in the style.`);
     }
     return null;
   }

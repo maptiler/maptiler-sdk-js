@@ -1,12 +1,14 @@
 # MapTiler SDK Changelog
 
-## __NEXT__
+## 3.6.0
 
 ### ✨ Features and improvements
 - None 
 
 ### 🐛 Bug fixes
 - Fixes bug where terrain does not load when `map.enableTerrain()` is called directly after `.flyTo`
+- Adds `StyleDefinitionWithMetadata` as an accepted type to `setStyle` ([#216](https://github.com/maptiler/maptiler-sdk-js/issues/216))
+- Adds condition to log calls in `extractCustomLayerStyle` ([#216](https://github.com/maptiler/maptiler-sdk-js/issues/216))
 
 ### Others
 - None
