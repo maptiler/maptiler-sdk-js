@@ -17,6 +17,7 @@ export class ImageViewerEvent {
     this.data = data;
   }
 }
+
 const BASE_MAP_EVENT_TYPES = [
   // pass nothing other than target (map / viewer) and type
   "idle",
@@ -85,7 +86,6 @@ const UI_EVENTS = [
 const COOPERATIVE_GESTURE_EVENTS = ["cooperativegestureprevented"];
 
 const DATA_EVENTS = [
-  // Data events
   // MapDataEvent
   "metadata",
   "data",
@@ -96,7 +96,7 @@ const DATA_EVENTS = [
   "sourcedataabort",
 ];
 
-const ALL_MAP_EVENT_TYPES = [
+export const ALL_MAP_EVENT_TYPES = [
   ...BASE_MAP_EVENT_TYPES,
   ...ERROR_EVENTS,
   ...RESIZE_EVENTS,
@@ -123,77 +123,78 @@ interface SetupGlobalMapEventForwarderOptions {
  */
 export function setupGlobalMapEventForwarder({ map, viewer, lngLatToPx }: SetupGlobalMapEventForwarderOptions): void {
   ALL_MAP_EVENT_TYPES.forEach((eventType) => {
-    map.on(eventType, (e: any) => {
-      // Handle UI Events (mouse/touch interactions with coordinate transformation)
-      if ([...UI_EVENTS, ...CAMERA_EVENTS].includes(eventType)) {
-        if (e instanceof MapMouseEvent) {
-          const event = e as MapMouseEvent | MapTouchEvent;
-          const px = lngLatToPx(event.lngLat);
-          const data = Object.entries(e).reduce(
-            (acc, [key, value]) => {
-              if (FORBIDDEN_EVENT_VALUES.includes(key)) {
-                return acc;
-              }
-              return {
-                ...acc,
-                [key]: value,
-              };
-            },
-            {
-              imageX: px[0],
-              imageY: px[1],
-            },
-          );
-          viewer.fire(new ImageViewerEvent(eventType, viewer, event.originalEvent, data));
-        } else {
-          const event = e as MapWheelEvent;
-          // UI event without coordinates (like fullscreen events)
-          viewer.fire(new ImageViewerEvent(eventType, viewer, event.originalEvent));
+    try {
+      map.on(eventType, (e: any) => {
+        // Handle UI Events (mouse/touch interactions with coordinate transformation)
+        if ([...UI_EVENTS, ...CAMERA_EVENTS].includes(eventType)) {
+          if (e instanceof MapMouseEvent) {
+            const event = e as MapMouseEvent | MapTouchEvent;
+            const px = lngLatToPx(event.lngLat);
+            const data = Object.entries(e).reduce(
+              (acc, [key, value]) => {
+                if (FORBIDDEN_EVENT_VALUES.includes(key)) {
+                  return acc;
+                }
+                return {
+                  ...acc,
+                  [key]: value,
+                };
+              },
+              {
+                imageX: px[0],
+                imageY: px[1],
+              },
+            );
+            viewer.fire(new ImageViewerEvent(eventType, viewer, event.originalEvent, data));
+          } else {
+            const event = e as MapWheelEvent;
+            // UI event without coordinates (eg fullscreen, resize)
+            viewer.fire(new ImageViewerEvent(eventType, viewer, event.originalEvent));
+          }
+          return;
         }
-        return;
-      }
 
-      // Handle Error Events
-      if (ERROR_EVENTS.includes(eventType)) {
-        const event = e as ErrorEvent;
-        viewer.fire(new ImageViewerEvent(eventType, viewer, null, event));
-        return;
-      }
+        if (ERROR_EVENTS.includes(eventType)) {
+          const event = e as ErrorEvent;
+          viewer.fire(new ImageViewerEvent(eventType, viewer, null, event));
+          return;
+        }
 
-      // Handle Resize Events
-      if (RESIZE_EVENTS.includes(eventType)) {
-        const event = e as ResizeObserverEntry;
-        viewer.fire(new ImageViewerEvent(eventType, viewer, null, event));
-        return;
-      }
+        if (RESIZE_EVENTS.includes(eventType)) {
+          const event = e as ResizeObserverEntry;
+          viewer.fire(new ImageViewerEvent(eventType, viewer, null, event));
+          return;
+        }
 
-      // Handle WebGL Context Events
-      if (WEBGL_CONTEXT_EVENTS.includes(eventType)) {
-        const event = e as MapContextEvent;
-        viewer.fire(new ImageViewerEvent(eventType, viewer, event.originalEvent, event));
-        return;
-      }
+        if (WEBGL_CONTEXT_EVENTS.includes(eventType)) {
+          const event = e as MapContextEvent;
+          viewer.fire(new ImageViewerEvent(eventType, viewer, event.originalEvent, event));
+          return;
+        }
 
-      // Handle Data Events
-      // only pass data
-      if (DATA_EVENTS.includes(eventType)) {
-        const event = e as MapDataEvent;
-        viewer.fire(new ImageViewerEvent(eventType, viewer, null, event));
-        return;
-      }
+        // Data Events
+        // only pass data
+        if (DATA_EVENTS.includes(eventType)) {
+          const event = e as MapDataEvent;
+          viewer.fire(new ImageViewerEvent(eventType, viewer, null, event));
+          return;
+        }
 
-      // Handle Cooperative Gesture Events
-      if (COOPERATIVE_GESTURE_EVENTS.includes(eventType)) {
-        const event = e as MapLibreEvent<WheelEvent | TouchEvent>;
-        viewer.fire(new ImageViewerEvent(eventType, viewer, null, event));
-        return;
-      }
+        // Handle Cooperative Gesture Events
+        if (COOPERATIVE_GESTURE_EVENTS.includes(eventType)) {
+          const event = e as MapLibreEvent<WheelEvent | TouchEvent>;
+          viewer.fire(new ImageViewerEvent(eventType, viewer, null, event));
+          return;
+        }
 
-      // Handle Base Map Events (no additional data)
-      if (BASE_MAP_EVENT_TYPES.includes(eventType)) {
-        viewer.fire(new ImageViewerEvent(eventType, viewer));
-        return;
-      }
-    });
+        // Handle Base Map Events (no additional data)
+        if (BASE_MAP_EVENT_TYPES.includes(eventType)) {
+          viewer.fire(new ImageViewerEvent(eventType, viewer));
+          return;
+        }
+      });
+    } catch (e) {
+      console.error("Error forwarding event", eventType, e);
+    }
   });
 }

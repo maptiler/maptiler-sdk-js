@@ -23,7 +23,6 @@ const overrideOptions: Partial<MapOptions> = {
   maxPitch: 0,
   pitch: 0,
   bearing: 0,
-  zoom: 0,
   center: [0, 0],
   projection: "mercator",
   projectionControl: false,
@@ -31,6 +30,11 @@ const overrideOptions: Partial<MapOptions> = {
   hash: false,
   renderWorldCopies: false,
   terrain: false,
+};
+
+const imageViewerDefaultOptions: Partial<ImageViewerConstructorOptions> = {
+  debug: false,
+  center: [0, 0],
 };
 
 type ImageMetadata = {
@@ -58,7 +62,7 @@ export default class ImageViewer extends Evented {
    */
   private sdk: Map;
 
-  private options: ImageViewerConstructorOptions;
+  private options: ImageViewerConstructorOptions & { center: [number, number] };
 
   private imageSize?: [number, number];
   private paddedSizeMax?: number;
@@ -70,7 +74,10 @@ export default class ImageViewer extends Evented {
   constructor(imageViewerConstructorOptions: ImageViewerConstructorOptions) {
     super();
 
-    this.options = imageViewerConstructorOptions;
+    this.options = {
+      ...imageViewerDefaultOptions,
+      ...imageViewerConstructorOptions,
+    };
 
     const sdkOptions = {
       ...this.options,
@@ -99,42 +106,55 @@ export default class ImageViewer extends Evented {
   }
 
   async onReadyAsync() {
-    // TODO wait for the image to load as well.
-    return await this.sdk.onReadyAsync();
+    try {
+      await this.sdk.onReadyAsync();
+      await Promise.race([
+        new Promise((resolve, reject) => {
+          this.on("imageviewerready", resolve);
+          this.on("imagevieweriniterror", (e: { error: Error }) => reject(e.error));
+        }),
+        new Promise((_, reject) => {
+          setTimeout(() => {
+            reject(new Error("Timeout waiting for image viewer to be ready"));
+          }, 5000);
+        }),
+      ]);
+    } catch (e) {
+      throw e;
+    }
   }
 
   async init() {
-    await this.fetchImageMetadata();
+    try {
+      await this.fetchImageMetadata();
 
-    this.addImageSource();
+      this.addImageSource();
 
-    setupGlobalMapEventForwarder({
-      map: this.sdk,
-      viewer: this,
-      lngLatToPx: (lngLat: LngLat) => this.lngLatToPx(lngLat),
-    });
+      setupGlobalMapEventForwarder({
+        map: this.sdk,
+        viewer: this,
+        lngLatToPx: (lngLat: LngLat) => this.lngLatToPx(lngLat),
+      });
 
-    const { center } = this.options;
-
-    this.setCenter(center);
+      const { center } = this.options;
+      this.setCenter(center);
+      this.fire("imageviewerready");
+    } catch (e) {
+      this.fire("imagevieweriniterror", { error: e });
+    }
   }
 
   async fetchImageMetadata() {
-    try {
-      const url = buildImageMetadataURL(this.imageUUID);
-      const response = await fetch(url);
+    const url = buildImageMetadataURL(this.imageUUID);
+    const response = await fetch(url);
 
-      if (!response.ok) {
-        throw new FetchError(response, "image metadata");
-      }
-
-      const data = (await response.json()) as ImageMetadata;
-
-      this.imageMetadata = data;
-    } catch (e) {
-      console.error(e);
-      // throw new Error("[ImageViewer]: Failed to fetch image metadata");
+    if (!response.ok) {
+      throw new FetchError(response, "image metadata");
     }
+
+    const data = (await response.json()) as ImageMetadata;
+
+    this.imageMetadata = data;
   }
 
   addImageSource() {
@@ -239,6 +259,7 @@ export default class ImageViewer extends Evented {
     if (!this.paddedSizeMax) {
       throw new Error("[ImageViewer]: Padded size max not set");
     }
+
     const merc = new MercatorCoordinate(px[0] / this.paddedSizeMax, px[1] / this.paddedSizeMax);
     return merc.toLngLat() as LngLat;
   }
