@@ -1,5 +1,15 @@
 # MapTiler SDK Changelog
 
+## 3.5.1
+### ✨ Features and improvements
+None
+
+### 🐛 Bug fixes
+- Fixes an issue where SDK would fail when changing spacebox style with terrain enabled.
+
+### 🔧 Others
+None
+
 ## 3.5.0
 - Now able to include cubemap background images and Earth radial gradient halo via `space` and `halo` in map constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style spec.
 - Additional bugfixes to  spacebox
