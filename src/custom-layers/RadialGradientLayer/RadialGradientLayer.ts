@@ -38,7 +38,7 @@ const defaultConstructorOptions: RadialGradientLayerConstructorOptions = {
   ],
 };
 
-const DELTA_CHANGE = 0.075;
+const DELTA_CHANGE = 0.06;
 
 /**
  * A custom map layer that renders a radial gradient effect, typically used as a halo around a globe.
