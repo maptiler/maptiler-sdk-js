@@ -224,6 +224,10 @@ export class Map extends maplibregl.Map {
    * unless explicitly set when calling.
    */
   public setSpace(space: CubemapDefinition) {
+    if (!this.isGlobeProjection()) {
+      return;
+    }
+
     if (this.space) {
       void this.space.setCubemap(space);
       return;
@@ -246,7 +250,7 @@ export class Map extends maplibregl.Map {
 
     const space = style.metadata.maptiler.space;
     const updateSpace = () => {
-      if (this.space) {
+      if (this.space && this.isGlobeProjection()) {
         if (!this.getLayer(this.space.id)) {
           const before = this.getLayersOrder()[0];
           this.addLayer(this.space, before);
@@ -256,13 +260,24 @@ export class Map extends maplibregl.Map {
       }
     };
 
-    updateSpace();
+    if (this.terrain) {
+      this.once("terrain", updateSpace);
+    } else {
+      updateSpace();
+    }
   }
 
   private setHaloFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
     const maptiler = style.metadata?.maptiler;
 
     if (!maptiler?.halo) {
+      this.setHalo({
+        stops: [
+          [0, "transparent"],
+          [1, "transparent"],
+        ],
+        scale: 0,
+      });
       return;
     }
 
@@ -275,14 +290,17 @@ export class Map extends maplibregl.Map {
       }
     };
 
-    updateHalo();
+    if (this.terrain) {
+      this.once("terrain", updateHalo);
+    } else {
+      updateHalo();
+    }
   }
 
   private setSpaceFromCurrentStyle() {
     const spaceOptionsFromStyleSpec = extractCustomLayerStyle<CubemapDefinition>({ map: this, property: "space" });
     if (spaceOptionsFromStyleSpec && this.space) {
       this.space.setCubemap(spaceOptionsFromStyleSpec);
-      return;
     }
   }
 
@@ -290,7 +308,6 @@ export class Map extends maplibregl.Map {
     const haloOptionsFromStyleSpec = extractCustomLayerStyle<GradientDefinition>({ map: this, property: "halo" });
     if (haloOptionsFromStyleSpec && this.halo) {
       void this.halo.setGradient(haloOptionsFromStyleSpec);
-      return;
     }
   }
 
@@ -322,7 +339,6 @@ export class Map extends maplibregl.Map {
     if (this.halo && this.getLayer(this.halo.id)) {
       return;
     }
-
     if (options.halo === false) return;
 
     const haloOptionsFromStyleSpec = extractCustomLayerStyle<GradientDefinition>({ map: this, property: "halo" });
@@ -343,6 +359,10 @@ export class Map extends maplibregl.Map {
   }
 
   public setHalo(halo: GradientDefinition) {
+    if (!this.isGlobeProjection()) {
+      return;
+    }
+
     if (this.halo) {
       void this.halo.setGradient(halo);
       return;
@@ -990,26 +1010,45 @@ export class Map extends maplibregl.Map {
     try {
       super.setStyle(styleInfo.style, options);
     } catch (e) {
-      // this.styleInProcess = false;
+      this.styleInProcess = false;
       console.error("[Map.setStyle]: Error while setting style:", e);
     }
 
-    // reload spacebox when the new style loads
-    const before = this.getLayersOrder()[0];
-
+    // if style is json object
     if (typeof styleInfo.style !== "string" && !styleInfo.requiresUrlMonitoring) {
-      if (this.halo) {
-        const styleWithMetaData = styleInfo.style as StyleSpecificationWithMetaData;
-        this.setHaloFromStyle({ style: styleWithMetaData });
-      } else {
-        this.initHalo({ before });
-      }
+      const initSpaceAndHalo = () => {
+        if (this.halo) {
+          const styleWithMetaData = styleInfo.style as StyleSpecificationWithMetaData;
+          this.setHaloFromStyle({ style: styleWithMetaData });
+        } else {
+          const metadata = styleInfo.style.metadata as StyleSpecificationWithMetaData["metadata"];
+          const before = this.getLayersOrder()[0] === this.space?.id ? this.getLayersOrder()[1] : this.getLayersOrder()[0];
 
-      if (this.space) {
-        const styleWithMetaData = styleInfo.style as StyleSpecificationWithMetaData;
-        this.setSpaceFromStyle({ style: styleWithMetaData });
+          // we need to push this to the next tick to allow maplibre to internally add all other layers
+          this.initHalo({
+            before,
+            options: {
+              ...this.options,
+              halo: metadata?.maptiler?.halo as GradientDefinition,
+            },
+          });
+        }
+
+        if (this.space) {
+          const styleWithMetaData = styleInfo.style as StyleSpecificationWithMetaData;
+          this.setSpaceFromStyle({ style: styleWithMetaData });
+        } else {
+          const before = this.getLayersOrder()[0];
+          this.initSpace({ before });
+        }
+      };
+
+      if (this.terrain) {
+        void this.once("terrain", initSpaceAndHalo);
       } else {
-        this.initSpace({ before });
+        if (!this.styleInProcess) {
+          initSpaceAndHalo();
+        }
       }
 
       return this;
