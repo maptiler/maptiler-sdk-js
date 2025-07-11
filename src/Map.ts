@@ -1016,22 +1016,24 @@ export class Map extends maplibregl.Map {
 
     // if style is json object
     if (typeof styleInfo.style !== "string" && !styleInfo.requiresUrlMonitoring) {
+      const styleWithMetaData = styleInfo.style as StyleSpecificationWithMetaData;
       const initSpaceAndHalo = () => {
         if (this.halo) {
           const styleWithMetaData = styleInfo.style as StyleSpecificationWithMetaData;
           this.setHaloFromStyle({ style: styleWithMetaData });
         } else {
-          const metadata = styleInfo.style.metadata as StyleSpecificationWithMetaData["metadata"];
+          const metadata = styleWithMetaData.metadata as StyleSpecificationWithMetaData["metadata"];
           const before = this.getLayersOrder()[0] === this.space?.id ? this.getLayersOrder()[1] : this.getLayersOrder()[0];
 
-          // we need to push this to the next tick to allow maplibre to internally add all other layers
-          this.initHalo({
-            before,
-            options: {
-              ...this.options,
-              halo: metadata?.maptiler?.halo as GradientDefinition,
-            },
-          });
+          if (metadata?.maptiler?.halo) {
+            this.initHalo({
+              before,
+              options: {
+                ...this.options,
+                halo: metadata.maptiler.halo,
+              },
+            });
+          }
         }
 
         if (this.space) {
