@@ -249,8 +249,13 @@ export class Map extends maplibregl.Map {
     }
 
     const space = style.metadata.maptiler.space;
-
     if (JSON.stringify(this.space?.getConfig()) === JSON.stringify(space)) {
+      // because maplibre removes ALL layers when setting a new style, we need to add the space layer back
+      // even if it hasn't changed
+      if (this.space && !this.getLayer(this.space.id)) {
+        const before = this.getLayersOrder()[0];
+        this.addLayer(this.space, before);
+      }
       return;
     }
 
@@ -279,6 +284,13 @@ export class Map extends maplibregl.Map {
     const maptiler = style.metadata?.maptiler;
 
     if (JSON.stringify(this.halo?.getConfig()) === JSON.stringify(maptiler?.halo)) {
+      // because maplibre removes ALL layers when setting a new style, we need to add the halo layer back
+      // even if it hasn't changed
+      if (this.halo && !this.getLayer(this.halo.id)) {
+        const beforeIndex = this.getLayersOrder().indexOf(this.space?.id ?? "") + 1;
+        const before = this.getLayersOrder()[beforeIndex];
+        this.addLayer(this.halo, before);
+      }
       return;
     }
 
@@ -1014,20 +1026,23 @@ export class Map extends maplibregl.Map {
     if (typeof styleInfo.style === "string" || styleInfo.requiresUrlMonitoring) {
       return this;
     }
-
     // this handles setting space and halo from style on load
     void this.once("style.load", () => {
       const targetBeforeLayer = this.getLayersOrder()[0];
       const styleSpec = styleInfo.style as StyleSpecificationWithMetaData;
       if (this.space) {
+        console.log("this.space == true", styleSpec);
         this.setSpaceFromStyle({ style: styleSpec });
       } else {
+        console.log("this.space == false", styleSpec);
         this.initSpace({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.space });
       }
 
       if (this.halo) {
+        console.log("this.halo == true", styleSpec);
         this.setHaloFromStyle({ style: styleSpec });
       } else {
+        console.log("this.halo == false", styleSpec);
         this.initHalo({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.halo });
       }
     });

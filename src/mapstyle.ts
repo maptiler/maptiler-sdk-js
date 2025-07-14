@@ -87,7 +87,6 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
       isFallback: false,
     };
   }
-  console.log("FUCK OFF", validateStyleMin(style));
   // If none of the previous attempts to detect a valid style failed => fallback to default style
   const fallbackStyle = MapStyle[mapStylePresetList[0].referenceStyleID as keyof typeof MapStyle].getDefaultVariant();
   return {
