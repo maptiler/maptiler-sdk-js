@@ -41,7 +41,7 @@ import { MaptilerProjectionControl } from "./controls/MaptilerProjectionControl"
 import { Telemetry } from "./Telemetry";
 import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from "./custom-layers/CubemapLayer";
 import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructorOptions } from "./custom-layers/RadialGradientLayer";
-import extractCustomLayerStyle, { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
+import { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
