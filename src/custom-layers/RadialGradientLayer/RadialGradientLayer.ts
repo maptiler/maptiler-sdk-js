@@ -153,6 +153,15 @@ export class RadialGradientLayer implements CustomLayerInterface {
   }
 
   /**
+   * Returns the current gradient configuration of the radial gradient layer.
+   *
+   * @returns {GradientDefinition} The current gradient configuration.
+   */
+  public getConfig() {
+    return this.gradient;
+  }
+
+  /**
    * Animates the radial gradient into view by gradually scaling from 0 to the target scale.
    *
    * This method uses requestAnimationFrame to create a smooth scaling animation effect.
