@@ -543,7 +543,7 @@ class CubemapLayer implements CustomLayerInterface {
 
     if (cubemap.color && this.targetBgColor.toString() !== color.toString()) {
       this.setBgColor(color);
-    } else if (cubemap.preset && cubemap.preset in cubemapPresets) {
+    } else if (!cubemap.color && cubemap.preset && cubemap.preset in cubemapPresets) {
       const preset = cubemapPresets[cubemap.preset];
       this.setBgColor(parseColorStringToVec4(preset.color));
     }

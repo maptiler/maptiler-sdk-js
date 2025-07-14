@@ -244,11 +244,14 @@ export class Map extends maplibregl.Map {
   }
 
   private setSpaceFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
-    if (!style.metadata?.maptiler?.space) {
+    const space = style.metadata?.maptiler?.space;
+    if (!space) {
+      this.setSpace({
+        color: "transparent",
+      });
       return;
     }
 
-    const space = style.metadata.maptiler.space;
     if (JSON.stringify(this.space?.getConfig()) === JSON.stringify(space)) {
       // because maplibre removes ALL layers when setting a new style, we need to add the space layer back
       // even if it hasn't changed
@@ -256,13 +259,6 @@ export class Map extends maplibregl.Map {
         const before = this.getLayersOrder()[0];
         this.addLayer(this.space, before);
       }
-      return;
-    }
-
-    if (!space) {
-      this.setSpace({
-        color: "transparent",
-      });
       return;
     }
 
@@ -320,7 +316,7 @@ export class Map extends maplibregl.Map {
     updateHalo();
   }
 
-  private initSpace({ options = this.options, before, spec }: { options?: MapOptions; before: string, spec?: CubemapDefinition }) {
+  private initSpace({ options = this.options, before, spec }: { options?: MapOptions; before: string; spec?: CubemapDefinition }) {
     if (this.space) {
       if (!this.getLayer(this.space.id)) {
         // If the space layer is already initialized but not added to the map, we add it now
@@ -1016,6 +1012,13 @@ export class Map extends maplibregl.Map {
 
     this.styleInProcess = true;
 
+    // because the style must be finished loading and parsed before we can add custom layers
+    // we need to check if the terrain has changed, because if it has, we also need to wait
+    // for the terrain to load...
+    const oldStyle = this.getStyle() as StyleSpecificationWithMetaData;
+    const newStyle = styleInfo.style as StyleSpecificationWithMetaData;
+    const spaceAndHaloMustAwaitTerrain = oldStyle?.terrain?.source !== newStyle?.terrain?.source || oldStyle?.terrain?.exaggeration !== newStyle?.terrain?.exaggeration;
+
     try {
       super.setStyle(styleInfo.style, options);
     } catch (e) {
@@ -1023,29 +1026,42 @@ export class Map extends maplibregl.Map {
       console.error("[Map.setStyle]: Error while setting style:", e);
     }
 
+    // if it's a url or a uuid, it is of no use to us
     if (typeof styleInfo.style === "string" || styleInfo.requiresUrlMonitoring) {
       return this;
     }
-    // this handles setting space and halo from style on load
-    void this.once("style.load", () => {
-      const targetBeforeLayer = this.getLayersOrder()[0];
-      const styleSpec = styleInfo.style as StyleSpecificationWithMetaData;
-      if (this.space) {
-        console.log("this.space == true", styleSpec);
-        this.setSpaceFromStyle({ style: styleSpec });
-      } else {
-        console.log("this.space == false", styleSpec);
-        this.initSpace({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.space });
-      }
 
-      if (this.halo) {
-        console.log("this.halo == true", styleSpec);
-        this.setHaloFromStyle({ style: styleSpec });
-      } else {
-        console.log("this.halo == false", styleSpec);
-        this.initHalo({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.halo });
-      }
-    });
+    const setSpaceAndHalo = () => {
+      this.setSpaceFromStyle({ style: styleInfo.style as StyleSpecificationWithMetaData });
+      this.setHaloFromStyle({ style: styleInfo.style as StyleSpecificationWithMetaData });
+    };
+
+    if (spaceAndHaloMustAwaitTerrain) {
+      void this.once("terrain", setSpaceAndHalo);
+    } else {
+      setSpaceAndHalo();
+      return this;
+    }
+
+    if (this.styleInProcess) {
+      // this handles setting space and halo from style on load
+      void this.once("style.load", () => {
+        console.log("style.load");
+        const targetBeforeLayer = this.getLayersOrder()[0];
+        const styleSpec = styleInfo.style as StyleSpecificationWithMetaData;
+        if (this.space) {
+          this.setSpaceFromStyle({ style: styleSpec });
+        } else {
+          this.initSpace({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.space });
+        }
+
+        if (this.halo) {
+          this.setHaloFromStyle({ style: styleSpec });
+        } else {
+          this.initHalo({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.halo });
+        }
+      });
+    }
 
     return this;
   }
