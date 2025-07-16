@@ -5,3 +5,4 @@ export { RadialGradientLayer, CubemapLayer };
 
 export * from "./RadialGradientLayer/types";
 export * from "./CubemapLayer/types";
+export type { StyleSpecificationWithMetaData } from "./extractCustomLayerStyle";

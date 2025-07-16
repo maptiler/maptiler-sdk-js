@@ -1,8 +1,25 @@
 # MapTiler SDK Changelog
 
+## 3.6.0
+
+### ✨ Features and improvements
+- None 
+
+### 🐛 Bug fixes
+- Fixes bug where terrain does not load when `map.enableTerrain()` is called directly after `.flyTo`
+- Adds `StyleDefinitionWithMetadata` as an accepted type to `setStyle` ([#216](https://github.com/maptiler/maptiler-sdk-js/issues/216))
+- Adds condition to log calls in `extractCustomLayerStyle` ([#216](https://github.com/maptiler/maptiler-sdk-js/issues/216))
+- Minor Fixes to spacebox where image was fading in and out when only color was changed.
+
+### Others
+- None
+
 ## 3.5.0
-- Now able to include cubemap background images and Earth radial gradient halo via `space` and `halo` in map constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style spec.
-- Additional bugfixes to  spacebox
+### ✨ Features and improvements
+- Now able to include cubemap background images and Earth radial gradient halo via `space` and `halo` in map 
+constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style spec.
+
+### Others
 - Version bump client-js to the latest version
 
 ## 3.4.1 

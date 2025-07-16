@@ -67,7 +67,8 @@ export function loadCubemapTexture({ gl, faces, onReady, forceRefresh }: LoadCub
 
   facesKey = JSON.stringify(faces);
 
-  const texture = gl.createTexture();
+  const texture = memoizedTexture ?? gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
 
   if (!faces) {
     console.warn("[CubemapLayer][loadCubemapTexture]: Faces are null");

@@ -863,9 +863,13 @@ export class Map extends maplibregl.Map {
       });
 
       const firstLayer = this.getLayersOrder()[0];
+      if (options.space) {
+        this.initSpace({ options, before: firstLayer });
+      }
 
-      this.initSpace({ options, before: firstLayer });
-      this.initHalo({ options, before: firstLayer });
+      if (options.halo) {
+        this.initHalo({ options, before: firstLayer });
+      }
     });
 
     this.telemetry = new Telemetry(this);
@@ -981,7 +985,10 @@ export class Map extends maplibregl.Map {
    * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
    * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
    */
-  override setStyle(style: null | ReferenceMapStyle | MapStyleVariant | StyleSpecification | string, options?: StyleSwapOptions & StyleOptions): this {
+  override setStyle(
+    style: null | ReferenceMapStyle | MapStyleVariant | StyleSpecification | StyleSpecificationWithMetaData | string,
+    options?: StyleSwapOptions & StyleOptions,
+  ): this {
     this.originalLabelStyle.clear();
     this.minimap?.setStyle(style);
     this.forceLanguageUpdate = true;
@@ -1592,11 +1599,20 @@ export class Map extends maplibregl.Map {
     if (this.loaded() || this.isTerrainEnabled) {
       addTerrain();
     } else {
-      this.once("load", () => {
+      const checkSourceAndAddTerrain = () => {
         if (this.getTerrain() && this.getSource(defaults.terrainSourceId)) {
           return;
         }
+
         addTerrain();
+      };
+
+      this.once("load", () => {
+        checkSourceAndAddTerrain();
+      });
+
+      this.once("moveend", () => {
+        checkSourceAndAddTerrain();
       });
     }
   }

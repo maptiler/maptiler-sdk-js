@@ -214,7 +214,7 @@ class CubemapLayer implements CustomLayerInterface {
    * It creates a new Object3D instance with the specified vertex and fragment shaders,
    * attributes, and uniforms. The cubemap will be rendered using this configuration.
    */
-  public updateCubemap(): void {
+  public updateCubemap({ facesNeedUpdate }: { facesNeedUpdate: boolean } = { facesNeedUpdate: true }): void {
     this.useCubemapTexture = this.faces !== null;
     const uniformsKeys = UNIFORMS_KEYS.filter((uniformKey) => {
       if (uniformKey === "cubeSampler" || uniformKey === "fadeOpacity") {
@@ -237,7 +237,7 @@ class CubemapLayer implements CustomLayerInterface {
       indices: INDICES,
     });
 
-    this.cubeMapNeedsUpdate = true;
+    this.cubeMapNeedsUpdate = facesNeedUpdate;
 
     if (this.useCubemapTexture) {
       this.updateTexture(this.gl, this.faces!);
@@ -534,7 +534,9 @@ class CubemapLayer implements CustomLayerInterface {
     this.options = cubemap;
     const facesKey = JSON.stringify(cubemap.faces ?? cubemap.preset ?? cubemap.path);
 
-    if (this.currentFacesDefinitionKey !== facesKey) {
+    const facesNeedUpdate = this.currentFacesDefinitionKey !== facesKey;
+
+    if (facesNeedUpdate) {
       await this.setCubemapFaces(cubemap);
       this.cubeMapNeedsUpdate = true;
     }
@@ -548,7 +550,7 @@ class CubemapLayer implements CustomLayerInterface {
       this.setBgColor(parseColorStringToVec4(preset.color));
     }
 
-    this.updateCubemap();
+    this.updateCubemap({ facesNeedUpdate });
   }
 
   /**
