@@ -1056,7 +1056,6 @@ export class Map extends maplibregl.Map {
     if (this.styleInProcess) {
       // this handles setting space and halo from style on load
       void this.once("style.load", () => {
-        console.log("style.load");
         const targetBeforeLayer = this.getLayersOrder()[0];
         const styleSpec = styleInfo.style as StyleSpecificationWithMetaData;
         if (this.space) {
