@@ -9,7 +9,10 @@
 - Fixes bug where terrain does not load when `map.enableTerrain()` is called directly after `.flyTo`
 - Adds `StyleDefinitionWithMetadata` as an accepted type to `setStyle` ([#216](https://github.com/maptiler/maptiler-sdk-js/issues/216))
 - Adds condition to log calls in `extractCustomLayerStyle` ([#216](https://github.com/maptiler/maptiler-sdk-js/issues/216))
-- Minor Fixes to spacebox where image was fading in and out when only color was changed.
+- Fix to spacebox where image was fading in and out when only color was changed.
+- Fix to spacebox when, having been set from setStyle, with terrain activated, the map breaks
+- Fix to spacebox where changes made via to setStyle were not always being propogated
+- Resolved a race condition in `loadCubemapTexture` where WebGL draw calls could occur before all cubemap face textures were fully loaded. Texture setup is now performed only after _all_ cubemap faces have finished loading, rather than processing each face as it loads.
 
 ### Others
 - None
