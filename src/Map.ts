@@ -1024,6 +1024,9 @@ export class Map extends maplibregl.Map {
     // for the terrain to load...
     const oldStyle = this.getStyle() as StyleSpecificationWithMetaData;
     const newStyle = styleInfo.style as StyleSpecificationWithMetaData;
+
+    // the type returned from getStyle is incorrect,  it can be null
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const spaceAndHaloMustAwaitTerrain = oldStyle?.terrain?.source !== newStyle?.terrain?.source || oldStyle?.terrain?.exaggeration !== newStyle?.terrain?.exaggeration;
 
     try {
