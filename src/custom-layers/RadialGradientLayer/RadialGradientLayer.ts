@@ -233,6 +233,10 @@ export class RadialGradientLayer implements CustomLayerInterface {
       throw new Error("[RadialGradientLayer]: Map is undefined");
     }
 
+    if (!this.map.isGlobeProjection()) {
+      return;
+    }
+
     if (this.plane === undefined) {
       throw new Error("[RadialGradientLayer]: Plane is undefined");
     }

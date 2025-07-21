@@ -410,6 +410,10 @@ class CubemapLayer implements CustomLayerInterface {
    * @throws Error if the map, cubemap, or texture is undefined.
    */
   public render(gl: WebGLRenderingContext | WebGL2RenderingContext, _options: CustomRenderMethodInput): void {
+    if (!this.map.isGlobeProjection()) {
+      return;
+    }
+
     if (this.map === undefined) {
       throw new Error("[CubemapLayer]: Map is undefined");
     }

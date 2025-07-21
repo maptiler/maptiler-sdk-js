@@ -37,7 +37,7 @@ export function loadShader({ gl, type, source }: { gl: WebGLContext; type: GLenu
  *
  * @returns WebGL program
  */
-export function createShadersSetProgram({ gl, vertexShaderSource, fragmentShaderSource }: { gl: WebGLContext; vertexShaderSource: string; fragmentShaderSource: string }) {
+export function createShaderProgram({ gl, vertexShaderSource, fragmentShaderSource }: { gl: WebGLContext; vertexShaderSource: string; fragmentShaderSource: string }) {
   const vertexShader = loadShader({
     gl,
     type: gl.VERTEX_SHADER,
@@ -101,7 +101,7 @@ export function createObject3D<Attribute extends string, Uniform extends string>
   vertices: Array<number>;
   indices?: Array<number>;
 }): Object3D<Attribute, Uniform> {
-  const shaderProgram = createShadersSetProgram({ gl, vertexShaderSource, fragmentShaderSource });
+  const shaderProgram = createShaderProgram({ gl, vertexShaderSource, fragmentShaderSource });
 
   const attributesLocations = attributesKeys.reduce<Record<string, number>>((acc, key) => {
     acc[key] = gl.getAttribLocation(shaderProgram, `a_${key}`);

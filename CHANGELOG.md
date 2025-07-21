@@ -1,5 +1,16 @@
 # MapTiler SDK Changelog
 
+## 3.6.1
+
+### ✨ Features and improvements
+- None 
+
+### 🐛 Bug fixes
+- Fixes a bug that breaks spacebox when projection is changed in style.json
+
+### Others
+- None
+
 ## 3.6.0
 
 ### ✨ Features and improvements

@@ -1025,10 +1025,6 @@ export class Map extends maplibregl.Map {
     const oldStyle = this.getStyle() as StyleSpecificationWithMetaData;
     const newStyle = styleInfo.style as StyleSpecificationWithMetaData;
 
-    // the type returned from getStyle is incorrect,  it can be null
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const spaceAndHaloMustAwaitTerrain = oldStyle?.terrain?.source !== newStyle?.terrain?.source || oldStyle?.terrain?.exaggeration !== newStyle?.terrain?.exaggeration;
-
     try {
       super.setStyle(styleInfo.style, options);
     } catch (e) {
@@ -1041,39 +1037,57 @@ export class Map extends maplibregl.Map {
       return this;
     }
 
-    const setSpaceAndHalo = () => {
+    const setSpaceAndHaloFromStyle = () => {
       this.setSpaceFromStyle({ style: styleInfo.style as StyleSpecificationWithMetaData });
       this.setHaloFromStyle({ style: styleInfo.style as StyleSpecificationWithMetaData });
     };
 
-    if (spaceAndHaloMustAwaitTerrain) {
-      void this.once("terrain", setSpaceAndHalo);
-    } else {
-      setSpaceAndHalo();
+    const handleStyleLoad = () => {
+      const targetBeforeLayer = this.getLayersOrder()[0];
+      const styleSpec = styleInfo.style as StyleSpecificationWithMetaData;
+      if (this.space) {
+        this.setSpaceFromStyle({ style: styleSpec });
+      } else {
+        this.initSpace({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.space });
+      }
+
+      if (this.halo) {
+        this.setHaloFromStyle({ style: styleSpec });
+      } else {
+        this.initHalo({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.halo });
+      }
+    };
+
+    if (this.styleInProcess && !this.spaceboxLoadingState.styleLoadCallbackSet) {
+      // this handles setting space and halo from style on load
+      void this.once("style.load", handleStyleLoad);
+      this.spaceboxLoadingState.styleLoadCallbackSet = true;
       return this;
     }
 
-    if (this.styleInProcess) {
-      // this handles setting space and halo from style on load
-      void this.once("style.load", () => {
-        const targetBeforeLayer = this.getLayersOrder()[0];
-        const styleSpec = styleInfo.style as StyleSpecificationWithMetaData;
-        if (this.space) {
-          this.setSpaceFromStyle({ style: styleSpec });
-        } else {
-          this.initSpace({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.space });
-        }
+    // the type returned from getStyle is incorrect,  it can be null
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const spaceAndHaloMustAwaitTerrain = oldStyle?.terrain?.source !== newStyle?.terrain?.source || oldStyle?.terrain?.exaggeration !== newStyle?.terrain?.exaggeration;
 
-        if (this.halo) {
-          this.setHaloFromStyle({ style: styleSpec });
-        } else {
-          this.initHalo({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.halo });
-        }
-      });
+    if (spaceAndHaloMustAwaitTerrain) {
+      void this.once("terrain", setSpaceAndHaloFromStyle);
+      return this;
     }
+
+    const projectionFieldDeleted = !newStyle?.projection?.type;
+    if (projectionFieldDeleted) {
+      this.styleInProcess = true;
+      return this;
+    }
+
+    handleStyleLoad();
 
     return this;
   }
+
+  private spaceboxLoadingState = {
+    styleLoadCallbackSet: false,
+  };
 
   /**
    * Adds a [MapLibre style layer](https://maplibre.org/maplibre-style-spec/layers)
