@@ -39,7 +39,7 @@ import type { MinimapOptionsInput } from "./controls/Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 import { MaptilerProjectionControl } from "./controls/MaptilerProjectionControl";
 import { Telemetry } from "./Telemetry";
-import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from "./custom-layers/CubemapLayer";
+import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions, validateSpaceSpecification } from "./custom-layers/CubemapLayer";
 import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructorOptions } from "./custom-layers/RadialGradientLayer";
 import { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 
@@ -246,6 +246,14 @@ export class Map extends maplibregl.Map {
   private setSpaceFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
     const space = style.metadata?.maptiler?.space;
     if (!space) {
+      this.setSpace({
+        color: "transparent",
+      });
+      return;
+    }
+
+    const spaceSpecIsValid = validateSpaceSpecification(space);
+    if (!spaceSpecIsValid) {
       this.setSpace({
         color: "transparent",
       });
@@ -1038,13 +1046,27 @@ export class Map extends maplibregl.Map {
     }
 
     const setSpaceAndHaloFromStyle = () => {
+      const styleSpec = styleInfo.style as StyleSpecificationWithMetaData;
+      if (styleSpec.projection?.type === "mercator") {
+        return;
+      }
+
       this.setSpaceFromStyle({ style: styleInfo.style as StyleSpecificationWithMetaData });
+
       this.setHaloFromStyle({ style: styleInfo.style as StyleSpecificationWithMetaData });
     };
 
     const handleStyleLoad = () => {
-      const targetBeforeLayer = this.getLayersOrder()[0];
       const styleSpec = styleInfo.style as StyleSpecificationWithMetaData;
+
+      if (styleSpec.projection?.type === "mercator") {
+        if (this.space) {
+          console.warn("Neither space nor halo is supported for mercator projection. Ignoring...");
+        }
+        return;
+      }
+
+      const targetBeforeLayer = this.getLayersOrder()[0];
       if (this.space) {
         this.setSpaceFromStyle({ style: styleSpec });
       } else {
