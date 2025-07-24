@@ -1102,7 +1102,10 @@ export class Map extends maplibregl.Map {
       return this;
     }
 
-    handleStyleLoad();
+    if (!this.spaceboxLoadingState.styleLoadCallbackSet) {
+      handleStyleLoad();
+      this.spaceboxLoadingState.styleLoadCallbackSet = false;
+    }
 
     return this;
   }
