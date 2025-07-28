@@ -334,8 +334,9 @@ export class RadialGradientLayer implements CustomLayerInterface {
       ];
       return;
     }
+    this.gradient.scale = gradient.scale ?? defaultConstructorOptions.scale;
+    this.gradient.stops = gradient.stops ?? defaultConstructorOptions.stops;
 
-    this.gradient = gradient;
     await this.animateIn();
   }
 

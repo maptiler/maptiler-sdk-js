@@ -304,7 +304,7 @@ export class Map extends maplibregl.Map {
           [0, "transparent"],
           [1, "transparent"],
         ],
-        scale: 0,
+        scale: 1,
       });
       return;
     }
@@ -1015,17 +1015,15 @@ export class Map extends maplibregl.Map {
     if (styleInfo.isFallback) {
       if (this.getStyle()) {
         console.warn(
-          "Invalid style. A style must be a valid URL to a style.json, a JSON string representing a valid StyleSpecification or a valid StyleSpecification object. Keeping the curent style instead.",
+          "[Map.setStyle]: Invalid style. A style must be a valid URL to a style.json, a JSON string representing a valid StyleSpecification or a valid StyleSpecification object. Keeping the curent style instead.",
         );
         return this;
       }
 
       console.warn(
-        "Invalid style. A style must be a valid URL to a style.json, a JSON string representing a valid StyleSpecification or a valid StyleSpecification object. Fallback to default MapTiler style.",
+        "[Map.setStyle]: Invalid style. A style must be a valid URL to a style.json, a JSON string representing a valid StyleSpecification or a valid StyleSpecification object. Fallback to default MapTiler style.",
       );
     }
-
-    this.styleInProcess = true;
 
     // because the style must be finished loading and parsed before we can add custom layers
     // we need to check if the terrain has changed, because if it has, we also need to wait
@@ -1035,6 +1033,7 @@ export class Map extends maplibregl.Map {
 
     try {
       super.setStyle(styleInfo.style, options);
+      this.styleInProcess = true;
     } catch (e) {
       this.styleInProcess = false;
       console.error("[Map.setStyle]: Error while setting style:", e);
@@ -1047,7 +1046,8 @@ export class Map extends maplibregl.Map {
 
     const setSpaceAndHaloFromStyle = () => {
       const styleSpec = styleInfo.style as StyleSpecificationWithMetaData;
-      if (styleSpec.projection?.type === "mercator") {
+      if (!styleSpec.projection || styleSpec.projection.type === "mercator") {
+        console.warn("[Map.setStyle]: Neither space nor halo is supported for mercator projection. Ignoring...");
         return;
       }
 
@@ -1056,15 +1056,8 @@ export class Map extends maplibregl.Map {
       this.setHaloFromStyle({ style: styleInfo.style as StyleSpecificationWithMetaData });
     };
 
-    const handleStyleLoad = () => {
-      const styleSpec = styleInfo.style as StyleSpecificationWithMetaData;
-
-      if (styleSpec.projection?.type === "mercator") {
-        if (this.space) {
-          console.warn("Neither space nor halo is supported for mercator projection. Ignoring...");
-        }
-        return;
-      }
+    const handleStyleLoad = (e?: maplibregl.MapStyleDataEvent) => {
+      const styleSpec = (e?.target.getStyle() ?? styleInfo.style) as StyleSpecificationWithMetaData;
 
       const targetBeforeLayer = this.getLayersOrder()[0];
       if (this.space) {
@@ -1080,11 +1073,23 @@ export class Map extends maplibregl.Map {
       }
     };
 
-    if (this.styleInProcess && !this.spaceboxLoadingState.styleLoadCallbackSet) {
+    if (this.styleInProcess) {
       // this handles setting space and halo from style on load
-      void this.once("style.load", handleStyleLoad);
-      this.spaceboxLoadingState.styleLoadCallbackSet = true;
-      return this;
+      // void this.once("idle", handleStyleLoad);
+      // void this.once("style.load", handleStyleLoad);
+      if (!this.spaceboxLoadingState.styleLoadCallbackSet) {
+        // unfortunatly, the style.load event is not always fired correctly when
+        // the style is set from am object (generally when projection changes or when metadata changes)
+        // so, in this instance, we have to double tap with both style events.
+        // an issue has been raised on the maplibre github
+        void this.once("style.load", handleStyleLoad);
+        void this.once("styledata", handleStyleLoad);
+
+        this.spaceboxLoadingState.styleLoadCallbackSet = true;
+        return this;
+      }
+
+      // if these load event doesn't fire after 10 seconds, we need to reset the flag
     }
 
     // the type returned from getStyle is incorrect,  it can be null
@@ -1096,22 +1101,16 @@ export class Map extends maplibregl.Map {
       return this;
     }
 
-    const projectionFieldDeleted = !newStyle?.projection?.type;
-    if (projectionFieldDeleted) {
-      this.styleInProcess = true;
-      return this;
-    }
-
-    if (!this.spaceboxLoadingState.styleLoadCallbackSet) {
+    try {
       handleStyleLoad();
-      this.spaceboxLoadingState.styleLoadCallbackSet = false;
-    }
+    } catch {}
 
     return this;
   }
 
   private spaceboxLoadingState = {
     styleLoadCallbackSet: false,
+    hasLoadedOnce: false,
   };
 
   /**
