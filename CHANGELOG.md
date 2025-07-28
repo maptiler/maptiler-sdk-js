@@ -6,7 +6,7 @@
 - None 
 
 ### 🐛 Bug fixes
-- Fixes a bug that breaks spacebox when style.json changes before style is finished loading.
+- Includes workaround where internal event is not fired correctly and casues breaking of space box.
 
 ### Others
 - None
