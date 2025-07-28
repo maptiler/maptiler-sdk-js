@@ -1,5 +1,16 @@
 # MapTiler SDK Changelog
 
+## 3.6.2
+
+### ✨ Features and improvements
+- None 
+
+### 🐛 Bug fixes
+- Fixes a bug that breaks spacebox when style.json changes before style is finished loading.
+
+### Others
+- None
+
 ## 3.6.1
 
 ### ✨ Features and improvements
