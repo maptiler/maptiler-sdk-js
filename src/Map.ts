@@ -1110,7 +1110,6 @@ export class Map extends maplibregl.Map {
 
   private spaceboxLoadingState = {
     styleLoadCallbackSet: false,
-    hasLoadedOnce: false,
   };
 
   /**
