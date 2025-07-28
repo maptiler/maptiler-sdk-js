@@ -6,7 +6,7 @@
 - None 
 
 ### 🐛 Bug fixes
-- Includes workaround where internal event is not fired correctly and casues breaking of space box.
+- Includes workaround where internal event is not fired correctly and causes breaking of space box.
 
 ### Others
 - None
