@@ -1079,7 +1079,7 @@ export class Map extends maplibregl.Map {
       // void this.once("style.load", handleStyleLoad);
       if (!this.spaceboxLoadingState.styleLoadCallbackSet) {
         // unfortunatly, the style.load event is not always fired correctly when
-        // the style is set from am object (generally when projection changes or when metadata changes)
+        // the style is set from an object (generally when projection changes or when metadata changes)
         // so, in this instance, we have to double tap with both style events.
         // an issue has been raised on the maplibre github
         void this.once("style.load", handleStyleLoad);
