@@ -133,6 +133,7 @@ const expectedExports = Array.from(
     "MapWheelEventMLGL",
     "MapTouchEventMLGL",
     "MapMouseEventMLGL",
+    "canParsePixelData",
     ...Object.keys(language),
     ...Object.keys(controls),
     ...Object.keys(converters),

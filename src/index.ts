@@ -251,6 +251,7 @@ export {
   getLanguageInfoFromFlag,
   getLanguageInfoFromCode,
   getLanguageInfoFromKey,
+  canParsePixelData,
 } from "@maptiler/client";
 
 export { getWebGLSupportError, displayWebGLContextLostWarning } from "./tools";

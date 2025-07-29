@@ -1,9 +1,9 @@
 # MapTiler SDK Changelog
 
-## 3.6.2
+## 3.7.0
 
 ### ✨ Features and improvements
-- None 
+- Version Bump @maptiler/client to 2.5.0 adding `at`, `batch`, `computeOn`, `canParsePixelData` functions for working with elevations.
 
 ### 🐛 Bug fixes
 - Includes workaround where internal event is not fired correctly and causes breaking of space box.
