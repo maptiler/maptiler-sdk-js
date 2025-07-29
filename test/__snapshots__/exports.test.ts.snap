@@ -92,6 +92,7 @@ exports[`Module Exports > should match the snapshot of module exports 1`] = `
   "addSourceType",
   "areSameLanguages",
   "bufferToPixelDataBrowser",
+  "canParsePixelData",
   "circumferenceAtLatitude",
   "clearPrewarmedResources",
   "config",
