@@ -39,7 +39,7 @@ import type { MinimapOptionsInput } from "./controls/Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 import { MaptilerProjectionControl } from "./controls/MaptilerProjectionControl";
 import { Telemetry } from "./Telemetry";
-import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from "./custom-layers/CubemapLayer";
+import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions, validateSpaceSpecification } from "./custom-layers/CubemapLayer";
 import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructorOptions } from "./custom-layers/RadialGradientLayer";
 import { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 
@@ -252,6 +252,14 @@ export class Map extends maplibregl.Map {
       return;
     }
 
+    const spaceSpecIsValid = validateSpaceSpecification(space);
+    if (!spaceSpecIsValid) {
+      this.setSpace({
+        color: "transparent",
+      });
+      return;
+    }
+
     if (JSON.stringify(this.space?.getConfig()) === JSON.stringify(space)) {
       // because maplibre removes ALL layers when setting a new style, we need to add the space layer back
       // even if it hasn't changed
@@ -296,7 +304,7 @@ export class Map extends maplibregl.Map {
           [0, "transparent"],
           [1, "transparent"],
         ],
-        scale: 0,
+        scale: 1,
       });
       return;
     }
@@ -1007,17 +1015,15 @@ export class Map extends maplibregl.Map {
     if (styleInfo.isFallback) {
       if (this.getStyle()) {
         console.warn(
-          "Invalid style. A style must be a valid URL to a style.json, a JSON string representing a valid StyleSpecification or a valid StyleSpecification object. Keeping the curent style instead.",
+          "[Map.setStyle]: Invalid style. A style must be a valid URL to a style.json, a JSON string representing a valid StyleSpecification or a valid StyleSpecification object. Keeping the curent style instead.",
         );
         return this;
       }
 
       console.warn(
-        "Invalid style. A style must be a valid URL to a style.json, a JSON string representing a valid StyleSpecification or a valid StyleSpecification object. Fallback to default MapTiler style.",
+        "[Map.setStyle]: Invalid style. A style must be a valid URL to a style.json, a JSON string representing a valid StyleSpecification or a valid StyleSpecification object. Fallback to default MapTiler style.",
       );
     }
-
-    this.styleInProcess = true;
 
     // because the style must be finished loading and parsed before we can add custom layers
     // we need to check if the terrain has changed, because if it has, we also need to wait
@@ -1027,6 +1033,7 @@ export class Map extends maplibregl.Map {
 
     try {
       super.setStyle(styleInfo.style, options);
+      this.styleInProcess = true;
     } catch (e) {
       this.styleInProcess = false;
       console.error("[Map.setStyle]: Error while setting style:", e);
@@ -1038,13 +1045,21 @@ export class Map extends maplibregl.Map {
     }
 
     const setSpaceAndHaloFromStyle = () => {
+      const styleSpec = styleInfo.style as StyleSpecificationWithMetaData;
+      if (!styleSpec.projection || styleSpec.projection.type === "mercator") {
+        console.warn("[Map.setStyle]: Neither space nor halo is supported for mercator projection. Ignoring...");
+        return;
+      }
+
       this.setSpaceFromStyle({ style: styleInfo.style as StyleSpecificationWithMetaData });
+
       this.setHaloFromStyle({ style: styleInfo.style as StyleSpecificationWithMetaData });
     };
 
-    const handleStyleLoad = () => {
+    const handleStyleLoad = (e?: maplibregl.MapStyleDataEvent) => {
+      const styleSpec = (e?.target.getStyle() ?? styleInfo.style) as StyleSpecificationWithMetaData;
+
       const targetBeforeLayer = this.getLayersOrder()[0];
-      const styleSpec = styleInfo.style as StyleSpecificationWithMetaData;
       if (this.space) {
         this.setSpaceFromStyle({ style: styleSpec });
       } else {
@@ -1058,11 +1073,23 @@ export class Map extends maplibregl.Map {
       }
     };
 
-    if (this.styleInProcess && !this.spaceboxLoadingState.styleLoadCallbackSet) {
+    if (this.styleInProcess) {
       // this handles setting space and halo from style on load
-      void this.once("style.load", handleStyleLoad);
-      this.spaceboxLoadingState.styleLoadCallbackSet = true;
-      return this;
+      // void this.once("idle", handleStyleLoad);
+      // void this.once("style.load", handleStyleLoad);
+      if (!this.spaceboxLoadingState.styleLoadCallbackSet) {
+        // unfortunately, the style.load event is not always fired correctly when
+        // the style is set from an object (generally when projection changes or when metadata changes)
+        // so, in this instance, we have to double tap with both style events.
+        // an issue has been raised on the maplibre github
+        void this.once("style.load", handleStyleLoad);
+        void this.once("styledata", handleStyleLoad);
+
+        this.spaceboxLoadingState.styleLoadCallbackSet = true;
+        return this;
+      }
+
+      // if these load event doesn't fire after 10 seconds, we need to reset the flag
     }
 
     // the type returned from getStyle is incorrect,  it can be null
@@ -1074,13 +1101,12 @@ export class Map extends maplibregl.Map {
       return this;
     }
 
-    const projectionFieldDeleted = !newStyle?.projection?.type;
-    if (projectionFieldDeleted) {
-      this.styleInProcess = true;
-      return this;
-    }
-
-    handleStyleLoad();
+    try {
+      // because of the current uncertainty of the style.load event
+      // we have no way of knowing if the style is loaded or not
+      // which will fail internally if the style is not loaded correctly
+      handleStyleLoad();
+    } catch {}
 
     return this;
   }

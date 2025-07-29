@@ -326,7 +326,17 @@ export class RadialGradientLayer implements CustomLayerInterface {
    */
   public async setGradient(gradient: GradientDefinition): Promise<void> {
     await this.animateOut();
-    this.gradient = gradient;
+    if (!validateHaloSpecification(gradient)) {
+      this.gradient.scale = defaultConstructorOptions.scale;
+      this.gradient.stops = [
+        [0, "transparent"],
+        [1, "transparent"],
+      ];
+      return;
+    }
+    this.gradient.scale = gradient.scale ?? defaultConstructorOptions.scale;
+    this.gradient.stops = gradient.stops ?? defaultConstructorOptions.stops;
+
     await this.animateIn();
   }
 
@@ -339,4 +349,26 @@ export class RadialGradientLayer implements CustomLayerInterface {
     // TODO in future we can ease / animate this
     this.map.setLayoutProperty(this.id, "visibility", "none");
   }
+}
+
+export function validateHaloSpecification(halo: RadialGradientLayerConstructorOptions | boolean): boolean {
+  if (typeof halo === "boolean") {
+    return true;
+  }
+
+  if (typeof halo.scale !== "number") {
+    return false;
+  }
+
+  // this is testing external data so we need to check
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (!halo.stops || halo.stops.length === 0) {
+    return false;
+  }
+
+  if (halo.stops.some((stop) => typeof stop[0] !== "number" || typeof stop[1] !== "string")) {
+    return false;
+  }
+
+  return true;
 }

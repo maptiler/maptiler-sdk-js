@@ -1,5 +1,16 @@
 # MapTiler SDK Changelog
 
+## 3.6.2
+
+### ✨ Features and improvements
+- None 
+
+### 🐛 Bug fixes
+- Includes workaround where internal event is not fired correctly and causes breaking of space box.
+
+### Others
+- None
+
 ## 3.6.1
 
 ### ✨ Features and improvements

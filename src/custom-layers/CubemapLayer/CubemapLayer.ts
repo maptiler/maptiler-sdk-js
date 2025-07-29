@@ -38,6 +38,12 @@ const defaultConstructorOptions: CubemapLayerConstructorOptions = cubemapPresets
  * @throws Error if an invalid preset name is provided.
  */
 function configureOptions(inputOptions: CubemapLayerConstructorOptions | true, defaults: CubemapLayerConstructorOptions) {
+  if (!validateSpaceSpecification(inputOptions)) {
+    return {
+      color: "transparent",
+    };
+  }
+
   if (inputOptions === true) {
     return defaults;
   }
@@ -574,6 +580,26 @@ class CubemapLayer implements CustomLayerInterface {
     // TODO in future we can ease / animate this
     this.map.setLayoutProperty(this.id, "visibility", "none");
   }
+}
+
+export function validateSpaceSpecification(space: CubemapDefinition | boolean): boolean {
+  if (typeof space === "boolean") {
+    return true;
+  }
+
+  if (!space.path && !space.preset && !space.faces && !space.color) {
+    return false;
+  }
+
+  if (space.preset && !(space.preset in cubemapPresets)) {
+    return false;
+  }
+
+  if (space.faces && (!space.faces.pX || !space.faces.nX || !space.faces.pY || !space.faces.nY || !space.faces.pZ || !space.faces.nZ)) {
+    return false;
+  }
+
+  return true;
 }
 
 /**
