@@ -1,11 +1,13 @@
 import type { DoubleClickZoomHandler, DragPanHandler, EaseToOptions, LngLat, PointLike, TwoFingersTouchZoomRotateHandler } from "maplibre-gl";
 import { FlyToOptions, MapDataEvent, MapOptions, JumpToOptions, MercatorCoordinate, ScrollZoomHandler, BoxZoomHandler, KeyboardHandler, CooperativeGesturesHandler } from "..";
 import { Map } from "../Map";
-import { Evented } from "../";
+import MapLibre from "maplibre-gl";
 import { setupGlobalMapEventForwarder } from "./events";
 import { FetchError } from "./utils";
 
 type AllowedConstrcutorOptions = "container" | "apiKey" | "maxZoom" | "minZoom" | "zoom" | "bearing";
+
+const Evented = MapLibre.Evented;
 
 type ImageViewerConstructorOptions = Pick<MapOptions, AllowedConstrcutorOptions> & {
   imageUUID: string;
