@@ -1,5 +1,4 @@
-import { MapWheelEvent } from "@maptiler/sdk";
-import { MapDataEvent, MapMouseEvent } from "../";
+import { MapDataEvent, MapMouseEvent, MapWheelEvent } from "../";
 import { Map } from "../Map";
 import ImageViewer from "./ImageViewer";
 import type { LngLat, MapContextEvent, MapLibreEvent, MapTouchEvent } from "maplibre-gl";
