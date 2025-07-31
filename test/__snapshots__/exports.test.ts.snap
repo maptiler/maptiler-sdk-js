@@ -50,6 +50,7 @@ exports[`Module Exports > should match the snapshot of module exports 1`] = `
   "MapTouchEventMLGL",
   "MapWheelEvent",
   "MapWheelEventMLGL",
+  "MaptilerExternalControl",
   "MaptilerGeolocateControl",
   "MaptilerLogoControl",
   "MaptilerNavigationControl",

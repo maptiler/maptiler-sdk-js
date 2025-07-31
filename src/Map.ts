@@ -19,6 +19,7 @@ import type {
   ExpressionSpecification,
   SymbolLayerSpecification,
   AttributionControlOptions,
+  IControl,
 } from "maplibre-gl";
 import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
@@ -33,6 +34,7 @@ import { MapStyle, geolocation, getLanguageInfoFromFlag, toLanguageInfo } from "
 import { MaptilerGeolocateControl } from "./controls/MaptilerGeolocateControl";
 import { ScaleControl } from "./MLAdapters/ScaleControl";
 import { FullscreenControl } from "./MLAdapters/FullscreenControl";
+import { ExternalControlType, MaptilerExternalControl } from "./controls/MaptilerExternalControl";
 
 import Minimap from "./controls/Minimap";
 import type { MinimapOptionsInput } from "./controls/Minimap";
@@ -150,6 +152,11 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * Show the full screen control. (default: `false`, will show if `true`)
    */
   fullscreenControl?: boolean | ControlPosition;
+
+  /**
+   * Detect custom external controls. (default: `false`, will detect automatically if `true`)
+   */
+  customControls?: boolean | string;
 
   /**
    * Display a minimap in a user defined corner of the map. (default: `bottom-left` corner)
@@ -654,6 +661,7 @@ export class Map extends maplibregl.Map {
     });
 
     // Update logo and attibution
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises, @typescript-eslint/no-misused-promises
     this.once("load", async () => {
       let tileJsonContent = { logo: null };
 
@@ -672,6 +680,57 @@ export class Map extends maplibregl.Map {
         tileJsonContent = await tileJsonRes.json();
       } catch (_e) {
         // No tiles.json found (should not happen on maintained styles)
+      }
+
+      if (options.customControls) {
+        const groupSelector = "[data-maptiler-control-group]";
+        const controlSelector = "[data-maptiler-control]";
+        const getControlType = (element: HTMLElement) => {
+          let type = element.dataset.maptilerControl as ExternalControlType | "true" | "" | undefined;
+          // value of empty data attribute in React is string "true", empty string elsewhere
+          if (type === "true" || type === "") type = undefined;
+          return type;
+        };
+        const getPosition = (element: HTMLElement) => element.dataset.maptilerPosition as ControlPosition | undefined;
+
+        let groupElements = [...(document.querySelectorAll(groupSelector) as NodeListOf<HTMLElement>)];
+        let controlElements = [...(document.querySelectorAll(controlSelector) as NodeListOf<HTMLElement>)].filter(
+          (controlElement) => controlElement.closest(groupSelector) === null,
+        );
+
+        if (typeof options.customControls === "string") {
+          const limitingSelector = options.customControls;
+          groupElements = groupElements.filter((groupElement) => groupElement.matches(limitingSelector) || groupElement.closest(limitingSelector) !== null);
+          controlElements = controlElements.filter((controlElement) => controlElement.matches(limitingSelector) || controlElement.closest(limitingSelector) !== null);
+        }
+
+        for (const groupElement of groupElements) {
+          const control = new MaptilerExternalControl(groupElement);
+          this.addControl(control, getPosition(groupElement));
+
+          for (const controlElement of groupElement.querySelectorAll(controlSelector) as NodeListOf<HTMLElement>) {
+            control.configureGroupItem(controlElement, getControlType(controlElement));
+          }
+        }
+
+        for (const controlElement of controlElements) {
+          this.addControl(MaptilerExternalControl.createFromControlType(controlElement, getControlType(controlElement)), getPosition(controlElement));
+        }
+
+        const setStyleProps = () => {
+          const { lng, lat } = this.getCenter();
+          this._container.style.setProperty("--maptiler-center-lng", String(lng));
+          this._container.style.setProperty("--maptiler-center-lat", String(lat));
+          this._container.style.setProperty("--maptiler-zoom", String(this.getZoom()));
+          this._container.style.setProperty("--maptiler-bearing", String(this.getBearing()));
+          this._container.style.setProperty("--maptiler-pitch", String(this.getPitch()));
+          this._container.style.setProperty("--maptiler-roll", String(this.getRoll()));
+          this._container.style.setProperty("--maptiler-is-globe-projection", String(this.isGlobeProjection()));
+          this._container.style.setProperty("--maptiler-has-terrain", String(this.hasTerrain()));
+        };
+
+        setStyleProps();
+        this.on("render", setStyleProps);
       }
 
       // The attribution and logo must show when required
