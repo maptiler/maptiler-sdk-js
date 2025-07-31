@@ -648,7 +648,9 @@ describe("ImageViewer", () => {
       viewer.setCenter([100, 200]);
       viewer.triggerRepaint();
 
-      expect(viewer.getZoom()).toBe(2);
+      // @ts-expect-error - Mocking the method
+      expect(viewer.sdk.setZoom).toHaveBeenCalledWith(2);
+
       expect(viewer.getCenter()).toEqual([100, 200]);
       expect(viewer.getBearing()).toBe(0);
 

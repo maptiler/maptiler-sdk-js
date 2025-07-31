@@ -2,7 +2,7 @@ import { MapWheelEvent } from "@maptiler/sdk";
 import { MapDataEvent, MapMouseEvent } from "../";
 import { Map } from "../Map";
 import ImageViewer from "./ImageViewer";
-import type { LngLat, MapContextEvent, MapLibreEvent } from "maplibre-gl";
+import type { LngLat, MapContextEvent, MapLibreEvent, MapTouchEvent } from "maplibre-gl";
 
 export class ImageViewerEvent {
   readonly type: string;

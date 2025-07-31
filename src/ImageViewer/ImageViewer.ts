@@ -9,7 +9,7 @@ type AllowedConstrcutorOptions = "container" | "apiKey" | "maxZoom" | "minZoom" 
 
 type ImageViewerConstructorOptions = Pick<MapOptions, AllowedConstrcutorOptions> & {
   imageUUID: string;
-  debug: boolean;
+  debug?: boolean;
   center?: [number, number];
 };
 
@@ -71,13 +71,21 @@ export default class ImageViewer extends Evented {
     return this.sdk.version;
   }
 
-  constructor(imageViewerConstructorOptions: ImageViewerConstructorOptions) {
+  constructor(imageViewerConstructorOptions: Partial<ImageViewerConstructorOptions>) {
     super();
+
+    if (!imageViewerConstructorOptions.imageUUID) {
+      throw new Error("[ImageViewer]: `imageUUID` is required");
+    }
+
+    if (typeof imageViewerConstructorOptions.container !== "string" && !(imageViewerConstructorOptions.container instanceof HTMLElement)) {
+      throw new Error("[ImageViewer]: `container` is required and must be a string or HTMLElement");
+    }
 
     this.options = {
       ...imageViewerDefaultOptions,
       ...imageViewerConstructorOptions,
-    };
+    } as ImageViewerConstructorOptions & { center: [number, number] };
 
     const sdkOptions = {
       ...this.options,
@@ -91,15 +99,16 @@ export default class ImageViewer extends Evented {
     this.sdk.telemetry.registerViewerType("ImageViewer");
 
     const { imageUUID, debug } = imageViewerConstructorOptions;
+
     this.imageUUID = imageUUID;
 
-    this.debug = debug;
+    this.debug = debug ?? false;
 
     if (this.debug) {
-      this.sdk.showTileBoundaries = debug;
-      this.sdk.showPadding = debug;
-      this.sdk.showCollisionBoxes = debug;
-      this.sdk.repaint = debug;
+      this.sdk.showTileBoundaries = this.debug;
+      this.sdk.showPadding = this.debug;
+      this.sdk.showCollisionBoxes = this.debug;
+      this.sdk.repaint = this.debug;
     }
 
     void this.init();
