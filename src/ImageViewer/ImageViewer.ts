@@ -1,7 +1,7 @@
 import type { DoubleClickZoomHandler, DragPanHandler, EaseToOptions, LngLat, PointLike, TwoFingersTouchZoomRotateHandler } from "maplibre-gl";
 import { FlyToOptions, MapDataEvent, MapOptions, JumpToOptions, MercatorCoordinate, ScrollZoomHandler, BoxZoomHandler, KeyboardHandler, CooperativeGesturesHandler } from "..";
 import { Map } from "../Map";
-import { Evented } from "@maptiler/sdk";
+import { Evented } from "../";
 import { setupGlobalMapEventForwarder } from "./events";
 import { FetchError } from "./utils";
 
