@@ -1039,11 +1039,6 @@ export class Map extends maplibregl.Map {
       console.error("[Map.setStyle]: Error while setting style:", e);
     }
 
-    // if it's a url or a uuid, it is of no use to us
-    if (typeof styleInfo.style === "string" || styleInfo.requiresUrlMonitoring) {
-      return this;
-    }
-
     const setSpaceAndHaloFromStyle = () => {
       const styleSpec = styleInfo.style as StyleSpecificationWithMetaData;
       if (!styleSpec.projection || styleSpec.projection.type === "mercator") {
@@ -1072,6 +1067,13 @@ export class Map extends maplibregl.Map {
         this.initHalo({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.halo });
       }
     };
+
+    // if it's a url or a uuid, it is of no use to us
+    if (typeof styleInfo.style === "string" || styleInfo.requiresUrlMonitoring) {
+      this.on("styledata", handleStyleLoad);
+
+      return this;
+    }
 
     if (this.styleInProcess) {
       // this handles setting space and halo from style on load
