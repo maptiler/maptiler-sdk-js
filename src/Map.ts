@@ -19,7 +19,6 @@ import type {
   ExpressionSpecification,
   SymbolLayerSpecification,
   AttributionControlOptions,
-  IControl,
 } from "maplibre-gl";
 import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
