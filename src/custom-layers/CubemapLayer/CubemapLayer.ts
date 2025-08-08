@@ -38,6 +38,12 @@ const defaultConstructorOptions: CubemapLayerConstructorOptions = cubemapPresets
  * @throws Error if an invalid preset name is provided.
  */
 function configureOptions(inputOptions: CubemapLayerConstructorOptions | true, defaults: CubemapLayerConstructorOptions) {
+  if (!validateSpaceSpecification(inputOptions)) {
+    return {
+      color: "transparent",
+    };
+  }
+
   if (inputOptions === true) {
     return defaults;
   }
@@ -214,7 +220,7 @@ class CubemapLayer implements CustomLayerInterface {
    * It creates a new Object3D instance with the specified vertex and fragment shaders,
    * attributes, and uniforms. The cubemap will be rendered using this configuration.
    */
-  public updateCubemap(): void {
+  public updateCubemap({ facesNeedUpdate }: { facesNeedUpdate: boolean } = { facesNeedUpdate: true }): void {
     this.useCubemapTexture = this.faces !== null;
     const uniformsKeys = UNIFORMS_KEYS.filter((uniformKey) => {
       if (uniformKey === "cubeSampler" || uniformKey === "fadeOpacity") {
@@ -237,7 +243,7 @@ class CubemapLayer implements CustomLayerInterface {
       indices: INDICES,
     });
 
-    this.cubeMapNeedsUpdate = true;
+    this.cubeMapNeedsUpdate = facesNeedUpdate;
 
     if (this.useCubemapTexture) {
       this.updateTexture(this.gl, this.faces!);
@@ -410,6 +416,10 @@ class CubemapLayer implements CustomLayerInterface {
    * @throws Error if the map, cubemap, or texture is undefined.
    */
   public render(gl: WebGLRenderingContext | WebGL2RenderingContext, _options: CustomRenderMethodInput): void {
+    if (!this.map.isGlobeProjection()) {
+      return;
+    }
+
     if (this.map === undefined) {
       throw new Error("[CubemapLayer]: Map is undefined");
     }
@@ -534,7 +544,9 @@ class CubemapLayer implements CustomLayerInterface {
     this.options = cubemap;
     const facesKey = JSON.stringify(cubemap.faces ?? cubemap.preset ?? cubemap.path);
 
-    if (this.currentFacesDefinitionKey !== facesKey) {
+    const facesNeedUpdate = this.currentFacesDefinitionKey !== facesKey;
+
+    if (facesNeedUpdate) {
       await this.setCubemapFaces(cubemap);
       this.cubeMapNeedsUpdate = true;
     }
@@ -543,12 +555,12 @@ class CubemapLayer implements CustomLayerInterface {
 
     if (cubemap.color && this.targetBgColor.toString() !== color.toString()) {
       this.setBgColor(color);
-    } else if (cubemap.preset && cubemap.preset in cubemapPresets) {
+    } else if (!cubemap.color && cubemap.preset && cubemap.preset in cubemapPresets) {
       const preset = cubemapPresets[cubemap.preset];
       this.setBgColor(parseColorStringToVec4(preset.color));
     }
 
-    this.updateCubemap();
+    this.updateCubemap({ facesNeedUpdate });
   }
 
   /**
@@ -568,6 +580,26 @@ class CubemapLayer implements CustomLayerInterface {
     // TODO in future we can ease / animate this
     this.map.setLayoutProperty(this.id, "visibility", "none");
   }
+}
+
+export function validateSpaceSpecification(space: CubemapDefinition | boolean): boolean {
+  if (typeof space === "boolean") {
+    return true;
+  }
+
+  if (!space.path && !space.preset && !space.faces && !space.color) {
+    return false;
+  }
+
+  if (space.preset && !(space.preset in cubemapPresets)) {
+    return false;
+  }
+
+  if (space.faces && (!space.faces.pX || !space.faces.nX || !space.faces.pY || !space.faces.nY || !space.faces.pZ || !space.faces.nZ)) {
+    return false;
+  }
+
+  return true;
 }
 
 /**

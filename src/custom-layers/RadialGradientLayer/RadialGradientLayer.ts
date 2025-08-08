@@ -38,7 +38,7 @@ const defaultConstructorOptions: RadialGradientLayerConstructorOptions = {
   ],
 };
 
-const DELTA_CHANGE = 0.075;
+const DELTA_CHANGE = 0.06;
 
 /**
  * A custom map layer that renders a radial gradient effect, typically used as a halo around a globe.
@@ -153,6 +153,15 @@ export class RadialGradientLayer implements CustomLayerInterface {
   }
 
   /**
+   * Returns the current gradient configuration of the radial gradient layer.
+   *
+   * @returns {GradientDefinition} The current gradient configuration.
+   */
+  public getConfig() {
+    return this.gradient;
+  }
+
+  /**
    * Animates the radial gradient into view by gradually scaling from 0 to the target scale.
    *
    * This method uses requestAnimationFrame to create a smooth scaling animation effect.
@@ -222,6 +231,10 @@ export class RadialGradientLayer implements CustomLayerInterface {
   public render(gl: WebGLRenderingContext | WebGL2RenderingContext, options: CustomRenderMethodInput): void {
     if (this.map === undefined) {
       throw new Error("[RadialGradientLayer]: Map is undefined");
+    }
+
+    if (!this.map.isGlobeProjection()) {
+      return;
     }
 
     if (this.plane === undefined) {
@@ -313,7 +326,17 @@ export class RadialGradientLayer implements CustomLayerInterface {
    */
   public async setGradient(gradient: GradientDefinition): Promise<void> {
     await this.animateOut();
-    this.gradient = gradient;
+    if (!validateHaloSpecification(gradient)) {
+      this.gradient.scale = defaultConstructorOptions.scale;
+      this.gradient.stops = [
+        [0, "transparent"],
+        [1, "transparent"],
+      ];
+      return;
+    }
+    this.gradient.scale = gradient.scale ?? defaultConstructorOptions.scale;
+    this.gradient.stops = gradient.stops ?? defaultConstructorOptions.stops;
+
     await this.animateIn();
   }
 
@@ -326,4 +349,26 @@ export class RadialGradientLayer implements CustomLayerInterface {
     // TODO in future we can ease / animate this
     this.map.setLayoutProperty(this.id, "visibility", "none");
   }
+}
+
+export function validateHaloSpecification(halo: RadialGradientLayerConstructorOptions | boolean): boolean {
+  if (typeof halo === "boolean") {
+    return true;
+  }
+
+  if (typeof halo.scale !== "number") {
+    return false;
+  }
+
+  // this is testing external data so we need to check
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (!halo.stops || halo.stops.length === 0) {
+    return false;
+  }
+
+  if (halo.stops.some((stop) => typeof stop[0] !== "number" || typeof stop[1] !== "string")) {
+    return false;
+  }
+
+  return true;
 }
