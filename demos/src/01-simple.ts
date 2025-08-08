@@ -4,7 +4,7 @@ import { addPerformanceStats, setupMapTilerApiKey } from "./demo-utils";
 addPerformanceStats();
 setupMapTilerApiKey({ config });
 
-const container = document.getElementById("map") as HTMLElement;
+const container = document.getElementById("map")!;
 
 const map = new Map({
   container,
@@ -16,6 +16,9 @@ const map = new Map({
   terrainControl: true,
   projectionControl: true,
 });
+
+// @ts-expect-error - We need to set the map on the window for the event forwarder to work
+window.__map = map;
 
 const styleDropDown = document.getElementById("mapstyles-picker") as HTMLOptionElement;
 
