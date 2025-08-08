@@ -1,19 +1,22 @@
-import { MapDataEvent, MapMouseEvent, MapWheelEvent } from "../";
 import { Map } from "../Map";
 import ImageViewer from "./ImageViewer";
-import type { LngLat, MapContextEvent, MapLibreEvent, MapTouchEvent } from "maplibre-gl";
+import type { LngLat, MapEventType } from "maplibre-gl";
 
 export class ImageViewerEvent {
   readonly type: string;
   readonly target: ImageViewer;
   readonly originalEvent: MouseEvent | TouchEvent | WheelEvent | WebGLContextEvent | null;
-  readonly data?: Record<string, any>;
 
-  constructor(type: string, viewer: ImageViewer, originalEvent?: MouseEvent | TouchEvent | WheelEvent | WebGLContextEvent | null, data?: Record<string, any>) {
+  [key: string]: any;
+
+  constructor(type: string, viewer: ImageViewer, originalEvent?: MouseEvent | TouchEvent | WheelEvent | WebGLContextEvent | null, data: Record<string, any> = {}) {
     this.type = type;
     this.target = viewer;
     this.originalEvent = originalEvent ?? null;
-    this.data = data;
+
+    Object.entries(data).forEach(([key, value]) => {
+      this[key] = value;
+    });
   }
 }
 
@@ -23,28 +26,23 @@ const BASE_MAP_EVENT_TYPES = [
   "render",
   "load",
   "remove",
-
-  "content",
-  "visibility",
   "idle",
-];
+
+  // these are fired on layers, not the map,
+  // keeping them for reference
+  // "content",
+  // "visibility",
+] as const;
 
 const ERROR_EVENTS = [
   "error", // ErrorEvent
-];
+] as const;
 
-const RESIZE_EVENTS = [
-  "resize", // { type, target} & { 0: ResizeObserverEntry }
-];
+const RESIZE_EVENTS = ["resize"] as const;
 
-const WEBGL_CONTEXT_EVENTS = [
-  // { type, target, originalEvent }: { type: string, target: Map, originalEvent: WebGLContextEvent }
-  "webglcontextlost",
-  "webglcontextrestored",
-];
+const WEBGL_CONTEXT_EVENTS = ["webglcontextlost", "webglcontextrestored"] as const;
 
 const CAMERA_EVENTS = [
-  // { type, target, originalEvent }: { type: string, target: Map, originalEvent: MouseEvent | TouchEvent | WheelEvent | undefined }
   "moveend",
   "movestart",
   "move",
@@ -57,45 +55,28 @@ const CAMERA_EVENTS = [
   "dragstart",
   "dragend",
   "drag",
-  // ?
   "boxzoomcancel",
   "boxzoomend",
   "boxzoomstart",
-];
+] as const;
 
-const UI_EVENTS = [
-  // { type, target, originalEvent }: { type: string, target: Map, originalEvent: MouseEvent | TouchEvent | WheelEvent | undefined }
-  "click",
-  "dblclick",
-  "mousedown",
-  "mouseup",
-  "mousemove",
-  "mouseenter",
-  "mouseleave",
-  "mouseout",
-  "mouseover",
-  "contextmenu",
-  "wheel",
-  "touchstart",
-  "touchend",
-  "touchmove",
-  "touchcancel",
-];
+const UI_EVENTS = ["click", "dblclick", "mousedown", "mouseup", "mousemove", "mouseout", "mouseover", "contextmenu", "touchstart", "touchend", "touchmove", "touchcancel"] as const;
 
-const COOPERATIVE_GESTURE_EVENTS = ["cooperativegestureprevented"];
+const COOPERATIVE_GESTURE_EVENTS = ["cooperativegestureprevented"] as const;
 
 const DATA_EVENTS = [
-  // MapDataEvent
-  "metadata",
   "data",
   "dataloading",
   "sourcedata",
   "sourcedataloading",
   "dataabort",
   "sourcedataabort",
-];
+  // this is fired on layers, not the map
+  // keeping it for reference
+  // "metadata",
+] as const;
 
-export const ALL_MAP_EVENT_TYPES = [
+export const IMAGE_VIEWER_EVENT_TYPES = [
   ...BASE_MAP_EVENT_TYPES,
   ...ERROR_EVENTS,
   ...RESIZE_EVENTS,
@@ -106,8 +87,29 @@ export const ALL_MAP_EVENT_TYPES = [
   ...COOPERATIVE_GESTURE_EVENTS,
 ];
 
+type BaseMapEventKeys = (typeof BASE_MAP_EVENT_TYPES)[number];
+type UiEventKeys = (typeof UI_EVENTS)[number];
+type CameraEventKeys = (typeof CAMERA_EVENTS)[number];
+type ErrorEventKeys = (typeof ERROR_EVENTS)[number];
+type ResizeEventKeys = (typeof RESIZE_EVENTS)[number];
+type WebglContextEventKeys = (typeof WEBGL_CONTEXT_EVENTS)[number];
+type DataEventKeys = (typeof DATA_EVENTS)[number];
+type CooperativeGestureEventKeys = (typeof COOPERATIVE_GESTURE_EVENTS)[number];
+
+export type ImageViewerEventTypes =
+  | BaseMapEventKeys
+  | UiEventKeys
+  | CameraEventKeys
+  | ErrorEventKeys
+  | ResizeEventKeys
+  | WebglContextEventKeys
+  | DataEventKeys
+  | CooperativeGestureEventKeys
+  | "imageviewerready"
+  | "imagevieweriniterror";
+
 // Properties to exclude when forwarding events
-const FORBIDDEN_EVENT_VALUES = ["lngLat"];
+const FORBIDDEN_EVENT_VALUES = ["lngLat", "_defaultPrevented"];
 
 type LngLatToPixel = (lngLat: LngLat) => [number, number];
 
@@ -119,81 +121,99 @@ interface SetupGlobalMapEventForwarderOptions {
 
 /**
  * Sets up event forwarding from Map to ImageViewer with proper categorization
+ * @param {SetupGlobalMapEventForwarderOptions} options - The options for setting up the event forwarder.
+ * @param {Map} options.map - The map to forward events from.
+ * @param {ImageViewer} options.viewer - The viewer to forward events to.
+ * @param {LngLatToPixel} options.lngLatToPx - A function to convert LngLat to pixel coordinates.
+ * @returns {void}
  */
 export function setupGlobalMapEventForwarder({ map, viewer, lngLatToPx }: SetupGlobalMapEventForwarderOptions): void {
-  ALL_MAP_EVENT_TYPES.forEach((eventType) => {
+  IMAGE_VIEWER_EVENT_TYPES.forEach((eventType: Exclude<ImageViewerEventTypes, "imageviewerready" | "imagevieweriniterror">) => {
     try {
-      map.on(eventType, (e: any) => {
+      map.on(eventType, (e: MapEventType[Exclude<ImageViewerEventTypes, "imageviewerready" | "imagevieweriniterror">]) => {
         // Handle UI Events (mouse/touch interactions with coordinate transformation)
-        if ([...UI_EVENTS, ...CAMERA_EVENTS].includes(eventType)) {
-          if (e instanceof MapMouseEvent) {
-            const event = e as MapMouseEvent | MapTouchEvent;
-            const px = lngLatToPx(event.lngLat);
-            const data = Object.entries(e).reduce(
-              (acc, [key, value]) => {
-                if (FORBIDDEN_EVENT_VALUES.includes(key)) {
-                  return acc;
-                }
-                return {
-                  ...acc,
-                  [key]: value,
-                };
-              },
-              {
-                imageX: px[0],
-                imageY: px[1],
-              },
-            );
-            viewer.fire(new ImageViewerEvent(eventType, viewer, event.originalEvent, data));
-          } else {
-            const event = e as MapWheelEvent;
-            // UI event without coordinates (eg fullscreen, resize)
-            viewer.fire(new ImageViewerEvent(eventType, viewer, event.originalEvent));
-          }
+        const uiEventName = eventType as UiEventKeys;
+        if (UI_EVENTS.includes(uiEventName)) {
+          const event = e as MapEventType[UiEventKeys];
+          const px = event.lngLat && lngLatToPx(event.lngLat);
+          const data = Object.entries(e).reduce(
+            (acc, [key, value]) => {
+              if (FORBIDDEN_EVENT_VALUES.includes(key)) {
+                return acc;
+              }
+              return {
+                ...acc,
+                [key]: value,
+              };
+            },
+            {
+              imageX: px[0],
+              imageY: px[1],
+            },
+          );
+          viewer.fire(new ImageViewerEvent(eventType, viewer, event.originalEvent, data));
+
           return;
         }
 
-        if (ERROR_EVENTS.includes(eventType)) {
-          const event = e as ErrorEvent;
+        // CAMERA_EVENTS
+        const cameraEventName = eventType as CameraEventKeys;
+        if (CAMERA_EVENTS.includes(cameraEventName)) {
+          const event = e as MapEventType[CameraEventKeys];
+          viewer.fire(new ImageViewerEvent(eventType, viewer, event.originalEvent, event));
+          return;
+        }
+
+        // ERROR_EVENTS
+        const errorEventName = eventType as ErrorEventKeys;
+        if (ERROR_EVENTS.includes(errorEventName)) {
+          const event = e as MapEventType[ErrorEventKeys];
           viewer.fire(new ImageViewerEvent(eventType, viewer, null, event));
           return;
         }
 
-        if (RESIZE_EVENTS.includes(eventType)) {
-          const event = e as ResizeObserverEntry;
+        // RESIZE_EVENTS
+        const resizeEventName = eventType as ResizeEventKeys;
+        if (RESIZE_EVENTS.includes(resizeEventName)) {
+          const event = e as MapEventType[ResizeEventKeys];
           viewer.fire(new ImageViewerEvent(eventType, viewer, null, event));
           return;
         }
 
-        if (WEBGL_CONTEXT_EVENTS.includes(eventType)) {
-          const event = e as MapContextEvent;
+        // WEBGL_CONTEXT_EVENTS
+        const webglContextEventName = eventType as WebglContextEventKeys;
+        if (WEBGL_CONTEXT_EVENTS.includes(webglContextEventName)) {
+          const event = e as MapEventType[WebglContextEventKeys];
           viewer.fire(new ImageViewerEvent(eventType, viewer, event.originalEvent, event));
           return;
         }
 
         // Data Events
         // only pass data
-        if (DATA_EVENTS.includes(eventType)) {
-          const event = e as MapDataEvent;
+        const dataEventName = eventType as DataEventKeys;
+        if (DATA_EVENTS.includes(dataEventName)) {
+          const event = e as MapEventType[DataEventKeys];
           viewer.fire(new ImageViewerEvent(eventType, viewer, null, event));
           return;
         }
 
         // Handle Cooperative Gesture Events
-        if (COOPERATIVE_GESTURE_EVENTS.includes(eventType)) {
-          const event = e as MapLibreEvent<WheelEvent | TouchEvent>;
+        const cooperativeGestureEventName = eventType as CooperativeGestureEventKeys;
+        if (COOPERATIVE_GESTURE_EVENTS.includes(cooperativeGestureEventName)) {
+          const event = e as MapEventType[CooperativeGestureEventKeys];
           viewer.fire(new ImageViewerEvent(eventType, viewer, null, event));
           return;
         }
 
         // Handle Base Map Events (no additional data)
-        if (BASE_MAP_EVENT_TYPES.includes(eventType)) {
+        const baseMapEventName = eventType as BaseMapEventKeys;
+        if (BASE_MAP_EVENT_TYPES.includes(baseMapEventName)) {
           viewer.fire(new ImageViewerEvent(eventType, viewer));
           return;
         }
       });
     } catch (e) {
-      console.error("Error forwarding event", eventType, e);
+      console.error(`Error forwarding event to ImageViewer, event of type "${eventType}" is not supported`, e);
     }
   });
 }

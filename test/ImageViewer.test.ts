@@ -70,6 +70,9 @@ vi.mock("../src/Map", async () => {
         triggerRepaint: vi.fn(),
         loaded: vi.fn(() => true),
         remove: vi.fn(),
+        transform: {
+          getConstrained: vi.fn(),
+        },
         telemetry: {
           registerViewerType: vi.fn(),
         },
@@ -138,23 +141,23 @@ describe("ImageViewer", () => {
     vi.clearAllMocks();
 
     // Setup smart fetch mock that returns appropriate fixture data
-    mockFetch.mockImplementation(async (url: string | URL) => {
+    mockFetch.mockImplementation((url: string | URL) => {
       const urlString = url.toString();
 
       // Handle JSON metadata requests
       if (urlString.includes("image.json")) {
-        return {
+        return Promise.resolve({
           ok: true,
           status: 200,
           statusText: "OK",
           url: urlString,
-          json: async () => fixtureImageMetadata,
-        };
+          json: async () => await Promise.resolve(fixtureImageMetadata),
+        });
       }
 
       // Handle image tile requests (/{z}/{x}/{y} pattern)
       if (/\/\d+\/\d+\/\d+$/.exec(urlString)) {
-        return {
+        return Promise.resolve({
           ok: true,
           status: 200,
           statusText: "OK",
@@ -165,18 +168,19 @@ describe("ImageViewer", () => {
               return null;
             },
           },
-          arrayBuffer: async () => fixtureImageBuffer.buffer.slice(fixtureImageBuffer.byteOffset, fixtureImageBuffer.byteOffset + fixtureImageBuffer.byteLength),
-          blob: async () => new Blob([fixtureImageBuffer], { type: "image/png" }),
-        };
+          arrayBuffer: async () =>
+            await Promise.resolve(fixtureImageBuffer.buffer.slice(fixtureImageBuffer.byteOffset, fixtureImageBuffer.byteOffset + fixtureImageBuffer.byteLength)),
+          blob: async () => await Promise.resolve(new Blob([fixtureImageBuffer], { type: "image/png" })),
+        });
       }
 
       // Default to not found
-      return {
+      return Promise.resolve({
         ok: false,
         status: 404,
         statusText: "Not Found",
         url: urlString,
-      };
+      });
     });
   });
 
@@ -279,7 +283,7 @@ describe("ImageViewer", () => {
         maxzoom: 18,
         minzoom: 0,
         tileSize: 512,
-        tiles: ["http://localhost:4321/test-uuid/{z}/{x}/{y}"],
+        tiles: ["https://api.maptiler.com/images/test-uuid/{z}/{x}/{y}?key="],
         type: "raster",
         width: 5120,
       });
@@ -394,8 +398,8 @@ describe("ImageViewer", () => {
       viewer.setCenter([512, 512]);
 
       expect(mockMapInstance.setCenter).toHaveBeenCalledWith({
-        lat: 85.05112877980659,
-        lng: -180,
+        lat: 55.776573018667705,
+        lng: -67.5,
       });
 
       const viewerCenter = viewer.getCenter();
@@ -415,6 +419,7 @@ describe("ImageViewer", () => {
       viewer.flyTo({
         center: [100, 200],
         zoom: 2,
+        bearing: 10,
       });
 
       expect(mockMapInstance.flyTo).toHaveBeenCalledWith(
@@ -424,7 +429,7 @@ describe("ImageViewer", () => {
             lng: -175.60546875,
           }),
           zoom: 2,
-          bearing: 0,
+          bearing: 10,
           pitch: 0,
         }),
         undefined,
@@ -435,6 +440,7 @@ describe("ImageViewer", () => {
       viewer.jumpTo({
         center: [100, 200],
         zoom: 3,
+        bearing: 123
       });
 
       expect(mockMapInstance.jumpTo).toHaveBeenCalledWith(
@@ -444,7 +450,7 @@ describe("ImageViewer", () => {
             lat: 84.23194746223982,
           }),
           zoom: 3,
-          bearing: 0,
+          bearing: 123,
           pitch: 0,
         }),
         undefined,
@@ -458,7 +464,8 @@ describe("ImageViewer", () => {
 
     it("should handle panTo operations", () => {
       viewer.panTo([150, 250]);
-      expect(mockMapInstance.panTo).toHaveBeenCalledWith(expect.objectContaining({
+      expect(mockMapInstance.panTo).toHaveBeenCalledWith(
+        expect.objectContaining({
           lat: 84.00685244708399,
           lng: -173.408203125,
         }),
@@ -561,7 +568,8 @@ describe("ImageViewer", () => {
       expect(event.type).toBe("click");
       expect(event.target).toBe(viewer);
       expect(event.originalEvent).toBe(mouseEvent);
-      expect(event.data).toBe(data);
+      expect(event.x).toBe(100);
+      expect(event.y).toBe(200);
     });
 
     it("should handle null originalEvent", async () => {

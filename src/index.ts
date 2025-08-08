@@ -252,7 +252,7 @@ export {
   getLanguageInfoFromCode,
   getLanguageInfoFromKey,
 } from "@maptiler/client";
-export { default as ImageViewer } from "./ImageViewer/ImageViewer";
+export * from "./ImageViewer";
 export { getWebGLSupportError, displayWebGLContextLostWarning } from "./tools";
 export { config, SdkConfig } from "./config";
 export * from "./language";

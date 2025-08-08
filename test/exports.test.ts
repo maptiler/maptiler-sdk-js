@@ -131,6 +131,8 @@ const expectedExports = Array.from(
     "KeyboardHandlerMLGL",
     "TwoFingersTouchPitchHandlerMLGL",
     "MapWheelEventMLGL",
+    "ImageViewer",
+    "ImageViewerEvent",
     "MapTouchEventMLGL",
     "MapMouseEventMLGL",
     ...Object.keys(language),

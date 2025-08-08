@@ -2,44 +2,32 @@ import type { DoubleClickZoomHandler, DragPanHandler, EaseToOptions, LngLat, Poi
 import { FlyToOptions, MapDataEvent, MapOptions, JumpToOptions, MercatorCoordinate, ScrollZoomHandler, BoxZoomHandler, KeyboardHandler, CooperativeGesturesHandler } from "..";
 import { Map } from "../Map";
 import MapLibre from "maplibre-gl";
-import { setupGlobalMapEventForwarder } from "./events";
+import { ImageViewerEvent, setupGlobalMapEventForwarder } from "./events";
 import { FetchError } from "./utils";
+import { config } from "..";
+import { monkeyPatchMapTransformInstance } from "./monkeyPatchML";
 
-type AllowedConstrcutorOptions = "container" | "apiKey" | "maxZoom" | "minZoom" | "zoom" | "bearing";
+//#region types
+
+export type AllowedConstrcutorOptions = "container" | "apiKey" | "maxZoom" | "minZoom" | "zoom" | "bearing";
 
 const Evented = MapLibre.Evented;
 
-type ImageViewerConstructorOptions = Pick<MapOptions, AllowedConstrcutorOptions> & {
+export type ImageViewerFlyToOptions = Omit<FlyToOptions, "pitch"> & {
+  center: [number, number];
+};
+
+export type ImageViewerJumpToOptions = Omit<JumpToOptions, "pitch"> & {
+  center: [number, number];
+};
+
+export type ImageViewerConstructorOptions = Pick<MapOptions, AllowedConstrcutorOptions> & {
   imageUUID: string;
   debug?: boolean;
   center?: [number, number];
 };
 
-const overrideOptions: Partial<MapOptions> = {
-  style: {
-    version: 8,
-    sources: {},
-    layers: [],
-  },
-  minPitch: 0,
-  maxPitch: 0,
-  pitch: 0,
-  bearing: 0,
-  center: [0, 0],
-  projection: "mercator",
-  projectionControl: false,
-  geolocateControl: false,
-  hash: false,
-  renderWorldCopies: false,
-  terrain: false,
-};
-
-const imageViewerDefaultOptions: Partial<ImageViewerConstructorOptions> = {
-  debug: false,
-  center: [0, 0],
-};
-
-type ImageMetadata = {
+export type ImageMetadata = {
   id: string;
   description: string;
   attribution: string;
@@ -50,9 +38,62 @@ type ImageMetadata = {
   tileSize: number;
 };
 
+//#region overrideOptions
+/**
+ * These options cannot be changed externally.
+ *
+ * @internal
+ * @type {Partial<MapOptions>}
+ */
+const overrideOptions: Partial<MapOptions> = {
+  style: {
+    version: 8,
+    sources: {},
+    layers: [],
+  },
+  minPitch: 0,
+  maxPitch: 0,
+  pitch: 0,
+  bearing: 0,
+  projection: "mercator",
+  projectionControl: false,
+  geolocateControl: false,
+  hash: false,
+  renderWorldCopies: false,
+  terrain: false,
+  space: false,
+  halo: false,
+};
+
+//#region imageViewerDefaultOptions
+const imageViewerDefaultOptions: Partial<ImageViewerConstructorOptions> = {
+  debug: false,
+};
+
+//#region ImageViewer
 export default class ImageViewer extends Evented {
+  /**
+   * The UUID of the image.
+   *
+   * @internal
+   * @type {string}
+   */
   private imageUUID: string;
+
+  /**
+   * Whether to enable debug mode.
+   *
+   * @internal
+   * @type {boolean}
+   */
   private debug: boolean;
+
+  /**
+   * The metadata of the image.
+   *
+   * @internal
+   * @type {ImageMetadata}
+   */
   private imageMetadata?: ImageMetadata;
 
   /**
@@ -64,15 +105,46 @@ export default class ImageViewer extends Evented {
    */
   private sdk: Map;
 
-  private options: ImageViewerConstructorOptions & { center: [number, number] };
+  /**
+   * The options for the ImageViewer.
+   *
+   * @internal
+   * @type {ImageViewerConstructorOptions & { center?: [number, number] }}
+   */
+  private options: ImageViewerConstructorOptions & { center?: [number, number] };
 
+  /**
+   * The size of the image.
+   *
+   * @internal
+   * @type {[number, number]}
+   */
   private imageSize?: [number, number];
+
+  /**
+   * The padded size max.
+   *
+   * @internal
+   * @type {number}
+   */
   private paddedSizeMax?: number;
 
+  /**
+   * The version of the ImageViewer.
+   *
+   * @internal
+   * @type {string}
+   */
   get version() {
     return this.sdk.version;
   }
 
+  //#region constructor
+  /**
+   * The constructor for the ImageViewer.
+   *
+   * @param {Partial<ImageViewerConstructorOptions>} imageViewerConstructorOptions - The options for the ImageViewer.
+   */
   constructor(imageViewerConstructorOptions: Partial<ImageViewerConstructorOptions>) {
     super();
 
@@ -87,16 +159,14 @@ export default class ImageViewer extends Evented {
     this.options = {
       ...imageViewerDefaultOptions,
       ...imageViewerConstructorOptions,
-    } as ImageViewerConstructorOptions & { center: [number, number] };
+    } as ImageViewerConstructorOptions & { center?: [number, number] };
 
     const sdkOptions = {
       ...this.options,
       ...overrideOptions,
     };
 
-    const sdk = new Map(sdkOptions);
-
-    this.sdk = sdk;
+    this.sdk = new Map(sdkOptions);
 
     this.sdk.telemetry.registerViewerType("ImageViewer");
 
@@ -116,13 +186,24 @@ export default class ImageViewer extends Evented {
     void this.init();
   }
 
+  //#region onReadyAsync
+  /**
+   * Waits for the ImageViewer to be ready.
+   *
+   * @returns {Promise<void>}
+   */
   async onReadyAsync() {
     try {
       await this.sdk.onReadyAsync();
       await Promise.race([
         new Promise((resolve, reject) => {
-          this.on("imageviewerready", resolve);
-          this.on("imagevieweriniterror", (e: { error: Error }) => reject(e.error));
+          this.on("imageviewerinit", (e) => {
+            this.fire("imageviewerready", new ImageViewerEvent("imageviewerready", this));
+            resolve(e);
+          });
+          this.on("imagevieweriniterror", (e: { error: Error }) => {
+            reject(e.error);
+          });
         }),
         new Promise((_, reject) => {
           setTimeout(() => {
@@ -135,7 +216,20 @@ export default class ImageViewer extends Evented {
     }
   }
 
-  async init() {
+  //#region init
+  /**
+   * Initializes the ImageViewer
+   *  - fetches the image metadata
+   *  - adds the image source to the sdk instance
+   *  - sets the center to the middle of the image (if center is not provided)
+   *  - monkeypatches the maplibre-gl sdk transform method to allow for overpanning and underzooming.
+   *  - sets up global event forwarding / intercepting from the map instance
+   *  - sets the center to the middle of the image (if center is not provided)
+   *
+   * @internal
+   * @returns {Promise<void>}
+   */
+  private async init() {
     try {
       await this.fetchImageMetadata();
 
@@ -147,15 +241,25 @@ export default class ImageViewer extends Evented {
         lngLatToPx: (lngLat: LngLat) => this.lngLatToPx(lngLat),
       });
 
+      monkeyPatchMapTransformInstance(this.sdk);
+
       const { center } = this.options;
-      this.setCenter(center);
-      this.fire("imageviewerready");
+      const initCenter = center ?? [(this.imageMetadata?.width ?? 0) / 2, (this.imageMetadata?.height ?? 0) / 2];
+      this.setCenter(initCenter);
+      this.fire("imageviewerinit");
     } catch (e) {
       this.fire("imagevieweriniterror", { error: e });
     }
   }
 
-  async fetchImageMetadata() {
+  //#region fetchImageMetadata
+  /**
+   * Fetches the image metadata from the API.
+   *
+   * @internal
+   * @returns {Promise<void>}
+   */
+  private async fetchImageMetadata() {
     const url = buildImageMetadataURL(this.imageUUID);
     const response = await fetch(url);
 
@@ -168,8 +272,16 @@ export default class ImageViewer extends Evented {
     this.imageMetadata = data;
   }
 
-  addImageSource() {
+  //#region addImageSource
+  /**
+   * Adds the image source to the sdk instance.
+   *
+   * @internal
+   * @returns {void}
+   */
+  private addImageSource() {
     if (!this.imageMetadata) {
+      this.fire("error", new ImageViewerEvent("error", this, null, { error: new Error("[ImageViewer]: Image metadata not found") }));
       throw new Error("[ImageViewer]: Image metadata not found");
     }
 
@@ -198,154 +310,333 @@ export default class ImageViewer extends Evented {
     });
   }
 
+  //#region SDK mappings
+  /**
+   * Triggers a repaint of the ImageViewer. Same as map.triggerRepaint().
+   *
+   * @internal
+   * @returns {void}
+   */
   triggerRepaint() {
     this.sdk.triggerRepaint();
   }
-
+  /**
+   * The scroll zoom handler.
+   *
+   * @internal
+   * @returns {ScrollZoomHandler}
+   */
   get scrollZoom() {
     return this.sdk.scrollZoom;
   }
 
+  /**
+   * The scroll zoom handler.
+   *
+   * @internal
+   * @param {ScrollZoomHandler} value - The scroll zoom handler.
+   */
   set scrollZoom(value: ScrollZoomHandler) {
     this.sdk.scrollZoom = value;
   }
 
+  /**
+   * The box zoom handler.
+   *
+   * @internal
+   * @returns {BoxZoomHandler}
+   */
   get boxZoom() {
     return this.sdk.boxZoom;
   }
 
+  /**
+   * The box zoom handler.
+   *
+   * @internal
+   * @param {BoxZoomHandler} value - The box zoom handler.
+   */
   set boxZoom(value: BoxZoomHandler) {
     this.sdk.boxZoom = value;
   }
 
+  /**
+   * The drag pan handler.
+   *
+   * @internal
+   * @returns {DragPanHandler}
+   */
   get dragPan() {
     return this.sdk.dragPan;
   }
 
+  /**
+   * The drag pan handler.
+   *
+   * @internal
+   * @param {DragPanHandler} value - The drag pan handler.
+   */
   set dragPan(value: DragPanHandler) {
     this.sdk.dragPan = value;
   }
 
+  /**
+   * The keyboard handler.
+   *
+   * @internal
+   * @returns {KeyboardHandler}
+   */
   get keyboard() {
     return this.sdk.keyboard;
   }
 
+  /**
+   * The keyboard handler.
+   *
+   * @internal
+   * @param {KeyboardHandler} value - The keyboard handler.
+   */
   set keyboard(value: KeyboardHandler) {
     this.sdk.keyboard = value;
   }
 
+  /**
+   * The double click zoom handler.
+   *
+   * @internal
+   * @returns {DoubleClickZoomHandler}
+   */
   get doubleClickZoom() {
     return this.sdk.doubleClickZoom;
   }
 
+  /**
+   * The double click zoom handler.
+   *
+   * @internal
+   * @param {DoubleClickZoomHandler} value - The double click zoom handler.
+   */
   set doubleClickZoom(value: DoubleClickZoomHandler) {
     this.sdk.doubleClickZoom = value;
   }
 
+  /**
+   * The touch zoom rotate handler.
+   *
+   * @internal
+   * @returns {TwoFingersTouchZoomRotateHandler}
+   */
   get touchZoomRotate() {
     return this.sdk.touchZoomRotate;
   }
 
+  /**
+   * The touch zoom rotate handler.
+   *
+   * @internal
+   * @param {TwoFingersTouchZoomRotateHandler} value - The touch zoom rotate handler.
+   */
   set touchZoomRotate(value: TwoFingersTouchZoomRotateHandler) {
     this.sdk.touchZoomRotate = value;
   }
 
+  /**
+   * The cooperative gestures handler.
+   *
+   * @internal
+   * @returns {CooperativeGesturesHandler}
+   */
   get cooperativeGestures() {
     return this.sdk.cooperativeGestures;
   }
 
+  /**
+   * The cooperative gestures handler.
+   *
+   * @internal
+   * @param {CooperativeGesturesHandler} value - The cooperative gestures handler.
+   */
   set cooperativeGestures(value: CooperativeGesturesHandler) {
     this.sdk.cooperativeGestures = value;
   }
 
+  //#endregion SDK Mappings
+
+  //#region lngLatToPx
+  /**
+   * Converts a LngLat to a px coordinate, based on the image metadata.
+   *
+   * @internal
+   * @param {LngLat} lngLat - The LngLat to convert.
+   * @returns {[number, number]} The px coordinate.
+   */
   private lngLatToPx(lngLat: LngLat) {
     if (!this.paddedSizeMax) {
-      throw new Error("[ImageViewer]: Padded size max not set");
+      const msg = "[ImageViewer]: Unable to convert LngLat to px, padded size max not set";
+      this.fire("error", new ImageViewerEvent("error", this, null, { error: new Error(msg) }));
+      throw new Error(msg);
     }
     const merc = MercatorCoordinate.fromLngLat(lngLat.wrap());
     return [merc.x * this.paddedSizeMax, merc.y * this.paddedSizeMax] as [number, number];
   }
 
+  //#region pxToLngLat
+  /**
+   * Converts a px coordinate to a LngLat, based on the image metadata.
+   *
+   * @internal
+   * @param {LngLat} lngLat - The LngLat to convert.
+   * @returns {[number, number]} The px coordinate.
+   */
   private pxToLngLat(px: [number, number]) {
     if (!this.paddedSizeMax) {
-      throw new Error("[ImageViewer]: Padded size max not set");
+      const msg = "[ImageViewer]: Unable to convert px to LngLat, padded size max not set";
+      this.fire("error", new ImageViewerEvent("error", this, null, { error: new Error(msg) }));
+      throw new Error(msg);
     }
 
     const merc = new MercatorCoordinate(px[0] / this.paddedSizeMax, px[1] / this.paddedSizeMax);
     return merc.toLngLat() as LngLat;
   }
 
-  flyTo(options: Omit<ImageViewerFlyToOptions, "bearing" | "pitch">, eventData?: MapDataEvent) {
+  //#region flyTo
+  /**
+   * Fly to a given center.
+   *
+   * @internal
+   * @param {Omit<ImageViewerFlyToOptions, "pitch">} options - The options for the fly to.
+   * @param {MapDataEvent} eventData - The event data.
+   */
+  flyTo(options: Omit<ImageViewerFlyToOptions, "pitch">, eventData?: MapDataEvent) {
     const lngLat = this.pxToLngLat(options.center);
-    return this.sdk.flyTo({ ...options, bearing: 0, pitch: 0, center: lngLat }, eventData);
+    return this.sdk.flyTo({ ...options, pitch: 0, center: lngLat }, eventData);
   }
 
-  jumpTo(options: Omit<ImageViewerJumpToOptions, "bearing" | "pitch">, eventData?: MapDataEvent) {
+  //#region jumpTo
+  /**
+   * Jump to a given center.
+   *
+   * @internal
+   * @param {Omit<ImageViewerJumpToOptions, "pitch">} options - The options for the jump to.
+   * @param {MapDataEvent} eventData - The event data.
+   */
+  jumpTo(options: Omit<ImageViewerJumpToOptions, "pitch">, eventData?: MapDataEvent) {
     const lngLat = this.pxToLngLat(options.center);
-    return this.sdk.jumpTo({ ...options, bearing: 0, pitch: 0, center: lngLat }, eventData);
+    return this.sdk.jumpTo({ ...options, pitch: 0, center: lngLat }, eventData);
   }
 
+  //#region setZoom
+  /**
+   * Set the zoom level.
+   *
+   * @internal
+   * @param {number} zoom - The zoom level.
+   */
   setZoom(zoom: number) {
     this.sdk.setZoom(zoom);
   }
 
+  //#region getZoom
+  /**
+   * Get the zoom level.
+   *
+   * @internal
+   * @returns {number} The zoom level.
+   */
   getZoom() {
     return this.sdk.getZoom();
   }
 
+  //#region getCenter
+  /**
+   * Get the center of the ImageViewer.
+   *
+   * @internal
+   * @returns {[number, number]} The center of the ImageViewer.
+   */
   getCenter() {
     const centerLngLat = this.sdk.getCenter();
     const centerPx = this.lngLatToPx(centerLngLat);
     return centerPx;
   }
 
+  //#region setCenter
+  /**
+   * Set the center of the ImageViewer.
+   *
+   * @internal
+   * @param {number} center - The center of the ImageViewer.
+   */
   setCenter(center: [number, number]) {
     this.sdk.setCenter(this.pxToLngLat(center));
   }
 
+  //#region setBearing
+  /**
+   * Set the bearing of the ImageViewer.
+   *
+   * @internal
+   * @param {number} bearing - The bearing of the ImageViewer.
+   */
   setBearing(bearing: number) {
     this.sdk.setBearing(bearing);
   }
 
+  //#region getBearing
+  /**
+   * Get the bearing of the ImageViewer.
+   *
+   * @internal
+   * @returns {number} The bearing of the ImageViewer.
+   */
   getBearing() {
     return this.sdk.getBearing();
   }
 
+  //#region panBy
+  /**
+   * Pan by a given delta.
+   *
+   * @internal
+   * @param {PointLike} delta - The delta to pan by.
+   * @param {EaseToOptions} options - The options for the pan.
+   * @param {any} eventData - The event data.
+   */
   panBy(delta: PointLike, options?: EaseToOptions, eventData?: any) {
     this.sdk.panBy(delta, options, eventData);
   }
 
+  //#region panTo
+  /**
+   * Pan to a given center.
+   *
+   * @internal
+   * @param {number} center - The center to pan to.
+   * @param {EaseToOptions} options - The options for the pan.
+   * @param {any} eventData - The event data.
+   */
   panTo(center: [number, number], options?: EaseToOptions, eventData?: any) {
     this.sdk.panTo(this.pxToLngLat(center), options, eventData);
   }
 }
 
-type ImageViewerFlyToOptions = Omit<FlyToOptions, "bearing" | "pitch"> & {
-  center: [number, number];
-};
-
-type ImageViewerJumpToOptions = Omit<JumpToOptions, "bearing" | "pitch"> & {
-  center: [number, number];
-};
+//#region helpers
 
 function buildImageMetadataURL(uuid: string) {
-  return `${getAPIBasePath()}/${uuid}/image.json`;
+  return `${getAPIBasePath()}/${uuid}/image.json?key=${config.apiKey}`;
 }
 
 function buildImageTilesURL(uuid: string) {
-  return `${getAPIBasePath()}/${uuid}/{z}/{x}/{y}`;
+  return `${getAPIBasePath()}/${uuid}/{z}/{x}/{y}?key=${config.apiKey}`;
 }
 
-// function getAPIBasePath() {
-//   return "https://api.maptiler.com/images";
-// }
 function getAPIBasePath() {
-  return "http://localhost:4321";
-}
+  // @ts-expect-error this will be defined if we're in a Vite environment
+  const overrideUrl = import.meta.env.VITE_IMAGE_API_BASE_URL_OVERRIDE as string | undefined;
 
-// function getAPIBasePath() {
-//   if (import.meta.env.VITE_IMAGE_API_BASE_URL_OVERRIDE) {
-// return `${import.meta.env.VITE_IMAGE_API_BASE_URL_OVERRIDE}/images`;
-// }
-// return "http://api.maptiler.com/images";
-// }
+  if (overrideUrl) {
+    return overrideUrl;
+  }
+
+  return "https://api.maptiler.com/images";
+}
