@@ -713,7 +713,7 @@ export class Map extends maplibregl.Map {
         this.addControl(
           // new maplibregl.GeolocateControl({
           new MaptilerGeolocateControl({
-            positionOptions: {  
+            positionOptions: {
               enableHighAccuracy: true,
               maximumAge: 0,
               timeout: 6000 /* 6 sec */,

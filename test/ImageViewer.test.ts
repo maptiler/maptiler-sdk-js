@@ -1,4 +1,5 @@
 // Mock global WebGL2RenderingContext
+
 globalThis.WebGL2RenderingContext = class WebGL2RenderingContextMock {} as any;
 
 // Mock the Map class
@@ -339,6 +340,7 @@ describe("ImageViewer", () => {
         apiKey: "test-key",
         debug: false,
       });
+      // @ts-expect-error - Mocking the method, we know it's private
       await viewer.init();
     });
 
@@ -440,7 +442,7 @@ describe("ImageViewer", () => {
       viewer.jumpTo({
         center: [100, 200],
         zoom: 3,
-        bearing: 123
+        bearing: 123,
       });
 
       expect(mockMapInstance.jumpTo).toHaveBeenCalledWith(
