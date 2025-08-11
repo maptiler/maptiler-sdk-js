@@ -2,7 +2,7 @@
 import "../../src/style/style_template.css";
 import { Map, MapStyle, config, toggleProjection, toggleTerrain } from "../../src/index";
 import { addPerformanceStats, setupMapTilerApiKey } from "./demo-utils";
-import { MaptilerExternalControl } from "../../src/controls/MaptilerExternalControl";
+import { MaptilerCustomControl } from "../../src/controls/MaptilerCustomControl";
 
 addPerformanceStats();
 setupMapTilerApiKey({ config });
@@ -19,7 +19,7 @@ const map = new Map({
 });
 
 const compassControlElement = document.querySelector(".compass-control") as HTMLElement;
-const navigationControl = new MaptilerExternalControl(
+const navigationControl = new MaptilerCustomControl(
   ".navigation-controls",
   (map, _, event) => {
     if ((event.target as HTMLElement).closest(".zoom-in-control")) {
@@ -32,10 +32,10 @@ const navigationControl = new MaptilerExternalControl(
 );
 map.addControl(navigationControl);
 document.querySelector(".zoom-out-control")?.addEventListener("click", () => map.zoomOut());
-navigationControl.configureGroupItem(compassControlElement, "reset-view");
+compassControlElement.addEventListener("click", () => map.resetNorthPitch());
 
 const projectionControlElement = document.querySelector(".projection-control") as HTMLElement;
-const projectionControl = new MaptilerExternalControl(projectionControlElement, toggleProjection, (map, element) => {
+const projectionControl = new MaptilerCustomControl(projectionControlElement, toggleProjection, (map, element) => {
   element.firstElementChild!.textContent = map.isGlobeProjection() ? "map" : "globe";
   element.title = map.isGlobeProjection() ? "Switch to Mercator projection" : "Switch to Globe projection";
 });
@@ -47,7 +47,7 @@ const terrainControlIcon = document.createElement("span");
 terrainControlIcon.textContent = "terrain";
 terrainControlIcon.classList.add("material-symbols-outlined");
 terrainControlElement.appendChild(terrainControlIcon);
-const terrainControl = new MaptilerExternalControl(terrainControlElement, toggleTerrain, (map) => {
+const terrainControl = new MaptilerCustomControl(terrainControlElement, toggleTerrain, (map) => {
   terrainControlIcon.classList.toggle("icon-fill", map.hasTerrain());
   terrainControlElement.title = map.hasTerrain() ? "Turn off Terrain" : "Turn on Terrain";
 });
@@ -55,7 +55,7 @@ map.addControl(terrainControl, "top-left");
 
 const home = { lng: 15.4, lat: 49.8 };
 map.addControl(
-  new MaptilerExternalControl(
+  new MaptilerCustomControl(
     ".home-button",
     (map) => {
       map.easeTo({ center: home, zoom: 7 });

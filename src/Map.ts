@@ -33,7 +33,7 @@ import { MapStyle, geolocation, getLanguageInfoFromFlag, toLanguageInfo } from "
 import { MaptilerGeolocateControl } from "./controls/MaptilerGeolocateControl";
 import { ScaleControl } from "./MLAdapters/ScaleControl";
 import { FullscreenControl } from "./MLAdapters/FullscreenControl";
-import { ExternalControlType, MaptilerExternalControl } from "./controls/MaptilerExternalControl";
+import { MaptilerExternalControlType, MaptilerExternalControl } from "./controls/MaptilerExternalControl";
 
 import Minimap from "./controls/Minimap";
 import type { MinimapOptionsInput } from "./controls/Minimap";
@@ -660,8 +660,8 @@ export class Map extends maplibregl.Map {
     });
 
     // Update logo and attibution
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises, @typescript-eslint/no-misused-promises
-    this.once("load", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    void this.once("load", async () => {
       let tileJsonContent = { logo: null };
 
       try {
@@ -685,15 +685,15 @@ export class Map extends maplibregl.Map {
         const groupSelector = "[data-maptiler-control-group]";
         const controlSelector = "[data-maptiler-control]";
         const getControlType = (element: HTMLElement) => {
-          let type = element.dataset.maptilerControl as ExternalControlType | "true" | "" | undefined;
+          let type = element.dataset.maptilerControl as MaptilerExternalControlType | "true" | "" | undefined;
           // value of empty data attribute in React is string "true", empty string elsewhere
           if (type === "true" || type === "") type = undefined;
           return type;
         };
         const getPosition = (element: HTMLElement) => element.dataset.maptilerPosition as ControlPosition | undefined;
 
-        let groupElements = [...(document.querySelectorAll(groupSelector) as NodeListOf<HTMLElement>)];
-        let controlElements = [...(document.querySelectorAll(controlSelector) as NodeListOf<HTMLElement>)].filter(
+        let groupElements = [...(this._container.ownerDocument.querySelectorAll(groupSelector) as NodeListOf<HTMLElement>)];
+        let controlElements = [...(this._container.ownerDocument.querySelectorAll(controlSelector) as NodeListOf<HTMLElement>)].filter(
           (controlElement) => controlElement.closest(groupSelector) === null,
         );
 
@@ -713,7 +713,7 @@ export class Map extends maplibregl.Map {
         }
 
         for (const controlElement of controlElements) {
-          this.addControl(MaptilerExternalControl.createFromControlType(controlElement, getControlType(controlElement)), getPosition(controlElement));
+          this.addControl(new MaptilerExternalControl(controlElement, getControlType(controlElement)), getPosition(controlElement));
         }
 
         const setStyleProps = () => {

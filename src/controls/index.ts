@@ -1,3 +1,4 @@
+export * from "./MaptilerCustomControl";
 export * from "./MaptilerExternalControl";
 export * from "./MaptilerGeolocateControl";
 export * from "./MaptilerLogoControl";

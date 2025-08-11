@@ -1,13 +1,12 @@
-import { DOMremove } from "../utils/dom";
 import type { Map as SDKMap } from "../Map";
-import type { IControl, MapLibreEvent } from "maplibre-gl";
+import type { IControl } from "maplibre-gl";
+import { MaptilerCustomControl, MaptilerCustomControlCallback } from "./MaptilerCustomControl";
 import { toggleProjection } from "./MaptilerProjectionControl";
 import { toggleTerrain } from "./MaptilerTerrainControl";
 
-export type ExternalControlType = "zoom-in" | "zoom-out" | "toggle-projection" | "toggle-terrain" | "reset-view" | "reset-bearing" | "reset-pitch" | "reset-roll";
-export type ExternalControlCallback<E> = (map: SDKMap, element: HTMLElement, event: E) => void;
+export type MaptilerExternalControlType = "zoom-in" | "zoom-out" | "toggle-projection" | "toggle-terrain" | "reset-view" | "reset-bearing" | "reset-pitch" | "reset-roll";
 
-const controlTypeCallbacks: Record<ExternalControlType, ExternalControlCallback<Event>> = {
+const controlCallbacks: Record<MaptilerExternalControlType, MaptilerCustomControlCallback<Event>> = {
   "zoom-in": (map) => map.zoomIn(),
   "zoom-out": (map) => map.zoomOut(),
   "toggle-projection": toggleProjection,
@@ -32,77 +31,40 @@ const controlTypeCallbacks: Record<ExternalControlType, ExternalControlCallback<
 };
 
 /**
- * The MaptilerExternalControl allows any existing element to become a map control.
+ * The MaptilerExternalControl allows any existing element to automatically become a map control. Used for detected controls if `customControls` config is turned on.
  */
-export class MaptilerExternalControl implements IControl {
+export class MaptilerExternalControl extends MaptilerCustomControl implements IControl {
+  static controlCallbacks = controlCallbacks;
+
   #map!: SDKMap;
-  #element!: HTMLElement;
-  #onClickFn?: (event: Event) => void;
-  #onRenderFn?: (event: MapLibreEvent) => void;
-  #originalParent: HTMLElement | null;
   #groupItemEvents = new Map<WeakRef<HTMLElement>, (event: Event) => void>();
 
   /**
-   * @param selectorOrElement Element to be used as control, specified as either reference to element itself or a CSS selector to find the element in DOM
-   * @param onClick Function called when the element is clicked
-   * @param onRender Function called every time the underlying map renders a new state
+   * Constructs an instance of External Control to have a predefined functionality
+   * @param controlElement Element to be used as control, specified as reference to element itself
+   * @param controlType One of the predefined types of functionality
    */
-  constructor(selectorOrElement: string | HTMLElement, onClick?: ExternalControlCallback<Event>, onRender?: ExternalControlCallback<MapLibreEvent>) {
-    if (typeof selectorOrElement === "string") {
-      const element = document.querySelector(selectorOrElement) as HTMLElement | null;
-      if (!element) throw new Error(`No element has been found with selector "${selectorOrElement}" when creating an external control.`);
-      this.#element = element;
-    } else {
-      this.#element = selectorOrElement;
-    }
-
-    if (onClick) {
-      this.#onClickFn = (event: Event) => {
-        onClick(this.#map, this.#element, event);
-      };
-    }
-    if (onRender) {
-      this.#onRenderFn = (event: MapLibreEvent) => {
-        onRender(this.#map, this.#element, event);
-      };
-    }
-
-    this.#originalParent = this.#element.parentElement;
+  constructor(controlElement: HTMLElement, controlType?: MaptilerExternalControlType) {
+    if (controlType && !(controlType in controlCallbacks)) throw new Error(`data-maptiler-control value "${controlType}" is invalid.`);
+    super(controlElement, controlType && controlCallbacks[controlType]);
   }
 
   onAdd(map: SDKMap): HTMLElement {
     this.#map = map;
 
-    if (this.#onClickFn) {
-      this.#element.addEventListener("click", this.#onClickFn);
-    }
-    if (this.#onRenderFn) {
-      this.#map.on("render", this.#onRenderFn);
-    }
-
-    DOMremove(this.#element);
-    return this.#element;
+    return super.onAdd(map);
   }
 
   onRemove(): void {
-    if (this.#onClickFn) {
-      this.#element.removeEventListener("click", this.#onClickFn);
-    }
-    if (this.#onRenderFn) {
-      this.#map.off("render", this.#onRenderFn);
-    }
     for (const [elementRef, onClickFn] of this.#groupItemEvents) {
       const element = elementRef.deref();
       if (element) {
         element.removeEventListener("click", onClickFn);
       }
     }
+    this.#groupItemEvents.clear();
 
-    if (this.#originalParent) {
-      this.#originalParent.appendChild(this.#element);
-    } else {
-      DOMremove(this.#element);
-    }
+    super.onRemove();
   }
 
   /**
@@ -110,24 +72,13 @@ export class MaptilerExternalControl implements IControl {
    * @param controlElement Element that is a descendant of the control element and that optionally should have some functionality
    * @param controlType One of the predefined types of functionality
    */
-  configureGroupItem(controlElement: HTMLElement, controlType: ExternalControlType | undefined): void {
+  configureGroupItem(controlElement: HTMLElement, controlType: MaptilerExternalControlType | undefined): void {
     if (!controlType) return;
-    if (!(controlType in controlTypeCallbacks)) throw new Error(`data-maptiler-control value "${controlType}" is invalid.`);
+    if (!(controlType in controlCallbacks)) throw new Error(`data-maptiler-control value "${controlType}" is invalid.`);
     const onClickFn = (event: Event) => {
-      controlTypeCallbacks[controlType](this.#map, controlElement, event);
+      controlCallbacks[controlType](this.#map, controlElement, event);
     };
     controlElement.addEventListener("click", onClickFn);
     this.#groupItemEvents.set(new WeakRef(controlElement), onClickFn);
-  }
-
-  /**
-   * Constructs an instance of External Control to have a predefined functionality
-   * @param controlElement Element to be used as control, specified as reference to element itself
-   * @param controlType One of the predefined types of functionality
-   * @returns New instance of External Control
-   */
-  static createFromControlType(controlElement: HTMLElement, controlType: ExternalControlType | undefined): MaptilerExternalControl {
-    if (controlType && !(controlType in controlTypeCallbacks)) throw new Error(`data-maptiler-control value "${controlType}" is invalid.`);
-    return new MaptilerExternalControl(controlElement, controlType && controlTypeCallbacks[controlType]);
   }
 }
