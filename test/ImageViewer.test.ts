@@ -114,7 +114,7 @@ import fs from "fs";
 import path from "path";
 import ImageViewer from "../src/ImageViewer/ImageViewer";
 import { ImageViewerEvent, setupGlobalMapEventForwarder } from "../src/ImageViewer/events";
-import { FetchError } from "../src/ImageViewer/utils";
+import { FetchError } from "../src/utils/errors";
 import { Map } from "../src/Map";
 import type { MapOptions, DragPanHandler, DoubleClickZoomHandler, TwoFingersTouchZoomRotateHandler } from "maplibre-gl";
 // Import fixture data
@@ -601,7 +601,7 @@ describe("ImageViewer", () => {
         url: "https://api.example.com/image.json",
       } as Response;
 
-      const error = new FetchError(mockResponse, "image metadata");
+      const error = new FetchError(mockResponse, "image metadata", "ImageViewer");
 
       expect(error).toBeInstanceOf(Error);
       expect(error.name).toBe("FetchError");

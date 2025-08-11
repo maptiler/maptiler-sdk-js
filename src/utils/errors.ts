@@ -2,8 +2,8 @@ export class FetchError extends Error {
   status: number;
   statusText: string;
 
-  constructor(response: Response, resource: string) {
-    const message = `[ImageViewer]: Failed to fetch ${resource} at ${response.url}: ${response.status.toString()}: ${response.statusText}`;
+  constructor(response: Response, resource: string, module: string) {
+    const message = `[${module}]: Failed to fetch ${resource} at ${response.url}: ${response.status.toString()}: ${response.statusText}`;
 
     super(message);
 

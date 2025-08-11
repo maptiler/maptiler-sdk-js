@@ -3,7 +3,7 @@ import { FlyToOptions, MapDataEvent, MapOptions, JumpToOptions, MercatorCoordina
 import { Map } from "../Map";
 import MapLibre from "maplibre-gl";
 import { ImageViewerEvent, setupGlobalMapEventForwarder } from "./events";
-import { FetchError } from "./utils";
+import { FetchError } from "../utils/errors";
 import { config } from "..";
 import { monkeyPatchMapTransformInstance } from "./monkeyPatchML";
 
@@ -18,6 +18,10 @@ export type ImageViewerFlyToOptions = Omit<FlyToOptions, "pitch"> & {
 };
 
 export type ImageViewerJumpToOptions = Omit<JumpToOptions, "pitch"> & {
+  center: [number, number];
+};
+
+export type ImageViewerEaseToOptions = Omit<EaseToOptions, "pitch"> & {
   center: [number, number];
 };
 
@@ -43,7 +47,6 @@ export type ImageMetadata = {
  * These options cannot be changed externally.
  *
  * @internal
- * @type {Partial<MapOptions>}
  */
 const overrideOptions: Partial<MapOptions> = {
   style: {
@@ -76,7 +79,6 @@ export default class ImageViewer extends Evented {
    * The UUID of the image.
    *
    * @internal
-   * @type {string}
    */
   private imageUUID: string;
 
@@ -84,7 +86,6 @@ export default class ImageViewer extends Evented {
    * Whether to enable debug mode.
    *
    * @internal
-   * @type {boolean}
    */
   private debug: boolean;
 
@@ -92,7 +93,6 @@ export default class ImageViewer extends Evented {
    * The metadata of the image.
    *
    * @internal
-   * @type {ImageMetadata}
    */
   private imageMetadata?: ImageMetadata;
 
@@ -109,7 +109,6 @@ export default class ImageViewer extends Evented {
    * The options for the ImageViewer.
    *
    * @internal
-   * @type {ImageViewerConstructorOptions & { center?: [number, number] }}
    */
   private options: ImageViewerConstructorOptions & { center?: [number, number] };
 
@@ -117,7 +116,6 @@ export default class ImageViewer extends Evented {
    * The size of the image.
    *
    * @internal
-   * @type {[number, number]}
    */
   private imageSize?: [number, number];
 
@@ -125,17 +123,13 @@ export default class ImageViewer extends Evented {
    * The padded size max.
    *
    * @internal
-   * @type {number}
    */
   private paddedSizeMax?: number;
 
   /**
-   * The version of the ImageViewer.
-   *
-   * @internal
-   * @type {string}
+   * The version of the ImageViewer / SDK.
    */
-  get version() {
+  public get version() {
     return this.sdk.version;
   }
 
@@ -197,11 +191,11 @@ export default class ImageViewer extends Evented {
       await this.sdk.onReadyAsync();
       await Promise.race([
         new Promise((resolve, reject) => {
-          this.on("imageviewerinit", (e) => {
+          void this.once("imageviewerinit", (e) => {
             this.fire("imageviewerready", new ImageViewerEvent("imageviewerready", this));
             resolve(e);
           });
-          this.on("imagevieweriniterror", (e: { error: Error }) => {
+          void this.once("imagevieweriniterror", (e: { error: Error }) => {
             reject(e.error);
           });
         }),
@@ -264,7 +258,7 @@ export default class ImageViewer extends Evented {
     const response = await fetch(url);
 
     if (!response.ok) {
-      throw new FetchError(response, "image metadata");
+      throw new FetchError(response, "image metadata", "ImageViewer");
     }
 
     const data = (await response.json()) as ImageMetadata;
@@ -503,11 +497,10 @@ export default class ImageViewer extends Evented {
   /**
    * Fly to a given center.
    *
-   * @internal
-   * @param {Omit<ImageViewerFlyToOptions, "pitch">} options - The options for the fly to.
+   * @param {ImageViewerFlyToOptions} options - The options for the fly to.
    * @param {MapDataEvent} eventData - The event data.
    */
-  flyTo(options: Omit<ImageViewerFlyToOptions, "pitch">, eventData?: MapDataEvent) {
+  public flyTo(options: ImageViewerFlyToOptions, eventData?: MapDataEvent) {
     const lngLat = this.pxToLngLat(options.center);
     return this.sdk.flyTo({ ...options, pitch: 0, center: lngLat }, eventData);
   }
@@ -516,11 +509,10 @@ export default class ImageViewer extends Evented {
   /**
    * Jump to a given center.
    *
-   * @internal
-   * @param {Omit<ImageViewerJumpToOptions, "pitch">} options - The options for the jump to.
+   * @param {ImageViewerJumpToOptions} options - The options for the jump to.
    * @param {MapDataEvent} eventData - The event data.
    */
-  jumpTo(options: Omit<ImageViewerJumpToOptions, "pitch">, eventData?: MapDataEvent) {
+  public jumpTo(options: ImageViewerJumpToOptions, eventData?: MapDataEvent) {
     const lngLat = this.pxToLngLat(options.center);
     return this.sdk.jumpTo({ ...options, pitch: 0, center: lngLat }, eventData);
   }
@@ -529,10 +521,9 @@ export default class ImageViewer extends Evented {
   /**
    * Set the zoom level.
    *
-   * @internal
    * @param {number} zoom - The zoom level.
    */
-  setZoom(zoom: number) {
+  public setZoom(zoom: number) {
     this.sdk.setZoom(zoom);
   }
 
@@ -540,10 +531,9 @@ export default class ImageViewer extends Evented {
   /**
    * Get the zoom level.
    *
-   * @internal
    * @returns {number} The zoom level.
    */
-  getZoom() {
+  public getZoom() {
     return this.sdk.getZoom();
   }
 
@@ -554,7 +544,7 @@ export default class ImageViewer extends Evented {
    * @internal
    * @returns {[number, number]} The center of the ImageViewer.
    */
-  getCenter() {
+  public getCenter() {
     const centerLngLat = this.sdk.getCenter();
     const centerPx = this.lngLatToPx(centerLngLat);
     return centerPx;
@@ -564,10 +554,9 @@ export default class ImageViewer extends Evented {
   /**
    * Set the center of the ImageViewer.
    *
-   * @internal
    * @param {number} center - The center of the ImageViewer.
    */
-  setCenter(center: [number, number]) {
+  public setCenter(center: [number, number]) {
     this.sdk.setCenter(this.pxToLngLat(center));
   }
 
@@ -575,10 +564,9 @@ export default class ImageViewer extends Evented {
   /**
    * Set the bearing of the ImageViewer.
    *
-   * @internal
    * @param {number} bearing - The bearing of the ImageViewer.
    */
-  setBearing(bearing: number) {
+  public setBearing(bearing: number) {
     this.sdk.setBearing(bearing);
   }
 
@@ -586,10 +574,9 @@ export default class ImageViewer extends Evented {
   /**
    * Get the bearing of the ImageViewer.
    *
-   * @internal
    * @returns {number} The bearing of the ImageViewer.
    */
-  getBearing() {
+  public getBearing() {
     return this.sdk.getBearing();
   }
 
@@ -597,26 +584,24 @@ export default class ImageViewer extends Evented {
   /**
    * Pan by a given delta.
    *
-   * @internal
    * @param {PointLike} delta - The delta to pan by.
-   * @param {EaseToOptions} options - The options for the pan.
+   * @param {ImageViewerEaseToOptions} options - The options for the pan.
    * @param {any} eventData - The event data.
    */
-  panBy(delta: PointLike, options?: EaseToOptions, eventData?: any) {
-    this.sdk.panBy(delta, options, eventData);
+  public panBy(delta: PointLike, options?: ImageViewerEaseToOptions, eventData?: any) {
+    this.sdk.panBy(delta, { ...options, pitch: 0 }, eventData);
   }
 
   //#region panTo
   /**
    * Pan to a given center.
    *
-   * @internal
    * @param {number} center - The center to pan to.
-   * @param {EaseToOptions} options - The options for the pan.
+   * @param {ImageViewerEaseToOptions} options - The options for the pan.
    * @param {any} eventData - The event data.
    */
-  panTo(center: [number, number], options?: EaseToOptions, eventData?: any) {
-    this.sdk.panTo(this.pxToLngLat(center), options, eventData);
+  public panTo(center: [number, number], options?: ImageViewerEaseToOptions, eventData?: any) {
+    this.sdk.panTo(this.pxToLngLat(center), { ...options, pitch: 0 }, eventData);
   }
 }
 

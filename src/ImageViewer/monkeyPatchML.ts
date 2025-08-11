@@ -1,4 +1,4 @@
-import { LngLat, Point } from "@maptiler/sdk";
+import { LngLat, Point } from "../index";
 import { Map } from "../Map";
 import { MercatorCoordinate } from "..";
 
@@ -110,7 +110,7 @@ export function monkeyPatchMapTransformInstance(instance: Map) {
     // Panning up and down in latitude is externally limited by project() with MAX_VALID_LATITUDE.
     // This limit prevents panning the top and bottom bounds farther than the center of the viewport.
     // Due to the complexity and consequence of altering project() or MAX_VALID_LATITUDE, we'll simply limit
-    // the overpan to 50% the bounds to match that external limit.
+    // the overpan.
     let lngOverpan = 0.0;
     let latOverpan = 0.0;
 

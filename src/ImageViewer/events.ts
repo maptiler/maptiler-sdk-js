@@ -14,9 +14,7 @@ export class ImageViewerEvent {
     this.target = viewer;
     this.originalEvent = originalEvent ?? null;
 
-    Object.entries(data).forEach(([key, value]) => {
-      this[key] = value;
-    });
+    Object.assign(this, data);
   }
 }
 
@@ -136,21 +134,13 @@ export function setupGlobalMapEventForwarder({ map, viewer, lngLatToPx }: SetupG
         if (UI_EVENTS.includes(uiEventName)) {
           const event = e as MapEventType[UiEventKeys];
           const px = event.lngLat && lngLatToPx(event.lngLat);
-          const data = Object.entries(e).reduce(
-            (acc, [key, value]) => {
-              if (FORBIDDEN_EVENT_VALUES.includes(key)) {
-                return acc;
-              }
-              return {
-                ...acc,
-                [key]: value,
-              };
-            },
-            {
-              imageX: px[0],
-              imageY: px[1],
-            },
-          );
+
+          const data = {
+            imageX: px[0],
+            imageY: px[1],
+            ...Object.fromEntries(Object.entries(e).filter(([key]) => !FORBIDDEN_EVENT_VALUES.includes(key))),
+          };
+
           viewer.fire(new ImageViewerEvent(eventType, viewer, event.originalEvent, data));
 
           return;
