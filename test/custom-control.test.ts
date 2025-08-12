@@ -43,7 +43,6 @@ describe("MaptilerCustomControl", () => {
   function createMapHelper() {
     container = document.createElement("div");
     document.body.appendChild(container);
-    console.log("adding container");
 
     return new SDKMap({
       container,
