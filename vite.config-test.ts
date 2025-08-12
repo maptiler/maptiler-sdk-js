@@ -7,7 +7,7 @@ export default defineConfig({
     typecheck: {
       tsconfig: "./tsconfig.json",
     },
-    // environment: "jsdom",
+    environment: "happy-dom",
     globals: true,
     setupFiles: ["@vitest/web-worker", "./vitest-setup-tests.ts"],
   },

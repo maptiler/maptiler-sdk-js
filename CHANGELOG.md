@@ -1,5 +1,10 @@
 # MapTiler SDK Changelog
 
+## Next version
+
+### ✨ Features and improvements
+- Adds custom controls that can be styled however you wish and can do whatever you need, in both declarative (auto-detected) and programmatic way
+
 ## 3.7.0
 
 ### ✨ Features and improvements

@@ -32,14 +32,7 @@ export class MaptilerProjectionControl implements IControl {
   }
 
   private toggleProjection(): void {
-    if (this.map.getProjection() === undefined) {
-      this.map.setProjection({ type: "mercator" });
-    }
-    if (this.map.isGlobeProjection()) {
-      this.map.enableMercatorProjection();
-    } else {
-      this.map.enableGlobeProjection();
-    }
+    toggleProjection(this.map);
     this.updateProjectionIcon();
   }
 
@@ -53,5 +46,16 @@ export class MaptilerProjectionControl implements IControl {
       this.projectionButton.classList.add("maplibregl-ctrl-projection-globe");
       this.projectionButton.title = "Enable Globe projection";
     }
+  }
+}
+
+export function toggleProjection(map: SDKMap): void {
+  if (map.getProjection() === undefined) {
+    map.setProjection({ type: "mercator" });
+  }
+  if (map.isGlobeProjection()) {
+    map.enableMercatorProjection();
+  } else {
+    map.enableGlobeProjection();
   }
 }

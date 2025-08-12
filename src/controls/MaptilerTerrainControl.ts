@@ -38,12 +38,7 @@ export class MaptilerTerrainControl implements IControl {
   }
 
   _toggleTerrain(): void {
-    if (this._map.hasTerrain()) {
-      this._map.disableTerrain();
-    } else {
-      this._map.enableTerrain();
-    }
-
+    toggleTerrain(this._map);
     this._updateTerrainIcon();
   }
 
@@ -58,5 +53,13 @@ export class MaptilerTerrainControl implements IControl {
       this._terrainButton.classList.add("maplibregl-ctrl-terrain");
       this._terrainButton.title = this._map._getUIString("TerrainControl.Enable");
     }
+  }
+}
+
+export function toggleTerrain(map: SDKMap): void {
+  if (map.hasTerrain()) {
+    map.disableTerrain();
+  } else {
+    map.enableTerrain();
   }
 }
