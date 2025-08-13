@@ -4,7 +4,7 @@ import { addPerformanceStats, setupMapTilerApiKey } from "./demo-utils";
 addPerformanceStats();
 setupMapTilerApiKey({ config });
 
-const container = document.getElementById("map") as HTMLElement;
+const container = document.getElementById("map")!;
 
 const map = new Map({
   container,
