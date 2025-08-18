@@ -262,7 +262,6 @@ export default class ImageViewer extends Evented {
 
       const { center, zoom, bearing } = this.options;
       const initCenter = center ?? [(this.imageMetadata?.width ?? 0) / 2, (this.imageMetadata?.height ?? 0) / 2];
-      console.log("initCenter", initCenter);
       this.setCenter(initCenter);
 
       this.setBearing(bearing ?? 0);
