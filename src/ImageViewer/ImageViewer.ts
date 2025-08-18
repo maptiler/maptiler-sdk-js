@@ -64,6 +64,7 @@ const overrideOptions: Partial<MapOptions> = {
   projection: "mercator",
   geolocateControl: false,
   navigationControl: false,
+  projectionControl: false,
   hash: false,
   renderWorldCopies: false,
   terrain: false,
@@ -219,6 +220,8 @@ export default class ImageViewer extends Evented {
     }
   }
 
+  // this flag is used to determine if the image should be fit to the viewport
+  // when the map is resized
   shouldFitImageToViewport = true;
 
   //#region init
