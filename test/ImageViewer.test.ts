@@ -120,7 +120,7 @@ import ImageViewer from "../src/ImageViewer/ImageViewer";
 import { ImageViewerEvent, setupGlobalMapEventForwarder } from "../src/ImageViewer/events";
 import { FetchError } from "../src/utils/errors";
 import { Map } from "../src/Map";
-import type { MapOptions, DragPanHandler, DoubleClickZoomHandler, TwoFingersTouchZoomRotateHandler, LngLatBoundsLike } from "maplibre-gl";
+import type { MapOptions, DragPanHandler, DoubleClickZoomHandler, TwoFingersTouchZoomRotateHandler } from "maplibre-gl";
 // Import fixture data
 import fixtureImageMetadata from "./fixtures/ImageViewer/image.json";
 import { BoxZoomHandler, CooperativeGesturesHandler, KeyboardHandler, LngLat, MercatorCoordinate, ScrollZoomHandler } from "../src";
