@@ -223,7 +223,12 @@ export class Map extends maplibregl.Map {
    * If an option is not set it will internally revert to the default option
    * unless explicitly set when calling.
    */
-  public setSpace(space: CubemapDefinition) {
+  public setSpace(space: CubemapDefinition | boolean) {
+    if (space === false) {
+      this.space = undefined;
+      return;
+    }
+
     if (!this.isGlobeProjection()) {
       return;
     }
@@ -244,7 +249,13 @@ export class Map extends maplibregl.Map {
   }
 
   private setSpaceFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
+    if (this.options.space) {
+      this.setSpace(this.options.space);
+      return;
+    }
+
     const space = style.metadata?.maptiler?.space;
+
     if (!space) {
       this.setSpace({
         color: "transparent",
@@ -298,7 +309,7 @@ export class Map extends maplibregl.Map {
       return;
     }
 
-    if (!maptiler?.halo) {
+    if (!maptiler?.halo && !this.options.halo) {
       this.setHalo({
         stops: [
           [0, "transparent"],
@@ -317,7 +328,11 @@ export class Map extends maplibregl.Map {
           this.addLayer(this.halo, before);
         }
 
-        void this.halo.setGradient(maptiler.halo);
+        const spec = maptiler?.halo ?? this.options.halo;
+
+        if (spec) {
+          void this.halo.setGradient(spec);
+        }
       }
     };
 

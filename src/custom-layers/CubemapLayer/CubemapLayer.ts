@@ -20,7 +20,6 @@ const GL_USE_TEXTURE_MACRO_MARKER = "%USE_TEXTURE_MACRO_MARKER%";
 const GL_USE_TEXTURE_MACRO = "#define USE_TEXTURE";
 
 const defaultConstructorOptions: CubemapLayerConstructorOptions = cubemapPresets.stars;
-
 /**
  * Configures options for the CubemapLayer by merging defaults with provided options.
  *
@@ -420,6 +419,8 @@ class CubemapLayer implements CustomLayerInterface {
       return;
     }
 
+    console.log(__MT_NODE_ENV__, "AYEEEEEE");
+
     if (this.map === undefined) {
       throw new Error("[CubemapLayer]: Map is undefined");
     }
@@ -428,7 +429,7 @@ class CubemapLayer implements CustomLayerInterface {
       throw new Error("[CubemapLayer]: Cubemap is undefined");
     }
 
-    if (this.texture === undefined && process.env.NODE_ENV === "development") {
+    if (this.texture === undefined && __MT_NODE_ENV__ === "development") {
       console.warn("[CubemapLayer]: Texture is undefined, no texture will be rendered to cubemap");
     }
 
@@ -540,8 +541,11 @@ class CubemapLayer implements CustomLayerInterface {
    * and if so, it updates the cubemap faces.
    * Finally, it calls `updateCubemap` to apply the changes and trigger a repaint of the map.
    */
-  public async setCubemap(cubemap: CubemapDefinition): Promise<void> {
+  public async setCubemap(spec: CubemapDefinition | boolean): Promise<void> {
+    const cubemap = typeof spec === "boolean" ? defaultConstructorOptions : spec;
+
     this.options = cubemap;
+
     const facesKey = JSON.stringify(cubemap.faces ?? cubemap.preset ?? cubemap.path);
 
     const facesNeedUpdate = this.currentFacesDefinitionKey !== facesKey;
@@ -582,7 +586,11 @@ class CubemapLayer implements CustomLayerInterface {
   }
 }
 
-export function validateSpaceSpecification(space: CubemapDefinition | boolean): boolean {
+export function validateSpaceSpecification(space?: CubemapDefinition | boolean): boolean {
+  if (!space) {
+    return false;
+  }
+
   if (typeof space === "boolean") {
     return true;
   }
