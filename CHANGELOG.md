@@ -6,6 +6,8 @@
 
 ### 🐛 Bug fixes
 - fixes bug where space would not load correctly when style is a URI.
+- fixes a bug in the UMD module where space crashes when only a color is set.
+- fixes a bug when space: true and no style is passed.
 
 ### Others
 - None
