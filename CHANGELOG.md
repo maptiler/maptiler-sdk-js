@@ -1,5 +1,15 @@
 # MapTiler SDK Changelog
 
+## NEXT
+### ✨ Features and improvements
+- None
+
+### 🐛 Bug fixes
+- fixes bug where space would not load correctly when style is a URI.
+
+### Others
+- None
+
 ## 3.7.0
 
 ### ✨ Features and improvements
