@@ -32,6 +32,7 @@ export type ImageViewerConstructorOptions = Pick<MapOptions, AllowedConstrcutorO
   debug?: boolean;
   center?: [number, number];
   fitToBoundsControl?: boolean;
+  navigationControl?: boolean;
 };
 
 export type ImageMetadata = {
@@ -76,6 +77,7 @@ const overrideOptions: Partial<MapOptions> = {
 const imageViewerDefaultOptions: Partial<ImageViewerConstructorOptions> = {
   debug: false,
   fitToBoundsControl: true,
+  navigationControl: true,
 };
 
 //#region ImageViewer
@@ -243,12 +245,14 @@ export default class ImageViewer extends Evented {
 
       this.addImageSource();
 
-      this.sdk.addControl(
-        new NavigationControl({
-          visualizePitch: false,
-          visualizeRoll: false,
-        }),
-      );
+      if (this.options.navigationControl) {
+        this.sdk.addControl(
+          new NavigationControl({
+            visualizePitch: false,
+            visualizeRoll: false,
+          }),
+        );
+      }
 
       if (this.options.fitToBoundsControl) {
         this.sdk.addControl(new ImageViewerFitImageToBoundsControl({ imageViewer: this }));
