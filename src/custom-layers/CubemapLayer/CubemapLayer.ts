@@ -433,6 +433,8 @@ class CubemapLayer implements CustomLayerInterface {
       return;
     }
 
+    console.log(__MT_NODE_ENV__, "AYEEEEEE");
+
     if (this.map === undefined) {
       throw new Error("[CubemapLayer]: Map is undefined");
     }

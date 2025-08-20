@@ -17,7 +17,7 @@ function main() {
     projection: "globe",
     center: [0, -20],
     space: true, // these can also be config objects CubemapLayerConstructorOptions
-    halo: true, // same here, RadialGradientLayerConstructorOptions
+    halo: true,// same here, RadialGradientLayerConstructorOptions
   });
 
   let currentHaloIndex = 0;
