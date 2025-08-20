@@ -141,8 +141,6 @@ function main() {
     }
     console.log("Current config:", map.getSpace()?.getConfig());
   });
-
-  window.__map = map;
 }
 
 main();
