@@ -2,7 +2,7 @@
 
 ## NEXT
 ### ✨ Features and improvements
-- None
+- Adds custom controls that can be styled however you wish and can do whatever you need, in both declarative (auto-detected) and programmatic way
 
 ### 🐛 Bug fixes
 - fixes bug where space would not load correctly when style is a URI.

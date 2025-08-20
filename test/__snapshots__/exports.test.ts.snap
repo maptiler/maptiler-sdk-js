@@ -50,6 +50,8 @@ exports[`Module Exports > should match the snapshot of module exports 1`] = `
   "MapTouchEventMLGL",
   "MapWheelEvent",
   "MapWheelEventMLGL",
+  "MaptilerCustomControl",
+  "MaptilerExternalControl",
   "MaptilerGeolocateControl",
   "MaptilerLogoControl",
   "MaptilerNavigationControl",
@@ -139,6 +141,8 @@ exports[`Module Exports > should match the snapshot of module exports 1`] = `
   "str2xml",
   "styleToStyle",
   "toLanguageInfo",
+  "toggleProjection",
+  "toggleTerrain",
   "xml2str",
 ]
 `;
