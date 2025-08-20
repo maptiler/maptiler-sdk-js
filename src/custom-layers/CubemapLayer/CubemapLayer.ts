@@ -528,9 +528,7 @@ class CubemapLayer implements CustomLayerInterface {
   }
 
   private async setCubemapFaces(cubemap: CubemapDefinition): Promise<void> {
-    if (this.animationActive) {
-      await this.animateOut();
-    }
+    await this.animateOut();
 
     if (!cubemap.faces && !cubemap.preset && !cubemap.path) {
       this.faces = null;
