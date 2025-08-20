@@ -358,7 +358,6 @@ class CubemapLayer implements CustomLayerInterface {
    */
   private animateIn() {
     if (this.imageIsAnimating) {
-      console.log("imageIsAnimating");
       return Promise.resolve();
     }
 
