@@ -324,8 +324,14 @@ export class RadialGradientLayer implements CustomLayerInterface {
    * @param {GradientDefinition} gradient - The new gradient definition to set for this layer.
    * @returns {Promise<void>} A promise that resolves when the new gradient is set and animated in.
    */
-  public async setGradient(gradient: GradientDefinition): Promise<void> {
+  public async setGradient(gradient: GradientDefinition | boolean): Promise<void> {
+    if (gradient === false) {
+      await this.animateOut();
+      return;
+    }
+
     await this.animateOut();
+
     if (!validateHaloSpecification(gradient)) {
       this.gradient.scale = defaultConstructorOptions.scale;
       this.gradient.stops = [
@@ -334,8 +340,14 @@ export class RadialGradientLayer implements CustomLayerInterface {
       ];
       return;
     }
-    this.gradient.scale = gradient.scale ?? defaultConstructorOptions.scale;
-    this.gradient.stops = gradient.stops ?? defaultConstructorOptions.stops;
+
+    if (gradient === true) {
+      this.gradient.scale = defaultConstructorOptions.scale;
+      this.gradient.stops = defaultConstructorOptions.stops;
+    } else {
+      this.gradient.scale = gradient.scale ?? defaultConstructorOptions.scale;
+      this.gradient.stops = gradient.stops ?? defaultConstructorOptions.stops;
+    }
 
     await this.animateIn();
   }
