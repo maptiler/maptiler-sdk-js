@@ -112,6 +112,13 @@ export class RadialGradientLayer implements CustomLayerInterface {
   private plane?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
 
   /**
+   * Whether the halo should be animated in and out.
+   * @private
+   * @type {boolean}
+   */
+  private animationActive: boolean = true;
+
+  /**
    * Creates a new RadialGradientLayer instance.
    *
    * @param {RadialGradientLayerConstructorOptions | boolean} gradient - Configuration options for the radial gradient or a boolean value.
@@ -174,6 +181,13 @@ export class RadialGradientLayer implements CustomLayerInterface {
    * @returns {Promise<void>} A promise that resolves when the animation completes
    */
   private async animateIn() {
+    if (!this.animationActive) {
+      this.scale = this.gradient.scale;
+      this.animationDelta = 1;
+      this.map.triggerRepaint();
+      return Promise.resolve();
+    }
+
     return new Promise<void>((resolve) => {
       this.animationDelta = 0;
       const animate = () => {
@@ -203,6 +217,10 @@ export class RadialGradientLayer implements CustomLayerInterface {
    * @returns A Promise that resolves when the animation is complete.
    */
   private async animateOut() {
+    if (!this.animationActive) {
+      return Promise.resolve();
+    }
+
     this.animationDelta = 0;
     return new Promise<void>((resolve) => {
       const animate = () => {
@@ -350,6 +368,10 @@ export class RadialGradientLayer implements CustomLayerInterface {
     }
 
     await this.animateIn();
+  }
+
+  public setAnimationActive(active: boolean) {
+    this.animationActive = active;
   }
 
   public show(): void {

@@ -187,6 +187,8 @@ class CubemapLayer implements CustomLayerInterface {
    */
   private options: CubemapLayerConstructorOptions;
 
+  private animationActive: boolean = true;
+
   /**
    * Creates a new instance of CubemapLayer
    *
@@ -356,7 +358,15 @@ class CubemapLayer implements CustomLayerInterface {
    */
   private animateIn() {
     if (this.imageIsAnimating) {
-      return;
+      console.log("imageIsAnimating");
+      return Promise.resolve();
+    }
+
+    if (!this.animationActive) {
+      this.currentFadeOpacity = 1.0;
+      this.imageFadeInDelta = 1;
+      this.map.triggerRepaint();
+      return Promise.resolve();
     }
 
     this.imageIsAnimating = true;
@@ -385,7 +395,7 @@ class CubemapLayer implements CustomLayerInterface {
    * @private
    */
   private animateOut(): Promise<void> {
-    if (this.imageIsAnimating) {
+    if (this.imageIsAnimating || !this.animationActive) {
       return Promise.resolve(); // If already animating, just resolve
     }
     return new Promise((resolve) => {
@@ -406,6 +416,10 @@ class CubemapLayer implements CustomLayerInterface {
     });
   }
 
+  public setAnimationActive(active: boolean) {
+    this.animationActive = active;
+  }
+
   /**
    * Renders the cubemap layer to the WebGL context.
    * This method is called internally during the rendering phase of the map.
@@ -418,8 +432,6 @@ class CubemapLayer implements CustomLayerInterface {
     if (!this.map.isGlobeProjection()) {
       return;
     }
-
-    console.log(__MT_NODE_ENV__, "AYEEEEEE");
 
     if (this.map === undefined) {
       throw new Error("[CubemapLayer]: Map is undefined");
@@ -515,13 +527,15 @@ class CubemapLayer implements CustomLayerInterface {
   }
 
   private async setCubemapFaces(cubemap: CubemapDefinition): Promise<void> {
-    await this.animateOut();
+    if (this.animationActive) {
+      await this.animateOut();
+    }
 
     if (!cubemap.faces && !cubemap.preset && !cubemap.path) {
       this.faces = null;
       this.useCubemapTexture = false;
       this.currentFacesDefinitionKey = "empty";
-      this.animateIn();
+      await this.animateIn();
       return;
     }
 
