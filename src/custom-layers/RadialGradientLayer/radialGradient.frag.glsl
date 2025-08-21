@@ -11,15 +11,7 @@ varying float v_scale;
 const float EPSILON = 0.000001;
 
 vec2 center = vec2(0.0, 0.0);
-// TODO: We could look at implementing a color ramp instead.
-// Render the color ramp to a canvas and then to a texture
-// then select the color based on the distance from the center.
 void main() {
-
-  // QUASI SUCCESS
-  // float distanceFromGlobeEdge = (distance(center, v_pos) - 2.0) / (sqrt(v_scale) * 1.05) + 1.0;
-  // ORIGINAL
-  // float distanceFromGlobeEdge = distance(center, v_pos) - 1.0; 
   float rawDistance = distance(center, v_pos);
   float distanceFromGlobeEdge = rawDistance - 1.0;
 
