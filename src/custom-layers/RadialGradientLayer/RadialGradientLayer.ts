@@ -229,6 +229,7 @@ export class RadialGradientLayer implements CustomLayerInterface {
   public prerender(_gl: WebGLRenderingContext | WebGL2RenderingContext, _options: CustomRenderMethodInput): void {}
 
   public render(gl: WebGLRenderingContext | WebGL2RenderingContext, options: CustomRenderMethodInput): void {
+    // console.log("render", options, gl, mat4, vec3, parseColorStringToVec4, this.scale);
     if (this.map === undefined) {
       throw new Error("[RadialGradientLayer]: Map is undefined");
     }

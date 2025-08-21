@@ -8,6 +8,8 @@ uniform float u_maxDistance;
 
 varying float v_scale;
 
+const float EPSILON = 0.000001;
+
 vec2 center = vec2(0.0, 0.0);
 // TODO: We could look at implementing a color ramp instead.
 // Render the color ramp to a canvas and then to a texture
@@ -39,7 +41,19 @@ void main() {
     }
 
     float scaledStopPosition = u_stops[i] * pow(v_scale, 1.6);
-    float lastScaledStopPosition = u_stops[i - 1] * pow(v_scale, 1.6);
+    float lastStopValue = u_stops[i - 1];
+    float thisStopValue = u_stops[i];
+
+    // this is to avoid blending errors when the stops are the same
+    // eg when you would want a sharp edge between two stops.
+    // `numbersAreEqual` will be 1.0 if the numbers are equal, 0.0 if they are not.
+    // We then subtract EPSILON from the last stop making the stop value _almost_ equal
+    // to the next stop but not enough to cause blending issues.
+    // It's more efficient to do this than an if / else statement.
+    float numbersAreEqual = 1.0 - step(EPSILON, abs(lastStopValue - thisStopValue));
+    lastStopValue = lastStopValue - numbersAreEqual * EPSILON;
+
+    float lastScaledStopPosition = lastStopValue * pow(v_scale, 1.6);
 
     if (distanceFromGlobeEdge <= scaledStopPosition) {
       float stopBlendFactor = (distanceFromGlobeEdge - lastScaledStopPosition) / (scaledStopPosition - lastScaledStopPosition);
