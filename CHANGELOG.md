@@ -5,6 +5,7 @@
 - None
 
 ### 🐛 Bug fixes
+- fixes a bug on `halo` where sharp edged stops cause noise to surface when scaled down.
 - fixes bug where space would not load correctly when style is a URI.
 
 ### Others
