@@ -356,35 +356,37 @@ class CubemapLayer implements CustomLayerInterface {
    * This method gradually increases the opacity of the cubemap image to create a fade-in effect.
    * @private
    */
-  private animateIn() {
+  private async animateIn() {
     if (this.imageIsAnimating) {
-      return Promise.resolve();
+      return;
     }
 
     if (!this.animationActive) {
       this.currentFadeOpacity = 1.0;
       this.imageFadeInDelta = 1;
       this.map.triggerRepaint();
-      return Promise.resolve();
+      return;
     }
 
-    this.imageIsAnimating = true;
+    return new Promise<void>((resolve) => {
+      this.imageIsAnimating = true;
 
-    const animateIn = () => {
-      this.imageFadeInDelta = Math.min(this.imageFadeInDelta + 0.05, 1.0);
-      this.currentFadeOpacity = lerp(0.0, 1.0, this.imageFadeInDelta);
-      this.map.triggerRepaint();
+      const animateIn = () => {
+        this.imageFadeInDelta = Math.min(this.imageFadeInDelta + 0.05, 1.0);
+        this.currentFadeOpacity = lerp(0.0, 1.0, this.imageFadeInDelta);
+        this.map.triggerRepaint();
 
-      if (this.imageFadeInDelta < 1.0) {
-        requestAnimationFrame(animateIn);
-        return;
-      }
-      this.imageIsAnimating = false;
-      this.imageFadeInDelta = 0.0;
-      return;
-    };
+        if (this.imageFadeInDelta < 1.0) {
+          requestAnimationFrame(animateIn);
+          return;
+        }
+        this.imageIsAnimating = false;
+        this.imageFadeInDelta = 0.0;
+        resolve();
+      };
 
-    requestAnimationFrame(animateIn);
+      requestAnimationFrame(animateIn);
+    });
   }
 
   /**
@@ -393,21 +395,23 @@ class CubemapLayer implements CustomLayerInterface {
    * @returns {Promise<void>} A promise that resolves when the animation is complete.
    * @private
    */
-  private animateOut(): Promise<void> {
+  private async animateOut() {
     if (this.imageIsAnimating || !this.animationActive) {
-      return Promise.resolve(); // If already animating, just resolve
+      return; // If already animating, just resolve
     }
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       const animateOut = () => {
         this.imageFadeInDelta = Math.min(this.imageFadeInDelta + 0.05, 1.0);
         this.currentFadeOpacity = lerp(1.0, 0.0, this.imageFadeInDelta);
         this.map.triggerRepaint();
+
         if (this.imageFadeInDelta >= 1.0) {
           this.imageIsAnimating = false;
           this.imageFadeInDelta = 0.0;
           resolve();
           return;
         }
+
         requestAnimationFrame(animateOut);
       };
 

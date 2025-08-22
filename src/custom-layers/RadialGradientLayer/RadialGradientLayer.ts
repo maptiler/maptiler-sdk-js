@@ -185,7 +185,7 @@ export class RadialGradientLayer implements CustomLayerInterface {
       this.scale = this.gradient.scale;
       this.animationDelta = 1;
       this.map.triggerRepaint();
-      return Promise.resolve();
+      return;
     }
 
     return new Promise<void>((resolve) => {
@@ -200,7 +200,8 @@ export class RadialGradientLayer implements CustomLayerInterface {
         }
         resolve();
       };
-      animate();
+
+      requestAnimationFrame(animate);
     });
   }
 
@@ -218,7 +219,7 @@ export class RadialGradientLayer implements CustomLayerInterface {
    */
   private async animateOut() {
     if (!this.animationActive) {
-      return Promise.resolve();
+      return;
     }
 
     this.animationDelta = 0;
