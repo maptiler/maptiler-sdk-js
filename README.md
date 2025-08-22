@@ -592,6 +592,13 @@ map.on("load", () => {
   });
 });
 ```
+
+To disable state transitions for halo or space:
+```ts
+map.disableHaloAnimations();
+map.disableSpaceAnimations();
+```
+
 ## `space` (Background Environment)
 
 The space option allows customizing the background environment of the globe, simulating deep space or skybox effects.
