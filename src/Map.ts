@@ -235,6 +235,9 @@ export class Map extends maplibregl.Map {
 
     if (this.space) {
       void this.space.setCubemap(space);
+      if (!this.getLayer(this.space.id)) {
+        this.addLayer(this.space, this.getLayersOrder()[0]);
+      }
       return;
     }
 
@@ -246,6 +249,62 @@ export class Map extends maplibregl.Map {
         this.addLayer(this.space, firstLayer);
       }
     });
+  }
+
+  /**
+   * Enables the animations for the space layer.
+   */
+  public enableSpaceAnimations() {
+    this.setSpaceAnimationActive(true);
+  }
+
+  /**
+   * Disables the animations for the space layer.
+   */
+  public disableSpaceAnimations() {
+    this.setSpaceAnimationActive(false);
+  }
+
+  /**
+   * Enables the animations for the halo layer.
+   */
+  public enableHaloAnimations() {
+    this.setHaloAnimationActive(true);
+  }
+
+  /**
+   * Disables the animations for the halo layer.
+   */
+  public disableHaloAnimations() {
+    this.setHaloAnimationActive(false);
+  }
+
+  /**
+   * Sets whether the halo layer should be animated in and out.
+   * @param active - Whether the animation should be active.
+   */
+  public setHaloAnimationActive(active: boolean) {
+    if (this.halo) {
+      this.halo.setAnimationActive(active);
+    } else {
+      void this.once("load", () => {
+        this.halo?.setAnimationActive(active);
+      });
+    }
+  }
+
+  /**
+   * Sets whether the space layer should be animated in and out.
+   * @param active - Whether the animation should be active.
+   */
+  public setSpaceAnimationActive(active: boolean) {
+    if (this.space) {
+      this.space.setAnimationActive(active);
+    } else {
+      void this.once("load", () => {
+        this.space?.setAnimationActive(active);
+      });
+    }
   }
 
   private setSpaceFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {

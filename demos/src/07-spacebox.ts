@@ -22,6 +22,10 @@ function main() {
 
   let currentHaloIndex = 0;
 
+  // you can also disable animations by calling the following methods
+  // map.disableHaloAnimations();
+  // map.disableSpaceAnimations();
+
   const randomBgBtn = document.getElementById("bg-color") as HTMLButtonElement;
   randomBgBtn.addEventListener("input", (e: Event) => {
     const input = e.target as HTMLInputElement;

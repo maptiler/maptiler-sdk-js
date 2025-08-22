@@ -187,6 +187,8 @@ class CubemapLayer implements CustomLayerInterface {
    */
   private options: CubemapLayerConstructorOptions;
 
+  private animationActive: boolean = true;
+
   /**
    * Creates a new instance of CubemapLayer
    *
@@ -354,28 +356,37 @@ class CubemapLayer implements CustomLayerInterface {
    * This method gradually increases the opacity of the cubemap image to create a fade-in effect.
    * @private
    */
-  private animateIn() {
+  private async animateIn() {
     if (this.imageIsAnimating) {
       return;
     }
 
-    this.imageIsAnimating = true;
-
-    const animateIn = () => {
-      this.imageFadeInDelta = Math.min(this.imageFadeInDelta + 0.05, 1.0);
-      this.currentFadeOpacity = lerp(0.0, 1.0, this.imageFadeInDelta);
+    if (!this.animationActive) {
+      this.currentFadeOpacity = 1.0;
+      this.imageFadeInDelta = 1;
       this.map.triggerRepaint();
-
-      if (this.imageFadeInDelta < 1.0) {
-        requestAnimationFrame(animateIn);
-        return;
-      }
-      this.imageIsAnimating = false;
-      this.imageFadeInDelta = 0.0;
       return;
-    };
+    }
 
-    requestAnimationFrame(animateIn);
+    return new Promise<void>((resolve) => {
+      this.imageIsAnimating = true;
+
+      const animateIn = () => {
+        this.imageFadeInDelta = Math.min(this.imageFadeInDelta + 0.05, 1.0);
+        this.currentFadeOpacity = lerp(0.0, 1.0, this.imageFadeInDelta);
+        this.map.triggerRepaint();
+
+        if (this.imageFadeInDelta < 1.0) {
+          requestAnimationFrame(animateIn);
+          return;
+        }
+        this.imageIsAnimating = false;
+        this.imageFadeInDelta = 0.0;
+        resolve();
+      };
+
+      requestAnimationFrame(animateIn);
+    });
   }
 
   /**
@@ -384,26 +395,32 @@ class CubemapLayer implements CustomLayerInterface {
    * @returns {Promise<void>} A promise that resolves when the animation is complete.
    * @private
    */
-  private animateOut(): Promise<void> {
-    if (this.imageIsAnimating) {
-      return Promise.resolve(); // If already animating, just resolve
+  private async animateOut() {
+    if (this.imageIsAnimating || !this.animationActive) {
+      return; // If already animating, just resolve
     }
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       const animateOut = () => {
         this.imageFadeInDelta = Math.min(this.imageFadeInDelta + 0.05, 1.0);
         this.currentFadeOpacity = lerp(1.0, 0.0, this.imageFadeInDelta);
         this.map.triggerRepaint();
+
         if (this.imageFadeInDelta >= 1.0) {
           this.imageIsAnimating = false;
           this.imageFadeInDelta = 0.0;
           resolve();
           return;
         }
+
         requestAnimationFrame(animateOut);
       };
 
       requestAnimationFrame(animateOut);
     });
+  }
+
+  public setAnimationActive(active: boolean) {
+    this.animationActive = active;
   }
 
   /**
@@ -519,7 +536,7 @@ class CubemapLayer implements CustomLayerInterface {
       this.faces = null;
       this.useCubemapTexture = false;
       this.currentFacesDefinitionKey = "empty";
-      this.animateIn();
+      await this.animateIn();
       return;
     }
 
