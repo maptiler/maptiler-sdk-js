@@ -3,6 +3,7 @@
 ## NEXT
 ### ✨ Features and improvements
 - Adds `enableHaloAnimations`, `enableSpaceAnimations`, `disableHaloAnimations`, `disableSpaceAnimations` to Map instance for toggling halo and space animations.
+- Adds custom controls that can be styled however you wish and can do whatever you need, in both declarative (auto-detected) and programmatic way
 
 ### 🐛 Bug fixes
 - fixes a bug on `halo` where sharp edged stops cause noise to surface when scaled down.
