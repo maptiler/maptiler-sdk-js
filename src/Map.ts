@@ -229,13 +229,21 @@ export class Map extends maplibregl.Map {
    * If an option is not set it will internally revert to the default option
    * unless explicitly set when calling.
    */
-  public setSpace(space: CubemapDefinition) {
+  public setSpace(space: CubemapDefinition | boolean) {
+    if (space === false) {
+      this.space = undefined;
+      return;
+    }
+
     if (!this.isGlobeProjection()) {
       return;
     }
 
     if (this.space) {
       void this.space.setCubemap(space);
+      if (!this.getLayer(this.space.id)) {
+        this.addLayer(this.space, this.getLayersOrder()[0]);
+      }
       return;
     }
 
@@ -249,8 +257,70 @@ export class Map extends maplibregl.Map {
     });
   }
 
+  /**
+   * Enables the animations for the space layer.
+   */
+  public enableSpaceAnimations() {
+    this.setSpaceAnimationActive(true);
+  }
+
+  /**
+   * Disables the animations for the space layer.
+   */
+  public disableSpaceAnimations() {
+    this.setSpaceAnimationActive(false);
+  }
+
+  /**
+   * Enables the animations for the halo layer.
+   */
+  public enableHaloAnimations() {
+    this.setHaloAnimationActive(true);
+  }
+
+  /**
+   * Disables the animations for the halo layer.
+   */
+  public disableHaloAnimations() {
+    this.setHaloAnimationActive(false);
+  }
+
+  /**
+   * Sets whether the halo layer should be animated in and out.
+   * @param active - Whether the animation should be active.
+   */
+  public setHaloAnimationActive(active: boolean) {
+    if (this.halo) {
+      this.halo.setAnimationActive(active);
+    } else {
+      void this.once("load", () => {
+        this.halo?.setAnimationActive(active);
+      });
+    }
+  }
+
+  /**
+   * Sets whether the space layer should be animated in and out.
+   * @param active - Whether the animation should be active.
+   */
+  public setSpaceAnimationActive(active: boolean) {
+    if (this.space) {
+      this.space.setAnimationActive(active);
+    } else {
+      void this.once("load", () => {
+        this.space?.setAnimationActive(active);
+      });
+    }
+  }
+
   private setSpaceFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
+    if (this.options.space) {
+      this.setSpace(this.options.space);
+      return;
+    }
+
     const space = style.metadata?.maptiler?.space;
+
     if (!space) {
       this.setSpace({
         color: "transparent",
@@ -304,7 +374,7 @@ export class Map extends maplibregl.Map {
       return;
     }
 
-    if (!maptiler?.halo) {
+    if (!maptiler?.halo && !this.options.halo) {
       this.setHalo({
         stops: [
           [0, "transparent"],
@@ -323,7 +393,11 @@ export class Map extends maplibregl.Map {
           this.addLayer(this.halo, before);
         }
 
-        void this.halo.setGradient(maptiler.halo);
+        const spec = maptiler?.halo ?? this.options.halo;
+
+        if (spec) {
+          void this.halo.setGradient(spec);
+        }
       }
     };
 

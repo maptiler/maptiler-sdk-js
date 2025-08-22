@@ -112,6 +112,13 @@ export class RadialGradientLayer implements CustomLayerInterface {
   private plane?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
 
   /**
+   * Whether the halo should be animated in and out.
+   * @private
+   * @type {boolean}
+   */
+  private animationActive: boolean = true;
+
+  /**
    * Creates a new RadialGradientLayer instance.
    *
    * @param {RadialGradientLayerConstructorOptions | boolean} gradient - Configuration options for the radial gradient or a boolean value.
@@ -174,6 +181,13 @@ export class RadialGradientLayer implements CustomLayerInterface {
    * @returns {Promise<void>} A promise that resolves when the animation completes
    */
   private async animateIn() {
+    if (!this.animationActive) {
+      this.scale = this.gradient.scale;
+      this.animationDelta = 1;
+      this.map.triggerRepaint();
+      return;
+    }
+
     return new Promise<void>((resolve) => {
       this.animationDelta = 0;
       const animate = () => {
@@ -186,7 +200,8 @@ export class RadialGradientLayer implements CustomLayerInterface {
         }
         resolve();
       };
-      animate();
+
+      requestAnimationFrame(animate);
     });
   }
 
@@ -203,6 +218,10 @@ export class RadialGradientLayer implements CustomLayerInterface {
    * @returns A Promise that resolves when the animation is complete.
    */
   private async animateOut() {
+    if (!this.animationActive) {
+      return;
+    }
+
     this.animationDelta = 0;
     return new Promise<void>((resolve) => {
       const animate = () => {
@@ -324,8 +343,14 @@ export class RadialGradientLayer implements CustomLayerInterface {
    * @param {GradientDefinition} gradient - The new gradient definition to set for this layer.
    * @returns {Promise<void>} A promise that resolves when the new gradient is set and animated in.
    */
-  public async setGradient(gradient: GradientDefinition): Promise<void> {
+  public async setGradient(gradient: GradientDefinition | boolean): Promise<void> {
+    if (gradient === false) {
+      await this.animateOut();
+      return;
+    }
+
     await this.animateOut();
+
     if (!validateHaloSpecification(gradient)) {
       this.gradient.scale = defaultConstructorOptions.scale;
       this.gradient.stops = [
@@ -334,10 +359,20 @@ export class RadialGradientLayer implements CustomLayerInterface {
       ];
       return;
     }
-    this.gradient.scale = gradient.scale ?? defaultConstructorOptions.scale;
-    this.gradient.stops = gradient.stops ?? defaultConstructorOptions.stops;
+
+    if (gradient === true) {
+      this.gradient.scale = defaultConstructorOptions.scale;
+      this.gradient.stops = defaultConstructorOptions.stops;
+    } else {
+      this.gradient.scale = gradient.scale ?? defaultConstructorOptions.scale;
+      this.gradient.stops = gradient.stops ?? defaultConstructorOptions.stops;
+    }
 
     await this.animateIn();
+  }
+
+  public setAnimationActive(active: boolean) {
+    this.animationActive = active;
   }
 
   public show(): void {
