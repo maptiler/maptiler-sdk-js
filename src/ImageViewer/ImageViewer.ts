@@ -27,14 +27,35 @@ export type ImageViewerEaseToOptions = Omit<EaseToOptions, "pitch"> & {
   center: [number, number];
 };
 
+//#region ImageViewerConstructorOptions
 export type ImageViewerConstructorOptions = Pick<MapOptions, AllowedConstrcutorOptions> & {
+  /**
+   * The UUID of the image.
+   */
   imageUUID: string;
+  /**
+   * Whether to show debug information.
+   */
   debug?: boolean;
+  /**
+   * The center of the image.
+   */
   center?: [number, number];
+  /**
+   * Whether to show a control to fit the image to the viewport.
+   */
   fitToBoundsControl?: boolean;
+  /**
+   * Whether to show a navigation control.
+   */
   navigationControl?: boolean;
 };
 
+//#region ImageMetadata
+/**
+ * The metadata of the image. This is the shape of the response from the API.
+ * And used to convert px to lnglat and vice versa.
+ */
 export type ImageMetadata = {
   id: string;
   description: string;
@@ -48,7 +69,7 @@ export type ImageMetadata = {
 
 //#region overrideOptions
 /**
- * These options cannot be changed externally.
+ * These options cannot be changed externally and are used when creating the map instance.
  *
  * @internal
  */
@@ -145,6 +166,22 @@ export default class ImageViewer extends Evented {
    * The constructor for the ImageViewer.
    *
    * @param {Partial<ImageViewerConstructorOptions>} imageViewerConstructorOptions - The options for the ImageViewer.
+   * @example
+   * ```ts
+   * import "@maptiler/sdk/dist/maptiler-sdk.css"; // import css
+   * import { ImageViewer } from "@maptiler/sdk"; // import the sdk
+   *
+   * const imageViewer = new ImageViewer({
+   *   container: document.getElementById("map"),
+   *   imageUUID: "01986025-ceb9-7487-9ea6-7a8637dcc1a1",
+   *   debug: true, // show tile boundaries, padding, collision boxes etc
+   *   fitToBoundsControl: true, // show a control to fit the image to the viewport
+   *   navigationControl: true, // show a navigation control
+   *   center: [0, 0], // center in pixels
+   *   zoom: 1, // zoom level
+   *   bearing: 0, // bearing
+   * });
+   * ```
    */
   constructor(imageViewerConstructorOptions: Partial<ImageViewerConstructorOptions>) {
     super();
@@ -639,7 +676,7 @@ export default class ImageViewer extends Evented {
 
   //#region getCenter
   /**
-   * Get the center of the ImageViewer.
+   * Get the center of the ImageViewer in pixels.
    *
    * @internal
    * @returns {[number, number]} The center of the ImageViewer.
@@ -652,7 +689,7 @@ export default class ImageViewer extends Evented {
 
   //#region setCenter
   /**
-   * Set the center of the ImageViewer.
+   * Set the center of the ImageViewer in pixels.
    *
    * @param {number} center - The center of the ImageViewer.
    */
@@ -662,7 +699,7 @@ export default class ImageViewer extends Evented {
 
   //#region setBearing
   /**
-   * Set the bearing of the ImageViewer.
+   * Set the bearing of the ImageViewer in degrees.
    *
    * @param {number} bearing - The bearing of the ImageViewer.
    */
@@ -672,7 +709,7 @@ export default class ImageViewer extends Evented {
 
   //#region getBearing
   /**
-   * Get the bearing of the ImageViewer.
+   * Get the bearing of the ImageViewer in degrees.
    *
    * @returns {number} The bearing of the ImageViewer.
    */
@@ -682,7 +719,7 @@ export default class ImageViewer extends Evented {
 
   //#region panBy
   /**
-   * Pan by a given delta.
+   * Pan by a given delta in pixels.
    *
    * @param {PointLike} delta - The delta to pan by.
    * @param {ImageViewerEaseToOptions} options - The options for the pan.
@@ -694,7 +731,7 @@ export default class ImageViewer extends Evented {
 
   //#region panTo
   /**
-   * Pan to a given center.
+   * Pan to a given center in pixels.
    *
    * @param {number} center - The center to pan to.
    * @param {ImageViewerEaseToOptions} options - The options for the pan.

@@ -677,7 +677,7 @@ Further code examples can be found in `~/demos/`
 
 # `ImageViewer`
 
-MapTiler's `ImageViewer` component allows you to display tiled, non-georeferenced images but interact with them the same way you would if you were displaying map. These can be handy for zoomable non-georeferenced, geographically "inaccurate" maps such as hotel maps, golf courses, theme parks etc. Think pixels instead of lattitudes and longtidues.
+MapTiler's `ImageViewer` component allows you to display tiled, non-georeferenced images but interact with them in almost the same way you would if you were displaying map. These can be handy for zoomable non-georeferenced, geographically "inaccurate" maps such as hotel maps, golf courses, theme parks etc. Think pixels instead of lattitudes and longtidues.
 
 ```ts
   export type ImageViewerConstructorOptions = {
