@@ -168,6 +168,9 @@ export default class ImageViewer extends Evented {
    * @param {Partial<ImageViewerConstructorOptions>} imageViewerConstructorOptions - The options for the ImageViewer.
    * @example
    * ```ts
+   * import "@maptiler/sdk/dist/maptiler-sdk.css"; // import css
+   * import { ImageViewer } from "@maptiler/sdk"; // import the sdk
+   *
    * const imageViewer = new ImageViewer({
    *   container: document.getElementById("map"),
    *   imageUUID: "01986025-ceb9-7487-9ea6-7a8637dcc1a1",
