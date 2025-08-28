@@ -820,6 +820,50 @@ Note: if `space.color` or `space.<faces | path | preset>` are not explicitly set
 
 Further code examples can be found in `~/demos/`
 
+# `ImageViewer`
+
+MapTiler's `ImageViewer` component allows you to display tiled, non-georeferenced images but interact with them in almost the same way you would if you were displaying map. These can be handy for zoomable non-georeferenced, geographically "inaccurate" maps such as hotel maps, golf courses, theme parks etc. Think pixels instead of lattitudes and longtidues.
+
+```ts
+  export type ImageViewerConstructorOptions = {
+    imageUUID: string; // the unique UUID of the image object you are displaying
+    center?: [number, number]; // the center you want the viewer to init on, defaults to the center of the image.
+    container: string | HTMLElement // the container element you want to mount the viewer on
+    apiKey: string; // your MapTiler API Key
+    zoom?: number;
+    maxZoom?: number; 
+    minZoom?: number;
+    bearing?: number;
+    debug?: boolean; // whether you want to debug the tiles
+  };
+
+  const imageViewer = new ImageViewer({
+    container: document.getElementById("map")!, // the container element you want to use
+    apiKey: "YOUR_MAPTILER_API_KEY", // your api key
+    imageUUID: "11111111-2222-3333-4444-555555555555", // unique UUID of the image object
+    // ...other options, see below
+  }: ImageViewerConstructorOptions);
+
+  await imageViewer.onReadyAsync()
+
+  // OR
+
+  imageViewer.on("imageviewerready", () => { console.log('Ready!') })
+```
+
+## Methods
+`ImageViewer` provides a subset of methods for interaction with the map. A major caveat is that the `ImageViewer` component works in pixels and not in LngLat. Thus, when using methods such as `setCenter` or `flyTo` the pixel values provided refer to the _absolute pixel position_ on the image, not screen pixel position.
+
+Imagine your image is 10,000px x 10,000px, if regardless if your zoom is 2 or 4, calling `.setCenter(500,500)` will always position the viewer over the same part of the image.
+
+For full details on supported methods see the type declaration for `ImageViewer`.
+
+## Events
+In a similar manner, a subset of map events are fired by the image viewer. All UI interaction events that would normally include a `LngLat` in the event data instead receive an `imageX` and `imageY` field, representing an absolute pixel position of the image. This is same for `flyTo`, `jumpTo`, `panTo` etc.
+
+A full list of supported events can be found in the exported type declaration `ImageViewerEventTypes`
+
+
 # Easy language switching
 The language generally depends on the style but we made it possible to easily set and update from a built-in list of languages.
 

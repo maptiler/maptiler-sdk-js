@@ -253,7 +253,7 @@ export {
   getLanguageInfoFromKey,
   canParsePixelData,
 } from "@maptiler/client";
-
+export * from "./ImageViewer";
 export { getWebGLSupportError, displayWebGLContextLostWarning } from "./tools";
 export { config, SdkConfig } from "./config";
 export * from "./language";
