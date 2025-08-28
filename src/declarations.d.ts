@@ -4,3 +4,4 @@ declare module "*?raw" {
 }
 
 declare const __MT_SDK_VERSION__: string;
+declare const __MT_NODE_ENV__: string;

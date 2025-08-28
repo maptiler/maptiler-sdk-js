@@ -451,7 +451,145 @@ const map = new Map({
 })
 ```
 
+# 🧩 Custom Controls
 
+MapTiler SDK JS supports two flexible ways to add custom controls to your map interface. Whether you're building a dynamic application or integrating with static HTML, there's a matching approach for both.
+
+## Programmatic Controls
+
+Use `map.addControl()` with `MaptilerExternalControl` to register custom UI elements manually. This approach is ideal for dynamic logic, event-driven behavior, or integration with frameworks like React. The control element can be provided either as a reference to the **element itself**, or as its **CSS selector**. Optionally, two callback functions can be provided:
+
+* `onClick` function that is called when the element is clicked, and
+* `onRender` function that is called every time the map renders a new state.
+
+Both callbacks receive the active `Map` instance, the associated control element itself, and an event object associated with the original event (`PointerEvent` and `MapLibreEvent` respectively).
+
+### Example
+
+```ts
+const panControl = new maptilersdk.MaptilerExternalControl(
+  ".pan-control",
+  (map) => map.panBy([10, 10]), // Move southeast on click
+  (map, el) => el.classList.toggle( // Style based on hemisphere
+    "northern-hemisphere", map.getCenter().lat > 0
+  )
+);
+map.addControl(panControl);
+
+const element = document.createElement("button");
+element.textContent = "Pan NW";
+map.addControl(
+  new maptilersdk.MaptilerExternalControl(
+    element,
+    (map) => map.panBy([-10, -10]) // Move northwest
+  ),
+  "top-left"
+);
+```
+
+### Behavior Overview
+
+- On add, control element is moved into the map UI
+- `onClick` binds user interaction
+- `onRender` enables state-based styling or logic
+- Control maintains its own DOM context
+- On removal, element is returned to its original DOM position (if any) to not interfere with DOM handling of frameworks like React
+
+## Declarative Controls
+
+Add controls using HTML attributes – no JavaScript required. This is perfect for simple UI setups.
+
+### Enabling Detection
+
+```ts
+const map = new maptilersdk.Map({
+  container: "map",
+  customControls: true, // or ".custom-ui"
+});
+```
+
+You can pass `true` to enable detection globally, or a CSS selector to scope it.
+
+### Declaring Controls
+
+Use `data-maptiler-control` attribute:
+
+```html
+<button data-maptiler-control="zoom-in">+</button>
+```
+
+Supported values:
+
+| Value               | Description                                      |
+|---------------------|--------------------------------------------------|
+| `zoom-in`           | Zooms in                                         |
+| `zoom-out`          | Zooms out                                        |
+| `toggle-projection` | Switches Mercator ↔ Globe                        |
+| `toggle-terrain`    | Toggles terrain layer                            |
+| `reset-view`        | Resets bearing, pitch, and roll                  |
+| `reset-bearing`     | Resets bearing only                              |
+| `reset-pitch`       | Resets pitch only                                |
+| `reset-roll`        | Resets roll only                                 |
+| *(empty)*           | Registers control without built-in functionality |
+
+> ⚠️ An error is thrown if an unrecognized value is used.
+
+### Grouping Controls
+
+Use `data-maptiler-control-group` to group buttons:
+
+```html
+<div data-maptiler-control-group>
+  <button data-maptiler-control="zoom-in">+</button>
+  <button data-maptiler-control="zoom-out">−</button>
+</div>
+```
+
+Groups are styled and positioned together but don't add functionality themselves. Functional behavior is attached to valid descendant elements.
+
+### Positioning Controls
+
+Use `data-maptiler-position` to set placement:
+
+```html
+<button data-maptiler-control="reset-view" data-maptiler-position="top-left">↻</button>
+<div data-maptiler-control-group data-maptiler-position="bottom-right">
+  <button data-maptiler-control="zoom-in">+</button>
+  <button data-maptiler-control="zoom-out">−</button>
+</div>
+```
+
+Valid positions: `'top-left'`, `'top-right'`, `'bottom-left'`, `'bottom-right'`
+
+## Styling with CSS Variables
+
+When declarative controls are enabled, the map container exposes dynamic CSS variables:
+
+| Variable                         | Description                                      | Type            |
+|----------------------------------|--------------------------------------------------|-----------------|
+| `--maptiler-center-lng`          | Longitude of center                              | unitless number |
+| `--maptiler-center-lat`          | Latitude of center                               | unitless number |
+| `--maptiler-zoom`                | Zoom level                                       | unitless number |
+| `--maptiler-bearing`             | Map rotation                                     | unitless number |
+| `--maptiler-pitch`               | Pitch angle                                      | unitless number |
+| `--maptiler-roll`                | Roll angle                                       | unitless number |
+| `--maptiler-is-globe-projection` | `true` if globe is active<br>`false` otherwise   | string          |
+| `--maptiler-has-terrain`         | `true` if terrain is active<br>`false` otherwise | string          |
+
+### Example
+
+```css
+.compass-icon {
+  transform: rotateX(calc(var(--maptiler-pitch) * 1deg))
+             rotateZ(calc(var(--maptiler-bearing) * -1deg));
+}
+
+@container style(--maptiler-is-globe-projection: true) {
+  .projection-icon {
+    content: "globe";
+  }
+}
+```
 
 # 3D terrain in one call
 <p align="center">
@@ -592,6 +730,13 @@ map.on("load", () => {
   });
 });
 ```
+
+To disable state transitions for halo or space:
+```ts
+map.disableHaloAnimations();
+map.disableSpaceAnimations();
+```
+
 ## `space` (Background Environment)
 
 The space option allows customizing the background environment of the globe, simulating deep space or skybox effects.

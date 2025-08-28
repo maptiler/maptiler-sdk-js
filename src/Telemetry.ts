@@ -1,7 +1,7 @@
+import { getVersion } from ".";
 import type { Map as MapSDK } from "./Map";
 import { config, MAPTILER_SESSION_ID } from "./config";
 import { defaults } from "./constants/defaults";
-import packagejson from "../package.json";
 
 /**
  * A Telemetry instance sends some usage and merics to a dedicated endpoint at MapTiler Cloud.
@@ -62,7 +62,7 @@ export class Telemetry {
     const telemetryUrl = new URL(defaults.telemetryURL);
 
     // Adding the version of the SDK
-    telemetryUrl.searchParams.append("sdk", packagejson.version);
+    telemetryUrl.searchParams.append("sdk", getVersion());
 
     // Adding the API key
     telemetryUrl.searchParams.append("key", config.apiKey);
