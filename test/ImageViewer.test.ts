@@ -31,6 +31,7 @@ vi.mock("../src/Map", async () => {
         setPitch: vi.fn(),
         getBounds: vi.fn(),
         setBounds: vi.fn(),
+        cameraForBounds: vi.fn(),
 
         // Movement methods
         flyTo: vi.fn(),
@@ -52,6 +53,9 @@ vi.mock("../src/Map", async () => {
         addLayer: vi.fn(),
         getStyle: vi.fn(() => ({ version: 8, sources: {}, layers: [] })),
         isStyleLoaded: vi.fn(() => true),
+
+        // Controls
+        addControl: vi.fn(),
 
         // Handler properties
         scrollZoom: { isEnabled: vi.fn(() => true), enable: vi.fn(), disable: vi.fn() },
@@ -120,6 +124,7 @@ import type { MapOptions, DragPanHandler, DoubleClickZoomHandler, TwoFingersTouc
 // Import fixture data
 import fixtureImageMetadata from "./fixtures/ImageViewer/image.json";
 import { BoxZoomHandler, CooperativeGesturesHandler, KeyboardHandler, LngLat, MercatorCoordinate, ScrollZoomHandler } from "../src";
+import { ImageViewerFitImageToBoundsControl } from "../src/controls/ImageViewerFitImageToBoundsControl";
 
 // Read the fixture image file
 const fixtureImagePath = path.join(__dirname, "fixtures/ImageViewer/image.png");
@@ -460,19 +465,19 @@ describe("ImageViewer", () => {
     });
 
     it("should handle panBy operations", () => {
-      viewer.panBy([10, 20]);
-      expect(mockMapInstance.panBy).toHaveBeenCalledWith([10, 20], undefined, undefined);
+      viewer.panBy([10, 20], undefined, { data: "yes" });
+      expect(mockMapInstance.panBy).toHaveBeenCalledWith([10, 20], { pitch: 0 }, { data: "yes" });
     });
 
     it("should handle panTo operations", () => {
-      viewer.panTo([150, 250]);
+      viewer.panTo([150, 250], undefined, { data: "yes" });
       expect(mockMapInstance.panTo).toHaveBeenCalledWith(
         expect.objectContaining({
           lat: 84.00685244708399,
           lng: -173.408203125,
         }),
-        undefined,
-        undefined,
+        { pitch: 0 },
+        { data: "yes" },
       );
     });
   });
@@ -699,6 +704,24 @@ describe("ImageViewer", () => {
       // Verify we can fetch image tiles
       const tileResponse = await mockFetch("https://api.example.com/test-uuid/1/0/0");
       expect(tileResponse.ok).toBe(true);
+    });
+  });
+  describe("Controls", () => {
+    it("should add the fit image to bounds control", async () => {
+      const viewer = new ImageViewer({
+        container: container,
+        imageUUID: "test-uuid",
+        apiKey: "test-key",
+        debug: false,
+        fitToBoundsControl: true,
+      });
+
+      await viewer.onReadyAsync();
+
+      const MockedMap = Map as unknown as Mock;
+      const mockMapInstance = MockedMap.mock.results[0].value;
+
+      expect(mockMapInstance.addControl).toHaveBeenCalledWith(expect.any(ImageViewerFitImageToBoundsControl));
     });
   });
 });

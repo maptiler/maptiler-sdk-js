@@ -6,6 +6,8 @@ import { ImageViewerEvent, setupGlobalMapEventForwarder } from "./events";
 import { FetchError } from "../utils/errors";
 import { config } from "..";
 import { monkeyPatchMapTransformInstance } from "./monkeyPatchML";
+import { NavigationControl } from "../MLAdapters/NavigationControl";
+import { ImageViewerFitImageToBoundsControl } from "../controls/ImageViewerFitImageToBoundsControl";
 
 //#region types
 
@@ -29,6 +31,8 @@ export type ImageViewerConstructorOptions = Pick<MapOptions, AllowedConstrcutorO
   imageUUID: string;
   debug?: boolean;
   center?: [number, number];
+  fitToBoundsControl?: boolean;
+  navigationControl?: boolean;
 };
 
 export type ImageMetadata = {
@@ -59,8 +63,9 @@ const overrideOptions: Partial<MapOptions> = {
   pitch: 0,
   bearing: 0,
   projection: "mercator",
-  projectionControl: false,
   geolocateControl: false,
+  navigationControl: false,
+  projectionControl: false,
   hash: false,
   renderWorldCopies: false,
   terrain: false,
@@ -71,6 +76,8 @@ const overrideOptions: Partial<MapOptions> = {
 //#region imageViewerDefaultOptions
 const imageViewerDefaultOptions: Partial<ImageViewerConstructorOptions> = {
   debug: false,
+  fitToBoundsControl: true,
+  navigationControl: true,
 };
 
 //#region ImageViewer
@@ -160,6 +167,11 @@ export default class ImageViewer extends Evented {
       ...overrideOptions,
     };
 
+    // we don't want to pass the center to the map instance
+    // because it will be in px space and not lnglat space
+    // we cannot convert it lnglat space until the metadata is fetched
+    delete sdkOptions.center;
+
     this.sdk = new Map(sdkOptions);
 
     this.sdk.telemetry.registerViewerType("ImageViewer");
@@ -210,6 +222,10 @@ export default class ImageViewer extends Evented {
     }
   }
 
+  // this flag is used to determine if the image should be fit to the viewport
+  // when the map is resized
+  shouldFitImageToViewport = true;
+
   //#region init
   /**
    * Initializes the ImageViewer
@@ -229,21 +245,105 @@ export default class ImageViewer extends Evented {
 
       this.addImageSource();
 
+      if (this.options.navigationControl) {
+        this.sdk.addControl(
+          new NavigationControl({
+            visualizePitch: false,
+            visualizeRoll: false,
+          }),
+        );
+      }
+
+      if (this.options.fitToBoundsControl) {
+        this.sdk.addControl(new ImageViewerFitImageToBoundsControl({ imageViewer: this }));
+      }
+
       setupGlobalMapEventForwarder({
         map: this.sdk,
         viewer: this,
         lngLatToPx: (lngLat: LngLat) => this.lngLatToPx(lngLat),
       });
 
+      // this is a monkey patch to allow for overpanning and underzooming
       monkeyPatchMapTransformInstance(this.sdk);
 
-      const { center } = this.options;
+      const { center, zoom, bearing } = this.options;
       const initCenter = center ?? [(this.imageMetadata?.width ?? 0) / 2, (this.imageMetadata?.height ?? 0) / 2];
       this.setCenter(initCenter);
+
+      this.setBearing(bearing ?? 0);
+
+      if (!this.options.zoom) {
+        this.fitImageToViewport();
+      } else {
+        this.setZoom(zoom ?? this.imageMetadata?.maxzoom ?? 5);
+      }
+
+      // we want to disable the fit image to viewport on wheel and drag
+      // "move" and "zoom" are not viable as they would be fired
+      // when `fitImageToViewport` is called making loop
+      // so we test for UI events instead
+      this.sdk.on("wheel", () => {
+        this.shouldFitImageToViewport = false;
+      });
+
+      this.sdk.on("touchstart", () => {
+        this.shouldFitImageToViewport = false;
+      });
+
+      this.sdk.on("drag", () => {
+        this.shouldFitImageToViewport = false;
+      });
+
+      // checks to see if there have been any UI events
+      // if not, then we keep the image centered
+      // and zoomed to fit the page.
+      this.sdk.on("resize", () => {
+        const previousCenter = this.getCenter();
+        const width = this.imageMetadata?.width ?? 0;
+        const height = this.imageMetadata?.height ?? 0;
+
+        if (this.shouldFitImageToViewport) {
+          this.fitImageToViewport();
+        }
+
+        if (previousCenter[0] !== width / 2 || previousCenter[1] !== height / 2) {
+          this.setCenter(previousCenter);
+        }
+      });
+
       this.fire("imageviewerinit");
     } catch (e) {
       this.fire("imagevieweriniterror", { error: e });
     }
+  }
+
+  //#region fitImageToViewport
+  /**
+   * Fits the image to the viewport.
+   *
+   * @param {Object} options - The options for the fit image to viewport.
+   * @param {boolean} options.ease - Whether to ease to the viewport bounds.
+   */
+  fitImageToViewport({ ease = false }: { ease?: boolean } = {}) {
+    if (!this.imageMetadata) {
+      throw new Error("[ImageViewer]: Image metadata not found");
+    }
+
+    const tl = this.pxToLngLat([0, 0]);
+    const br = this.pxToLngLat([this.imageMetadata.width ?? 0, this.imageMetadata.height ?? 0]);
+
+    const cameraForBounds = this.sdk.cameraForBounds([tl, br], { padding: 50 });
+    if (cameraForBounds) {
+      if (ease) {
+        this.sdk.easeTo({ ...cameraForBounds, pitch: 0 }, null);
+      } else {
+        this.sdk.jumpTo({ ...cameraForBounds, pitch: 0 }, null);
+      }
+    }
+
+    // reset the flag to true
+    this.shouldFitImageToViewport = true;
   }
 
   //#region fetchImageMetadata
