@@ -208,6 +208,26 @@ describe("ImageViewer", () => {
       expect(viewer.version).toBe("1.0.0");
     });
 
+    it("fire the correct init event if onReadyAsync is not called", async () => {
+      const viewer = new ImageViewer({
+        container: container,
+        imageUUID: "test-uuid",
+        apiKey: "test-key",
+        debug: false,
+      });
+
+      const readyCallback = vi.fn();
+
+      await new Promise((resolve) => {
+        void viewer.once("imageviewerready", () => {
+          readyCallback();
+          resolve(undefined);
+        });
+      });
+
+      expect(readyCallback).toHaveBeenCalled();
+    });
+
     it("should merge options correctly with overrides", async () => {
       const MockedMap = Map as unknown as Mock;
 
