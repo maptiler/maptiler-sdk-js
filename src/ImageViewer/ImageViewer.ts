@@ -240,9 +240,8 @@ export default class ImageViewer extends Evented {
       await this.sdk.onReadyAsync();
       await Promise.race([
         new Promise((resolve, reject) => {
-          void this.once("imageviewerinit", (e) => {
-            this.fire("imageviewerready", new ImageViewerEvent("imageviewerready", this));
-            resolve(e);
+          void this.once("imageviewerready", (evt) => {
+            resolve(evt);
           });
           void this.once("imagevieweriniterror", (e: { error: Error }) => {
             reject(e.error);
@@ -348,8 +347,7 @@ export default class ImageViewer extends Evented {
           this.setCenter(previousCenter);
         }
       });
-
-      this.fire("imageviewerinit");
+      this.fire("imageviewerready", new ImageViewerEvent("imageviewerready", this));
     } catch (e) {
       this.fire("imagevieweriniterror", { error: e });
     }
