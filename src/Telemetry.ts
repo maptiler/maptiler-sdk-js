@@ -1,7 +1,7 @@
+import { getVersion } from ".";
 import type { Map as MapSDK } from "./Map";
 import { config, MAPTILER_SESSION_ID } from "./config";
 import { defaults } from "./constants/defaults";
-import packagejson from "../package.json";
 
 /**
  * A Telemetry instance sends some usage and merics to a dedicated endpoint at MapTiler Cloud.
@@ -9,6 +9,7 @@ import packagejson from "../package.json";
 export class Telemetry {
   private map: MapSDK;
   private registeredModules = new Set<string>();
+  private viewerType: string;
 
   /**
    *
@@ -17,6 +18,8 @@ export class Telemetry {
    */
   constructor(map: MapSDK, delay: number = 2000) {
     this.map = map;
+
+    this.viewerType = "Map";
 
     setTimeout(
       async () => {
@@ -51,11 +54,15 @@ export class Telemetry {
     this.registeredModules.add(`${name}:${version}`);
   }
 
+  registerViewerType(viewerType: string = "Map") {
+    this.viewerType = viewerType;
+  }
+
   private preparePayload(): string {
     const telemetryUrl = new URL(defaults.telemetryURL);
 
     // Adding the version of the SDK
-    telemetryUrl.searchParams.append("sdk", packagejson.version);
+    telemetryUrl.searchParams.append("sdk", getVersion());
 
     // Adding the API key
     telemetryUrl.searchParams.append("key", config.apiKey);
@@ -77,6 +84,9 @@ export class Telemetry {
 
     // Is globe enabled?
     telemetryUrl.searchParams.append("globe", this.map.isGlobeProjection() ? "1" : "0");
+
+    // Is this a stadnard map or a different viewer?
+    telemetryUrl.searchParams.append("viewerType", this.viewerType);
 
     // Adding the modules
     // the list of modules are separated by a "|". For each module, a ":" is used to separate the name and the version:

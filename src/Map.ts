@@ -33,6 +33,7 @@ import { MapStyle, geolocation, getLanguageInfoFromFlag, toLanguageInfo } from "
 import { MaptilerGeolocateControl } from "./controls/MaptilerGeolocateControl";
 import { ScaleControl } from "./MLAdapters/ScaleControl";
 import { FullscreenControl } from "./MLAdapters/FullscreenControl";
+import { MaptilerExternalControlType, MaptilerExternalControl } from "./controls/MaptilerExternalControl";
 
 import Minimap from "./controls/Minimap";
 import type { MinimapOptionsInput } from "./controls/Minimap";
@@ -152,6 +153,11 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   fullscreenControl?: boolean | ControlPosition;
 
   /**
+   * Detect custom external controls. (default: `false`, will detect automatically if `true`)
+   */
+  customControls?: boolean | string;
+
+  /**
    * Display a minimap in a user defined corner of the map. (default: `bottom-left` corner)
    * If set to true, the map will assume it is a minimap and forego the attribution control.
    */
@@ -223,13 +229,21 @@ export class Map extends maplibregl.Map {
    * If an option is not set it will internally revert to the default option
    * unless explicitly set when calling.
    */
-  public setSpace(space: CubemapDefinition) {
+  public setSpace(space: CubemapDefinition | boolean) {
+    if (space === false) {
+      this.space = undefined;
+      return;
+    }
+
     if (!this.isGlobeProjection()) {
       return;
     }
 
     if (this.space) {
       void this.space.setCubemap(space);
+      if (!this.getLayer(this.space.id)) {
+        this.addLayer(this.space, this.getLayersOrder()[0]);
+      }
       return;
     }
 
@@ -243,8 +257,70 @@ export class Map extends maplibregl.Map {
     });
   }
 
+  /**
+   * Enables the animations for the space layer.
+   */
+  public enableSpaceAnimations() {
+    this.setSpaceAnimationActive(true);
+  }
+
+  /**
+   * Disables the animations for the space layer.
+   */
+  public disableSpaceAnimations() {
+    this.setSpaceAnimationActive(false);
+  }
+
+  /**
+   * Enables the animations for the halo layer.
+   */
+  public enableHaloAnimations() {
+    this.setHaloAnimationActive(true);
+  }
+
+  /**
+   * Disables the animations for the halo layer.
+   */
+  public disableHaloAnimations() {
+    this.setHaloAnimationActive(false);
+  }
+
+  /**
+   * Sets whether the halo layer should be animated in and out.
+   * @param active - Whether the animation should be active.
+   */
+  public setHaloAnimationActive(active: boolean) {
+    if (this.halo) {
+      this.halo.setAnimationActive(active);
+    } else {
+      void this.once("load", () => {
+        this.halo?.setAnimationActive(active);
+      });
+    }
+  }
+
+  /**
+   * Sets whether the space layer should be animated in and out.
+   * @param active - Whether the animation should be active.
+   */
+  public setSpaceAnimationActive(active: boolean) {
+    if (this.space) {
+      this.space.setAnimationActive(active);
+    } else {
+      void this.once("load", () => {
+        this.space?.setAnimationActive(active);
+      });
+    }
+  }
+
   private setSpaceFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
+    if (this.options.space) {
+      this.setSpace(this.options.space);
+      return;
+    }
+
     const space = style.metadata?.maptiler?.space;
+
     if (!space) {
       this.setSpace({
         color: "transparent",
@@ -298,7 +374,7 @@ export class Map extends maplibregl.Map {
       return;
     }
 
-    if (!maptiler?.halo) {
+    if (!maptiler?.halo && !this.options.halo) {
       this.setHalo({
         stops: [
           [0, "transparent"],
@@ -317,7 +393,11 @@ export class Map extends maplibregl.Map {
           this.addLayer(this.halo, before);
         }
 
-        void this.halo.setGradient(maptiler.halo);
+        const spec = maptiler?.halo ?? this.options.halo;
+
+        if (spec) {
+          void this.halo.setGradient(spec);
+        }
       }
     };
 
@@ -654,7 +734,8 @@ export class Map extends maplibregl.Map {
     });
 
     // Update logo and attibution
-    this.once("load", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    void this.once("load", async () => {
       let tileJsonContent = { logo: null };
 
       try {
@@ -672,6 +753,57 @@ export class Map extends maplibregl.Map {
         tileJsonContent = await tileJsonRes.json();
       } catch (_e) {
         // No tiles.json found (should not happen on maintained styles)
+      }
+
+      if (options.customControls) {
+        const groupSelector = "[data-maptiler-control-group]";
+        const controlSelector = "[data-maptiler-control]";
+        const getControlType = (element: HTMLElement) => {
+          let type = element.dataset.maptilerControl as MaptilerExternalControlType | "true" | "" | undefined;
+          // value of empty data attribute in React is string "true", empty string elsewhere
+          if (type === "true" || type === "") type = undefined;
+          return type;
+        };
+        const getPosition = (element: HTMLElement) => element.dataset.maptilerPosition as ControlPosition | undefined;
+
+        let groupElements = [...(this._container.ownerDocument.querySelectorAll(groupSelector) as NodeListOf<HTMLElement>)];
+        let controlElements = [...(this._container.ownerDocument.querySelectorAll(controlSelector) as NodeListOf<HTMLElement>)].filter(
+          (controlElement) => controlElement.closest(groupSelector) === null,
+        );
+
+        if (typeof options.customControls === "string") {
+          const limitingSelector = options.customControls;
+          groupElements = groupElements.filter((groupElement) => groupElement.matches(limitingSelector) || groupElement.closest(limitingSelector) !== null);
+          controlElements = controlElements.filter((controlElement) => controlElement.matches(limitingSelector) || controlElement.closest(limitingSelector) !== null);
+        }
+
+        for (const groupElement of groupElements) {
+          const control = new MaptilerExternalControl(groupElement);
+          this.addControl(control, getPosition(groupElement));
+
+          for (const controlElement of groupElement.querySelectorAll(controlSelector) as NodeListOf<HTMLElement>) {
+            control.configureGroupItem(controlElement, getControlType(controlElement));
+          }
+        }
+
+        for (const controlElement of controlElements) {
+          this.addControl(new MaptilerExternalControl(controlElement, getControlType(controlElement)), getPosition(controlElement));
+        }
+
+        const setStyleProps = () => {
+          const { lng, lat } = this.getCenter();
+          this._container.style.setProperty("--maptiler-center-lng", String(lng));
+          this._container.style.setProperty("--maptiler-center-lat", String(lat));
+          this._container.style.setProperty("--maptiler-zoom", String(this.getZoom()));
+          this._container.style.setProperty("--maptiler-bearing", String(this.getBearing()));
+          this._container.style.setProperty("--maptiler-pitch", String(this.getPitch()));
+          this._container.style.setProperty("--maptiler-roll", String(this.getRoll()));
+          this._container.style.setProperty("--maptiler-is-globe-projection", String(this.isGlobeProjection()));
+          this._container.style.setProperty("--maptiler-has-terrain", String(this.hasTerrain()));
+        };
+
+        setStyleProps();
+        this.on("render", setStyleProps);
       }
 
       // The attribution and logo must show when required
@@ -1039,11 +1171,6 @@ export class Map extends maplibregl.Map {
       console.error("[Map.setStyle]: Error while setting style:", e);
     }
 
-    // if it's a url or a uuid, it is of no use to us
-    if (typeof styleInfo.style === "string" || styleInfo.requiresUrlMonitoring) {
-      return this;
-    }
-
     const setSpaceAndHaloFromStyle = () => {
       const styleSpec = styleInfo.style as StyleSpecificationWithMetaData;
       if (!styleSpec.projection || styleSpec.projection.type === "mercator") {
@@ -1072,6 +1199,13 @@ export class Map extends maplibregl.Map {
         this.initHalo({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.halo });
       }
     };
+
+    // if it's a url or a uuid, it is of no use to us
+    if (typeof styleInfo.style === "string" || styleInfo.requiresUrlMonitoring) {
+      this.on("styledata", handleStyleLoad);
+
+      return this;
+    }
 
     if (this.styleInProcess) {
       // this handles setting space and halo from style on load

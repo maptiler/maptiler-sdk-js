@@ -1,0 +1,10 @@
+{
+  "id": "random id",
+  "description": "abc",
+  "attribution": "<a href=\"https://www.maptiler.com/engine/\">Rendered with MapTiler Engine</a>",
+  "width": 5120,
+  "height": 5120,
+  "minzoom": 0,
+  "maxzoom": 18,
+  "tileSize": 512
+}

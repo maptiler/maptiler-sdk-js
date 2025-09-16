@@ -20,7 +20,6 @@ const GL_USE_TEXTURE_MACRO_MARKER = "%USE_TEXTURE_MACRO_MARKER%";
 const GL_USE_TEXTURE_MACRO = "#define USE_TEXTURE";
 
 const defaultConstructorOptions: CubemapLayerConstructorOptions = cubemapPresets.stars;
-
 /**
  * Configures options for the CubemapLayer by merging defaults with provided options.
  *
@@ -187,6 +186,8 @@ class CubemapLayer implements CustomLayerInterface {
    * @private
    */
   private options: CubemapLayerConstructorOptions;
+
+  private animationActive: boolean = true;
 
   /**
    * Creates a new instance of CubemapLayer
@@ -355,28 +356,37 @@ class CubemapLayer implements CustomLayerInterface {
    * This method gradually increases the opacity of the cubemap image to create a fade-in effect.
    * @private
    */
-  private animateIn() {
+  private async animateIn() {
     if (this.imageIsAnimating) {
       return;
     }
 
-    this.imageIsAnimating = true;
-
-    const animateIn = () => {
-      this.imageFadeInDelta = Math.min(this.imageFadeInDelta + 0.05, 1.0);
-      this.currentFadeOpacity = lerp(0.0, 1.0, this.imageFadeInDelta);
+    if (!this.animationActive) {
+      this.currentFadeOpacity = 1.0;
+      this.imageFadeInDelta = 1;
       this.map.triggerRepaint();
-
-      if (this.imageFadeInDelta < 1.0) {
-        requestAnimationFrame(animateIn);
-        return;
-      }
-      this.imageIsAnimating = false;
-      this.imageFadeInDelta = 0.0;
       return;
-    };
+    }
 
-    requestAnimationFrame(animateIn);
+    return new Promise<void>((resolve) => {
+      this.imageIsAnimating = true;
+
+      const animateIn = () => {
+        this.imageFadeInDelta = Math.min(this.imageFadeInDelta + 0.05, 1.0);
+        this.currentFadeOpacity = lerp(0.0, 1.0, this.imageFadeInDelta);
+        this.map.triggerRepaint();
+
+        if (this.imageFadeInDelta < 1.0) {
+          requestAnimationFrame(animateIn);
+          return;
+        }
+        this.imageIsAnimating = false;
+        this.imageFadeInDelta = 0.0;
+        resolve();
+      };
+
+      requestAnimationFrame(animateIn);
+    });
   }
 
   /**
@@ -385,26 +395,32 @@ class CubemapLayer implements CustomLayerInterface {
    * @returns {Promise<void>} A promise that resolves when the animation is complete.
    * @private
    */
-  private animateOut(): Promise<void> {
-    if (this.imageIsAnimating) {
-      return Promise.resolve(); // If already animating, just resolve
+  private async animateOut() {
+    if (this.imageIsAnimating || !this.animationActive) {
+      return; // If already animating, just resolve
     }
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       const animateOut = () => {
         this.imageFadeInDelta = Math.min(this.imageFadeInDelta + 0.05, 1.0);
         this.currentFadeOpacity = lerp(1.0, 0.0, this.imageFadeInDelta);
         this.map.triggerRepaint();
+
         if (this.imageFadeInDelta >= 1.0) {
           this.imageIsAnimating = false;
           this.imageFadeInDelta = 0.0;
           resolve();
           return;
         }
+
         requestAnimationFrame(animateOut);
       };
 
       requestAnimationFrame(animateOut);
     });
+  }
+
+  public setAnimationActive(active: boolean) {
+    this.animationActive = active;
   }
 
   /**
@@ -428,7 +444,7 @@ class CubemapLayer implements CustomLayerInterface {
       throw new Error("[CubemapLayer]: Cubemap is undefined");
     }
 
-    if (this.texture === undefined && process.env.NODE_ENV === "development") {
+    if (this.texture === undefined && __MT_NODE_ENV__ === "development") {
       console.warn("[CubemapLayer]: Texture is undefined, no texture will be rendered to cubemap");
     }
 
@@ -520,7 +536,7 @@ class CubemapLayer implements CustomLayerInterface {
       this.faces = null;
       this.useCubemapTexture = false;
       this.currentFacesDefinitionKey = "empty";
-      this.animateIn();
+      await this.animateIn();
       return;
     }
 
@@ -540,8 +556,11 @@ class CubemapLayer implements CustomLayerInterface {
    * and if so, it updates the cubemap faces.
    * Finally, it calls `updateCubemap` to apply the changes and trigger a repaint of the map.
    */
-  public async setCubemap(cubemap: CubemapDefinition): Promise<void> {
+  public async setCubemap(spec: CubemapDefinition | boolean): Promise<void> {
+    const cubemap = typeof spec === "boolean" ? defaultConstructorOptions : spec;
+
     this.options = cubemap;
+
     const facesKey = JSON.stringify(cubemap.faces ?? cubemap.preset ?? cubemap.path);
 
     const facesNeedUpdate = this.currentFacesDefinitionKey !== facesKey;
@@ -582,7 +601,11 @@ class CubemapLayer implements CustomLayerInterface {
   }
 }
 
-export function validateSpaceSpecification(space: CubemapDefinition | boolean): boolean {
+export function validateSpaceSpecification(space?: CubemapDefinition | boolean): boolean {
+  if (!space) {
+    return false;
+  }
+
   if (typeof space === "boolean") {
     return true;
   }

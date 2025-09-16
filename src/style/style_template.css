@@ -143,6 +143,11 @@
   background-image: url([src/style/svg/v6-mercator-projection.svg]);
 }
 
+/* Center image control icon - globe */
+.maplibregl-ctrl button.maplibregl-ctrl-fit-image-to-bounds .maplibregl-ctrl-icon {
+  background-image: url([src/style/svg/v6-fit-image-to-bounds.svg]);
+}
+
 .maplibregl-ctrl-scale {
   background-color: hsla(0,0%,100%,.75);
   border: 1px solid #444952;
