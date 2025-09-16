@@ -2,7 +2,7 @@ import { config } from "../../src";
 import ImageViewer from "../../src/ImageViewer/ImageViewer";
 import { addPerformanceStats, setupMapTilerApiKey } from "./demo-utils";
 
-function main() {
+async function main() {
   addPerformanceStats();
   setupMapTilerApiKey({ config });
 
@@ -16,8 +16,12 @@ function main() {
   });
 
   imageViewer.on("imageviewerready", () => {
-    console.log("imageviewerready");
+    console.log("imageviewerready!");
   });
+
+  // or
+
+  await imageViewer.onReadyAsync();
 }
 
-main();
+void main();

@@ -1,7 +1,17 @@
 # MapTiler SDK Changelog
 
 ## NEXT
+
 ### ✨ Features and improvements
+
+### 🐛 Bug fixes
+
+### ⚙️ Others
+
+## 3.8.0
+
+### ✨ Features and improvements
+- Adds a new `ImageViewer` class for viewing tiled non-georeferenced images from MapTiler Cloud in the same way you would a map. See [the docs](https://www.maptiler.com/sdk-js/examples/image-viewer/) for more info.
 - Adds `enableHaloAnimations`, `enableSpaceAnimations`, `disableHaloAnimations`, `disableSpaceAnimations` to Map instance for toggling halo and space animations.
 - Adds custom controls that can be styled however you wish and can do whatever you need, in both declarative (auto-detected) and programmatic way
 
