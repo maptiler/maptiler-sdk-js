@@ -1,5 +1,13 @@
 # MapTiler SDK Changelog
 
+## NEXT
+
+### ✨ Features and improvements
+
+### 🐛 Bug fixes
+
+### ⚙️ Others
+
 ## 3.8.0
 
 ### ✨ Features and improvements
