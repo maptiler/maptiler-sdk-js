@@ -86,14 +86,11 @@
     "vitest": "^3.0.9"
   },
   "dependencies": {
-    "@koa/cors": "^5.0.0",
-    "@koa/router": "^13.1.1",
     "@maplibre/maplibre-gl-style-spec": "~23.3.0",
     "@maptiler/client": "~2.5.1",
     "events": "^3.3.0",
     "gl-matrix": "^3.4.3",
     "js-base64": "^3.7.7",
-    "koa": "^3.0.0",
     "maplibre-gl": "~5.6.0",
     "uuid": "^11.0.5"
   }
