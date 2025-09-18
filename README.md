@@ -856,7 +856,7 @@ MapTiler's `ImageViewer` component allows you to display tiled, non-georeference
 
 Imagine your image is 10,000px x 10,000px, if regardless if your zoom is 2 or 4, calling `.setCenter(500,500)` will always position the viewer over the same part of the image.
 
-For full details on supported methods see the type declaration for `ImageViewer`.
+For full details on supported methods see the type declaration for `ImageViewer` or visit the (docs)[https://docs.maptiler.com/sdk-js/examples/image-viewer/].
 
 ## Events
 In a similar manner, a subset of map events are fired by the image viewer. All UI interaction events that would normally include a `LngLat` in the event data instead receive an `imageX` and `imageY` field, representing an absolute pixel position of the image. This is same for `flyTo`, `jumpTo`, `panTo` etc.
