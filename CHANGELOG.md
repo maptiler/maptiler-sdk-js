@@ -3,18 +3,18 @@
 ## 3.8.0
 
 ### ✨ Features and improvements
-- Adds a new `ImageViewer` class for viewing tiled non-georeferenced images from MapTiler Cloud in the same way you would a map. See [the docs](https://www.maptiler.com/sdk-js/examples/image-viewer/) for more info.
+- Adds a new `ImageViewer` class for viewing tiled non-georeferenced images from MapTiler Engine in the same way you would a map. See [the docs](https://docs.maptiler.com/sdk-js/examples/image-viewer/) for more info.
 - Adds `enableHaloAnimations`, `enableSpaceAnimations`, `disableHaloAnimations`, `disableSpaceAnimations` to Map instance for toggling halo and space animations.
-- Adds custom controls that can be styled however you wish and can do whatever you need, in both declarative (auto-detected) and programmatic way
+- Adds custom controls that can be styled however you wish and can do whatever you need, in both declarative (auto-detected) and programmatic way. See [the section in the readme](https://github.com/maptiler/maptiler-sdk-js#-custom-controls) for more info.
 
 ### 🐛 Bug fixes
 - fixes a bug on `halo` where sharp edged stops cause noise to surface when scaled down.
 - fixes bug where space would not load correctly when style is a URI.
 - fixes a bug in the UMD module where space crashes when only a color is set.
-- fixes a bug when space: true and no style is passed, space becomes unset.
+- fixes a bug when `space: true` and no style is passed, `space` becomes unset.
 
-### Others
-- None
+⚙️ Others
+- Removes superfluous dependencies from package.json
 
 ## 3.7.0
 
