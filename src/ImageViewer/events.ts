@@ -135,7 +135,12 @@ export function setupGlobalMapEventForwarder({ map, viewer, lngLatToPx }: SetupG
           const event = e as MapEventType[UiEventKeys];
           const px = event.lngLat && lngLatToPx(event.lngLat);
 
+          const imageMetadata = viewer.imageMetadata;
+
+          const isOutOfBounds = imageMetadata ? px[0] < 0 || px[0] > imageMetadata.width || px[1] < 0 || px[1] > imageMetadata.height : true;
+
           const data = {
+            isOutOfBounds,
             imageX: px[0],
             imageY: px[1],
             ...Object.fromEntries(Object.entries(e).filter(([key]) => !FORBIDDEN_EVENT_VALUES.includes(key))),
