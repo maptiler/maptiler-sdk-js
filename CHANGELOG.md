@@ -3,6 +3,12 @@
 ## NEXT
 
 ### ✨ Features and improvements
+- Additions and improvements to ImageViewer
+ - ImageViewer `set` methods now return the ImageViewer instance for chaining.
+ - `ImageViewer.destroy()` added for cleanup of internal resources and removal of listeners.
+ - `ImageViewer.getImageMetadata()` returns the imagedata for the image being viewed.
+ - `ImageViewer.getImageBounds()` returns the current bounds of the viewport in image pixels (note: _not_ screen pixels, image pixels are pixels in relation to the intrinsic image size, not it's size on the screen).
+ - `ImageViewer.fitImageBounds(bounds)` fits the viewer to `bounds`.
 
 ### 🐛 Bug fixes
 
