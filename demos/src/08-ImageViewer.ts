@@ -33,7 +33,7 @@ async function main() {
   }, 2000);
 
   imageViewer.on("moveend", (e: ImageViewerEvent) => {
-    console.log("moveend");
+    console.log("moveend", e);
   });
 
   const button = document.createElement("button");
