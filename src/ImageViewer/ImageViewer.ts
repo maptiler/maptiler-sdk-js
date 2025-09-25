@@ -1,7 +1,23 @@
-import type { DoubleClickZoomHandler, DragPanHandler, EaseToOptions, LngLat, PointLike, TwoFingersTouchZoomRotateHandler } from "maplibre-gl";
-import { FlyToOptions, MapDataEvent, MapOptions, JumpToOptions, MercatorCoordinate, ScrollZoomHandler, BoxZoomHandler, KeyboardHandler, CooperativeGesturesHandler } from "..";
+import MaplibreGL from "maplibre-gl";
+import {
+  EaseToOptions,
+  DoubleClickZoomHandler,
+  DragPanHandler,
+  TwoFingersTouchZoomRotateHandler,
+  FlyToOptions,
+  MapOptions,
+  JumpToOptions,
+  MercatorCoordinate,
+  ScrollZoomHandler,
+  BoxZoomHandler,
+  KeyboardHandler,
+  CooperativeGesturesHandler,
+  LngLat,
+  LngLatBounds,
+  MapDataEvent,
+  PointLike,
+} from "..";
 import { Map } from "../Map";
-import MapLibre from "maplibre-gl";
 import { ImageViewerEvent, setupGlobalMapEventForwarder } from "./events";
 import { FetchError } from "../utils/errors";
 import { config } from "..";
@@ -9,13 +25,13 @@ import { monkeyPatchMapTransformInstance } from "./monkeyPatchML";
 import { NavigationControl } from "../MLAdapters/NavigationControl";
 import { ImageViewerFitImageToBoundsControl } from "../controls/ImageViewerFitImageToBoundsControl";
 
+const { Evented } = MaplibreGL;
+
 //#region types
 
 export type AllowedConstrcutorOptions = "container" | "apiKey" | "maxZoom" | "minZoom" | "zoom" | "bearing";
 
 const sdkSymbolKey = Symbol.for("MapTiler:ImageViewer:sdk");
-
-const Evented = MapLibre.Evented;
 
 export type ImageViewerFlyToOptions = Omit<FlyToOptions, "pitch"> & {
   center: [number, number];
@@ -47,6 +63,7 @@ export type ImageViewerConstructorOptions = Pick<MapOptions, AllowedConstrcutorO
    * Whether to show a control to fit the image to the viewport.
    */
   fitToBoundsControl?: boolean;
+
   /**
    * Whether to show a navigation control.
    */
@@ -123,7 +140,7 @@ export default class ImageViewer extends Evented {
    * The metadata of the image.
    *
    */
-  imageMetadata?: ImageMetadata;
+  private imageMetadata?: ImageMetadata;
 
   /**
    * Why not extend the Map class?
@@ -161,6 +178,11 @@ export default class ImageViewer extends Evented {
   public get version() {
     return this[sdkSymbolKey].version;
   }
+
+  /**
+   * The control to fit the image to the viewport.
+   */
+  fitToBoundsControlInstance!: ImageViewerFitImageToBoundsControl;
 
   //#region constructor
   /**
@@ -291,10 +313,12 @@ export default class ImageViewer extends Evented {
         );
       }
 
+      this.fitToBoundsControlInstance = new ImageViewerFitImageToBoundsControl({ imageViewer: this });
       if (this.options.fitToBoundsControl) {
-        this[sdkSymbolKey].addControl(new ImageViewerFitImageToBoundsControl({ imageViewer: this }));
+        this[sdkSymbolKey].addControl(this.fitToBoundsControlInstance);
       }
 
+      // TODO return a cleanup function to remove all event listeners
       setupGlobalMapEventForwarder({
         map: this[sdkSymbolKey],
         viewer: this,
@@ -607,7 +631,7 @@ export default class ImageViewer extends Evented {
       this.fire("error", new ImageViewerEvent("error", this, null, { error: new Error(msg) }));
       throw new Error(msg);
     }
-    const merc = MercatorCoordinate.fromLngLat(lngLat.wrap());
+    const merc = MercatorCoordinate.fromLngLat(lngLat);
     return [merc.x * this.paddedSizeMax, merc.y * this.paddedSizeMax] as [number, number];
   }
 
@@ -636,10 +660,12 @@ export default class ImageViewer extends Evented {
    *
    * @param {ImageViewerFlyToOptions} options - The options for the fly to.
    * @param {MapDataEvent} eventData - The event data.
+   * @returns {ImageViewer} The ImageViewer instance.
    */
   public flyTo(options: ImageViewerFlyToOptions, eventData?: MapDataEvent) {
     const lngLat = this.pxToLngLat(options.center);
-    return this[sdkSymbolKey].flyTo({ ...options, pitch: 0, center: lngLat }, eventData);
+    this[sdkSymbolKey].flyTo({ ...options, pitch: 0, center: lngLat }, eventData);
+    return this;
   }
 
   //#region jumpTo
@@ -648,10 +674,12 @@ export default class ImageViewer extends Evented {
    *
    * @param {ImageViewerJumpToOptions} options - The options for the jump to.
    * @param {MapDataEvent} eventData - The event data.
+   * @returns {ImageViewer} The ImageViewer instance.
    */
   public jumpTo(options: ImageViewerJumpToOptions, eventData?: MapDataEvent) {
     const lngLat = this.pxToLngLat(options.center);
-    return this[sdkSymbolKey].jumpTo({ ...options, pitch: 0, center: lngLat }, eventData);
+    this[sdkSymbolKey].jumpTo({ ...options, pitch: 0, center: lngLat }, eventData);
+    return this;
   }
 
   //#region setZoom
@@ -659,9 +687,11 @@ export default class ImageViewer extends Evented {
    * Set the zoom level.
    *
    * @param {number} zoom - The zoom level.
+   * @returns {ImageViewer} The ImageViewer instance.
    */
   public setZoom(zoom: number) {
     this[sdkSymbolKey].setZoom(zoom);
+    return this;
   }
 
   //#region getZoom
@@ -692,9 +722,11 @@ export default class ImageViewer extends Evented {
    * Set the center of the ImageViewer in pixels.
    *
    * @param {number} center - The center of the ImageViewer.
+   * @returns {ImageViewer} The ImageViewer instance.
    */
   public setCenter(center: [number, number]) {
     this[sdkSymbolKey].setCenter(this.pxToLngLat(center));
+    return this;
   }
 
   //#region setBearing
@@ -702,9 +734,11 @@ export default class ImageViewer extends Evented {
    * Set the bearing of the ImageViewer in degrees.
    *
    * @param {number} bearing - The bearing of the ImageViewer.
+   * @returns {ImageViewer} The ImageViewer instance.
    */
   public setBearing(bearing: number) {
     this[sdkSymbolKey].setBearing(bearing);
+    return this;
   }
 
   //#region getBearing
@@ -724,9 +758,11 @@ export default class ImageViewer extends Evented {
    * @param {PointLike} delta - The delta to pan by.
    * @param {ImageViewerEaseToOptions} options - The options for the pan.
    * @param {any} eventData - The event data.
+   * @returns {ImageViewer} The ImageViewer instance.
    */
   public panBy(delta: PointLike, options?: ImageViewerEaseToOptions, eventData?: any) {
     this[sdkSymbolKey].panBy(delta, { ...options, pitch: 0 }, eventData);
+    return this;
   }
 
   //#region panTo
@@ -736,9 +772,88 @@ export default class ImageViewer extends Evented {
    * @param {number} center - The center to pan to.
    * @param {ImageViewerEaseToOptions} options - The options for the pan.
    * @param {any} eventData - The event data.
+   * @returns {ImageViewer} The ImageViewer instance.
    */
   public panTo(center: [number, number], options?: ImageViewerEaseToOptions, eventData?: any) {
     this[sdkSymbolKey].panTo(this.pxToLngLat(center), { ...options, pitch: 0 }, eventData);
+    return this;
+  }
+
+  //#region getImageMetadata
+  /**
+   * Get the image metadata.
+   *
+   * @returns {ImageMetadata} The image metadata.
+   */
+  public getImageMetadata() {
+    return this.imageMetadata;
+  }
+
+  //#region getImageBounds
+  /**
+   * Get the visible bounds of the image in the viewport in imagePixels.
+   * [topLeft, bottomRight]
+   *
+   * @returns {[[number, number], [number, number]]} The visible bounds of the image.
+   */
+  public getImageBounds() {
+    const mapBounds = this[sdkSymbolKey].getBounds().toArray();
+    const boundsPx = mapBounds.map((bound) => {
+      return this.lngLatToPx(LngLat.convert(bound));
+    }) as [[number, number], [number, number]];
+
+    // we need to rearrange the bounds to be in the correct order
+    // top left and bottom right
+    const tl = [boundsPx[0][0], boundsPx[1][1]];
+
+    const br = [boundsPx[1][0], boundsPx[0][1]];
+    return [tl, br];
+  }
+
+  //#region fitImageBounds
+  /**
+   * Set the bounds of the image.
+   *
+   * @param {[[number, number], [number, number]]} bounds - The bounds of the image.
+   * @returns {ImageViewer} The ImageViewer instance.
+   */
+  public fitImageBounds([tl, br]: [[number, number], [number, number]]) {
+    const tlLngLat = this.pxToLngLat(tl);
+    const brLngLat = this.pxToLngLat(br);
+    const bounds = LngLatBounds.convert([tlLngLat, brLngLat]);
+    this[sdkSymbolKey].fitBounds(bounds);
+    return this;
+  }
+
+  //#region destroy
+  /**
+   * Destroys the ImageViewer, removes the map instance and all event listeners. Useful for cleanup.
+   *
+   * @returns {ImageViewer} The ImageViewer instance.
+   */
+  public destroy() {
+    this.fire("beforedestroy", new ImageViewerEvent("beforedestroy", this));
+    this[sdkSymbolKey].remove();
+
+    // the typescript type is incorrect here
+    // _listeners is only defined if there are actual listeners
+    if (this._listeners) {
+      Object.entries(this._listeners).forEach(([event, listeners]) => {
+        listeners.forEach((listener) => {
+          this.off(event, listener);
+        });
+      });
+    }
+
+    // the typescript type is incorrect here too
+    // _oneTimeListeners is only defined if there are actual listeners
+    if (this._oneTimeListeners) {
+      Object.entries(this._oneTimeListeners).forEach(([event, listeners]) => {
+        listeners.forEach((listener) => {
+          this.off(event, listener);
+        });
+      });
+    }
   }
 }
 
