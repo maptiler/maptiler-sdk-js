@@ -831,7 +831,7 @@ export default class ImageViewer extends Evented {
    * @returns {ImageViewer} The ImageViewer instance.
    */
   public remove() {
-    this.fire("beforedestroy", new ImageViewerEvent("beforedestroy", this));
+    this.fire("beforeremove", new ImageViewerEvent("beforeremove", this));
     this[sdkSymbolKey].remove();
 
     // the typescript type is incorrect here
