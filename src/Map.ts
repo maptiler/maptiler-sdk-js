@@ -19,6 +19,7 @@ import type {
   ExpressionSpecification,
   SymbolLayerSpecification,
   AttributionControlOptions,
+  ProjectionSpecification,
 } from "maplibre-gl";
 import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
@@ -1949,6 +1950,23 @@ export class Map extends maplibregl.Map {
   override setTransformRequest(transformRequest: RequestTransformFunction): this {
     super.setTransformRequest(combineTransformRequest(transformRequest));
     return this;
+  }
+
+  /**
+   * Gets the {@link ProjectionSpecification}.
+   * @returns the projection specification.
+   * @example
+   * ```ts
+   * let projection = map.getProjection();
+   * ```
+   */
+  override getProjection(): ProjectionSpecification {
+    const projection = this.style.getProjection();
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!projection === undefined && this.style.projection) {
+      return { type: this.style.projection.name };
+    }
+    return projection;
   }
 
   /**
