@@ -1,5 +1,6 @@
-import { Alignment, ImageViewer, Subscription, Marker, MarkerOptions, PointLike, Popup } from "../index";
+import { Alignment, Subscription, Marker, MarkerOptions, PointLike, Popup } from "../index";
 import MapLibreGL from "maplibre-gl";
+import ImageViewer from "./ImageViewer";
 import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey, sdkSymbolKey } from "./symbols";
 
 const { Evented } = MapLibreGL;
@@ -396,7 +397,6 @@ export class ImageViewerMarkerEvent {
 function setupMarkerEventForwarder(mapLibreMarker: Marker, imageViewerMarker: ImageViewerMarker, lngLatToPx: ImageViewer[typeof lngLatToPxInternalSymbolKey]) {
   MARKER_EVENT_TYPES.forEach((eventType) => {
     mapLibreMarker.on(eventType, (e) => {
-      // console.log("eventType", eventType, e);
       const lngLat = e.target?.getLngLat();
       if (lngLat) {
         const px = lngLatToPx(e.target?.getLngLat());
