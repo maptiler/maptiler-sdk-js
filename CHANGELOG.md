@@ -11,6 +11,7 @@
  - `ImageViewer.fitImageBounds(bounds)` fits the viewer to `bounds`.
 
 ### 🐛 Bug fixes
+- fixes a bug where `map.getProjection()` did not return a value when default projection was used
 
 ### ⚙️ Others
 
