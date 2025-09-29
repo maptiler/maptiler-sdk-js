@@ -863,6 +863,22 @@ In a similar manner, a subset of map events are fired by the image viewer. All U
 
 A full list of supported events can be found in the exported type declaration `ImageViewerEventTypes`
 
+## Markers with `ImageViewerMarker`
+
+An `ImageViewerMarker` can also be added and used like the usual `Marker`class, the main difference being it operates in _image pixels_, not LngLat coordinates.
+
+```ts
+  const marker = new ImageViewerMarker({ draggable: true });
+
+  marker
+    .setPosition([100, 100]) // position in image pixels.
+    .addTo(imageViewer)
+    .on("dragend", (e) => {
+      console.log("e.target.isWithinImageBounds()", e.target.isWithinImageBounds());
+    });
+```
+
+Full API documentation can be found in the typedocs: `npm run doc`
 
 # Easy language switching
 The language generally depends on the style but we made it possible to easily set and update from a built-in list of languages.
