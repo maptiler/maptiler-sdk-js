@@ -7,23 +7,29 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ImageViewerMarker, ImageViewerMarkerEvent } from "../src/ImageViewer/ImageViewerMarker";
 import ImageViewer from "../src/ImageViewer/ImageViewer";
 import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey, sdkSymbolKey } from "../src/ImageViewer/symbols";
-import { Popup, PointLike, Alignment, LngLat, Marker, Point } from "../src/index";
+import { Popup, Alignment, LngLat, Marker, Point } from "../src/index";
 
 vi.mock("../src/index");
 
 vi.mock("../src/ImageViewer/ImageViewer", async (importOriginal) => {
   const actual = (await importOriginal()) as typeof import("../src/ImageViewer/ImageViewer") as typeof import("../src/ImageViewer/ImageViewer");
 
-  const { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey, sdkSymbolKey } = await import("../src/ImageViewer/symbols");
+  const { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey, sdkSymbolKey } = (await import("../src/ImageViewer/symbols")) as typeof import("../src/ImageViewer/symbols");
 
-  class MockImageViewer {
-    [sdkSymbolKey] = {
+  const mockInstance = {
+    [sdkSymbolKey]: {
       version: "1.0.0",
       getContainer: vi.fn(() => document.createElement("div")),
-    };
-    [lngLatToPxInternalSymbolKey] = vi.fn((_: LngLat) => [100, 100] as [number, number]);
-    [pxToLngLatInternalSymbolKey] = vi.fn((px: [number, number]) => new LngLat(px[0] / 100, px[1] / 100));
-  }
+    },
+    [lngLatToPxInternalSymbolKey]: vi.fn((lngLat: LngLat) => [lngLat.lng * 100, lngLat.lat * 100] as [number, number]),
+    [pxToLngLatInternalSymbolKey]: vi.fn((px: [number, number]) => new LngLat(px[0] / 100, px[1] / 100)),
+    // Add any other methods or properties your code under test needs
+    pointIsWithinImageBounds: vi.fn().mockReturnValue(true),
+  };
+
+  // 2. Create a mock constructor that returns your instance.
+  //    This correctly simulates `new ImageViewer()`.
+  const MockImageViewer = vi.fn().mockImplementation(() => mockInstance);
 
   return {
     ...actual,
@@ -285,6 +291,7 @@ describe("ImageViewerMarker", () => {
       const MockMarker = vi.mocked(Marker);
 
       // Temporarily give it a new, complex implementation for THIS TEST ONLY
+      // @ts-expect-error - MockMarker is not typed correctly
       MockMarker.mockImplementation(() => {
         const listeners = new Map<string, Function[]>();
         return {
@@ -294,11 +301,11 @@ describe("ImageViewerMarker", () => {
           }),
           fire: vi.fn((eventName, eventObject) => {
             if (listeners.has(eventName)) {
-              listeners.get(eventName)!.forEach(l => l(eventObject));
+              listeners.get(eventName)!.forEach((l) => l(eventObject));
             }
           }),
           // Add any other simple methods this test might need
-          addTo: vi.fn().mockReturnThis(), 
+          addTo: vi.fn().mockReturnThis(),
           setLngLat: vi.fn().mockReturnThis(),
         };
       });
@@ -330,9 +337,15 @@ describe("ImageViewerMarker", () => {
       imageViewerMarker["marker"].fire("drag", mockMapLibreEvent);
       imageViewerMarker["marker"].fire("dragend", mockMapLibreEvent);
 
-      await vi.waitFor(() => expect(dragListener).toHaveBeenCalled());
-      await vi.waitFor(() => expect(dragStartListener).toHaveBeenCalled());
-      await vi.waitFor(() => expect(dragEndListener).toHaveBeenCalled());
+      await vi.waitFor(() => {
+        expect(dragListener).toHaveBeenCalled();
+      });
+      await vi.waitFor(() => {
+        expect(dragStartListener).toHaveBeenCalled();
+      });
+      await vi.waitFor(() => {
+        expect(dragEndListener).toHaveBeenCalled();
+      });
 
       expect(dragListener).toHaveBeenCalledWith(expect.objectContaining({ type: "drag", target: imageViewerMarker, originalEvent: "something" }));
       expect(dragStartListener).toHaveBeenCalledWith(expect.objectContaining({ type: "dragstart", target: imageViewerMarker, originalEvent: "something" }));
