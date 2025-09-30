@@ -24,14 +24,13 @@ import { config } from "..";
 import { monkeyPatchMapTransformInstance } from "./monkeyPatchML";
 import { NavigationControl } from "../MLAdapters/NavigationControl";
 import { ImageViewerFitImageToBoundsControl } from "../controls/ImageViewerFitImageToBoundsControl";
+import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey, sdkSymbolKey } from "./symbols";
 
 const { Evented } = MaplibreGL;
 
 //#region types
 
 export type AllowedConstrcutorOptions = "container" | "apiKey" | "maxZoom" | "minZoom" | "zoom" | "bearing";
-
-const sdkSymbolKey = Symbol.for("MapTiler:ImageViewer:sdk");
 
 export type ImageViewerFlyToOptions = Omit<FlyToOptions, "pitch"> & {
   center: [number, number];
@@ -825,14 +824,14 @@ export default class ImageViewer extends Evented {
     return this;
   }
 
-  //#region destroy
+  //#region remove
   /**
    * Destroys the ImageViewer, removes the map instance and all event listeners. Useful for cleanup.
    *
    * @returns {ImageViewer} The ImageViewer instance.
    */
-  public destroy() {
-    this.fire("beforedestroy", new ImageViewerEvent("beforedestroy", this));
+  public remove() {
+    this.fire("beforeremove", new ImageViewerEvent("beforeremove", this));
     this[sdkSymbolKey].remove();
 
     // the typescript type is incorrect here
@@ -855,6 +854,25 @@ export default class ImageViewer extends Evented {
       });
     }
   }
+
+  public pointIsWithinImageBounds(px: [number, number]) {
+    const metadata = this.getImageMetadata();
+    if (!metadata) {
+      return false;
+    }
+
+    const bounds = [
+      [0, 0],
+      [metadata.width, metadata.height],
+    ];
+
+    return px[0] >= bounds[0][0] && px[0] <= bounds[1][0] && px[1] >= bounds[0][1] && px[1] <= bounds[1][1];
+  }
+
+  // aliases for methods that are not exposed by the SDK
+  // but used internally (ImageMarkers)
+  [lngLatToPxInternalSymbolKey] = this.lngLatToPx.bind(this);
+  [pxToLngLatInternalSymbolKey] = this.pxToLngLat.bind(this);
 }
 
 //#region helpers

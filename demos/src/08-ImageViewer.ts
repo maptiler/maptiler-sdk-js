@@ -1,5 +1,4 @@
-import { config, ImageViewerEvent } from "../../src";
-import ImageViewer from "../../src/ImageViewer/ImageViewer";
+import { config, ImageViewer, ImageViewerMarker } from "../../src";
 import { addPerformanceStats, setupMapTilerApiKey } from "./demo-utils";
 
 async function main() {
@@ -11,7 +10,7 @@ async function main() {
     // you will need to get your own imageUUID from MapTiler
     // cloud as these are only accesible per API key
     // please see cloud documentation for creating an image resource
-    imageUUID: "01986025-ceb9-7487-9ea6-7a8637dcc1a1",
+    imageUUID: "01997715-a22b-7170-9a4c-5e8435f847c7",
     debug: true,
   });
 
@@ -21,19 +20,8 @@ async function main() {
 
   await imageViewer.onReadyAsync();
 
-  imageViewer.on("click", (e: ImageViewerEvent) => {
-    console.log("click", e.imageX, e.imageY);
-  });
-
-  setTimeout(() => {
-    imageViewer.fitImageBounds([
-      [1246.3768115942328, 788.2391304347748],
-      [3501.449275362361, 2144.7608695652225],
-    ]);
-  }, 2000);
-
-  imageViewer.on("moveend", (e: ImageViewerEvent) => {
-    console.log("moveend", e);
+  imageViewer.on("moveend", (_) => {
+    console.log("moveend");
   });
 
   const button = document.createElement("button");
@@ -54,6 +42,15 @@ bottomRight:
         x: ${bottomRight[0]}, y: ${bottomRight[1]}`,
     );
   });
+
+  const marker = new ImageViewerMarker({ draggable: true });
+
+  marker
+    .setPosition([100, 100])
+    .addTo(imageViewer)
+    .on("dragend", (e) => {
+      console.log("e.target.isWithinImageBounds()", e.target.isWithinImageBounds());
+    });
 }
 
 void main();

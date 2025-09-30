@@ -109,7 +109,7 @@ export type ImageViewerEventTypes =
   | CooperativeGestureEventKeys
   | "imageviewerready"
   | "imagevieweriniterror"
-  | "beforedestroy";
+  | "beforeremove";
 
 // Properties to exclude when forwarding events
 const FORBIDDEN_EVENT_VALUES = ["lngLat", "_defaultPrevented"];
@@ -137,9 +137,9 @@ type ImageViewerEventData<T extends keyof MapEventType> = {
  * @returns {void}
  */
 export function setupGlobalMapEventForwarder({ map, viewer, lngLatToPx }: SetupGlobalMapEventForwarderOptions): void {
-  IMAGE_VIEWER_EVENT_TYPES.forEach((eventType: Exclude<ImageViewerEventTypes, "imageviewerready" | "imagevieweriniterror">) => {
+  IMAGE_VIEWER_EVENT_TYPES.forEach((eventType: Exclude<ImageViewerEventTypes, "imageviewerready" | "imagevieweriniterror" | "beforeremove">) => {
     try {
-      map.on(eventType, (e: MapEventType[Exclude<ImageViewerEventTypes, "imageviewerready" | "imagevieweriniterror" | "beforedestroy">]) => {
+      map.on(eventType, (e: MapEventType[Exclude<ImageViewerEventTypes, "imageviewerready" | "imagevieweriniterror" | "beforeremove">]) => {
         // Handle UI Events (mouse/touch interactions with coordinate transformation)
         const uiEventName = eventType as UiEventKeys;
         if (UI_EVENTS.includes(uiEventName)) {

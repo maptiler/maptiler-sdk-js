@@ -792,8 +792,8 @@ describe("ImageViewer", () => {
 
       await viewer.onReadyAsync();
 
-      viewer.on("beforedestroy", () => {
-        console.log("beforedestroy");
+      viewer.on("beforeremove", () => {
+        console.log("beforeremove");
       });
 
       viewer.on("click", () => {
@@ -802,7 +802,7 @@ describe("ImageViewer", () => {
 
       vi.spyOn(viewer, "off");
 
-      viewer.destroy();
+      viewer.remove();
 
       expect(viewer[sdkSymbolKey].remove).toHaveBeenCalled();
 
