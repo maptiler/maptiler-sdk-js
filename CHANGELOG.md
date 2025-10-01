@@ -16,7 +16,7 @@
 - fixes a bug where `map.getProjection()` did not return a value when default projection was used
 
 ### ⚙️ Others
-- Right to left text is now opt-out. `rtlTextPlugin` can be passed in the constructor options to opt-out of installing the rtl text-plugin or install a different RTL text-plugin. Without this option the behaviour will remain the same.
+- Right to left text is now opt-out. `rtlTextPlugin` can be passed in the constructor options to opt-out of installing the RTL text-plugin or install a different RTL text-plugin. Without this option the behaviour will remain the same.
 
 ## 3.8.0
 
