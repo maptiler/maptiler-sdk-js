@@ -19,7 +19,7 @@ export async function enableRTL(customPluginURL?: string) {
     try {
       await maplibregl.setRTLTextPlugin(customPluginURL ?? defaults.rtlPluginURL, true);
     } catch (_e) {
-      console.error("Error enabling RTL plugin", _e);
+      console.error("Error enabling RTL plugin. It is enabled by default and cannot be unset after. Are you attempting to enable it twice?", _e);
     }
   }
 }
