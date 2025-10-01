@@ -1203,7 +1203,7 @@ export class Map extends maplibregl.Map {
 
     // if it's a url or a uuid, it is of no use to us
     if (typeof styleInfo.style === "string" || styleInfo.requiresUrlMonitoring) {
-      this.on("styledata", handleStyleLoad);
+      void this.once("styledata", handleStyleLoad);
 
       return this;
     }
