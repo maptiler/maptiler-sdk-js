@@ -930,6 +930,11 @@ Here is a sample of some compatible languages:
 ## Built-in support for right-to-left languages
 Languages that are written right-to-left such as Arabic and Hebrew are fully supported by default. No need to install any plugins!
 
+If you wish to opt of applying the rtl plugin or wish to use a different compatible rtl text plugin, you can pass the `rtlTextPlugin`
+constructor option as either `false` (disable the rtl plugin) or a url to load a different plugin.
+
+**Note: Once the rtlTextPlugin has been installed once, it cannot be unset nor updated on the current instance. Calling `setRTLTextPlugin` without setting `rtlTextPlugin` to false in the constuctor will result in an error.**
+
 <p align="center">
   <img src="images/screenshots/lang-arabic.jpeg" width="48%"></img>
   <img src="images/screenshots/lang-hebrew.jpeg" width="48%"></img>
