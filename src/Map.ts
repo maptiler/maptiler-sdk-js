@@ -319,10 +319,9 @@ export class Map extends maplibregl.Map {
       return;
     }
 
-
     // respect options over style specification.
     if (this.options.space !== true && validateSpaceSpecification(this.options.space)) {
-      this.setSpace(this.options.space as CubemapDefinition, true);
+      this.setSpace(this.options.space!, true);
       return;
     }
 
@@ -342,7 +341,7 @@ export class Map extends maplibregl.Map {
 
     if (this.options.space === true) {
       if (spaceSpecIsValid) {
-        this.setSpace(space as CubemapDefinition, false);
+        this.setSpace(space!, false);
       } else {
         this.setSpace(true);
       }
@@ -350,7 +349,7 @@ export class Map extends maplibregl.Map {
     }
 
     if (spaceSpecIsValid) {
-      this.setSpace(space as CubemapDefinition, false);
+      this.setSpace(space!, false);
       return;
     }
 
@@ -361,7 +360,7 @@ export class Map extends maplibregl.Map {
           this.addLayer(this.space, before);
         }
 
-        void this.space.setCubemap(space as CubemapDefinition);
+        void this.space.setCubemap(space!);
       }
     };
 
@@ -633,7 +632,7 @@ export class Map extends maplibregl.Map {
     this.curentProjection = options.projection;
 
     // Managing the type of projection and persist if not present in style
-    this.on("style.load", (e) => {
+    this.on("style.load", (_e) => {
       if (this.curentProjection === "mercator") {
         this.setProjection({ type: "mercator" });
       } else if (this.curentProjection === "globe") {

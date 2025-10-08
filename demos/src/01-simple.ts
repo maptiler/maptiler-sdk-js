@@ -1,4 +1,4 @@
-import { Map, MapStyle, Marker, config } from "../../src/index";
+import { Map, MapStyle, config } from "../../src/index";
 import { addPerformanceStats, setupMapTilerApiKey } from "./demo-utils";
 
 addPerformanceStats();
