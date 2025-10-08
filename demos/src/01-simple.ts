@@ -11,12 +11,15 @@ async function main() {
     container,
     style: MapStyle.OUTDOOR.DARK,
     hash: true,
-    geolocate: true,
+    geolocate: false,
     scaleControl: true,
     fullscreenControl: true,
     terrainControl: true,
     projectionControl: true,
     projection: "globe",
+    space: true,
+    halo: true,
+    zoom: 1,
   });
 
   const styleDropDown = document.getElementById("mapstyles-picker") as HTMLOptionElement;
