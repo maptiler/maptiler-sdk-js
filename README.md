@@ -863,6 +863,22 @@ In a similar manner, a subset of map events are fired by the image viewer. All U
 
 A full list of supported events can be found in the exported type declaration `ImageViewerEventTypes`
 
+## Markers with `ImageViewerMarker`
+
+An `ImageViewerMarker` can also be added and used like the usual `Marker`class, the main difference being it operates in _image pixels_, not LngLat coordinates.
+
+```ts
+  const marker = new ImageViewerMarker({ draggable: true });
+
+  marker
+    .setPosition([100, 100]) // position in image pixels.
+    .addTo(imageViewer)
+    .on("dragend", (e) => {
+      console.log("e.target.isWithinImageBounds()", e.target.isWithinImageBounds());
+    });
+```
+
+Full API documentation can be found in the typedocs: `npm run doc`
 
 # Easy language switching
 The language generally depends on the style but we made it possible to easily set and update from a built-in list of languages.
@@ -913,6 +929,11 @@ Here is a sample of some compatible languages:
 
 ## Built-in support for right-to-left languages
 Languages that are written right-to-left such as Arabic and Hebrew are fully supported by default. No need to install any plugins!
+
+If you wish to opt of applying the rtl plugin or wish to use a different compatible rtl text plugin, you can pass the `rtlTextPlugin`
+constructor option as either `false` (disable the rtl plugin) or a url to load a different plugin.
+
+**Note: Once the rtlTextPlugin has been installed once, it cannot be unset nor updated on the current instance. Calling `setRTLTextPlugin` without setting `rtlTextPlugin` to false in the constuctor will result in an error.**
 
 <p align="center">
   <img src="images/screenshots/lang-arabic.jpeg" width="48%"></img>

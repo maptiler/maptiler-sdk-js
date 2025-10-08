@@ -9,6 +9,10 @@ export class ImageViewerEvent {
 
   [key: string]: any;
 
+  imageX!: number;
+  imageY!: number;
+  isOutOfBounds!: boolean;
+
   constructor(type: string, viewer: ImageViewer, originalEvent?: MouseEvent | TouchEvent | WheelEvent | WebGLContextEvent | null, data: Record<string, any> = {}) {
     this.type = type;
     this.target = viewer;
@@ -104,7 +108,8 @@ export type ImageViewerEventTypes =
   | DataEventKeys
   | CooperativeGestureEventKeys
   | "imageviewerready"
-  | "imagevieweriniterror";
+  | "imagevieweriniterror"
+  | "beforeremove";
 
 // Properties to exclude when forwarding events
 const FORBIDDEN_EVENT_VALUES = ["lngLat", "_defaultPrevented"];
@@ -117,6 +122,12 @@ interface SetupGlobalMapEventForwarderOptions {
   lngLatToPx: LngLatToPixel;
 }
 
+type ImageViewerEventData<T extends keyof MapEventType> = {
+  isOutOfBounds: boolean;
+  imageX: number;
+  imageY: number;
+} & Partial<MapEventType[T]>;
+
 /**
  * Sets up event forwarding from Map to ImageViewer with proper categorization
  * @param {SetupGlobalMapEventForwarderOptions} options - The options for setting up the event forwarder.
@@ -126,16 +137,20 @@ interface SetupGlobalMapEventForwarderOptions {
  * @returns {void}
  */
 export function setupGlobalMapEventForwarder({ map, viewer, lngLatToPx }: SetupGlobalMapEventForwarderOptions): void {
-  IMAGE_VIEWER_EVENT_TYPES.forEach((eventType: Exclude<ImageViewerEventTypes, "imageviewerready" | "imagevieweriniterror">) => {
+  IMAGE_VIEWER_EVENT_TYPES.forEach((eventType: Exclude<ImageViewerEventTypes, "imageviewerready" | "imagevieweriniterror" | "beforeremove">) => {
     try {
-      map.on(eventType, (e: MapEventType[Exclude<ImageViewerEventTypes, "imageviewerready" | "imagevieweriniterror">]) => {
+      map.on(eventType, (e: MapEventType[Exclude<ImageViewerEventTypes, "imageviewerready" | "imagevieweriniterror" | "beforeremove">]) => {
         // Handle UI Events (mouse/touch interactions with coordinate transformation)
         const uiEventName = eventType as UiEventKeys;
         if (UI_EVENTS.includes(uiEventName)) {
           const event = e as MapEventType[UiEventKeys];
           const px = event.lngLat && lngLatToPx(event.lngLat);
+          const imageMetadata = viewer.getImageMetadata();
 
-          const data = {
+          const isOutOfBounds = imageMetadata ? px[0] < 0 || px[0] > imageMetadata.width || px[1] < 0 || px[1] > imageMetadata.height : true;
+
+          const data: ImageViewerEventData<UiEventKeys> = {
+            isOutOfBounds,
             imageX: px[0],
             imageY: px[1],
             ...Object.fromEntries(Object.entries(e).filter(([key]) => !FORBIDDEN_EVENT_VALUES.includes(key))),

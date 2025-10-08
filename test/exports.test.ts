@@ -132,6 +132,7 @@ const expectedExports = Array.from(
     "TwoFingersTouchPitchHandlerMLGL",
     "MapWheelEventMLGL",
     "ImageViewer",
+    "ImageViewerMarker",
     "ImageViewerEvent",
     "MapTouchEventMLGL",
     "MapMouseEventMLGL",

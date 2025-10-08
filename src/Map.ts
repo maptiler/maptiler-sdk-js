@@ -1,5 +1,7 @@
 import maplibregl from "maplibre-gl";
 import { Base64 } from "js-base64";
+import { enableRTL } from "./tools";
+
 import type {
   StyleSpecification,
   MapOptions as MapOptionsML,
@@ -208,6 +210,12 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    */
   space?: CubemapLayerConstructorOptions | boolean;
   halo?: RadialGradientLayerConstructorOptions | boolean;
+
+  /**
+   * Whether to enable the RTL plugin or import a different one.
+   * Default is undefined, which means the plugin is enabled by default.
+   */
+  rtlTextPlugin?: boolean | string;
 };
 
 /**
@@ -579,6 +587,12 @@ export class Map extends maplibregl.Map {
 
     this.on("style.load", () => {
       this.styleInProcess = false;
+      // If the rtlTextPlugin option is a string, we assume it is a url and enable the plugin
+      // If the rtlTextPlugin option is undefined, it is enabled by default and will override the default url
+      // If the rtlTextPlugin option is false (ot anything else), we don't enable the plugin
+      if (typeof options.rtlTextPlugin === "string" || typeof options.rtlTextPlugin === "undefined") {
+        void enableRTL(options.rtlTextPlugin);
+      }
     });
 
     // Safeguard for distant styles at non-http 2xx status URLs
