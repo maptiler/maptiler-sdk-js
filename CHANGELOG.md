@@ -4,8 +4,10 @@
 
 ### ✨ Features and improvements
 
-### 🐛 Bug fixes
-- fixes a bug where `map.getProjection()` did not return a value when default projection was used
+### 🐛 Bug Fixes
+- Fixes a bug where `map.getProjection()` did not return a value when default projection was used
+- Fixes a bug where "Style Not Done Loading" error is thrown when an Image is used in conjunction with Spacebox.
+- Fixes a bug where switching between remote styles causes flickering in Halo.
 
 ### ⚙️ Others
 
@@ -16,11 +18,12 @@
 - Adds `enableHaloAnimations`, `enableSpaceAnimations`, `disableHaloAnimations`, `disableSpaceAnimations` to Map instance for toggling halo and space animations.
 - Adds custom controls that can be styled however you wish and can do whatever you need, in both declarative (auto-detected) and programmatic way. See [the section in the readme](https://github.com/maptiler/maptiler-sdk-js#-custom-controls) for more info.
 
-### 🐛 Bug fixes
-- fixes a bug on `halo` where sharp edged stops cause noise to surface when scaled down.
-- fixes bug where space would not load correctly when style is a URI.
-- fixes a bug in the UMD module where space crashes when only a color is set.
-- fixes a bug when `space: true` and no style is passed, `space` becomes unset.
+### 🐛 Bug Fixes
+- Fixes a bug on `halo` where sharp edged stops cause noise to surface when scaled down.
+- Fixes bug where space would not load correctly when style is a URI.
+- Fixes a bug in the UMD module where space crashes when only a color is set.
+- Fixes a bug when `space: true` and no style is passed, `space` becomes unset.
+
 
 ⚙️ Others
 - Removes superfluous dependencies from package.json
@@ -30,7 +33,7 @@
 ### ✨ Features and improvements
 - Version Bump @maptiler/client to 2.5.0 adding `at`, `batch`, `computeOn`, `canParsePixelData` functions for working with elevations.
 
-### 🐛 Bug fixes
+### 🐛 Bug Fixes
 - Includes workaround where internal event is not fired correctly and causes breaking of space box.
 
 ### Others
@@ -41,7 +44,7 @@
 ### ✨ Features and improvements
 - None 
 
-### 🐛 Bug fixes
+### 🐛 Bug Fixes
 - Fixes a bug that breaks spacebox when projection is changed in style.json
 
 ### Others
@@ -52,7 +55,7 @@
 ### ✨ Features and improvements
 - None 
 
-### 🐛 Bug fixes
+### 🐛 Bug Fixes
 - Fixes bug where terrain does not load when `map.enableTerrain()` is called directly after `.flyTo`
 - Adds `StyleDefinitionWithMetadata` as an accepted type to `setStyle` ([#216](https://github.com/maptiler/maptiler-sdk-js/issues/216))
 - Adds condition to log calls in `extractCustomLayerStyle` ([#216](https://github.com/maptiler/maptiler-sdk-js/issues/216))
@@ -77,7 +80,7 @@ constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style 
 ### ✨ Features and improvements
 - Update Maplibre to 5.6.0
 
-### 🐛 Bug fixes
+### 🐛 Bug Fixes
 - Fix for [RD-900](https://maptiler.atlassian.net/browse/RD-900?atlOrigin=eyJpIjoiOTRjZGRhYjg2Y2JhNGY2NGI2NzM2M2E1MGNkNjBmYWYiLCJwIjoiaiJ9)
 
 ### Others
@@ -94,7 +97,7 @@ constructor _or_ via `setSpace` or `setHalo` methods _or_ via incoming MT style 
 ### ✨ Features and improvements
 None
 
-### 🐛 Bug fixes
+### 🐛 Bug Fixes
 - Fixes incorrect exports of some types from sdk helper functions.
 
 ### 🔧 Others
@@ -104,7 +107,7 @@ None
 ### ✨ Features and improvements
 None
 
-### 🐛 Bug fixes
+### 🐛 Bug Fixes
 - [RD-902](https://maptiler.atlassian.net/browse/RD-902?atlOrigin=eyJpIjoiNGM2NGQxNzg0ZjEzNGJlMGI3M2Y1YTM3YTIyNjdkMDkiLCJwIjoiaiJ9) Changes to use default import for maplibre-gl as it uses commonjs modules under the hood.
 
 ### 🔧 Others
@@ -123,7 +126,7 @@ None
 ### ✨ Features and improvements
 None
 
-### 🐛 Bug fixes
+### 🐛 Bug Fixes
 None
 
 ### 🔧 Others
@@ -133,7 +136,7 @@ Version bump for maptiler-client-js
 ### ✨ Features and improvements
 Updates MapTiler Client JS version to include new MapStyles
 
-### 🐛 Bug fixes
+### 🐛 Bug Fixes
 None
 
 ### 🔧 Others
@@ -143,7 +146,7 @@ None
 ### ✨ Features and improvements
 None
 
-### 🐛 Bug fixes
+### 🐛 Bug Fixes
 Fixes a bug that accesses undefined `projection` object in `Map.getProjection` method
 
 ### 🔧 Others
@@ -153,7 +156,7 @@ None
 ### ✨ Features and improvements
 None
 
-### 🐛 Bug fixes
+### 🐛 Bug Fixes
 None
 
 ### 🔧 Others
@@ -171,7 +174,7 @@ Restructuring of repo, additon of tests to check consistency of library exports.
 * Globe projection support
 * `MaptilerProjectionControl`  to toggle Globe/Mercator projection
 
-### 🐛 Bug fixes
+### 🐛 Bug Fixes
 * Navigation now relies on `Map` methods instead of `Transform` methods for bearing due to globe projection being available
 
 ### 🔧 Others
