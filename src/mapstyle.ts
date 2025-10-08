@@ -1,23 +1,34 @@
 import { validateStyleMin } from "@maplibre/maplibre-gl-style-spec";
 import { MapStyle, ReferenceMapStyle, MapStyleVariant, mapStylePresetList, expandMapStyle } from "@maptiler/client";
 
+export const styleFormats = {
+  URLString: "urlstring",
+  JSONString: "jsonstring",
+  StyleShorthand: "styleshorthand",
+  JSONStyleSpecification: "jsonstylespecification",
+  ReferenceMapStyle: "referencemapstyle",
+  MapStyleVariant: "mapstylevariant",
+};
+
 export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant | maplibregl.StyleSpecification | null | undefined): {
   style: string | maplibregl.StyleSpecification;
   requiresUrlMonitoring: boolean;
   isFallback: boolean;
+  format: (typeof styleFormats)[keyof typeof styleFormats];
 } {
   if (!style) {
     return {
       style: MapStyle[mapStylePresetList[0].referenceStyleID as keyof typeof MapStyle].getDefaultVariant().getExpandedStyleURL(),
       requiresUrlMonitoring: false, // default styles don't require URL monitoring
       isFallback: true,
+      format: styleFormats.ReferenceMapStyle,
     };
   }
 
   // If the provided style is a shorthand (eg. "streets-v2") or a full style URL
   if (typeof style === "string") {
     // The string could be a JSON valid style spec
-    const styleValidationReport = convertToStyleSpecificationString(style);
+    const styleValidationReport = convertStringToStyleSpecification(style);
 
     // The string is a valid JSON style that validates against the StyleSpecification spec:
     // Let's use this style
@@ -26,6 +37,7 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
         style: styleValidationReport.styleObject!,
         requiresUrlMonitoring: false,
         isFallback: false,
+        format: styleFormats.JSONString,
       };
     }
 
@@ -36,12 +48,13 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
         style: MapStyle[mapStylePresetList[0].referenceStyleID as keyof typeof MapStyle].getDefaultVariant().getExpandedStyleURL(),
         requiresUrlMonitoring: false, // default styles don't require URL monitoring
         isFallback: true,
+        format: styleFormats.ReferenceMapStyle,
       };
     }
 
     // The style is an absolute URL
     if (style.startsWith("http")) {
-      return { style: style, requiresUrlMonitoring: true, isFallback: false };
+      return { style: style, requiresUrlMonitoring: true, isFallback: false, format: styleFormats.URLString };
     }
 
     // The style is a relative URL
@@ -50,6 +63,7 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
         style: urlToAbsoluteUrl(style),
         requiresUrlMonitoring: true,
         isFallback: false,
+        format: styleFormats.URLString,
       };
     }
 
@@ -58,6 +72,7 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
       style: expandMapStyle(style),
       requiresUrlMonitoring: true,
       isFallback: false,
+      format: styleFormats.StyleShorthand,
     };
   }
 
@@ -67,6 +82,7 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
       style: style.getExpandedStyleURL(),
       requiresUrlMonitoring: false,
       isFallback: false,
+      format: styleFormats.MapStyleVariant,
     };
   }
 
@@ -76,6 +92,7 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
       style: (style.getDefaultVariant() as MapStyleVariant).getExpandedStyleURL(),
       requiresUrlMonitoring: false,
       isFallback: false,
+      format: styleFormats.ReferenceMapStyle,
     };
   }
 
@@ -85,6 +102,7 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
       style: style as maplibregl.StyleSpecification,
       requiresUrlMonitoring: false,
       isFallback: false,
+      format: styleFormats.JSONStyleSpecification,
     };
   }
   // If none of the previous attempts to detect a valid style failed => fallback to default style
@@ -93,6 +111,7 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
     style: fallbackStyle.getExpandedStyleURL(),
     requiresUrlMonitoring: false, // default styles don't require URL monitoring
     isFallback: true,
+    format: styleFormats.ReferenceMapStyle,
   };
 }
 
@@ -119,7 +138,7 @@ type StyleValidationReport = {
   styleObject: maplibregl.StyleSpecification | null;
 };
 
-export function convertToStyleSpecificationString(str: string): StyleValidationReport {
+export function convertStringToStyleSpecification(str: string): StyleValidationReport {
   try {
     const styleObj = JSON.parse(str);
     const styleErrs = validateStyleMin(styleObj);

@@ -230,13 +230,13 @@ export class Map extends maplibregl.Map {
    * If an option is not set it will internally revert to the default option
    * unless explicitly set when calling.
    */
-  public setSpace(space: CubemapDefinition | boolean) {
-    if (space === false) {
-      this.space = undefined;
-      return;
+  public setSpace(space: CubemapDefinition | boolean, updateOptions = true) {
+    if (updateOptions) {
+      this.options.space = space;
     }
 
-    if (!this.isGlobeProjection()) {
+    if (space === false) {
+      this.space = undefined;
       return;
     }
 
@@ -315,27 +315,20 @@ export class Map extends maplibregl.Map {
   }
 
   private setSpaceFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
-    if (this.options.space) {
-      this.setSpace(this.options.space);
+    if (this.options.space === false) {
+      return;
+    }
+
+
+    // respect options over style specification.
+    if (this.options.space !== true && validateSpaceSpecification(this.options.space)) {
+      this.setSpace(this.options.space as CubemapDefinition, true);
       return;
     }
 
     const space = style.metadata?.maptiler?.space;
 
-    if (!space) {
-      this.setSpace({
-        color: "transparent",
-      });
-      return;
-    }
-
     const spaceSpecIsValid = validateSpaceSpecification(space);
-    if (!spaceSpecIsValid) {
-      this.setSpace({
-        color: "transparent",
-      });
-      return;
-    }
 
     if (JSON.stringify(this.space?.getConfig()) === JSON.stringify(space)) {
       // because maplibre removes ALL layers when setting a new style, we need to add the space layer back
@@ -347,6 +340,20 @@ export class Map extends maplibregl.Map {
       return;
     }
 
+    if (this.options.space === true) {
+      if (spaceSpecIsValid) {
+        this.setSpace(space as CubemapDefinition, false);
+      } else {
+        this.setSpace(true);
+      }
+      return;
+    }
+
+    if (spaceSpecIsValid) {
+      this.setSpace(space as CubemapDefinition, false);
+      return;
+    }
+
     const updateSpace = () => {
       if (this.space && this.isGlobeProjection()) {
         if (!this.getLayer(this.space.id)) {
@@ -354,7 +361,7 @@ export class Map extends maplibregl.Map {
           this.addLayer(this.space, before);
         }
 
-        void this.space.setCubemap(space);
+        void this.space.setCubemap(space as CubemapDefinition);
       }
     };
 
@@ -362,6 +369,10 @@ export class Map extends maplibregl.Map {
   }
 
   private setHaloFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
+    if (this.options.halo === false) {
+      return;
+    }
+
     const maptiler = style.metadata?.maptiler;
 
     if (JSON.stringify(this.halo?.getConfig()) === JSON.stringify(maptiler?.halo)) {
@@ -453,6 +464,7 @@ export class Map extends maplibregl.Map {
   }
 
   public setHalo(halo: GradientDefinition) {
+    this.options.halo = halo;
     if (!this.isGlobeProjection()) {
       return;
     }
@@ -621,7 +633,7 @@ export class Map extends maplibregl.Map {
     this.curentProjection = options.projection;
 
     // Managing the type of projection and persist if not present in style
-    this.on("styledata", () => {
+    this.on("style.load", (e) => {
       if (this.curentProjection === "mercator") {
         this.setProjection({ type: "mercator" });
       } else if (this.curentProjection === "globe") {
@@ -1158,6 +1170,9 @@ export class Map extends maplibregl.Map {
       );
     }
 
+    this.spaceboxLoadingState.styleLoadedCallbackFired = false;
+    this.spaceboxLoadingState.styleLoadCallbackSet = false;
+
     // because the style must be finished loading and parsed before we can add custom layers
     // we need to check if the terrain has changed, because if it has, we also need to wait
     // for the terrain to load...
@@ -1187,6 +1202,16 @@ export class Map extends maplibregl.Map {
     const handleStyleLoad = (e?: maplibregl.MapStyleDataEvent) => {
       const styleSpec = (e?.target.getStyle() ?? styleInfo.style) as StyleSpecificationWithMetaData;
 
+      if (this.spaceboxLoadingState.styleLoadedCallbackFired) {
+        return;
+      }
+
+      this.spaceboxLoadingState.styleLoadedCallbackFired = true;
+
+      if (typeof styleSpec === "string") {
+        return;
+      }
+
       const targetBeforeLayer = this.getLayersOrder()[0];
       if (this.space) {
         this.setSpaceFromStyle({ style: styleSpec });
@@ -1208,23 +1233,17 @@ export class Map extends maplibregl.Map {
       return this;
     }
 
-    if (this.styleInProcess) {
-      // this handles setting space and halo from style on load
-      // void this.once("idle", handleStyleLoad);
-      // void this.once("style.load", handleStyleLoad);
-      if (!this.spaceboxLoadingState.styleLoadCallbackSet) {
-        // unfortunately, the style.load event is not always fired correctly when
-        // the style is set from an object (generally when projection changes or when metadata changes)
-        // so, in this instance, we have to double tap with both style events.
-        // an issue has been raised on the maplibre github
-        void this.once("style.load", handleStyleLoad);
-        void this.once("styledata", handleStyleLoad);
+    if (!this.spaceboxLoadingState.styleLoadCallbackSet) {
+      // unfortunately, the style.load event is not always fired correctly when
+      // the style is set from an object (generally when projection changes or when metadata changes)
+      // so, in this instance, we have to double tap with both style events.
+      // an issue has been raised on the maplibre github
+      void this.on("style.load", handleStyleLoad);
+      void this.on("projection.change", handleStyleLoad);
+      void this.on("styledata", handleStyleLoad);
 
-        this.spaceboxLoadingState.styleLoadCallbackSet = true;
-        return this;
-      }
-
-      // if these load event doesn't fire after 10 seconds, we need to reset the flag
+      this.spaceboxLoadingState.styleLoadCallbackSet = true;
+      return this;
     }
 
     // the type returned from getStyle is incorrect,  it can be null
@@ -1248,6 +1267,7 @@ export class Map extends maplibregl.Map {
 
   private spaceboxLoadingState = {
     styleLoadCallbackSet: false,
+    styleLoadedCallbackFired: false,
   };
 
   /**
@@ -2007,6 +2027,11 @@ export class Map extends maplibregl.Map {
     this.setProjection({ type: "mercator" });
 
     this.curentProjection = "mercator";
+  }
+
+  override setProjection(projection: maplibregl.ProjectionSpecification) {
+    this.fire("projection.change", { target: this, projection });
+    return super.setProjection(projection);
   }
 
   /**
