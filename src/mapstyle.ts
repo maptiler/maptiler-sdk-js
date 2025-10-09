@@ -17,7 +17,7 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
   // If the provided style is a shorthand (eg. "streets-v2") or a full style URL
   if (typeof style === "string") {
     // The string could be a JSON valid style spec
-    const styleValidationReport = convertToStyleSpecificationString(style);
+    const styleValidationReport = convertStringToStyleSpecification(style);
 
     // The string is a valid JSON style that validates against the StyleSpecification spec:
     // Let's use this style
@@ -119,7 +119,7 @@ type StyleValidationReport = {
   styleObject: maplibregl.StyleSpecification | null;
 };
 
-export function convertToStyleSpecificationString(str: string): StyleValidationReport {
+export function convertStringToStyleSpecification(str: string): StyleValidationReport {
   try {
     const styleObj = JSON.parse(str);
     const styleErrs = validateStyleMin(styleObj);
