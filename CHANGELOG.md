@@ -19,6 +19,7 @@
 
 ### ⚙️ Others
 - Right to left text is now opt-out. `rtlTextPlugin` can be passed in the constructor options to opt-out of installing the RTL text-plugin or install a different RTL text-plugin. Without this option the behaviour will remain the same.
+- Version bump of MapLibre to 
 
 ## 3.8.0
 

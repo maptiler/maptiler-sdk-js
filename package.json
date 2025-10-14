@@ -87,11 +87,11 @@
   },
   "dependencies": {
     "@maplibre/maplibre-gl-style-spec": "~23.3.0",
-    "@maptiler/client": "~2.5.1",
+    "@maptiler/client": "2.6.0-rc.1",
     "events": "^3.3.0",
     "gl-matrix": "^3.4.3",
     "js-base64": "^3.7.7",
-    "maplibre-gl": "~5.6.0",
+    "maplibre-gl": "~5.9.0",
     "uuid": "^11.0.5"
   }
 }
