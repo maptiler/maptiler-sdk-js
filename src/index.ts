@@ -3,10 +3,6 @@ import maplibregl from "maplibre-gl";
 // Types from MapLibre are not re-exported one by one
 export type * from "maplibre-gl";
 
-// Maplibre 5.6.0 Exports a new ColorRamp type
-// to avoid breaking our module we export it as ColorRampML
-export type { ColorRamp as ColorRampML } from "maplibre-gl";
-
 /**
  * Get the version of MapTiler SDK, this is declared in the vite config
  * to avoid importing the entire package.json
