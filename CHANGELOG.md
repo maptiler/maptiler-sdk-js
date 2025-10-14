@@ -1,6 +1,6 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## 3.9.0
 
 ### ✨ Features and improvements
 - Additions and improvements to ImageViewer
