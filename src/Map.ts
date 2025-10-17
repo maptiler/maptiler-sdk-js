@@ -403,7 +403,6 @@ export class Map extends maplibregl.Map {
         const spec = maptiler?.halo ?? this.options.halo;
 
         if (spec) {
-          console.log("set halo gradient", spec);
           void this.halo.setGradient(spec);
         }
       }
