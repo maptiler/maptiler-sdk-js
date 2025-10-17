@@ -1,4 +1,3 @@
-
 import type { CustomLayerInterface, CustomRenderMethodInput } from "maplibre-gl";
 import { mat4 } from "gl-matrix";
 
