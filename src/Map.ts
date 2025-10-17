@@ -403,6 +403,7 @@ export class Map extends maplibregl.Map {
         const spec = maptiler?.halo ?? this.options.halo;
 
         if (spec) {
+          console.log("set halo gradient", spec);
           void this.halo.setGradient(spec);
         }
       }
@@ -568,7 +569,7 @@ export class Map extends maplibregl.Map {
         this.setStyle(MapStyle.STREETS);
         warning += `Loading default MapTiler Cloud style "${MapStyle.STREETS.getDefaultVariant().getId()}" as a fallback.`;
       } else {
-        warning += "Leaving the style as is.";
+        warning += " Leaving the style as is.";
       }
       console.warn(warning);
     };
@@ -1207,17 +1208,21 @@ export class Map extends maplibregl.Map {
         return;
       }
 
-      const targetBeforeLayer = this.getLayersOrder()[0];
-      if (this.space) {
-        this.setSpaceFromStyle({ style: styleSpec });
-      } else {
-        this.initSpace({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.space });
-      }
+      try {
+        const targetBeforeLayer = this.getLayersOrder()[0];
+        if (this.space) {
+          this.setSpaceFromStyle({ style: styleSpec });
+        } else {
+          this.initSpace({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.space });
+        }
 
-      if (this.halo) {
-        this.setHaloFromStyle({ style: styleSpec });
-      } else {
-        this.initHalo({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.halo });
+        if (this.halo) {
+          this.setHaloFromStyle({ style: styleSpec });
+        } else {
+          this.initHalo({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.halo });
+        }
+      } catch (e) {
+        console.error(e);
       }
     };
 
@@ -1255,7 +1260,9 @@ export class Map extends maplibregl.Map {
       // we have no way of knowing if the style is loaded or not
       // which will fail internally if the style is not loaded correctly
       handleStyleLoad();
-    } catch {}
+    } catch (e) {
+      console.error(e);
+    }
 
     return this;
   }
