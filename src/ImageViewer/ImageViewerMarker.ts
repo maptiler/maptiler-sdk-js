@@ -2,12 +2,12 @@ import { Alignment, Subscription, Marker, MarkerOptions, PointLike, Popup } from
 import MapLibreGL from "maplibre-gl";
 import ImageViewer from "./ImageViewer";
 import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey, sdkSymbolKey } from "./symbols";
+import { monkeyPatchMarkerInstanceToRemoveWrapping } from "./monkeyPatchML";
 
 const { Evented } = MapLibreGL;
 
 export type ImageViewerMarkerOptions = MarkerOptions & {};
 
-// TODO YOU ARE TRYING TO SORT THE TYPES IN THE EVENT
 export interface ImageViewerMarkerInterface {
   on(event: MarkerEventTypes, listener: (e: ImageViewerMarkerEvent) => void): Subscription;
   off(event: MarkerEventTypes, listener: (e: ImageViewerMarkerEvent) => void): void;
@@ -63,7 +63,10 @@ export class ImageViewerMarker extends Evented {
 
     this.setPosition(this.position);
 
+    monkeyPatchMarkerInstanceToRemoveWrapping(this.marker);
+
     this.marker.addTo(mapInstance);
+
     return this;
   }
 
