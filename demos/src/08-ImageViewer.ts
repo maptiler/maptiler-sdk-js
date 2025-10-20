@@ -11,7 +11,6 @@ async function main() {
     // cloud as these are only accesible per API key
     // please see cloud documentation for creating an image resource
     imageUUID: "01997715-a22b-7170-9a4c-5e8435f847c7",
-    apiKey: "NrHbzRcISmjG1VwSD6jh",
     debug: true,
   });
 
