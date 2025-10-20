@@ -1,6 +1,19 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## LATEST
+
+### ✨ Features and improvements
+None
+
+### 🐛 Bug Fixes
+- Fixes a bug where Webgl would throw a texture error when two maps are rendered on the page due to a race condition loading images.
+
+### ⚙️ Others
+None
+
+
+
+## NEXT (3.9.0)
 
 ### ✨ Features and improvements
 - Additions and improvements to ImageViewer
