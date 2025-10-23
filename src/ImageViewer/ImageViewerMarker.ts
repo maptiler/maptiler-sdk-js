@@ -1,7 +1,7 @@
 import { Alignment, Subscription, Marker, MarkerOptions, PointLike, Popup } from "../index";
 import MapLibreGL from "maplibre-gl";
 import ImageViewer from "./ImageViewer";
-import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey, sdkSymbolKey } from "./symbols";
+import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey } from "./symbols";
 import { monkeyPatchMarkerInstanceToRemoveWrapping } from "./monkeyPatchML";
 
 const { Evented } = MapLibreGL;
@@ -58,8 +58,7 @@ export class ImageViewerMarker extends Evented {
     this.viewer = viewer;
 
     setupMarkerEventForwarder(this.marker, this, this.viewer[lngLatToPxInternalSymbolKey]);
-
-    const mapInstance = this.viewer[sdkSymbolKey];
+    const mapInstance = this.viewer.getSDKInternal();
 
     this.setPosition(this.position);
 

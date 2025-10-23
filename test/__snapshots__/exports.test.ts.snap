@@ -36,6 +36,7 @@ exports[`Module Exports > should match the snapshot of module exports 1`] = `
   "ImageViewer",
   "ImageViewerEvent",
   "ImageViewerMarker",
+  "ImageViewerMarkerEvent",
   "KeyboardHandler",
   "KeyboardHandlerMLGL",
   "Language",
