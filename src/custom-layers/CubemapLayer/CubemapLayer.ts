@@ -276,8 +276,12 @@ class CubemapLayer implements CustomLayerInterface {
    */
   public onRemove(_map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext) {
     if (this.cubemap) {
+      if (this.texture) {
+        gl.deleteTexture(this.texture);
+      }
       gl.deleteProgram(this.cubemap.shaderProgram);
       gl.deleteBuffer(this.cubemap.positionBuffer);
+      this.texture = undefined;
     }
   }
 
