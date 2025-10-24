@@ -50,17 +50,16 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
 
-      - name: Send Dispatch Event to CDN Repo
-        run: |
-            curl -X POST \
-              -H "Authorization: token ${{ secrets.CDN_MAPTILER_TOKEN }}" \
-              -H "Accept: application/vnd.github.v3+json" \
-              https://api.github.com/repos/maptiler/cdn.maptiler.com/dispatches \
-              -d '{ \
-                "event_type": "repo_release", \
-                "client_payload": { \
-                  "repo": "${{ github.repository }}", \
-                  "tag": "${{ github.event.release.tag_name }}", \
-                  "build_dir": "build" \
-                }
-              }'
+      - name: Get Package version
+        id: version
+        run: echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+      - name: Publish to CDN Cloudflar R2
+        uses: ryand56/r2-upload-action@v1.4
+        with:
+          r2-account-id: ${{ secrets.CDN_MAPTILER_ACCOUNT_ID }}
+          r2-access-key-id: ${{ secrets.CDN_MAPTILER_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.CDN_MAPTILER_SECRET_ACCESS_KEY }}
+          r2-bucket: cdn-storage
+          source-dir: dist
+          destination-dir: maptiler-sdk-js/v${{ env.PACKAGE_VERSION }}/
+    
