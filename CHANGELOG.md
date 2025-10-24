@@ -10,9 +10,12 @@
  - `ImageViewer.getImageBounds()` returns the current bounds of the viewport in image pixels (note: _not_ screen pixels, image pixels are pixels in relation to the intrinsic image size, not it's size on the screen).
  - `ImageViewer.fitImageBounds(bounds)` fits the viewer to `bounds`.
  - `ImageViewerMarker` class added. `ImageViewer`can now have markers positioned in image pixels.
+ - `ImageViewer` now has the `getCanvas` method to retrieve the `HTMLCanvasElement`used by the viewer.
+ - Exports `ImageMarkerEvents` type
 
 
 ### 🐛 Bug Fixes
+
 - Fixes a bug where `map.getProjection()` did not return a value when default projection was used
 - Fixes a bug where "Style Not Done Loading" error is thrown when an Image is used in conjunction with Spacebox.
 - Fixes a bug where switching between remote styles causes flickering in Halo.
