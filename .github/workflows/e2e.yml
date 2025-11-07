@@ -1,0 +1,62 @@
+name: Playwright Tests
+on:
+  pull_request:
+    branches: [ main, next ]
+jobs:
+  e2e:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+          - name: Log Tests
+            run: echo "Running Playwright tests"
+          - uses: actions/checkout@v4
+          - uses: actions/setup-node@v4
+            with:
+              node-version: lts/*
+
+          - name: Debug file structure
+            run: |
+              pwd  # Prints the current working directory
+              ls -R # Lists all files and directories recursively
+              
+          - name: Install dependencies
+            run: npm ci
+
+          - name: Install Playwright Browsers
+            run: npx playwright install chromium --with-deps
+
+          - name: Run Playwright tests
+            run: npm run e2e:ci
+
+          - name: Upload Playwright snapshot diffs
+            id: artifact-upload
+            if: always()
+            uses: actions/upload-artifact@v4
+            with:
+              name: playwright-report
+              path: |
+                playwright-report/
+                test-results/
+              if-no-files-found: warn
+
+          - name: Post a PR comment with snapshot diffs
+            if: failure()  # Run only if previous steps failed
+            run: |
+              echo "Posting PR comment with snapshot diffs"
+          
+              # Define the PR number
+              PR_NUMBER=${{ github.event.pull_request.number }}
+          
+              # Set up the GitHub API token
+              TOKEN=${{ secrets.GITHUB_TOKEN }}
+          
+              # Get the URLs of the snapshot artifacts
+
+              COMMENT_BODY="Some E2E Tests Failed: Please check the attached artifacts [here](${{ steps.artifact-upload.outputs.artifact-url }})"
+              COMMENT_JSON=$(jq -n --arg body "$COMMENT_BODY" '{ body: $body }')
+
+              curl -X POST \
+                -H "Authorization: Bearer $TOKEN" \
+                -H "Content-Type: application/json" \
+                -d "$COMMENT_JSON" \
+                "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"

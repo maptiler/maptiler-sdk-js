@@ -65,6 +65,9 @@ typings/
 # Output of 'npm pack'
 *.tgz
 
+e2e/playwright-report
+e2e/test-results
+
 # Yarn Integrity file
 .yarn-integrity
 
@@ -110,3 +113,5 @@ dist
 docs
 docsmd
 build
+e2e/playwright-report
+test-results
