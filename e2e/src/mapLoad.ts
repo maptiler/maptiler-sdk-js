@@ -1,5 +1,5 @@
-import "@maptiler/sdk/dist/maptiler-sdk.css";
-import { Map as MapTiler, MapStyle } from "@maptiler/sdk";
+import "../../dist/maptiler-sdk.css";
+import { Map as MapTiler, MapStyle } from "../../src/index";
 
 const map = new MapTiler({
   container: "map",

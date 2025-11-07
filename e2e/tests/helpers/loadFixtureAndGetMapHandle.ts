@@ -1,4 +1,4 @@
-import type { Map } from "@maptiler/sdk";
+import type { Map } from "../../../src/index";
 import { JSHandle, Page, expect } from "@playwright/test";
 import path from "path";
 

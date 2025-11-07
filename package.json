@@ -51,10 +51,10 @@
     "build-es": "tsc && NODE_ENV=production vite build -c vite.config-es.ts",
     "build": "npm run build-es; npm run build-umd; npm run build-css",
     "make": "npm run install:clean && npm run build",
-    "e2e:serve": "tsc --project ./e2e && NODE_ENV=development vite -c vite.config-e2e.ts",
+    "e2e:serve": "npm run build-css && tsc --project ./e2e && NODE_ENV=development vite -c vite.config-e2e.ts",
     "e2e:local": "npx playwright test --config=playwright.config.ts --ui",
-    "e2e:ci": "concurrently --kill-others --success first \"tsc --project ./e2e && NODE_ENV=production vite -c vite.config-e2e.ts\" \"npx playwright test --config=playwright.config.ts\"",
-    "e2e:ci-update": "concurrently --kill-others --success first \"tsc --project ./e2e && NODE_ENV=production vite -c vite.config-e2e.ts\" \"npx playwright test --config=playwright.config.ts -u\""
+    "e2e:ci": "npm run build-css && concurrently --kill-others --success first \"tsc --project ./e2e && NODE_ENV=production vite -c vite.config-e2e.ts\" \"npx playwright test --config=playwright.config.ts\"",
+    "e2e:ci-update": "npm run build-css && concurrently --kill-others --success first \"tsc --project ./e2e && NODE_ENV=production vite -c vite.config-e2e.ts\" \"npx playwright test --config=playwright.config.ts -u\""
   },
   "lint-staged": {
     "*.ts": "npm run lint:fix"

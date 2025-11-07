@@ -1,4 +1,4 @@
-import { Map } from "@maptiler/sdk";
+import { Map } from "../src";
 
 declare global {
   interface Window {
