@@ -66,7 +66,8 @@ jobs:
       - name: Commit snapshot changes
         run: |
           echo "Committing snapshot changes to PR branch ${{ github.event.issue.pull_request.head.ref }}"
-          git config user.name MapTiler Testbot
+          git config user.name "MapTiler Testbot [${{ github.event.comment.user.login }}]"
+          git config user.email "testbot@maptiler.com"
           git add -A
-          git commit -am "[BOT] Update snapshots (Triggered by @${{ github.event.comment.user.login }})" || echo "No changes to commit"
+          git commit -am "[BOT] Update snapshots (Triggered by @${{ github.event.comment.user.login }} in PR ${{ steps.strip_quotes.outputs.stripped_value }})" || echo "No changes to commit"
           git push origin HEAD:refs/heads/${{ steps.get_pr.outputs.result }}
