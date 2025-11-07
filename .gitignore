@@ -113,3 +113,5 @@ dist
 docs
 docsmd
 build
+e2e/playwright-report
+test-results
