@@ -390,11 +390,6 @@ export class RadialGradientLayer implements CustomLayerInterface {
       this.gradient.stops = gradient.stops ?? defaultConstructorOptions.stops;
     }
 
-    // this.config = {
-    //   scale: this.gradient.scale,
-    //   stops: [...this.gradient.stops],
-    // };
-
     await this.animateIn();
   }
 
