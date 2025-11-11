@@ -17,6 +17,7 @@
 
 ### 🐛 Bug Fixes
 
+- Fixes a bug where `setStyle(<JSON>)` would not update.
 - Fixes a bug where `map.getProjection()` did not return a value when default projection was used
 - Fixes a bug where "Style Not Done Loading" error is thrown when an Image is used in conjunction with Spacebox.
 - Fixes a bug where switching between remote styles causes flickering in Halo.
