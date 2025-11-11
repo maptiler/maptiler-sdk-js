@@ -365,15 +365,18 @@ export class Map extends maplibregl.Map {
 
   private setHaloFromSpec({ spec }: { spec?: GradientDefinition | boolean }) {
     if (this.options.halo === false) {
+      console.log("options.halo is false");
       return;
     }
 
     if (typeof spec === "boolean") {
+      console.log("spec is boolean", spec);
       this.setHalo(spec);
       return;
     }
 
     if (JSON.stringify(this.halo?.getConfig()) === JSON.stringify(spec)) {
+      console.log("HALO IS THE SAME", spec);
       // because maplibre removes ALL layers when setting a new style, we need to add the halo layer back
       // even if it hasn't changed
       if (this.halo && !this.getLayer(this.halo.id)) {
@@ -385,6 +388,7 @@ export class Map extends maplibregl.Map {
     }
 
     if (!spec && !this.options.halo) {
+      console.log("spec is false, and options.halo is false");
       this.setHalo({
         stops: [
           [0, "transparent"],
@@ -396,14 +400,19 @@ export class Map extends maplibregl.Map {
     }
 
     const updateHalo = () => {
+      console.log("updateHalo", spec);
       if (this.halo) {
+        console.log("halo exists", this.getLayer(this.halo.id));
         if (!this.getLayer(this.halo.id)) {
+          console.log("halo not in map, adding it");
           const beforeIndex = this.getLayersOrder().indexOf(this.space?.id ?? "") + 1;
           const before = this.getLayersOrder()[beforeIndex];
           this.addLayer(this.halo, before);
         }
 
         if (spec) {
+          console.log("SET HALO FROM SPEC", spec);
+
           void this.halo.setGradient(spec);
         }
       }
@@ -1140,9 +1149,25 @@ export class Map extends maplibregl.Map {
     options: StyleSwapOptions & StyleOptions = {} as StyleSwapOptions & StyleOptions,
   ): this {
     const transformStylePredicate = (previousStyle: StyleSpecificationWithMetaData | undefined, nextStyle: StyleSpecificationWithMetaData | undefined) => {
+      const spaceHasBeenRemovedFromStyle = !nextStyle?.metadata?.maptiler?.space && Boolean(previousStyle?.metadata?.maptiler?.space);
+      const haloHasBeenRemovedFromStyle = !nextStyle?.metadata?.maptiler?.halo && Boolean(previousStyle?.metadata?.maptiler?.halo);
+
+      if (spaceHasBeenRemovedFromStyle) {
+        console.trace("space has been removed from style, removing it");
+        this.space?.onRemove(this, this.getCanvas().getContext("webgl2")!);
+        this.space = undefined;
+      }
+
+      if (haloHasBeenRemovedFromStyle) {
+        console.trace("halo has been removed from style, removing it");
+        this.halo?.onRemove(this, this.getCanvas().getContext("webgl2")!);
+        this.halo = undefined;
+      }
+
       const spaceSpecHasChangedOrDidNotExist = this.space ? this.space.shouldUpdate(nextStyle?.metadata?.maptiler?.space) : true;
       const haloSpecHasChangedOrDidNotExist = this.halo ? this.halo.shouldUpdate(nextStyle?.metadata?.maptiler?.halo) : true;
 
+      // console.log("haloSpecHasChangedOrDidNotExist", haloSpecHasChangedOrDidNotExist);
       // if (nextStyle?.zoom !== previousStyle?.zoom) {
       //   this.setZoom(nextStyle?.zoom ?? previousStyle?.zoom ?? this.getZoom());
       // }
@@ -1168,17 +1193,14 @@ export class Map extends maplibregl.Map {
       if (spaceNeedsUpdate) {
         try {
           const spec = nextStyle?.metadata?.maptiler?.space ?? false;
-
-          const layer = this.getLayer(this.space?.id ?? "");
-
-          if (layer) {
-            console.log("SPEC", spec);
-            this.setSpaceFromSpec({ spec });
-          } else {
-            void this.once("style.load", () => {
+          void this.once("style.load", () => {
+            const layer = this.getLayer(this.space?.id ?? "");
+            if (layer) {
+              this.setSpaceFromSpec({ spec });
+            } else {
               this.initSpace({ spec });
-            });
-          }
+            }
+          });
         } catch (e) {
           console.error(e);
         }
@@ -1186,16 +1208,15 @@ export class Map extends maplibregl.Map {
 
       if (haloNeedsUpdate) {
         try {
-          const spec = nextStyle?.metadata?.maptiler?.halo ?? false;
-
-          const layer = this.getLayer(this.halo?.id ?? "");
-          if (layer) {
-            this.setHaloFromSpec({ spec });
-          } else {
+            const spec = nextStyle?.metadata?.maptiler?.halo ?? false;
             void this.once("style.load", () => {
-              this.initHalo({ spec });
+              const layer = this.getLayer(this.halo?.id ?? "");
+              if (layer) {
+                this.setHaloFromSpec({ spec });
+              } else {
+                this.initHalo({ spec });
+              }
             });
-          }
         } catch (e) {
           console.error(e);
         }
@@ -1248,6 +1269,25 @@ export class Map extends maplibregl.Map {
     } catch (e) {
       this.styleInProcess = false;
       console.error("[Map.setStyle]: Error while setting style:", e);
+    }
+
+    try {
+      if (styleInfo.isJSON) {
+        // @ts-expect-error - style is does have metadata
+        const haloSpec = styleInfo.style.metadata?.maptiler?.halo;
+        // @ts-expect-error - style does have metadata
+        const spaceSpec = styleInfo.style.metadata?.maptiler?.space;
+  
+        if (haloSpec) {
+          this.setHalo(haloSpec);
+        }
+  
+        if (spaceSpec) {
+          this.setSpace(spaceSpec);
+        }
+      }
+    } catch (e) {
+      console.error("[Map.setStyle]: Error while setting halo or space from style:", e);
     }
 
     return this;
