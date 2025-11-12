@@ -1208,15 +1208,15 @@ export class Map extends maplibregl.Map {
 
       if (haloNeedsUpdate) {
         try {
-            const spec = nextStyle?.metadata?.maptiler?.halo ?? false;
-            void this.once("style.load", () => {
-              const layer = this.getLayer(this.halo?.id ?? "");
-              if (layer) {
-                this.setHaloFromSpec({ spec });
-              } else {
-                this.initHalo({ spec });
-              }
-            });
+          const spec = nextStyle?.metadata?.maptiler?.halo ?? false;
+          void this.once("style.load", () => {
+            const layer = this.getLayer(this.halo?.id ?? "");
+            if (layer) {
+              this.setHaloFromSpec({ spec });
+            } else {
+              this.initHalo({ spec });
+            }
+          });
         } catch (e) {
           console.error(e);
         }
@@ -1277,11 +1277,11 @@ export class Map extends maplibregl.Map {
         const haloSpec = styleInfo.style.metadata?.maptiler?.halo;
         // @ts-expect-error - style does have metadata
         const spaceSpec = styleInfo.style.metadata?.maptiler?.space;
-  
+
         if (haloSpec) {
           this.setHalo(haloSpec);
         }
-  
+
         if (spaceSpec) {
           this.setSpace(spaceSpec);
         }
