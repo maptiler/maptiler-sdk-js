@@ -5,6 +5,7 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
   style: string | maplibregl.StyleSpecification;
   requiresUrlMonitoring: boolean;
   isFallback: boolean;
+  isJSON?: boolean;
 } {
   if (!style) {
     return {
@@ -85,6 +86,7 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
       style: style as maplibregl.StyleSpecification,
       requiresUrlMonitoring: false,
       isFallback: false,
+      isJSON: true,
     };
   }
   // If none of the previous attempts to detect a valid style failed => fallback to default style
