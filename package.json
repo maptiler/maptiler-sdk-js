@@ -86,7 +86,7 @@
     "vitest": "^3.0.9"
   },
   "dependencies": {
-    "@maplibre/maplibre-gl-style-spec": "~24.2.0",
+    "@maplibre/maplibre-gl-style-spec": "~23.3.0",
     "@maptiler/client": "2.6.0-rc.3",
     "events": "^3.3.0",
     "gl-matrix": "^3.4.3",
