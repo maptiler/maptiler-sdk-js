@@ -1,0 +1,27 @@
+{
+  "version": 8,
+  "sources": {
+    "raster": {
+      "type": "raster",
+      "tiles": [
+        "https://api.maptiler.com/tiles/satellite/{z}/{x}/{y}.jpg?key=DOESNT_MATTER"
+      ],
+      "tileSize": 256
+    }
+  },
+  "layers": [
+    {
+      "id": "raster",
+      "type": "raster",
+      "source": "raster",
+      "minzoom": 0,
+      "maxzoom": 22
+    }
+  ],
+  "metadata": {
+    "maptiler": {
+      "version": "1.0.0",
+      "attribution": "© MapTiler © OpenStreetMap contributors"
+    }
+  }
+}

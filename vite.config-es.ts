@@ -60,7 +60,7 @@ export default defineConfig({
       },
     },
   },
-    define: {
+  define: {
     __MT_SDK_VERSION__: JSON.stringify(packagejson.version),
     __MT_NODE_ENV__: JSON.stringify(process.env.NODE_ENV),
   },

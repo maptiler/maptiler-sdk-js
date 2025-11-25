@@ -1,0 +1,73 @@
+name: Workflow dispatch update snapshots.
+
+on:
+  issue_comment:
+    types: [created] # Only run on new comments
+# This action is disabled for now due to problems comparing the snapshots in ci
+
+jobs:
+  update-snapshots:
+    # This is the magic "if" block
+    if: >
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/update-snapshots') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Get PR number
+        id: get_pr
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.issue.number,
+            });
+            return pr.data.head.ref;
+      - name: Strip quotes
+        id: strip_quotes
+        run: |
+          val=${{ steps.get_pr.outputs.result }}
+          # Remove leading and trailing quotes
+          val="${val%\"}"
+          val="${val#\"}"
+          echo "stripped_value=$val" >> $GITHUB_OUTPUT
+        
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.strip_quotes.outputs.stripped_value }}
+          fetch-depth: 0
+          persist-credentials: true
+          fetch-tags: true
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run Playwright tests
+        run: npm run e2e:ci-update
+
+      - name: Debug Info
+        run: |
+          echo "PR number: ${{ steps.get_pr.outputs.result }}"
+          echo "Branch: ${{ github.event.issue.pull_request.head.ref }}"ppack
+          echo "User: ${{ github.event.comment.user.login }}"
+
+      - name: Commit snapshot changes
+        run: |
+          echo "Committing snapshot changes to PR branch ${{ github.event.issue.pull_request.head.ref }}"
+          git config user.name "MapTiler Testbot [${{ github.event.comment.user.login }}]"
+          git config user.email "testbot@maptiler.com"
+          git add -A
+          git commit -am "[BOT] Update snapshots (Triggered by @${{ github.event.comment.user.login }} in PR ${{ steps.strip_quotes.outputs.stripped_value }})" || echo "No changes to commit"
+          git push origin HEAD:refs/heads/${{ steps.get_pr.outputs.result }}

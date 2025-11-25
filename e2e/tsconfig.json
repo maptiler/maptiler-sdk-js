@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["./global.d.ts", "node"],
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+  },
+  "include": [
+    "./tests/**/*.test.ts",
+    "./global.d.ts",
+    "./src/**/*.ts",
+    "../src/**/*.d.ts"
+  ]
+}
