@@ -6,28 +6,27 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ImageViewerMarker, ImageViewerMarkerEvent } from "../src/ImageViewer/ImageViewerMarker";
 import ImageViewer from "../src/ImageViewer/ImageViewer";
-import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey, sdkSymbolKey } from "../src/ImageViewer/symbols";
-import { Popup, Alignment, LngLat, Marker, Point } from "../src/index";
+import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey } from "../src/ImageViewer/symbols";
+import { Popup, Alignment, LngLat, Marker, Point, Map as SDKMap } from "../src/index";
 
 vi.mock("../src/index");
 
 vi.mock("../src/ImageViewer/ImageViewer", async (importOriginal) => {
   const actual = (await importOriginal()) as typeof import("../src/ImageViewer/ImageViewer") as typeof import("../src/ImageViewer/ImageViewer");
 
-  const { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey, sdkSymbolKey } = (await import("../src/ImageViewer/symbols")) as typeof import("../src/ImageViewer/symbols");
+  const { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey } = (await import("../src/ImageViewer/symbols")) as typeof import("../src/ImageViewer/symbols");
 
   const mockInstance = {
-    [sdkSymbolKey]: {
+    getSDKInternal: vi.fn(() => ({
       version: "1.0.0",
       getContainer: vi.fn(() => document.createElement("div")),
-    },
+    })),
     [lngLatToPxInternalSymbolKey]: vi.fn((lngLat: LngLat) => [lngLat.lng * 100, lngLat.lat * 100] as [number, number]),
     [pxToLngLatInternalSymbolKey]: vi.fn((px: [number, number]) => new LngLat(px[0] / 100, px[1] / 100)),
     // Add any other methods or properties your code under test needs
     pointIsWithinImageBounds: vi.fn().mockReturnValue(true),
   };
 
-  // 2. Create a mock constructor that returns your instance.
   //    This correctly simulates `new ImageViewer()`.
   const MockImageViewer = vi.fn().mockImplementation(() => mockInstance);
 
@@ -42,6 +41,13 @@ function createNewMocks() {
   mockImageViewer[lngLatToPxInternalSymbolKey] = vi.fn((lngLat: LngLat) => [lngLat.lng * 100, lngLat.lat * 100] as [number, number]);
   mockImageViewer[pxToLngLatInternalSymbolKey] = vi.fn((px: [number, number]) => new LngLat(px[0] / 100, px[1] / 100));
   (mockImageViewer as any).pointIsWithinImageBounds = vi.fn().mockReturnValue(true);
+  (mockImageViewer as any).getSDKInternal = vi.fn(
+    () =>
+      ({
+        version: "1.0.0",
+        getContainer: vi.fn(() => document.createElement("div")),
+      }) as unknown as SDKMap,
+  );
 
   const imageViewerMarker = new ImageViewerMarker({
     draggable: true,
@@ -77,7 +83,12 @@ describe("ImageViewerMarker", () => {
       const { imageViewerMarker, mockImageViewer } = createNewMocks();
 
       imageViewerMarker.addTo(mockImageViewer);
-      expect(imageViewerMarker["marker"].addTo).toHaveBeenCalledWith(mockImageViewer[sdkSymbolKey]);
+      expect(imageViewerMarker["marker"].addTo).toHaveBeenCalledWith(
+        expect.objectContaining({
+          version: "1.0.0",
+          getContainer: expect.any(Function),
+        })
+      );
     });
 
     it("should throw an error if not added to an ImageViewer instance", () => {

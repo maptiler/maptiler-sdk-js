@@ -134,6 +134,7 @@ const expectedExports = Array.from(
     "ImageViewer",
     "ImageViewerMarker",
     "ImageViewerEvent",
+    "ImageViewerMarkerEvent",
     "MapTouchEventMLGL",
     "MapMouseEventMLGL",
     "canParsePixelData",

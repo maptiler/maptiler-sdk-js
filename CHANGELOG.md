@@ -1,19 +1,6 @@
 # MapTiler SDK Changelog
 
-## LATEST
-
-### ✨ Features and improvements
-None
-
-### 🐛 Bug Fixes
-- Fixes a bug where Webgl would throw a texture error when two maps are rendered on the page due to a race condition loading images.
-
-### ⚙️ Others
-None
-
-
-
-## NEXT (3.9.0)
+## 3.9.0
 
 ### ✨ Features and improvements
 - Additions and improvements to ImageViewer
@@ -23,16 +10,21 @@ None
  - `ImageViewer.getImageBounds()` returns the current bounds of the viewport in image pixels (note: _not_ screen pixels, image pixels are pixels in relation to the intrinsic image size, not it's size on the screen).
  - `ImageViewer.fitImageBounds(bounds)` fits the viewer to `bounds`.
  - `ImageViewerMarker` class added. `ImageViewer`can now have markers positioned in image pixels.
+ - `ImageViewer` now has the `getCanvas` method to retrieve the `HTMLCanvasElement`used by the viewer.
+ - Exports `ImageMarkerEvents` type.
+ - Configs passed to `setSpace` and `setHalo` are now validated ahead fo time.
 
 
 ### 🐛 Bug Fixes
+
+- Fixes a bug where `setStyle(<JSON>)` would not update.
 - Fixes a bug where `map.getProjection()` did not return a value when default projection was used
 - Fixes a bug where "Style Not Done Loading" error is thrown when an Image is used in conjunction with Spacebox.
 - Fixes a bug where switching between remote styles causes flickering in Halo.
+- Fixes a bug where Webgl would throw a texture error when two maps are rendered on the page due to a race condition loading images.
 
 ### ⚙️ Others
 - Right to left text is now opt-out. `rtlTextPlugin` can be passed in the constructor options to opt-out of installing the RTL text-plugin or install a different RTL text-plugin. Without this option the behaviour will remain the same.
-- Version bump of MapLibre to 5.9.0
 - Version bunp of @maptiler/client to 2.6.0
 
 ## 3.8.0

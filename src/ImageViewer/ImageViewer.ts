@@ -24,7 +24,7 @@ import { config } from "..";
 import { monkeyPatchMapTransformInstance } from "./monkeyPatchML";
 import { NavigationControl } from "../MLAdapters/NavigationControl";
 import { ImageViewerFitImageToBoundsControl } from "../controls/ImageViewerFitImageToBoundsControl";
-import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey, sdkSymbolKey } from "./symbols";
+import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey } from "./symbols";
 
 const { Evented } = MaplibreGL;
 
@@ -148,7 +148,7 @@ export default class ImageViewer extends Evented {
    * We do not want to have to extend the Map class and give access to
    * methods and properties that operate in LngLat space.   *
    */
-  [sdkSymbolKey]: Map;
+  private sdk!: Map;
 
   /**
    * The options for the ImageViewer.
@@ -175,7 +175,7 @@ export default class ImageViewer extends Evented {
    * The version of the ImageViewer / SDK.
    */
   public get version() {
-    return this[sdkSymbolKey].version;
+    return this.sdk.version;
   }
 
   /**
@@ -231,9 +231,9 @@ export default class ImageViewer extends Evented {
     // we cannot convert it lnglat space until the metadata is fetched
     delete sdkOptions.center;
 
-    this[sdkSymbolKey] = new Map(sdkOptions);
+    this.sdk = new Map(sdkOptions);
 
-    this[sdkSymbolKey].telemetry.registerViewerType("ImageViewer");
+    this.sdk.telemetry.registerViewerType("ImageViewer");
 
     const { imageUUID, debug } = imageViewerConstructorOptions;
 
@@ -242,10 +242,10 @@ export default class ImageViewer extends Evented {
     this.debug = debug ?? false;
 
     if (this.debug) {
-      this[sdkSymbolKey].showTileBoundaries = this.debug;
-      this[sdkSymbolKey].showPadding = this.debug;
-      this[sdkSymbolKey].showCollisionBoxes = this.debug;
-      this[sdkSymbolKey].repaint = this.debug;
+      this.sdk.showTileBoundaries = this.debug;
+      this.sdk.showPadding = this.debug;
+      this.sdk.showCollisionBoxes = this.debug;
+      this.sdk.repaint = this.debug;
     }
 
     void this.init();
@@ -259,7 +259,7 @@ export default class ImageViewer extends Evented {
    */
   async onReadyAsync() {
     try {
-      await this[sdkSymbolKey].onReadyAsync();
+      await this.sdk.onReadyAsync();
       await Promise.race([
         new Promise((resolve, reject) => {
           void this.once("imageviewerready", (evt) => {
@@ -304,7 +304,7 @@ export default class ImageViewer extends Evented {
       this.addImageSource();
 
       if (this.options.navigationControl) {
-        this[sdkSymbolKey].addControl(
+        this.sdk.addControl(
           new NavigationControl({
             visualizePitch: false,
             visualizeRoll: false,
@@ -314,18 +314,18 @@ export default class ImageViewer extends Evented {
 
       this.fitToBoundsControlInstance = new ImageViewerFitImageToBoundsControl({ imageViewer: this });
       if (this.options.fitToBoundsControl) {
-        this[sdkSymbolKey].addControl(this.fitToBoundsControlInstance);
+        this.sdk.addControl(this.fitToBoundsControlInstance);
       }
 
       // TODO return a cleanup function to remove all event listeners
       setupGlobalMapEventForwarder({
-        map: this[sdkSymbolKey],
+        map: this.sdk,
         viewer: this,
         lngLatToPx: (lngLat: LngLat) => this.lngLatToPx(lngLat),
       });
 
       // this is a monkey patch to allow for overpanning and underzooming
-      monkeyPatchMapTransformInstance(this[sdkSymbolKey]);
+      monkeyPatchMapTransformInstance(this.sdk);
 
       const { center, zoom, bearing } = this.options;
       const initCenter = center ?? [(this.imageMetadata?.width ?? 0) / 2, (this.imageMetadata?.height ?? 0) / 2];
@@ -343,22 +343,22 @@ export default class ImageViewer extends Evented {
       // "move" and "zoom" are not viable as they would be fired
       // when `fitImageToViewport` is called making loop
       // so we test for UI events instead
-      this[sdkSymbolKey].on("wheel", () => {
+      this.sdk.on("wheel", () => {
         this.shouldFitImageToViewport = false;
       });
 
-      this[sdkSymbolKey].on("touchstart", () => {
+      this.sdk.on("touchstart", () => {
         this.shouldFitImageToViewport = false;
       });
 
-      this[sdkSymbolKey].on("drag", () => {
+      this.sdk.on("drag", () => {
         this.shouldFitImageToViewport = false;
       });
 
       // checks to see if there have been any UI events
       // if not, then we keep the image centered
       // and zoomed to fit the page.
-      this[sdkSymbolKey].on("resize", () => {
+      this.sdk.on("resize", () => {
         const previousCenter = this.getCenter();
         const width = this.imageMetadata?.width ?? 0;
         const height = this.imageMetadata?.height ?? 0;
@@ -392,12 +392,12 @@ export default class ImageViewer extends Evented {
     const tl = this.pxToLngLat([0, 0]);
     const br = this.pxToLngLat([this.imageMetadata.width ?? 0, this.imageMetadata.height ?? 0]);
 
-    const cameraForBounds = this[sdkSymbolKey].cameraForBounds([tl, br], { padding: 50 });
+    const cameraForBounds = this.sdk.cameraForBounds([tl, br], { padding: 50 });
     if (cameraForBounds) {
       if (ease) {
-        this[sdkSymbolKey].easeTo({ ...cameraForBounds, pitch: 0 }, null);
+        this.sdk.easeTo({ ...cameraForBounds, pitch: 0 }, null);
       } else {
-        this[sdkSymbolKey].jumpTo({ ...cameraForBounds, pitch: 0 }, null);
+        this.sdk.jumpTo({ ...cameraForBounds, pitch: 0 }, null);
       }
     }
 
@@ -450,14 +450,14 @@ export default class ImageViewer extends Evented {
     const se = this.pxToLngLat(this.imageSize);
     const bounds: [number, number, number, number] = [nw.lng, se.lat, se.lng, nw.lat];
 
-    this[sdkSymbolKey].addSource("image", {
+    this.sdk.addSource("image", {
       ...this.imageMetadata,
       type: "raster",
       bounds,
       tiles: [url],
     });
 
-    this[sdkSymbolKey].addLayer({
+    this.sdk.addLayer({
       id: "image",
       type: "raster",
       source: "image",
@@ -472,7 +472,7 @@ export default class ImageViewer extends Evented {
    * @returns {void}
    */
   triggerRepaint() {
-    this[sdkSymbolKey].triggerRepaint();
+    this.sdk.triggerRepaint();
   }
   /**
    * The scroll zoom handler.
@@ -481,7 +481,7 @@ export default class ImageViewer extends Evented {
    * @returns {ScrollZoomHandler}
    */
   get scrollZoom() {
-    return this[sdkSymbolKey].scrollZoom;
+    return this.sdk.scrollZoom;
   }
 
   /**
@@ -491,7 +491,7 @@ export default class ImageViewer extends Evented {
    * @param {ScrollZoomHandler} value - The scroll zoom handler.
    */
   set scrollZoom(value: ScrollZoomHandler) {
-    this[sdkSymbolKey].scrollZoom = value;
+    this.sdk.scrollZoom = value;
   }
 
   /**
@@ -501,7 +501,7 @@ export default class ImageViewer extends Evented {
    * @returns {BoxZoomHandler}
    */
   get boxZoom() {
-    return this[sdkSymbolKey].boxZoom;
+    return this.sdk.boxZoom;
   }
 
   /**
@@ -511,7 +511,7 @@ export default class ImageViewer extends Evented {
    * @param {BoxZoomHandler} value - The box zoom handler.
    */
   set boxZoom(value: BoxZoomHandler) {
-    this[sdkSymbolKey].boxZoom = value;
+    this.sdk.boxZoom = value;
   }
 
   /**
@@ -521,7 +521,7 @@ export default class ImageViewer extends Evented {
    * @returns {DragPanHandler}
    */
   get dragPan() {
-    return this[sdkSymbolKey].dragPan;
+    return this.sdk.dragPan;
   }
 
   /**
@@ -531,7 +531,7 @@ export default class ImageViewer extends Evented {
    * @param {DragPanHandler} value - The drag pan handler.
    */
   set dragPan(value: DragPanHandler) {
-    this[sdkSymbolKey].dragPan = value;
+    this.sdk.dragPan = value;
   }
 
   /**
@@ -541,7 +541,7 @@ export default class ImageViewer extends Evented {
    * @returns {KeyboardHandler}
    */
   get keyboard() {
-    return this[sdkSymbolKey].keyboard;
+    return this.sdk.keyboard;
   }
 
   /**
@@ -551,7 +551,7 @@ export default class ImageViewer extends Evented {
    * @param {KeyboardHandler} value - The keyboard handler.
    */
   set keyboard(value: KeyboardHandler) {
-    this[sdkSymbolKey].keyboard = value;
+    this.sdk.keyboard = value;
   }
 
   /**
@@ -561,7 +561,7 @@ export default class ImageViewer extends Evented {
    * @returns {DoubleClickZoomHandler}
    */
   get doubleClickZoom() {
-    return this[sdkSymbolKey].doubleClickZoom;
+    return this.sdk.doubleClickZoom;
   }
 
   /**
@@ -571,7 +571,7 @@ export default class ImageViewer extends Evented {
    * @param {DoubleClickZoomHandler} value - The double click zoom handler.
    */
   set doubleClickZoom(value: DoubleClickZoomHandler) {
-    this[sdkSymbolKey].doubleClickZoom = value;
+    this.sdk.doubleClickZoom = value;
   }
 
   /**
@@ -581,7 +581,7 @@ export default class ImageViewer extends Evented {
    * @returns {TwoFingersTouchZoomRotateHandler}
    */
   get touchZoomRotate() {
-    return this[sdkSymbolKey].touchZoomRotate;
+    return this.sdk.touchZoomRotate;
   }
 
   /**
@@ -591,7 +591,7 @@ export default class ImageViewer extends Evented {
    * @param {TwoFingersTouchZoomRotateHandler} value - The touch zoom rotate handler.
    */
   set touchZoomRotate(value: TwoFingersTouchZoomRotateHandler) {
-    this[sdkSymbolKey].touchZoomRotate = value;
+    this.sdk.touchZoomRotate = value;
   }
 
   /**
@@ -601,7 +601,7 @@ export default class ImageViewer extends Evented {
    * @returns {CooperativeGesturesHandler}
    */
   get cooperativeGestures() {
-    return this[sdkSymbolKey].cooperativeGestures;
+    return this.sdk.cooperativeGestures;
   }
 
   /**
@@ -611,7 +611,7 @@ export default class ImageViewer extends Evented {
    * @param {CooperativeGesturesHandler} value - The cooperative gestures handler.
    */
   set cooperativeGestures(value: CooperativeGesturesHandler) {
-    this[sdkSymbolKey].cooperativeGestures = value;
+    this.sdk.cooperativeGestures = value;
   }
 
   //#endregion SDK Mappings
@@ -652,6 +652,26 @@ export default class ImageViewer extends Evented {
     const merc = new MercatorCoordinate(px[0] / this.paddedSizeMax, px[1] / this.paddedSizeMax);
     return merc.toLngLat() as LngLat;
   }
+  //#region getSDKInternal
+
+  /**
+   * Get the internal SDK instance.
+   *
+   * @returns {Map} The internal SDK instance.
+   * @internal
+   */
+  public getSDKInternal() {
+    return this.sdk;
+  }
+
+  /**
+   * Get the canvas of the internal SDK instance.
+   *
+   * @returns {HTMLCanvasElement} The canvas of the internal SDK instance.
+   */
+  public getCanvas() {
+    return this.sdk.getCanvas();
+  }
 
   //#region flyTo
   /**
@@ -663,7 +683,7 @@ export default class ImageViewer extends Evented {
    */
   public flyTo(options: ImageViewerFlyToOptions, eventData?: MapDataEvent) {
     const lngLat = this.pxToLngLat(options.center);
-    this[sdkSymbolKey].flyTo({ ...options, pitch: 0, center: lngLat }, eventData);
+    this.sdk.flyTo({ ...options, pitch: 0, center: lngLat }, eventData);
     return this;
   }
 
@@ -677,7 +697,7 @@ export default class ImageViewer extends Evented {
    */
   public jumpTo(options: ImageViewerJumpToOptions, eventData?: MapDataEvent) {
     const lngLat = this.pxToLngLat(options.center);
-    this[sdkSymbolKey].jumpTo({ ...options, pitch: 0, center: lngLat }, eventData);
+    this.sdk.jumpTo({ ...options, pitch: 0, center: lngLat }, eventData);
     return this;
   }
 
@@ -689,7 +709,7 @@ export default class ImageViewer extends Evented {
    * @returns {ImageViewer} The ImageViewer instance.
    */
   public setZoom(zoom: number) {
-    this[sdkSymbolKey].setZoom(zoom);
+    this.sdk.setZoom(zoom);
     return this;
   }
 
@@ -700,7 +720,7 @@ export default class ImageViewer extends Evented {
    * @returns {number} The zoom level.
    */
   public getZoom() {
-    return this[sdkSymbolKey].getZoom();
+    return this.sdk.getZoom();
   }
 
   //#region getCenter
@@ -711,7 +731,7 @@ export default class ImageViewer extends Evented {
    * @returns {[number, number]} The center of the ImageViewer.
    */
   public getCenter() {
-    const centerLngLat = this[sdkSymbolKey].getCenter();
+    const centerLngLat = this.sdk.getCenter();
     const centerPx = this.lngLatToPx(centerLngLat);
     return centerPx;
   }
@@ -724,7 +744,7 @@ export default class ImageViewer extends Evented {
    * @returns {ImageViewer} The ImageViewer instance.
    */
   public setCenter(center: [number, number]) {
-    this[sdkSymbolKey].setCenter(this.pxToLngLat(center));
+    this.sdk.setCenter(this.pxToLngLat(center));
     return this;
   }
 
@@ -736,7 +756,7 @@ export default class ImageViewer extends Evented {
    * @returns {ImageViewer} The ImageViewer instance.
    */
   public setBearing(bearing: number) {
-    this[sdkSymbolKey].setBearing(bearing);
+    this.sdk.setBearing(bearing);
     return this;
   }
 
@@ -747,7 +767,7 @@ export default class ImageViewer extends Evented {
    * @returns {number} The bearing of the ImageViewer.
    */
   public getBearing() {
-    return this[sdkSymbolKey].getBearing();
+    return this.sdk.getBearing();
   }
 
   //#region panBy
@@ -760,7 +780,7 @@ export default class ImageViewer extends Evented {
    * @returns {ImageViewer} The ImageViewer instance.
    */
   public panBy(delta: PointLike, options?: ImageViewerEaseToOptions, eventData?: any) {
-    this[sdkSymbolKey].panBy(delta, { ...options, pitch: 0 }, eventData);
+    this.sdk.panBy(delta, { ...options, pitch: 0 }, eventData);
     return this;
   }
 
@@ -774,7 +794,7 @@ export default class ImageViewer extends Evented {
    * @returns {ImageViewer} The ImageViewer instance.
    */
   public panTo(center: [number, number], options?: ImageViewerEaseToOptions, eventData?: any) {
-    this[sdkSymbolKey].panTo(this.pxToLngLat(center), { ...options, pitch: 0 }, eventData);
+    this.sdk.panTo(this.pxToLngLat(center), { ...options, pitch: 0 }, eventData);
     return this;
   }
 
@@ -796,7 +816,7 @@ export default class ImageViewer extends Evented {
    * @returns {[[number, number], [number, number]]} The visible bounds of the image.
    */
   public getImageBounds() {
-    const mapBounds = this[sdkSymbolKey].getBounds().toArray();
+    const mapBounds = this.sdk.getBounds().toArray();
     const boundsPx = mapBounds.map((bound) => {
       return this.lngLatToPx(LngLat.convert(bound));
     }) as [[number, number], [number, number]];
@@ -820,7 +840,7 @@ export default class ImageViewer extends Evented {
     const tlLngLat = this.pxToLngLat(tl);
     const brLngLat = this.pxToLngLat(br);
     const bounds = LngLatBounds.convert([tlLngLat, brLngLat]);
-    this[sdkSymbolKey].fitBounds(bounds);
+    this.sdk.fitBounds(bounds);
     return this;
   }
 
@@ -832,7 +852,7 @@ export default class ImageViewer extends Evented {
    */
   public remove() {
     this.fire("beforeremove", new ImageViewerEvent("beforeremove", this));
-    this[sdkSymbolKey].remove();
+    this.sdk.remove();
 
     // the typescript type is incorrect here
     // _listeners is only defined if there are actual listeners

@@ -8,6 +8,7 @@ import vertexShaderSource from "./radialGradient.vert.glsl?raw";
 import fragmentShaderSource from "./radialGradient.frag.glsl?raw";
 import type { GradientDefinition, RadialGradientLayerConstructorOptions } from "./types";
 import { lerp } from "../../utils/math-utils";
+import { orderObjectKeys } from "../../utils/object";
 
 const HALO_MAX_DISTANCE = 2;
 // 1 = globe radius
@@ -172,6 +173,23 @@ export class RadialGradientLayer implements CustomLayerInterface {
    */
   public getConfig() {
     return this.gradient;
+  }
+
+  /**
+   * Checks if the gradient needs to be updated based on the provided specification.
+   *
+   * @param {GradientDefinition} spec - The gradient specification to compare with the current gradient.
+   * @returns {boolean} True if the gradient needs to be updated, false otherwise.
+   */
+  public shouldUpdate(newSpec?: GradientDefinition): boolean {
+    const currentSpec = this.getConfig();
+    if (newSpec === undefined && currentSpec) {
+      return false;
+    }
+
+    const orderedNewSpec = orderObjectKeys(newSpec);
+    const orderedCurrentSpec = orderObjectKeys(currentSpec);
+    return JSON.stringify(orderedNewSpec) !== JSON.stringify(orderedCurrentSpec);
   }
 
   /**

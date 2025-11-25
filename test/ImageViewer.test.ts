@@ -135,8 +135,6 @@ const fixtureImageBuffer = fs.readFileSync(fixtureImagePath);
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-const sdkSymbolKey = Symbol.for("MapTiler:ImageViewer:sdk") as keyof ImageViewer;
-
 describe("ImageViewer", () => {
   let container: HTMLDivElement;
 
@@ -229,6 +227,27 @@ describe("ImageViewer", () => {
       });
 
       expect(readyCallback).toHaveBeenCalled();
+    });
+
+    it("should reutrn the internal sdk instance", () => {
+      const MockedMap = Map as unknown as Mock;
+      const viewer = new ImageViewer({
+        container: container,
+        imageUUID: "test-uuid",
+        apiKey: "test-key",
+        debug: false,
+      });
+      expect(viewer.getSDKInternal()).toBe(MockedMap.mock.results[0].value);
+    });
+
+    it("should return the canvas of the internal sdk instance", () => {
+      const viewer = new ImageViewer({
+        container: container,
+        imageUUID: "test-uuid",
+        apiKey: "test-key",
+        debug: false,
+      });
+      expect(viewer.getCanvas()).toStrictEqual(viewer.getSDKInternal().getCanvas());
     });
 
     it("should merge options correctly with overrides", async () => {
@@ -686,7 +705,7 @@ describe("ImageViewer", () => {
       viewer.setCenter([100, 200]);
       viewer.triggerRepaint();
 
-      expect(viewer[sdkSymbolKey].setZoom).toHaveBeenCalledWith(2);
+      expect(viewer.getSDKInternal().setZoom).toHaveBeenCalledWith(2);
 
       expect(viewer.getCenter()).toEqual([100, 200]);
       expect(viewer.getBearing()).toBe(0);
@@ -742,7 +761,7 @@ describe("ImageViewer", () => {
         [5120 / 2, 5120 / 2],
       ]);
 
-      expect(viewer[sdkSymbolKey].fitBounds).toHaveBeenCalledWith({
+      expect(viewer.getSDKInternal().fitBounds).toHaveBeenCalledWith({
         _ne: {
           lat: 55.776573018667705,
           lng: -67.5,
@@ -804,7 +823,7 @@ describe("ImageViewer", () => {
 
       viewer.remove();
 
-      expect(viewer[sdkSymbolKey].remove).toHaveBeenCalled();
+      expect(viewer.getSDKInternal().remove).toHaveBeenCalled();
 
       // 3 event listeners will be removed
       // 1 init, 2 beforedestroy, 1 click
