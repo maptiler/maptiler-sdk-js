@@ -9,7 +9,7 @@ import type { Map as MapSDK } from "./Map";
 // TODO These function should gradually be moved to
 // to utils directory
 
-export function enableRTL() {
+export async function enableRTL(customPluginURL?: string) {
   // Prevent this from running server side
   if (typeof window === "undefined") return;
 
@@ -17,9 +17,9 @@ export function enableRTL() {
 
   if (status === "unavailable" || status === "requested") {
     try {
-      maplibregl.setRTLTextPlugin(defaults.rtlPluginURL, true);
+      await maplibregl.setRTLTextPlugin(customPluginURL ?? defaults.rtlPluginURL, true);
     } catch (_e) {
-      // nothing
+      console.error("Error enabling RTL plugin. It is enabled by default and cannot be unset after. Are you attempting to enable it twice?", _e);
     }
   }
 }

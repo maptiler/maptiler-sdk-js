@@ -1,7 +1,9 @@
 import { CubemapFaceNames, CubemapFaces } from "./types";
 
+type WebGLCtx = WebGLRenderingContext | WebGL2RenderingContext;
+
 interface LoadCubemapTextureOptions {
-  gl: WebGLRenderingContext | WebGL2RenderingContext;
+  gl: WebGLCtx;
   faces?: CubemapFaces;
   onReady: (texture: WebGLTexture, images?: HTMLImageElement[]) => void;
   forceRefresh?: boolean;
@@ -9,12 +11,12 @@ interface LoadCubemapTextureOptions {
 
 /**
  * Stores the result of the last successful execution of {@link loadCubemapTexture}.
- * @type {WebGLTexture | undefined}
+ * @type {Map<WebGLCtx, WebGLTexture>}
  * @private
  */
-let memoizedTexture: WebGLTexture | undefined = undefined;
+const memoizedTextures = new Map<WebGLCtx, WebGLTexture>();
 
-let memoizedImages: HTMLImageElement[] | undefined = undefined;
+const memoizedImages = new Map<WebGLCtx, HTMLImageElement[]>();
 /**
  * Stores the stringified content of the 'faces' object from the last successful execution.
  * Used for memoization by {@link loadCubemapTexture}.
@@ -61,14 +63,15 @@ interface ImageLoadingPromiseReturnValue {
  * });
  */
 export function loadCubemapTexture({ gl, faces, onReady, forceRefresh }: LoadCubemapTextureOptions) {
-  if (memoizedTexture && !forceRefresh && facesKey === JSON.stringify(faces)) {
-    onReady(memoizedTexture, memoizedImages);
+  if (memoizedTextures.get(gl) && !forceRefresh && facesKey === JSON.stringify(faces)) {
+    onReady(memoizedTextures.get(gl)!, memoizedImages.get(gl)!);
+    return;
   }
 
   facesKey = JSON.stringify(faces);
 
-  const texture = memoizedTexture ?? gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+  const texture = memoizedTextures.get(gl) ?? gl.createTexture();
+  // gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
 
   if (!faces) {
     console.warn("[CubemapLayer][loadCubemapTexture]: Faces are null");
@@ -150,8 +153,8 @@ export function loadCubemapTexture({ gl, faces, onReady, forceRefresh }: LoadCub
 
       onReady(texture, imageElements);
 
-      memoizedImages = imageElements;
-      memoizedTexture = texture;
+      memoizedImages.set(gl, imageElements);
+      memoizedTextures.set(gl, texture);
     })
     .catch((error) => {
       console.error(`[CubemapLayer][loadCubemapTexture]: Error loading cubemap texture`, error);
