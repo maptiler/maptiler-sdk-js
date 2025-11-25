@@ -29,9 +29,10 @@ vi.mock("../src/Map", async () => {
         setBearing: vi.fn(),
         getPitch: vi.fn(() => 0),
         setPitch: vi.fn(),
-        getBounds: vi.fn(),
+        getBounds: vi.fn(() => new LngLatBounds([0, 0], [90, 0])),
         setBounds: vi.fn(),
         cameraForBounds: vi.fn(),
+        fitBounds: vi.fn(),
 
         // Movement methods
         flyTo: vi.fn(),
@@ -123,7 +124,7 @@ import { Map } from "../src/Map";
 import type { MapOptions, DragPanHandler, DoubleClickZoomHandler, TwoFingersTouchZoomRotateHandler } from "maplibre-gl";
 // Import fixture data
 import fixtureImageMetadata from "./fixtures/ImageViewer/image.json";
-import { BoxZoomHandler, CooperativeGesturesHandler, KeyboardHandler, LngLat, MercatorCoordinate, ScrollZoomHandler } from "../src";
+import { BoxZoomHandler, CooperativeGesturesHandler, KeyboardHandler, LngLat, LngLatBounds, MercatorCoordinate, ScrollZoomHandler } from "../src";
 import { ImageViewerFitImageToBoundsControl } from "../src/controls/ImageViewerFitImageToBoundsControl";
 
 // Read the fixture image file
@@ -226,6 +227,27 @@ describe("ImageViewer", () => {
       });
 
       expect(readyCallback).toHaveBeenCalled();
+    });
+
+    it("should reutrn the internal sdk instance", () => {
+      const MockedMap = Map as unknown as Mock;
+      const viewer = new ImageViewer({
+        container: container,
+        imageUUID: "test-uuid",
+        apiKey: "test-key",
+        debug: false,
+      });
+      expect(viewer.getSDKInternal()).toBe(MockedMap.mock.results[0].value);
+    });
+
+    it("should return the canvas of the internal sdk instance", () => {
+      const viewer = new ImageViewer({
+        container: container,
+        imageUUID: "test-uuid",
+        apiKey: "test-key",
+        debug: false,
+      });
+      expect(viewer.getCanvas()).toStrictEqual(viewer.getSDKInternal().getCanvas());
     });
 
     it("should merge options correctly with overrides", async () => {
@@ -683,8 +705,7 @@ describe("ImageViewer", () => {
       viewer.setCenter([100, 200]);
       viewer.triggerRepaint();
 
-      // @ts-expect-error - Mocking the method
-      expect(viewer.sdk.setZoom).toHaveBeenCalledWith(2);
+      expect(viewer.getSDKInternal().setZoom).toHaveBeenCalledWith(2);
 
       expect(viewer.getCenter()).toEqual([100, 200]);
       expect(viewer.getBearing()).toBe(0);
@@ -724,6 +745,89 @@ describe("ImageViewer", () => {
       // Verify we can fetch image tiles
       const tileResponse = await mockFetch("https://api.example.com/test-uuid/1/0/0");
       expect(tileResponse.ok).toBe(true);
+    });
+
+    it("should handle fitImageBounds correctly", async () => {
+      const viewer = new ImageViewer({
+        container: container,
+        imageUUID: "test-uuid",
+        apiKey: "test-key",
+        debug: false,
+      });
+      await viewer.onReadyAsync();
+
+      viewer.fitImageBounds([
+        [0, 0],
+        [5120 / 2, 5120 / 2],
+      ]);
+
+      expect(viewer.getSDKInternal().fitBounds).toHaveBeenCalledWith({
+        _ne: {
+          lat: 55.776573018667705,
+          lng: -67.5,
+        },
+        _sw: {
+          lat: 85.05112877980659,
+          lng: -180,
+        },
+      });
+    });
+
+    it("should handle getImageBounds correctly", async () => {
+      const viewer = new ImageViewer({
+        container: container,
+        imageUUID: "test-uuid",
+        apiKey: "test-key",
+        debug: false,
+      });
+
+      await viewer.onReadyAsync();
+
+      expect(viewer.getImageBounds()).toEqual([
+        [4096, 4096],
+        [6144, 4096],
+      ]);
+    });
+
+    it("should return the correct imagemetadata", async () => {
+      const viewer = new ImageViewer({
+        container: container,
+        imageUUID: "test-uuid",
+        apiKey: "test-key",
+        debug: false,
+      });
+      await viewer.onReadyAsync();
+
+      expect(viewer.getImageMetadata()).toEqual(fixtureImageMetadata);
+    });
+
+    it("should destroy itself correctly", async () => {
+      const viewer = new ImageViewer({
+        container: container,
+        imageUUID: "test-uuid",
+        apiKey: "test-key",
+        debug: false,
+      });
+
+      await viewer.onReadyAsync();
+
+      viewer.on("beforeremove", () => {
+        console.log("beforeremove");
+      });
+
+      viewer.on("click", () => {
+        console.log("click");
+      });
+
+      vi.spyOn(viewer, "off");
+
+      viewer.remove();
+
+      expect(viewer.getSDKInternal().remove).toHaveBeenCalled();
+
+      // 3 event listeners will be removed
+      // 1 init, 2 beforedestroy, 1 click
+      expect(viewer.off).toHaveBeenCalledTimes(3);
     });
   });
   describe("Controls", () => {

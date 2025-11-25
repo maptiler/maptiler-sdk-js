@@ -8,6 +8,7 @@ import vertexShaderSource from "./radialGradient.vert.glsl?raw";
 import fragmentShaderSource from "./radialGradient.frag.glsl?raw";
 import type { GradientDefinition, RadialGradientLayerConstructorOptions } from "./types";
 import { lerp } from "../../utils/math-utils";
+import { orderObjectKeys } from "../../utils/object";
 
 const HALO_MAX_DISTANCE = 2;
 // 1 = globe radius
@@ -130,6 +131,12 @@ export class RadialGradientLayer implements CustomLayerInterface {
       this.gradient = defaultConstructorOptions;
       return;
     }
+    const errors = validateHaloSpecification(gradient);
+    if (errors.length > 0) {
+      throw new Error(`[RadialGradientLayer]: Invalid Halo specification:
+ - ${errors.join("\n - ")}
+    `);
+    }
 
     this.gradient = {
       ...defaultConstructorOptions,
@@ -166,6 +173,23 @@ export class RadialGradientLayer implements CustomLayerInterface {
    */
   public getConfig() {
     return this.gradient;
+  }
+
+  /**
+   * Checks if the gradient needs to be updated based on the provided specification.
+   *
+   * @param {GradientDefinition} spec - The gradient specification to compare with the current gradient.
+   * @returns {boolean} True if the gradient needs to be updated, false otherwise.
+   */
+  public shouldUpdate(newSpec?: GradientDefinition): boolean {
+    const currentSpec = this.getConfig();
+    if (newSpec === undefined && currentSpec) {
+      return false;
+    }
+
+    const orderedNewSpec = orderObjectKeys(newSpec);
+    const orderedCurrentSpec = orderObjectKeys(currentSpec);
+    return JSON.stringify(orderedNewSpec) !== JSON.stringify(orderedCurrentSpec);
   }
 
   /**
@@ -351,13 +375,11 @@ export class RadialGradientLayer implements CustomLayerInterface {
 
     await this.animateOut();
 
-    if (!validateHaloSpecification(gradient)) {
-      this.gradient.scale = defaultConstructorOptions.scale;
-      this.gradient.stops = [
-        [0, "transparent"],
-        [1, "transparent"],
-      ];
-      return;
+    const errors = validateHaloSpecification(gradient);
+    if (errors.length > 0) {
+      throw new Error(`[RadialGradientLayer]: Invalid Halo specification:
+ - ${errors.join("\n - ")}
+    `);
     }
 
     if (gradient === true) {
@@ -386,24 +408,39 @@ export class RadialGradientLayer implements CustomLayerInterface {
   }
 }
 
-export function validateHaloSpecification(halo: RadialGradientLayerConstructorOptions | boolean): boolean {
+const validKeys = ["scale", "stops"];
+
+export function validateHaloSpecification(halo: RadialGradientLayerConstructorOptions | boolean): Array<string> {
+  const errors: string[] = [];
+
   if (typeof halo === "boolean") {
-    return true;
+    return [];
+  }
+
+  try {
+    const additionalKeys = Object.keys(halo).filter((key) => !validKeys.includes(key));
+    if (additionalKeys.length > 0) {
+      errors.push(`Properties ${additionalKeys.map((key) => `\`${key}\``).join(", ")} are not supported.`);
+    }
+  } catch {
+    errors.push("Halo specification is not an object.");
   }
 
   if (typeof halo.scale !== "number") {
-    return false;
+    errors.push("Halo `scale` property is not a number.");
   }
 
   // this is testing external data so we need to check
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!halo.stops || halo.stops.length === 0) {
-    return false;
+    errors.push("Halo `stops` property is not an array.");
   }
 
-  if (halo.stops.some((stop) => typeof stop[0] !== "number" || typeof stop[1] !== "string")) {
-    return false;
+  // this is testing external data so we need to check
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (halo.stops?.some((stop) => typeof stop[0] !== "number" || typeof stop[1] !== "string")) {
+    errors.push("Halo `stops` property is not an array of [number, string]");
   }
 
-  return true;
+  return errors;
 }

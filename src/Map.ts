@@ -19,6 +19,7 @@ import type {
   ExpressionSpecification,
   SymbolLayerSpecification,
   AttributionControlOptions,
+  ProjectionSpecification,
 } from "maplibre-gl";
 import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
@@ -229,13 +230,13 @@ export class Map extends maplibregl.Map {
    * If an option is not set it will internally revert to the default option
    * unless explicitly set when calling.
    */
-  public setSpace(space: CubemapDefinition | boolean) {
-    if (space === false) {
-      this.space = undefined;
-      return;
+  public setSpace(space: CubemapDefinition | boolean, updateOptions = true) {
+    if (updateOptions) {
+      this.options.space = space;
     }
 
-    if (!this.isGlobeProjection()) {
+    if (space === false) {
+      this.space = undefined;
       return;
     }
 
@@ -313,30 +314,25 @@ export class Map extends maplibregl.Map {
     }
   }
 
-  private setSpaceFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
-    if (this.options.space) {
-      this.setSpace(this.options.space);
+  private setSpaceFromSpec({ spec }: { spec?: CubemapDefinition | boolean }) {
+    if (this.options.space === false) {
       return;
     }
 
-    const space = style.metadata?.maptiler?.space;
-
-    if (!space) {
-      this.setSpace({
-        color: "transparent",
-      });
+    if (typeof spec === "boolean") {
+      this.setSpace(spec, true);
       return;
     }
 
-    const spaceSpecIsValid = validateSpaceSpecification(space);
-    if (!spaceSpecIsValid) {
-      this.setSpace({
-        color: "transparent",
-      });
+    // respect options over style specification.
+    if (this.options.space !== true && validateSpaceSpecification(this.options.space)) {
+      this.setSpace(this.options.space!, true);
       return;
     }
 
-    if (JSON.stringify(this.space?.getConfig()) === JSON.stringify(space)) {
+    const spaceSpecIsValid = validateSpaceSpecification(spec);
+
+    if (JSON.stringify(this.space?.getConfig()) === JSON.stringify(spec)) {
       // because maplibre removes ALL layers when setting a new style, we need to add the space layer back
       // even if it hasn't changed
       if (this.space && !this.getLayer(this.space.id)) {
@@ -346,24 +342,41 @@ export class Map extends maplibregl.Map {
       return;
     }
 
+    if (spaceSpecIsValid) {
+      // validateSpaceSpecification guarantees that spec is not undefined
+      this.setSpace(spec!, false);
+      return;
+    }
+
+    if (this.options.space === true) {
+      this.setSpace(true);
+      return;
+    }
+
     const updateSpace = () => {
       if (this.space && this.isGlobeProjection()) {
-        if (!this.getLayer(this.space.id)) {
-          const before = this.getLayersOrder()[0];
-          this.addLayer(this.space, before);
-        }
-
-        void this.space.setCubemap(space);
+        // validateSpaceSpecification guarantees that spec is not undefined
+        void this.space.setCubemap(spec!);
       }
     };
 
     updateSpace();
   }
 
-  private setHaloFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
-    const maptiler = style.metadata?.maptiler;
+  private setHaloFromSpec({ spec }: { spec?: GradientDefinition | boolean }) {
+    if (this.options.halo === false) {
+      console.log("options.halo is false");
+      return;
+    }
 
-    if (JSON.stringify(this.halo?.getConfig()) === JSON.stringify(maptiler?.halo)) {
+    if (typeof spec === "boolean") {
+      console.log("spec is boolean", spec);
+      this.setHalo(spec);
+      return;
+    }
+
+    if (JSON.stringify(this.halo?.getConfig()) === JSON.stringify(spec)) {
+      console.log("HALO IS THE SAME", spec);
       // because maplibre removes ALL layers when setting a new style, we need to add the halo layer back
       // even if it hasn't changed
       if (this.halo && !this.getLayer(this.halo.id)) {
@@ -374,7 +387,8 @@ export class Map extends maplibregl.Map {
       return;
     }
 
-    if (!maptiler?.halo && !this.options.halo) {
+    if (!spec && !this.options.halo) {
+      console.log("spec is false, and options.halo is false");
       this.setHalo({
         stops: [
           [0, "transparent"],
@@ -386,16 +400,19 @@ export class Map extends maplibregl.Map {
     }
 
     const updateHalo = () => {
+      console.log("updateHalo", spec);
       if (this.halo) {
+        console.log("halo exists", this.getLayer(this.halo.id));
         if (!this.getLayer(this.halo.id)) {
+          console.log("halo not in map, adding it");
           const beforeIndex = this.getLayersOrder().indexOf(this.space?.id ?? "") + 1;
           const before = this.getLayersOrder()[beforeIndex];
           this.addLayer(this.halo, before);
         }
 
-        const spec = maptiler?.halo ?? this.options.halo;
-
         if (spec) {
+          console.log("SET HALO FROM SPEC", spec);
+
           void this.halo.setGradient(spec);
         }
       }
@@ -404,7 +421,7 @@ export class Map extends maplibregl.Map {
     updateHalo();
   }
 
-  private initSpace({ options = this.options, before, spec }: { options?: MapOptions; before: string; spec?: CubemapDefinition }) {
+  private initSpace({ options = this.options, before = this.getLayersOrder()[0], spec }: { options?: MapOptions; before?: string; spec?: CubemapDefinition | boolean }) {
     if (this.space) {
       if (!this.getLayer(this.space.id)) {
         // If the space layer is already initialized but not added to the map, we add it now
@@ -428,7 +445,7 @@ export class Map extends maplibregl.Map {
     }
   }
 
-  private initHalo({ options = this.options, before, spec }: { options?: MapOptions; before: string; spec?: GradientDefinition }) {
+  private initHalo({ options = this.options, before = this.getLayersOrder()[0], spec }: { options?: MapOptions; before?: string; spec?: GradientDefinition | boolean }) {
     if (this.halo && this.getLayer(this.halo.id)) {
       return;
     }
@@ -451,7 +468,8 @@ export class Map extends maplibregl.Map {
     return this.halo;
   }
 
-  public setHalo(halo: GradientDefinition) {
+  public setHalo(halo: GradientDefinition | boolean) {
+    this.options.halo = halo;
     if (!this.isGlobeProjection()) {
       return;
     }
@@ -471,6 +489,7 @@ export class Map extends maplibregl.Map {
       const insertBeforeIndex = layersOrder.indexOf(this.space?.id ?? "") + 2;
 
       const insertBefore = layersOrder[insertBeforeIndex];
+
       if (this.halo) {
         this.addLayer(this.halo, this.space ? insertBefore : firstLayer);
       }
@@ -560,7 +579,7 @@ export class Map extends maplibregl.Map {
         this.setStyle(MapStyle.STREETS);
         warning += `Loading default MapTiler Cloud style "${MapStyle.STREETS.getDefaultVariant().getId()}" as a fallback.`;
       } else {
-        warning += "Leaving the style as is.";
+        warning += " Leaving the style as is.";
       }
       console.warn(warning);
     };
@@ -571,6 +590,7 @@ export class Map extends maplibregl.Map {
 
     // Safeguard for distant styles at non-http 2xx status URLs
     this.on("error", (event) => {
+      console.error(event.error);
       if (event.error instanceof maplibregl.AJAXError) {
         const err = event.error as maplibregl.AJAXError;
         const url = err.url;
@@ -620,7 +640,7 @@ export class Map extends maplibregl.Map {
     this.curentProjection = options.projection;
 
     // Managing the type of projection and persist if not present in style
-    this.on("styledata", () => {
+    this.on("style.load", (_e) => {
       if (this.curentProjection === "mercator") {
         this.setProjection({ type: "mercator" });
       } else if (this.curentProjection === "globe") {
@@ -1002,13 +1022,12 @@ export class Map extends maplibregl.Map {
         this.fire("webglContextLost", event);
       });
 
-      const firstLayer = this.getLayersOrder()[0];
-      if (options.space) {
-        this.initSpace({ options, before: firstLayer });
+      if (options.halo) {
+        this.initHalo({ options, before: this.getLayersOrder()[0] });
       }
 
-      if (options.halo) {
-        this.initHalo({ options, before: firstLayer });
+      if (options.space) {
+        this.initSpace({ options, before: this.getLayersOrder()[0] });
       }
     });
 
@@ -1078,7 +1097,7 @@ export class Map extends maplibregl.Map {
         return;
       }
 
-      this.once("ready", () => {
+      void this.once("ready", () => {
         resolve(this);
       });
     });
@@ -1098,7 +1117,7 @@ export class Map extends maplibregl.Map {
         return;
       }
 
-      this.once("loadWithTerrain", () => {
+      void this.once("loadWithTerrain", () => {
         resolve(this);
       });
     });
@@ -1127,12 +1146,99 @@ export class Map extends maplibregl.Map {
    */
   override setStyle(
     style: null | ReferenceMapStyle | MapStyleVariant | StyleSpecification | StyleSpecificationWithMetaData | string,
-    options?: StyleSwapOptions & StyleOptions,
+    options: StyleSwapOptions & StyleOptions = {} as StyleSwapOptions & StyleOptions,
   ): this {
+    const transformStylePredicate = (previousStyle: StyleSpecificationWithMetaData | undefined, nextStyle: StyleSpecificationWithMetaData | undefined) => {
+      const spaceHasBeenRemovedFromStyle = !nextStyle?.metadata?.maptiler?.space && Boolean(previousStyle?.metadata?.maptiler?.space);
+      const haloHasBeenRemovedFromStyle = !nextStyle?.metadata?.maptiler?.halo && Boolean(previousStyle?.metadata?.maptiler?.halo);
+
+      if (spaceHasBeenRemovedFromStyle) {
+        console.trace("space has been removed from style, removing it");
+        this.space?.onRemove(this, this.getCanvas().getContext("webgl2")!);
+        this.space = undefined;
+      }
+
+      if (haloHasBeenRemovedFromStyle) {
+        console.trace("halo has been removed from style, removing it");
+        this.halo?.onRemove(this, this.getCanvas().getContext("webgl2")!);
+        this.halo = undefined;
+      }
+
+      const spaceSpecHasChangedOrDidNotExist = this.space ? this.space.shouldUpdate(nextStyle?.metadata?.maptiler?.space) : true;
+      const haloSpecHasChangedOrDidNotExist = this.halo ? this.halo.shouldUpdate(nextStyle?.metadata?.maptiler?.halo) : true;
+
+      // console.log("haloSpecHasChangedOrDidNotExist", haloSpecHasChangedOrDidNotExist);
+      // if (nextStyle?.zoom !== previousStyle?.zoom) {
+      //   this.setZoom(nextStyle?.zoom ?? previousStyle?.zoom ?? this.getZoom());
+      // }
+
+      // if (nextStyle?.center !== previousStyle?.center) {
+      //   const nextCenterFromStyle = nextStyle?.center ?? previousStyle?.center ?? this.getCenter().toArray();
+      //   this.setCenter(nextCenterFromStyle as [number, number]);
+      // }
+
+      // if (nextStyle?.bearing !== previousStyle?.bearing) {
+      //   this.setBearing(nextStyle?.bearing ?? previousStyle?.bearing ?? this.getBearing());
+      // }
+
+      // if (nextStyle?.pitch !== previousStyle?.pitch) {
+      //   this.setPitch(nextStyle?.pitch ?? previousStyle?.pitch ?? this.getPitch());
+      // }
+
+      const terrainSpecHasChange = previousStyle?.terrain?.source !== nextStyle?.terrain?.source || previousStyle?.terrain?.exaggeration !== nextStyle?.terrain?.exaggeration;
+
+      const spaceNeedsUpdate = spaceSpecHasChangedOrDidNotExist || terrainSpecHasChange;
+      const haloNeedsUpdate = haloSpecHasChangedOrDidNotExist || terrainSpecHasChange;
+
+      if (spaceNeedsUpdate) {
+        try {
+          const spec = nextStyle?.metadata?.maptiler?.space ?? false;
+          void this.once("style.load", () => {
+            const layer = this.getLayer(this.space?.id ?? "");
+            if (layer) {
+              this.setSpaceFromSpec({ spec });
+            } else {
+              this.initSpace({ spec });
+            }
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      if (haloNeedsUpdate) {
+        try {
+          const spec = nextStyle?.metadata?.maptiler?.halo ?? false;
+          void this.once("style.load", () => {
+            const layer = this.getLayer(this.halo?.id ?? "");
+            if (layer) {
+              this.setHaloFromSpec({ spec });
+            } else {
+              this.initHalo({ spec });
+            }
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      return {
+        ...nextStyle,
+      };
+    };
+
+    const mergedOptions = {
+      transformStyle: transformStylePredicate,
+      diff: true,
+      ...options,
+    } as StyleSwapOptions & StyleOptions;
+
     this.originalLabelStyle.clear();
-    this.minimap?.setStyle(style);
+    this.minimap?.setStyle(style, {});
+
     this.forceLanguageUpdate = true;
-    this.once("idle", () => {
+
+    void this.once("idle", () => {
       this.forceLanguageUpdate = false;
     });
 
@@ -1157,97 +1263,35 @@ export class Map extends maplibregl.Map {
       );
     }
 
-    // because the style must be finished loading and parsed before we can add custom layers
-    // we need to check if the terrain has changed, because if it has, we also need to wait
-    // for the terrain to load...
-    const oldStyle = this.getStyle() as StyleSpecificationWithMetaData;
-    const newStyle = styleInfo.style as StyleSpecificationWithMetaData;
-
     try {
-      super.setStyle(styleInfo.style, options);
+      super.setStyle(styleInfo.style, mergedOptions);
       this.styleInProcess = true;
     } catch (e) {
       this.styleInProcess = false;
       console.error("[Map.setStyle]: Error while setting style:", e);
     }
 
-    const setSpaceAndHaloFromStyle = () => {
-      const styleSpec = styleInfo.style as StyleSpecificationWithMetaData;
-      if (!styleSpec.projection || styleSpec.projection.type === "mercator") {
-        console.warn("[Map.setStyle]: Neither space nor halo is supported for mercator projection. Ignoring...");
-        return;
-      }
-
-      this.setSpaceFromStyle({ style: styleInfo.style as StyleSpecificationWithMetaData });
-
-      this.setHaloFromStyle({ style: styleInfo.style as StyleSpecificationWithMetaData });
-    };
-
-    const handleStyleLoad = (e?: maplibregl.MapStyleDataEvent) => {
-      const styleSpec = (e?.target.getStyle() ?? styleInfo.style) as StyleSpecificationWithMetaData;
-
-      const targetBeforeLayer = this.getLayersOrder()[0];
-      if (this.space) {
-        this.setSpaceFromStyle({ style: styleSpec });
-      } else {
-        this.initSpace({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.space });
-      }
-
-      if (this.halo) {
-        this.setHaloFromStyle({ style: styleSpec });
-      } else {
-        this.initHalo({ before: targetBeforeLayer, spec: styleSpec.metadata?.maptiler?.halo });
-      }
-    };
-
-    // if it's a url or a uuid, it is of no use to us
-    if (typeof styleInfo.style === "string" || styleInfo.requiresUrlMonitoring) {
-      this.on("styledata", handleStyleLoad);
-
-      return this;
-    }
-
-    if (this.styleInProcess) {
-      // this handles setting space and halo from style on load
-      // void this.once("idle", handleStyleLoad);
-      // void this.once("style.load", handleStyleLoad);
-      if (!this.spaceboxLoadingState.styleLoadCallbackSet) {
-        // unfortunately, the style.load event is not always fired correctly when
-        // the style is set from an object (generally when projection changes or when metadata changes)
-        // so, in this instance, we have to double tap with both style events.
-        // an issue has been raised on the maplibre github
-        void this.once("style.load", handleStyleLoad);
-        void this.once("styledata", handleStyleLoad);
-
-        this.spaceboxLoadingState.styleLoadCallbackSet = true;
-        return this;
-      }
-
-      // if these load event doesn't fire after 10 seconds, we need to reset the flag
-    }
-
-    // the type returned from getStyle is incorrect,  it can be null
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const spaceAndHaloMustAwaitTerrain = oldStyle?.terrain?.source !== newStyle?.terrain?.source || oldStyle?.terrain?.exaggeration !== newStyle?.terrain?.exaggeration;
-
-    if (spaceAndHaloMustAwaitTerrain) {
-      void this.once("terrain", setSpaceAndHaloFromStyle);
-      return this;
-    }
-
     try {
-      // because of the current uncertainty of the style.load event
-      // we have no way of knowing if the style is loaded or not
-      // which will fail internally if the style is not loaded correctly
-      handleStyleLoad();
-    } catch {}
+      if (styleInfo.isJSON) {
+        // @ts-expect-error - style is does have metadata
+        const haloSpec = styleInfo.style.metadata?.maptiler?.halo;
+        // @ts-expect-error - style does have metadata
+        const spaceSpec = styleInfo.style.metadata?.maptiler?.space;
+
+        if (haloSpec) {
+          this.setHalo(haloSpec);
+        }
+
+        if (spaceSpec) {
+          this.setSpace(spaceSpec);
+        }
+      }
+    } catch (e) {
+      console.error("[Map.setStyle]: Error while setting halo or space from style:", e);
+    }
 
     return this;
   }
-
-  private spaceboxLoadingState = {
-    styleLoadCallbackSet: false,
-  };
 
   /**
    * Adds a [MapLibre style layer](https://maplibre.org/maplibre-style-spec/layers)
@@ -1952,6 +1996,23 @@ export class Map extends maplibregl.Map {
   }
 
   /**
+   * Gets the {@link ProjectionSpecification}.
+   * @returns the projection specification.
+   * @example
+   * ```ts
+   * let projection = map.getProjection();
+   * ```
+   */
+  override getProjection(): ProjectionSpecification {
+    const projection = this.style.getProjection();
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!projection === undefined && this.style.projection) {
+      return { type: this.style.projection.name };
+    }
+    return projection;
+  }
+
+  /**
    * Returns whether a globe projection is currently being used
    */
   isGlobeProjection(): boolean {
@@ -1989,6 +2050,11 @@ export class Map extends maplibregl.Map {
     this.setProjection({ type: "mercator" });
 
     this.curentProjection = "mercator";
+  }
+
+  override setProjection(projection: maplibregl.ProjectionSpecification) {
+    this.fire("projection.change", { target: this, projection });
+    return super.setProjection(projection);
   }
 
   /**

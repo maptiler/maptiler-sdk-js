@@ -6,27 +6,37 @@ setupMapTilerApiKey({ config });
 
 const container = document.getElementById("map")!;
 
-const map = new Map({
-  container,
-  style: MapStyle.OUTDOOR.DARK,
-  hash: true,
-  geolocate: true,
-  scaleControl: true,
-  fullscreenControl: true,
-  terrainControl: true,
-  projectionControl: true,
-});
+async function main() {
+  const map = new Map({
+    container,
+    style: MapStyle.OUTDOOR.DARK,
+    hash: true,
+    geolocate: false,
+    scaleControl: true,
+    fullscreenControl: true,
+    terrainControl: true,
+    projectionControl: true,
+    projection: "globe",
+    space: true,
+    halo: true,
+    zoom: 1,
+  });
 
-const styleDropDown = document.getElementById("mapstyles-picker") as HTMLOptionElement;
+  const styleDropDown = document.getElementById("mapstyles-picker") as HTMLOptionElement;
 
-styleDropDown.onchange = () => {
-  map.setStyle(styleDropDown.value);
-};
+  styleDropDown.onchange = () => {
+    map.setStyle(styleDropDown.value);
+  };
 
-Object.keys(MapStyle).forEach((s) => {
-  const styleOption = document.createElement("option");
-  // @ts-expect-error we know that `id` is private.
-  styleOption.value = MapStyle[s as keyof typeof MapStyle].DEFAULT.id;
-  styleOption.innerHTML = s.replace("_", " ").toLowerCase();
-  styleDropDown.appendChild(styleOption);
-});
+  await map.onReadyAsync();
+
+  Object.keys(MapStyle).forEach((s) => {
+    const styleOption = document.createElement("option");
+    // @ts-expect-error we know that `id` is private.
+    styleOption.value = MapStyle[s as keyof typeof MapStyle].DEFAULT.id;
+    styleOption.innerHTML = s.replace("_", " ").toLowerCase();
+    styleDropDown.appendChild(styleOption);
+  });
+}
+
+void main();

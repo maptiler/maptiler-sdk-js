@@ -10,6 +10,7 @@ import fragmentShaderSource from "./cubemap.frag.glsl?raw";
 import { loadCubemapTexture } from "./loadCubemapTexture";
 import { cubemapPresets, type CubemapDefinition, type CubemapFaces, type CubemapLayerConstructorOptions } from "./types";
 import { lerp, lerpVec4 } from "../../utils/math-utils";
+import { orderObjectKeys } from "../../utils/object";
 
 const SPACE_IMAGES_BASE_URL = "https://api.maptiler.com/resources/space";
 
@@ -276,8 +277,12 @@ class CubemapLayer implements CustomLayerInterface {
    */
   public onRemove(_map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext) {
     if (this.cubemap) {
+      if (this.texture) {
+        gl.deleteTexture(this.texture);
+      }
       gl.deleteProgram(this.cubemap.shaderProgram);
       gl.deleteBuffer(this.cubemap.positionBuffer);
+      this.texture = undefined;
     }
   }
 
@@ -527,6 +532,24 @@ class CubemapLayer implements CustomLayerInterface {
    */
   public getConfig() {
     return this.options;
+  }
+
+  /**
+   * Checks if the cubemap needs to be updated based on the provided specification.
+   *
+   * @param {CubemapDefinition} spec - The cubemap specification to compare with the current cubemap.
+   * @returns {boolean} True if the cubemap needs to be updated, false otherwise.
+   */
+  public shouldUpdate(newSpec?: CubemapDefinition): boolean {
+    const currentSpec = this.getConfig();
+
+    if (newSpec === undefined && currentSpec) {
+      return false;
+    }
+
+    const orderedNewSpec = orderObjectKeys(newSpec);
+    const orderedCurrentSpec = orderObjectKeys(currentSpec);
+    return JSON.stringify(orderedNewSpec) !== JSON.stringify(orderedCurrentSpec);
   }
 
   private async setCubemapFaces(cubemap: CubemapDefinition): Promise<void> {

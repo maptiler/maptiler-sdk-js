@@ -1,4 +1,4 @@
-import { LngLat, Point } from "../index";
+import { LngLat, Marker, Point, PositionAnchor } from "../index";
 import { Map } from "../Map";
 import { MercatorCoordinate } from "..";
 
@@ -147,4 +147,60 @@ export function monkeyPatchMapTransformInstance(instance: Map) {
 
     return result;
   };
+}
+
+export const anchorTranslate: Record<PositionAnchor, string> = {
+  center: "translate(-50%,-50%)",
+  top: "translate(-50%,0)",
+  "top-left": "translate(0,0)",
+  "top-right": "translate(-100%,0)",
+  bottom: "translate(-50%,-100%)",
+  "bottom-left": "translate(0,-100%)",
+  "bottom-right": "translate(-100%,-100%)",
+  left: "translate(0,-50%)",
+  right: "translate(-100%,-50%)",
+};
+
+/**
+ * Monkey patches the Marker instance to remove wrapping. Because pixel projection does not wrap like lnglat.
+ * See here https://github.com/maplibre/maplibre-gl-js/blob/14f56b00e0f08784681ef98f0731c60f3923a4a9/src/ui/marker.ts#L601
+ * @param {Marker} marker - The Marker instance to patch.
+ */
+export function monkeyPatchMarkerInstanceToRemoveWrapping(marker: Marker) {
+  function update(this: Marker, e?: { type: "move" | "moveend" | "terrain" | "render" }) {
+    if (!this._map) return;
+
+    const isFullyLoaded = this._map.loaded() && !this._map.isMoving();
+    if (e?.type === "terrain" || (e?.type === "render" && !isFullyLoaded)) {
+      this._map.once("render", this._update);
+    }
+
+    this._flatPos = this._pos = this._map.project(this._lngLat)._add(this._offset);
+    if (this._map.terrain) {
+      this._flatPos = this._map.transform.locationToScreenPoint(this._lngLat)._add(this._offset);
+    }
+
+    let rotation = "";
+    if (this._rotationAlignment === "viewport" || this._rotationAlignment === "auto") {
+      rotation = `rotateZ(${this._rotation}deg)`;
+    } else if (this._rotationAlignment === "map") {
+      rotation = `rotateZ(${this._rotation - this._map.getBearing()}deg)`;
+    }
+
+    let pitch = "";
+    if (this._pitchAlignment === "viewport" || this._pitchAlignment === "auto") {
+      pitch = "rotateX(0deg)";
+    } else if (this._pitchAlignment === "map") {
+      pitch = `rotateX(${this._map.getPitch()}deg)`;
+    }
+
+    if (!this._subpixelPositioning && (!e || e.type === "moveend")) {
+      this._pos = this._pos.round();
+    }
+
+    const transform = `${anchorTranslate[this._anchor]} translate(${this._pos.x}px, ${this._pos.y}px) ${pitch} ${rotation}`;
+    this._element.style.transform = transform;
+  }
+
+  marker._update = update.bind(marker);
 }
