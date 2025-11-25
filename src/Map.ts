@@ -102,9 +102,18 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   apiKey?: string;
 
   /**
-   * Shows (`true`) or hides (`false`) the MapTiler logo in the bottom left corner (only for paid plans)
+   * Shows or hides the MapTiler logo in the bottom left corner (only for paid plans).
+   * Default is `false` for paid plans.
    *
-   * For free plans: The MapTiler logo is always visible, regardless of the value.
+   * For free plans the MapTiler logo is always visible, and cannot be disabled.
+   * @example
+   * ```ts
+   * mapTilerLogo: false // hides the logo
+   * ```
+   * @example
+   * ```ts
+   * mapTilerLogo: true // shows the logo
+   * ```
    */
   maptilerLogo?: boolean;
 
@@ -205,10 +214,6 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   halo?: RadialGradientLayerConstructorOptions | boolean;
 };
 
-
-const testOpt: MapOptions = {
-  maptilerLogo: false,
-}
 /**
  * The Map class can be instanciated to display a map in a `<div>`
  */
