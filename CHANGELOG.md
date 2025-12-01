@@ -9,7 +9,7 @@
 - Reworks `setStyle` logic for halo and space
 
 ### ⚙️ Others
-- Adds clearer typoe docs for `mapTilerLogo` constructor option.
+- Adds clearer type docs for `mapTilerLogo` constructor option.
 
 ## 3.9.0
 
