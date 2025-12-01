@@ -102,14 +102,18 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   apiKey?: string;
 
   /**
-   * Shows or hides the MapTiler logo in the bottom left corner.
+   * Shows or hides the MapTiler logo in the bottom left corner (only for paid plans).
+   * Default is `false` for paid plans.
    *
-   * For paid plans:
-   * - `true` shows MapTiler logo
-   * - `false` hodes MapTiler logo
-   * - default: `false` (hide)
-   *
-   * For free plans: MapTiler logo always shows, regardless of the value.
+   * For free plans the MapTiler logo is always visible, and cannot be disabled.
+   * @example
+   * ```ts
+   * mapTilerLogo: false // hides the logo
+   * ```
+   * @example
+   * ```ts
+   * mapTilerLogo: true // shows the logo
+   * ```
    */
   maptilerLogo?: boolean;
 
