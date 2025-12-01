@@ -540,14 +540,14 @@ class CubemapLayer implements CustomLayerInterface {
    * @param {CubemapDefinition} spec - The cubemap specification to compare with the current cubemap.
    * @returns {boolean} True if the cubemap needs to be updated, false otherwise.
    */
-  public shouldUpdate(newSpec?: CubemapDefinition): boolean {
+  public shouldUpdate(newSpec?: CubemapDefinition | boolean): boolean {
     const currentSpec = this.getConfig();
 
     if (newSpec === undefined && currentSpec) {
       return false;
     }
 
-    const orderedNewSpec = orderObjectKeys(newSpec);
+    const orderedNewSpec = typeof newSpec === "boolean" ? newSpec : orderObjectKeys(newSpec);
     const orderedCurrentSpec = orderObjectKeys(currentSpec);
     return JSON.stringify(orderedNewSpec) !== JSON.stringify(orderedCurrentSpec);
   }
