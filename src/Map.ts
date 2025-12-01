@@ -369,18 +369,15 @@ export class Map extends maplibregl.Map {
 
   private setHaloFromSpec({ spec }: { spec?: GradientDefinition | boolean }) {
     if (this.options.halo === false) {
-      console.log("options.halo is false");
       return;
     }
 
     if (typeof spec === "boolean") {
-      console.log("spec is boolean", spec);
       this.setHalo(spec);
       return;
     }
 
     if (JSON.stringify(this.halo?.getConfig()) === JSON.stringify(spec)) {
-      console.log("HALO IS THE SAME", spec);
       // because maplibre removes ALL layers when setting a new style, we need to add the halo layer back
       // even if it hasn't changed
       if (this.halo && !this.getLayer(this.halo.id)) {
@@ -392,11 +389,10 @@ export class Map extends maplibregl.Map {
     }
 
     if (!spec && !this.options.halo) {
-      console.log("spec is false, and options.halo is false");
       this.setHalo({
         stops: [
           [0, "transparent"],
-          [1, "transparent"],
+          [0.01, "transparent"],
         ],
         scale: 1,
       });
@@ -404,19 +400,14 @@ export class Map extends maplibregl.Map {
     }
 
     const updateHalo = () => {
-      console.log("updateHalo", spec);
       if (this.halo) {
-        console.log("halo exists", this.getLayer(this.halo.id));
         if (!this.getLayer(this.halo.id)) {
-          console.log("halo not in map, adding it");
           const beforeIndex = this.getLayersOrder().indexOf(this.space?.id ?? "") + 1;
           const before = this.getLayersOrder()[beforeIndex];
           this.addLayer(this.halo, before);
         }
 
         if (spec) {
-          console.log("SET HALO FROM SPEC", spec);
-
           void this.halo.setGradient(spec);
         }
       }
@@ -473,7 +464,6 @@ export class Map extends maplibregl.Map {
   }
 
   public setHalo(halo: GradientDefinition | boolean) {
-    this.options.halo = halo;
     if (!this.isGlobeProjection()) {
       return;
     }
@@ -1155,39 +1145,18 @@ export class Map extends maplibregl.Map {
     const transformStylePredicate = (previousStyle: StyleSpecificationWithMetaData | undefined, nextStyle: StyleSpecificationWithMetaData | undefined) => {
       const spaceHasBeenRemovedFromStyle = !nextStyle?.metadata?.maptiler?.space && Boolean(previousStyle?.metadata?.maptiler?.space);
       const haloHasBeenRemovedFromStyle = !nextStyle?.metadata?.maptiler?.halo && Boolean(previousStyle?.metadata?.maptiler?.halo);
-
-      if (spaceHasBeenRemovedFromStyle) {
-        console.trace("space has been removed from style, removing it");
+      if (spaceHasBeenRemovedFromStyle && !this.options.space) {
         this.space?.onRemove(this, this.getCanvas().getContext("webgl2")!);
         this.space = undefined;
       }
 
-      if (haloHasBeenRemovedFromStyle) {
-        console.trace("halo has been removed from style, removing it");
+      if (haloHasBeenRemovedFromStyle && !this.options.halo) {
         this.halo?.onRemove(this, this.getCanvas().getContext("webgl2")!);
         this.halo = undefined;
       }
 
-      const spaceSpecHasChangedOrDidNotExist = this.space ? this.space.shouldUpdate(nextStyle?.metadata?.maptiler?.space) : true;
-      const haloSpecHasChangedOrDidNotExist = this.halo ? this.halo.shouldUpdate(nextStyle?.metadata?.maptiler?.halo) : true;
-
-      // console.log("haloSpecHasChangedOrDidNotExist", haloSpecHasChangedOrDidNotExist);
-      // if (nextStyle?.zoom !== previousStyle?.zoom) {
-      //   this.setZoom(nextStyle?.zoom ?? previousStyle?.zoom ?? this.getZoom());
-      // }
-
-      // if (nextStyle?.center !== previousStyle?.center) {
-      //   const nextCenterFromStyle = nextStyle?.center ?? previousStyle?.center ?? this.getCenter().toArray();
-      //   this.setCenter(nextCenterFromStyle as [number, number]);
-      // }
-
-      // if (nextStyle?.bearing !== previousStyle?.bearing) {
-      //   this.setBearing(nextStyle?.bearing ?? previousStyle?.bearing ?? this.getBearing());
-      // }
-
-      // if (nextStyle?.pitch !== previousStyle?.pitch) {
-      //   this.setPitch(nextStyle?.pitch ?? previousStyle?.pitch ?? this.getPitch());
-      // }
+      const spaceSpecHasChangedOrDidNotExist = this.space ? this.space.shouldUpdate(nextStyle?.metadata?.maptiler?.space ?? this.options.space) : true;
+      const haloSpecHasChangedOrDidNotExist = this.halo ? this.halo.shouldUpdate(nextStyle?.metadata?.maptiler?.halo ?? this.options.halo) : true;
 
       const terrainSpecHasChange = previousStyle?.terrain?.source !== nextStyle?.terrain?.source || previousStyle?.terrain?.exaggeration !== nextStyle?.terrain?.exaggeration;
 
@@ -1196,8 +1165,8 @@ export class Map extends maplibregl.Map {
 
       if (spaceNeedsUpdate) {
         try {
-          const spec = nextStyle?.metadata?.maptiler?.space ?? false;
           void this.once("style.load", () => {
+            const spec = nextStyle?.metadata?.maptiler?.space ?? this.options.space ?? false;
             const layer = this.getLayer(this.space?.id ?? "");
             if (layer) {
               this.setSpaceFromSpec({ spec });
@@ -1212,8 +1181,8 @@ export class Map extends maplibregl.Map {
 
       if (haloNeedsUpdate) {
         try {
-          const spec = nextStyle?.metadata?.maptiler?.halo ?? false;
           void this.once("style.load", () => {
+            const spec = nextStyle?.metadata?.maptiler?.halo ?? this.options.halo ?? false;
             const layer = this.getLayer(this.halo?.id ?? "");
             if (layer) {
               this.setHaloFromSpec({ spec });
@@ -1226,14 +1195,11 @@ export class Map extends maplibregl.Map {
         }
       }
 
-      return {
-        ...nextStyle,
-      };
+      return structuredClone(nextStyle ?? {}) as StyleSpecificationWithMetaData;
     };
 
     const mergedOptions = {
       transformStyle: transformStylePredicate,
-      diff: true,
       ...options,
     } as StyleSwapOptions & StyleOptions;
 
@@ -1275,26 +1241,28 @@ export class Map extends maplibregl.Map {
       console.error("[Map.setStyle]: Error while setting style:", e);
     }
 
-    try {
-      if (styleInfo.isJSON) {
-        // @ts-expect-error - style is does have metadata
-        const haloSpec = styleInfo.style.metadata?.maptiler?.halo;
-        // @ts-expect-error - style does have metadata
-        const spaceSpec = styleInfo.style.metadata?.maptiler?.space;
+    return this;
+  }
 
-        if (haloSpec) {
-          this.setHalo(haloSpec);
-        }
+  /**
+   * @ignore - This method is used to set the style from a JSON object.
+   */
+  public setStyleFromJSON(json: StyleSpecificationWithMetaData) {
+    const spaceSpec = json.metadata?.maptiler?.space;
+    const haloSpec = json.metadata?.maptiler?.halo;
 
-        if (spaceSpec) {
-          this.setSpace(spaceSpec);
-        }
-      }
-    } catch (e) {
-      console.error("[Map.setStyle]: Error while setting halo or space from style:", e);
+    if (spaceSpec && this.space?.shouldUpdate(spaceSpec)) {
+      this.setSpace(spaceSpec);
     }
 
-    return this;
+    if (haloSpec && this.halo?.shouldUpdate(haloSpec)) {
+      this.setHalo(haloSpec);
+    }
+    try {
+      this.setStyle(json);
+    } catch (e) {
+      console.error("[Map.setStyleFromJSON]: Error while setting style:", e);
+    }
   }
 
   /**

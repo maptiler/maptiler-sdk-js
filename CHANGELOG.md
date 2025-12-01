@@ -1,5 +1,16 @@
 # MapTiler SDK Changelog
 
+## 3.9.1
+
+### ✨ Features and improvements
+- add `setStyleFromJSON` method for cloud usage.
+
+### 🐛 Bug Fixes
+- Reworks `setStyle` logic for halo and space
+
+### ⚙️ Others
+- Adds clearer type docs for `mapTilerLogo` constructor option.
+
 ## 3.9.0
 
 ### ✨ Features and improvements
