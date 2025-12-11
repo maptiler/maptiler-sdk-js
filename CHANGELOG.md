@@ -2,9 +2,6 @@
 
 ## 3.9.1
 
-### ✨ Features and improvements
-- add `setStyleFromJSON` method for cloud usage.
-
 ### 🐛 Bug Fixes
 - Reworks `setStyle` logic for halo and space
 

@@ -51,7 +51,7 @@ function projectToWorldCoordinates(worldSize: number, lnglat: LngLat): Point {
 
 export function monkeyPatchMapTransformInstance(instance: Map) {
   instance.transform.getConstrained = function (lngLat: LngLat, zoom: number): { center: LngLat; zoom: number } {
-    zoom = clamp(+zoom, this.minZoom, this.maxZoom);
+    zoom = clamp(zoom, this.minZoom, this.maxZoom);
     const result = {
       center: new LngLat(lngLat.lng, lngLat.lat),
       zoom,

@@ -544,7 +544,7 @@ class CubemapLayer implements CustomLayerInterface {
     const currentSpec = this.getConfig();
 
     if (newSpec === undefined && currentSpec) {
-      return false;
+      return true;
     }
 
     const orderedNewSpec = typeof newSpec === "boolean" ? newSpec : orderObjectKeys(newSpec);

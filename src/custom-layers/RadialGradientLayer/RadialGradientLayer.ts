@@ -186,7 +186,7 @@ export class RadialGradientLayer implements CustomLayerInterface {
   public shouldUpdate(newSpec?: GradientDefinition | boolean): boolean {
     const currentSpec = this.getConfig();
     if (newSpec === undefined && currentSpec) {
-      return false;
+      return true;
     }
 
     const orderedNewSpec = typeof newSpec === "boolean" ? newSpec : orderObjectKeys(newSpec);
