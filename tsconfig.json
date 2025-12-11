@@ -10,7 +10,6 @@
       "DOM",
       "DOM.Iterable"
     ],
-    "esModuleInterop": true, // often necessary when skipping library checks
     "skipLibCheck": true,
     /* Bundler mode */
     "resolveJsonModule": true,
