@@ -26,7 +26,7 @@ In addition, the MapTiler SDK JS provides well-documented and easy-to-use wrappe
 <li><a href="#-basic-usage">Basic Usage</a></li>
 <li><a href="#-related-examples">Examples</a></li>
 <li><a href="#-api-reference">API Reference</a></li>
-<li><a href="#-migration-guide">Migration Guide</a></li>
+<li><a href="# -migration-guide">Migration Guide</a></li>
 <li><a href="#-support">Support</a></li>
 <li><a href="#-contributing">Contributing</a></li>
 <li><a href="#-license">License</a></li>
