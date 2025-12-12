@@ -1,42 +1,65 @@
-<p align="center">
-  <a href="https://docs.maptiler.com/sdk-js/">official page →</a><br>
-  <img src="images/maptiler-sdk-logo.svg" width="400px">
-</p>
+<img src="images/maptiler-sdk-logo.svg" alt="Company Logo" height="32"/>
 
-<p align="center" style="color: #AAA">
-  The Javascript & TypeScript map SDK tailored for <a href="https://www.maptiler.com/cloud/">MapTiler Cloud</a>
-</p>
+# MapTiler SDK JS
 
-<p align="center">
-  <img src="images/JS-logo.svg" width="20px">
-  <img src="images/TS-logo.svg" width="20px">
-  <img src="https://img.shields.io/npm/v/@maptiler/sdk"></img>
-  <img src="https://img.shields.io/twitter/follow/maptiler?style=social"></img>
-</p>
-
-# What and why?
 The **MapTiler SDK JS** extends MapLibre GL JS, exposes all its features, and adds new ones on top. The SDK is designed to work with the well-established  [MapTiler Cloud service](https://www.maptiler.com/cloud/), which provides all the data required to fuel a complete web mapping experience: vector tiles, satellite raster tiles, DEM with Terrain RGB, custom styles with an editor, etc.  
 
 **Why are we creating a new SDK?** To make things simpler for developers working in the MapTiler ecosystem! With **MapTiler SDK JS**, there is no need to load external plugins for the most basic things, copy-paste complex data source URLs, or look up the syntax to enable 3D terrain every time you start a project. All this is built-in, loaded when needed, or exposed with simple functions. Under the hood, this SDK is opinionated as it's being fed by [MapTiler Cloud](https://www.maptiler.com/cloud/) data, but its MapLibre core makes it 100% compatible with other sources.  
 
 In addition, the MapTiler SDK JS provides well-documented and easy-to-use wrapper functions to the [MapTiler Cloud API services](https://docs.maptiler.com/cloud/api) such as: geocoding, static maps, geolocation, as well as a search engine for coordinate reference systems and transforming coordinates from one CRS to another.
+
 > 📣 *__Note:__* If you need <ins>only the API Client library</ins> to use in a headless fashion and without any map display, check out [MapTiler Client JS](https://github.com/maptiler/maptiler-client-js) library for browser and NodeJS.
 
-![Lake Louise, Canada, with MapTiler Outdoor style](images/screenshots/lake-louise.jpg)
+![](https://img.shields.io/badge/npm-v3.8.0-f2f6ff?style=for-the-badge&labelColor=D3DBEC&logo=npm&logoColor=333359) ![](https://img.shields.io/badge/-white?style=for-the-badge&logo=javascript)![](https://img.shields.io/badge/-white?style=for-the-badge&logo=typescript) 
 
-# Install
+---
+
+📖 [Documentation](https://docs.maptiler.com/sdk-js/)  &nbsp;  📦 [NPM Package](https://www.npmjs.com/package/@maptiler/sdk)  &nbsp;  🌐 [Website](https://www.maptiler.com/)  &nbsp; 🔑 [Get API Key](https://cloud.maptiler.com/account/keys/)
+
+---
+
+<br>
+
+<details> <summary><b>Table of Contents</b></summary>
+<ul>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#basic-usage">Basic Usage</a></li>
+<li><a href="#related-examples">Examples</a></li>
+<li><a href="#api-reference">API Reference</a></li>
+<li><a href="#migration-guide">Migration Guide</a></li>
+<li><a href="#support">Support</a></li>
+<li><a href="#contributing">Contributing</a></li>
+<li><a href="#license">License</a></li>
+<li><a href="#acknowledgements">Acknowledgements</a></li>
+</ul>
+</details>
+
+<p align="center">
+<img src="images/screenshots/lake-louise.jpg" alt="Demo Screenshot" width="80%"/>
+<br />
+<a href="https://docs.maptiler.com/sdk-js/examples/ts-get-started/">See live interactive demo</a> 
+</p>
+<br>
+
+## 📦 Installation
+
 ```shell
 npm install --save @maptiler/sdk
 ```
 
 ⚠️ Please keep in mind that if you use any additional [MapTiler modules](https://docs.maptiler.com/sdk-js/modules/), you must update them to a version that supports MapTiler SDK JS v3.
 
-# API documentation
-In addition to the details and examples provided in this readme, check out the [complete API documentation](https://docs.maptiler.com/sdk-js/api/)
+From CDN and using the UMD bundle, in the `<head></head>` section of your HTML file:
+```html
+<script src="https://cdn.maptiler.com/maptiler-sdk-js/<VERSION>/maptiler-sdk.umd.min.js"></script>
+<link href="https://cdn.maptiler.com/maptiler-sdk-js/<VERSION>/maptiler-sdk.css" rel="stylesheet" />
+```
 
-# Quick start
+<br>
 
-## With ES modules
+## 🚀 Basic Usage 
+
+### With ES modules
 **Recommended for:** advanced applications
 
 ```ts
@@ -78,7 +101,7 @@ For example, with a [NextJS](https://nextjs.org/) app, this can take place at th
 import "@maptiler/sdk/dist/maptiler-sdk.css";
 ```
 
-### TypeScript
+#### TypeScript
 The SDK is fully typed, but it may happen that types defined in Maplibre GL JS are not visible in your project. This is a known issue that comes from Maplibre being a CommonJS bundle.
 
 There are mainly two ways to address this issue and access to the complete type definition.
@@ -108,9 +131,7 @@ Set the following in your `tsconfig.json`:
 ``` 
 Note that this second option is not always possible as some frameworks and other dependencies won't let you use the "Bundler" mode.
 
-
-
-## With CDN
+### With CDN
 The SDK hosted on our CDN is bundled as *[Universal Module Definition](https://github.com/umdjs/umd)* (UMD) to make it standalone and contain all its dependencies. The CDN also serves the style sheet (CSS).
 
 **Recommended for:** simple map integration example and demos
@@ -155,13 +176,27 @@ The SDK hosted on our CDN is bundled as *[Universal Module Definition](https://g
     </script>
   </body>
 </html>
-
 ```
 
 Check out the minimalist code samples in the [demos](demos) directory.
 
+<br>
 
-# Many styles to choose from
+## 💡 Related Examples
+
+- [How to use the MapTiler SDK JS](https://docs.maptiler.com/sdk-js/examples/how-to-use/) 
+- [Maps SDK with TypeScript](https://docs.maptiler.com/sdk-js/examples/ts-get-started/)
+- [Built-in map styles](https://docs.maptiler.com/sdk-js/examples/built-in-styles/)
+
+Check out more than 200 [examples and tutorials](https://docs.maptiler.com/sdk-js/examples/)
+
+<br>
+
+## 📘 API Reference
+
+In addition to the details and examples provided in this readme, check out the [complete API documentation](https://docs.maptiler.com/sdk-js/api/)
+
+### Many styles to choose from
 MapTiler teams maintain a few styles that we have decided to expose from the SDK. This has two advantages:
 - they are easier to remember, no need to type along style URL
 - if we make an update to a style, you will benefit from it without modifying your codebase
@@ -271,7 +306,7 @@ And can even be provided in the URI form:
 map.setStyle("maptiler://c912ffc8-2360-487a-973b-59d037fb15b8");
 ```
 
-# Globe or Mercator projection?
+### Globe or Mercator projection?
 The **Web Mercator projection** [*(Wikipedia)*](https://en.wikipedia.org/wiki/Web_Mercator_projection) has been the go-to standard in cartography since the early days or web mapping. Partly for technical reasons but also because it is great for navigation as well as for showing the entire world in one screen, with no hidden face. That being said, Mercator's heavy distorsion at high latitudes, as well a the discontinuity at the poles can be a limitation for data visualization and has been critisized for providing a biased view of the world.
 
 The **globe projection**, available starting from MapTiler SDK v3, does not suffer from these biases and can feel overall more playfull than Mercator. It can be a great choice for semi-global data visualization, especially for data close to the poles, thanks to its geographic continuity.
@@ -358,7 +393,7 @@ const map = new maptilersdk.Map({
 ```
 This dedicated control will show a globe icon <img src="images/screenshots/globe_icon.png" width="30px"/> to transition from Mercator to globe projection and will show a flat map icon <img src="images/screenshots/mercator_icon.png" width="30px"/> to transition from globe to Mercator projection. The chosen projection persist with future style changes.
 
-## Field of view (FOV)
+#### Field of view (FOV)
 The internal camera has a default vertical field of view [*(wikipedia)*](https://en.wikipedia.org/wiki/Field_of_view) of a wide ~36.86 degrees. In globe mode, such a large *FOV* reduces the amount of the Earth that can be seen at once and exaggerates the central part, comparably to a fisheye lens. In many cases, a narrower *FOV* is preferable. Here is how to update if:
 
 ```ts
@@ -373,7 +408,7 @@ Here is a table of FOV comparison:
 | ![](images/screenshots/fov_1.jpeg) | ![](images/screenshots/fov_10.jpeg) | ![](images/screenshots/fov_20.jpeg) | ![](images/screenshots/fov_30.jpeg) | ![](images/screenshots/fov_40.jpeg) | ![](images/screenshots/fov_50.jpeg) | 
 
 
-## Globe screenshots
+### Globe screenshots
 ![](images/screenshots/globe_topo_arctica.jpeg)
 ![](images/screenshots/globe_hybrid.jpeg)
 ![](images/screenshots/globe_outdoor_alaska.jpeg)
@@ -383,7 +418,7 @@ Here is a table of FOV comparison:
 
 > 📣 *__Note:__* Terrain is not fully compatible with the globe projection yet so it's better to disable it at low zoom level (from afar) and to choose the Mercator projection at higher zoom level (from up close).
 
-# Centering the map on visitors
+### Centering the map on visitors
 It is sometimes handy to center the map on the visitor's location, and there are multiple ways of doing it but for the SDK, we have decided to make this extra simple by using the [IP geolocation](#%EF%B8%8F%EF%B8%8F-geolocation) API provided by [MapTiler Cloud](https://docs.maptiler.com/cloud/api/geolocation/), directly exposed as a single option of the `Map` constructor. There are two strategies:
 1. `POINT`: centering the map on the actual visitor location, optionally using the `zoom` option (zoom level `13` if none is provided). As a more precise option, if the user has previously granted access to the browser location (more precise) then this is going to be used.
 2. `COUNTRY`: fitting the map view on the bounding box of the visitor's country. In this case, the `zoom` option, if provided, will be ignored
@@ -414,7 +449,7 @@ The `geolocation` options will not be taken into consideration in the following 
 
 > 📣 *__Note 2:__* the term *IP geolocation* refers to finding the physical location of a computer using its *IP address*. The *IP address* is a numerical identifier of a computer within a network, just like the phone number for a telephone. The *IP geolocation* is **not** using the GPS of a device and usually provides a precision in the order of a few hundred meters. This precision may vary based on many local parameters such as the density of the network grid or the terrain, this is why it is generally better not to use a zoom level higher than `14`.
 
-# Easy to add controls
+### Easy to add controls
 The term "control" is commonly used for all sorts of buttons and information displays that take place in one of the corners of the map area. The most well-known are probably the `[+]` and `[-]` zoom buttons as well as the attribution information. Plenty of others are possible and we have made a few easy to add and directly accessible from the `Map` constructor options:
 
 - `navigationControl`
@@ -451,11 +486,11 @@ const map = new Map({
 })
 ```
 
-# 🧩 Custom Controls
+### 🧩 Custom Controls
 
 MapTiler SDK JS supports two flexible ways to add custom controls to your map interface. Whether you're building a dynamic application or integrating with static HTML, there's a matching approach for both.
 
-## Programmatic Controls
+#### Programmatic Controls
 
 Use `map.addControl()` with `MaptilerExternalControl` to register custom UI elements manually. This approach is ideal for dynamic logic, event-driven behavior, or integration with frameworks like React. The control element can be provided either as a reference to the **element itself**, or as its **CSS selector**. Optionally, two callback functions can be provided:
 
@@ -464,7 +499,7 @@ Use `map.addControl()` with `MaptilerExternalControl` to register custom UI elem
 
 Both callbacks receive the active `Map` instance, the associated control element itself, and an event object associated with the original event (`PointerEvent` and `MapLibreEvent` respectively).
 
-### Example
+##### Example
 
 ```ts
 const panControl = new maptilersdk.MaptilerExternalControl(
@@ -487,7 +522,7 @@ map.addControl(
 );
 ```
 
-### Behavior Overview
+##### Behavior Overview
 
 - On add, control element is moved into the map UI
 - `onClick` binds user interaction
@@ -495,11 +530,11 @@ map.addControl(
 - Control maintains its own DOM context
 - On removal, element is returned to its original DOM position (if any) to not interfere with DOM handling of frameworks like React
 
-## Declarative Controls
+#### Declarative Controls
 
 Add controls using HTML attributes – no JavaScript required. This is perfect for simple UI setups.
 
-### Enabling Detection
+##### Enabling Detection
 
 ```ts
 const map = new maptilersdk.Map({
@@ -510,7 +545,7 @@ const map = new maptilersdk.Map({
 
 You can pass `true` to enable detection globally, or a CSS selector to scope it.
 
-### Declaring Controls
+##### Declaring Controls
 
 Use `data-maptiler-control` attribute:
 
@@ -534,7 +569,7 @@ Supported values:
 
 > ⚠️ An error is thrown if an unrecognized value is used.
 
-### Grouping Controls
+##### Grouping Controls
 
 Use `data-maptiler-control-group` to group buttons:
 
@@ -547,7 +582,7 @@ Use `data-maptiler-control-group` to group buttons:
 
 Groups are styled and positioned together but don't add functionality themselves. Functional behavior is attached to valid descendant elements.
 
-### Positioning Controls
+##### Positioning Controls
 
 Use `data-maptiler-position` to set placement:
 
@@ -561,7 +596,7 @@ Use `data-maptiler-position` to set placement:
 
 Valid positions: `'top-left'`, `'top-right'`, `'bottom-left'`, `'bottom-right'`
 
-## Styling with CSS Variables
+##### Styling with CSS Variables
 
 When declarative controls are enabled, the map container exposes dynamic CSS variables:
 
@@ -576,7 +611,7 @@ When declarative controls are enabled, the map container exposes dynamic CSS var
 | `--maptiler-is-globe-projection` | `true` if globe is active<br>`false` otherwise   | string          |
 | `--maptiler-has-terrain`         | `true` if terrain is active<br>`false` otherwise | string          |
 
-### Example
+##### Example
 
 ```css
 .compass-icon {
@@ -591,7 +626,7 @@ When declarative controls are enabled, the map container exposes dynamic CSS var
 }
 ```
 
-# 3D terrain in one call
+### 3D terrain in one call
 <p align="center">
   <img src="images/screenshots/grandcanyon.gif" width="48%"></img>
   <img src="images/screenshots/alps.gif" width="48%"></img>
@@ -638,7 +673,7 @@ By default, enabling, disabling or even just updating the terrain exaggeration w
 map.setTerrainAnimationDuration(500);
 ```
 
-## Terrain events
+#### Terrain events
 - `"terrain"` event  
 
 As an extension of Maplibre GL JS, MapTiler SDK is also exposing the terrain event `"terrain"`. This event is triggered when a terrain source is added or removed:
@@ -679,14 +714,14 @@ map.on("terrainAnimationStop", (e) => {
   });
 });
 ```
-# Halo and Space Options
+### Halo and Space Options
 
 The `halo` and `space` options allow for enhanced visual customization of the map, especially for globe projections.  
 
-## `halo` (Atmospheric Glow)  
+#### `halo` (Atmospheric Glow)  
 The `halo` option adds a gradient-based atmospheric glow around the globe, simulating the visual effect of Earth's atmosphere when viewed from space.  
 
-### Usage:  
+##### Usage:  
 You can enable a simple halo by setting it to `true`:  
 ```ts
 const map = new maptilersdk.Map({
@@ -737,10 +772,11 @@ map.disableHaloAnimations();
 map.disableSpaceAnimations();
 ```
 
-## `space` (Background Environment)
+#### `space` (Background Environment)
 
 The space option allows customizing the background environment of the globe, simulating deep space or skybox effects.
-### Usage
+
+##### Usage
 
 You can enable a simple space background with a solid color:
 ```ts
@@ -754,7 +790,7 @@ const map = new maptilersdk.Map({
 ```
 Alternatively, you can provide a cubemap for a space backround using one of the following methods:
 
-#### Predefined Presets:
+###### Predefined Presets:
 
 - `space`: Dark blue hsl(210, 100%, 4%) background and white stars (transparent background image). Space color changes the background color, stars always stay white.
 - `stars` (default): Black background (image mask), space color changes the stars color, background always stays black. 
@@ -772,7 +808,7 @@ const map = new maptilersdk.Map({
   },
 });
 ```
-#### Cubemap Images (Custom Skybox):
+###### Cubemap Images (Custom Skybox):
 ```ts
 const map = new maptilersdk.Map({
   container: document.getElementById("map"),
@@ -789,7 +825,7 @@ const map = new maptilersdk.Map({
   },
 });
 ```
-#### Cubemap Path with image format
+###### Cubemap Path with image format
 
 This fetches all images from a path, this assumes all files are named px, nx, py, ny, pz, nz and suffixed with the appropriate extension specified in `format`.
 ```ts
@@ -804,7 +840,7 @@ This fetches all images from a path, this assumes all files are named px, nx, py
       },
     });
 ```
-#### Set the space background dynamically:
+###### Set the space background dynamically:
 ```ts
 map.on("load", () => {
   map.setSpace({
@@ -820,7 +856,7 @@ Note: if `space.color` or `space.<faces | path | preset>` are not explicitly set
 
 Further code examples can be found in `~/demos/`
 
-# `ImageViewer`
+### `ImageViewer`
 
 MapTiler's `ImageViewer` component allows you to display tiled, non-georeferenced images but interact with them in almost the same way you would if you were displaying map. These can be handy for zoomable non-georeferenced, geographically "inaccurate" maps such as hotel maps, golf courses, theme parks etc. Think pixels instead of lattitudes and longtidues.
 
@@ -851,19 +887,19 @@ MapTiler's `ImageViewer` component allows you to display tiled, non-georeference
   imageViewer.on("imageviewerready", () => { console.log('Ready!') })
 ```
 
-## Methods
+#### Methods
 `ImageViewer` provides a subset of methods for interaction with the map. A major caveat is that the `ImageViewer` component works in pixels and not in LngLat. Thus, when using methods such as `setCenter` or `flyTo` the pixel values provided refer to the _absolute pixel position_ on the image, not screen pixel position.
 
 Imagine your image is 10,000px x 10,000px, if regardless if your zoom is 2 or 4, calling `.setCenter(500,500)` will always position the viewer over the same part of the image.
 
 For full details on supported methods see the type declaration for `ImageViewer` or visit the (docs)[https://docs.maptiler.com/sdk-js/examples/image-viewer/].
 
-## Events
+#### Events
 In a similar manner, a subset of map events are fired by the image viewer. All UI interaction events that would normally include a `LngLat` in the event data instead receive an `imageX` and `imageY` field, representing an absolute pixel position of the image. This is same for `flyTo`, `jumpTo`, `panTo` etc.
 
 A full list of supported events can be found in the exported type declaration `ImageViewerEventTypes`
 
-## Markers with `ImageViewerMarker`
+#### Markers with `ImageViewerMarker`
 
 An `ImageViewerMarker` can also be added and used like the usual `Marker`class, the main difference being it operates in _image pixels_, not LngLat coordinates.
 
@@ -880,7 +916,7 @@ An `ImageViewerMarker` can also be added and used like the usual `Marker`class, 
 
 Full API documentation can be found in the typedocs: `npm run doc`
 
-# Easy language switching
+### Easy language switching
 The language generally depends on the style but we made it possible to easily set and update from a built-in list of languages.
 
 The built-in list of supported languages is accessible from the `Language` object:
@@ -927,7 +963,7 @@ Whenever a label is not supported in the defined language, it falls back to `Lan
 Here is a sample of some compatible languages:
 ![](images/screenshots/multilang.gif)
 
-## Built-in support for right-to-left languages
+#### Built-in support for right-to-left languages
 Languages that are written right-to-left such as Arabic and Hebrew are fully supported by default. No need to install any plugins!
 
 If you wish to opt of applying the rtl plugin or wish to use a different compatible rtl text plugin, you can pass the `rtlTextPlugin`
@@ -940,7 +976,7 @@ constructor option as either `false` (disable the rtl plugin) or a url to load a
   <img src="images/screenshots/lang-hebrew.jpeg" width="48%"></img>
 </p>
 
-## Visitor language modes
+#### Visitor language modes
 The *visitor* language modes are special built-in modes made to display labels in two different languages, concatenated when available:
 - `Language.VISITOR` concatenates labels in the language of your system and the *local* language
 - `Language.VISITOR_ENGLISH` concatenates labels in English and the *local* language
@@ -965,9 +1001,9 @@ We believe these two modes can be very handy to help the end users identify plac
 ![](images/screenshots/visitor_osaka.png)
 
 
-# Custom Events and Map Lifecycle
-## Events
-### The `ready` event
+### Custom Events and Map Lifecycle
+#### Events
+##### The `ready` event
 The `ready` event happens just after the `load` event but waits until all the controls managed by the `Map` constructor are dealt with, some having an asynchronous logic to set up.  
 Since the `ready` event waits until all the basic controls are nicely positioned, it is **safer** to use `ready` than `load` if you plan to add other custom controls with the `.addControl()` method.
 
@@ -984,14 +1020,14 @@ map.on("ready", (evt) => {
 })
 ```
 
-### The `loadWithTerrain` event
+##### The `loadWithTerrain` event
 The `loadWithTerrain` event is triggered only *once* in a `Map` instance lifecycle, when both the `ready` event and the `terrain` event **with non-null terrain** are fired. 
 
 **Why a new event?**
 When a map is instantiated with the option `terrain: true`, then MapTiler terrain is directly added to it and some animation functions such as `.flyTo()` or `.easeTo()` if started straight after the map initialization will actually need to wait a few milliseconds that the terrain is properly initialized before running.  
 Relying on the `ready` or `load` event to run an animation with a map with terrain may fail in some cases for this reason, and this is why waiting for `loadWithTerrain` is safer in this particular situation.
 
-## Lifecycle Methods
+#### Lifecycle Methods
 The events `load`, `ready` and `loadWithTerrain` are both called *at most once* and require a callback function to add more elements such as markers, layers, popups and data sources. Even though MapTiler SDK fully supports this logic, we have also included a *promise* logic to provide a more linear and less nested way to wait for a Map instance to be usable. Let's compare the two ways:
 
 - Classic: with a callback on the `load` event:
@@ -1134,7 +1170,7 @@ We believe that the *promise* approach is better because it does not nest scopes
 
 > 📣 *__Note:__* Generally speaking, *promises* are not a go to replacement for all event+callback and are suitable only for events that are called only once in the lifecycle of a Map instance. This is the reason why we have decided to provide a *promise* equivalent only for the `load`, `ready` and `loadWithTerrain` events but not for events that may be called multiple time such as interaction events.
 
-### The `webglContextLost` event
+##### The `webglContextLost` event
 The map is rendered with WebGL, that leverages the GPU to provide high-performance graphics. In some cases, the host machine, operating system or the graphics driver, can decide that continuing to run such high performance graphics is unsustainable, and will abort the process. This is called a "WebGL context loss". Such situation happens when the resources are running low or when multiple browser tabs are competing to access graphics memory.
 
 The best course of action in such situation varies from an app to another. Sometimes a page refresh is the best thing to do, in other cases, instantiating a new Map dynamically at application level is more appropriate because it hides a technical failure to the end user. The event `webglContextLost` is exposed so that the most appropriate scenario can be implemented at application level.
@@ -1155,7 +1191,7 @@ map.on("webglContextLost", (e) => {
 })
 ```
 
-# Color Ramps
+### Color Ramps
 A color ramp is a color gradient defined in a specific interval, for instance in [0, 1], and for any value within this interval will retrieve a color. They are defined by at least a color at each bound and usually additional colors within the range.  
 
 Color ramps are super useful to represent numerical data in a visual way: the temperature, the population density, the average commute time, etc.  
@@ -1207,11 +1243,11 @@ When defining a new *ramp*, the colors can be an RGB array (`[number, number, nu
 Many methods are available on color ramps, such as getting the `<canvas>` element of it, rescaling it, flipping it or [resampling it in a non-linear way](colorramp.md). Read more on [our reference page](https://docs.maptiler.com/sdk-js/api/color-ramp/) and have a look at our [examples](https://docs.maptiler.com/sdk-js/examples/?q=colorramp) to see how they work.
 
 
-# Vector Layer Helpers
+### Vector Layer Helpers
 **Let's make vector layers easy!** Originally, you'd have to add a source and then proceed to the styling of your layer, which can be tricky because there are a lot of `paint` and `layout` options and they vary a lot from one type of layer to another. **But we have helpers for this!** 🖋️
 ![](images/screenshots/point-layer.jpg)
 
-## Shared logic
+#### Shared logic
 Helpers come with a lot of **built-in defaults** and some fail-proof logic that makes creating vector layers much easier! As a result, a dataset can be displayed in one call, creating both the datasource and the layer(s) in one go!
 
 Depending on the type of feature to add (point, polyline, polygon or heatmap), a different helper function needs to be used, but datasource could contain mixed types of feature and the helper will only display a specific type.
@@ -1233,14 +1269,14 @@ In addition to easy styling, the helpers' datasource can be:
 - a URL to a GPX or KML file (only for the polyline helper) or its string content
 - a UUID of a MapTiler Cloud dataset
 
-### Multiple Layers
+##### Multiple Layers
 The key design principle of these vector layer helpers is **it's easy to make what you want**, which is very different from **making MapLibre easier to use**.
 
 > For example, to create a road with an outline, one must draw two layers: a wider base layer and a narrower top layer, fueled by the same polyline data. This requires ordering the layers properly and computing not the width of the outline, but rather the width of the polyline underneath so that it outgrows the top road layer of the desired number of pixels. 
 
 With the polyline helper, you just say if you want an outline and specify its size (or even a zoom-dependent size) and everything is handled for you. As a result, calling the method `helpers.addPolyline` will return an object with **multiple IDs**: the ID of the top/main layer, the ID of the outline layer (could be `null`) and the ID of the data source. This makes further layer and source manipulation possible.
 
-### Input
+##### Input
 
 The vector layer helper also shares some *I/O* logic: each of them can take many options but a subset of them is common across all the helpers:
 
@@ -1286,7 +1322,7 @@ maxzoom?: number;
 
 
 
-## Polyline Layer Helper
+#### Polyline Layer Helper
 The method `helpers.addPolyline` is not only compatible with the traditional GeoJSON source but also with **GPX** and **KML** files and the `.data` options can be a MapTiler Cloud dataset UUID and will be resolved automatically.
 
 here is the minimal usage, with the default line width and a random color (within a selected list):
@@ -1339,7 +1375,7 @@ helpers.addPolyline(map, {
 
 All the other options are documented on [our reference page](https://docs.maptiler.com/sdk-js/api/helpers/#polyline) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/?q=polyline+helper).
 
-## Polygon Layer Helper
+#### Polygon Layer Helper
 The polygon helper makes it easy to create vector layers that contain polygons, whether they are *multi*polygons, *holed*polygons or just simple polygons. Whenever it's possible and it makes sense, we use the same terminology across the different helpers.
 
 Here is a minimalist example, with a half-transparent polygon of Switzerland, from a local file:
@@ -1371,7 +1407,7 @@ helpers.addPolygon(map, {
 
 All the other options are documented on [our reference page](https://docs.maptiler.com/sdk-js/api/helpers/#polygon) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/?q=polygon+helper).
 
-## Point Layer Helper
+#### Point Layer Helper
 A point visualization may appear like the simplest of all, but we noticed this is where people get the most creative: cluster, data-driven variable radius, but also scaled with zoom, with or without labels, data-driven colors, etc. Our helper supports all of these and will fill-in with built-in default for what's missing.
 
 Here is the simplest example, with a dataset loaded from a local file:
@@ -1412,7 +1448,7 @@ Here, the`PORTLAND` color ramp is going to be used so that schools with `200` st
 
 All the other options are documented on [our reference page](https://docs.maptiler.com/sdk-js/api/helpers/#point) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/?q=point+helper).
 
-## Heatmap Layer Helper
+#### Heatmap Layer Helper
 The heatmap layer is a great alternative for visualizing a collection of sparse data, but it can be challenging to use, especially when one has to come up with their own color ramp from scratch. **The helper makes this much easier!**
 
 Here is a minimalist example, using the default built-in `TURBO` color ramp:
@@ -1451,8 +1487,8 @@ Turning off *zoom compensation* allows for more accurate adjustments to the visu
 
 All the other options are documented on [our reference page](https://docs.maptiler.com/sdk-js/api/helpers/#heatmap) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/?q=heatmap+helper).
 
-# Other helpers
-## Convert GPX and KML to GeoJSON
+### Other helpers
+#### Convert GPX and KML to GeoJSON
 In the [Polyline helper section](#polyline-layer-helper) above, we have seen that one can feed the helper directly with a path to a GPX or KML file, that is then converted under the hood client-side into a GeoJSON `FeatureCollection` object. This conversion feature is also exposed and can be used as such:
 
 ```ts
@@ -1485,7 +1521,7 @@ const features = maptilersdk.gpx(kmlStr);
 ```
 
 
-## Take Screenshots, programmatically
+#### Take Screenshots, programmatically
 There are two different ways to create screenshot, corresponding to two very different usecases. Note that screenshots will not contain *DOM elements* such as `Marker` and `Popup`, since those are not part of the rendering context.
 
 **1. Get a `blob` of a screenshot, PNG encoded:**
@@ -1515,7 +1551,7 @@ Getting a file directly is a nice option that can be useful to share some debugg
 
 > 📣 *__Note:__* Keep in mind that MapTiler Cloud data are copyrighted and their usage is restricted. This include MapTiler built-in styles and tilesets, among others. In case of doubt, do not hesitate to read our [terms](https://www.maptiler.com/terms/) or to ask our [support team](https://www.maptiler.com/contacts/).
 
-# Caching
+### Caching
 Starting from v2, MapTiler SDK introduced the **caching** of tiles and fonts served by MapTiler Cloud, which can represent a large chunk of the data being fetched when browsing a map. This caching leverages modern browsers caching API so it's well-managed and there is no risk of bloating! When we update **MapTiler Planet** or our **official styles**, the caching logic will detect it and automatically invalidate older versions of the tiles that were previously cached.
 
 Caching greatly improves the performance at load time and positively impacts the user experience, for this reason, it is **enabled by default**. If for debugging purposes or for a very specific use-case caching needs to be disabled, then it is possible:
@@ -1526,16 +1562,16 @@ import { config } from "@maptiler/sdk";
 config.caching = false;
 ```
 
-# Easy access to MapTiler Cloud API
+### Easy access to MapTiler Cloud API
 Our map SDK is not only about maps! We also provide plenty of wrappers to our API calls!
 
 > 📣 *__Note:__* If you need <ins>only the API Client library</ins> to use in a headless fashion and without any map display, check out out [API Client library](https://docs.maptiler.com/client-js/) for browser and NodeJS. It's exactely what is down below and only that, in a minimalistic [TypeScript package](https://github.com/maptiler/maptiler-client-js) 🐙.
 
 
-## 🔍 Geocoding
+#### 🔍 Geocoding
 > ✅ Please, use geocoding functions only from client-side (browser) and do not 🚫 **store** or **redistribute** MapTiler Cloud API data. In case of doubt, consult the [terms](https://www.maptiler.com/cloud/terms/#explicitly-prohibited-use) ⚖️
 
-### Forward
+##### Forward
 You want to know the longitude and latitude of a specific place, use the forward geocoding:
 ```ts
 // in an async function, or as a 'thenable':
@@ -1548,7 +1584,7 @@ You can provide some options such as:
 
 Read more about forward geocoding on our [official documentation](https://docs.maptiler.com/client-js/geocoding/#forward).
 
-### Reverse
+##### Reverse
 You want to know the name of a place, given a longitude-latitude? Use the reverse geocoding:
 ```ts
 // in an async function, or as a 'thenable':
@@ -1558,7 +1594,7 @@ The same option object as the forward geocoding can be provided.
 
 Read more about reverse geocoding on our [official documentation](https://docs.maptiler.com/client-js/geocoding/#reverse).
 
-### Language
+##### Language
 For both *forward* and *reverse* geocoding, this library provides a list of supported languages as shorthands to [ISO language codes](https://en.wikipedia.org/wiki/ISO_639-1). The result will be provided in multiple languages if the `language` option is an array:
 
 ```ts
@@ -1567,7 +1603,7 @@ const result = await maptilersdk.geocoding.forward('paris', {language: [maptiler
 
 The special language `AUTO` will detect the platform/browser preferred language.
 
-## 🕵️‍♂️ Geolocation
+#### 🕵️‍♂️ Geolocation
 The geolocation service provides location information of a visitor using its IP address.
 
 The geolocation uses the IP address of a visitor to provide information about their location, such as city, region, country, timezone, etc. The precision is lower than GPS but does not require visitors to explicitly enable the location service from their web browser.
@@ -1580,10 +1616,10 @@ const result = await maptilersdk.geolocation.info();
 
 Read more about geolocation on our [official documentation](https://docs.maptiler.com/client-js/geolocation/).
 
-## 🌐 Coordinates
+#### 🌐 Coordinates
 If you are already familiar with [epsg.io](https://epsg.io/) (created by MapTiler), then you may find it convenient to access the details of more than 10 thousands coordinate reference systems (CRS) programmatically, as well as transform coordinates from one system to another!
 
-### Search
+##### Search
 The `search` lets you perform a query in a free-form fashion. Here are some examples:
 ```ts
 // in an async function, or as a 'thenable':
@@ -1597,7 +1633,7 @@ The `transformations` options retrieve a lot more details about the CRS that Map
 
 Read more about searching coordinate systems on our [official documentation](https://docs.maptiler.com/client-js/coordinates/#search).
 
-### Transform
+##### Transform
 Transforming a couple of coordinates from one system to another can be challenging, for example, most countries have their own official system, yet web mapping tools are more often than not exclusive to [WGS84](https://epsg.io/4326).
 
 If not provided, both the source (`sourceCrs`) and the destination (`targetCrs) are defaulted to **EPSG:4326**** (in other words, [WGS84](https://epsg.io/4326)). Here is how to use this feature:
@@ -1614,7 +1650,7 @@ const resultB = await maptilersdk.coordinates.transform([[10, 48], [1, 45]], {ta
 
 Read more about transforming coordinates on our [official documentation](https://docs.maptiler.com/client-js/coordinates/#transform).
 
-## 💽 Data
+#### 💽 Data
 MapTiler Cloud gives its users the possibility to [upload and create data](https://cloud.maptiler.com/data/), manually with a user interface or by uploading a GPX, GeoJSON, KML or shp file. A unique ID is associated with each dataset so that we can later access it programmatically to retrieve a GeoJSON equivalent of it:
 
 ```ts
@@ -1626,7 +1662,7 @@ Since the result is a GeoJSON, it can easily be added to a `map` with `.addSourc
 
 Read more about fetching your own data on our [official documentation](https://docs.maptiler.com/client-js/data/).
 
-## 🗺️ Static maps
+#### 🗺️ Static maps
 > ✅ Please, use static maps URLs only from client side `<img>` elements, and do not 🚫 store or redistribute the static map files. In case of doubt, consult the [terms](https://www.maptiler.com/cloud/terms/#explicitly-prohibited-use) ⚖️
 
 Maptiler Cloud provides many possibilities for creating static maps as PNG, JPEG or WebP images. They all offer the possibilities to:
@@ -1640,7 +1676,7 @@ Three modes are available: `centered`, `bounded` and `automatic`.
 > Contrary to the other functions of this library, the static map functions **do not** perform any query to MapTiler Cloud API, instead they build the image URL for you to use in `<img>` elements.
 
 
-### Map Styles
+##### Map Styles
 In the following static map functions, the `option` object features a `style` property that can be a string or one of the built-in style shorthand. Here is the full list:
 
 - `MapStyle.STREETS`, reference style for navigation and city exploration
@@ -1678,7 +1714,7 @@ In the following static map functions, the `option` object features a `style` pr
   - `MapStyle.STAGE.DARK` (variant)
   - `MapStyle.STAGE.LIGHT` (variant)
 
-### Centered static maps
+##### Centered static maps
 This type of map is centered on a longitude-latitude coordinate and the zoom level must also be provided (from `0`: very zoomed out, to `22`: very zoomed in).  
 Note that if a path or markers are provided, the framing of the map will not automatically adapt to include those (use the `automatic` mode for that).
 
@@ -1707,7 +1743,7 @@ const imageLink = maptilersdk.staticMaps.centered(
 Read more about centered static maps on our official [API documentation](https://docs.maptiler.com/cloud/api/static-maps/#center-based-image).
 
 
-### Bounded static maps
+##### Bounded static maps
 This type of map requires a bounding box made of two points: the south-west bound and the north-east bound. The zoom level cannot be provided and is automatically deduced from the size of the bounding box.
 
 ```ts
@@ -1749,7 +1785,7 @@ As you may notice, the geo bounding box could have very different proportions th
 
 Read more about bounded static maps on our official [API documentation](https://docs.maptiler.com/cloud/api/static-maps/#bounds-based-image).
 
-### Automatic static maps
+##### Automatic static maps
 As we have seen with centered and bounded maps, providing all the parameters is nice but can be cumbersome for the simplest use cases. This is why MapTiler Cloud also provides static maps that fit automatically whatever you need to place inside: path or markers.
 
 In the following example, we are going to load a cycling track recorded by one of our team members in Montreal, Canada. The track, originally a GPX file, was pushed to MapTiler Data and is now made available as a GeoJSON:
@@ -1792,7 +1828,7 @@ And voila!
 
 Read more about bounded static maps on our official [API documentation](https://docs.maptiler.com/cloud/api/static-maps/#auto-fitted-image).
 
-## 🏔️ Elevation
+#### 🏔️ Elevation
 With the elevation API, it's possible to get the elevation in meters from any location. It's possible to lookup and compute elevation for a single location, to provide a batch of points, from a GeoJSON LineString or a GeoJSON MultiLineString!
 
 > ℹ️ Under the hood, the elevation API is fueled by MapTiler Cloud's **RGB Terrain** raster tileset, which is a composite of many high-resolution DEMs from all over the world, currated and processed by our geodata team! The same dataset is also fueling our SDK's elevation (3D terrain) and the hillshading we use in many of our styles.
@@ -1801,7 +1837,7 @@ With the elevation API, it's possible to get the elevation in meters from any lo
 
 Let's see how to use it:
 
-### At a single location
+##### At a single location
 ```ts
 // Not mandatory, but it's to explain where the type comes from:
 import { Position } from "geojson";
@@ -1813,7 +1849,7 @@ The returned value is also a *GeoJSON* `Position` array, but with three elements
 
 Read more about elevation lookup for a single location in our [official documentation](https://docs.maptiler.com/client-js/elevation/#at).
 
-### Batch mode
+##### Batch mode
 ```ts
 // Not mandatory, but it's to explain where the type comes from:
 import { Position } from "geojson";
@@ -1835,7 +1871,7 @@ const elevatedPeaks = await maptilersdk.elevation.batch(peaks);
 
 Read more about elevation lookup for a batch of locations in our [official documentation](https://docs.maptiler.com/client-js/elevation/#batch).
 
-### From a GeoJSON LineString
+##### From a GeoJSON LineString
 In the *GeoJSON* LineString case, it clones the entire structure and the position arrays of the clone will contain three elements: `[lng, lat, elevation]`. The original LineString is not mutated nor pointed at.
 
 ```ts
@@ -1854,7 +1890,7 @@ const someElevatedLineString = await maptilersdk.elevation.fromLineString(someLi
 
 Read more about elevation lookup for a `LineString` in our [official documentation](https://docs.maptiler.com/client-js/elevation/#linestring).
 
-### From a GeoJSON MultiLineString
+##### From a GeoJSON MultiLineString
 In the *GeoJSON* MultiLineString case, it clones the entire structure and the position arrays of the clone will contain three elements: `[lng, lat, elevation]`. The original MultiLineString is not mutated nor pointed at.
 
 ```ts
@@ -1877,10 +1913,10 @@ const someElevatedMultiLineString = await maptilersdk.elevation.fromMultiLineStr
 
 Read more about elevation lookup for a `MultiLineString` in our [official documentation](https://docs.maptiler.com/client-js/elevation/#multilinestring).
 
-### Caching
+##### Caching
 In order to increase performance while reducing unnecessary elevation data fetching, the elevation tiles are cached. This is particularly important for the LineString and MultiLineString lookups because GeoJSON data are likely to come from a recorded or planned route, where position points are very close to one another.
 
-## 🧮 Math
+#### 🧮 Math
 Some operations can be fairly repetitive: WGS84 to Mercator, WGS84 to *zxy* tile index, the distance between two points with the Haversine formula, etc. As a result, we have decided to expose a `math` package providing the most recurrent feature, so that, just like us at MapTiler, you no longer need to copy-paste the same function from your previous project!
 
 The `math` package differs from the others in the sense that it does not call the MapTiler Cloud API, instead, it operates fully on the machine it's running on.
@@ -1921,7 +1957,7 @@ const tileXY = maptilersdk.math.wgs84ToTileIndex(montBlancPeakWgs84, 14);
 
 Please find out more about the math package in our [official documentation](https://docs.maptiler.com/client-js/math):
 
-# Telemetry
+### Telemetry
 The telemetry is very valuable to the team at MapTiler because it shares information about where to add the extra effort. It also helps spotting some incompatibility issues that may arise between the SDK and a specific version of a module.
 
 It consists in sending metrics about usage of the following features:
@@ -1942,3 +1978,63 @@ import * as maptilersdk from '@maptiler/sdk';
 
 maptilersdk.config.telemetry = false;
 ```
+
+<br>
+
+## Migration Guide
+
+* [How to migrate/switch from Mapbox to MapTiler](https://docs.maptiler.com/sdk-js/examples/switch-from-mapbox/)
+* [How to migrate/switch from MapLibre to MapTiler](https://docs.maptiler.com/sdk-js/examples/switch-from-maplibre/)
+
+<br>
+
+## 💬 Support
+
+- 📚 [Documentation](https://docs.maptiler.com) - Comprehensive guides and API reference
+- ✉️ [Contact us](https://maptiler.com/contact) - Get in touch or submit a request
+- 🐦 [Twitter/X](https://twitter.com/maptiler) - Follow us for updates
+
+<br>
+
+---
+
+<br>
+
+## 🤝 Contributing
+
+We love contributions from the community! Whether it's bug reports, feature requests, or pull requests, all contributions are welcome:
+
+- Fork the repository and create your branch from `main`
+- If you've added code, add tests that cover your changes
+- Ensure your code follows our style guidelines
+- Give your pull request a clear, descriptive summary
+- Open a Pull Request with a comprehensive description
+
+<br>
+
+## 📄 License
+
+This project is licensed under the BSD 3-Clause License – see the [LICENSE](./LICENSE) file for details.
+
+<br>
+
+
+## 🙏 Acknowledgements
+
+This project is built on the shoulders of giants:
+
+- [MapLibre GL JS](https://maplibre.org/) – The open-source mapping library
+- [OpenStreetMap](https://openstreetmap.org/) – The free wiki world map
+
+<br>
+
+<p align="center" style="margin-top:20px;margin-bottom:20px;"> <a href="https://cloud.maptiler.com/account/keys/" style="display:inline-block;padding:12px 32px;background:#F2F6FF;color:#000;font-weight:bold;border-radius:6px;text-decoration:none;"> Get Your API Key <sup style="background-color:#0000ff;color:#fff;padding:2px 6px;font-size:12px;border-radius:3px;">FREE</sup><br /> <span style="font-size:90%;font-weight:400;">Start building with 100,000 free map loads per month ・ No credit card required.</span> </a> </p>
+
+<br>
+
+<p align="center"> 💜 Made with love by the <a href="#">MapTiler</a> team <br />
+<p align="center">
+  <a href="https://www.maptiler.com/">Website</a> •
+  <a href="https://docs.maptiler.com/sdk-js/">Documentation</a> •
+  <a href="https://github.com/maptiler/maptiler-sdk-js/">GitHub</a>
+</p>
