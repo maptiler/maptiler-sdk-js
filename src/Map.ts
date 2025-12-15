@@ -757,7 +757,7 @@ export class Map extends maplibregl.Map {
       let tileJsonContent = { logo: null };
 
       try {
-        const possibleSources = Object.keys(this.style.sourceCaches)
+        const possibleSources = Object.keys(this.style.tileManagers)
           .map((sourceName) => this.getSource(sourceName))
           .filter((s: Source | undefined) => s && "url" in s && typeof s.url === "string" && s.url.includes("tiles.json"));
 

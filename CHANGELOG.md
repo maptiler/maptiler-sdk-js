@@ -1,5 +1,12 @@
 # MapTiler SDK Changelog
 
+## NEXT
+
+### ✨ Features and improvements
+- MapLibre GL dependency was updated to `5.14`
+  - Types that were removed in a minor version of MapLibre GL, breaking semver, were moved into MapTiler SDK to not break compatibility for MapTiler SDK users
+  - Overpanning and underzooming patch for `ImageViewer` was updated to use a new standard MapLibre GL approach instead of monkey-patching it
+
 ## 3.9.1
 
 ### 🐛 Bug Fixes
