@@ -21,7 +21,7 @@ import { Map } from "../Map";
 import { ImageViewerEvent, setupGlobalMapEventForwarder } from "./events";
 import { FetchError } from "../utils/errors";
 import { config } from "..";
-import { monkeyPatchMapTransformInstance } from "./monkeyPatchML";
+import { overpanningUnderzoomingTransformConstrain } from "./monkeyPatchML";
 import { NavigationControl } from "../MLAdapters/NavigationControl";
 import { ImageViewerFitImageToBoundsControl } from "../controls/ImageViewerFitImageToBoundsControl";
 import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey } from "./symbols";
@@ -110,6 +110,7 @@ const overrideOptions: Partial<MapOptions> = {
   terrain: false,
   space: false,
   halo: false,
+  transformConstrain: overpanningUnderzoomingTransformConstrain,
 };
 
 //#region imageViewerDefaultOptions
@@ -323,9 +324,6 @@ export default class ImageViewer extends Evented {
         viewer: this,
         lngLatToPx: (lngLat: LngLat) => this.lngLatToPx(lngLat),
       });
-
-      // this is a monkey patch to allow for overpanning and underzooming
-      monkeyPatchMapTransformInstance(this.sdk);
 
       const { center, zoom, bearing } = this.options;
       const initCenter = center ?? [(this.imageMetadata?.width ?? 0) / 2, (this.imageMetadata?.height ?? 0) / 2];

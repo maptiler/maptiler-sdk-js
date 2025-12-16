@@ -175,6 +175,9 @@ export { MapWheelEvent } from "./MLAdapters/MapWheelEvent";
 export { MapTouchEvent } from "./MLAdapters/MapTouchEvent";
 export { MapMouseEvent } from "./MLAdapters/MapMouseEvent";
 
+// types changed to internal since MapLibre 5.7.0
+export * from "./ml-types";
+
 // SDK specific
 export { Map, GeolocationType, type MapOptions, type LoadWithTerrainEvent } from "./Map";
 export * from "./controls";
