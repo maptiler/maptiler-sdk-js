@@ -1,7 +1,7 @@
 import { Feature, LineString, MultiLineString, MultiPoint, Polygon } from "geojson";
 import { EasingFunctionName, Keyframe, NumericArrayWithNull } from "./types";
 import { arraysAreTheSameLength } from "../utils/array";
-import { LngLat } from "@maptiler/sdk";
+import { LngLat } from "../";
 
 /**
  * Performs simple linear interpolation between two numbers.
