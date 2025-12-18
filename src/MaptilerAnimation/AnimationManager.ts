@@ -1,4 +1,4 @@
-import MaptilerAnimation from "./MaptilerAnimation";
+import { MaptilerAnimation } from "./index";
 
 /**
  * Manager for handling animation lifecycle and updates.

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import MaptilerAnimation from "../../src/MaptilerAnimation";
+import { MaptilerAnimation } from "../../src/MaptilerAnimation";
 
 import {
   Keyframe,

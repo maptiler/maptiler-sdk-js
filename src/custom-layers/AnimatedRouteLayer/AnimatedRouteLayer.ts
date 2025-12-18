@@ -1,6 +1,6 @@
 import { AnimationEvent, AnimationEventListenersRecord, AnimationEventTypes, AnimationEventTypesArray, EasingFunctionName, Keyframe } from "../../MaptilerAnimation/types";
 import { v4 as uuidv4 } from "uuid";
-import MaptilerAnimation, { MaptilerAnimationOptions } from "../../MaptilerAnimation/MaptilerAnimation";
+import { MaptilerAnimation, MaptilerAnimationOptions } from "../../MaptilerAnimation";
 
 import { GeoJSONSource, CustomLayerInterface, Map } from "../../";
 import { KeyframeableGeoJSONFeature, parseGeoJSONFeatureToKeyframes } from "../../MaptilerAnimation/animation-helpers";

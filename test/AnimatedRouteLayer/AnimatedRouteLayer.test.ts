@@ -1,6 +1,5 @@
 import { describe, expect, vi, test, beforeEach } from "vitest";
-import { Keyframe } from "../../src/MaptilerAnimation";
-import MaptilerAnimation from "../../src/MaptilerAnimation/MaptilerAnimation";
+import { Keyframe, MaptilerAnimation } from "../../src/MaptilerAnimation";
 import { AnimatedRouteLayer } from "../../src/custom-layers/AnimatedRouteLayer";
 import {
   validFixture,
