@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import getMapInstanceForFixture from "./helpers/getMapInstanceForFixture";
 import { AnimatedRouteLayer } from "index";
-import { Map } from "@maptiler/sdk";
+import { Map as SDKMap } from "../../src";
 import expected from "./expected-results/animatedRouteLayer-1.json" assert { type: "json" };
 
 test("Follows the correct path taking screenshots at each interval", async ({ page }) => {
@@ -25,7 +25,7 @@ test("Follows the correct path taking screenshots at each interval", async ({ pa
     const NUM_FRAMES_BETWEEN_SCREENSHOTS = 20;
 
     const { animatedRouteLayer } = window.__pageObjects as { animatedRouteLayer: AnimatedRouteLayer };
-    const map = window.__map as Map;
+    const map = window.__map as SDKMap;
 
     for (let i = 0; i < NUM_SCREENSHOTS; i++) {
       for (let j = 0; j < NUM_FRAMES_BETWEEN_SCREENSHOTS; j++) {

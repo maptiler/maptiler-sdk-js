@@ -46,7 +46,6 @@ async function main() {
     source: {
       id: "route-source",
       layerID: "route-layer",
-      featureSetIndex: 0,
     },
     duration: 10000,
     iterations: 1,

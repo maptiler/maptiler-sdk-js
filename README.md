@@ -1329,7 +1329,6 @@ const animatedRoute = new AnimatedRouteLayer({
     // assumes that the source is already added to the map with the given layer ID
     id: "my-geojson-source", // the name of the source
     layerID: "route-layer", // the name of the layer
-    featureSetIndex: 0, // the index of the featureset within the geojson
   },
   // OR
   keyframes: [], // an array of keyframes
