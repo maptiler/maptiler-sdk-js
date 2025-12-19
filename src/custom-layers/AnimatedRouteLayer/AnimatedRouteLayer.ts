@@ -2,12 +2,11 @@ import { AnimationEvent, AnimationEventListenersRecord, AnimationEventTypes, Ani
 import { v4 as uuidv4 } from "uuid";
 import { MaptilerAnimation, MaptilerAnimationOptions } from "../../MaptilerAnimation";
 
-import { GeoJSONSource, CustomLayerInterface, Map } from "../../";
+import { CustomLayerInterface, GeoJSONSource, Map as MapSDK } from "../../";
 import { KeyframeableGeoJSONFeature, parseGeoJSONFeatureToKeyframes } from "../../MaptilerAnimation/animation-helpers";
 
 export type SourceData = {
   id: string;
-  featureSetIndex: number;
   layerID: string;
 };
 
@@ -121,7 +120,6 @@ export const ANIM_LAYER_PREFIX = "animated-route-layer";
  *   source: {
  *     id: 'route-source',
  *     layerID: 'route-layer',
- *     featureSetIndex: 0
  *   },
  *   duration: 5000,
  *   pathStrokeAnimation: {
@@ -171,7 +169,6 @@ export const ANIM_LAYER_PREFIX = "animated-route-layer";
  *   source: {
  *     id: 'route-source',
  *     layerID: 'route-layer',
- *     featureSetIndex: 0
  *   },
  *   duration: 5000,
  *   iterations: 1,
@@ -237,7 +234,7 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
   private easing?: EasingFunctionName;
 
   /** The map instance */
-  private map!: Map;
+  private map!: MapSDK;
 
   /** The camera animation options */
   private cameraMaptilerAnimationOptions?: AnimatedCameraOptions;
@@ -322,11 +319,12 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
    * This method is called when the layer is added to the map.
    * It initializes the animation instance and sets up event listeners.
    *
-   * @param {Map} map - The map instance
+   * @param {MapLibreMap} map - The map instance (maplibre Map, but will be MapSDK at runtime)
+   * @param {WebGLRenderingContext | WebGL2RenderingContext} _gl - The WebGL context (unused in this layer)
    */
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  async onAdd(map: Map): Promise<void> {
-    this.map = map;
+  async onAdd(map: MapSDK): Promise<void> {
+    this.map = map as MapSDK;
     if (this.map.getLayersOrder().some((current) => current.includes(ANIM_LAYER_PREFIX) && this.id !== current)) {
       throw new Error(`[AnimatedRouteLayer.onAdd]: Currently, you can only have one active AnimatedRouteLayer at a time. Please remove the existing one before adding a new one.`);
     }
@@ -358,6 +356,11 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
 
     if (this.autoplay) this.animationInstance.play();
   }
+
+  /**
+   * Initializes the animation instance asynchronously.
+   * This is called from onAdd but runs asynchronously to handle async data loading.
+   */
 
   /**
    * This method is used to manually advance the animation
@@ -494,18 +497,24 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
 
       if (source) {
         // this weird type assertion is here to appease typescript
-        const featureCollection = await (source as unknown as GeoJSONSource)?.getData();
+        let featureData = (await (source as GeoJSONSource)?.getData()) as GeoJSON.FeatureCollection | GeoJSON.Feature;
 
-        if (!featureCollection || featureCollection.type !== "FeatureCollection" || !featureCollection.features) {
-          throw new Error("[AnimatedRouteLayer.onAdd]: No featureCollection found in source data");
+        // featureData according to the types should exist, but sometimes does not
+        if (!featureData) {
+          throw new Error("[AnimatedRouteLayer.onAdd]: No feature found in source data");
         }
 
-        const feature = featureCollection.features[this.source.featureSetIndex];
-        if (!feature) {
-          throw new Error(`[AnimatedRouteLayer.onAdd]: No feature found at index ${this.source.featureSetIndex}`);
+        if (featureData.type === "FeatureCollection") {
+          console.warn("[AnimatedRouteLayer.onAdd]: FeatureCollection found in source data, only single geojson features are currently supported, first feature will be used");
+          featureData = featureData.features[0];
         }
 
-        const keyframeableFeature = feature as KeyframeableGeoJSONFeature;
+        // better safe than sorry
+        if (featureData.type !== "Feature") {
+          throw new Error("[AnimatedRouteLayer.onAdd]: The first feature in the source data is not a valid GeoJSON of type `Feature`");
+        }
+
+        const keyframeableFeature = featureData as KeyframeableGeoJSONFeature;
 
         if (keyframeableFeature.properties["@duration"]) {
           this.duration = keyframeableFeature.properties["@duration"] ?? 1000;

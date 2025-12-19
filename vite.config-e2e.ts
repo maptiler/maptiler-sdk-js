@@ -6,6 +6,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         mapLoad: 'public/mapLoad.html',
+        animatedRouteLayer: 'public/animatedRouteLayer.html',
       },
     },
   },

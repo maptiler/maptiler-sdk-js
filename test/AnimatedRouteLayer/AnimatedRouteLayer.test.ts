@@ -1,10 +1,7 @@
 import { describe, expect, vi, test, beforeEach } from "vitest";
 import { Keyframe, MaptilerAnimation } from "../../src/MaptilerAnimation";
 import { AnimatedRouteLayer } from "../../src/custom-layers/AnimatedRouteLayer";
-import {
-  validFixture,
-  validFixtureExpectedKeyframes,
-} from "../fixtures/animations/keyframes.fixture";
+import { validFixture, validFixtureExpectedKeyframes } from "../fixtures/animations/keyframes.fixture";
 
 vi.mock("uuid", () => ({
   v4: () => "PHONEY-UUID",
@@ -75,9 +72,7 @@ describe("AnimatedRouteLayer", () => {
 
   test("Throws / rejects if the map already has an AnimatedRouteLayer added", async () => {
     // fake add a new map
-    map.getLayersOrder.mockImplementation(() => [
-      "animated-route-layer-PHONEY-UUID-2",
-    ]);
+    map.getLayersOrder.mockImplementation(() => ["animated-route-layer-PHONEY-UUID-2"]);
 
     const layer = new AnimatedRouteLayer({
       keyframes,
@@ -155,18 +150,10 @@ describe("AnimatedRouteLayer", () => {
     );
 
     validFixtureExpectedKeyframes.forEach((keyframe, index) => {
-      expect(keyframe.delta).toEqual(
-        validFixtureExpectedKeyframes[index].delta,
-      );
-      expect(keyframe.props).toEqual(
-        validFixtureExpectedKeyframes[index].props,
-      );
-      expect(keyframe.easing).toEqual(
-        validFixtureExpectedKeyframes[index].easing,
-      );
-      expect(keyframe.userData).toEqual(
-        validFixtureExpectedKeyframes[index].userData,
-      );
+      expect(keyframe.delta).toEqual(validFixtureExpectedKeyframes[index].delta);
+      expect(keyframe.props).toEqual(validFixtureExpectedKeyframes[index].props);
+      expect(keyframe.easing).toEqual(validFixtureExpectedKeyframes[index].easing);
+      expect(keyframe.userData).toEqual(validFixtureExpectedKeyframes[index].userData);
     });
 
     expect(layer.animationInstance?.duration).toEqual(1000);
@@ -200,25 +187,15 @@ describe("AnimatedRouteLayer", () => {
     //@ts-expect-error map is mocked to avoid webgl explosions...
     await layer.onAdd(map);
 
-    expect(layer.animationInstance?.addEventListener).toHaveBeenCalledWith(
-      "animationend",
-      testFn,
-    );
+    expect(layer.animationInstance?.addEventListener).toHaveBeenCalledWith("animationend", testFn);
 
-    expect(layer.animationInstance?.addEventListener).toHaveBeenCalledWith(
-      "iteration",
-      testFn2,
-    );
+    expect(layer.animationInstance?.addEventListener).toHaveBeenCalledWith("iteration", testFn2);
 
     //@ts-expect-error its not private for tests
-    expect(layer.enquedEventHandlers["animationend"]).toEqual(
-      [],
-    );
+    expect(layer.enquedEventHandlers.animationend).toEqual([]);
 
     //@ts-expect-error its not private for tests
-    expect(layer.enquedEventHandlers["iteration"]).toEqual(
-      [],
-    );
+    expect(layer.enquedEventHandlers.iteration).toEqual([]);
   });
 
   test("maps addEventListener calls to the animation instance if it has been created", async () => {
@@ -241,15 +218,9 @@ describe("AnimatedRouteLayer", () => {
     layer.addEventListener("animationend", testFn);
     layer.addEventListener("iteration", testFn2);
 
-    expect(layer.animationInstance?.addEventListener).toHaveBeenCalledWith(
-      "animationend",
-      testFn,
-    );
+    expect(layer.animationInstance?.addEventListener).toHaveBeenCalledWith("animationend", testFn);
 
-    expect(layer.animationInstance?.addEventListener).toHaveBeenCalledWith(
-      "iteration",
-      testFn2,
-    );
+    expect(layer.animationInstance?.addEventListener).toHaveBeenCalledWith("iteration", testFn2);
   });
 
   test("enques commands to the animation instance if it has not been created yet.", async () => {

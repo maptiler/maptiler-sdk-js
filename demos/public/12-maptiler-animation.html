@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MaptilerAnimation with MapTiler 3D Module</title>
+  <style>
+    html {
+      height: 100%;
+      font-family: sans-serif;
+      font-size: 13px;
+    }
+
+    body {
+      height: 100%;
+      margin: 0;
+      display: grid;
+      /* grid-template: 1fr 1fr / 1fr 1fr; */
+      /* gap: 16px; */
+      box-sizing: border-box;
+    }
+
+    .map {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .controls-container {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      gap: 8px;
+      z-index: 1;
+    }
+
+    .controls {
+      display: flex;
+    }
+
+    .padded, button {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 8px;
+      background-color: white;
+      padding: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      margin-right: 4px;
+    }
+
+    button {
+      cursor: pointer;
+    }
+  </style>
+  <link rel="stylesheet" href="../build/maptiler-sdk.css">
+</head>
+<body>
+  <div class="controls-container">
+    <div class="controls">
+      <button id="play">
+        Play
+      </button>
+      <button id="pause">
+        Pause
+      </button>
+      <button id="faster">
+        Faster
+      </button>
+      <button id="slower">
+        Slower
+      </button>
+      <div id="playbackRate" class="padded">1.0x</div>
+    </div>
+    <div id="keyframeName" class="padded" style="display: none">
+    </div>
+  </div>
+ <script type="module" src="./src/12-maptiler-animation.ts"></script>
+</body>
+</html>

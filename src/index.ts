@@ -180,6 +180,7 @@ export * from "./ml-types";
 
 // SDK specific
 export { Map, GeolocationType, type MapOptions, type LoadWithTerrainEvent } from "./Map";
+
 export * from "./controls";
 export {
   type AutomaticStaticMapOptions,

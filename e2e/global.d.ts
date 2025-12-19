@@ -4,6 +4,7 @@ declare global {
   interface Window {
     __map: Map;
     __pageObjects: Record<string, any>;
+    __pageLoadTimeout: number;
     notifyScreenshotStateReady: (data: TTestTransferData) => Promise<void>;
     notifyTest: (data: TTestTransferData) => Promise<void>;
   }
