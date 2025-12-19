@@ -135,19 +135,10 @@ function easingElasticInOut(n: number): number {
   const dn = n * 2;
   if (dn < 1) {
     const nInner = dn - 1;
-    return (
-      -0.5 *
-      (a * 2 ** (10 * nInner) * Math.sin(((nInner - s) * (2 * Math.PI)) / p))
-    );
+    return -0.5 * (a * 2 ** (10 * nInner) * Math.sin(((nInner - s) * (2 * Math.PI)) / p));
   }
   const nInner = dn - 1;
-  return (
-    a *
-      2 ** (-10 * nInner) *
-      Math.sin(((nInner - s) * (2 * Math.PI)) / p) *
-      0.5 +
-    1
-  );
+  return a * 2 ** (-10 * nInner) * Math.sin(((nInner - s) * (2 * Math.PI)) / p) * 0.5 + 1;
 }
 
 function easingBounceIn(n: number): number {
