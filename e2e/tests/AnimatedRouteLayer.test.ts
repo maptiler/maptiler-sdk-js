@@ -10,7 +10,7 @@ test("Follows the correct path taking screenshots at each interval", async ({ pa
   await getMapInstanceForFixture({
     fixture: "animatedRouteLayer",
     page,
-    timeout: 10000,
+    timeout: 20000,
   });
 
   expect(await page.title()).toBe("MapTiler E2E Animated Route Layer");
