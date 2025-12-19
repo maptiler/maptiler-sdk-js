@@ -1,9 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { MaptilerAnimation } from "../../src/MaptilerAnimation";
 
-import {
-  Keyframe,
-} from "../../src/MaptilerAnimation/types";
+import { Keyframe } from "../../src/MaptilerAnimation/types";
 
 const keyframes: Keyframe[] = [
   {

@@ -128,7 +128,6 @@ describe("AnimatedRouteLayer", () => {
     const layer = new AnimatedRouteLayer({
       source: {
         id: "test-source",
-        featureSetIndex: 0,
         layerID: "test-layer",
       },
       duration: 1000,

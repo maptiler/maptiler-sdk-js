@@ -1,6 +1,6 @@
 import "../../build/maptiler-sdk.css";
 import { Layer3D } from "@maptiler/3d";
-import { CustomLayerInterface, Map, MapStyle, config, Keyframe, MaptilerAnimation, AnimationEvent } from "../../src";
+import { CustomLayerInterface, Map, MapStyle, config, Keyframe, MaptilerAnimation } from "../../src";
 import { addPerformanceStats, setupMapTilerApiKey } from "./demo-utils";
 
 addPerformanceStats();
@@ -81,7 +81,8 @@ async function main() {
 
   animation.addEventListener("timeupdate", (e) => {
     map.setBearing(map.getBearing() + 0.1);
-    layer3D.modifyMesh("ufo", {
+    const ufo = layer3D.getItem3D("ufo");
+    ufo?.modify({
       lngLat: [e.props.lng, e.props.lat],
       altitude: e.props.altitude,
     });
