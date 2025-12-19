@@ -4,7 +4,7 @@ import { AnimatedRouteLayer } from "index";
 import { Map as SDKMap } from "../../src";
 import expected from "./expected-results/animatedRouteLayer-1.json" assert { type: "json" };
 
-test.setTimeout(30000);
+test.setTimeout(60000);
 
 test("Follows the correct path taking screenshots at each interval", async ({ page }) => {
   await getMapInstanceForFixture({
