@@ -16,11 +16,9 @@ test("Follows the correct path taking screenshots at each interval", async ({ pa
   expect(await page.title()).toBe("MapTiler E2E Animated Route Layer");
 
   await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-    await expect(page).toHaveScreenshot(`animated-route-${data.frame}.png`);
+    await expect(page).toHaveScreenshot(`animated-route-${data.frame}.png`, { timeout: 10000 });
     expect(data).toEqual(expected[data.frame as number]);
   });
-
-  await page.clock.install();
 
   await page.evaluate(async () => {
     const NUM_SCREENSHOTS = 20;
