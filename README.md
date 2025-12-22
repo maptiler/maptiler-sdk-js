@@ -1210,8 +1210,8 @@ Many methods are available on color ramps, such as getting the `<canvas>` elemen
 
 The SDK comes with several classes to help with animations, particularly route animations.
 
-See `demos/01-animated-routes.html` for examples.
-See `demos/02-maptiler-animation.html` for examples.
+See `demos/11-animated-routes.html` for examples.
+See `demos/12-maptiler-animation.html` for examples.
 
 #### 🧩 `MaptilerAnimation`
 
@@ -1227,7 +1227,7 @@ const animation = new MaptilerAnimation({
     { delta: 0, props: { lon: -7.445, } },
     // `userData` can hold any type of custom data to pass with the keyframe
     { delta: 0.5, userData: { mydata: "whoa!" } },
-    { delta: 1, props: { lon: -7.455 } }
+    { delta: 1, props: { lon: -7.473 } }
   ],
   duration: 1000, // 1 second
   iterations: Infinity // loop forever
@@ -1357,7 +1357,7 @@ animatedRoute.play();
 animatedRoute.pause();
 ```
 
-For a full example of how to use this, look at [the example](./demos/01-animated-routes.html)
+For a full example of how to use this, look at [the example](./demos/11-animated-routes.html)
 
 # Vector Layer Helpers
 **Let's make vector layers easy!** Originally, you'd have to add a source and then proceed to the styling of your layer, which can be tricky because there are a lot of `paint` and `layout` options and they vary a lot from one type of layer to another. **But we have helpers for this!** 🖋️
