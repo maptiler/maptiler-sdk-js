@@ -340,7 +340,7 @@ export default class MaptilerAnimation {
 
     this.currentKeyframe = current?.id;
 
-    const iterpolatedProps = Object.keys(current?.props ?? {}).reduce<Record<string, number>>((acc, prop) => {
+    const interpolatedProps = Object.keys(current?.props ?? {}).reduce<Record<string, number>>((acc, prop) => {
       if (current && next) {
         const currentValue = current.props[prop];
         const nextValue = next.props[prop];
@@ -372,7 +372,7 @@ export default class MaptilerAnimation {
       this.previousProps = this.keyframes[0].props;
     }
 
-    this.emitEvent("timeupdate", current, next, iterpolatedProps, this.previousProps);
+    this.emitEvent("timeupdate", current, next, interpolatedProps, this.previousProps);
 
     if ((this.currentDelta >= 1 || this.currentDelta < 0) && !ignoreIteration) {
       this.currentIteration += 1;
@@ -387,7 +387,7 @@ export default class MaptilerAnimation {
       return this;
     }
 
-    this.previousProps = { ...iterpolatedProps };
+    this.previousProps = { ...interpolatedProps };
 
     return this;
   }
@@ -408,7 +408,7 @@ export default class MaptilerAnimation {
    */
   getCurrentAndNextKeyFramesAtDelta(delta: number) {
     const next = this.keyframes.find((keyframe) => keyframe.delta > delta) ?? null;
-    const current = [...this.keyframes].reverse().find((keyframe) => keyframe.delta <= delta) ?? null;
+    const current = this.keyframes.findLast((keyframe) => keyframe.delta <= delta) ?? null;
 
     return { current, next };
   }
@@ -459,10 +459,14 @@ export default class MaptilerAnimation {
       throw new Error(`Cannot set delta greater than 1`);
     }
 
-    this.play();
+    this.animationStartTime = performance.now();
+    this.lastFrameAt = this.animationStartTime;
 
     this.currentDelta = delta;
     this.currentTime = delta * this.effectiveDuration;
+
+    this.update(false, true);
+
     this.emitEvent("scrub");
     return this;
   }
@@ -554,7 +558,7 @@ export default class MaptilerAnimation {
    */
   clone() {
     return new MaptilerAnimation({
-      keyframes: this.keyframes,
+      keyframes: structuredClone(this.keyframes),
       duration: this.duration,
       iterations: this.iterations,
     });

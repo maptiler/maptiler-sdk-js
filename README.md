@@ -1276,14 +1276,14 @@ const animation = new MaptilerAnimation({
 
 `AnimatedRouteLayer` is custom layer that animates a path or route on the map based on keyframes or GeoJSON data. It supports animated line styling and camera following, making it ideal for visualizing routes, playback tracks, or timeline-based geographic events.
 
-Note: At present, to avoid problems arising from the camera being manipulated by two animatioons at any one time, there can only ever be one instance of `AnimatedRouteLayer` on the map at any time. This API may change in the future, but at present you must remove each instance of `AnimatedRouteLayer` from the map before adding another.
+Note: At present, to avoid problems arising from the camera being manipulated by two animations at any one time, there can only ever be one instance of `AnimatedRouteLayer` on the map at any time. This API may change in the future, but at present you must remove each instance of `AnimatedRouteLayer` from the map before adding another.
 
 ##### ✨ Features
   - Animate a path using keyframes or GeoJSON data
   - Optional animated stroke styles to indicate progress
   - Camera movement smoothing, following along the route
   - Configurable duration, easing, delay, and iterations via geojson properties
-  - Event-based lifecycle hooks for adaptibility.
+  - Event-based lifecycle hooks for adaptability.
   - Optional manual frame advancement (e.g., for scrubbing or syncing with map events, scroll etc etc)
 
 ##### 🚀 Basic Usage
@@ -1335,7 +1335,7 @@ const animatedRoute = new AnimatedRouteLayer({
 
   duration: 5000,
   pathStrokeAnimation: {
-    // will only be appliued to LineString GeoJSON types
+    // will only be applied to LineString GeoJSON types
     activeColor: [0, 128, 0, 1], // color of the line that has already been traversed
     inactiveColor: [128, 128, 128, 0.5],
   },

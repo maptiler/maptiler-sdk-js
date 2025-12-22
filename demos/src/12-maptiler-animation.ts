@@ -94,7 +94,7 @@ async function main() {
     playbackRateElement.innerText = e.playbackRate.toFixed(1) + "x";
   });
 
-  const [playButton, pauseButton, fasterButton, slowerButton] = getElementsByIds(["play", "pause", "faster", "slower"]);
+  const [playButton, pauseButton, fasterButton, slowerButton, frameAdvanceButton] = getElementsByIds(["play", "pause", "faster", "slower", "frame-advance"]);
 
   playButton?.addEventListener("click", () => {
     animation.play();
@@ -112,6 +112,10 @@ async function main() {
   slowerButton?.addEventListener("click", () => {
     const currentSpeed = animation.getPlaybackRate();
     animation.setPlaybackRate(currentSpeed - 0.2);
+  });
+
+  frameAdvanceButton?.addEventListener("click", () => {
+    animation.setCurrentDelta(animation.getCurrentDelta() + 0.01);
   });
 }
 

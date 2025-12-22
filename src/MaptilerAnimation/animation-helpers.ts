@@ -100,13 +100,13 @@ export function findPreviousEntryAndIndexWithValue(arr: NumericArrayWithNull, cu
 /**
  * Options for parsing GeoJSON data into animation keyframes.
  *
- * @interface IparseGeoJSONToKeyframesOptions
+ * @interface ParseGeoJSONToKeyframesOptions
  * @property {EasingFunctionName} [defaultEasing] - The default easing function to apply to the animation.
  * @property {Object|false} [pathSmoothing] - Configuration for path smoothing, or false to disable smoothing.
  * @property {number} [pathSmoothing.resolution] - The resolution used for path smoothing, higher values produce more detailed paths.
  * @property {number} [pathSmoothing.epsilon] - Optional tolerance parameter for path simplification.
  */
-export interface IparseGeoJSONToKeyframesOptions {
+export interface ParseGeoJSONToKeyframesOptions {
   defaultEasing?: EasingFunctionName;
   pathSmoothing?:
     | {
@@ -116,7 +116,7 @@ export interface IparseGeoJSONToKeyframesOptions {
     | false;
 }
 
-const defaultOptions: IparseGeoJSONToKeyframesOptions = {
+const defaultOptions: ParseGeoJSONToKeyframesOptions = {
   defaultEasing: "Linear",
   pathSmoothing: {
     resolution: 20,
@@ -180,7 +180,7 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
   const { defaultEasing } = {
     ...defaultOptions,
     ...options,
-  } as IparseGeoJSONToKeyframesOptions;
+  } as ParseGeoJSONToKeyframesOptions;
 
   const geometry = feature.geometry;
   const properties = feature.properties ?? {};
