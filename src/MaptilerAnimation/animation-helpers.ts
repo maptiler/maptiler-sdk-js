@@ -208,7 +208,11 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
   // we need to flatten it to a single array of coordinates
   const flattenGeometry = geometry.type !== "LineString" && geometry.type !== "MultiPoint";
 
-  const altitude = geometry.coordinates.map((coordinate) => {
+  // for now we flatten the geometry to a single array
+  // this means that polygons with holes will be treated as a single array
+  const parseableGeometry = flattenGeometry ? geometry.coordinates.flat() : geometry.coordinates;
+
+  const altitude = parseableGeometry.map((coordinate) => {
     if (coordinate.length > 2) {
       return coordinate[2];
     }
@@ -232,9 +236,6 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
     };
   }, {});
 
-  // for now we flatten the geometry to a single array
-  // this means that polygons with holes will be treated as a single array
-  const parseableGeometry = flattenGeometry ? geometry.coordinates.flat() : geometry.coordinates;
   const parseableDeltas = deltas ?? parseableGeometry.map((_, index) => index / parseableGeometry.length);
   const parseableEasings = easings ?? parseableDeltas.map(() => defaultEasing ?? "Linear");
 
@@ -327,7 +328,7 @@ export function getKeyframes(coordinates: number[][], deltas: number[], easings:
     `);
   }
 
-  const includeAltitude = !coordinates.every((coordinate) => coordinate.length < 3);
+  const includeAltitude = coordinates.some((coordinate) => coordinate.length > 2);
 
   return coordinates.map((coordinate: number[], index: number) => {
     const delta = deltas[index];
