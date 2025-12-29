@@ -88,14 +88,6 @@ async function main() {
     });
   });
 
-  console.log(animation.getCurrentDelta());
-  console.log(animation.getCurrentTime());
-  console.log(animation.previousProps);
-  animation.setCurrentDelta(0.3);
-  console.log(animation.getCurrentDelta());
-  console.log(animation.getCurrentTime());
-  console.log(animation.previousProps);
-
   animation.addEventListener("playbackratechange", (e) => {
     const playbackRateElement = document.getElementById("playbackRate");
     if (!playbackRateElement) return;
