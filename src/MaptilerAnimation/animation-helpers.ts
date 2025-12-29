@@ -169,14 +169,14 @@ export type KeyframeableGeoJSONFeature = Feature<KeyframeableGeometry> & {
  * and passed to the keyframe objects as props that will be interpolated
  *
  * @param {KeyframeableGeoJSONFeature} feature - The GeoJSON feature to convert to keyframes
- * @param {IparseGeoJSONToKeyframesOptions} options - Configuration options
+ * @param {ParseGeoJSONToKeyframesOptions} options - Configuration options
  *
  * @returns Array of keyframe objects that can be used for animation
  *
  * @throws {Error} When no geometry is found in the feature
  * @throws {Error} When the geometry type is not supported
  */
-export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeature, options: IparseGeoJSONToKeyframesOptions = {}): Keyframe[] {
+export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeature, options: ParseGeoJSONToKeyframesOptions = {}): Keyframe[] {
   const { defaultEasing } = {
     ...defaultOptions,
     ...options,
