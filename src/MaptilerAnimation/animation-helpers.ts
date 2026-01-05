@@ -177,7 +177,7 @@ export type KeyframeableGeoJSONFeature = Feature<KeyframeableGeometry> & {
  * @throws {Error} When the geometry type is not supported
  */
 export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeature, options: ParseGeoJSONToKeyframesOptions = {}): Keyframe[] {
-  const { defaultEasing } = {
+  const { defaultEasing, pathSmoothing } = {
     ...defaultOptions,
     ...options,
   } as ParseGeoJSONToKeyframesOptions;
@@ -247,8 +247,8 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
     console.warn("[parseGeoJSONFeatureToKeyframes]: Smoothing is not supported for 3D paths, only 2D smoothing will be applied, ignoring altitude");
   }
 
-  if (options.pathSmoothing) {
-    const smoothedPath = createBezierPathFromCoordinates(parseableGeometry as [number, number][], options.pathSmoothing.resolution, options.pathSmoothing.epsilon);
+  if (pathSmoothing) {
+    const smoothedPath = createBezierPathFromCoordinates(parseableGeometry as [number, number][], pathSmoothing.resolution, pathSmoothing.epsilon);
     const smoothedDeltas = smoothedPath.map((_, index) => index / smoothedPath.length);
     const smoothedEasings = smoothedDeltas.map(() => defaultEasing ?? "Linear");
 

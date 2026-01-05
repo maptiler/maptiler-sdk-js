@@ -172,11 +172,11 @@ describe("[animation-helpers]: parseGeoJSONFeatureToKeyframes", () => {
   });
 
   test("parses the fixture to the expected keyframes (no-smoothing)", () => {
-    const receviedKeyframes = parseGeoJSONFeatureToKeyframes(validFixture);
+    const receviedKeyframes = parseGeoJSONFeatureToKeyframes(validFixture, { pathSmoothing: false });
     expect(receviedKeyframes).toEqual(validFixtureExpectedKeyframes);
   });
 
-  test("parses the fixture to the exepcted keyframes (with smoothing)", () => {
+  test("parses the fixture to the expected keyframes (with smoothing)", () => {
     const receviedKeyframes = parseGeoJSONFeatureToKeyframes(validFixture, {
       pathSmoothing: {
         resolution: 10,
