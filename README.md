@@ -2194,7 +2194,7 @@ This project is built on the shoulders of giants:
 
 <br>
 
-<p align="center"> 💜 Made with love by the <a href="#">MapTiler</a> team <br />
+<p align="center"> 💜 Made with love by the <a href="https://www.maptiler.com/">MapTiler</a> team <br />
 <p align="center">
   <a href="https://www.maptiler.com/interactive-maps/">Website</a> •
   <a href="https://docs.maptiler.com/sdk-js/">Documentation</a> •
