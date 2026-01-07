@@ -1185,7 +1185,7 @@ export class Map extends maplibregl.Map {
     const newStyle = styleInfo.style as StyleSpecificationWithMetaData;
 
     try {
-      super.setStyle(styleInfo.style, options);
+      super.setStyle(styleInfo.style, { ...options, diff: typeof styleInfo.style !== "string" });
       this.styleInProcess = true;
     } catch (e) {
       this.styleInProcess = false;
