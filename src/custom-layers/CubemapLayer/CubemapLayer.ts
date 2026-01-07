@@ -7,7 +7,7 @@ import { createObject3D, type WebGLContext, type Object3D, parseColorStringToVec
 import { VERTICES, INDICES } from "./constants";
 import vertexShaderSource from "./cubemap.vert.glsl?raw";
 import fragmentShaderSource from "./cubemap.frag.glsl?raw";
-import { loadCubemapTexture } from "./loadCubemapTexture";
+import { deleteMemoizedTexture, loadCubemapTexture } from "./loadCubemapTexture";
 import { cubemapPresets, type CubemapDefinition, type CubemapFaces, type CubemapLayerConstructorOptions } from "./types";
 import { lerp, lerpVec4 } from "../../utils/math-utils";
 import { orderObjectKeys } from "../../utils/object";
@@ -278,11 +278,11 @@ class CubemapLayer implements CustomLayerInterface {
   public onRemove(_map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext) {
     if (this.cubemap) {
       if (this.texture) {
-        gl.deleteTexture(this.texture);
+        deleteMemoizedTexture(gl);
+        this.texture = undefined;
       }
       gl.deleteProgram(this.cubemap.shaderProgram);
       gl.deleteBuffer(this.cubemap.positionBuffer);
-      this.texture = undefined;
     }
   }
 
