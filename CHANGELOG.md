@@ -13,6 +13,7 @@
 
 ### ⚙️ Others
 - Adds clearer type docs for `mapTilerLogo` constructor option.
+- Add console.info informing SDK consumers of current version.
 
 ## 3.9.0
 
