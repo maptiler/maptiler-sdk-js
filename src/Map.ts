@@ -521,7 +521,7 @@ export class Map extends maplibregl.Map {
   private languageIsUpdated = false;
 
   constructor(options: MapOptions) {
-    logSDKVersion();
+    if (options.logSDKVersion !== false) logSDKVersion();
 
     displayNoWebGlWarning(options.container);
 
