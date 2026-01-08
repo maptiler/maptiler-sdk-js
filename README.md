@@ -10,7 +10,7 @@ In addition, the MapTiler SDK JS provides well-documented and easy-to-use wrappe
 
 > 📣 _**Note:**_ If you need <ins>only the API Client library</ins> to use in a headless fashion and without any map display, check out [MapTiler Client JS](https://github.com/maptiler/maptiler-client-js) library for browser and NodeJS.
 
-![](https://img.shields.io/badge/npm-v3.8.0-f2f6ff?style=for-the-badge&labelColor=D3DBEC&logo=npm&logoColor=333359) ![](https://img.shields.io/badge/-white?style=for-the-badge&logo=javascript)![](https://img.shields.io/badge/-white?style=for-the-badge&logo=typescript)
+[![npm](https://img.shields.io/npm/v/@maptiler/sdk?style=for-the-badge&labelColor=D3DBEC&color=f2f6ff&logo=npm&logoColor=333359)](https://www.npmjs.com/package/@maptiler/sdk) ![](https://img.shields.io/badge/-white?style=for-the-badge&logo=javascript)![](https://img.shields.io/badge/-white?style=for-the-badge&logo=typescript)
 
 ---
 
