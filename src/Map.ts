@@ -216,7 +216,7 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
 
   /**
    * Whether to log the SDK version to the console.
-   * Default: `true`
+   * Default: Unless this is set explicitly to false, the SDK version will be logged to the console.
    */
   logSDKVersion?: boolean;
 };
