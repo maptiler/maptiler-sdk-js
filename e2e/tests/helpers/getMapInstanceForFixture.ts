@@ -1,5 +1,6 @@
 import { Page, expect } from "@playwright/test";
 import path from "path";
+import { injectGlobalVariables } from "./injectGlobalVariables";
 
 interface IgetMapInstanceForFixture {
   fixture: string;
@@ -11,8 +12,8 @@ interface IgetMapInstanceForFixture {
 }
 
 export default async function getMapInstanceForFixture({ fixture, page, mockStyle = true, mockTiles = true, debug = false, timeout = 10000 }: IgetMapInstanceForFixture) {
+  await injectGlobalVariables(page);
   await page.addInitScript((plt) => {
-    console.log(plt);
     window.__pageLoadTimeout = plt;
   }, timeout);
 

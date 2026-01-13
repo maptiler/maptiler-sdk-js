@@ -1,8 +1,9 @@
 import { AnimatedRouteLayer } from "../../src/custom-layers/AnimatedRouteLayer";
-import { Map as MapTiler, MapStyle } from "../../src";
+import { Map as MapTiler, MapStyle } from "../../src/index";
 import fetchGeoJSON from "../tests/helpers/fetchGeojson";
 
 async function main() {
+  console.log("main....running");
   const map = new MapTiler({
     container: "map",
     apiKey: "DOESNT_MATTER",

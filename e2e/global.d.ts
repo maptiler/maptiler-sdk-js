@@ -7,7 +7,11 @@ declare global {
     __pageLoadTimeout: number;
     notifyScreenshotStateReady: (data: TTestTransferData) => Promise<void>;
     notifyTest: (data: TTestTransferData) => Promise<void>;
+    __MT_SDK_VERSION__: string;
+    __MT_NODE_ENV__: string | undefined;
   }
 
   type TTestTransferData = string | number | boolean | string[] | number[] | boolean[] | null | Record<string, unknown> | [number, number];
 }
+
+export {};
