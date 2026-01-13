@@ -1,5 +1,20 @@
 # MapTiler SDK Changelog
 
+## 3.10.0
+
+### ✨ Features and improvements
+- MapLibre GL dependency was updated to `5.14`
+  - Types that were removed in a minor version of MapLibre GL, breaking semver, were moved into MapTiler SDK to not break compatibility for MapTiler SDK users
+  - Overpanning and underzooming patch for `ImageViewer` was updated to use a new standard MapLibre GL approach instead of monkey-patching it
+
+### 🐛 Bug Fixes
+- Reworks `setStyle` logic for halo and space
+- Fixes bug where remote styles where not updating halo / space specs.
+
+### ⚙️ Others
+- Adds clearer type docs for `mapTilerLogo` constructor option.
+- Add console.info informing SDK consumers of current version.
+
 ## 3.9.0
 
 ### ✨ Features and improvements

@@ -1,6 +1,6 @@
 {
   "name": "@maptiler/sdk",
-  "version": "3.9.0",
+  "version": "3.10.0",
   "description": "The Javascript & TypeScript map SDK tailored for MapTiler Cloud",
   "author": "MapTiler",
   "module": "dist/maptiler-sdk.mjs",
@@ -65,14 +65,15 @@
   "devDependencies": {
     "@canvas/image-data": "^1.0.0",
     "@eslint/js": "^9.21.0",
+    "@playwright/test": "^1.51.0",
     "@types/color-convert": "^2.0.4",
     "@types/color-name": "^2.0.0",
+    "@types/node": "^25.0.0",
     "@types/stats.js": "^0.17.4",
     "@types/uuid": "^10.0.0",
     "@types/xmldom": "^0.1.31",
     "@vitest/web-worker": "^3.0.9",
     "@xmldom/xmldom": "^0.8.10",
-    "@playwright/test": "^1.51.0",
     "concurrently": "^9.1.2",
     "eslint": "^9.21.0",
     "eslint-config-prettier": "^10.0.2",
@@ -91,12 +92,12 @@
     "vitest": "^3.0.9"
   },
   "dependencies": {
-    "@maplibre/maplibre-gl-style-spec": "~23.3.0",
+    "@maplibre/maplibre-gl-style-spec": "~24.3.1",
     "@maptiler/client": "~2.6.0",
     "events": "^3.3.0",
-    "gl-matrix": "^3.4.3",
+    "gl-matrix": "^3.4.4",
     "js-base64": "^3.7.7",
-    "maplibre-gl": "~5.6.0",
+    "maplibre-gl": "~5.14.0",
     "uuid": "^11.0.5"
   }
 }

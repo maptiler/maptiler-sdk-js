@@ -16,6 +16,14 @@ interface LoadCubemapTextureOptions {
  */
 const memoizedTextures = new Map<WebGLCtx, WebGLTexture>();
 
+export function deleteMemoizedTexture(gl: WebGLCtx) {
+  const tex = memoizedTextures.get(gl);
+  if (tex) {
+    memoizedTextures.delete(gl);
+    gl.deleteTexture(tex);
+  }
+}
+
 const memoizedImages = new Map<WebGLCtx, HTMLImageElement[]>();
 /**
  * Stores the stringified content of the 'faces' object from the last successful execution.
@@ -71,7 +79,7 @@ export function loadCubemapTexture({ gl, faces, onReady, forceRefresh }: LoadCub
   facesKey = JSON.stringify(faces);
 
   const texture = memoizedTextures.get(gl) ?? gl.createTexture();
-  // gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+  gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
 
   if (!faces) {
     console.warn("[CubemapLayer][loadCubemapTexture]: Faces are null");

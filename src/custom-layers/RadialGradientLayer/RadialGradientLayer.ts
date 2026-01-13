@@ -30,14 +30,13 @@ const VERTICES = [
   0,
 ];
 
-const defaultConstructorOptions: RadialGradientLayerConstructorOptions = {
-  scale: 0.9,
-  stops: [
-    [0.0, "rgba(176, 208, 240, 1)"],
-    [0.1, "rgba(98, 168, 229, 0.3)"],
-    [0.2, "rgba(98, 168, 229, 0.0)"],
-  ],
-};
+const defaultStops: Array<[number, string]> = [
+  [0.0, "rgba(176, 208, 240, 1)"],
+  [0.1, "rgba(98, 168, 229, 0.3)"],
+  [0.2, "rgba(98, 168, 229, 0.0)"],
+] as const;
+
+const defaultScale = 0.9;
 
 const DELTA_CHANGE = 0.06;
 
@@ -128,7 +127,10 @@ export class RadialGradientLayer implements CustomLayerInterface {
    */
   constructor(gradient: RadialGradientLayerConstructorOptions | boolean) {
     if (typeof gradient === "boolean") {
-      this.gradient = defaultConstructorOptions;
+      this.gradient = {
+        scale: defaultScale,
+        stops: defaultStops,
+      };
       return;
     }
     const errors = validateHaloSpecification(gradient);
@@ -139,8 +141,8 @@ export class RadialGradientLayer implements CustomLayerInterface {
     }
 
     this.gradient = {
-      ...defaultConstructorOptions,
-      ...gradient,
+      scale: gradient.scale ?? defaultScale,
+      stops: gradient.stops ?? defaultStops,
     };
   }
 
@@ -181,13 +183,13 @@ export class RadialGradientLayer implements CustomLayerInterface {
    * @param {GradientDefinition} spec - The gradient specification to compare with the current gradient.
    * @returns {boolean} True if the gradient needs to be updated, false otherwise.
    */
-  public shouldUpdate(newSpec?: GradientDefinition): boolean {
+  public shouldUpdate(newSpec?: GradientDefinition | boolean): boolean {
     const currentSpec = this.getConfig();
     if (newSpec === undefined && currentSpec) {
-      return false;
+      return true;
     }
 
-    const orderedNewSpec = orderObjectKeys(newSpec);
+    const orderedNewSpec = typeof newSpec === "boolean" ? newSpec : orderObjectKeys(newSpec);
     const orderedCurrentSpec = orderObjectKeys(currentSpec);
     return JSON.stringify(orderedNewSpec) !== JSON.stringify(orderedCurrentSpec);
   }
@@ -215,7 +217,7 @@ export class RadialGradientLayer implements CustomLayerInterface {
     return new Promise<void>((resolve) => {
       this.animationDelta = 0;
       const animate = () => {
-        if (this.animationDelta < 1) {
+        if (this.animationDelta <= 1) {
           this.scale = lerp(0, this.gradient.scale, this.animationDelta);
           this.animationDelta += DELTA_CHANGE;
           this.map.triggerRepaint();
@@ -383,11 +385,11 @@ export class RadialGradientLayer implements CustomLayerInterface {
     }
 
     if (gradient === true) {
-      this.gradient.scale = defaultConstructorOptions.scale;
-      this.gradient.stops = defaultConstructorOptions.stops;
+      this.gradient.scale = defaultScale;
+      this.gradient.stops = defaultStops;
     } else {
-      this.gradient.scale = gradient.scale ?? defaultConstructorOptions.scale;
-      this.gradient.stops = gradient.stops ?? defaultConstructorOptions.stops;
+      this.gradient.scale = gradient.scale ?? defaultScale;
+      this.gradient.stops = gradient.stops ?? defaultStops;
     }
 
     await this.animateIn();
