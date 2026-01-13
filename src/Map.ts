@@ -44,6 +44,7 @@ import { Telemetry } from "./Telemetry";
 import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions, validateSpaceSpecification } from "./custom-layers/CubemapLayer";
 import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructorOptions } from "./custom-layers/RadialGradientLayer";
 import { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
+import { logSDKVersion } from "./utils/logSDKVersion";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -212,6 +213,12 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    */
   space?: CubemapLayerConstructorOptions | boolean;
   halo?: RadialGradientLayerConstructorOptions | boolean;
+
+  /**
+   * Whether to log the SDK version to the console.
+   * Default: Unless this is set explicitly to false, the SDK version will be logged to the console.
+   */
+  logSDKVersion?: boolean;
 };
 
 /**
@@ -514,6 +521,8 @@ export class Map extends maplibregl.Map {
   private languageIsUpdated = false;
 
   constructor(options: MapOptions) {
+    if (options.logSDKVersion !== false) logSDKVersion();
+
     displayNoWebGlWarning(options.container);
 
     if (options.apiKey) {
@@ -1185,7 +1194,7 @@ export class Map extends maplibregl.Map {
     const newStyle = styleInfo.style as StyleSpecificationWithMetaData;
 
     try {
-      super.setStyle(styleInfo.style, options);
+      super.setStyle(styleInfo.style, { ...options, diff: typeof styleInfo.style !== "string" });
       this.styleInProcess = true;
     } catch (e) {
       this.styleInProcess = false;

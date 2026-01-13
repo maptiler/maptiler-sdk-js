@@ -1,6 +1,6 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## 3.10.0
 
 ### ✨ Features and improvements
 - Adds the new `MapTilerAnimation` module and associated helpers for creating and managing animations, lerping between values and 'smoothing' arrays.
@@ -20,9 +20,11 @@
 
 ### 🐛 Bug Fixes
 - Reworks `setStyle` logic for halo and space
+- Fixes bug where remote styles where not updating halo / space specs.
 
 ### ⚙️ Others
 - Adds clearer type docs for `mapTilerLogo` constructor option.
+- Add console.info informing SDK consumers of current version.
 
 ## 3.9.0
 
