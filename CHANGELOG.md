@@ -9,9 +9,11 @@
 
 ### 🐛 Bug Fixes
 - Reworks `setStyle` logic for halo and space
+- Fixes bug where remote styles where not updating halo / space specs.
 
 ### ⚙️ Others
 - Adds clearer type docs for `mapTilerLogo` constructor option.
+- Add console.info informing SDK consumers of current version.
 
 ## 3.9.0
 
