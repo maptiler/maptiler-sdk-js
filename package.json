@@ -65,6 +65,7 @@
   "devDependencies": {
     "@canvas/image-data": "^1.0.0",
     "@eslint/js": "^9.21.0",
+    "@maptiler/3d": "^3.1.0",
     "@playwright/test": "^1.51.0",
     "@types/color-convert": "^2.0.4",
     "@types/color-name": "^2.0.0",

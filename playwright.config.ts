@@ -1,5 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
-
+import packagejson from './package.json' assert { type: 'json' };
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -33,8 +33,13 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+    launchOptions: {
+      env: {
+        __MT_SDK_VERSION__: packagejson.version,
+        __MT_NODE_ENV__: process.env.NODE_ENV,
+      }
+    }
   },
-  
   snapshotDir: './e2e/snapshots',
   /* Configure projects for major browsers */
   projects: [

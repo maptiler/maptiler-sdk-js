@@ -1323,7 +1323,158 @@ When defining a new _ramp_, the colors can be an RGB array (`[number, number, nu
 
 Many methods are available on color ramps, such as getting the `<canvas>` element of it, rescaling it, flipping it or [resampling it in a non-linear way](colorramp.md). Read more on [our reference page](https://docs.maptiler.com/sdk-js/api/color-ramp/) and have a look at our [examples](https://docs.maptiler.com/sdk-js/examples/?q=colorramp) to see how they work.
 
-### Vector Layer Helpers
+# Camera routes and animations
+
+The SDK comes with several classes to help with animations, particularly route animations.
+
+See `demos/11-animated-routes.html` for examples.
+See `demos/12-maptiler-animation.html` for examples.
+
+#### 🧩 `MaptilerAnimation`
+
+MaptilerAnimation is a utility class for smoothly animating between keyframes using custom easing and playback control. It supports event-based hooks for frame updates and completion, and works well within rendering loops or UI transitions.
+
+##### 🚀 Usage
+
+```ts
+// linearly animated between values
+const animation = new MaptilerAnimation({
+  keyframes: [
+    // `props` are interpolated across the duration
+    { delta: 0, props: { lon: -7.445, } },
+    // `userData` can hold any type of custom data to pass with the keyframe
+    { delta: 0.5, userData: { mydata: "whoa!" } },
+    { delta: 1, props: { lon: -7.473 } }
+  ],
+  duration: 1000, // 1 second
+  iterations: Infinity // loop forever
+});
+
+const marker = new Marker().setLngLat(
+  new LngLat(
+    -7.449346225791231,
+    39.399728941536836,
+  )
+).addTo(map);
+
+// TimeUpdate is fired every frame
+animation.addEventListener(AnimationEventTypes.TimeUpdate, (e) => {
+  marker.setLngLat(
+    new LngLat(
+      e.props.lon,
+    39.399728941536836,
+    )
+  )
+})
+// fired when the keyframe changes
+animation.addEventListener(AnimationEventTypes.Keyframe, ({ userData }) => {
+  console.log(userData.mydata) // "whoa!"
+});
+
+animation.play();
+```
+![](images/animate-linear-trimmed.gif)
+
+```ts
+// eased between values
+const animation = new MaptilerAnimation({
+  keyframes: [
+    // `props` are interpolated across the duration
+    { delta: 0, easing: EasingFunctionName.ElasticInOut, props: { lon: -7.445, } },
+    { delta: 1, props: { lon: -7.455 } }
+  ],
+  duration: 1000, // 1 second
+  iterations: Infinity // loop forever
+});
+```
+![](images/animate-elastic-trimmed.gif)
+
+####  🗺️ `AnimatedRouteLayer`
+
+`AnimatedRouteLayer` is custom layer that animates a path or route on the map based on keyframes or GeoJSON data. It supports animated line styling and camera following, making it ideal for visualizing routes, playback tracks, or timeline-based geographic events.
+
+Note: At present, to avoid problems arising from the camera being manipulated by two animations at any one time, there can only ever be one instance of `AnimatedRouteLayer` on the map at any time. This API may change in the future, but at present you must remove each instance of `AnimatedRouteLayer` from the map before adding another.
+
+##### ✨ Features
+  - Animate a path using keyframes or GeoJSON data
+  - Optional animated stroke styles to indicate progress
+  - Camera movement smoothing, following along the route
+  - Configurable duration, easing, delay, and iterations via geojson properties
+  - Event-based lifecycle hooks for adaptability.
+  - Optional manual frame advancement (e.g., for scrubbing or syncing with map events, scroll etc etc)
+
+##### 🚀 Basic Usage
+```ts
+const myGeoJSONSource = {
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-74.0060, 40.7128],
+          [-73.9352, 40.7306],
+          [-73.9851, 40.7580]
+        ]
+      },
+      "properties": {
+        "@duration": 5000, // animation params are prepended with '@'
+        "@iterations": 3,
+        "@delay": 1000,
+        "@autoplay": true,
+        "bearing": [
+          40,
+          30,
+          10,
+          10,
+          20,
+          40,
+        ]
+      }
+    }
+  ]
+}
+
+map.addSource("my-geojson-source", {
+  type: "geojson",
+  data: myGeoJSONSource,
+});
+
+const animatedRoute = new AnimatedRouteLayer({
+  source: {
+    // assumes that the source is already added to the map with the given layer ID
+    id: "my-geojson-source", // the name of the source
+    layerID: "route-layer", // the name of the layer
+  },
+  // OR
+  keyframes: [], // an array of keyframes
+
+  duration: 5000,
+  pathStrokeAnimation: {
+    // will only be applied to LineString GeoJSON types
+    activeColor: [0, 128, 0, 1], // color of the line that has already been traversed
+    inactiveColor: [128, 128, 128, 0.5],
+  },
+  cameraAnimation: {
+    follow: true, // should the camera follow the route?
+    pathSmoothing: {
+      resolution: 20, // the resolution of the smoothness 
+      epsilon: 10, // how much the path is simplified before smoothing
+    },
+  },
+  autoplay: true,
+});
+
+// Add to map
+map.addLayer(animatedRoute);
+
+// Playback controls
+animatedRoute.play();
+animatedRoute.pause();
+```
+
+For a full example of how to use this, look at [the example](./demos/11-animated-routes.html)
 
 **Let's make vector layers easy!** Originally, you'd have to add a source and then proceed to the styling of your layer, which can be tricky because there are a lot of `paint` and `layout` options and they vary a lot from one type of layer to another. **But we have helpers for this!** 🖋️
 ![](images/screenshots/point-layer.jpg)

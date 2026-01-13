@@ -3,6 +3,17 @@
 ## 3.10.0
 
 ### ✨ Features and improvements
+- Adds the new `MapTilerAnimation` module and associated helpers for creating and managing animations, lerping between values and 'smoothing' arrays.
+- Adds the new `AnimatedRouteLayer` module and associated helpers for animating camera movement along GeoJSON features paths.
+
+### 🐛 Bug Fixes
+- None
+### ⚙️ Others
+- None
+
+## 3.10.0
+
+### ✨ Features and improvements
 - MapLibre GL dependency was updated to `5.14`
   - Types that were removed in a minor version of MapLibre GL, breaking semver, were moved into MapTiler SDK to not break compatibility for MapTiler SDK users
   - Overpanning and underzooming patch for `ImageViewer` was updated to use a new standard MapLibre GL approach instead of monkey-patching it
