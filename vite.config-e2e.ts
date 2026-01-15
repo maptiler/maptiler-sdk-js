@@ -7,6 +7,7 @@ export default defineConfig({
       input: {
         mapLoad: 'public/mapLoad.html',
         rtlTextPlugin: 'public/rtlTextPlugin.html',
+        animatedRouteLayer: 'public/animatedRouteLayer.html',
       },
     },
   },

@@ -1,7 +1,7 @@
 import type { Map } from "../../../src/index";
 import { JSHandle, Page, expect } from "@playwright/test";
 import path from "path";
-
+import { injectGlobalVariables } from "./injectGlobalVariables";
 interface IloadFixtureAndGetMapHandle {
   fixture: string;
   page: Page;
@@ -21,6 +21,7 @@ export default async function loadFixtureAndGetMapHandle({
   waitUntil = "load",
   queryParams,
 }: IloadFixtureAndGetMapHandle): Promise<{ mapHandle: JSHandle<Map | null> }> {
+  await injectGlobalVariables(page);
   if (mockStyle) {
     // mock style response
     await page.route("https://api.maptiler.com/maps/*/*.json*", async (route) => {
