@@ -1,6 +1,6 @@
 # MapTiler SDK Changelog
 
-## 3.10.0
+## NEXT
 
 ### ✨ Features and improvements
 - Adds the new `MapTilerAnimation` module and associated helpers for creating and managing animations, lerping between values and 'smoothing' arrays.
@@ -11,7 +11,17 @@
 ### ⚙️ Others
 - None
 
-## 3.10.0
+## 3.10.2
+### ✨ Features and improvements
+- None
+
+### 🐛 Bug Fixes
+- Fixes a merge artefact where a call to enableRTL was removed, disabling rtl text by default. Re-enables RTL by default and adds e2e tests.
+
+### ⚙️ Others
+- None
+
+## 3.10.1
 
 ### ✨ Features and improvements
 - MapLibre GL dependency was updated to `5.14`
@@ -25,6 +35,9 @@
 ### ⚙️ Others
 - Adds clearer type docs for `mapTilerLogo` constructor option.
 - Add console.info informing SDK consumers of current version.
+
+## 3.10.0
+### ⚠️ Warning This version is deprecated use 3.10.1 instead
 
 ## 3.9.0
 
