@@ -26,7 +26,7 @@ async function main() {
         {
           type: "Feature",
           geometry: { type: "Point", coordinates: [43.648, 33.15] },
-          properties: { name: "!يلا حبيبي" }, // yla habibi
+          properties: { name: "!يلا حبيبي" },
         },
       ],
     },
@@ -38,7 +38,7 @@ async function main() {
     source: "places-source",
     layout: {
       "text-field": ["get", "name"],
-      "text-font": ["Noto Sans Regular"], // Ensure this font supports Arabic
+      "text-font": ["Noto Sans Regular"],
       "text-size": 100,
     },
     paint: {
