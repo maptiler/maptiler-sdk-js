@@ -66,7 +66,7 @@ typings/
 *.tgz
 
 e2e/playwright-report
-e2e/test-results
+e2e/test-results/
 
 # Yarn Integrity file
 .yarn-integrity
@@ -115,4 +115,4 @@ docsmd
 build
 e2e/playwright-report
 playwright-report
-test-results
+test-results/

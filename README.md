@@ -1323,7 +1323,7 @@ When defining a new _ramp_, the colors can be an RGB array (`[number, number, nu
 
 Many methods are available on color ramps, such as getting the `<canvas>` element of it, rescaling it, flipping it or [resampling it in a non-linear way](colorramp.md). Read more on [our reference page](https://docs.maptiler.com/sdk-js/api/color-ramp/) and have a look at our [examples](https://docs.maptiler.com/sdk-js/examples/?q=colorramp) to see how they work.
 
-# Camera routes and animations
+### Camera routes and animations
 
 The SDK comes with several classes to help with animations, particularly route animations.
 
@@ -1475,6 +1475,8 @@ animatedRoute.pause();
 ```
 
 For a full example of how to use this, look at [the example](./demos/11-animated-routes.html)
+
+### Vector Layer Helpers
 
 **Let's make vector layers easy!** Originally, you'd have to add a source and then proceed to the styling of your layer, which can be tricky because there are a lot of `paint` and `layout` options and they vary a lot from one type of layer to another. **But we have helpers for this!** 🖋️
 ![](images/screenshots/point-layer.jpg)
