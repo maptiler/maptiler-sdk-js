@@ -1,6 +1,6 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## 3.10.2
 ### ✨ Features and improvements
 - None
 
