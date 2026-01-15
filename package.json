@@ -1,6 +1,6 @@
 {
   "name": "@maptiler/sdk",
-  "version": "3.10.2",
+  "version": "3.10.2-rc.2",
   "description": "The Javascript & TypeScript map SDK tailored for MapTiler Cloud",
   "author": "MapTiler",
   "module": "dist/maptiler-sdk.mjs",
