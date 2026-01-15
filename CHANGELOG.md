@@ -1,5 +1,15 @@
 # MapTiler SDK Changelog
 
+## NEXT
+### ✨ Features and improvements
+- None
+
+### 🐛 Bug Fixes
+- Fixes a merge artefact where a call to enableRTL was removed, disabling rtl text by default. Re-enables RTL by default and adds e2e tests.
+
+### ⚙️ Others
+- None
+
 ## 3.10.1
 
 ### ✨ Features and improvements
