@@ -9,6 +9,7 @@ interface IloadFixtureAndGetMapHandle {
   mockTiles?: boolean;
   debug?: boolean;
   waitUntil?: "load" | "domcontentloaded" | "networkidle";
+  queryParams?: Record<string, string>;
 }
 
 export default async function loadFixtureAndGetMapHandle({
@@ -18,6 +19,7 @@ export default async function loadFixtureAndGetMapHandle({
   mockTiles = true,
   debug = false,
   waitUntil = "load",
+  queryParams,
 }: IloadFixtureAndGetMapHandle): Promise<{ mapHandle: JSHandle<Map | null> }> {
   await injectGlobalVariables(page);
   if (mockStyle) {
@@ -59,7 +61,7 @@ export default async function loadFixtureAndGetMapHandle({
     }
   });
 
-  await page.goto(`http://localhost:5173/${fixture}.html`, {
+  await page.goto([`http://localhost:5173/${fixture}.html`, queryParams && new URLSearchParams(queryParams).toString()].filter(Boolean).join("?"), {
     waitUntil,
   });
 

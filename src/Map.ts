@@ -25,7 +25,7 @@ import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
 import { defaults } from "./constants/defaults";
 import { MaptilerLogoControl } from "./controls/MaptilerLogoControl";
-import { changeFirstLanguage, checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, replaceLanguage } from "./tools";
+import { changeFirstLanguage, checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, enableRTL, replaceLanguage } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
 import { styleToStyle } from "./mapstyle";
 import { MaptilerTerrainControl } from "./controls/MaptilerTerrainControl";
@@ -219,6 +219,13 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * Default: Unless this is set explicitly to false, the SDK version will be logged to the console.
    */
   logSDKVersion?: boolean;
+
+  /**
+   * Whether to enable the RTL plugin or import a different one.
+   * Default is undefined, which means the plugin is enabled by default.
+   */
+
+  rtlTextPlugin?: boolean | string;
 };
 
 /**
@@ -594,6 +601,13 @@ export class Map extends maplibregl.Map {
 
     this.on("style.load", () => {
       this.styleInProcess = false;
+
+      // If the rtlTextPlugin option is a string, we assume it is a url and enable the plugin
+      // If the rtlTextPlugin option is undefined, it is enabled by default and will override the default url
+      // If the rtlTextPlugin option is false (ot anything else), we don't enable the plugin
+      if (typeof options.rtlTextPlugin === "string" || typeof options.rtlTextPlugin === "undefined") {
+        void enableRTL(options.rtlTextPlugin);
+      }
     });
 
     // Safeguard for distant styles at non-http 2xx status URLs
