@@ -2019,7 +2019,7 @@ export class Map extends maplibregl.Map {
   override getProjection(): ProjectionSpecification {
     const projection = this.style.getProjection();
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!projection === undefined && this.style.projection) {
+    if (projection === undefined && this.style.projection) {
       return { type: this.style.projection.name };
     }
     return projection;
