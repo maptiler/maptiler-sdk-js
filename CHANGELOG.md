@@ -7,7 +7,8 @@
 - Adds the new `AnimatedRouteLayer` module and associated helpers for animating camera movement along GeoJSON features paths.
 
 ### 🐛 Bug Fixes
-- None
+- Fixes a bug where `map.getProjection()` did not return a value when default projection was used
+
 ### ⚙️ Others
 - None
 
