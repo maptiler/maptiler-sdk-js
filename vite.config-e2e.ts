@@ -8,6 +8,7 @@ export default defineConfig({
         mapLoad: 'public/mapLoad.html',
         rtlTextPlugin: 'public/rtlTextPlugin.html',
         animatedRouteLayer: 'public/animatedRouteLayer.html',
+        haloSpace: 'public/haloSpace.html',
       },
     },
   },

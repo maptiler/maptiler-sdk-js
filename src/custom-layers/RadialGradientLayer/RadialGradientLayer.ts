@@ -434,8 +434,10 @@ export function validateHaloSpecification(halo: RadialGradientLayerConstructorOp
 
   // this is testing external data so we need to check
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (!halo.stops || halo.stops.length === 0) {
+  if (!halo.stops || halo.stops.length === 0 || !Array.isArray(halo.stops)) {
     errors.push("Halo `stops` property is not an array.");
+    // we need to return because otherwise it could still be an object and it would break without validation
+    return errors;
   }
 
   // this is testing external data so we need to check
