@@ -212,100 +212,96 @@ test.describe("Halo Tests", () => {
     });
   });
 
-  test.describe("when halo is set to valid halo spec in the constructor", () => {
-    test("it overrides remote style halo spec", async ({ browser }) => {
-      const page = await setupPage(browser);
+  test("when halo is set to valid halo spec in constructor, it overrides remote style halo spec", async ({ browser }) => {
+    const page = await setupPage(browser);
 
-      await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-        await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
-      });
-
-      await page.evaluate(async () => {
-        await window.setFixtureWithConfig({
-          id: "halo-style-config-halo-remote-override",
-          options: {
-            container: "map",
-            zoom: 3,
-            halo: {
-              scale: 2,
-              stops: [
-                [0.2, "transparent"],
-                [0.2, "blue"],
-                [0.4, "blue"],
-                [0.4, "transparent"],
-              ],
-            },
-            style: "streets-v4",
-          },
-        });
-      });
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
+      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
     });
 
-    test("it overrides json to setStyle halo spec", async ({ browser }) => {
-      const page = await setupPage(browser);
-
-      await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-        await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
-      });
-
-      await page.evaluate(async () => {
-        await window.setFixtureWithConfig({
-          id: "halo-style-config-halo-json-false",
-          options: {
-            container: "map",
-            zoom: 3,
-            halo: {
-              scale: 2,
-              stops: [
-                [0.2, "transparent"],
-                [0.2, "blue"],
-                [0.4, "blue"],
-                [0.4, "transparent"],
-              ],
-            },
-            style: window.__pageObjects.styleSpecWithHaloSpace,
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "halo-style-config-halo-remote-override",
+        options: {
+          container: "map",
+          zoom: 3,
+          halo: {
+            scale: 2,
+            stops: [
+              [0.2, "transparent"],
+              [0.2, "blue"],
+              [0.4, "blue"],
+              [0.4, "transparent"],
+            ],
           },
-        });
+          style: "streets-v4",
+        },
       });
     });
   });
 
-  test.describe("when halo constructor option is left undefined", () => {
-    test("if remote style that includes halo config is selected, it is rendered", async ({ browser }) => {
-      const page = await setupPage(browser, {
-        mockStyle: "maptiler-style-space-halo.json",
-      });
+  test("when halo is set to valid halo spec in constructor, it overrides json to setStyle halo spec", async ({ browser }) => {
+    const page = await setupPage(browser);
 
-      await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-        await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
-      });
-
-      await page.evaluate(async () => {
-        await window.setFixtureWithConfig({
-          id: "halo-style-config-halo-remote-valid",
-          options: {
-            container: "map",
-            zoom: 3,
-          },
-        });
-      });
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
+      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
     });
 
-    test("if json with valid halo config is passed to setStyle, it is rendered", async ({ browser }) => {
-      const page = await setupPage(browser);
-
-      await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-        await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
-      });
-
-      await page.evaluate(async () => {
-        await window.setFixtureWithConfig({
-          id: "halo-style-config-halo-json-valid",
-          options: {
-            container: "map",
-            zoom: 3,
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "halo-style-config-halo-json-false",
+        options: {
+          container: "map",
+          zoom: 3,
+          halo: {
+            scale: 2,
+            stops: [
+              [0.2, "transparent"],
+              [0.2, "blue"],
+              [0.4, "blue"],
+              [0.4, "transparent"],
+            ],
           },
-        });
+          style: window.__pageObjects.styleSpecWithHaloSpace,
+        },
+      });
+    });
+  });
+
+  test("when halo constructor option is left undefined, if remote style that includes halo config is selected, it is rendered", async ({ browser }) => {
+    const page = await setupPage(browser, {
+      mockStyle: "maptiler-style-space-halo.json",
+    });
+
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
+      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
+    });
+
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "halo-style-config-halo-remote-valid",
+        options: {
+          container: "map",
+          zoom: 3,
+        },
+      });
+    });
+  });
+
+  test("when halo constructor option is left undefined, if json with valid halo config is passed to setStyle, it is rendered", async ({ browser }) => {
+    const page = await setupPage(browser);
+
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
+      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
+    });
+
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "halo-style-config-halo-json-valid",
+        options: {
+          container: "map",
+          zoom: 3,
+        },
       });
     });
   });
@@ -410,81 +406,67 @@ test.describe("Halo Tests", () => {
 });
 
 test.describe("Space Option Tests", () => {
-  test.describe("when space is set to true in constructor", () => {
-    test("if catalogue style has no space config, the default is rendered", async ({ page }) => {
-      // Test implementation
-    });
-
-    test("if catalogue has a space config, that config is rendered", async ({ page }) => {
-      // Test implementation
-    });
-
-    test("if json passed to setStyle has space config, that config is rendered", async ({ page }) => {
-      // Test implementation
-    });
-
-    test("if json passed to setStyle has no space config, the default space is rendered", async ({ page }) => {
-      // Test implementation
-    });
+  test("when space is set to true in constructor, if catalogue style has no space config, the default is rendered", async ({ page }) => {
+    // Test implementation
   });
 
-  test.describe("when space is set to false in constructor", () => {
-    test("if catalogue style has space config, it is ignored and no space is rendered", async ({ page }) => {
-      // Test implementation
-    });
-
-    test("if json is passed to setStyle, it is ignored and no space is rendered", async ({ page }) => {
-      // Test implementation
-    });
-
-    test("if custom style from cloud is set and has space config, it is ignored and no space is rendered", async ({ page }) => {
-      // Test implementation
-    });
+  test("when space is set to true in constructor, if catalogue has a space config, that config is rendered", async ({ page }) => {
+    // Test implementation
   });
 
-  test.describe("when space is set to valid space spec in the constructor", () => {
-    test("it overrides catalogue space spec", async ({ page }) => {
-      // Test implementation
-    });
-
-    test("it overrides json to setStyle space spec", async ({ page }) => {
-      // Test implementation
-    });
-
-    test("it overrides custom style from cloud space spec", async ({ page }) => {
-      // Test implementation
-    });
+  test("when space is set to true in constructor, if json passed to setStyle has space config, that config is rendered", async ({ page }) => {
+    // Test implementation
   });
 
-  test.describe("when space constructor option is left undefined", () => {
-    test("if catalogue style is selected, it is rendered", async ({ page }) => {
-      // Test implementation
-    });
-
-    test("if custom style is selected, it is rendered", async ({ page }) => {
-      // Test implementation
-    });
-
-    test("if json passed to setStyle, it is rendered", async ({ page }) => {
-      // Test implementation
-    });
+  test("when space is set to true in constructor, if json passed to setStyle has no space config, the default space is rendered", async ({ page }) => {
+    // Test implementation
   });
 
-  test.describe("when an invalid spec is passed to the constructor", () => {
-    test("the console notifies the user of the incorrect spec", async ({ page }) => {
-      // Test implementation
-    });
+  test("when space is set to false in constructor, if catalogue style has space config, it is ignored and no space is rendered", async ({ page }) => {
+    // Test implementation
   });
 
-  test.describe("when an invalid spec is included in a catalogue style", () => {
-    test("the console notifies the user of the incorrect spec", async ({ page }) => {
-      // Test implementation
-    });
+  test("when space is set to false in constructor, if json is passed to setStyle, it is ignored and no space is rendered", async ({ page }) => {
+    // Test implementation
   });
 
-  test.describe("when an invalid spec is included in a custom style", () => {
-    test("the console notifies the user of the incorrect spec", async ({ page }) => {
-      // Test implementation
-    });
+  test("when space is set to false in constructor, if custom style from cloud is set and has space config, it is ignored and no space is rendered", async ({ page }) => {
+    // Test implementation
+  });
+
+  test("when space is set to valid space spec in constructor, it overrides catalogue space spec", async ({ page }) => {
+    // Test implementation
+  });
+
+  test("when space is set to valid space spec in constructor, it overrides json to setStyle space spec", async ({ page }) => {
+    // Test implementation
+  });
+
+  test("when space is set to valid space spec in constructor, it overrides custom style from cloud space spec", async ({ page }) => {
+    // Test implementation
+  });
+
+  test("when space constructor option is left undefined, if catalogue style is selected, it is rendered", async ({ page }) => {
+    // Test implementation
+  });
+
+  test("when space constructor option is left undefined, if custom style is selected, it is rendered", async ({ page }) => {
+    // Test implementation
+  });
+
+  test("when space constructor option is left undefined, if json passed to setStyle, it is rendered", async ({ page }) => {
+    // Test implementation
+  });
+
+  test("when an invalid spec is passed to the constructor, the console notifies the user of the incorrect spec", async ({ page }) => {
+    // Test implementation
+  });
+
+  test("when an invalid spec is included in a catalogue style, the console notifies the user of the incorrect spec", async ({ page }) => {
+    // Test implementation
+  });
+
+  test("when an invalid spec is included in a custom style, the console notifies the user of the incorrect spec", async ({ page }) => {
+    // Test implementation
   });
 });
