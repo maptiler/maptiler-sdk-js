@@ -69,7 +69,7 @@ test.describe("Halo", () => {
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
-        id: "halo-style-config-halo-true",
+        id: "halo-remote-style-config-halo-true",
         options: {
           style: "doesnt-matter",
           container: "map",
@@ -91,7 +91,7 @@ test.describe("Halo", () => {
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
-        id: "halo-style-config-halo-override",
+        id: "halo-remote-style-config-halo-constructor-override",
         options: {
           container: "map",
           halo: {
@@ -118,7 +118,7 @@ test.describe("Halo", () => {
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
-        id: "halo-style-config-halo-json",
+        id: "halo-json-style-config-halo-rendered",
         options: {
           container: "map",
           zoom: 3,
@@ -163,7 +163,7 @@ test.describe("Halo", () => {
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
-        id: "halo-style-config-halo-override",
+        id: "halo-remote-style-config-halo-false",
         options: {
           container: "map",
           halo: false,
@@ -183,7 +183,7 @@ test.describe("Halo", () => {
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
-        id: "halo-style-config-halo-json-default",
+        id: "halo-json-style-config-halo-true",
         options: {
           container: "map",
           zoom: 3,
@@ -226,7 +226,7 @@ test.describe("Halo", () => {
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
-        id: "halo-style-config-halo-remote-override",
+        id: "halo-catalogue-style-halo-constructor-override",
         options: {
           container: "map",
           zoom: 3,
@@ -254,7 +254,7 @@ test.describe("Halo", () => {
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
-        id: "halo-style-config-halo-json-false",
+        id: "halo-json-style-config-halo-constructor-override",
         options: {
           container: "map",
           zoom: 3,
@@ -368,7 +368,7 @@ test.describe("Halo", () => {
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
-        id: "halo-style-config-halo-invalid",
+        id: "halo-catalogue-style-config-halo-invalid",
         options: {
           container: "map",
           zoom: 3,
@@ -447,7 +447,7 @@ test.describe("Space", () => {
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
-        id: "space-style-config-space-true-with-style-config",
+        id: "space-catalogue-style-config-space-true",
         options: {
           container: "map",
           space: true,
@@ -467,7 +467,7 @@ test.describe("Space", () => {
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
-        id: "space-style-config-space-true-with-style-config",
+        id: "space-json-style-config-space-true",
         options: {
           container: "map",
           space: true,
@@ -488,7 +488,7 @@ test.describe("Space", () => {
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
-        id: "space-style-config-space-true-with-style-config",
+        id: "space-json-style-config-space-true-default",
         options: {
           container: "map",
           space: true,
@@ -605,7 +605,7 @@ test.describe("Space", () => {
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
-        id: "space-style-config-halo-remote-valid",
+        id: "space-catalogue-style-config-space-undefined",
         options: {
           container: "map",
           zoom: 3,
@@ -656,7 +656,7 @@ test.describe("Space", () => {
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
-        id: "space-style-config-space-constructor-invalid",
+        id: "space-constructor-config-space-invalid",
         options: {
           container: "map",
           halo: false,
@@ -691,7 +691,7 @@ test.describe("Space", () => {
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
-        id: "space-style-config-space-constructor-invalid",
+        id: "space-catalogue-style-config-space-invalid",
         options: {
           container: "map",
           halo: false,
@@ -721,7 +721,7 @@ test.describe("Space", () => {
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
-        id: "space-style-config-space-constructor-invalid",
+        id: "space-json-style-config-space-invalid",
         options: {
           container: "map",
           halo: false,
