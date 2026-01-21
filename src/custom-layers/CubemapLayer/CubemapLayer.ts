@@ -203,6 +203,12 @@ class CubemapLayer implements CustomLayerInterface {
    * whether to use a cubemap texture based on the provided options.
    */
   constructor(cubemapConfig: CubemapLayerConstructorOptions | true) {
+    const errors = validateSpaceSpecification(cubemapConfig);
+    if (errors.length > 0) {
+      throw new Error(`[CubemapLayer]: Invalid cubemap specification:
+- ${errors.join("\n - ")}`);
+    }
+
     const options = configureOptions(cubemapConfig, defaultConstructorOptions);
     this.options = options;
     this.currentFacesDefinitionKey = JSON.stringify(options.faces ?? options.preset ?? options.path);
@@ -580,6 +586,12 @@ class CubemapLayer implements CustomLayerInterface {
    * Finally, it calls `updateCubemap` to apply the changes and trigger a repaint of the map.
    */
   public async setCubemap(spec: CubemapDefinition | boolean): Promise<void> {
+    const errors = validateSpaceSpecification(spec);
+    if (errors.length > 0) {
+      throw new Error(`[CubemapLayer]: Invalid cubemap specification:
+- ${errors.join("\n - ")}`);
+    }
+
     const cubemap = typeof spec === "boolean" ? defaultConstructorOptions : spec;
 
     this.options = cubemap;
@@ -624,28 +636,59 @@ class CubemapLayer implements CustomLayerInterface {
   }
 }
 
-export function validateSpaceSpecification(space?: CubemapDefinition | boolean): boolean {
-  if (!space) {
-    return false;
+export function validateSpaceSpecification(space?: CubemapDefinition | boolean): string[] {
+  const errors: string[] = [];
+  if (typeof space === "undefined") {
+    errors.push("Space specification is undefined.");
+    return errors;
   }
 
   if (typeof space === "boolean") {
-    return true;
+    return [];
+  }
+
+  if (Object.keys(space).length === 0) {
+    errors.push("Space specification is an empty object.");
+    return errors;
+  }
+
+  const supportedKeys = ["color", "preset", "path", "faces"];
+  const unsupportedKeys = Object.keys(space).filter((key) => !supportedKeys.includes(key));
+  if (unsupportedKeys.length > 0) {
+    errors.push(
+      `Space specification contains unsupported properties: ${unsupportedKeys.map((key) => `\`${key}\``).join(", ")}. Supported properties: \`color\`, \`preset\`, \`path\`, \`faces\`.`,
+    );
+    return errors;
   }
 
   if (!space.path && !space.preset && !space.faces && !space.color) {
-    return false;
+    errors.push("Space specification contains neither a path, preset, faces, nor color.");
+    return errors;
   }
 
   if (space.preset && !(space.preset in cubemapPresets)) {
-    return false;
+    errors.push(`Space preset "${space.preset}" is not a valid preset. Available presets: ${Object.keys(cubemapPresets).join(", ")}`);
+  }
+
+  const pathPresetOrFacesKeys = Object.keys(space)
+    .filter((key) => key !== "color")
+    .filter((key) => key === "preset" || key === "path" || key === "faces");
+
+  if (pathPresetOrFacesKeys.length > 1) {
+    errors.push(
+      `Space specification contains multiple properties for cubemap definition: ${pathPresetOrFacesKeys.join(", ")}. Only one of \`path\`, \`preset\`, or \`faces\` should be defined.`,
+    );
   }
 
   if (space.faces && (!space.faces.pX || !space.faces.nX || !space.faces.pY || !space.faces.nY || !space.faces.pZ || !space.faces.nZ)) {
-    return false;
+    errors.push("Space specification contains faces but one or more of the faces are undefined.");
   }
 
-  return true;
+  if (space.faces && Object.values(space.faces).every((face) => typeof face !== "string")) {
+    errors.push("Space specification contains faces but one or more of the faces are not strings.");
+  }
+
+  return errors;
 }
 
 /**

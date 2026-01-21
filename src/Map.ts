@@ -338,7 +338,7 @@ export class Map extends maplibregl.Map {
     }
 
     // respect options over style specification.
-    if (this.options.space !== true && validateSpaceSpecification(this.options.space)) {
+    if (this.options.space !== true) {
       this.setSpace(this.options.space!);
       return;
     }
@@ -445,7 +445,7 @@ export class Map extends maplibregl.Map {
 
     if (options.space === false) return;
 
-    if (options.space) {
+    if (options.space && options.space !== true) {
       this.space = new CubemapLayer(options.space);
       this.addLayer(this.space, before);
       return;
@@ -455,6 +455,11 @@ export class Map extends maplibregl.Map {
 
     if (spaceOptionsFromStyleSpec) {
       this.space = new CubemapLayer(spaceOptionsFromStyleSpec);
+      this.addLayer(this.space, before);
+    }
+
+    if (this.options.space === true) {
+      this.space = new CubemapLayer(true);
       this.addLayer(this.space, before);
     }
   }

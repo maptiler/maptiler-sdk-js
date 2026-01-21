@@ -43,7 +43,7 @@ test.describe("Halo", () => {
     const page = await setupPage(browser);
 
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
+      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
     });
 
     await page.evaluate(async () => {
@@ -64,7 +64,7 @@ test.describe("Halo", () => {
     });
 
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
+      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
     });
 
     await page.evaluate(async () => {
@@ -86,7 +86,7 @@ test.describe("Halo", () => {
     });
 
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
+      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
     });
 
     await page.evaluate(async () => {
@@ -113,7 +113,7 @@ test.describe("Halo", () => {
     const page = await setupPage(browser, { debug: true });
 
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
+      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
     });
 
     await page.evaluate(async () => {
@@ -134,7 +134,7 @@ test.describe("Halo", () => {
     const page = await setupPage(browser);
 
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
+      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
     });
 
     await page.evaluate(async () => {
@@ -158,7 +158,7 @@ test.describe("Halo", () => {
     });
 
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
+      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
     });
 
     await page.evaluate(async () => {
@@ -178,7 +178,7 @@ test.describe("Halo", () => {
     const page = await setupPage(browser);
 
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
+      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
     });
 
     await page.evaluate(async () => {
@@ -200,7 +200,7 @@ test.describe("Halo", () => {
     const page = await setupPage(browser);
 
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
+      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
     });
 
     await page.evaluate(async () => {
@@ -221,7 +221,7 @@ test.describe("Halo", () => {
     const page = await setupPage(browser);
 
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
+      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
     });
 
     await page.evaluate(async () => {
@@ -249,7 +249,7 @@ test.describe("Halo", () => {
     const page = await setupPage(browser);
 
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
+      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
     });
 
     await page.evaluate(async () => {
@@ -279,7 +279,7 @@ test.describe("Halo", () => {
     });
 
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
+      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
     });
 
     await page.evaluate(async () => {
@@ -299,7 +299,7 @@ test.describe("Halo", () => {
     const page = await setupPage(browser);
 
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
+      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
     });
 
     await page.evaluate(async () => {
@@ -414,67 +414,324 @@ test.describe("Halo", () => {
 });
 
 test.describe("Space", () => {
-  test("when space is set to true in constructor, if catalogue style has no space config, the default is rendered", async ({ page }) => {
-    // Test implementation
+  test("when space is set to true in constructor, if catalogue style has no space config, the default is rendered", async ({ browser }) => {
+    const page = await setupPage(browser, {
+      mockStyle: "maptiler-style.json",
+    });
+
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
+      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    });
+
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "space-style-config-space-true-no-style-config",
+        options: {
+          container: "map",
+          space: true,
+          halo: false,
+          zoom: 3,
+        },
+      });
+    });
   });
 
-  test("when space is set to true in constructor, if catalogue has a space config, that config is rendered", async ({ page }) => {
-    // Test implementation
+  test("when space is set to true in constructor, if catalogue has a space config, that config is rendered", async ({ browser }) => {
+    const page = await setupPage(browser, {
+      mockStyle: "maptiler-style-space-halo.json",
+    });
+
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
+      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    });
+
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "space-style-config-space-true-with-style-config",
+        options: {
+          container: "map",
+          space: true,
+          halo: false,
+          zoom: 3,
+        },
+      });
+    });
   });
 
-  test("when space is set to true in constructor, if json passed to setStyle has space config, that config is rendered", async ({ page }) => {
-    // Test implementation
+  test("when space is set to true in constructor, if json passed to setStyle has space config, that config is rendered", async ({ browser }) => {
+    const page = await setupPage(browser);
+
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
+      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    });
+
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "space-style-config-space-true-with-style-config",
+        options: {
+          container: "map",
+          space: true,
+          halo: false,
+          zoom: 3,
+        },
+      });
+      await window.setFixtureMapStyle(window.__pageObjects.styleSpecWithHaloSpace);
+    });
   });
 
-  test("when space is set to true in constructor, if json passed to setStyle has no space config, the default space is rendered", async ({ page }) => {
-    // Test implementation
+  test("when space is set to true in constructor, if json passed to setStyle has no space config, the default space is rendered", async ({ browser }) => {
+    const page = await setupPage(browser);
+
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
+      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    });
+
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "space-style-config-space-true-with-style-config",
+        options: {
+          container: "map",
+          space: true,
+          halo: false,
+          zoom: 3,
+        },
+      });
+      await window.setFixtureMapStyle(window.__pageObjects.basicStyleSpec);
+    });
   });
 
-  test("when space is set to false in constructor, if catalogue style has space config, it is ignored and no space is rendered", async ({ page }) => {
-    // Test implementation
+  test("when space is set to false in constructor, if catalogue style has space config, it is ignored and no space is rendered", async ({ browser }) => {
+    const page = await setupPage(browser, {
+      mockStyle: "maptiler-style-space-halo.json",
+    });
+
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
+      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    });
+
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "space-style-config-space-false-with-style-config",
+        options: {
+          container: "map",
+          space: false,
+          halo: false,
+          zoom: 3,
+        },
+      });
+    });
   });
 
-  test("when space is set to false in constructor, if json is passed to setStyle, it is ignored and no space is rendered", async ({ page }) => {
-    // Test implementation
+  test("when space is set to false in constructor, if json is passed to setStyle, it is ignored and no space is rendered", async ({ browser }) => {
+    const page = await setupPage(browser);
+
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
+      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    });
+
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "space-style-config-space-false-with-json-style-config",
+        options: {
+          container: "map",
+          space: false,
+          halo: false,
+          zoom: 3,
+        },
+      });
+      await window.setFixtureMapStyle(window.__pageObjects.styleSpecWithHaloSpace);
+    });
   });
 
-  test("when space is set to false in constructor, if custom style from cloud is set and has space config, it is ignored and no space is rendered", async ({ page }) => {
-    // Test implementation
+  test("when space is set to valid space spec in constructor, it overrides catalogue space spec", async ({ browser }) => {
+    const page = await setupPage(browser, {
+      mockStyle: "maptiler-style-space-halo.json",
+    });
+
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
+      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    });
+
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "space-style-config-space-constructor-with-catalogue-style-config",
+        options: {
+          container: "map",
+          space: {
+            color: "red",
+            preset: "stars",
+          },
+          halo: false,
+          zoom: 3,
+        },
+      });
+    });
   });
 
-  test("when space is set to valid space spec in constructor, it overrides catalogue space spec", async ({ page }) => {
-    // Test implementation
+  test("when space is set to valid space spec in constructor, it overrides json to setStyle space spec", async ({ browser }) => {
+    const page = await setupPage(browser, {
+      mockStyle: "maptiler-style-space-halo.json",
+    });
+
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
+      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    });
+
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "space-style-config-space-constructor-with-json-space-config",
+        options: {
+          container: "map",
+          space: {
+            color: "red",
+            preset: "stars",
+          },
+          halo: false,
+          zoom: 3,
+        },
+      });
+      await window.setFixtureMapStyle(window.__pageObjects.styleSpecWithHaloSpace);
+    });
   });
 
-  test("when space is set to valid space spec in constructor, it overrides json to setStyle space spec", async ({ page }) => {
-    // Test implementation
+  test("when space constructor option is left undefined, if catalogue style is selected, it is rendered", async ({ browser }) => {
+    const page = await setupPage(browser, {
+      mockStyle: "maptiler-style-space-halo.json",
+    });
+
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
+      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    });
+
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "space-style-config-halo-remote-valid",
+        options: {
+          container: "map",
+          zoom: 3,
+          halo: false,
+          style: "doesnt-matter-as-it-will-be-mocked",
+        },
+      });
+    });
   });
 
-  test("when space is set to valid space spec in constructor, it overrides custom style from cloud space spec", async ({ page }) => {
-    // Test implementation
+  test("when space constructor option is left undefined, if json passed to setStyle, it is rendered", async ({ browser }) => {
+    const page = await setupPage(browser, {
+      mockStyle: "maptiler-style.json",
+    });
+
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
+      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    });
+
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "space-style-config-constructor-undefined-with-json-style-config",
+        options: {
+          container: "map",
+          zoom: 3,
+          halo: false,
+        },
+        requiresScreenShot: false,
+      });
+      await window.setFixtureMapStyle("doesnt-matter-as-it-will-be-mocked");
+    });
   });
 
-  test("when space constructor option is left undefined, if catalogue style is selected, it is rendered", async ({ page }) => {
-    // Test implementation
+  test("when an invalid spec is passed to the constructor, the console notifies the user of the incorrect spec", async ({ browser }) => {
+    const page = await setupPage(browser, {
+      mockStyle: "maptiler-style.json",
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {});
+
+    const consolePromise = page.waitForEvent("console", {
+      predicate: (msg) => msg.type() === "error" && msg.text().includes(expectedErrorMessage),
+    });
+
+    const expectedErrorMessage = `Error: [CubemapLayer]: Invalid cubemap specification:
+- Space specification contains unsupported properties: \`not\`. Supported properties: \`color\`, \`preset\`, \`path\`, \`faces\`.`;
+
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "space-style-config-space-constructor-invalid",
+        options: {
+          container: "map",
+          halo: false,
+          style: "doesn't-matter-as-it-will-be-mocked",
+          space: {
+            not: "a valid spec",
+            // @ts-expect-error - invalid spec
+            color: ["not", "an array"],
+          },
+        },
+      });
+    });
+    const consoleMsg = await consolePromise;
+    expect(consoleMsg.type()).toBe("error");
+    expect(consoleMsg.text()).toContain(expectedErrorMessage);
   });
 
-  test("when space constructor option is left undefined, if custom style is selected, it is rendered", async ({ page }) => {
-    // Test implementation
+  test("when an invalid spec is included in a catalogue style, the console notifies the user of the incorrect spec", async ({ browser }) => {
+    const page = await setupPage(browser, {
+      mockStyle: "maptiler-style-space-halo-invalid.json",
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {});
+
+    const consolePromise = page.waitForEvent("console", {
+      predicate: (msg) => msg.type() === "error" && msg.text().includes(expectedErrorMessage),
+    });
+
+    const expectedErrorMessage = `Error: [CubemapLayer]: Invalid cubemap specification:
+- Space preset "3" is not a valid preset. Available presets: stars, space, milkyway, milkyway-subtle, milkyway-bright, milkyway-colored`;
+
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "space-style-config-space-constructor-invalid",
+        options: {
+          container: "map",
+          halo: false,
+          style: "doesn't-matter-as-it-will-be-mocked",
+        },
+      });
+    });
+    const consoleMsg = await consolePromise;
+    expect(consoleMsg.type()).toBe("error");
+    expect(consoleMsg.text()).toContain(expectedErrorMessage);
   });
 
-  test("when space constructor option is left undefined, if json passed to setStyle, it is rendered", async ({ page }) => {
-    // Test implementation
-  });
+  test("when an invalid spec is included in a json style, the console notifies the user of the incorrect spec", async ({ browser }) => {
+    const page = await setupPage(browser, {
+      mockStyle: "maptiler-style.json",
+    });
 
-  test("when an invalid spec is passed to the constructor, the console notifies the user of the incorrect spec", async ({ page }) => {
-    // Test implementation
-  });
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {});
 
-  test("when an invalid spec is included in a catalogue style, the console notifies the user of the incorrect spec", async ({ page }) => {
-    // Test implementation
-  });
+    const consolePromise = page.waitForEvent("console", {
+      predicate: (msg) => msg.type() === "error" && msg.text().includes(expectedErrorMessage),
+    });
 
-  test("when an invalid spec is included in a custom style, the console notifies the user of the incorrect spec", async ({ page }) => {
-    // Test implementation
+    const expectedErrorMessage = `Error: [CubemapLayer]: Invalid cubemap specification:
+- Space preset "3" is not a valid preset. Available presets: stars, space, milkyway, milkyway-subtle, milkyway-bright, milkyway-colored`;
+
+    await page.evaluate(async () => {
+      await window.setFixtureWithConfig({
+        id: "space-style-config-space-constructor-invalid",
+        options: {
+          container: "map",
+          halo: false,
+          style: "doesn't-matter-as-it-will-be-mocked",
+        },
+      });
+      await window.setFixtureMapStyle(window.__pageObjects.styleSpecWithHaloSpaceInvalid);
+    });
+    const consoleMsg = await consolePromise;
+    expect(consoleMsg.type()).toBe("error");
+    expect(consoleMsg.text()).toContain(expectedErrorMessage);
   });
 });
