@@ -466,7 +466,7 @@ export class Map extends maplibregl.Map {
     if (options.halo === false) return;
 
     const haloOptionsFromStyleSpec = spec;
-    if (options.halo) {
+    if (options.halo && options.halo !== true) {
       this.halo = new RadialGradientLayer(options.halo);
       this.addLayer(this.halo, before);
       return;
@@ -475,6 +475,12 @@ export class Map extends maplibregl.Map {
     if (haloOptionsFromStyleSpec) {
       this.halo = new RadialGradientLayer(haloOptionsFromStyleSpec);
       this.addLayer(this.halo, before);
+    }
+
+    if (this.options.halo === true) {
+      this.halo = new RadialGradientLayer(true);
+      this.addLayer(this.halo, before);
+      return;
     }
   }
 

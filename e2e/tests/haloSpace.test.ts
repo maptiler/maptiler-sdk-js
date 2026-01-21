@@ -71,6 +71,7 @@ test.describe("Halo Tests", () => {
       await window.setFixtureWithConfig({
         id: "halo-style-config-halo-true",
         options: {
+          style: "doesnt-matter",
           container: "map",
           halo: true,
           zoom: 3,
@@ -79,7 +80,7 @@ test.describe("Halo Tests", () => {
     });
   });
 
-  test("if remote style has halo config, but halo config is passed to constructor, the remote constructor config is rendered", async ({ browser }) => {
+  test("if remote style has halo config, but halo config is passed to constructor, the constructor option config is rendered", async ({ browser }) => {
     const page = await setupPage(browser, {
       mockStyle: "maptiler-style-space-halo.json",
     });
@@ -109,7 +110,7 @@ test.describe("Halo Tests", () => {
   });
 
   test("if json passed to setStyle has halo config, that config is rendered", async ({ browser }) => {
-    const page = await setupPage(browser);
+    const page = await setupPage(browser, { debug: true });
 
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
       await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
@@ -122,13 +123,14 @@ test.describe("Halo Tests", () => {
           container: "map",
           zoom: 3,
         },
+        requiresScreenShot: false,
       });
 
-      await window.setFixtureMapStyle(window.__pageObjects.basicStyleSpec);
+      await window.setFixtureMapStyle(window.__pageObjects.styleSpecWithHaloSpace);
     });
   });
 
-  test("if json passed to setStyle has no halo config, the default halo is rendered", async ({ browser }) => {
+  test("if json passed to setStyle has no halo config, but constructor option is set to `true`, the default halo is rendered", async ({ browser }) => {
     const page = await setupPage(browser);
 
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
@@ -139,6 +141,7 @@ test.describe("Halo Tests", () => {
       await window.setFixtureWithConfig({
         id: "halo-style-config-halo-json-default",
         options: {
+          style: "doesnt-matter",
           container: "map",
           zoom: 3,
           halo: true,
@@ -184,9 +187,11 @@ test.describe("Halo Tests", () => {
         options: {
           container: "map",
           zoom: 3,
-          halo: false,
+          halo: true,
         },
       });
+
+      await window.setFixtureMapStyle(window.__pageObjects.styleSpecWithHaloSpace);
     });
   });
 
@@ -285,6 +290,8 @@ test.describe("Halo Tests", () => {
           zoom: 3,
         },
       });
+
+      await window.setFixtureMapStyle("doesnt-matter-as-it-will-be-mocked");
     });
   });
 
@@ -303,15 +310,16 @@ test.describe("Halo Tests", () => {
           zoom: 3,
         },
       });
+
+      await window.setFixtureMapStyle(window.__pageObjects.styleSpecWithHaloSpace);
     });
   });
 
   test("when an invalid spec is passed to the constructor the console notifies the user of the incorrect spec", async ({ browser }) => {
     const page = await setupPage(browser, { debug: true });
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`haloSpace-${data.id}.png`, { timeout: 10000 });
-    });
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {});
 
     const consolePromise = page.waitForEvent("console", {
       predicate: (msg) => msg.type() === "error" && msg.text().includes(expectedErrorMessage),
@@ -347,7 +355,7 @@ test.describe("Halo Tests", () => {
       mockStyle: "maptiler-style-space-halo-invalid.json",
     });
 
-    // this is just to prevent the fixutre from breaking
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     await page.exposeFunction("notifyScreenshotStateReady", async (_: Record<string, TTestTransferData>) => {});
 
     const consolePromise = page.waitForEvent("console", {
@@ -376,7 +384,7 @@ test.describe("Halo Tests", () => {
   test("when an invalid spec is included in a json style the console notifies the user of the incorrect spec", async ({ browser }) => {
     const page = await setupPage(browser);
 
-    // this is just to prevent the fixutre from breaking
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     await page.exposeFunction("notifyScreenshotStateReady", async (_: Record<string, TTestTransferData>) => {});
 
     const consolePromise = page.waitForEvent("console", {

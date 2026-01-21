@@ -7,7 +7,7 @@ declare global {
     __pageLoadTimeout: number;
     notifyScreenshotStateReady: (data: TTestTransferData) => Promise<void>;
     notifyTest: (data: TTestTransferData) => Promise<void>;
-    setFixtureWithConfig: (config: { id: string; options: MapOptions }) => Promise<void>;
+    setFixtureWithConfig: (config: { id: string; options: MapOptions; requiresScreenShot?: boolean }) => Promise<void>;
     setFixtureMapStyle: (style: string | StyleSpecificationWithMetaData) => Promise<void>;
     __MT_SDK_VERSION__: string;
     __MT_NODE_ENV__: string | undefined;

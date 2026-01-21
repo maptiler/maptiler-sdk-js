@@ -18,6 +18,7 @@
       "maxzoom": 22
     }
   ],
+  "projection": { "type": "globe" },
   "metadata": {
     "maptiler": {
       "version": "1.0.0",
@@ -32,7 +33,7 @@
         ]
       },
       "space": {
-        "color": "#111122",
+        "color": "yellow",
         "preset": "space"
       }
     }

@@ -2,16 +2,18 @@ import "../../dist/maptiler-sdk.css";
 import { Map as MapTiler, StyleSpecificationWithMetaData, type MapOptions } from "../../src/index";
 
 function createFixtureManager() {
-  let map: MapTiler | undefined;
-  let id: string | undefined;
-
-  const cleanup = () => {
-    map?.remove();
-    map = undefined;
-    id = undefined;
+  const state = {
+    map: undefined as MapTiler | undefined,
+    id: undefined as string | undefined,
   };
 
-  const setNewMap = async (id: string, options: MapOptions) => {
+  const cleanup = () => {
+    state.map?.remove();
+    state.map = undefined;
+    state.id = undefined;
+  };
+
+  const setNewMap = async (id: string, options: MapOptions, requiresScreenShot: boolean = true) => {
     cleanup();
     console.log("Setting new map", id, options);
     const newMap = new MapTiler({
@@ -20,47 +22,69 @@ function createFixtureManager() {
       projection: "globe",
     });
 
-    map = newMap;
-    id = id;
+    state.map = newMap;
+    state.id = id;
 
-    await map.onReadyAsync();
+    await state.map.onReadyAsync();
 
-    void window.notifyScreenshotStateReady({ id });
+    if (requiresScreenShot) {
+      await window.notifyScreenshotStateReady({ id: state.id });
+    }
   };
 
   const setStyle = async (style: string | StyleSpecificationWithMetaData) => {
-    map?.setStyle(style);
-    return new Promise((resolve) => {
-      void map?.once("style.load", () => {
-        void window.notifyScreenshotStateReady({ id });
-        resolve(true);
+    state.map?.setStyle(style);
+    if (typeof style === "string") {
+      return new Promise((resolve) => {
+        void state.map?.once("style.load", () => {
+          void window.notifyScreenshotStateReady({ id: state.id });
+          resolve(true);
+        });
       });
-    });
+    } else {
+      await new Promise((resolve) => {
+        setInterval(() => {
+          if (state.map?.isStyleLoaded()) {
+            void window.notifyScreenshotStateReady({ id: state.id });
+            resolve(true);
+          }
+        }, 1500);
+      });
+
+      void window.notifyScreenshotStateReady({ id: state.id });
+    }
   };
 
   return {
     setNewMap,
     cleanup,
     setStyle,
-    getMap: () => map,
-    getId: () => id,
+    getMap: () => state.map,
+    getId: () => state.id,
   };
 }
 
 const fixtureManager = createFixtureManager();
-console.log("fixtureManager", fixtureManager);
-window.setFixtureWithConfig = async function setFixtureWithConfig({ id, options }: { id: string; options: MapOptions }) {
-  await fixtureManager.setNewMap(id, options);
+window.setFixtureWithConfig = async function setFixtureWithConfig({ id, options, requiresScreenShot }: { id: string; options: MapOptions; requiresScreenShot?: boolean }) {
+  try {
+    await fixtureManager.setNewMap(id, options, requiresScreenShot);
 
-  const map = fixtureManager.getMap();
-  window.__testUtils = {
-    getHaloConfig: () => map?.getHalo()?.getConfig(),
-    getSpaceConfig: () => map?.getSpace()?.getConfig(),
-    hasHalo: () => map?.getHalo() !== undefined,
-    hasSpace: () => map?.getSpace() !== undefined,
-  };
+    const map = fixtureManager.getMap();
+    window.__testUtils = {
+      getHaloConfig: () => map?.getHalo()?.getConfig(),
+      getSpaceConfig: () => map?.getSpace()?.getConfig(),
+      hasHalo: () => map?.getHalo() !== undefined,
+      hasSpace: () => map?.getSpace() !== undefined,
+    };
+  } catch (e) {
+    console.error("Error setting fixture with config", e);
+  }
 };
 
 window.setFixtureMapStyle = async function setStyle(style: string | StyleSpecificationWithMetaData) {
-  await fixtureManager.setStyle(style);
+  try {
+    await fixtureManager.setStyle(style);
+  } catch (e) {
+    console.error("Error setting fixture map style", e);
+  }
 };

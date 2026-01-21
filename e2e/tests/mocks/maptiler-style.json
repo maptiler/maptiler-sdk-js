@@ -9,6 +9,7 @@
       "tileSize": 256
     }
   },
+  "projection": { "type": "globe" },
   "layers": [
     {
       "id": "raster",
