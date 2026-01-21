@@ -38,7 +38,7 @@ async function setupPage(browser: Browser, fixtureOptions: Partial<LoadFixtureAn
   return page;
 }
 
-test.describe("Halo Tests", () => {
+test.describe("Halo", () => {
   test("if catalogue style has no halo config and halo === true in constructor, the default is rendered", async ({ browser }) => {
     const page = await setupPage(browser);
 
@@ -413,7 +413,7 @@ test.describe("Halo Tests", () => {
   });
 });
 
-test.describe("Space Option Tests", () => {
+test.describe("Space", () => {
   test("when space is set to true in constructor, if catalogue style has no space config, the default is rendered", async ({ page }) => {
     // Test implementation
   });
