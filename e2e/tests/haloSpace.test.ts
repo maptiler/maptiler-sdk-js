@@ -38,6 +38,7 @@ async function setupPage(browser: Browser, fixtureOptions: Partial<LoadFixtureAn
   return page;
 }
 
+//#region Halo tests
 test.describe("Halo", () => {
   test("if catalogue style has no halo config and halo === true in constructor, the default is rendered", async ({ browser }) => {
     const page = await setupPage(browser);
@@ -110,7 +111,7 @@ test.describe("Halo", () => {
   });
 
   test("if json passed to setStyle has halo config, that config is rendered", async ({ browser }) => {
-    const page = await setupPage(browser, { debug: true });
+    const page = await setupPage(browser);
 
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
       await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
@@ -316,19 +317,19 @@ test.describe("Halo", () => {
   });
 
   test("when an invalid spec is passed to the constructor the console notifies the user of the incorrect spec", async ({ browser }) => {
-    const page = await setupPage(browser, { debug: true });
+    const page = await setupPage(browser);
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {});
-
-    const consolePromise = page.waitForEvent("console", {
-      predicate: (msg) => msg.type() === "error" && msg.text().includes(expectedErrorMessage),
-    });
 
     const expectedErrorMessage = `[RadialGradientLayer]: Invalid Halo specification:
  - Properties \`hi\` are not supported.
  - Halo \`scale\` property is not a number.
  - Halo \`stops\` property is not an array of [number, string]`;
+
+    const consolePromise = page.waitForEvent("console", {
+      predicate: (msg) => msg.type() === "error" && msg.text().includes(expectedErrorMessage),
+    });
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
@@ -358,13 +359,13 @@ test.describe("Halo", () => {
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     await page.exposeFunction("notifyScreenshotStateReady", async (_: Record<string, TTestTransferData>) => {});
 
-    const consolePromise = page.waitForEvent("console", {
-      predicate: (msg) => msg.type() === "error" && msg.text().includes(expectedErrorMessage),
-    });
-
     const expectedErrorMessage = `[RadialGradientLayer]: Invalid Halo specification:
  - Halo \`scale\` property is not a number.
  - Halo \`stops\` property is not an array.`;
+
+    const consolePromise = page.waitForEvent("console", {
+      predicate: (msg) => msg.type() === "error" && msg.text().includes(expectedErrorMessage),
+    });
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
@@ -387,13 +388,13 @@ test.describe("Halo", () => {
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     await page.exposeFunction("notifyScreenshotStateReady", async (_: Record<string, TTestTransferData>) => {});
 
-    const consolePromise = page.waitForEvent("console", {
-      predicate: (msg) => msg.type() === "error" && msg.text().includes(expectedErrorMessage),
-    });
-
     const expectedErrorMessage = `[RadialGradientLayer]: Invalid Halo specification:
  - Halo \`scale\` property is not a number.
  - Halo \`stops\` property is not an array.`;
+
+    const consolePromise = page.waitForEvent("console", {
+      predicate: (msg) => msg.type() === "error" && msg.text().includes(expectedErrorMessage),
+    });
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
@@ -413,6 +414,7 @@ test.describe("Halo", () => {
   });
 });
 
+//#region Space tests
 test.describe("Space", () => {
   test("when space is set to true in constructor, if catalogue style has no space config, the default is rendered", async ({ browser }) => {
     const page = await setupPage(browser, {
@@ -647,12 +649,12 @@ test.describe("Space", () => {
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {});
 
+    const expectedErrorMessage = `Error: [CubemapLayer]: Invalid cubemap specification:
+- Space specification contains unsupported properties: \`not\`. Supported properties: \`color\`, \`preset\`, \`path\`, \`faces\`.`;
+
     const consolePromise = page.waitForEvent("console", {
       predicate: (msg) => msg.type() === "error" && msg.text().includes(expectedErrorMessage),
     });
-
-    const expectedErrorMessage = `Error: [CubemapLayer]: Invalid cubemap specification:
-- Space specification contains unsupported properties: \`not\`. Supported properties: \`color\`, \`preset\`, \`path\`, \`faces\`.`;
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
@@ -682,12 +684,12 @@ test.describe("Space", () => {
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {});
 
+    const expectedErrorMessage = `Error: [CubemapLayer]: Invalid cubemap specification:
+- Space preset "3" is not a valid preset. Available presets: stars, space, milkyway, milkyway-subtle, milkyway-bright, milkyway-colored`;
+
     const consolePromise = page.waitForEvent("console", {
       predicate: (msg) => msg.type() === "error" && msg.text().includes(expectedErrorMessage),
     });
-
-    const expectedErrorMessage = `Error: [CubemapLayer]: Invalid cubemap specification:
-- Space preset "3" is not a valid preset. Available presets: stars, space, milkyway, milkyway-subtle, milkyway-bright, milkyway-colored`;
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
@@ -712,12 +714,12 @@ test.describe("Space", () => {
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {});
 
+    const expectedErrorMessage = `Error: [CubemapLayer]: Invalid cubemap specification:
+- Space preset "3" is not a valid preset. Available presets: stars, space, milkyway, milkyway-subtle, milkyway-bright, milkyway-colored`;
+
     const consolePromise = page.waitForEvent("console", {
       predicate: (msg) => msg.type() === "error" && msg.text().includes(expectedErrorMessage),
     });
-
-    const expectedErrorMessage = `Error: [CubemapLayer]: Invalid cubemap specification:
-- Space preset "3" is not a valid preset. Available presets: stars, space, milkyway, milkyway-subtle, milkyway-bright, milkyway-colored`;
 
     await page.evaluate(async () => {
       await window.setFixtureWithConfig({
