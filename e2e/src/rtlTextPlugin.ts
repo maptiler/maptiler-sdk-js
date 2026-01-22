@@ -47,6 +47,12 @@ async function main() {
   });
 
   window.__map = map;
+
+  map.on("idle", () => {
+    window.notifyScreenshotStateReady({
+      disabled: disableRTL,
+    });
+  });
 }
 
 main();
