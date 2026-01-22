@@ -8,6 +8,7 @@
 - Adds better validation of space specifications in CubemapLayer
 
 ### 🐛 Bug Fixes
+- Fixes a bug where `map.getProjection()` did not return a value when default projection was used.
 - Fixes bugs in space and halo where precedence of constructor options vs remote styles was not enforced correctly.
 
 ### ⚙️ Others
