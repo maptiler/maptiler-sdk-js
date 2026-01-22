@@ -5,12 +5,14 @@
 ### ✨ Features and improvements
 - Adds the new `MapTilerAnimation` module and associated helpers for creating and managing animations, lerping between values and 'smoothing' arrays.
 - Adds the new `AnimatedRouteLayer` module and associated helpers for animating camera movement along GeoJSON features paths.
+- Adds better validation of space specifications in CubemapLayer
 
 ### 🐛 Bug Fixes
-- Fixes a bug where `map.getProjection()` did not return a value when default projection was used
+- Fixes a bug where `map.getProjection()` did not return a value when default projection was used.
+- Fixes bugs in space and halo where precedence of constructor options vs remote styles was not enforced correctly.
 
 ### ⚙️ Others
-- None
+- Better e2e Test coverage for Space & Halo
 
 ## 3.10.2
 ### ✨ Features and improvements

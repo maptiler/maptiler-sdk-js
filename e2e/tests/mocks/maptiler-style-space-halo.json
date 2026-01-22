@@ -9,7 +9,6 @@
       "tileSize": 256
     }
   },
-  "projection": { "type": "globe" },
   "layers": [
     {
       "id": "raster",
@@ -19,10 +18,24 @@
       "maxzoom": 22
     }
   ],
+  "projection": { "type": "globe" },
   "metadata": {
     "maptiler": {
       "version": "1.0.0",
-      "attribution": "© MapTiler © OpenStreetMap contributors"
+      "attribution": "© MapTiler © OpenStreetMap contributors",
+      "halo": {
+        "scale": 1.5,
+        "stops": [
+          [0.2, "transparent"],
+          [0.2, "red"],
+          [0.4, "red"],
+          [0.4, "transparent"]
+        ]
+      },
+      "space": {
+        "color": "green",
+        "preset": "space"
+      }
     }
   }
 }

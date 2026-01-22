@@ -2,14 +2,16 @@ import type { Map } from "../../../src/index";
 import { JSHandle, Page, expect } from "@playwright/test";
 import path from "path";
 import { injectGlobalVariables } from "./injectGlobalVariables";
-interface IloadFixtureAndGetMapHandle {
+
+export interface LoadFixtureAndGetMapHandleOptions {
   fixture: string;
   page: Page;
-  mockStyle?: boolean;
-  mockTiles?: boolean;
+  mockStyle?: boolean | string;
+  mockTiles?: boolean | string;
   debug?: boolean;
   waitUntil?: "load" | "domcontentloaded" | "networkidle";
   queryParams?: Record<string, string>;
+  lazy?: boolean;
 }
 
 export default async function loadFixtureAndGetMapHandle({
@@ -20,16 +22,18 @@ export default async function loadFixtureAndGetMapHandle({
   debug = false,
   waitUntil = "load",
   queryParams,
-}: IloadFixtureAndGetMapHandle): Promise<{ mapHandle: JSHandle<Map | null> }> {
+  lazy = false,
+}: LoadFixtureAndGetMapHandleOptions): Promise<{ mapHandle: JSHandle<Map | null> | null }> {
   await injectGlobalVariables(page);
   if (mockStyle) {
     // mock style response
     await page.route("https://api.maptiler.com/maps/*/*.json*", async (route) => {
       if (debug) console.info(`ℹ️ Style intercepted at ${route.request().url()}`);
+      const mockFileName = typeof mockStyle === "string" ? mockStyle : "maptiler-style.json";
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        path: path.resolve(import.meta.dirname, "../mocks/maptiler-style.json"),
+        path: path.resolve(import.meta.dirname, `../mocks/${mockFileName}`),
       });
     });
   }
@@ -47,7 +51,6 @@ export default async function loadFixtureAndGetMapHandle({
   }
 
   page.on("console", (msg) => {
-    console.log("FIXTURE LOG:", msg.text());
     if (debug) {
       console.log("DEBUG FIXTURE LOG:", msg.location(), msg.text());
     }
@@ -65,36 +68,42 @@ export default async function loadFixtureAndGetMapHandle({
     waitUntil,
   });
 
-  try {
-    const mapHandle = await page.evaluateHandle<Map | null>(() => {
-      return Promise.race<Map | null>([
-        new Promise<Map | null>(async (resolve) => {
-          try {
-            window.__map.on("idle", () => {
-              resolve(window.__map as Map);
-            });
-          } catch (e) {
-            console.error("Error getting map instance", e);
-            resolve(null);
-          }
-        }),
-        new Promise<Map | null>((resolve) => {
-          setTimeout(() => {
-            console.error("Map did not load in time");
-            resolve(null);
-          }, 10000);
-        }),
-      ]);
-    });
+  if (!lazy) {
+    try {
+      const mapHandle = await page.evaluateHandle<Map | null>(() => {
+        return Promise.race<Map | null>([
+          new Promise<Map | null>(async (resolve) => {
+            try {
+              window.__map.on("idle", () => {
+                resolve(window.__map as Map);
+              });
+            } catch (e) {
+              console.error("Error getting map instance", e);
+              resolve(null);
+            }
+          }),
+          new Promise<Map | null>((resolve) => {
+            setTimeout(() => {
+              console.error("Map did not load in time");
+              resolve(null);
+            }, 10000);
+          }),
+        ]);
+      });
 
-    return {
-      mapHandle,
-    };
-  } catch (e) {
-    console.error(e);
-    const nullMap = await page.evaluateHandle(() => null);
-    return {
-      mapHandle: nullMap as JSHandle<Map | null>,
-    };
+      return {
+        mapHandle,
+      };
+    } catch (e) {
+      console.error(e);
+      const nullMap = await page.evaluateHandle(() => null);
+      return {
+        mapHandle: nullMap as JSHandle<Map | null>,
+      };
+    }
   }
+
+  return {
+    mapHandle: null,
+  };
 }

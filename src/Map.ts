@@ -338,7 +338,7 @@ export class Map extends maplibregl.Map {
     }
 
     // respect options over style specification.
-    if (this.options.space !== true && validateSpaceSpecification(this.options.space)) {
+    if (this.options.space !== true) {
       this.setSpace(this.options.space!);
       return;
     }
@@ -445,7 +445,7 @@ export class Map extends maplibregl.Map {
 
     if (options.space === false) return;
 
-    if (options.space) {
+    if (options.space && options.space !== true) {
       this.space = new CubemapLayer(options.space);
       this.addLayer(this.space, before);
       return;
@@ -457,6 +457,11 @@ export class Map extends maplibregl.Map {
       this.space = new CubemapLayer(spaceOptionsFromStyleSpec);
       this.addLayer(this.space, before);
     }
+
+    if (this.options.space === true) {
+      this.space = new CubemapLayer(true);
+      this.addLayer(this.space, before);
+    }
   }
 
   private initHalo({ options = this.options, before, spec }: { options?: MapOptions; before: string; spec?: GradientDefinition }) {
@@ -466,7 +471,7 @@ export class Map extends maplibregl.Map {
     if (options.halo === false) return;
 
     const haloOptionsFromStyleSpec = spec;
-    if (options.halo) {
+    if (options.halo && options.halo !== true) {
       this.halo = new RadialGradientLayer(options.halo);
       this.addLayer(this.halo, before);
       return;
@@ -475,6 +480,12 @@ export class Map extends maplibregl.Map {
     if (haloOptionsFromStyleSpec) {
       this.halo = new RadialGradientLayer(haloOptionsFromStyleSpec);
       this.addLayer(this.halo, before);
+    }
+
+    if (this.options.halo === true) {
+      this.halo = new RadialGradientLayer(true);
+      this.addLayer(this.halo, before);
+      return;
     }
   }
 
