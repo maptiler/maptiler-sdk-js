@@ -317,7 +317,7 @@ test.describe("Halo", () => {
   });
 
   test("when an invalid spec is passed to the constructor the console notifies the user of the incorrect spec", async ({ browser }) => {
-    const page = await setupPage(browser);
+    const page = await setupPage(browser, { debug: true });
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {});
@@ -354,6 +354,7 @@ test.describe("Halo", () => {
   test("when an invalid spec is included in a catalogue style the console notifies the user of the incorrect spec", async ({ browser }) => {
     const page = await setupPage(browser, {
       mockStyle: "maptiler-style-space-halo-invalid.json",
+      debug: true,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
@@ -383,7 +384,7 @@ test.describe("Halo", () => {
   });
 
   test("when an invalid spec is included in a json style the console notifies the user of the incorrect spec", async ({ browser }) => {
-    const page = await setupPage(browser);
+    const page = await setupPage(browser, { debug: true });
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     await page.exposeFunction("notifyScreenshotStateReady", async (_: Record<string, TTestTransferData>) => {});
@@ -644,6 +645,7 @@ test.describe("Space", () => {
   test("when an invalid spec is passed to the constructor, the console notifies the user of the incorrect spec", async ({ browser }) => {
     const page = await setupPage(browser, {
       mockStyle: "maptiler-style.json",
+      debug: true,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
@@ -679,6 +681,7 @@ test.describe("Space", () => {
   test("when an invalid spec is included in a catalogue style, the console notifies the user of the incorrect spec", async ({ browser }) => {
     const page = await setupPage(browser, {
       mockStyle: "maptiler-style-space-halo-invalid.json",
+      debug: true,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
@@ -709,6 +712,7 @@ test.describe("Space", () => {
   test("when an invalid spec is included in a json style, the console notifies the user of the incorrect spec", async ({ browser }) => {
     const page = await setupPage(browser, {
       mockStyle: "maptiler-style.json",
+      debug: true,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
