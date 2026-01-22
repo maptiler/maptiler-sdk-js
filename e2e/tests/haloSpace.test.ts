@@ -44,8 +44,8 @@ test.describe("Halo", () => {
   test("if catalogue style has no halo config and halo === true in constructor, the default is rendered", async ({ browser }) => {
     const page = await setupPage(browser);
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -58,6 +58,9 @@ test.describe("Halo", () => {
         },
       });
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
   });
 
   test("if remote style has a halo config and halo === true in constructor, that remote style is rendered", async ({ browser }) => {
@@ -65,8 +68,8 @@ test.describe("Halo", () => {
       mockStyle: "maptiler-style-space-halo.json",
     });
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -80,6 +83,9 @@ test.describe("Halo", () => {
         },
       });
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
   });
 
   test("if remote style has halo config, but halo config is passed to constructor, the constructor option config is rendered", async ({ browser }) => {
@@ -87,8 +93,8 @@ test.describe("Halo", () => {
       mockStyle: "maptiler-style-space-halo.json",
     });
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -109,13 +115,16 @@ test.describe("Halo", () => {
         },
       });
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
   });
 
   test("if json passed to setStyle has halo config, that config is rendered", async ({ browser }) => {
     const page = await setupPage(browser);
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -130,13 +139,16 @@ test.describe("Halo", () => {
 
       await window.setFixtureMapStyle(window.__pageObjects.styleSpecWithHaloSpace);
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
   });
 
   test("if json passed to setStyle has no halo config, but constructor option is set to `true`, the default halo is rendered", async ({ browser }) => {
     const page = await setupPage(browser);
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -152,6 +164,9 @@ test.describe("Halo", () => {
 
       await window.setFixtureMapStyle(window.__pageObjects.basicStyleSpec);
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
   });
 
   test("if remote style has halo config, but halo === false in constructor, no halo is rendered", async ({ browser }) => {
@@ -159,8 +174,8 @@ test.describe("Halo", () => {
       mockStyle: "maptiler-style-space-halo.json",
     });
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -173,14 +188,17 @@ test.describe("Halo", () => {
         },
       });
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
   });
 
   test("if a valid json halo config is passed to setStyle, but halo === true or unset in constructor, the halo is rendered", async ({ browser }) => {
     // Test implementation
     const page = await setupPage(browser);
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -195,14 +213,17 @@ test.describe("Halo", () => {
 
       await window.setFixtureMapStyle(window.__pageObjects.styleSpecWithHaloSpace);
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
   });
 
   test("if a valid json halo config is passed to setStyle, but halo === false in constructor, the halo is not rendered", async ({ browser }) => {
     // Test implementation
     const page = await setupPage(browser);
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -217,13 +238,16 @@ test.describe("Halo", () => {
 
       await window.setFixtureMapStyle(window.__pageObjects.styleSpecWithHaloSpace);
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
   });
 
   test("when halo is set to valid halo spec in constructor, it overrides remote style halo spec", async ({ browser }) => {
     const page = await setupPage(browser);
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -245,13 +269,16 @@ test.describe("Halo", () => {
         },
       });
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
   });
 
   test("when halo is set to valid halo spec in constructor, it overrides json to setStyle halo spec", async ({ browser }) => {
     const page = await setupPage(browser);
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -273,6 +300,9 @@ test.describe("Halo", () => {
         },
       });
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
   });
 
   test("when halo constructor option is left undefined, if remote style that includes halo config is selected, it is rendered", async ({ browser }) => {
@@ -280,8 +310,8 @@ test.describe("Halo", () => {
       mockStyle: "maptiler-style-space-halo.json",
     });
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -295,13 +325,16 @@ test.describe("Halo", () => {
 
       await window.setFixtureMapStyle("doesnt-matter-as-it-will-be-mocked");
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
   });
 
   test("when halo constructor option is left undefined, if json with valid halo config is passed to setStyle, it is rendered", async ({ browser }) => {
     const page = await setupPage(browser);
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -315,6 +348,9 @@ test.describe("Halo", () => {
 
       await window.setFixtureMapStyle(window.__pageObjects.styleSpecWithHaloSpace);
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`halo-${data.id}.png`, { timeout: 10000 });
   });
 
   test("when an invalid spec is passed to the constructor the console notifies the user of the incorrect spec", async ({ browser }) => {
@@ -425,8 +461,8 @@ test.describe("Space", () => {
       mockStyle: "maptiler-style.json",
     });
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -440,6 +476,9 @@ test.describe("Space", () => {
         },
       });
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
   });
 
   test("when space is set to true in constructor, if catalogue has a space config, that config is rendered", async ({ browser }) => {
@@ -447,8 +486,8 @@ test.describe("Space", () => {
       mockStyle: "maptiler-style-space-halo.json",
     });
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -462,13 +501,16 @@ test.describe("Space", () => {
         },
       });
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
   });
 
   test("when space is set to true in constructor, if json passed to setStyle has space config, that config is rendered", async ({ browser }) => {
     const page = await setupPage(browser);
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -483,13 +525,16 @@ test.describe("Space", () => {
       });
       await window.setFixtureMapStyle(window.__pageObjects.styleSpecWithHaloSpace);
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
   });
 
   test("when space is set to true in constructor, if json passed to setStyle has no space config, the default space is rendered", async ({ browser }) => {
     const page = await setupPage(browser);
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -504,6 +549,9 @@ test.describe("Space", () => {
       });
       await window.setFixtureMapStyle(window.__pageObjects.basicStyleSpec);
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
   });
 
   test("when space is set to false in constructor, if catalogue style has space config, it is ignored and no space is rendered", async ({ browser }) => {
@@ -511,8 +559,8 @@ test.describe("Space", () => {
       mockStyle: "maptiler-style-space-halo.json",
     });
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -526,13 +574,16 @@ test.describe("Space", () => {
         },
       });
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
   });
 
   test("when space is set to false in constructor, if json is passed to setStyle, it is ignored and no space is rendered", async ({ browser }) => {
     const page = await setupPage(browser);
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -547,6 +598,9 @@ test.describe("Space", () => {
       });
       await window.setFixtureMapStyle(window.__pageObjects.styleSpecWithHaloSpace);
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
   });
 
   test("when space is set to valid space spec in constructor, it overrides catalogue space spec", async ({ browser }) => {
@@ -554,8 +608,8 @@ test.describe("Space", () => {
       mockStyle: "maptiler-style-space-halo.json",
     });
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -572,6 +626,9 @@ test.describe("Space", () => {
         },
       });
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
   });
 
   test("when space is set to valid space spec in constructor, it overrides json to setStyle space spec", async ({ browser }) => {
@@ -579,8 +636,8 @@ test.describe("Space", () => {
       mockStyle: "maptiler-style-space-halo.json",
     });
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -598,6 +655,9 @@ test.describe("Space", () => {
       });
       await window.setFixtureMapStyle(window.__pageObjects.styleSpecWithHaloSpace);
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
   });
 
   test("when space constructor option is left undefined, if catalogue style is selected, it is rendered", async ({ browser }) => {
@@ -605,8 +665,8 @@ test.describe("Space", () => {
       mockStyle: "maptiler-style-space-halo.json",
     });
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -620,6 +680,9 @@ test.describe("Space", () => {
         },
       });
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
   });
 
   test("when space constructor option is left undefined, if json passed to setStyle, it is rendered", async ({ browser }) => {
@@ -627,8 +690,8 @@ test.describe("Space", () => {
       mockStyle: "maptiler-style.json",
     });
 
-    await page.exposeFunction("notifyScreenshotStateReady", async (data: Record<string, TTestTransferData>) => {
-      await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
+    const screenshotPromise = new Promise<Record<string, TTestTransferData>>((resolve) => {
+      void page.exposeFunction("notifyScreenshotStateReady", resolve);
     });
 
     await page.evaluate(async () => {
@@ -643,6 +706,9 @@ test.describe("Space", () => {
       });
       await window.setFixtureMapStyle("doesnt-matter-as-it-will-be-mocked");
     });
+
+    const data = await screenshotPromise;
+    await expect(page).toHaveScreenshot(`space-${data.id}.png`, { timeout: 10000 });
   });
 
   test("when an invalid spec is passed to the constructor, the console notifies the user of the incorrect spec", async ({ browser }) => {
