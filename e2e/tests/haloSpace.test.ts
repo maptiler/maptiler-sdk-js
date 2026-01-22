@@ -1,3 +1,4 @@
+// eslint-disable @typescript-eslint/no-unsafe-argument
 import { Browser, expect, test } from "@playwright/test";
 import loadFixtureAndGetMapHandle, { LoadFixtureAndGetMapHandleOptions } from "./helpers/loadFixtureAndGetMapHandle";
 import maptilerBaseStyle from "./mocks/maptiler-style.json" assert { type: "json" };
