@@ -229,6 +229,23 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
 };
 
 /**
+ * Options to provide to the {@link Map.setProjection} method
+ */
+export interface ProjectionChangeOptions {
+  /**
+   * Whether the new projection should be persisted for any future style changes.
+   *
+   * If `true`, the new projection is persisted and is applied after all future style changes.
+   * If `false` or not specified, the new projection will be used only until the next style change, when it will get replaced with the first applicable value from this list:
+   * - a previously persisted projection
+   * - a projection specified in {@link Map} constructor options ({@link MapOptions})
+   * - a projection specified in `projection` property of the style itself
+   * - the Mercator projection
+   */
+  persist?: boolean;
+}
+
+/**
  * The Map class can be instanciated to display a map in a `<div>`
  */
 export class Map extends maplibregl.Map {
@@ -2051,34 +2068,67 @@ export class Map extends maplibregl.Map {
   }
 
   /**
-   * Activate the globe projection.
+   * Activate the globe projection and persist this change during future style changes.
+   * @deprecated Will be removed in v4.0.0. Use `map.setProjection("globe", { persist: true })` instead.
    */
   enableGlobeProjection() {
+    this.curentProjection = "globe";
+
     if (this.isGlobeProjection() === true) {
       return;
     }
 
     this.setProjection({ type: "globe" });
-
-    this.curentProjection = "globe";
   }
 
   /**
-   * Activate the mercator projection.
+   * Activate the mercator projection and persist this change during future style changes.
+   * @deprecated Will be removed in v4.0.0. Use `map.setProjection("mercator", { persist: true })` instead.
    */
   enableMercatorProjection() {
+    this.curentProjection = "mercator";
+
     if (this.isGlobeProjection() === false) {
       return;
     }
 
     this.setProjection({ type: "mercator" });
-
-    this.curentProjection = "mercator";
   }
 
-  override setProjection(projection: maplibregl.ProjectionSpecification) {
+  /**
+   * Sets the projection to one of {@linkcode ProjectionTypes}.
+   * @param projection - the projection type to set
+   * @param options - configure behaviour of the projection change
+   */
+  override setProjection(projection: NonNullable<ProjectionTypes>, options?: ProjectionChangeOptions): this;
+  /**
+   * Sets the projection to one of {@linkcode ProjectionTypes}.
+   * @param projection - the projection type to set, wrapped in {@link ProjectionSpecification}
+   * @param options - configure behaviour of the projection change
+   */
+  override setProjection(projection: { type: NonNullable<ProjectionTypes> }, options?: ProjectionChangeOptions): this;
+  /**
+   * Sets the projection to a {@linkcode ProjectionSpecification}.
+   * @param projection - the projection specification to set
+   */
+  override setProjection(projection: maplibregl.ProjectionSpecification): this;
+  override setProjection(projection: NonNullable<ProjectionTypes> | maplibregl.ProjectionSpecification, options?: ProjectionChangeOptions) {
+    if (typeof projection === "string") projection = { type: projection };
+
+    if ((projection.type === "mercator" || projection.type === "globe") && options?.persist) {
+      this.curentProjection = projection.type;
+    }
+
     this.fire("projection.change", { target: this, projection });
     return super.setProjection(projection);
+  }
+
+  /**
+   * Forget the persisted projection - from both constructor option and result of any `map.setProjection(..., { persist: true })` calls.
+   */
+  forgetPersistedProjection() {
+    this.curentProjection = undefined;
+    return this;
   }
 
   /**

@@ -6,6 +6,9 @@
 - Adds the new `MapTilerAnimation` module and associated helpers for creating and managing animations, lerping between values and 'smoothing' arrays.
 - Adds the new `AnimatedRouteLayer` module and associated helpers for animating camera movement along GeoJSON features paths.
 - Adds better validation of space specifications in CubemapLayer
+- Adds new signature to `Map.setProjection` that allows to use just `"globe"` and `"mercator"` instead of projection specification object
+- Adds new option to `Map.setProjection` that allows it to persist the projection even after style change (like `Map.enableGlobeProjection` and `Map.enableMercatorProjection` do)
+- Adds new method `Map.forgetPersistedProjection` that forgets a persisted projection
 
 ### 🐛 Bug Fixes
 - Fixes a bug where `map.getProjection()` did not return a value when default projection was used.
@@ -13,6 +16,7 @@
 
 ### ⚙️ Others
 - Better e2e Test coverage for Space & Halo
+- Deprecates `Map.enableGlobeProjection` and `Map.enableMercatorProjection` in favour of `Map.setProjection` with `persist` option set to `true`
 
 ## 3.10.2
 ### ✨ Features and improvements
