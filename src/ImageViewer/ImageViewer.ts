@@ -30,7 +30,7 @@ const { Evented } = MaplibreGL;
 
 //#region types
 
-export type AllowedConstrcutorOptions = "container" | "apiKey" | "maxZoom" | "minZoom" | "zoom" | "bearing";
+export type AllowedConstructorOptions = "container" | "apiKey" | "maxZoom" | "minZoom" | "zoom" | "bearing";
 
 export type ImageViewerFlyToOptions = Omit<FlyToOptions, "pitch"> & {
   center: [number, number];
@@ -45,7 +45,7 @@ export type ImageViewerEaseToOptions = Omit<EaseToOptions, "pitch"> & {
 };
 
 //#region ImageViewerConstructorOptions
-export type ImageViewerConstructorOptions = Pick<MapOptions, AllowedConstrcutorOptions> & {
+export type ImageViewerConstructorOptions = Pick<MapOptions, AllowedConstructorOptions> & {
   /**
    * The UUID of the image.
    */
