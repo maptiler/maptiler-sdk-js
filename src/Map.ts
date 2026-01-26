@@ -358,7 +358,7 @@ export class Map extends maplibregl.Map {
     }
 
     if (this.options.space === true) {
-      this.setSpace(true);
+      this.setSpace(space ?? true);
       return;
     }
 
