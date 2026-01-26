@@ -333,19 +333,19 @@ export class Map extends maplibregl.Map {
   }
 
   private setSpaceFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
-    if (this.options.space === false) {
-      return;
-    }
-
     // respect options over style specification.
-    if (this.options.space !== true) {
-      this.setSpace(this.options.space!);
+    if (this.options.space !== true && typeof this.options.space !== "undefined") {
+      this.setSpace(this.options.space);
       return;
     }
 
     const space = style.metadata?.maptiler?.space;
 
-    const spaceSpecIsValid = validateSpaceSpecification(space);
+    // if it space is falsey in the spec and the options, set space to false, removing it
+    if (!this.options.space && !space) {
+      this.setSpace(false, false);
+      return;
+    }
 
     if (JSON.stringify(this.space?.getConfig()) === JSON.stringify(space)) {
       // because maplibre removes ALL layers when setting a new style, we need to add the space layer back
@@ -357,22 +357,8 @@ export class Map extends maplibregl.Map {
       return;
     }
 
-    if (spaceSpecIsValid) {
-      // validateSpaceSpecification guarantees that spec is not undefined
-      this.setSpace(space!, false);
-      return;
-    }
-
     if (this.options.space === true) {
       this.setSpace(true);
-      return;
-    }
-
-    const spaceExistedButNowDoesNot = this.space?.getConfig() && space === undefined;
-
-    if (spaceExistedButNowDoesNot) {
-      this.setSpace({ color: "transparent" }, false);
-      this.removeLayer(this.space?.id ?? "");
       return;
     }
 
