@@ -14,6 +14,7 @@
 
 ### ⚙️ Others
 - Better e2e Test coverage for Space & Halo
+- Fixes a typo in ImageViewer typedefs
 
 ## 3.10.2
 ### ✨ Features and improvements
