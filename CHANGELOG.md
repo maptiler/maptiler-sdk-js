@@ -11,6 +11,7 @@
 ### 🐛 Bug Fixes
 - Fixes a bug where `map.getProjection()` did not return a value when default projection was used.
 - Fixes bugs in space and halo where precedence of constructor options vs remote styles was not enforced correctly.
+- Fixes a bug on Safari where requestIdleCallback is not supported.
 
 ### ⚙️ Others
 - Better e2e Test coverage for Space & Halo

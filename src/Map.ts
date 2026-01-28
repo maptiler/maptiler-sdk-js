@@ -1264,6 +1264,8 @@ export class Map extends maplibregl.Map {
     }
 
     // because of the current uncertainty of the style.load event
+    // and because we store our space and halo configs in the metadata
+    // of the style (which is not monitored in diffing),
     // we have no way of knowing if the style is loaded or not
     // which will fail internally if the style is not loaded correctly
     requestIdleCallback(() => {
