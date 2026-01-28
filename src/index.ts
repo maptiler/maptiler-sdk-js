@@ -1,3 +1,5 @@
+import "requestidlecallback-polyfill";
+
 import maplibregl from "maplibre-gl";
 
 // Types from MapLibre are not re-exported one by one
