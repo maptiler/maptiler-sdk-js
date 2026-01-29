@@ -107,6 +107,7 @@ export function findPreviousEntryAndIndexWithValue(arr: NumericArrayWithNull, cu
  * @property {number} [pathSmoothing.epsilon] - Optional tolerance parameter for path simplification.
  */
 export interface ParseGeoJSONToKeyframesOptions {
+  ignoreFields?: string[];
   defaultEasing?: EasingFunctionName;
   pathSmoothing?:
     | {
@@ -177,7 +178,7 @@ export type KeyframeableGeoJSONFeature = Feature<KeyframeableGeometry> & {
  * @throws {Error} When the geometry type is not supported
  */
 export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeature, options: ParseGeoJSONToKeyframesOptions = {}): Keyframe[] {
-  const { defaultEasing, pathSmoothing } = {
+  const { defaultEasing, pathSmoothing, ignoreFields } = {
     ...defaultOptions,
     ...options,
   } as ParseGeoJSONToKeyframesOptions;
@@ -227,7 +228,7 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
     ...properties,
     ...(!altitudeIsEntirelyNull && { altitude }),
   }).reduce((acc, [key, value]) => {
-    if (key.startsWith("@")) {
+    if (key.startsWith("@") || ignoreFields?.includes(key)) {
       return acc;
     }
     return {
@@ -323,12 +324,13 @@ export function getKeyframes(coordinates: number[][], deltas: number[], easings:
   if (!arraysAreTheSameLength(coordinates, deltas, easings, ...Object.values(properties))) {
     throw new Error(`
       [parseGeoJSONFeatureToKeyframes]: If smoothing is not applied, coordinates, deltas, easings and property arrays must be the same length\n
-      Coordinates: ${coordinates.length}\n
-      Deltas: ${deltas.length}\n
-      Easing: ${easings.length}\n
-      Properties: ${Object.entries(properties)
-        .map(([key, value]) => `"${key}": ${value.length}`)
-        .join(", ")}
+      Coordinates: ${coordinates.length}
+      Deltas: ${deltas.length}
+      Easing: ${easings.length}
+      Properties:
+        ${Object.entries(properties)
+          .map(([key, value]) => `"${key}": ${value.length}`)
+          .join(",\n        ")}
     `);
   }
 

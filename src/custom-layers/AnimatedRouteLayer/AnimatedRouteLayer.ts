@@ -431,9 +431,9 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
           ["line-progress"], // Progress along the line
           0,
           ["rgba", ...activeColor], // color at the start
-          0.01 + currentDelta,
+          0.0001 + currentDelta,
           ["rgba", ...activeColor], // color at the start
-          0.011 + currentDelta,
+          0.00011 + currentDelta,
           ["rgba", ...inactiveColor], // color at the transition
           1,
           ["rgba", ...inactiveColor], // color at the end
@@ -533,13 +533,10 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
           this.autoplay = keyframeableFeature.properties["@autoplay"] ?? false;
         }
 
-        console.log(keyframeableFeature.geometry.coordinates[keyframeableFeature.geometry.coordinates.length - 1]);
         const keyframes = parseGeoJSONFeatureToKeyframes(keyframeableFeature, {
           pathSmoothing: this.cameraMaptilerAnimationOptions ? this.cameraMaptilerAnimationOptions.pathSmoothing : false,
           defaultEasing: this.easing,
         });
-
-        console.log(keyframes[keyframes.length - 1]);
 
         const duration = this.duration;
         const iterations = this.iterations;
