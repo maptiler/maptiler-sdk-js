@@ -134,6 +134,7 @@ export default tseslint.config(
       "@typescript-eslint/related-getter-setter-pairs": "off",
       "@typescript-eslint/unbound-method": "warn",
       "@typescript-eslint/use-unknown-in-catch-callback-variable": "warn",
+      "@typescript-eslint/unified-signatures": ["error", { ignoreOverloadsWithDifferentJSDoc: true }],
     },
   },
   //
