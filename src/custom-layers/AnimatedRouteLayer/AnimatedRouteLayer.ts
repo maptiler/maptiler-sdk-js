@@ -442,13 +442,14 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
     }
 
     if (props && this.cameraMaptilerAnimationOptions && this.cameraMaptilerAnimationOptions.follow) {
-      const { lng, lat, bearing, zoom, pitch } = props;
+      const { lng, lat, bearing, zoom, pitch, elevation } = props;
 
       this.map.jumpTo({
         center: [lng, lat],
         pitch: pitch ?? this.map.getPitch(),
         zoom: zoom ?? this.map.getZoom(),
         bearing: bearing ?? this.map.getBearing(),
+        elevation: elevation ?? altitude ?? this.map.getCenterElevation(),
       });
     }
   }
@@ -536,6 +537,8 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
           pathSmoothing: this.cameraMaptilerAnimationOptions ? this.cameraMaptilerAnimationOptions.pathSmoothing : false,
           defaultEasing: this.easing,
         });
+
+        console.log(keyframes);
 
         const duration = this.duration;
         const iterations = this.iterations;

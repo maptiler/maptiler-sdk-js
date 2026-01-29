@@ -253,6 +253,10 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
     const smoothedEasings = smoothedDeltas.map(() => defaultEasing ?? "Linear");
 
     const smoothedProperties = Object.entries(nonReservedProperties as Record<string, number[]>).reduce((acc, [key, value]) => {
+      if (!Array.isArray(value)) {
+        return acc;
+      }
+
       const newArrayLength = smoothedPath.length;
 
       // "stretch" the array to the new length
@@ -371,6 +375,26 @@ export function getKeyframes(coordinates: number[][], deltas: number[], easings:
  *                                  creating the curves.
  * @returns An array of [x, y] coordinates representing the smoothed path
  */
+function sampleCatmullRomSegment(
+  out: [number, number][],
+  p0: [number, number],
+  p1: [number, number],
+  p2: [number, number],
+  p3: [number, number],
+  outputResolution: number,
+  tStart: number,
+  tEnd: number,
+): void {
+  const c1: [number, number] = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+  const c2: [number, number] = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+  const step = 1 / outputResolution;
+  for (let t = tStart; t <= tEnd; t += step) {
+    const x = (1 - t) ** 3 * p1[0] + 3 * (1 - t) ** 2 * t * c1[0] + 3 * (1 - t) * t ** 2 * c2[0] + t ** 3 * p2[0];
+    const y = (1 - t) ** 3 * p1[1] + 3 * (1 - t) ** 2 * t * c1[1] + 3 * (1 - t) * t ** 2 * c2[1] + t ** 3 * p2[1];
+    out.push([x, y]);
+  }
+}
+
 export function createBezierPathFromCoordinates(inputPath: [number, number][], outputResolution: number = 20, simplificationThreshold?: number): [number, number][] {
   const path = typeof simplificationThreshold === "number" ? simplifyPath(inputPath, simplificationThreshold) : inputPath;
 
@@ -378,25 +402,23 @@ export function createBezierPathFromCoordinates(inputPath: [number, number][], o
 
   const smoothPath: [number, number][] = [];
 
+  // Virtual control point so the first segment starts at path[0] and is tangent to the path
+  const p0First: [number, number] = [2 * path[0][0] - path[1][0], 2 * path[0][1] - path[1][1]];
+  sampleCatmullRomSegment(smoothPath, p0First, path[0], path[1], path[2], outputResolution, 0, 1);
+
+  const step = 1 / outputResolution;
   for (let i = 1; i < path.length - 2; i++) {
     const p0 = path[i - 1];
     const p1 = path[i];
     const p2 = path[i + 1];
     const p3 = path[i + 2];
-
-    // Compute control points...
-    const c1: [number, number] = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
-    const c2: [number, number] = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-
-    // Generate points along the curve...
-    for (let t = 0; t <= 1; t += 1 / outputResolution) {
-      const x = (1 - t) ** 3 * p1[0] + 3 * (1 - t) ** 2 * t * c1[0] + 3 * (1 - t) * t ** 2 * c2[0] + t ** 3 * p2[0];
-
-      const y = (1 - t) ** 3 * p1[1] + 3 * (1 - t) ** 2 * t * c1[1] + 3 * (1 - t) * t ** 2 * c2[1] + t ** 3 * p2[1];
-
-      smoothPath.push([x, y]);
-    }
+    // Skip t=0 to avoid duplicating the endpoint from the previous segment
+    sampleCatmullRomSegment(smoothPath, p0, p1, p2, p3, outputResolution, step, 1);
   }
+
+  // Last segment: path[length-2] -> path[length-1] with virtual end control point
+  const p3Last: [number, number] = [2 * path[path.length - 1][0] - path[path.length - 2][0], 2 * path[path.length - 1][1] - path[path.length - 2][1]];
+  sampleCatmullRomSegment(smoothPath, path[path.length - 3], path[path.length - 2], path[path.length - 1], p3Last, outputResolution, step, 1);
 
   return smoothPath;
 }
