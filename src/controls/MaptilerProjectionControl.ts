@@ -54,8 +54,8 @@ export function toggleProjection(map: SDKMap): void {
     map.setProjection({ type: "mercator" });
   }
   if (map.isGlobeProjection()) {
-    map.enableMercatorProjection();
+    map.setProjection("mercator", { persist: true });
   } else {
-    map.enableGlobeProjection();
+    map.setProjection("globe", { persist: true });
   }
 }

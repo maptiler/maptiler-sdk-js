@@ -333,91 +333,105 @@ The **globe projection**, available starting from MapTiler SDK v3, does not suff
 
 The choice between Mercator and Globe can be done at different levels and moments in the lifecycle of the map, yet, unless stated otherwise, **Mercator remains the default**.
 
-- In the style, using the `projection` top-level property.
-  For globe:
+- In the style, using the `projection` top-level property.  
+  This projection is used when the style loads unless it has been overriden by one of the options below.
 
-```js
-{
-  "version": ...,
-  "id": ...,
-  "name": ...,
-  "sources": ...,
-  "layers": ...,
+  ```js
+  {
+    "version": ...,
+    "id": ...,
+    "name": ...,
+    "sources": ...,
+    "layers": ...,
 
-  // Make the style use the globe projection at load time
-  "projection": {
-    "type": "globe"
+    // Make the style use the globe projection at load time
+    "projection": {
+      "type": "globe"
+    }
+
+    // ...
   }
 
-  // ...
-}
-```
+  // or
 
-or for Mercator:
+  {
+    "version": ...,
+    "id": ...,
+    "name": ...,
+    "sources": ...,
+    "layers": ...,
 
-```js
-{
-  "version": ...,
-  "id": ...,
-  "name": ...,
-  "sources": ...,
-  "layers": ...,
+    // Make the style use the mercator projection at load time
+    "projection": {
+      "type": "mercator"
+    }
 
-  // Make the style use the mercator projection at load time
-  "projection": {
-    "type": "mercator"
+    // ...
   }
+  ```
 
-  // ...
-}
-```
+- In the constructor of the `Map` class, using the `projection` option.  
+  This overrides the `projection` property from the style (if any) and will persist it if the map style changes later, even if the style contains its own projection.
 
-- In the constructor of the `Map` class, using the `projection` option. For globe:
+  ```ts
+  const map = new maptilersdk.Map({
+    container: "map",
+    projection: "globe", // Force a globe projection
+  });
 
-```ts
-const map = new maptilersdk.Map({
-  container: "map",
-  projection: "globe", // Force a globe projection
-});
-```
+  // or
 
-or for Mercator:
+  const map = new maptilersdk.Map({
+    container: "map",
+    projection: "mercator", // Force a mercator projection
+  });
+  ```
 
-```ts
-const map = new maptilersdk.Map({
-  container: "map",
-  projection: "mercator", // Force a mercator projection
-});
-```
+- Using the built-in methods.  
+  This changes the projection for the current style and optionally also persists it if the map style changes later.
 
-This will overwrite the `projection` property from the style (if any) and will persist it later if the map style was to change.
+  ```ts
+  map.setProjection("mercator", { persist: true });
+  // or
+  map.setProjection("globe", { persist: true });
+  ```
 
-- Use the built-in methods:
+  > ℹ️ Deprecated methods `enableGlobeProjection()` and `enableMercatorProjection()` also persist the projection.
 
-```ts
-map.enableGlobeProjection();
-// or
-map.enableMercatorProjection();
-```
+  Without persistance, when the style next changes, the projection is reset to a previously persisted projection, or a projection specified in the `Map` options, or a projection specified in `projection` property of the style itself, or the default (Mercator) projection.
+  
+  ```ts
+  map.setProjection("mercator");
+  // or
+  map.setProjection("globe");
+  ```
 
-The projection setter built in Maplibre GL JS is also usable:
+  The signature built in Maplibre GL JS is also usable, however a style specification other than `"mercator"` or `"globe"` can't be persisted.
 
-```ts
-map.setProjection({ type: "mercator" });
-// or
-map.setProjection({ type: "globe" });
-```
+  ```ts
+  map.setProjection({ type: "mercator" });
+  // or
+  map.setProjection({ type: "globe" });
+  // or
+  map.setProjection({ type: ["step", ["zoom"], "vertical-perspective", 3, "mercator"] });
+  ```
 
 - Using the `MaptilerProjectionControl`. Not mounted by default, it can easily be added with a single option in the `Map` constructor:
 
-```ts
-const map = new maptilersdk.Map({
-  container: "map",
-  projectionControl: true, // or the position such as "top-left", "top-right",
-}); // "bottom-right" or "bottom-left"
-```
+  ```ts
+  const map = new maptilersdk.Map({
+    container: "map",
+    projectionControl: true, // or the position such as "top-left", "top-right",
+  }); // "bottom-right" or "bottom-left"
+  ```
 
-This dedicated control will show a globe icon <img src="images/screenshots/globe_icon.png" width="30px"/> to transition from Mercator to globe projection and will show a flat map icon <img src="images/screenshots/mercator_icon.png" width="30px"/> to transition from globe to Mercator projection. The chosen projection persist with future style changes.
+  This dedicated control will show a globe icon <img src="images/screenshots/globe_icon.png" width="30px"/> to transition from Mercator to globe projection and will show a flat map icon <img src="images/screenshots/mercator_icon.png" width="30px"/> to transition from globe to Mercator projection. The chosen projection persist with future style changes.
+
+- You can also forget the persisted projection. This is the only way how to make projection specified inside style itself work again if `Map` constructor `projection` option was specified, or `map.setProjection(..., { persist: true })` was called, or `MaptilerProjectionControl` was used, starting from the next style change.
+
+  ```ts
+  map.forgetPersistedProjection();
+  ```
 
 #### Field of view (FOV)
 
