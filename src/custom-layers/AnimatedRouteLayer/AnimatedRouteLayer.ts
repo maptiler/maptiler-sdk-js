@@ -449,7 +449,7 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
         pitch: pitch ?? this.map.getPitch(),
         zoom: zoom ?? this.map.getZoom(),
         bearing: bearing ?? this.map.getBearing(),
-        elevation: elevation ?? altitude ?? this.map.getCenterElevation(),
+        elevation: elevation ?? this.map.getCenterElevation(),
       });
     }
   }
@@ -533,12 +533,13 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
           this.autoplay = keyframeableFeature.properties["@autoplay"] ?? false;
         }
 
+        console.log(keyframeableFeature.geometry.coordinates[keyframeableFeature.geometry.coordinates.length - 1]);
         const keyframes = parseGeoJSONFeatureToKeyframes(keyframeableFeature, {
           pathSmoothing: this.cameraMaptilerAnimationOptions ? this.cameraMaptilerAnimationOptions.pathSmoothing : false,
           defaultEasing: this.easing,
         });
 
-        console.log(keyframes);
+        console.log(keyframes[keyframes.length - 1]);
 
         const duration = this.duration;
         const iterations = this.iterations;

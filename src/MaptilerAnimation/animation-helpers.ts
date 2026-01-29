@@ -249,7 +249,7 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
 
   if (pathSmoothing) {
     const smoothedPath = createBezierPathFromCoordinates(parseableGeometry as [number, number][], pathSmoothing.resolution, pathSmoothing.epsilon);
-    const smoothedDeltas = smoothedPath.map((_, index) => index / smoothedPath.length);
+    const smoothedDeltas = lerpArrayValues(stretchNumericalArray([0, 1], smoothedPath.length));
     const smoothedEasings = smoothedDeltas.map(() => defaultEasing ?? "Linear");
 
     const smoothedProperties = Object.entries(nonReservedProperties as Record<string, number[]>).reduce((acc, [key, value]) => {
@@ -388,10 +388,21 @@ function sampleCatmullRomSegment(
   const c1: [number, number] = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
   const c2: [number, number] = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
   const step = 1 / outputResolution;
+  let lastTPushed = tStart - step;
   for (let t = tStart; t <= tEnd; t += step) {
     const x = (1 - t) ** 3 * p1[0] + 3 * (1 - t) ** 2 * t * c1[0] + 3 * (1 - t) * t ** 2 * c2[0] + t ** 3 * p2[0];
     const y = (1 - t) ** 3 * p1[1] + 3 * (1 - t) ** 2 * t * c1[1] + 3 * (1 - t) * t ** 2 * c2[1] + t ** 3 * p2[1];
     out.push([x, y]);
+    lastTPushed = t;
+  }
+  // Always end exactly at tEnd: float loop can land near-but-not-on tEnd, giving a slightly wrong last point.
+  // Either we missed tEnd (add it) or we hit it with float error (replace last point with exact eval).
+  const exactX = (1 - tEnd) ** 3 * p1[0] + 3 * (1 - tEnd) ** 2 * tEnd * c1[0] + 3 * (1 - tEnd) * tEnd ** 2 * c2[0] + tEnd ** 3 * p2[0];
+  const exactY = (1 - tEnd) ** 3 * p1[1] + 3 * (1 - tEnd) ** 2 * tEnd * c1[1] + 3 * (1 - tEnd) * tEnd ** 2 * c2[1] + tEnd ** 3 * p2[1];
+  if (tEnd - lastTPushed > 1e-10) {
+    out.push([exactX, exactY]);
+  } else {
+    out[out.length - 1] = [exactX, exactY];
   }
 }
 
@@ -399,6 +410,11 @@ export function createBezierPathFromCoordinates(inputPath: [number, number][], o
   const path = typeof simplificationThreshold === "number" ? simplifyPath(inputPath, simplificationThreshold) : inputPath;
 
   if (path.length < 4) return path; // Need at least 4 points
+
+  // Ensure we smooth to the input's final point when simplification was used (path may have come from resample)
+  if (typeof simplificationThreshold === "number") {
+    path[path.length - 1] = [...inputPath[inputPath.length - 1]];
+  }
 
   const smoothPath: [number, number][] = [];
 
@@ -416,7 +432,7 @@ export function createBezierPathFromCoordinates(inputPath: [number, number][], o
     sampleCatmullRomSegment(smoothPath, p0, p1, p2, p3, outputResolution, step, 1);
   }
 
-  // Last segment: path[length-2] -> path[length-1] with virtual end control point
+  // Last segment: path[length-2] -> path[length-1] with virtual end control point (curve passes through path[length-1] at t=1)
   const p3Last: [number, number] = [2 * path[path.length - 1][0] - path[path.length - 2][0], 2 * path[path.length - 1][1] - path[path.length - 2][1]];
   sampleCatmullRomSegment(smoothPath, path[path.length - 3], path[path.length - 2], path[path.length - 1], p3Last, outputResolution, step, 1);
 
@@ -479,7 +495,7 @@ export function simplifyPath(points: [number, number][], distance: number): [num
     }
   }
 
-  simplifiedPath.push(path[path.length - 1]); // Add the last point
+  simplifiedPath.push([...points[points.length - 1]]); // Preserve original path endpoint
 
   return simplifiedPath;
 }
@@ -516,6 +532,13 @@ export function resamplePath(path: [number, number][], spacing: number = 10): [n
       path[i] = newPoint; // insert newPoint into segment
       remaining = spacing;
     }
+  }
+
+  // Resampling by spacing can end mid-segment; always include the original path endpoint
+  const lastOriginal = path[path.length - 1];
+  const lastInResult = result[result.length - 1];
+  if (lastInResult[0] !== lastOriginal[0] || lastInResult[1] !== lastOriginal[1]) {
+    result.push([lastOriginal[0], lastOriginal[1]]);
   }
 
   return result;
