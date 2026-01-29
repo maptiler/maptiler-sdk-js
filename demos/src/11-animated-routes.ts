@@ -3,7 +3,6 @@ import "../../build/maptiler-sdk.css";
 import { addPerformanceStats, setupMapTilerApiKey } from "./demo-utils";
 import {
   AnimatedRouteLayer,
-  AnimationEvent,
   Keyframe,
   KeyframeableGeoJSONFeature,
   LngLat,
@@ -14,7 +13,6 @@ import {
   parseGeoJSONFeatureToKeyframes,
   resamplePath,
   Marker,
-  MercatorCoordinate,
 } from "../../src";
 
 const BORDER_COLOR = "#333333";
@@ -180,7 +178,7 @@ async function main() {
     markerMovementAnimation.play();
   });
 
-  animatedRouteLayer.addEventListener("animationend", (e: AnimationEvent) => {
+  animatedRouteLayer.addEventListener("animationend", () => {
     activeAnimation.pause();
     markerMovementAnimation.pause();
     markerMovementAnimation.reset();
