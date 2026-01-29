@@ -362,21 +362,6 @@ export function getKeyframes(coordinates: number[][], deltas: number[], easings:
   });
 }
 
-/**
- * Creates a smoothed path using cubic Bezier curves from an array of coordinates.
- *
- * This function takes a series of points and creates a smooth path by generating cubic
- * Bezier curves between them. It uses the Catmull-Rom method to automatically calculate
- * control points for each curve segment. If the path has fewer than 4 points, the original
- * path is returned unchanged.
- *
- * @param inputPath - Array of [x, y] coordinates that define the original path
- * @param outputResolution - Controls how many points are generated along each segment
- *                           (higher values create smoother curves with more points)
- * @param simplificationThreshold - Optional threshold for simplifying the input path before
- *                                  creating the curves.
- * @returns An array of [x, y] coordinates representing the smoothed path
- */
 function sampleCatmullRomSegment(
   out: [number, number][],
   p0: [number, number],
@@ -397,8 +382,6 @@ function sampleCatmullRomSegment(
     out.push([x, y]);
     lastTPushed = t;
   }
-  // Always end exactly at tEnd: float loop can land near-but-not-on tEnd, giving a slightly wrong last point.
-  // Either we missed tEnd (add it) or we hit it with float error (replace last point with exact eval).
   const exactX = (1 - tEnd) ** 3 * p1[0] + 3 * (1 - tEnd) ** 2 * tEnd * c1[0] + 3 * (1 - tEnd) * tEnd ** 2 * c2[0] + tEnd ** 3 * p2[0];
   const exactY = (1 - tEnd) ** 3 * p1[1] + 3 * (1 - tEnd) ** 2 * tEnd * c1[1] + 3 * (1 - tEnd) * tEnd ** 2 * c2[1] + tEnd ** 3 * p2[1];
   if (tEnd - lastTPushed > 1e-10) {
@@ -408,33 +391,48 @@ function sampleCatmullRomSegment(
   }
 }
 
+/**
+ * Creates a smoothed path using cubic Bezier curves from an array of coordinates.
+ *
+ * This function takes a series of points and creates a smooth path by generating cubic
+ * Bezier curves between them. It uses the Catmull-Rom method to automatically calculate
+ * control points for each curve segment. If the path has fewer than 4 points, the original
+ * path is returned unchanged.
+ *
+ * @param inputPath - Array of [x, y] coordinates that define the original path
+ * @param outputResolution - Controls how many points are generated along each segment
+ *                           (higher values create smoother curves with more points)
+ * @param simplificationThreshold - Optional threshold for simplifying the input path before
+ *                                  creating the curves.
+ * @returns An array of [x, y] coordinates representing the smoothed path
+ */
 export function createBezierPathFromCoordinates(inputPath: [number, number][], outputResolution: number = 20, simplificationThreshold?: number): [number, number][] {
   const path = typeof simplificationThreshold === "number" ? simplifyPath(inputPath, simplificationThreshold) : inputPath;
 
   if (path.length < 4) return path; // Need at least 4 points
 
-  // Ensure we smooth to the input's final point when simplification was used (path may have come from resample)
   if (typeof simplificationThreshold === "number") {
     path[path.length - 1] = [...inputPath[inputPath.length - 1]];
   }
 
   const smoothPath: [number, number][] = [];
 
-  // Virtual control point so the first segment starts at path[0] and is tangent to the path
   const p0First: [number, number] = [2 * path[0][0] - path[1][0], 2 * path[0][1] - path[1][1]];
   sampleCatmullRomSegment(smoothPath, p0First, path[0], path[1], path[2], outputResolution, 0, 1);
 
   const step = 1 / outputResolution;
+
+  // control points for the segments
   for (let i = 1; i < path.length - 2; i++) {
     const p0 = path[i - 1];
     const p1 = path[i];
     const p2 = path[i + 1];
     const p3 = path[i + 2];
-    // Skip t=0 to avoid duplicating the endpoint from the previous segment
+
     sampleCatmullRomSegment(smoothPath, p0, p1, p2, p3, outputResolution, step, 1);
   }
 
-  // Last segment: path[length-2] -> path[length-1] with virtual end control point (curve passes through path[length-1] at t=1)
+  // last segmnt
   const p3Last: [number, number] = [2 * path[path.length - 1][0] - path[path.length - 2][0], 2 * path[path.length - 1][1] - path[path.length - 2][1]];
   sampleCatmullRomSegment(smoothPath, path[path.length - 3], path[path.length - 2], path[path.length - 1], p3Last, outputResolution, step, 1);
 
@@ -490,7 +488,8 @@ export function simplifyPath(points: [number, number][], distance: number): [num
     const lastLngLat = new LngLat(lastPoint[0], lastPoint[1]);
     const currentLngLat = new LngLat(currentPoint[0], currentPoint[1]);
     const dist = lastLngLat.distanceTo(currentLngLat);
-    // Add the point if it is farther than the specified distance
+
+    // Add the point if it's farther than the specified distance
     if (dist >= distance) {
       simplifiedPath.push(currentPoint);
       lastPoint = currentPoint;
