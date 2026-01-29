@@ -49,6 +49,16 @@
       margin-right: 4px;
     }
 
+    .poi-marker {
+      transition: all 0.5s;
+      opacity: 1;
+    }
+
+    .hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
     button {
       cursor: pointer;
     }
@@ -70,9 +80,6 @@
         Slower
       </button>
       <div id="playbackRate" class="padded">1.0x</div>
-      <button id="time">
-        ???
-      </button>
     </div>
     <div id="keyframeName" class="padded" style="display: none">
     </div>
