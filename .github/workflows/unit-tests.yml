@@ -1,0 +1,22 @@
+name: Unit tests
+
+on: [pull_request]
+
+jobs:
+  format-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Running unit tests
+        run: npm run test
+

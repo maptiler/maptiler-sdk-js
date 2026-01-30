@@ -9,6 +9,8 @@
 - Adds new signature to `Map.setProjection` that allows to use just `"globe"` and `"mercator"` instead of projection specification object
 - Adds new option to `Map.setProjection` that allows it to persist the projection even after style change (like `Map.enableGlobeProjection` and `Map.enableMercatorProjection` do)
 - Adds new method `Map.forgetPersistedProjection` that forgets a persisted projection
+- Bumps MapLibre to version 3.16.0
+- Bump MapLibre Style Spec to 24.4.1
 
 ### 🐛 Bug Fixes
 - Fixes a bug where `map.getProjection()` did not return a value when default projection was used.

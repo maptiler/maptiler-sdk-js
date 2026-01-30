@@ -97,13 +97,13 @@
     "vitest": "^3.0.9"
   },
   "dependencies": {
-    "@maplibre/maplibre-gl-style-spec": "~24.3.1",
+    "@maplibre/maplibre-gl-style-spec": "~24.4.1",
     "@maptiler/client": "~2.6.0",
     "eslint-plugin-compat": "^6.1.0",
     "events": "^3.3.0",
     "gl-matrix": "^3.4.4",
     "js-base64": "^3.7.7",
-    "maplibre-gl": "~5.14.0",
+    "maplibre-gl": "~5.16.0",
     "requestidlecallback-polyfill": "^1.0.2",
     "uuid": "^11.0.5"
   }
