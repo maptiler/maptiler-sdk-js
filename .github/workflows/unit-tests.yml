@@ -1,4 +1,4 @@
-name: Format and Lint
+name: Unit tests
 
 on: [pull_request]
 
