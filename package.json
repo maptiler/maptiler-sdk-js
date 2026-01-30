@@ -1,6 +1,6 @@
 {
   "name": "@maptiler/sdk",
-  "version": "3.11.0",
+  "version": "3.11.0-rc.1",
   "description": "The Javascript & TypeScript map SDK tailored for MapTiler Cloud",
   "author": "MapTiler",
   "module": "dist/maptiler-sdk.mjs",
@@ -98,7 +98,7 @@
   },
   "dependencies": {
     "@maplibre/maplibre-gl-style-spec": "~24.4.1",
-    "@maptiler/client": "~2.6.0",
+    "@maptiler/client": "2.7.0-rc.1",
     "eslint-plugin-compat": "^6.1.0",
     "events": "^3.3.0",
     "gl-matrix": "^3.4.4",
