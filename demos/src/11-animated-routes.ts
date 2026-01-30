@@ -34,7 +34,7 @@ async function createMap() {
 
   const map = new Map({
     container: element,
-    style: MapStyle.OUTDOOR.DARK,
+    style: MapStyle.HYBRID,
     hash: false,
     geolocateControl: false,
     navigationControl: false,
@@ -252,6 +252,7 @@ async function main() {
   });
 
   pauseButton?.addEventListener("click", () => {
+    markerMovementAnimation.pause();
     activeAnimation.pause();
   });
 
