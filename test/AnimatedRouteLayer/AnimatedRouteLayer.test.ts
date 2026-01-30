@@ -46,6 +46,7 @@ class MockMap {
   jumpTo = vi.fn();
   getSource = vi.fn(() => mockSource);
   getLayersOrder = vi.fn();
+  getCenterElevation = vi.fn();
 }
 
 describe("AnimatedRouteLayer", () => {

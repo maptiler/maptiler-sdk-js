@@ -1,0 +1,22 @@
+name: Format and Lint
+
+on: [pull_request]
+
+jobs:
+  format-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Formatting and linting
+        run: npm run test
+
