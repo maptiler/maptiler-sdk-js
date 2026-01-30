@@ -17,6 +17,6 @@ jobs:
       - name: Install Node.js dependencies
         run: npm ci
 
-      - name: Formatting and linting
+      - name: Running unit tests
         run: npm run test
 
