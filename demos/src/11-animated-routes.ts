@@ -259,12 +259,14 @@ async function main() {
     if (!animatedRouteLayer.animationInstance) return;
     const currentSpeed = animatedRouteLayer.animationInstance.getPlaybackRate();
     animatedRouteLayer.animationInstance.setPlaybackRate(currentSpeed + 0.2);
+    markerMovementAnimation.setPlaybackRate(currentSpeed + 0.2);
   });
 
   slowerButton?.addEventListener("click", () => {
     if (!animatedRouteLayer.animationInstance) return;
     const currentSpeed = animatedRouteLayer.animationInstance.getPlaybackRate();
     animatedRouteLayer.animationInstance.setPlaybackRate(currentSpeed - 0.2);
+    markerMovementAnimation.setPlaybackRate(currentSpeed - 0.2);
   });
 }
 
