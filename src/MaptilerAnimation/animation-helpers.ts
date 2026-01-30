@@ -107,6 +107,7 @@ export function findPreviousEntryAndIndexWithValue(arr: NumericArrayWithNull, cu
  * @property {number} [pathSmoothing.epsilon] - Optional tolerance parameter for path simplification.
  */
 export interface ParseGeoJSONToKeyframesOptions {
+  ignoreFields?: string[];
   defaultEasing?: EasingFunctionName;
   pathSmoothing?:
     | {
@@ -177,7 +178,7 @@ export type KeyframeableGeoJSONFeature = Feature<KeyframeableGeometry> & {
  * @throws {Error} When the geometry type is not supported
  */
 export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeature, options: ParseGeoJSONToKeyframesOptions = {}): Keyframe[] {
-  const { defaultEasing, pathSmoothing } = {
+  const { defaultEasing, pathSmoothing, ignoreFields } = {
     ...defaultOptions,
     ...options,
   } as ParseGeoJSONToKeyframesOptions;
@@ -227,7 +228,7 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
     ...properties,
     ...(!altitudeIsEntirelyNull && { altitude }),
   }).reduce((acc, [key, value]) => {
-    if (key.startsWith("@")) {
+    if (key.startsWith("@") || ignoreFields?.includes(key)) {
       return acc;
     }
     return {
@@ -249,10 +250,14 @@ export function parseGeoJSONFeatureToKeyframes(feature: KeyframeableGeoJSONFeatu
 
   if (pathSmoothing) {
     const smoothedPath = createBezierPathFromCoordinates(parseableGeometry as [number, number][], pathSmoothing.resolution, pathSmoothing.epsilon);
-    const smoothedDeltas = smoothedPath.map((_, index) => index / smoothedPath.length);
+    const smoothedDeltas = lerpArrayValues(stretchNumericalArray([0, 1], smoothedPath.length));
     const smoothedEasings = smoothedDeltas.map(() => defaultEasing ?? "Linear");
 
     const smoothedProperties = Object.entries(nonReservedProperties as Record<string, number[]>).reduce((acc, [key, value]) => {
+      if (!Array.isArray(value)) {
+        return acc;
+      }
+
       const newArrayLength = smoothedPath.length;
 
       // "stretch" the array to the new length
@@ -319,12 +324,13 @@ export function getKeyframes(coordinates: number[][], deltas: number[], easings:
   if (!arraysAreTheSameLength(coordinates, deltas, easings, ...Object.values(properties))) {
     throw new Error(`
       [parseGeoJSONFeatureToKeyframes]: If smoothing is not applied, coordinates, deltas, easings and property arrays must be the same length\n
-      Coordinates: ${coordinates.length}\n
-      Deltas: ${deltas.length}\n
-      Easing: ${easings.length}\n
-      Properties: ${Object.entries(properties)
-        .map(([key, value]) => `"${key}": ${value.length}`)
-        .join(", ")}
+      Coordinates: ${coordinates.length}
+      Deltas: ${deltas.length}
+      Easing: ${easings.length}
+      Properties:
+        ${Object.entries(properties)
+          .map(([key, value]) => `"${key}": ${value.length}`)
+          .join(",\n        ")}
     `);
   }
 
@@ -356,6 +362,35 @@ export function getKeyframes(coordinates: number[][], deltas: number[], easings:
   });
 }
 
+function sampleCatmullRomSegment(
+  out: [number, number][],
+  p0: [number, number],
+  p1: [number, number],
+  p2: [number, number],
+  p3: [number, number],
+  outputResolution: number,
+  tStart: number,
+  tEnd: number,
+): void {
+  const c1: [number, number] = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+  const c2: [number, number] = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+  const step = 1 / outputResolution;
+  let lastTPushed = tStart - step;
+  for (let t = tStart; t <= tEnd; t += step) {
+    const x = (1 - t) ** 3 * p1[0] + 3 * (1 - t) ** 2 * t * c1[0] + 3 * (1 - t) * t ** 2 * c2[0] + t ** 3 * p2[0];
+    const y = (1 - t) ** 3 * p1[1] + 3 * (1 - t) ** 2 * t * c1[1] + 3 * (1 - t) * t ** 2 * c2[1] + t ** 3 * p2[1];
+    out.push([x, y]);
+    lastTPushed = t;
+  }
+  const exactX = (1 - tEnd) ** 3 * p1[0] + 3 * (1 - tEnd) ** 2 * tEnd * c1[0] + 3 * (1 - tEnd) * tEnd ** 2 * c2[0] + tEnd ** 3 * p2[0];
+  const exactY = (1 - tEnd) ** 3 * p1[1] + 3 * (1 - tEnd) ** 2 * tEnd * c1[1] + 3 * (1 - tEnd) * tEnd ** 2 * c2[1] + tEnd ** 3 * p2[1];
+  if (tEnd - lastTPushed > 1e-10) {
+    out.push([exactX, exactY]);
+  } else {
+    out[out.length - 1] = [exactX, exactY];
+  }
+}
+
 /**
  * Creates a smoothed path using cubic Bezier curves from an array of coordinates.
  *
@@ -376,27 +411,30 @@ export function createBezierPathFromCoordinates(inputPath: [number, number][], o
 
   if (path.length < 4) return path; // Need at least 4 points
 
+  if (typeof simplificationThreshold === "number") {
+    path[path.length - 1] = [...inputPath[inputPath.length - 1]];
+  }
+
   const smoothPath: [number, number][] = [];
 
+  const p0First: [number, number] = [2 * path[0][0] - path[1][0], 2 * path[0][1] - path[1][1]];
+  sampleCatmullRomSegment(smoothPath, p0First, path[0], path[1], path[2], outputResolution, 0, 1);
+
+  const step = 1 / outputResolution;
+
+  // control points for the segments
   for (let i = 1; i < path.length - 2; i++) {
     const p0 = path[i - 1];
     const p1 = path[i];
     const p2 = path[i + 1];
     const p3 = path[i + 2];
 
-    // Compute control points...
-    const c1: [number, number] = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
-    const c2: [number, number] = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-
-    // Generate points along the curve...
-    for (let t = 0; t <= 1; t += 1 / outputResolution) {
-      const x = (1 - t) ** 3 * p1[0] + 3 * (1 - t) ** 2 * t * c1[0] + 3 * (1 - t) * t ** 2 * c2[0] + t ** 3 * p2[0];
-
-      const y = (1 - t) ** 3 * p1[1] + 3 * (1 - t) ** 2 * t * c1[1] + 3 * (1 - t) * t ** 2 * c2[1] + t ** 3 * p2[1];
-
-      smoothPath.push([x, y]);
-    }
+    sampleCatmullRomSegment(smoothPath, p0, p1, p2, p3, outputResolution, step, 1);
   }
+
+  // last segmnt
+  const p3Last: [number, number] = [2 * path[path.length - 1][0] - path[path.length - 2][0], 2 * path[path.length - 1][1] - path[path.length - 2][1]];
+  sampleCatmullRomSegment(smoothPath, path[path.length - 3], path[path.length - 2], path[path.length - 1], p3Last, outputResolution, step, 1);
 
   return smoothPath;
 }
@@ -450,14 +488,15 @@ export function simplifyPath(points: [number, number][], distance: number): [num
     const lastLngLat = new LngLat(lastPoint[0], lastPoint[1]);
     const currentLngLat = new LngLat(currentPoint[0], currentPoint[1]);
     const dist = lastLngLat.distanceTo(currentLngLat);
-    // Add the point if it is farther than the specified distance
+
+    // Add the point if it's farther than the specified distance
     if (dist >= distance) {
       simplifiedPath.push(currentPoint);
       lastPoint = currentPoint;
     }
   }
 
-  simplifiedPath.push(path[path.length - 1]); // Add the last point
+  simplifiedPath.push([...points[points.length - 1]]); // Preserve original path endpoint
 
   return simplifiedPath;
 }
@@ -494,6 +533,13 @@ export function resamplePath(path: [number, number][], spacing: number = 10): [n
       path[i] = newPoint; // insert newPoint into segment
       remaining = spacing;
     }
+  }
+
+  // Resampling by spacing can end mid-segment; always include the original path endpoint
+  const lastOriginal = path[path.length - 1];
+  const lastInResult = result[result.length - 1];
+  if (lastInResult[0] !== lastOriginal[0] || lastInResult[1] !== lastOriginal[1]) {
+    result.push([lastOriginal[0], lastOriginal[1]]);
   }
 
   return result;

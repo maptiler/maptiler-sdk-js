@@ -431,9 +431,9 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
           ["line-progress"], // Progress along the line
           0,
           ["rgba", ...activeColor], // color at the start
-          0.01 + currentDelta,
+          0.0001 + currentDelta,
           ["rgba", ...activeColor], // color at the start
-          0.011 + currentDelta,
+          0.00011 + currentDelta,
           ["rgba", ...inactiveColor], // color at the transition
           1,
           ["rgba", ...inactiveColor], // color at the end
@@ -442,13 +442,14 @@ export class AnimatedRouteLayer implements CustomLayerInterface {
     }
 
     if (props && this.cameraMaptilerAnimationOptions && this.cameraMaptilerAnimationOptions.follow) {
-      const { lng, lat, bearing, zoom, pitch } = props;
+      const { lng, lat, bearing, zoom, pitch, elevation } = props;
 
       this.map.jumpTo({
         center: [lng, lat],
         pitch: pitch ?? this.map.getPitch(),
         zoom: zoom ?? this.map.getZoom(),
         bearing: bearing ?? this.map.getBearing(),
+        elevation: elevation ?? this.map.getCenterElevation(),
       });
     }
   }

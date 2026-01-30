@@ -319,6 +319,18 @@ export default class MaptilerAnimation {
    */
   update(manual = true, ignoreIteration = false) {
     const currentTime = performance.now();
+    const hasReachedEnd = this.currentDelta >= 1 || this.currentDelta < 0;
+
+    if (hasReachedEnd) {
+      this.emitEvent("animationend");
+      if (this.iterations === 0 || this.currentIteration < this.iterations) {
+        this.reset(manual);
+      } else {
+        this.stop();
+        return this;
+      }
+    }
+
     if (!ignoreIteration) {
       const frameLength = manual ? 16 : currentTime - this.lastFrameAt;
       const timeElapsed = currentTime - this.animationStartTime;
@@ -330,6 +342,14 @@ export default class MaptilerAnimation {
       this.currentTime = timeDelta;
 
       this.currentDelta += frameLength / this.effectiveDuration;
+    }
+
+    if (this.currentDelta > 1) {
+      this.currentIteration = 1;
+    }
+
+    if (this.currentDelta < 0) {
+      this.currentDelta = 0;
     }
 
     const { next, current } = this.getCurrentAndNextKeyFramesAtDelta(this.currentDelta);
@@ -377,14 +397,6 @@ export default class MaptilerAnimation {
     if ((this.currentDelta >= 1 || this.currentDelta < 0) && !ignoreIteration) {
       this.currentIteration += 1;
       this.emitEvent("iteration", null, null, {});
-      if (this.iterations === 0 || this.currentIteration < this.iterations) {
-        this.reset(manual);
-        return this;
-      }
-
-      this.stop();
-      this.emitEvent("animationend");
-      return this;
     }
 
     this.previousProps = { ...interpolatedProps };
