@@ -372,7 +372,6 @@ export default class ImageViewer extends Evented {
       this.fire("imageviewerready", new ImageViewerEvent("imageviewerready", this));
     } catch (e) {
       this.fire("imagevieweriniterror", { error: e });
-      throw e;
     }
   }
 

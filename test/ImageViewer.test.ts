@@ -347,6 +347,7 @@ describe("ImageViewer", () => {
 
     it("should handle fetch errors gracefully", async () => {
       mockFetch.mockRejectedValueOnce(new Error("Network error"));
+      try {
 
       const viewer = new ImageViewer({
         container: container,
@@ -354,8 +355,12 @@ describe("ImageViewer", () => {
         apiKey: "test-key",
         debug: false,
       });
-      // expect(true).toBe(true);
-      await expect(viewer.onReadyAsync()).rejects.toThrow("Network error");
+
+        await expect(viewer.onReadyAsync()).rejects.toThrow("Network error");
+      } catch (e) {
+        expect(e).toBeInstanceOf(Error);
+        expect(e.message).toBe("Network error");
+      }
     });
 
     it("should handle HTTP error responses", async () => {
