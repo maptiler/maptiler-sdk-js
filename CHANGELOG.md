@@ -18,6 +18,7 @@
 - Fixes a bug where space would not load correctly if a new remote style spec was undefined.
 - Fixes some bugs in `AnimatedRouteLayer` and `animation-helpers.ts` where the first and final points in a list of coordinates were removed during path smoothing.
 - Fixes a bug on Safari where requestIdleCallback is not supported.
+- Fixes a bug on `ImageViewer` where it initialising would time out on Safari.
 
 ### ⚙️ Others
 - Better e2e Test coverage for Space & Halo
