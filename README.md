@@ -325,7 +325,7 @@ map.setStyle("maptiler://c912ffc8-2360-487a-973b-59d037fb15b8");
 
 The **Web Mercator projection** [_(Wikipedia)_](https://en.wikipedia.org/wiki/Web_Mercator_projection) has been the go-to standard in cartography since the early days or web mapping. Partly for technical reasons but also because it is great for navigation as well as for showing the entire world in one screen, with no hidden face. That being said, Mercator's heavy distorsion at high latitudes, as well a the discontinuity at the poles can be a limitation for data visualization and has been critisized for providing a biased view of the world.
 
-The **globe projection**, available starting from MapTiler SDK v3, does not suffer from these biases and can feel overall more playfull than Mercator. It can be a great choice for semi-global data visualization, especially for data close to the poles, thanks to its geographic continuity.
+The **globe projection**, available starting from MapTiler SDK v3, does not suffer from these biases and can feel overall more playful than Mercator. It can be a great choice for semi-global data visualization, especially for data close to the poles, thanks to its geographic continuity.
 
 |               Mercator projection                |               Globe projection                |
 | :----------------------------------------------: | :-------------------------------------------: |
