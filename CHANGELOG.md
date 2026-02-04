@@ -1,5 +1,51 @@
 # MapTiler SDK Changelog
 
+## NEXT
+
+### ✨ Features and improvements
+- None
+
+### 🐛 Bug Fixes
+- None
+
+### ⚙️ Others
+- None
+
+## 3.11.0
+
+### ✨ Features and improvements
+- Adds the new `MapTilerAnimation` module and associated helpers for creating and managing animations, lerping between values and 'smoothing' arrays.
+- Adds the new `AnimatedRouteLayer` module and associated helpers for animating camera movement along GeoJSON features paths.
+- Adds better validation of space specifications in CubemapLayer
+- Adds new signature to `Map.setProjection` that allows to use just `"globe"` and `"mercator"` instead of projection specification object
+- Adds new option to `Map.setProjection` that allows it to persist the projection even after style change (like `Map.enableGlobeProjection` and `Map.enableMercatorProjection` do)
+- Adds new method `Map.forgetPersistedProjection` that forgets a persisted projection
+- Bumps MapLibre to version 3.16.0
+- Bump MapLibre Style Spec to 24.4.1
+
+### 🐛 Bug Fixes
+- Fixes a bug where `map.getProjection()` did not return a value when default projection was used.
+- Fixes bugs in space and halo where precedence of constructor options vs remote styles was not enforced correctly.
+- Fixes a bug where space would not load correctly if a new remote style spec was undefined.
+- Fixes some bugs in `AnimatedRouteLayer` and `animation-helpers.ts` where the first and final points in a list of coordinates were removed during path smoothing.
+- Fixes a bug on Safari where requestIdleCallback is not supported.
+- Fixes a bug on `ImageViewer` where initialising would time out on Safari.
+
+### ⚙️ Others
+- Better e2e Test coverage for Space & Halo
+- Deprecates `Map.enableGlobeProjection` and `Map.enableMercatorProjection` in favour of `Map.setProjection` with `persist` option set to `true`
+- Fixes a typo in ImageViewer typedefs
+
+## 3.10.2
+### ✨ Features and improvements
+- None
+
+### 🐛 Bug Fixes
+- Fixes a merge artefact where a call to enableRTL was removed, disabling rtl text by default. Re-enables RTL by default and adds e2e tests.
+
+### ⚙️ Others
+- None
+
 ## 3.10.1
 
 ### ✨ Features and improvements

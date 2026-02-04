@@ -2,6 +2,7 @@
 
 import tseslint from "typescript-eslint";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import eslintPluginCompat from "eslint-plugin-compat";
 
 export default tseslint.config(
   // https://typescript-eslint.io/getting-started/typed-linting/
@@ -11,6 +12,7 @@ export default tseslint.config(
   {
     // forked from https://www.npmjs.com/package/eslint-plugin-restrict-imports
     plugins: {
+      compat: eslintPluginCompat,
       import: {
         rules: {
           "default-imports-only": {
@@ -67,7 +69,12 @@ export default tseslint.config(
         },
       },
     },
+    settings: {
+      // eslint-plugin-compat polyfill
+      polyfills: ["requestIdleCallback"],
+    },
     rules: {
+      "compat/compat": "error",
       "import/default-imports-only": [
         "error",
         {
@@ -127,6 +134,7 @@ export default tseslint.config(
       "@typescript-eslint/related-getter-setter-pairs": "off",
       "@typescript-eslint/unbound-method": "warn",
       "@typescript-eslint/use-unknown-in-catch-callback-variable": "warn",
+      "@typescript-eslint/unified-signatures": ["error", { ignoreOverloadsWithDifferentJSDoc: true }],
     },
   },
   //

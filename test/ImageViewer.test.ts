@@ -347,14 +347,13 @@ describe("ImageViewer", () => {
 
     it("should handle fetch errors gracefully", async () => {
       mockFetch.mockRejectedValueOnce(new Error("Network error"));
-
       const viewer = new ImageViewer({
         container: container,
         imageUUID: "test-uuid",
         apiKey: "test-key",
         debug: false,
       });
-      // expect(true).toBe(true);
+
       await expect(viewer.onReadyAsync()).rejects.toThrow("Network error");
     });
 
