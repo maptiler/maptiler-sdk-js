@@ -260,7 +260,6 @@ export default class ImageViewer extends Evented {
    */
   async onReadyAsync() {
     try {
-      await this.sdk.onReadyAsync();
       await Promise.race([
         new Promise((resolve, reject) => {
           void this.once("imageviewerready", (evt) => {
@@ -300,6 +299,8 @@ export default class ImageViewer extends Evented {
    */
   private async init() {
     try {
+      await this.sdk.onReadyAsync();
+
       await this.fetchImageMetadata();
 
       this.addImageSource();
@@ -312,7 +313,6 @@ export default class ImageViewer extends Evented {
           }),
         );
       }
-
       this.fitToBoundsControlInstance = new ImageViewerFitImageToBoundsControl({ imageViewer: this });
       if (this.options.fitToBoundsControl) {
         this.sdk.addControl(this.fitToBoundsControlInstance);

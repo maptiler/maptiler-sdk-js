@@ -3,6 +3,17 @@
 ## NEXT
 
 ### ✨ Features and improvements
+- None
+
+### 🐛 Bug Fixes
+- None
+
+### ⚙️ Others
+- None
+
+## 3.11.0
+
+### ✨ Features and improvements
 - Adds the new `MapTilerAnimation` module and associated helpers for creating and managing animations, lerping between values and 'smoothing' arrays.
 - Adds the new `AnimatedRouteLayer` module and associated helpers for animating camera movement along GeoJSON features paths.
 - Adds better validation of space specifications in CubemapLayer
@@ -18,6 +29,7 @@
 - Fixes a bug where space would not load correctly if a new remote style spec was undefined.
 - Fixes some bugs in `AnimatedRouteLayer` and `animation-helpers.ts` where the first and final points in a list of coordinates were removed during path smoothing.
 - Fixes a bug on Safari where requestIdleCallback is not supported.
+- Fixes a bug on `ImageViewer` where initialising would time out on Safari.
 
 ### ⚙️ Others
 - Better e2e Test coverage for Space & Halo
