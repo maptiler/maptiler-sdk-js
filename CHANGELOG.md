@@ -3,6 +3,17 @@
 ## NEXT
 
 ### ✨ Features and improvements
+- None
+
+### 🐛 Bug Fixes
+- None
+
+### ⚙️ Others
+- None
+
+## 3.11.0
+
+### ✨ Features and improvements
 - Adds the new `MapTilerAnimation` module and associated helpers for creating and managing animations, lerping between values and 'smoothing' arrays.
 - Adds the new `AnimatedRouteLayer` module and associated helpers for animating camera movement along GeoJSON features paths.
 - Adds better validation of space specifications in CubemapLayer
