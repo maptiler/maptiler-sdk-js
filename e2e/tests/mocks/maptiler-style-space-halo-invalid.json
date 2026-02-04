@@ -1,0 +1,38 @@
+{
+  "version": 8,
+  "sources": {
+    "raster": {
+      "type": "raster",
+      "tiles": [
+        "https://api.maptiler.com/tiles/satellite/{z}/{x}/{y}.jpg?key=DOESNT_MATTER"
+      ],
+      "tileSize": 256
+    }
+  },
+  "layers": [
+    {
+      "id": "raster",
+      "type": "raster",
+      "source": "raster",
+      "minzoom": 0,
+      "maxzoom": 22
+    }
+  ],
+  "projection": { "type": "globe" },
+  "metadata": {
+    "maptiler": {
+      "version": "1.0.0",
+      "attribution": "© MapTiler © OpenStreetMap contributors",
+      "halo": {
+        "scale": "letter",
+        "stops": {
+          "is": "an object"
+        }
+      },
+      "space": {
+        "color": [1234,1234],
+        "preset": 3
+      }
+    }
+  }
+}

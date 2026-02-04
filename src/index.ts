@@ -1,3 +1,5 @@
+import "requestidlecallback-polyfill";
+
 import maplibregl from "maplibre-gl";
 
 // Types from MapLibre are not re-exported one by one
@@ -180,6 +182,7 @@ export * from "./ml-types";
 
 // SDK specific
 export { Map, GeolocationType, type MapOptions, type LoadWithTerrainEvent } from "./Map";
+
 export * from "./controls";
 export {
   type AutomaticStaticMapOptions,
@@ -259,3 +262,6 @@ export * from "./custom-layers/index";
 export { ColorRamp, ColorRampCollection } from "./ColorRamp";
 export type { RgbaColor, ColorStop, ArrayColor, ArrayColorRampStop, ArrayColorRamp, ColorRampOptions } from "./ColorRamp";
 export * from "./utils";
+
+export * from "./MaptilerAnimation";
+export * from "./custom-layers/AnimatedRouteLayer";

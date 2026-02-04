@@ -25,7 +25,7 @@ import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
 import { defaults } from "./constants/defaults";
 import { MaptilerLogoControl } from "./controls/MaptilerLogoControl";
-import { changeFirstLanguage, checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, replaceLanguage } from "./tools";
+import { changeFirstLanguage, checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, enableRTL, replaceLanguage } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
 import { styleToStyle } from "./mapstyle";
 import { MaptilerTerrainControl } from "./controls/MaptilerTerrainControl";
@@ -41,7 +41,7 @@ import type { MinimapOptionsInput } from "./controls/Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 import { MaptilerProjectionControl } from "./controls/MaptilerProjectionControl";
 import { Telemetry } from "./Telemetry";
-import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions, validateSpaceSpecification } from "./custom-layers/CubemapLayer";
+import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from "./custom-layers/CubemapLayer";
 import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructorOptions } from "./custom-layers/RadialGradientLayer";
 import { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 import { logSDKVersion } from "./utils/logSDKVersion";
@@ -219,7 +219,31 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
    * Default: Unless this is set explicitly to false, the SDK version will be logged to the console.
    */
   logSDKVersion?: boolean;
+
+  /**
+   * Whether to enable the RTL plugin or import a different one.
+   * Default is undefined, which means the plugin is enabled by default.
+   */
+
+  rtlTextPlugin?: boolean | string;
 };
+
+/**
+ * Options to provide to the {@link Map.setProjection} method
+ */
+export interface ProjectionChangeOptions {
+  /**
+   * Whether the new projection should be persisted for any future style changes.
+   *
+   * If `true`, the new projection is persisted and is applied after all future style changes.
+   * If `false` or not specified, the new projection will be used only until the next style change, when it will get replaced with the first applicable value from this list:
+   * - a previously persisted projection
+   * - a projection specified in {@link Map} constructor options ({@link MapOptions})
+   * - a projection specified in `projection` property of the style itself
+   * - the Mercator projection
+   */
+  persist?: boolean;
+}
 
 /**
  * The Map class can be instanciated to display a map in a `<div>`
@@ -326,19 +350,19 @@ export class Map extends maplibregl.Map {
   }
 
   private setSpaceFromStyle({ style }: { style: StyleSpecificationWithMetaData }) {
-    if (this.options.space === false) {
-      return;
-    }
-
     // respect options over style specification.
-    if (this.options.space !== true && validateSpaceSpecification(this.options.space)) {
-      this.setSpace(this.options.space!);
+    if (this.options.space !== true && typeof this.options.space !== "undefined") {
+      this.setSpace(this.options.space);
       return;
     }
 
     const space = style.metadata?.maptiler?.space;
 
-    const spaceSpecIsValid = validateSpaceSpecification(space);
+    // if it space is falsey in the spec and the options, set space to false, removing it
+    if (!this.options.space && !space) {
+      this.setSpace(false, false);
+      return;
+    }
 
     if (JSON.stringify(this.space?.getConfig()) === JSON.stringify(space)) {
       // because maplibre removes ALL layers when setting a new style, we need to add the space layer back
@@ -350,22 +374,8 @@ export class Map extends maplibregl.Map {
       return;
     }
 
-    if (spaceSpecIsValid) {
-      // validateSpaceSpecification guarantees that spec is not undefined
-      this.setSpace(space!, false);
-      return;
-    }
-
     if (this.options.space === true) {
-      this.setSpace(true);
-      return;
-    }
-
-    const spaceExistedButNowDoesNot = this.space?.getConfig() && space === undefined;
-
-    if (spaceExistedButNowDoesNot) {
-      this.setSpace({ color: "transparent" }, false);
-      this.removeLayer(this.space?.id ?? "");
+      this.setSpace(space ?? true);
       return;
     }
 
@@ -438,7 +448,7 @@ export class Map extends maplibregl.Map {
 
     if (options.space === false) return;
 
-    if (options.space) {
+    if (options.space && options.space !== true) {
       this.space = new CubemapLayer(options.space);
       this.addLayer(this.space, before);
       return;
@@ -450,6 +460,11 @@ export class Map extends maplibregl.Map {
       this.space = new CubemapLayer(spaceOptionsFromStyleSpec);
       this.addLayer(this.space, before);
     }
+
+    if (this.options.space === true) {
+      this.space = new CubemapLayer(true);
+      this.addLayer(this.space, before);
+    }
   }
 
   private initHalo({ options = this.options, before, spec }: { options?: MapOptions; before: string; spec?: GradientDefinition }) {
@@ -459,7 +474,7 @@ export class Map extends maplibregl.Map {
     if (options.halo === false) return;
 
     const haloOptionsFromStyleSpec = spec;
-    if (options.halo) {
+    if (options.halo && options.halo !== true) {
       this.halo = new RadialGradientLayer(options.halo);
       this.addLayer(this.halo, before);
       return;
@@ -468,6 +483,12 @@ export class Map extends maplibregl.Map {
     if (haloOptionsFromStyleSpec) {
       this.halo = new RadialGradientLayer(haloOptionsFromStyleSpec);
       this.addLayer(this.halo, before);
+    }
+
+    if (this.options.halo === true) {
+      this.halo = new RadialGradientLayer(true);
+      this.addLayer(this.halo, before);
+      return;
     }
   }
 
@@ -594,6 +615,13 @@ export class Map extends maplibregl.Map {
 
     this.on("style.load", () => {
       this.styleInProcess = false;
+
+      // If the rtlTextPlugin option is a string, we assume it is a url and enable the plugin
+      // If the rtlTextPlugin option is undefined, it is enabled by default and will override the default url
+      // If the rtlTextPlugin option is false (ot anything else), we don't enable the plugin
+      if (typeof options.rtlTextPlugin === "string" || typeof options.rtlTextPlugin === "undefined") {
+        void enableRTL(options.rtlTextPlugin);
+      }
     });
 
     // Safeguard for distant styles at non-http 2xx status URLs
@@ -1253,6 +1281,8 @@ export class Map extends maplibregl.Map {
     }
 
     // because of the current uncertainty of the style.load event
+    // and because we store our space and halo configs in the metadata
+    // of the style (which is not monitored in diffing),
     // we have no way of knowing if the style is loaded or not
     // which will fail internally if the style is not loaded correctly
     requestIdleCallback(() => {
@@ -2005,7 +2035,7 @@ export class Map extends maplibregl.Map {
   override getProjection(): ProjectionSpecification {
     const projection = this.style.getProjection();
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!projection === undefined && this.style.projection) {
+    if (projection === undefined && this.style.projection) {
       return { type: this.style.projection.name };
     }
     return projection;
@@ -2026,34 +2056,67 @@ export class Map extends maplibregl.Map {
   }
 
   /**
-   * Activate the globe projection.
+   * Activate the globe projection and persist this change during future style changes.
+   * @deprecated Will be removed in v4.0.0. Use `map.setProjection("globe", { persist: true })` instead.
    */
   enableGlobeProjection() {
+    this.curentProjection = "globe";
+
     if (this.isGlobeProjection() === true) {
       return;
     }
 
     this.setProjection({ type: "globe" });
-
-    this.curentProjection = "globe";
   }
 
   /**
-   * Activate the mercator projection.
+   * Activate the mercator projection and persist this change during future style changes.
+   * @deprecated Will be removed in v4.0.0. Use `map.setProjection("mercator", { persist: true })` instead.
    */
   enableMercatorProjection() {
+    this.curentProjection = "mercator";
+
     if (this.isGlobeProjection() === false) {
       return;
     }
 
     this.setProjection({ type: "mercator" });
-
-    this.curentProjection = "mercator";
   }
 
-  override setProjection(projection: maplibregl.ProjectionSpecification) {
+  /**
+   * Sets the projection to one of {@linkcode ProjectionTypes}.
+   * @param projection - the projection type to set
+   * @param options - configure behaviour of the projection change
+   */
+  override setProjection(projection: NonNullable<ProjectionTypes>, options?: ProjectionChangeOptions): this;
+  /**
+   * Sets the projection to one of {@linkcode ProjectionTypes}.
+   * @param projection - the projection type to set, wrapped in {@link ProjectionSpecification}
+   * @param options - configure behaviour of the projection change
+   */
+  override setProjection(projection: { type: NonNullable<ProjectionTypes> }, options?: ProjectionChangeOptions): this;
+  /**
+   * Sets the projection to a {@linkcode ProjectionSpecification}.
+   * @param projection - the projection specification to set
+   */
+  override setProjection(projection: maplibregl.ProjectionSpecification): this;
+  override setProjection(projection: NonNullable<ProjectionTypes> | maplibregl.ProjectionSpecification, options?: ProjectionChangeOptions) {
+    if (typeof projection === "string") projection = { type: projection };
+
+    if ((projection.type === "mercator" || projection.type === "globe") && options?.persist) {
+      this.curentProjection = projection.type;
+    }
+
     this.fire("projection.change", { target: this, projection });
     return super.setProjection(projection);
+  }
+
+  /**
+   * Forget the persisted projection - from both constructor option and result of any `map.setProjection(..., { persist: true })` calls.
+   */
+  forgetPersistedProjection() {
+    this.curentProjection = undefined;
+    return this;
   }
 
   /**

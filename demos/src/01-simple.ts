@@ -17,8 +17,8 @@ async function main() {
     terrainControl: true,
     projectionControl: true,
     projection: "globe",
-    space: true,
-    halo: true,
+    // space: true,
+    // halo: true,
     zoom: 1,
   });
 
@@ -36,11 +36,14 @@ async function main() {
   await map.onReadyAsync();
 
   Object.keys(MapStyle).forEach((s) => {
-    const styleOption = document.createElement("option");
-    // @ts-expect-error we know that `id` is private.
-    styleOption.value = MapStyle[s as keyof typeof MapStyle].DEFAULT.id;
-    styleOption.innerHTML = s.replace("_", " ").toLowerCase();
-    styleDropDown.appendChild(styleOption);
+    const variants = MapStyle[s as keyof typeof MapStyle].getVariants();
+    variants.forEach((variant) => {
+      const styleOption = document.createElement("option");
+      // @ts-expect-error we know that `id` is private.
+      styleOption.value = variant.id;
+      styleOption.innerHTML = `${s} ${variant.getFullName()}`;
+      styleDropDown.appendChild(styleOption);
+    });
   });
 
   const styleOption = document.createElement("option");

@@ -143,27 +143,27 @@ const expectedExports = Array.from(
     ...Object.keys(converters),
     ...Object.keys(ColorRamp),
     ...Object.keys(helpers),
+
+    // MaptilerAnimation & AnimatedRouteLayerModule
+    "AnimatedRouteLayer",
+    "MaptilerAnimation",
+    "ANIM_LAYER_PREFIX",
+    "lerp",
+    "lerpArrayValues",
+    "parseGeoJSONFeatureToKeyframes",
+    "createBezierPathFromCoordinates",
+    "getAverageDistance",
+    "simplifyPath",
+    "resamplePath",
+    "createBezierPathFromCoordinates",
+    "getAverageDistance",
+    "stretchNumericalArray",
+    "simplifyPath",
   ]),
 );
 
 describe("Module Exports", async () => {
   const exportedModule = await import("../src/index");
-
-  console.info(
-    "\x1b[1m%s\x1b[0m",
-    `
-  At present you will likely see an error above:
-  
-  \`Error: Failed to load url <blob-filepath> (resolved id: <blob-filepath>). Does the file exist?\`
-
-  This is related to maplibre-gl and the way it handles CJS modules.
-  It is caused by the call to \`enableRTL()\` in src/index.ts.
-
-  There is a planned future work to remove this (the API it relies on
-  is deprecated in Maplibre). But, for now, we must tolerate some
-  noise in this test...
-  `,
-  );
 
   it("should match number of exptected exports with expected number of exports, logging any superfluous exports", () => {
     const actualExports = Object.keys(exportedModule);

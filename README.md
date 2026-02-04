@@ -10,7 +10,7 @@ In addition, the MapTiler SDK JS provides well-documented and easy-to-use wrappe
 
 > 📣 _**Note:**_ If you need <ins>only the API Client library</ins> to use in a headless fashion and without any map display, check out [MapTiler Client JS](https://github.com/maptiler/maptiler-client-js) library for browser and NodeJS.
 
-[![](https://img.shields.io/npm/v/@maptiler/sdk?style=for-the-badge&labelColor=D3DBEC&color=f2f6ff&logo=npm&logoColor=333359)](https://www.npmjs.com/package/@maptiler/sdk) ![](https://img.shields.io/badge/-white?style=for-the-badge&logo=javascript)![](https://img.shields.io/badge/-white?style=for-the-badge&logo=typescript)
+[![npm](https://img.shields.io/npm/v/@maptiler/sdk?style=for-the-badge&labelColor=D3DBEC&color=f2f6ff&logo=npm&logoColor=333359)](https://www.npmjs.com/package/@maptiler/sdk) ![](https://img.shields.io/badge/-white?style=for-the-badge&logo=javascript)![](https://img.shields.io/badge/-white?style=for-the-badge&logo=typescript)
 
 ---
 
@@ -333,91 +333,105 @@ The **globe projection**, available starting from MapTiler SDK v3, does not suff
 
 The choice between Mercator and Globe can be done at different levels and moments in the lifecycle of the map, yet, unless stated otherwise, **Mercator remains the default**.
 
-- In the style, using the `projection` top-level property.
-  For globe:
+- In the style, using the `projection` top-level property.  
+  This projection is used when the style loads unless it has been overriden by one of the options below.
 
-```js
-{
-  "version": ...,
-  "id": ...,
-  "name": ...,
-  "sources": ...,
-  "layers": ...,
+  ```js
+  {
+    "version": ...,
+    "id": ...,
+    "name": ...,
+    "sources": ...,
+    "layers": ...,
 
-  // Make the style use the globe projection at load time
-  "projection": {
-    "type": "globe"
+    // Make the style use the globe projection at load time
+    "projection": {
+      "type": "globe"
+    }
+
+    // ...
   }
 
-  // ...
-}
-```
+  // or
 
-or for Mercator:
+  {
+    "version": ...,
+    "id": ...,
+    "name": ...,
+    "sources": ...,
+    "layers": ...,
 
-```js
-{
-  "version": ...,
-  "id": ...,
-  "name": ...,
-  "sources": ...,
-  "layers": ...,
+    // Make the style use the mercator projection at load time
+    "projection": {
+      "type": "mercator"
+    }
 
-  // Make the style use the mercator projection at load time
-  "projection": {
-    "type": "mercator"
+    // ...
   }
+  ```
 
-  // ...
-}
-```
+- In the constructor of the `Map` class, using the `projection` option.  
+  This overrides the `projection` property from the style (if any) and will persist it if the map style changes later, even if the style contains its own projection.
 
-- In the constructor of the `Map` class, using the `projection` option. For globe:
+  ```ts
+  const map = new maptilersdk.Map({
+    container: "map",
+    projection: "globe", // Force a globe projection
+  });
 
-```ts
-const map = new maptilersdk.Map({
-  container: "map",
-  projection: "globe", // Force a globe projection
-});
-```
+  // or
 
-or for Mercator:
+  const map = new maptilersdk.Map({
+    container: "map",
+    projection: "mercator", // Force a mercator projection
+  });
+  ```
 
-```ts
-const map = new maptilersdk.Map({
-  container: "map",
-  projection: "mercator", // Force a mercator projection
-});
-```
+- Using the built-in methods.  
+  This changes the projection for the current style and optionally also persists it if the map style changes later.
 
-This will overwrite the `projection` property from the style (if any) and will persist it later if the map style was to change.
+  ```ts
+  map.setProjection("mercator", { persist: true });
+  // or
+  map.setProjection("globe", { persist: true });
+  ```
 
-- Use the built-in methods:
+  > ℹ️ Deprecated methods `enableGlobeProjection()` and `enableMercatorProjection()` also persist the projection.
 
-```ts
-map.enableGlobeProjection();
-// or
-map.enableMercatorProjection();
-```
+  Without persistance, when the style next changes, the projection is reset to a previously persisted projection, or a projection specified in the `Map` options, or a projection specified in `projection` property of the style itself, or the default (Mercator) projection.
+  
+  ```ts
+  map.setProjection("mercator");
+  // or
+  map.setProjection("globe");
+  ```
 
-The projection setter built in Maplibre GL JS is also usable:
+  The signature built in Maplibre GL JS is also usable, however a style specification other than `"mercator"` or `"globe"` can't be persisted.
 
-```ts
-map.setProjection({ type: "mercator" });
-// or
-map.setProjection({ type: "globe" });
-```
+  ```ts
+  map.setProjection({ type: "mercator" });
+  // or
+  map.setProjection({ type: "globe" });
+  // or
+  map.setProjection({ type: ["step", ["zoom"], "vertical-perspective", 3, "mercator"] });
+  ```
 
 - Using the `MaptilerProjectionControl`. Not mounted by default, it can easily be added with a single option in the `Map` constructor:
 
-```ts
-const map = new maptilersdk.Map({
-  container: "map",
-  projectionControl: true, // or the position such as "top-left", "top-right",
-}); // "bottom-right" or "bottom-left"
-```
+  ```ts
+  const map = new maptilersdk.Map({
+    container: "map",
+    projectionControl: true, // or the position such as "top-left", "top-right",
+  }); // "bottom-right" or "bottom-left"
+  ```
 
-This dedicated control will show a globe icon <img src="images/screenshots/globe_icon.png" width="30px"/> to transition from Mercator to globe projection and will show a flat map icon <img src="images/screenshots/mercator_icon.png" width="30px"/> to transition from globe to Mercator projection. The chosen projection persist with future style changes.
+  This dedicated control will show a globe icon <img src="images/screenshots/globe_icon.png" width="30px"/> to transition from Mercator to globe projection and will show a flat map icon <img src="images/screenshots/mercator_icon.png" width="30px"/> to transition from globe to Mercator projection. The chosen projection persist with future style changes.
+
+- You can also forget the persisted projection. This is the only way how to make projection specified inside style itself work again if `Map` constructor `projection` option was specified, or `map.setProjection(..., { persist: true })` was called, or `MaptilerProjectionControl` was used, starting from the next style change.
+
+  ```ts
+  map.forgetPersistedProjection();
+  ```
 
 #### Field of view (FOV)
 
@@ -1322,6 +1336,159 @@ const myCustomRamp = new ColorRamp({
 When defining a new _ramp_, the colors can be an RGB array (`[number, number, number]`) or an RGBA array (`[number, number, number, number]`).
 
 Many methods are available on color ramps, such as getting the `<canvas>` element of it, rescaling it, flipping it or [resampling it in a non-linear way](colorramp.md). Read more on [our reference page](https://docs.maptiler.com/sdk-js/api/color-ramp/) and have a look at our [examples](https://docs.maptiler.com/sdk-js/examples/?q=colorramp) to see how they work.
+
+### Camera routes and animations
+
+The SDK comes with several classes to help with animations, particularly route animations.
+
+See `demos/11-animated-routes.html` for examples.
+See `demos/12-maptiler-animation.html` for examples.
+
+#### 🧩 `MaptilerAnimation`
+
+MaptilerAnimation is a utility class for smoothly animating between keyframes using custom easing and playback control. It supports event-based hooks for frame updates and completion, and works well within rendering loops or UI transitions.
+
+##### 🚀 Usage
+
+```ts
+// linearly animated between values
+const animation = new MaptilerAnimation({
+  keyframes: [
+    // `props` are interpolated across the duration
+    { delta: 0, props: { lon: -7.445, } },
+    // `userData` can hold any type of custom data to pass with the keyframe
+    { delta: 0.5, userData: { mydata: "whoa!" } },
+    { delta: 1, props: { lon: -7.473 } }
+  ],
+  duration: 1000, // 1 second
+  iterations: Infinity // loop forever
+});
+
+const marker = new Marker().setLngLat(
+  new LngLat(
+    -7.449346225791231,
+    39.399728941536836,
+  )
+).addTo(map);
+
+// TimeUpdate is fired every frame
+animation.addEventListener(AnimationEventTypes.TimeUpdate, (e) => {
+  marker.setLngLat(
+    new LngLat(
+      e.props.lon,
+    39.399728941536836,
+    )
+  )
+})
+// fired when the keyframe changes
+animation.addEventListener(AnimationEventTypes.Keyframe, ({ userData }) => {
+  console.log(userData.mydata) // "whoa!"
+});
+
+animation.play();
+```
+![](images/animate-linear-trimmed.gif)
+
+```ts
+// eased between values
+const animation = new MaptilerAnimation({
+  keyframes: [
+    // `props` are interpolated across the duration
+    { delta: 0, easing: EasingFunctionName.ElasticInOut, props: { lon: -7.445, } },
+    { delta: 1, props: { lon: -7.455 } }
+  ],
+  duration: 1000, // 1 second
+  iterations: Infinity // loop forever
+});
+```
+![](images/animate-elastic-trimmed.gif)
+
+####  🗺️ `AnimatedRouteLayer`
+
+`AnimatedRouteLayer` is custom layer that animates a path or route on the map based on keyframes or GeoJSON data. It supports animated line styling and camera following, making it ideal for visualizing routes, playback tracks, or timeline-based geographic events.
+
+Note: At present, to avoid problems arising from the camera being manipulated by two animations at any one time, there can only ever be one instance of `AnimatedRouteLayer` on the map at any time. This API may change in the future, but at present you must remove each instance of `AnimatedRouteLayer` from the map before adding another.
+
+##### ✨ Features
+  - Animate a path using keyframes or GeoJSON data
+  - Optional animated stroke styles to indicate progress
+  - Camera movement smoothing, following along the route
+  - Configurable duration, easing, delay, and iterations via geojson properties
+  - Event-based lifecycle hooks for adaptability.
+  - Optional manual frame advancement (e.g., for scrubbing or syncing with map events, scroll etc etc)
+
+##### 🚀 Basic Usage
+```ts
+const myGeoJSONSource = {
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-74.0060, 40.7128],
+          [-73.9352, 40.7306],
+          [-73.9851, 40.7580]
+        ]
+      },
+      "properties": {
+        "@duration": 5000, // animation params are prepended with '@'
+        "@iterations": 3,
+        "@delay": 1000,
+        "@autoplay": true,
+        "bearing": [
+          40,
+          30,
+          10,
+          10,
+          20,
+          40,
+        ]
+      }
+    }
+  ]
+}
+
+map.addSource("my-geojson-source", {
+  type: "geojson",
+  data: myGeoJSONSource,
+});
+
+const animatedRoute = new AnimatedRouteLayer({
+  source: {
+    // assumes that the source is already added to the map with the given layer ID
+    id: "my-geojson-source", // the name of the source
+    layerID: "route-layer", // the name of the layer
+  },
+  // OR
+  keyframes: [], // an array of keyframes
+
+  duration: 5000,
+  pathStrokeAnimation: {
+    // will only be applied to LineString GeoJSON types
+    activeColor: [0, 128, 0, 1], // color of the line that has already been traversed
+    inactiveColor: [128, 128, 128, 0.5],
+  },
+  cameraAnimation: {
+    follow: true, // should the camera follow the route?
+    pathSmoothing: {
+      resolution: 20, // the resolution of the smoothness 
+      epsilon: 10, // how much the path is simplified before smoothing
+    },
+  },
+  autoplay: true,
+});
+
+// Add to map
+map.addLayer(animatedRoute);
+
+// Playback controls
+animatedRoute.play();
+animatedRoute.pause();
+```
+
+For a full example of how to use this, look at [the example](./demos/11-animated-routes.html)
 
 ### Vector Layer Helpers
 
