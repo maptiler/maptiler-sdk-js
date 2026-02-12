@@ -1,12 +1,12 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## 3.11.1
 
 ### ✨ Features and improvements
 - None
 
 ### 🐛 Bug Fixes
-- None
+- Adds a fix to prevent `requestIdleCallback` iife polyfill from failing on non-browser imports of the SDK.
 
 ### ⚙️ Others
 - None

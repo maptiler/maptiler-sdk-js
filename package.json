@@ -1,6 +1,6 @@
 {
   "name": "@maptiler/sdk",
-  "version": "3.11.0",
+  "version": "3.11.1",
   "description": "The Javascript & TypeScript map SDK tailored for MapTiler Cloud",
   "author": "MapTiler",
   "module": "dist/maptiler-sdk.mjs",
@@ -104,7 +104,6 @@
     "gl-matrix": "^3.4.4",
     "js-base64": "^3.7.7",
     "maplibre-gl": "~5.16.0",
-    "requestidlecallback-polyfill": "^1.0.2",
     "uuid": "^11.0.5"
   }
 }
