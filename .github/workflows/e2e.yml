@@ -59,3 +59,22 @@ jobs:
                 -H "Content-Type: application/json" \
                 -d "$COMMENT_JSON" \
                 "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
+
+          - name: Dispatch e2e request to maptiler-sdk-e2e-testing
+            continue-on-error: true # if the dispatch fails, we don't want to fail the job
+            if: success()
+            run: |
+              PACKAGE=$(jq -r .name package.json)
+              VERSION=$(jq -r .version package.json)
+              PAYLOAD=$(jq -n \
+                --arg event_type "e2e-request" \
+                --arg package "$PACKAGE" \
+                --arg version "$VERSION" \
+                --arg status_repo "${{ github.repository }}" \
+                --arg status_sha "${{ github.sha }}" \
+                '{ event_type: $event_type, client_payload: { package: $package, version: $version, status_repo: $status_repo, status_sha: $status_sha } }')
+              curl -X POST \
+                -H "Authorization: Bearer ${{ secrets.E2E_DISPATCH_TOKEN }}" \
+                -H "Content-Type: application/json" \
+                -d "$PAYLOAD" \
+                "https://api.github.com/repos/maptiler/maptiler-sdk-e2e-testing/dispatches"
