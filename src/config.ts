@@ -25,9 +25,9 @@ class SdkConfig extends EventEmitter {
   /**
    * Setting on whether of not the SDK runs with a session logic.
    * A "session" is started at the initialization of the SDK and finished when the browser
-   * page is being refreshed.
+   * page is being closed or refreshed.
    * When `session` is enabled (default: true), the extra URL param `mtsid` is added to queries
-   * on the MapTiler Cloud API. This allows MapTiler to enable "session based billing".
+   * to the MapTiler Cloud API. This allows MapTiler to enable "session based billing".
    */
   session = true;
 

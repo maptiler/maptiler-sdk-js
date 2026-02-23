@@ -182,14 +182,22 @@ export * from "./ml-types";
 // SDK specific
 export { Map, GeolocationType, type MapOptions, type LoadWithTerrainEvent } from "./Map";
 
+export {
+  type BaseGeocodingOptions,
+  type ByIdGeocodingOptions,
+  type CommonForwardAndReverseGeocodingOptions,
+  type GeocodingOptions,
+  type LanguageGeocodingOptions,
+  type ReverseGeocodingOptions,
+  geocoding,
+} from "./geocoding";
+
 export * from "./controls";
 export {
   type AutomaticStaticMapOptions,
   type BoundedStaticMapOptions,
   type BufferToPixelDataFunction,
-  type ByIdGeocodingOptions,
   type CenteredStaticMapOptions,
-  type CommonForwardAndReverseGeocodingOptions,
   type CoordinateExport,
   type CoordinateGrid,
   type CoordinateId,
@@ -206,19 +214,16 @@ export {
   type FeatureHierarchy,
   type FetchFunction,
   type GeocodingFeature,
-  type GeocodingOptions,
   type GeocodingSearchResult,
   type GeolocationInfoOptions,
   type GeolocationResult,
   type GetDataOptions,
-  type LanguageGeocodingOptions,
   MapStyle,
   type MapStylePreset,
   type MapStyleType,
   MapStyleVariant,
   type PixelData,
   ReferenceMapStyle,
-  type ReverseGeocodingOptions,
   ServiceError,
   type StaticMapBaseOptions,
   type StaticMapMarker,
@@ -230,7 +235,6 @@ export {
   data,
   elevation,
   expandMapStyle,
-  geocoding,
   geolocation,
   getBufferToPixelDataParser,
   getTileCache,

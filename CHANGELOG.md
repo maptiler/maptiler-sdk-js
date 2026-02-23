@@ -1,5 +1,16 @@
 # MapTiler SDK Changelog
 
+## NEXT
+
+### ✨ Features and improvements
+- Adds session-based billing to geocoding module
+
+### 🐛 Bug Fixes
+- None
+
+### ⚙️ Others
+- Bumps `@maptiler/client` to 2.8.0
+
 ## 3.11.1
 
 ### ✨ Features and improvements
