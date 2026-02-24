@@ -24,7 +24,7 @@ export type ByIdGeocodingOptions = client.ByIdGeocodingOptions & ExtraGeocodingO
 function getOptionsWithSession<O extends BaseGeocodingOptions>(options: O): O {
   options = { ...options };
 
-  if (config.session || options.session !== false) {
+  if (config.session ? options.session !== false : options.session === true) {
     const originalAdjustSearchParams = options.adjustSearchParams;
     options.adjustSearchParams = (searchParams: URLSearchParams) => {
       if (typeof originalAdjustSearchParams === "function") {
