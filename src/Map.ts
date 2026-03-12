@@ -1879,7 +1879,7 @@ export class Map extends maplibregl.Map {
         addTerrain();
       };
 
-      this.once("load", () => {
+      this.once(this.style._loaded ? "render" : "load", () => {
         checkSourceAndAddTerrain();
       });
 

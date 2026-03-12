@@ -16,6 +16,7 @@
 ### 🐛 Bug Fixes
 - Fix for language switching in older styles [RD-611](https://maptiler.atlassian.net/browse/RD-611)
 - Fixes discrepancies in `AttributionControlOptions` type, only object or undefined allowed
+- Fixes a bug where enabling terrain sometimes happened only after map has been moved
 
 ### ⚙️ Others
 - Bumps `@maptiler/client` to 3.0.0
