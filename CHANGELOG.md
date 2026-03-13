@@ -6,7 +6,7 @@
 - Adds session-based billing to geocoding module
 
 ### 🐛 Bug Fixes
-- None
+- Fix for language switching in older styles [RD-611](https://maptiler.atlassian.net/browse/RD-611)
 
 ### ⚙️ Others
 - Bumps `@maptiler/client` to 2.8.0
