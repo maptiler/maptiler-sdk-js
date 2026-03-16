@@ -6,6 +6,8 @@ setupMapTilerApiKey({ config });
 
 const container = document.getElementById("map")!;
 
+const m = MapStyle.STREETS.DARK;
+
 async function main() {
   const map = new Map({
     container,
