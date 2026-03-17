@@ -2054,34 +2054,6 @@ export class Map extends maplibregl.Map {
   }
 
   /**
-   * Activate the globe projection and persist this change during future style changes.
-   * @deprecated Will be removed in v4.0.0. Use `map.setProjection("globe", { persist: true })` instead.
-   */
-  enableGlobeProjection() {
-    this.curentProjection = "globe";
-
-    if (this.isGlobeProjection() === true) {
-      return;
-    }
-
-    this.setProjection({ type: "globe" });
-  }
-
-  /**
-   * Activate the mercator projection and persist this change during future style changes.
-   * @deprecated Will be removed in v4.0.0. Use `map.setProjection("mercator", { persist: true })` instead.
-   */
-  enableMercatorProjection() {
-    this.curentProjection = "mercator";
-
-    if (this.isGlobeProjection() === false) {
-      return;
-    }
-
-    this.setProjection({ type: "mercator" });
-  }
-
-  /**
    * Sets the projection to one of {@linkcode ProjectionTypes}.
    * @param projection - the projection type to set
    * @param options - configure behaviour of the projection change
