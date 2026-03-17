@@ -17,6 +17,8 @@
 
 ### ⚙️ Others
 - Bumps `@maptiler/client` to 3.0.0
+- Bumps MapLibre GL JS to 5.20.1
+- Bumps MapLibre Style Spec to 24.7.0
 
 ## 3.11.1
 
