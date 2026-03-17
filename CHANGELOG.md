@@ -1,6 +1,6 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## 4.0.0
 
 ### ⚠️ Breaking changes
 - The `enableGlobeProjection` method has been removed, use  `map.setProjection("globe", { persist: true })` instead.
