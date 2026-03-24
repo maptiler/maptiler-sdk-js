@@ -88,7 +88,6 @@ export default class Minimap implements IControl {
       ...mapOptions,
       // override any lingering control options
       forceNoAttributionControl: true,
-      attributionControl: false,
       navigationControl: false,
       geolocateControl: false,
       maptilerLogo: false,
