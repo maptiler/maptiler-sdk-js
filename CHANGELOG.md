@@ -12,9 +12,12 @@
 ### ✨ Features and improvements
 - Adds session-based billing to geocoding module
 - Planet V4 Base map styles are now the default styles when used in `MapStyle`. V2 Map styles are still available under the `_V2` suffix.
+- Adds new value `compact: "auto"` to `attributionControl` options that collapses an attribution control on narrow maps.
 
 ### 🐛 Bug Fixes
 - Fix for language switching in older styles [RD-611](https://maptiler.atlassian.net/browse/RD-611)
+- Fixes discrepancies in `AttributionControlOptions` type, only object or undefined allowed
+- Fixes a bug where enabling terrain sometimes happened only after map has been moved
 
 ### ⚙️ Others
 - Bumps `@maptiler/client` to 3.0.0

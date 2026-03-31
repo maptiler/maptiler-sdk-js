@@ -180,7 +180,7 @@ export { MapMouseEvent } from "./MLAdapters/MapMouseEvent";
 export * from "./ml-types";
 
 // SDK specific
-export { Map, GeolocationType, type MapOptions, type LoadWithTerrainEvent } from "./Map";
+export { Map, GeolocationType, type AttributionControlOptions, type MapOptions, type LoadWithTerrainEvent } from "./Map";
 
 export {
   type BaseGeocodingOptions,

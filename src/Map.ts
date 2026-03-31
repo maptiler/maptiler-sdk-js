@@ -18,7 +18,6 @@ import type {
   StyleSetterOptions,
   ExpressionSpecification,
   SymbolLayerSpecification,
-  AttributionControlOptions,
   ProjectionSpecification,
 } from "maplibre-gl";
 import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
@@ -77,9 +76,27 @@ type MapTerrainDataEvent = MapDataEvent & {
 export type ProjectionTypes = "mercator" | "globe" | undefined;
 
 /**
+ * The {@link AttributionControl} options object
+ */
+export interface AttributionControlOptions {
+  /**
+   * If `true`, the attribution control will always collapse when moving the map.
+   * If `false` (default), use expanded attribution control that is always visible.
+   * If `"auto"` or `undefined`, use responsive attribution that collapses when the user moves the map on maps less than 640 pixels wide.
+   * **Attribution should not be collapsed if it can comfortably fit on the map. `compact` should only be used to modify default attribution when map size makes it impossible to fit default attribution. Always prefer `"auto"` to `true` to show the attribution uncollapsed on large maps.**
+   */
+  compact?: boolean | "auto";
+
+  /**
+   * Attributions to show in addition to any other attributions.
+   */
+  customAttribution?: string | Array<string>;
+}
+
+/**
  * Options to provide to the `Map` constructor
  */
-export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
+export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo" | "attributionControl"> & {
   /**
    * Style of the map. Can be:
    * - a full style URL (possibly with API key)
@@ -119,7 +136,12 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   maptilerLogo?: boolean;
 
   /**
-   * Attribution text to show in an {@link AttributionControl}.
+   * Options for an {@link AttributionControl}.
+   */
+  attributionControl?: AttributionControlOptions;
+
+  /**
+   * Attributions to show in addition to any other attributions in an {@link AttributionControl}.
    */
   customAttribution?: string | Array<string>;
 
@@ -574,6 +596,9 @@ export class Map extends maplibregl.Map {
         ...attributionControlOptions,
         ...options.attributionControl,
       };
+    }
+    if (attributionControlOptions.compact === "auto") {
+      attributionControlOptions.compact = undefined;
     }
 
     const superOptions = {
@@ -1854,7 +1879,7 @@ export class Map extends maplibregl.Map {
         addTerrain();
       };
 
-      this.once("load", () => {
+      this.once(this.style._loaded ? "render" : "load", () => {
         checkSourceAndAddTerrain();
       });
 

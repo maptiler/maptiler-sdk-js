@@ -53,7 +53,7 @@ jobs:
       - name: Get Package version
         id: version
         run: echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
-      - name: Publish to CDN Cloudflar R2
+      - name: Publish to CDN Cloudflare R2
         uses: ryand56/r2-upload-action@v1.4
         with:
           r2-account-id: ${{ secrets.CDN_MAPTILER_ACCOUNT_ID }}
@@ -63,3 +63,21 @@ jobs:
           source-dir: build
           destination-dir: maptiler-sdk-js/v${{ env.PACKAGE_VERSION }}/
     
+      - name: Dispatch e2e request to maptiler-sdk-e2e-testing
+        continue-on-error: true # if the dispatch fails, we don't want to fail the job
+        if: success()
+        run: |
+          PACKAGE=$(jq -r .name package.json)
+          VERSION=$(jq -r .version package.json)
+          PAYLOAD=$(jq -n \
+            --arg event_type "e2e-request" \
+            --arg package "$PACKAGE" \
+            --arg version "$VERSION" \
+            --arg status_repo "${{ github.repository }}" \
+            --arg status_sha "${{ github.sha }}" \
+            '{ event_type: $event_type, client_payload: { package: $package, version: $version, status_repo: $status_repo, status_sha: $status_sha } }')
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.E2E_DISPATCH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "https://api.github.com/repos/maptiler/maptiler-sdk-e2e-testing/dispatches"
