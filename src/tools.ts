@@ -74,9 +74,9 @@ export function maptilerCloudTransformRequest(url: string, resourceType?: Resour
  * with the MapTiler Cloud-specific one: maptilerCloudTransformRequest
  */
 export function combineTransformRequest(userDefinedRTF?: RequestTransformFunction | null): RequestTransformFunction {
-  return (url: string, resourceType?: ResourceType): RequestParameters => {
+  return async (url: string, resourceType?: ResourceType): Promise<RequestParameters> => {
     if (userDefinedRTF !== undefined && userDefinedRTF !== null) {
-      const rp = userDefinedRTF(url, resourceType);
+      const rp = await userDefinedRTF(url, resourceType);
       const rp2 = maptilerCloudTransformRequest(rp?.url ?? "", resourceType);
 
       return {
