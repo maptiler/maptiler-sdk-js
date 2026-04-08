@@ -1,9 +1,13 @@
 docs
 docsmd
+typedoc.*
 images
 demos
 scripts
 test
+test-results
+e2e
+playwright.config.*
 demos
 CHANGELOG.md
 colorramp.md
@@ -11,7 +15,11 @@ src
 !dist/src
 *.tgz
 .github
+.editorconfig
+.husky
+.idea
 .vscode
 build
 vite.config-*
-vite-setup-tests.ts
+vitest-setup-tests.ts
+eslint.config.*

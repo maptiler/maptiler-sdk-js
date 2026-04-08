@@ -108,11 +108,11 @@ e2e/test-results
 .DS_Store
 
 .vscode
+.idea
 demos/tmp_*
 dist
 docs
 docsmd
 build
-e2e/playwright-report
 playwright-report
 test-results
