@@ -20,6 +20,9 @@
       "import": "./dist/maptiler-sdk.css"
     }
   },
+  "files": [
+    "dist"
+  ],
   "browserslist": [
     "defaults",
     "not op_mini all"
