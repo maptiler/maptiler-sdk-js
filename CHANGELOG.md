@@ -1,6 +1,6 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## 3.11.2
 
 ### Bug Fixes
 - Fixes content of published npm package to contain only necessary files (no change for UMD)
