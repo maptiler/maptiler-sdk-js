@@ -1,6 +1,6 @@
 {
   "name": "@maptiler/sdk",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "The Javascript & TypeScript map SDK tailored for MapTiler Cloud",
   "author": "MapTiler",
   "module": "dist/maptiler-sdk.mjs",
@@ -20,6 +20,9 @@
       "import": "./dist/maptiler-sdk.css"
     }
   },
+  "files": [
+    "dist"
+  ],
   "browserslist": [
     "defaults",
     "not op_mini all"

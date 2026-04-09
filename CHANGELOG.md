@@ -1,5 +1,10 @@
 # MapTiler SDK Changelog
 
+## 4.0.1
+
+### Bug Fixes
+- Fixes content of published npm package to contain only necessary files (no change for UMD)
+
 ## 4.0.0
 
 ### ⚠️ Breaking changes
