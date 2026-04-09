@@ -19,7 +19,7 @@ function copyLinterConfig() {
 }
 
 const plugins = [
-  dts({insertTypesEntry: true}),
+  dts({insertTypesEntry: true, include: ["src"]}),
   copyLinterConfig(),
 ];
 
