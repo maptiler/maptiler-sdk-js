@@ -74,9 +74,9 @@ export function maptilerCloudTransformRequest(url: string, resourceType?: Resour
  * with the MapTiler Cloud-specific one: maptilerCloudTransformRequest
  */
 export function combineTransformRequest(userDefinedRTF?: RequestTransformFunction | null): RequestTransformFunction {
-  return (url: string, resourceType?: ResourceType): RequestParameters => {
+  return async (url: string, resourceType?: ResourceType): Promise<RequestParameters> => {
     if (userDefinedRTF !== undefined && userDefinedRTF !== null) {
-      const rp = userDefinedRTF(url, resourceType);
+      const rp = await userDefinedRTF(url, resourceType);
       const rp2 = maptilerCloudTransformRequest(rp?.url ?? "", resourceType);
 
       return {
@@ -217,7 +217,6 @@ export function changeFirstLanguage(
 
   const exploreNode = (subExpr: maplibregl.ExpressionSpecification | string) => {
     if (typeof subExpr === "string") return;
-
     for (let i = 0; i < subExpr.length; i += 1) {
       if (isGetNameLanguage(subExpr[i], localized)) {
         subExpr[i] = structuredClone(replacer);
@@ -256,10 +255,45 @@ export function replaceLanguage(origLang: string, newLang: maplibregl.Expression
   const regex = localized ? /\{name:\S+\}/ : /\{name\}/;
   const elementsToConcat = origLang.split(regex);
 
-  const allElements = elementsToConcat.flatMap((item, i) => (i === elementsToConcat.length - 1 ? [item] : [item, newLang]));
+  const allElements = elementsToConcat.flatMap((item, i) => {
+    // Because older styles have double curly braces for some expressions eg `{name} {ele} m`
+    // and these are no longer well supported by MapLibre when dynamically updating the language.
+    // we need to convert this to an expression that is supported.
+    const newItem = addFormatElevationExpressionFromString(item);
+    return i === elementsToConcat.length - 1 ? [newItem] : [newItem, newLang];
+  });
 
   const expr = ["concat", ...allElements] as maplibregl.ExpressionSpecification;
   return expr;
+}
+
+export function addFormatElevationExpressionFromString(expression: maplibregl.ExpressionSpecification | string): maplibregl.ExpressionSpecification | string {
+  if (typeof expression !== "string") return expression;
+  if (!expression.includes("{ele}")) return expression;
+
+  // Because older styles have double curly braces for some expressions eg `{name} {ele} m`
+  // and these are no longer well supported by MapLibre when dynamically updating the language.
+  // we need to convert this to an expression that is supported.
+  return [
+    "case",
+    // if the value contains {ele}
+    ["has", "ele"],
+    // then concat the expression with the elevation and the unit and "m"
+    [
+      "concat",
+      [
+        // if the value contains {name} add a new line otherwise use an empty string
+        "case",
+        ["has", "name"],
+        "\n",
+        "",
+      ],
+      ["get", "ele"],
+      " m",
+    ],
+    // if the value does not contain {ele} use an empty string
+    "",
+  ];
 }
 
 /**

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href='https://cdn.maptiler.com/maptiler-sdk-js/v3.8.0/maptiler-sdk.css' rel='stylesheet' />
+
+  <title>Document</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+
+    .buttons {
+      width: 90%;
+      margin: 0 auto;
+    }
+
+    .button {
+      display: inline-block;
+      position: relative;
+      cursor: pointer;
+      width: 15%;
+      padding: 8px;
+      border-radius: 3px;
+      margin-top: 10px;
+      font-size: 12px;
+      text-align: center;
+      color: #fff;
+      background: #ee8a65;
+      font-family: sans-serif;
+      font-weight: bold;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="buttons">
+    <ul class="buttons">
+      <li id="AUTO" class="button">Auto</li>
+      <li id="LOCAL" class="button">Local</li>
+      <li id="INTERNATIONAL" class="button">Intl</li>
+      <li id="VISITOR" class="button">Visitor</li>
+      <li id="VISITOR_ENGLISH" class="button">Visitor Eng</li>
+    </ul>
+    <ul class="buttons">
+      <li id="LATIN" class="button">Latin</li>
+      <li id="NON_LATIN" class="button">NonLatin</li>
+      <li id="STYLE_LOCK" class="button">Style Lock</li>
+      <li id="GERMAN" class="button">German</li>
+      <li id="RUSSIAN" class="button">Russian</li>
+    </ul>
+  </div>
+  <script type="module" src="/src/13-language-changes.ts"></script>
+</body>
+</html>

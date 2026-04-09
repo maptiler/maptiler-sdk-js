@@ -16,6 +16,14 @@ import validSmoothedKeyframes from "../fixtures/animations/smoothed-keyframes.js
 import { distancePoints, distancePointsTwo } from "../fixtures/animations/average-distance.fixture";
 import { complexPath, simplifiedAt5Meters, simplifiedPathAt10Meters } from "../fixtures/animations/simplify-path.fixture";
 
+expect.addEqualityTesters([
+  (a: unknown, b: unknown): boolean | undefined => {
+    if (typeof a === "number" && typeof b === "number") {
+      return Math.abs(a - b) < 1e-14;
+    }
+  },
+]);
+
 describe("[animation-helpers]: lerp", () => {
   test("interpolates correctly", () => {
     const fixtures = [

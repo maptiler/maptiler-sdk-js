@@ -1,5 +1,29 @@
 # MapTiler SDK Changelog
 
+## 4.0.0
+
+### ⚠️ Breaking changes
+- The `enableGlobeProjection` method has been removed, use  `map.setProjection("globe", { persist: true })` instead.
+- The `enableMercatorProjection` method has been removed, use  `map.setProjection("mercator", { persist: true })` instead.
+- The following types and interfaces, originally re-exported from MapLibre, have been remove from the public API:
+   `DragMovementResult` `DragPanResult` `DragRotateResult` `DragPitchResult` `DragRollResult` `DragMoveHandler` `MousePanHandler` `MouseRotateHandler` `MousePitchHandler` `MouseRollHandler` `PropertyValue` `Uniform` `Config` `SerializedObject` `Serialized` `ViewType` `StructArrayMember` `SerializedStructArray` `SymbolInstance` `TextAnchorOffset` `ErrorLike` `CrossfadeParameters` `TimePoint` `CrossFaded` `TransitionParameters` `PossiblyEvaluatedValue` `Size` `SpriteOnDemandStyleImage` `PreparedShader` `SerializedFeaturePositionMap` `FeaturePosition` $`ObjMap` `UniformValues` `UniformLocations` `UniformBindings` `Segment` `HeatmapPaintProps` `HeatmapPaintPropsPossiblyEvaluated` `BlendFuncConstant` `BlendFuncType` `BlendEquationType` `ColorMaskType` `CompareFuncType` `DepthMaskType` `DepthRangeType` `DepthFuncType` `StencilFuncType` `StencilOpConstant` `StencilOpType` `TextureUnitType` `ViewportType` `StencilTestGL` `CullFaceModeType` `FrontFaceType` `SerializedGrid` `IntersectionResult` `None` `Partial` `Full` `IBoundingVolume` `TileResult` `GlyphMetrics` `Rect` `SymbolLayoutProps` `SymbolLayoutPropsPossiblyEvaluated` `SymbolPaintProps` `SymbolPaintPropsPossiblyEvaluated` `SymbolQuad` `SizeData` `SingleCollisionBox` `CollisionArrays` `SymbolFeature` `SortKeyRange` `Entry` `PoolObject` `RenderPass` `PainterOptions` `RenderOptions` `TerrainData` `PointProjection` `IndexToPointCache` `ProjectionCache` `SymbolProjectionContext` `ProjectionDataParams` `CoveringTilesDetailsProvider` `ITransformGetters` `ITransformMutators` `IReadonlyTransform` `ITransform` `QueryParameters` `QueryResults` `QueryResultsItem` `DEMEncoding` `CircleGranularity` `TileParameters` `WorkerTileParameters` `WorkerDEMTileParameters` `OverlapMode` `QueryResult` `GridKey` `PlacedCircles` `PlacedBox` `FeatureKey` `TextAnchor` `CollisionGroup` `VariableOffset` `TileLayerParameters` `BucketPart` `CrossTileID` `QueryRenderedFeaturesOptionsStrict` `TileState` `FeatureStates` `LayerFeatureStates` `CircleLayoutProps` `CircleLayoutPropsPossiblyEvaluated` `CirclePaintProps` `CirclePaintPropsPossiblyEvaluated` `FillLayoutProps` `FillLayoutPropsPossiblyEvaluated` `FillPaintProps` `FillPaintPropsPossiblyEvaluated` `FillExtrusionPaintProps` `FillExtrusionPaintPropsPossiblyEvaluated` `HillshadePaintProps` `HillshadePaintPropsPossiblyEvaluated` `ColorReliefPaintProps` `ColorReliefPaintPropsPossiblyEvaluated` `ColorRampTextures` `LineClips` `GradientTexture` `LineLayoutProps` `LineLayoutPropsPossiblyEvaluated` `LinePaintProps` `LinePaintPropsPossiblyEvaluated` `TypedStyleLayer` `BinderUniform` `AttributeBinder` `UniformBinder` `SkyProps` `SkyPropsPossiblyEvaluated` `TerrainPreludeUniformsType` `ProjectionPreludeUniformsType` `DrawMode` `ClearArgs` `TextureFormat` `TextureFilter` `TextureWrap` `EmptyImage` `DataTextureImage` `TextureImage` `Pattern` `LightPosition` `LightProps` `LightPropsPossiblyEvaluated` `ProjectionGPUContext` `TileMeshUsage` `Projection` `BucketParameters` `PopulateParameters` `IndexedFeature` `BucketFeature` `QueryIntersectsFeatureParams` `GeoJSONWorkerOptions` `LoadGeoJSONParameters` `RTLPluginStatus` `PluginState` `ClusterIDAndSource` `GetClusterLeavesParams` `GeoJSONWorkerSourceLoadDataResult` `RemoveSourceParams` `UpdateLayersParameters` `GetImagesParameters` `GetGlyphsParameters` `GetGlyphsResponse` `GetImagesResponse` `ActorTarget` `MessageData` `ResolveReject` `MessageHandler` `MapControlsDeltas` `CameraForBoxAndBearingHandlerResult` `EaseToHandlerOptions` `EaseToHandlerResult` `FlyToHandlerOptions` `FlyToHandlerResult` `ICameraHelper` `EventInProgress` `EventsInProgress` `DragRotateHandlerOptions` `WebGLSupportedVersions` `CompleteMapOptions` `GeoJSONSourceOptions` `VectorTileSourceOptions`
+- Legacy browser compatibility code targetting pre-2016 browsers and IE11 was removed from MapLibre GL JS
+
+### ✨ Features and improvements
+- Adds session-based billing to geocoding module
+- Planet V4 Base map styles are now the default styles when used in `MapStyle`. V2 Map styles are still available under the `_V2` suffix.
+- Adds new value `compact: "auto"` to `attributionControl` options that collapses an attribution control on narrow maps.
+
+### 🐛 Bug Fixes
+- Fix for language switching in older styles [RD-611](https://maptiler.atlassian.net/browse/RD-611)
+- Fixes discrepancies in `AttributionControlOptions` type, only object or undefined allowed
+- Fixes a bug where enabling terrain sometimes happened only after map has been moved
+
+### ⚙️ Others
+- Bumps `@maptiler/client` to 3.0.0
+- Bumps MapLibre GL JS to 5.21.1
+- Bumps MapLibre Style Spec to 24.7.0
+
 ## 3.11.1
 
 ### ✨ Features and improvements

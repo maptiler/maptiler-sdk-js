@@ -18,14 +18,13 @@ import type {
   StyleSetterOptions,
   ExpressionSpecification,
   SymbolLayerSpecification,
-  AttributionControlOptions,
   ProjectionSpecification,
 } from "maplibre-gl";
 import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
 import { defaults } from "./constants/defaults";
 import { MaptilerLogoControl } from "./controls/MaptilerLogoControl";
-import { changeFirstLanguage, checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, enableRTL, replaceLanguage } from "./tools";
+import { checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, enableRTL, replaceLanguage } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
 import { styleToStyle } from "./mapstyle";
 import { MaptilerTerrainControl } from "./controls/MaptilerTerrainControl";
@@ -77,9 +76,27 @@ type MapTerrainDataEvent = MapDataEvent & {
 export type ProjectionTypes = "mercator" | "globe" | undefined;
 
 /**
+ * The {@link AttributionControl} options object
+ */
+export interface AttributionControlOptions {
+  /**
+   * If `true`, the attribution control will always collapse when moving the map.
+   * If `false` (default), use expanded attribution control that is always visible.
+   * If `"auto"` or `undefined`, use responsive attribution that collapses when the user moves the map on maps less than 640 pixels wide.
+   * **Attribution should not be collapsed if it can comfortably fit on the map. `compact` should only be used to modify default attribution when map size makes it impossible to fit default attribution. Always prefer `"auto"` to `true` to show the attribution uncollapsed on large maps.**
+   */
+  compact?: boolean | "auto";
+
+  /**
+   * Attributions to show in addition to any other attributions.
+   */
+  customAttribution?: string | Array<string>;
+}
+
+/**
  * Options to provide to the `Map` constructor
  */
-export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
+export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo" | "attributionControl"> & {
   /**
    * Style of the map. Can be:
    * - a full style URL (possibly with API key)
@@ -119,7 +136,12 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo"> & {
   maptilerLogo?: boolean;
 
   /**
-   * Attribution text to show in an {@link AttributionControl}.
+   * Options for an {@link AttributionControl}.
+   */
+  attributionControl?: AttributionControlOptions;
+
+  /**
+   * Attributions to show in addition to any other attributions in an {@link AttributionControl}.
    */
   customAttribution?: string | Array<string>;
 
@@ -574,6 +596,9 @@ export class Map extends maplibregl.Map {
         ...attributionControlOptions,
         ...options.attributionControl,
       };
+    }
+    if (attributionControlOptions.compact === "auto") {
+      attributionControlOptions.compact = undefined;
     }
 
     const superOptions = {
@@ -1551,11 +1576,11 @@ export class Map extends maplibregl.Map {
     let langStr = Language.LOCAL.flag;
 
     // will be overwritten below
-    let replacer: ExpressionSpecification = ["get", langStr];
+    let languageReplacementExpression: ExpressionSpecification = ["get", langStr];
 
     if (languageNonStyle.flag === Language.VISITOR.flag) {
       langStr = getBrowserLanguage().flag;
-      replacer = [
+      languageReplacementExpression = [
         "case",
         ["all", ["has", langStr], ["has", Language.LOCAL.flag]],
         [
@@ -1569,7 +1594,7 @@ export class Map extends maplibregl.Map {
       ];
     } else if (languageNonStyle.flag === Language.VISITOR_ENGLISH.flag) {
       langStr = Language.ENGLISH.flag;
-      replacer = [
+      languageReplacementExpression = [
         "case",
         ["all", ["has", langStr], ["has", Language.LOCAL.flag]],
         [
@@ -1583,19 +1608,19 @@ export class Map extends maplibregl.Map {
       ];
     } else if (languageNonStyle.flag === Language.AUTO.flag) {
       langStr = getBrowserLanguage().flag;
-      replacer = ["coalesce", ["get", langStr], ["get", Language.LOCAL.flag]];
+      languageReplacementExpression = ["coalesce", ["get", langStr], ["get", Language.LOCAL.flag]];
     }
 
     // This is for using the regular names as {name}
     else if (languageNonStyle === Language.LOCAL) {
       langStr = Language.LOCAL.flag;
-      replacer = ["get", langStr];
+      languageReplacementExpression = ["get", langStr];
     }
 
     // This section is for the regular language ISO codes
     else {
       langStr = languageNonStyle.flag;
-      replacer = ["coalesce", ["get", langStr], ["get", Language.LOCAL.flag]];
+      languageReplacementExpression = ["coalesce", ["get", langStr], ["get", Language.LOCAL.flag]];
     }
 
     const { layers } = this.getStyle();
@@ -1610,7 +1635,7 @@ export class Map extends maplibregl.Map {
     }
 
     for (const genericLayer of layers) {
-      // Only symbole layer can have a layout with text-field
+      // Only symbol layers can have a layout with text-field
       if (genericLayer.type !== "symbol") {
         continue;
       }
@@ -1649,14 +1674,14 @@ export class Map extends maplibregl.Map {
 
       // Keeping a copy of the text-field sub-object as it is in the original style
       if (firstPassOnStyle) {
-        textFieldLayoutProp = this.getLayoutProperty(id, "text-field");
+        textFieldLayoutProp = this.getLayoutProperty(id, "text-field") as typeof textFieldLayoutProp;
         this.originalLabelStyle.set(id, textFieldLayoutProp);
       } else {
         textFieldLayoutProp = this.originalLabelStyle.get(id)!;
       }
 
       // From this point, the value of textFieldLayoutProp is as in the original version of the style
-      // and never a mofified version
+      // and never a modified version
 
       // Testing the different case where the text-field property should NOT be updated:
       if (typeof textFieldLayoutProp === "string") {
@@ -1664,7 +1689,6 @@ export class Map extends maplibregl.Map {
         // very likely to be only fallbacks.
         // When the original style is not localized (this.isStyleLocalized is false), the occurences of "{name}"
         // should be replaced by localized versions with fallback to local language.
-
         const { contains, exactMatch } = checkNamePattern(textFieldLayoutProp, this.isStyleLocalized);
 
         // If the current text-fiels does not contain any "{name:xx}" pattern
@@ -1672,12 +1696,12 @@ export class Map extends maplibregl.Map {
 
         // In case of an exact match, we replace by an object representation of the label
         if (exactMatch) {
-          this.setLayoutProperty(id, "text-field", replacer);
+          this.setLayoutProperty(id, "text-field", languageReplacementExpression);
         } else {
           // In case of a non-exact match (such as "foo {name:xx} bar" or "foo {name} bar", depending on localization)
           // we create a "concat" object expresion composed of the original elements with new replacer
           // in-betweem
-          const newReplacer = replaceLanguage(textFieldLayoutProp, replacer, this.isStyleLocalized);
+          const newReplacer = replaceLanguage(textFieldLayoutProp, languageReplacementExpression, this.isStyleLocalized);
 
           this.setLayoutProperty(id, "text-field", newReplacer);
         }
@@ -1685,8 +1709,7 @@ export class Map extends maplibregl.Map {
 
       // The value of text-field is an object
       else {
-        const newReplacer = changeFirstLanguage(textFieldLayoutProp, replacer, this.isStyleLocalized);
-        this.setLayoutProperty(id, "text-field", newReplacer);
+        this.setLayoutProperty(id, "text-field", languageReplacementExpression);
       }
     }
 
@@ -1856,7 +1879,7 @@ export class Map extends maplibregl.Map {
         addTerrain();
       };
 
-      this.once("load", () => {
+      this.once(this.style._loaded ? "render" : "load", () => {
         checkSourceAndAddTerrain();
       });
 
@@ -2053,34 +2076,6 @@ export class Map extends maplibregl.Map {
     }
 
     return projection.type === "globe";
-  }
-
-  /**
-   * Activate the globe projection and persist this change during future style changes.
-   * @deprecated Will be removed in v4.0.0. Use `map.setProjection("globe", { persist: true })` instead.
-   */
-  enableGlobeProjection() {
-    this.curentProjection = "globe";
-
-    if (this.isGlobeProjection() === true) {
-      return;
-    }
-
-    this.setProjection({ type: "globe" });
-  }
-
-  /**
-   * Activate the mercator projection and persist this change during future style changes.
-   * @deprecated Will be removed in v4.0.0. Use `map.setProjection("mercator", { persist: true })` instead.
-   */
-  enableMercatorProjection() {
-    this.curentProjection = "mercator";
-
-    if (this.isGlobeProjection() === false) {
-      return;
-    }
-
-    this.setProjection({ type: "mercator" });
   }
 
   /**
