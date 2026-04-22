@@ -131,14 +131,25 @@ export function isValidGeoJSON<T>(obj: T & { type: string }): boolean {
   return false;
 }
 
+// see here
+// https://github.com/maplibre/maplibre-gl-js/blob/7f61f6f252c8612bc21a634fec648b0eb0007835/src/ui/map.ts#L455
+const defaultWebGLContextAttributes: WebGLContextAttributes = {
+  antialias: false,
+  preserveDrawingBuffer: false,
+  powerPreference: "high-performance",
+  failIfMajorPerformanceCaveat: false,
+  desynchronized: false,
+};
+
 /**
  * This function tests if WebGL2 is supported. Since it can be for a different reasons that WebGL2 is
  * not supported but we do not have an action to take based on the reason, this function return null
  * if there is no error (WebGL is supported), or returns a string with the error message if WebGL2 is
  * not supported.
  */
-export function getWebGLSupportError(): string | null {
-  const gl = document.createElement("canvas").getContext("webgl2");
+export function getWebGLSupportError(canvasContextAttributes: WebGLContextAttributes = {}): string | null {
+  const gl = document.createElement("canvas").getContext("webgl2", { ...defaultWebGLContextAttributes, ...canvasContextAttributes });
+
   if (!gl) {
     if (typeof WebGL2RenderingContext !== "undefined") {
       return "Graphic rendering with WebGL2 has been disabled or is not supported by your graphic card. The map cannot be displayed.";
@@ -151,8 +162,8 @@ export function getWebGLSupportError(): string | null {
 /**
  * Display an error message in the Map div if WebGL2 is not supported
  */
-export function displayNoWebGlWarning(container: HTMLElement | string) {
-  const webglError = getWebGLSupportError();
+export function displayNoWebGlWarning(container: HTMLElement | string, canvasContextAttributes?: WebGLContextAttributes) {
+  const webglError = getWebGLSupportError(canvasContextAttributes);
 
   if (!webglError) return;
 

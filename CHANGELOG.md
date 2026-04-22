@@ -1,5 +1,16 @@
 # MapTiler SDK Changelog
 
+## NEXT
+
+### ✨ Features and improvements
+- None
+
+### 🐛 Bug Fixes
+- Passes `options.canvasContextAttributes` to WebGL support check to ensure the check creates context with the same options that the real rendering context uses.
+
+### ⚙️ Others
+- None
+
 ## 4.0.1
 
 ### Bug Fixes
