@@ -566,7 +566,7 @@ export class Map extends maplibregl.Map {
   constructor(options: MapOptions) {
     if (options.logSDKVersion !== false) logSDKVersion();
 
-    displayNoWebGlWarning(options.container, options.canvasContextAttributes);
+    displayNoWebGlWarning(options.container);
 
     if (options.apiKey) {
       config.apiKey = options.apiKey;
