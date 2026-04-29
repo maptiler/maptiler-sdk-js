@@ -1,6 +1,6 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## 4.0.2
 
 ### ✨ Features and improvements
 - None
@@ -10,7 +10,8 @@
 - Fixes [RD-1903](https://maptiler.atlassian.net/browse/RD-1903), highway shield labels (and some other text) showing road names or no text instead of route numbers when language is explicitly set to "auto".
 
 ### ⚙️ Others
-- None
+- Bumps @maptiler/client to latest version.
+- Bumps UUID to latest version.
 
 ## 4.0.1
 
