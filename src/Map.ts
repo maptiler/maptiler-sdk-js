@@ -1709,7 +1709,11 @@ export class Map extends maplibregl.Map {
 
       // The value of text-field is an object
       else {
-        this.setLayoutProperty(id, "text-field", languageReplacementExpression);
+        // Check if the original expression references "name" fields
+        const originalStr = JSON.stringify(textFieldLayoutProp);
+        if (originalStr.includes('"name"') || originalStr.includes('"name:')) {
+          this.setLayoutProperty(id, "text-field", languageReplacementExpression);
+        }
       }
     }
 
