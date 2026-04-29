@@ -72,7 +72,7 @@ jobs:
           VERSION=$(jq -r .version package.json)
           PAYLOAD=$(jq -n \
             --arg ref "main" \
-            --arg sdk_version "${{ env.PACKAGE_VERSION }}" \
+            --arg sdk_version "$VERSION" \
             --arg weather_version "latest" \
             --arg threed_version "latest" \
             --arg client_version "latest" \
