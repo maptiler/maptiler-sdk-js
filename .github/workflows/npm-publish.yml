@@ -62,22 +62,24 @@ jobs:
           r2-bucket: cdn-storage
           source-dir: build
           destination-dir: maptiler-sdk-js/v${{ env.PACKAGE_VERSION }}/
-    
+ 
       - name: Dispatch e2e request to maptiler-sdk-e2e-testing
         continue-on-error: true # if the dispatch fails, we don't want to fail the job
         if: success()
+        env:
+          DISPATCH_E2E_WORKFLOW: e2e.yml
         run: |
-          PACKAGE=$(jq -r .name package.json)
           VERSION=$(jq -r .version package.json)
           PAYLOAD=$(jq -n \
-            --arg event_type "e2e-request" \
-            --arg package "$PACKAGE" \
-            --arg version "$VERSION" \
-            --arg status_repo "${{ github.repository }}" \
-            --arg status_sha "${{ github.sha }}" \
-            '{ event_type: $event_type, client_payload: { package: $package, version: $version, status_repo: $status_repo, status_sha: $status_sha } }')
+            --arg ref "main" \
+            --arg sdk_version "$VERSION" \
+            --arg weather_version "latest" \
+            --arg threed_version "latest" \
+            --arg client_version "latest" \
+            '{ ref: $ref, inputs: { sdk_version: $sdk_version, weather_version: $weather_version, "3d_version": $threed_version, client_version: $client_version } }')
           curl -X POST \
+            -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.E2E_DISPATCH_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD" \
-            "https://api.github.com/repos/maptiler/maptiler-sdk-e2e-testing/dispatches"
+            "https://api.github.com/repos/maptiler/maptiler-sdk-e2e-testing/actions/workflows/${DISPATCH_E2E_WORKFLOW}/dispatches"
