@@ -481,6 +481,7 @@ export class Map extends maplibregl.Map {
     if (spaceOptionsFromStyleSpec) {
       this.space = new CubemapLayer(spaceOptionsFromStyleSpec);
       this.addLayer(this.space, before);
+      return;
     }
 
     if (this.options.space === true) {
