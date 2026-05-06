@@ -132,6 +132,8 @@ function main() {
     const { value } = select;
     const config = configs.find((c) => c.name === value);
     if (config) {
+      // to avoid validation errors, `name` is not a valid space spec prop
+      delete (config as any).name;
       console.log("Setting spacebox config:", config);
       const currentConfig = map.getSpace()?.getConfig();
       map.setSpace({

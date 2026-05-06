@@ -2,6 +2,7 @@ import { lerp, lerpArrayValues } from "./animation-helpers";
 import AnimationManager from "./AnimationManager";
 import { AnimationEventCallback, AnimationEventListenersRecord, AnimationEventTypes, AnimationEventTypesArray, EasingFunctionName, Keyframe } from "./types";
 import EasingFunctions from "./easing";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * Configuration options for creating an animation.
@@ -206,7 +207,7 @@ export default class MaptilerAnimation {
           return props;
         }, {}),
         easing: keyframe.easing ?? "Linear",
-        id: crypto.randomUUID(),
+        id: uuidv4(),
       } as InterpolatedKeyFrame;
     });
 
