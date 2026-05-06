@@ -101,7 +101,7 @@
   },
   "dependencies": {
     "@maplibre/maplibre-gl-style-spec": "^24.7.0",
-    "@maptiler/client": "^3.0.0",
+    "@maptiler/client": "^3.0.2",
     "eslint-plugin-compat": "^6.1.0",
     "events": "^3.3.0",
     "gl-matrix": "^3.4.4",
