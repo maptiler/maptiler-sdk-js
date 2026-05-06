@@ -1,6 +1,6 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## 4.0.2
 
 ### ✨ Features and improvements
 - None
@@ -8,11 +8,12 @@
 ### 🐛 Bug Fixes
 - Passes `options.canvasContextAttributes` to WebGL support check to ensure the check creates context with the same options that the real rendering context uses.
 - Fixes [RD-1903](https://maptiler.atlassian.net/browse/RD-1903), highway shield labels (and some other text) showing road names or no text instead of route numbers when language is explicitly set to "auto".
-- Fixes a bug where two Space layers are added when initialising the map, leading to erros being thrown when changing space config.
-- Switches from using `crypto.randomUUID` to `uuid` lib in `MaptilerAnimation`
+- Fixes a bug where two Space layers are added when initialising the map, leading to errors being thrown when changing space config.
+- Switches from using `crypto.randomUUID` to `uuid` lib in `MaptilerAnimation`, as `.randomUUID` is not available in insecure contexts.
 
 ### ⚙️ Others
-- None
+- Bumps @maptiler/client to latest version.
+- Bumps UUID to latest version.
 
 ## 4.0.1
 
