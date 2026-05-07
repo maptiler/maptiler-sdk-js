@@ -1,5 +1,12 @@
 # MapTiler SDK Changelog
 
+## NEXT
+
+### 🐛 Bug Fixes
+- Fixes `helpers.addPolyline` string data handling
+  - It now correctly parses any string input (passed directly or fetched via URL) as GeoJSON, GPX, KML.
+  - It is no longer needed to provide URL with a supported filename extension, format is autodetected.
+
 ## 4.0.2
 
 ### ✨ Features and improvements
