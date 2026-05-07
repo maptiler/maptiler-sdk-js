@@ -1,4 +1,4 @@
-import { Map, MapStyle, StyleSpecificationWithMetaData, config } from "../../src/index";
+import { Language, Map, MapStyle, StyleSpecification, config } from "../../src/index";
 import { addPerformanceStats, setupMapTilerApiKey } from "./demo-utils";
 
 addPerformanceStats();
@@ -9,28 +9,34 @@ const container = document.getElementById("map")!;
 async function main() {
   const map = new Map({
     container,
-    style: MapStyle.OUTDOOR.DARK,
+    style: MapStyle.STREETS.DEFAULT,
     hash: true,
-    geolocate: false,
+    geolocate: true,
+    language: Language.AUTO,
     scaleControl: true,
     fullscreenControl: true,
     terrainControl: true,
     projectionControl: true,
     projection: "globe",
-    // space: true,
-    // halo: true,
-    zoom: 1,
+    zoom: 14,
   });
 
   const styleDropDown = document.getElementById("mapstyles-picker") as HTMLOptionElement;
+  const languageDropdown = document.getElementById("languages-picker") as HTMLOptionElement;
 
   styleDropDown.onchange = () => {
     if (styleDropDown.value === "json") {
-      // @ts-expect-error we know that `id` is private.
-      map.setStyle(getRandomJSON() as StyleSpecificationWithMetaData);
+      map.setStyle(getRandomJSON() as StyleSpecification);
       return;
     }
     map.setStyle(styleDropDown.value);
+  };
+
+  languageDropdown.onchange = () => {
+    const key = languageDropdown.value as keyof typeof Language;
+    const newLanguage = Language[key];
+    console.log(newLanguage, key);
+    map.setLanguage(newLanguage);
   };
 
   await map.onReadyAsync();
@@ -54,6 +60,13 @@ async function main() {
   anotherStyleOption.value = "d87d6c74-d29c-4cdd-87d8-b69ae7340dd6";
   anotherStyleOption.innerHTML = "Custom Style 1";
   styleDropDown.appendChild(anotherStyleOption);
+
+  Object.entries(Language).forEach(([key, l]) => {
+    const languageOption = document.createElement("option");
+    languageOption.value = key;
+    languageOption.innerHTML = l.name;
+    languageDropdown.appendChild(languageOption);
+  });
 }
 
 void main();
@@ -110,7 +123,6 @@ function getRandomJSON() {
     sprite: "https://api.maptiler.com/maps/satellite/sprite",
     bearing: 0,
     pitch: 0,
-    center: [0, 0],
     zoom: 1,
   };
 }
