@@ -48,6 +48,42 @@ async function limitCache() {
   }
 }
 
+/**
+ * Fetches a tile URL and stores it in the SDK cache so subsequent MapLibre
+ * requests for the same tile are served from cache without a network round-trip.
+ *
+ * When the Cache API is unavailable, the tile is still fetched so the browser's
+ * own HTTP cache can serve it later.
+ *
+ * @internal
+ */
+export async function prefetchTileUrl(url: string, signal?: AbortSignal): Promise<void> {
+  const urlObj = new URL(url);
+
+  const cacheableUrl = new URL(urlObj);
+  cacheableUrl.searchParams.delete("mtsid");
+  cacheableUrl.searchParams.delete("key");
+  const cacheKey = cacheableUrl.toString();
+
+  const cache = CACHE_API_AVAILABLE ? await caches.open(LOCAL_CACHE_NAME) : null;
+
+  // if (cache) {
+  //   const cached = await cache.match(cacheKey);
+  //   if (cached) return;
+  // }
+
+  const fetchableUrl = new URL(urlObj);
+  fetchableUrl.searchParams.delete("last-modified");
+
+  const response = await fetch(fetchableUrl.toString(), { signal });
+
+  if (cache && response.ok) {
+    cache.put(cacheKey, response.clone()).catch(() => {
+      // Ignore cache write errors (e.g. QuotaExceededError, AbortError mid-stream)
+    });
+  }
+}
+
 export function registerLocalCacheProtocol() {
   addProtocol(
     LOCAL_CACHE_PROTOCOL_SOURCE,
