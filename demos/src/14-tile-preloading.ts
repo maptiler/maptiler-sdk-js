@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import "../../build/maptiler-sdk.css";
 
 import { LngLatBoundsLike, Map, MapStyle, config } from "../../src/index";
@@ -63,7 +64,7 @@ async function main() {
 
       if (preloadToggle.checked) {
         setStatus(`Preloading ${d.label} (z${d.minZoom}–${d.maxZoom})…`);
-        await map.preloadTilesForBounds({
+        await map.experimental_preloadTilesForBounds({
           bounds: d.bounds,
           minZoom: d.minZoom,
           maxZoom: d.maxZoom,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import "../../build/maptiler-sdk.css";
 
 import { Map, MapStyle, config, setMaxParallelImageRequests, setWorkerCount } from "../../src/index";
@@ -47,6 +48,7 @@ buttons.forEach((btn) => {
     setButtonsDisabled(true);
 
     if (preloadToggle.checked) {
+      alert(`Preloading tiles for ${label}…`);
       setStatus(`Preloading tiles for ${label}…`);
 
       map.flyTo({
@@ -55,11 +57,16 @@ buttons.forEach((btn) => {
         duration: 4000,
         experimental_preload: {
           preprocessTiles: preprocessToggle.checked,
-          onProgress: (done, total) => setProgress(done, total),
-          onError: (err) => console.warn("Preload error:", err),
+          onProgress: (done, total) => {
+            setProgress(done, total);
+          },
+          onError: (err) => {
+            console.warn("Preload error:", err);
+          },
         },
       });
     } else {
+      alert(`Flying to ${label}…`);
       setStatus(`Flying to ${label}…`);
       map.flyTo({ center: [lng, lat], zoom, duration: 4000 });
     }
@@ -70,3 +77,4 @@ buttons.forEach((btn) => {
     });
   });
 });
+

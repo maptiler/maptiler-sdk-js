@@ -78,7 +78,8 @@ export async function prefetchTileUrl(url: string, signal?: AbortSignal): Promis
   const response = await fetch(fetchableUrl.toString(), { signal });
 
   if (cache && response.ok) {
-    cache.put(cacheKey, response.clone()).catch(() => {
+    cache.put(cacheKey, response.clone()).catch((e) => {
+      console.error("Error writing to cache", e);
       // Ignore cache write errors (e.g. QuotaExceededError, AbortError mid-stream)
     });
   }

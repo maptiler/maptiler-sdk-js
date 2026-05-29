@@ -52,6 +52,7 @@ import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from 
 import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructorOptions } from "./custom-layers/RadialGradientLayer";
 import { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 import { logSDKVersion } from "./utils/logSDKVersion";
+import { setWorkerCount } from ".";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -635,6 +636,11 @@ export class Map extends maplibregl.Map {
     // The styleInProcess instance attribute is necessary to track if a style has not fall into a CORS error, for which
     // Maplibre DOES NOT throw an AJAXError (hence does not track the URL of the failed http request)
     delete superOptions.style;
+
+    if (options.useExperimentalTilePreloading) {
+      setWorkerCount(config.experimental_defaultWorkerCount);
+    }
+
     super(superOptions);
 
     this.options = options;

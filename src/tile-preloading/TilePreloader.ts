@@ -12,7 +12,6 @@ import {
   tilesForCameraPosition,
 } from "./tile-math";
 import type {
-  CameraPosition,
   PreloadTilesForBoundsOptions,
   PreloadTilesForCameraPositionsOptions,
   PreloadTilesForFlyToPathOptions,
@@ -26,7 +25,6 @@ import { config } from "../config";
 import type { LngLatBoundsLike, MapSourceDataEvent } from "maplibre-gl";
 import { StyleSpecificationWithMetaData } from "../custom-layers";
 
-const DEFAULT_PATH_SAMPLE_STEPS = 4;
 
 type TileSource = {
   tiles: string[];
@@ -248,7 +246,7 @@ export class TilePreloader {
    * Preloads tiles along a linear camera path (used by panTo and easeTo overrides).
    */
   preloadForLinearPath({ start, end, onProgress, onError, preprocessTiles }: PreloadTilesForLinearPathOptions): Promise<TileCoord[]> {
-    const positions = sampleLinearPath(start, end, DEFAULT_PATH_SAMPLE_STEPS);
+    const positions = sampleLinearPath(start, end, config.experimental_defaultPathSampleSteps);
     return this.preloadForCameraPositions({ positions, onProgress, onError, preprocessTiles });
   }
 
@@ -256,7 +254,7 @@ export class TilePreloader {
    * Preloads tiles along a flyTo path, accounting for the zoom-out arc.
    */
   async preloadForFlyToPath({ start, end, curve, onProgress, onError, preprocessTiles }: PreloadTilesForFlyToPathOptions): Promise<void> {
-    const positions = sampleFlyToPath(start, end, DEFAULT_PATH_SAMPLE_STEPS, curve);
+    const positions = sampleFlyToPath(start, end, config.experimental_defaultPathSampleSteps, curve).reverse();
 
     const fetchTilesOnProgress: TilePreloadProgressCallback = (done, total, tileID) => {
       onProgress?.(done + positions.length, total + positions.length, tileID);
@@ -264,12 +262,23 @@ export class TilePreloader {
 
     const tiles = await this.preloadForCameraPositions({ positions, onProgress: fetchTilesOnProgress, onError, preprocessTiles });
 
-    for (const [index, position] of positions.entries()) {
-      await new Promise<void>((resolve) => {
-        void this.preloaderMapInstance.once("idle", resolve);
-        this.preloaderMapInstance.jumpTo(position, { animate: false });
-      });
-      onProgress?.(tiles.length + index, tiles.length + positions.length, null);
+    if (preprocessTiles) {
+      console.log("Preprocessing tiles...");
+      for (const [index, position] of positions.entries()) {
+        await new Promise<void>((resolve) => {
+          void this.preloaderMapInstance.once("idle", resolve);
+          this.preloaderMapInstance.jumpTo(
+            {
+              center: [position.lng, position.lat],
+              zoom: position.zoom,
+              pitch: position.pitch,
+              bearing: position.bearing,
+            },
+            { animate: false },
+          );
+        });
+        onProgress?.(tiles.length + index, tiles.length + positions.length, null);
+      }
     }
 
     return;
