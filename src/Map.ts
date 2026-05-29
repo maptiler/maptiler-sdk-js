@@ -664,7 +664,7 @@ export class Map extends maplibregl.Map {
       if (options.useExperimentalTilePreloading && !this.tilePreloader) {
         this.tilePreloader = new TilePreloader(this);
         try {
-          this.telemetry.registerModule("experimental-tile-preloader", "0.0.1");
+          this.telemetry.registerModule("experimental-tile-preloader", "0.1.0");
         } catch {} // do nothing
       }
 
