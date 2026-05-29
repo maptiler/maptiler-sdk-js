@@ -1,9 +1,32 @@
 import { Map as SDKMap } from "../Map";
 import { prefetchTileUrl } from "../caching";
-import { buildTileUrl, deduplicateTiles, formatTileID, parseTileID, sampleFlyToPath, sampleLinearPath, tilesForBounds, tilesForCameraPosition } from "./tile-math";
-import type { CameraPosition, PreloadTilesForBoundsOptions, PreloadTilesForCameraPositionsOptions, PreloadTilesOptions, TileCoord, TilePreloadCallbacks } from "./types";
+import {
+  boundsTreeForBounds,
+  buildTileUrl,
+  deduplicateTiles,
+  formatTileID,
+  parseTileID,
+  sampleFlyToPath,
+  sampleLinearPath,
+  tilesForBounds,
+  tilesForCameraPosition,
+} from "./tile-math";
+import type {
+  CameraPosition,
+  PreloadTilesForBoundsOptions,
+  PreloadTilesForCameraPositionsOptions,
+  PreloadTilesForFlyToPathOptions,
+  PreloadTilesForLinearPathOptions,
+  PreloadTilesOptions,
+  TileCoord,
+  TilePreloadOptions,
+  TilePreloadProgressCallback,
+} from "./types";
+import { config } from "../config";
+import type { LngLatBoundsLike, MapSourceDataEvent } from "maplibre-gl";
+import { StyleSpecificationWithMetaData } from "../custom-layers";
 
-const DEFAULT_PATH_SAMPLE_STEPS = 8;
+const DEFAULT_PATH_SAMPLE_STEPS = 4;
 
 type TileSource = {
   tiles: string[];
@@ -64,8 +87,45 @@ export class TilePreloader {
   private readonly map: SDKMap;
   private readonly activeAbortControllers = new Map<string, AbortController>();
 
+  private preloaderMapInstance: SDKMap;
+  private preloaderContainerElement: HTMLElement;
+
   constructor(map: SDKMap) {
     this.map = map;
+
+    /**
+     * This is used to pre-parse the tiles after they have been preloaded.
+     */
+    const preloaderContainer = document.getElementById("maptiler-preloader-container") ?? document.createElement("div");
+    preloaderContainer.id = "maptiler-preloader-container";
+    const mapWidth = map.getContainer().clientWidth;
+    const mapHeight = map.getContainer().clientHeight;
+    preloaderContainer.style.width = `${mapWidth}px`;
+    preloaderContainer.style.height = `${mapHeight}px`;
+    preloaderContainer.style.position = "absolute";
+    preloaderContainer.style.top = "-5000px";
+    preloaderContainer.style.left = "-5000px";
+    preloaderContainer.style.pointerEvents = "none";
+    document.body.appendChild(preloaderContainer);
+    this.preloaderContainerElement = preloaderContainer;
+
+    this.preloaderMapInstance = new SDKMap({
+      container: this.preloaderContainerElement,
+      style: map.getStyle(),
+      center: map.getCenter(),
+      zoom: map.getZoom(),
+      pitch: map.getPitch(),
+      bearing: map.getBearing(),
+      apiKey: config.apiKey,
+    });
+  }
+
+  public setPreloaderMapStyle(style: StyleSpecificationWithMetaData): void {
+    this.preloaderMapInstance.setStyle(style);
+  }
+
+  destroy(): void {
+    this.preloaderMapInstance.remove();
   }
 
   /**
@@ -79,17 +139,54 @@ export class TilePreloader {
     this.activeAbortControllers.clear();
   }
 
+  calculateBoundsTreeFromZoomLevels(parentBounds: LngLatBoundsLike, minZoom: number, maxZoom: number): LngLatBoundsLike[] {
+    const { width, height } = this.map.transform;
+    return boundsTreeForBounds(parentBounds, minZoom, maxZoom, width, height);
+  }
+
   /**
    * Preloads all tiles within a geographic bounds across a range of zoom levels.
    *
    * @remarks
    * **API Key Usage**: Tile count grows exponentially with zoom level. A wide zoom
    * range over a large area can trigger thousands of requests.
+   * @param {PreloadTilesForBoundsOptions} options Options for preloading tiles for bounds.
+   * @returns A promise that resolves when the preloading is complete.
+   * @example
+   * ```ts
+   * await map.preloadTilesForBounds({
+   *   bounds: map.getBounds(),
+   *   minZoom: 8,
+   *   maxZoom: 12,
+   *   preprocessTiles: true,
+   * });
    */
-  async preloadForBounds({ bounds, minZoom, maxZoom, onProgress, onError }: PreloadTilesForBoundsOptions): Promise<void> {
+  async preloadForBounds({ bounds, minZoom, maxZoom, onProgress, onError, preprocessTiles }: PreloadTilesForBoundsOptions): Promise<void> {
+    const boundsList = this.calculateBoundsTreeFromZoomLevels(bounds, minZoom, maxZoom);
     const tiles = deduplicateTiles(tilesForBounds(bounds, minZoom, maxZoom));
 
-    await this.fetchTiles(tiles, { onProgress, onError });
+    const fetchTilesOnProgress: TilePreloadProgressCallback = (done, total, tileID) => {
+      onProgress?.(done, preprocessTiles ? total + boundsList.length : total, tileID);
+    };
+
+    await this.fetchTiles(tiles, { onProgress: fetchTilesOnProgress, onError });
+
+    if (preprocessTiles) {
+      for (const [index, subBounds] of boundsList.entries()) {
+        await new Promise<void>((resolve) => {
+          const onIdle = (e: MapSourceDataEvent) => {
+            resolve();
+            onProgress?.(tiles.length + index, tiles.length + boundsList.length, null);
+          };
+
+          void this.preloaderMapInstance.once("idle", onIdle);
+
+          this.preloaderMapInstance.fitBounds(subBounds, { animate: false }); // then trigger movement
+        }).catch((error) => {
+          onError?.(error);
+        });
+      }
+    }
   }
 
   /**
@@ -99,20 +196,42 @@ export class TilePreloader {
    * **API Key Usage**: Each position triggers requests for all tiles visible from
    * that viewpoint. More positions at higher zoom levels increase API usage significantly.
    */
-  async preloadForCameraPositions({ positions, onProgress, onError }: PreloadTilesForCameraPositionsOptions): Promise<void> {
+  async preloadForCameraPositions({ positions, onProgress, onError, preprocessTiles }: PreloadTilesForCameraPositionsOptions): Promise<TileCoord[]> {
     const { width, height } = this.map.transform;
+
     const allTiles: TileCoord[] = [];
+
+    const fetchTilesOnProgress: TilePreloadProgressCallback = (done, total, tileID) => {
+      onProgress?.(done, preprocessTiles ? total + positions.length : total, tileID);
+    };
 
     for (const position of positions) {
       allTiles.push(...tilesForCameraPosition(position, width, height));
     }
-    console.log("Preloading camera positions", deduplicateTiles(allTiles), positions);
 
-    await this.fetchTiles(deduplicateTiles(allTiles), { onProgress, onError });
+    await this.fetchTiles(deduplicateTiles(allTiles), { onProgress: fetchTilesOnProgress, onError });
+
+    if (preprocessTiles) {
+      for (const [index, position] of positions.entries()) {
+        await new Promise<void>((resolve) => {
+          const onIdle = (e: MapSourceDataEvent) => {
+            resolve();
+            onProgress?.(allTiles.length + index, allTiles.length + positions.length, null);
+          };
+
+          void this.preloaderMapInstance.once("idle", onIdle);
+
+          this.preloaderMapInstance.jumpTo(position, { animate: false });
+        });
+      }
+    }
+
+    return allTiles;
   }
 
   /**
    * Preloads a specific set of tiles by their IDs (`"z/x/y"` format).
+   * Does _not_ preprocess tiles after they are fetched.
    */
   async preloadByTileIDs({ tileIDs, onProgress, onError }: PreloadTilesOptions): Promise<void> {
     const tiles: TileCoord[] = [];
@@ -128,21 +247,35 @@ export class TilePreloader {
   /**
    * Preloads tiles along a linear camera path (used by panTo and easeTo overrides).
    */
-  preloadForLinearPath(start: CameraPosition, end: CameraPosition, callbacks?: TilePreloadCallbacks): Promise<void> {
+  preloadForLinearPath({ start, end, onProgress, onError, preprocessTiles }: PreloadTilesForLinearPathOptions): Promise<TileCoord[]> {
     const positions = sampleLinearPath(start, end, DEFAULT_PATH_SAMPLE_STEPS);
-    return this.preloadForCameraPositions({ positions, ...callbacks });
+    return this.preloadForCameraPositions({ positions, onProgress, onError, preprocessTiles });
   }
 
   /**
    * Preloads tiles along a flyTo path, accounting for the zoom-out arc.
    */
-  preloadForFlyToPath(start: CameraPosition, end: CameraPosition, curve: number | undefined, callbacks?: TilePreloadCallbacks): Promise<void> {
+  async preloadForFlyToPath({ start, end, curve, onProgress, onError, preprocessTiles }: PreloadTilesForFlyToPathOptions): Promise<void> {
     const positions = sampleFlyToPath(start, end, DEFAULT_PATH_SAMPLE_STEPS, curve);
-    console.log("Preloading flyTo path", positions);
-    return this.preloadForCameraPositions({ positions, ...callbacks });
+
+    const fetchTilesOnProgress: TilePreloadProgressCallback = (done, total, tileID) => {
+      onProgress?.(done + positions.length, total + positions.length, tileID);
+    };
+
+    const tiles = await this.preloadForCameraPositions({ positions, onProgress: fetchTilesOnProgress, onError, preprocessTiles });
+
+    for (const [index, position] of positions.entries()) {
+      await new Promise<void>((resolve) => {
+        void this.preloaderMapInstance.once("idle", resolve);
+        this.preloaderMapInstance.jumpTo(position, { animate: false });
+      });
+      onProgress?.(tiles.length + index, tiles.length + positions.length, null);
+    }
+
+    return;
   }
 
-  private async fetchTiles(tiles: TileCoord[], callbacks?: TilePreloadCallbacks): Promise<void> {
+  private async fetchTiles(tiles: TileCoord[], callbacks?: TilePreloadOptions): Promise<void> {
     const sources = getActiveTileSources(this.map);
     const maxTiles = callbacks?.maxTiles ?? 512;
 
@@ -165,12 +298,13 @@ export class TilePreloader {
     const abortController = new AbortController();
     const requestID = crypto.randomUUID();
     this.activeAbortControllers.set(requestID, abortController);
-    console.log("Fetching tiles---", fetchItems.length, maxTiles);
+
     try {
       await Promise.allSettled(
         fetchItems.map(async ({ url, tileID }) => {
           try {
             await prefetchTileUrl(url, abortController.signal);
+            return;
           } catch (error) {
             callbacks?.onError?.(error);
           } finally {

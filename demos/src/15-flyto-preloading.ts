@@ -1,6 +1,6 @@
 import "../../build/maptiler-sdk.css";
 
-import { Map, MapStyle, config } from "../../src/index";
+import { Map, MapStyle, config, setMaxParallelImageRequests, setWorkerCount } from "../../src/index";
 import { setupMapTilerApiKey } from "./demo-utils";
 
 setupMapTilerApiKey({ config });
@@ -8,7 +8,11 @@ setupMapTilerApiKey({ config });
 const progressBar = document.getElementById("progress-bar") as HTMLDivElement;
 const statusEl = document.getElementById("status") as HTMLDivElement;
 const preloadToggle = document.getElementById("preload-toggle") as HTMLInputElement;
+const preprocessToggle = document.getElementById("preprocess-toggle") as HTMLInputElement;
 const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>(".destination-btn"));
+
+setWorkerCount(4);
+setMaxParallelImageRequests(16);
 
 const map = new Map({
   container: document.getElementById("map")!,
@@ -16,6 +20,7 @@ const map = new Map({
   center: [0, 20],
   zoom: 2,
   geolocateControl: false,
+  useExperimentalTilePreloading: true,
 });
 
 function setProgress(done: number, total: number) {
@@ -48,7 +53,8 @@ buttons.forEach((btn) => {
         center: [lng, lat],
         zoom,
         duration: 4000,
-        preload: {
+        experimental_preload: {
+          preprocessTiles: preprocessToggle.checked,
           onProgress: (done, total) => setProgress(done, total),
           onError: (err) => console.warn("Preload error:", err),
         },

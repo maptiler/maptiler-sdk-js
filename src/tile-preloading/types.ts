@@ -10,7 +10,7 @@ import type { LngLatBoundsLike } from "maplibre-gl";
  * @remarks
  * **API Key Usage**: Each tile fetch counts against your MapTiler Cloud API key quota.
  */
-export type TilePreloadProgressCallback = (done: number, total: number, tileID: string) => void;
+export type TilePreloadProgressCallback = (done: number, total: number, tileID?: string | null) => void;
 
 /**
  * Called when a tile fails to load during preloading.
@@ -20,14 +20,14 @@ export type TilePreloadProgressCallback = (done: number, total: number, tileID: 
 export type TilePreloadErrorCallback = (error: unknown) => void;
 
 /**
- * Callbacks and safety limits shared by all preload option types.
+ * Options shared by all tile preloading APIs.
  *
  * @remarks
  * **API Key Usage**: Tile preloading issues one network request per tile per active source.
  * These requests count against your MapTiler Cloud API key quota. Use `onProgress` to
  * monitor consumption and prefer narrow zoom ranges and small bounds where possible.
  */
-export type TilePreloadCallbacks = {
+export type TilePreloadOptions = {
   /**
    * Called after each tile fetch attempt, whether it succeeded or failed.
    */
@@ -47,6 +47,21 @@ export type TilePreloadCallbacks = {
    * @defaultValue 512
    */
   maxTiles?: number;
+  /**
+   * Whether to preprocess tiles after they are fetched. This feature may block the current JS thread and have a negative impact on the performance of the map.
+   * So it is recommended to use it with caution and / or increase the available workers with `setWorkerCount`
+   */
+  preprocessTiles?: boolean;
+};
+
+/**
+ * Adds optional experimental tile preloading to camera animation method options.
+ */
+export type WithTilePreload<T> = T & {
+  /**
+   * Experimental tile preloading options. This will only work if `useExperimentalTilePreloading` is set to `true` on the map options.
+   */
+  experimental_preload?: TilePreloadOptions;
 };
 
 /**
@@ -57,7 +72,7 @@ export type TilePreloadCallbacks = {
  * a city-scale area at zoom 12–15 can result in thousands of tile requests per source.
  * Each request counts against your MapTiler Cloud API key quota.
  */
-export type PreloadTilesForBoundsOptions = TilePreloadCallbacks & {
+export type PreloadTilesForBoundsOptions = TilePreloadOptions & {
   /**
    * The geographic bounds to preload tiles for.
    */
@@ -96,12 +111,52 @@ export type CameraPosition = {
  * from that viewpoint. More positions and higher zoom levels result in more
  * requests, each counting against your MapTiler Cloud API key quota.
  */
-export type PreloadTilesForCameraPositionsOptions = TilePreloadCallbacks & {
+export type PreloadTilesForCameraPositionsOptions = TilePreloadOptions & {
   /**
    * Camera positions to preload tiles for. Tiles visible from each position
    * will be fetched and cached.
    */
   positions: CameraPosition[];
+};
+
+/**
+ * Options for preloading tiles along a linear camera path.
+ */
+export type PreloadTilesForFlyToPathOptions = TilePreloadOptions & {
+  /**
+   * Start camera position.
+   */
+  start: CameraPosition;
+  /**
+   * End camera position.
+   */
+  end: CameraPosition;
+  /**
+   * Curve to use for the flyTo path.
+   */
+  curve?: number;
+  /**
+   * Number of steps to sample along the path.
+   */
+  steps?: number;
+};
+
+/**
+ * Options for preloading tiles along a linear camera path.
+ */
+export type PreloadTilesForLinearPathOptions = TilePreloadOptions & {
+  /**
+   * Start camera position.
+   */
+  start: CameraPosition;
+  /**
+   * End camera position.
+   */
+  end: CameraPosition;
+  /**
+   * Number of steps to sample along the path.
+   */
+  steps?: number;
 };
 
 /**
@@ -111,7 +166,7 @@ export type PreloadTilesForCameraPositionsOptions = TilePreloadCallbacks & {
  * **API Key Usage**: Each tile ID results in one fetch per active map source.
  * Each request counts against your MapTiler Cloud API key quota.
  */
-export type PreloadTilesOptions = TilePreloadCallbacks & {
+export type PreloadTilesOptions = TilePreloadOptions & {
   /**
    * Tile IDs to preload, in `"z/x/y"` format.
    */

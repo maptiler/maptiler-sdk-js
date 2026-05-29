@@ -45,7 +45,7 @@ import Minimap from "./controls/Minimap";
 import type { MinimapOptionsInput } from "./controls/Minimap";
 import { CACHE_API_AVAILABLE, registerLocalCacheProtocol } from "./caching";
 import { TilePreloader } from "./tile-preloading/TilePreloader";
-import type { CameraPosition, PreloadTilesForBoundsOptions, PreloadTilesForCameraPositionsOptions, PreloadTilesOptions, TilePreloadCallbacks } from "./tile-preloading/types";
+import type { CameraPosition, PreloadTilesForBoundsOptions, PreloadTilesForCameraPositionsOptions, PreloadTilesOptions, WithTilePreload } from "./tile-preloading/types";
 import { MaptilerProjectionControl } from "./controls/MaptilerProjectionControl";
 import { Telemetry } from "./Telemetry";
 import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from "./custom-layers/CubemapLayer";
@@ -260,6 +260,10 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo" | "attribut
   /**
    * Whether to enable the experimental tile preloading feature.
    * Default is false.
+   * @experimental
+   * @remarks
+   * **API Key Usage**: Each tile request counts against your MapTiler Cloud API key quota. Use with caution
+   * If you intend to use preprocessing, increase the available workers with `setWorkerCount` see {@link TilePreloader.setWorkerCount} for more details.
    */
   useExperimentalTilePreloading?: boolean;
 };
@@ -561,7 +565,7 @@ export class Map extends maplibregl.Map {
   }
 
   private options: MapOptions;
-  private tilePreloader!: TilePreloader;
+  private tilePreloader?: TilePreloader;
   private isTerrainEnabled = false;
   private terrainExaggeration = 1;
   private primaryLanguage: LanguageInfo;
@@ -659,6 +663,9 @@ export class Map extends maplibregl.Map {
 
       if (options.useExperimentalTilePreloading && !this.tilePreloader) {
         this.tilePreloader = new TilePreloader(this);
+        try {
+          this.telemetry.registerModule("experimental-tile-preloader", "0.0.1");
+        } catch {} // do nothing
       }
 
       // If the rtlTextPlugin option is a string, we assume it is a url and enable the plugin
@@ -1231,6 +1238,9 @@ export class Map extends maplibregl.Map {
   ): this {
     this.originalLabelStyle.clear();
     this.minimap?.setStyle(style);
+
+    this.tilePreloader?.setPreloaderMapStyle(style as StyleSpecificationWithMetaData);
+
     this.forceLanguageUpdate = true;
     this.once("idle", () => {
       this.forceLanguageUpdate = false;
@@ -2160,19 +2170,21 @@ export class Map extends maplibregl.Map {
    * area can trigger thousands of requests, each counting against your MapTiler Cloud
    * API key quota. Use narrow zoom ranges and small bounds wherever possible, and
    * monitor consumption via the `onProgress` callback.
-   *
+   * @experimental
+   * @param {PreloadTilesForBoundsOptions} options - The options for the preload.
+   * @returns A promise that resolves when the preload is complete.
    * @example
    * ```ts
-   * await map.preloadTilesForBounds({
+   * await map.experimental_preloadTilesForBounds({
    *   bounds: map.getBounds(),
    *   minZoom: 8,
    *   maxZoom: 12,
-   *   onProgress: (done, total) => console.log(`${done}/${total} tiles loaded`),
    * });
    * ```
    */
-  async preloadTilesForBounds(options: PreloadTilesForBoundsOptions): Promise<void> {
-    await this.tilePreloader.preloadForBounds(options);
+  async experimental_preloadTilesForBounds(options: PreloadTilesForBoundsOptions): Promise<void> {
+    if (!this.options.useExperimentalTilePreloading) return;
+    await this.tilePreloader?.preloadForBounds(options);
   }
 
   /**
@@ -2181,7 +2193,9 @@ export class Map extends maplibregl.Map {
    *
    * Use this method before a planned `flyTo` or `panTo` to ensure tiles along
    * the path are ready when the animation reaches them.
-   *
+   * @experimental
+   * @param {PreloadTilesForCameraPositionsOptions} options - The options for the preload.
+   * @returns A promise that resolves when the preload is complete.
    * @remarks
    * **API Key Usage**: Each position triggers one request per visible tile per
    * active source. More positions at higher zoom levels significantly increase
@@ -2198,14 +2212,18 @@ export class Map extends maplibregl.Map {
    * });
    * ```
    */
-  async preloadTilesForCameraPositions(options: PreloadTilesForCameraPositionsOptions): Promise<void> {
-    await this.tilePreloader.preloadForCameraPositions(options);
+  async experimental_preloadTilesForCameraPositions(options: PreloadTilesForCameraPositionsOptions): Promise<void> {
+    if (!this.options.useExperimentalTilePreloading) return;
+    await this.tilePreloader?.preloadForCameraPositions(options);
   }
 
   /**
    * Preloads a specific set of tiles identified by their `"z/x/y"` tile IDs,
    * storing them in the SDK tile cache.
    *
+   * @experimental
+   * @param {PreloadTilesOptions} options - The options for the preload.
+   * @returns A promise that resolves when the preload is complete.
    * @remarks
    * **API Key Usage**: Each tile ID results in one request per active source,
    * counting against your MapTiler Cloud API key quota.
@@ -2218,8 +2236,9 @@ export class Map extends maplibregl.Map {
    * });
    * ```
    */
-  async preloadTiles(options: PreloadTilesOptions): Promise<void> {
-    await this.tilePreloader.preloadByTileIDs(options);
+  async experimental_preloadTiles(options: PreloadTilesOptions): Promise<void> {
+    if (!this.options.useExperimentalTilePreloading) return;
+    await this.tilePreloader?.preloadByTileIDs(options);
   }
 
   // ─── Camera method overrides with optional tile preloading ───────────────────
@@ -2230,22 +2249,22 @@ export class Map extends maplibregl.Map {
    * zooming and panning to help the user maintain her bearings even after traversing
    * a great distance.
    *
-   * If `options.preload` is provided, tiles along the flight path are fetched and
+   * If `options.experimental_preload` is provided, tiles along the flight path are fetched and
    * cached before the animation begins so they are ready when rendered.
    *
    * @remarks
-   * **API Key Usage**: When `preload` is set, tile requests are issued for positions
+   * **API Key Usage**: When `experimental_preload` is set, tile requests are issued for positions
    * sampled along the flight path. These count against your MapTiler Cloud API key quota.
    */
-  override flyTo(options: FlyToOptions & { preload?: TilePreloadCallbacks }, eventData?: object): this {
-    const { preload, ...flyOptions } = options;
+  override flyTo(options: WithTilePreload<FlyToOptions>, eventData?: object): this {
+    const { experimental_preload: preload, ...flyOptions } = options;
 
     if (preload) {
-      this.tilePreloader.abortAll();
+      this.tilePreloader?.abortAll();
       const start = this.currentCameraPosition();
       const end = this.resolveCameraPosition(flyOptions);
       const superFlyTo = super.flyTo.bind(this);
-      void this.tilePreloader.preloadForFlyToPath(start, end, flyOptions.curve, preload).then(() => superFlyTo(flyOptions, eventData));
+      void this.tilePreloader?.preloadForFlyToPath({ start, end, curve: flyOptions.curve, ...preload }).then(() => superFlyTo(flyOptions, eventData));
       return this;
     }
 
@@ -2255,23 +2274,23 @@ export class Map extends maplibregl.Map {
   /**
    * Pans the map to the specified location with an animated transition.
    *
-   * If `options.preload` is provided, tiles along the pan path are fetched and
+   * If `options.experimental_preload` is provided, tiles along the pan path are fetched and
    * cached before the animation begins.
    *
    * @remarks
-   * **API Key Usage**: When `preload` is set, tile requests are issued for positions
+   * **API Key Usage**: When `experimental_preload` is set, tile requests are issued for positions
    * sampled along the pan path. These count against your MapTiler Cloud API key quota.
    */
-  override panTo(lnglat: LngLatLike, options?: AnimationOptions & { pitch?: number; preload?: TilePreloadCallbacks }, eventData?: object): this {
-    const { preload, ...panOptions } = options ?? {};
+  override panTo(lnglat: LngLatLike, options?: WithTilePreload<AnimationOptions & { pitch?: number }>, eventData?: object): this {
+    const { experimental_preload: preload, ...panOptions } = options ?? {};
 
-    if (preload) {
-      this.tilePreloader.abortAll();
+    if (preload && this.options.useExperimentalTilePreloading) {
+      this.tilePreloader?.abortAll();
       const lngLatObj = maplibregl.LngLat.convert(lnglat);
       const start = this.currentCameraPosition();
       const end: CameraPosition = { lng: lngLatObj.lng, lat: lngLatObj.lat, zoom: start.zoom, pitch: start.pitch, bearing: start.bearing };
       const superPanTo = super.panTo.bind(this);
-      void this.tilePreloader.preloadForLinearPath(start, end, preload).then(() => superPanTo(lnglat, panOptions, eventData));
+      void this.tilePreloader?.preloadForLinearPath({ start, end, ...preload }).then(() => superPanTo(lnglat, panOptions, eventData));
       return this;
     }
 
@@ -2282,22 +2301,22 @@ export class Map extends maplibregl.Map {
    * Changes any combination of center, zoom, bearing, pitch, and roll, with an
    * animated transition between old and new values.
    *
-   * If `options.preload` is provided, tiles along the ease path are fetched and
+   * If `options.experimental_preload` is provided, tiles along the ease path are fetched and
    * cached before the animation begins.
    *
    * @remarks
-   * **API Key Usage**: When `preload` is set, tile requests are issued for positions
+   * **API Key Usage**: When `experimental_preload` is set, tile requests are issued for positions
    * sampled along the ease path. These count against your MapTiler Cloud API key quota.
    */
-  override easeTo(options: EaseToOptions & { preload?: TilePreloadCallbacks }, eventData?: object): this {
-    const { preload, ...easeOptions } = options;
+  override easeTo(options: WithTilePreload<EaseToOptions>, eventData?: object): this {
+    const { experimental_preload: preload, ...easeOptions } = options;
 
-    if (preload) {
-      this.tilePreloader.abortAll();
+    if (preload && this.options.useExperimentalTilePreloading) {
+      this.tilePreloader?.abortAll();
       const start = this.currentCameraPosition();
       const end = this.resolveCameraPosition(easeOptions);
       const superEaseTo = super.easeTo.bind(this);
-      void this.tilePreloader.preloadForLinearPath(start, end, preload).then(() => superEaseTo(easeOptions, eventData));
+      void this.tilePreloader?.preloadForLinearPath({ start, end, ...preload }).then(() => superEaseTo(easeOptions, eventData));
       return this;
     }
 
@@ -2309,18 +2328,18 @@ export class Map extends maplibregl.Map {
    * geographical bounds. This function will also reset the map's bearing to 0
    * if options.bearing is not specified.
    *
-   * If `options.preload` is provided, tiles for the target view are fetched and
+   * If `options.experimental_preload` is provided, tiles for the target view are fetched and
    * cached before the animation begins.
    *
    * @remarks
-   * **API Key Usage**: When `preload` is set, tile requests are issued for the
+   * **API Key Usage**: When `experimental_preload` is set, tile requests are issued for the
    * destination viewport. These count against your MapTiler Cloud API key quota.
    */
-  override fitBounds(bounds: LngLatBoundsLike, options?: FitBoundsOptions & { preload?: TilePreloadCallbacks }, eventData?: object): this {
-    const { preload, ...fitOptions } = options ?? {};
+  override fitBounds(bounds: LngLatBoundsLike, options?: WithTilePreload<FitBoundsOptions>, eventData?: object): this {
+    const { experimental_preload: preload, ...fitOptions } = options ?? {};
 
-    if (preload) {
-      this.tilePreloader.abortAll();
+    if (preload && this.options.useExperimentalTilePreloading) {
+      this.tilePreloader?.abortAll();
       const cameraForBounds = this.cameraForBounds(bounds, fitOptions);
       if (cameraForBounds?.center) {
         const start = this.currentCameraPosition();
@@ -2333,7 +2352,7 @@ export class Map extends maplibregl.Map {
           bearing: cameraForBounds.bearing ?? start.bearing,
         };
         const superFitBounds = super.fitBounds.bind(this);
-        void this.tilePreloader.preloadForLinearPath(start, end, preload).then(() => superFitBounds(bounds, fitOptions, eventData));
+        void this.tilePreloader?.preloadForLinearPath({ start, end, ...preload }).then(() => superFitBounds(bounds, fitOptions, eventData));
         return this;
       }
     }
@@ -2344,22 +2363,22 @@ export class Map extends maplibregl.Map {
   /**
    * Zooms the map to the specified zoom level, with an animated transition.
    *
-   * If `options.preload` is provided, tiles for the target zoom level are fetched
+   * If `options.experimental_preload` is provided, tiles for the target zoom level are fetched
    * and cached before the animation begins.
    *
    * @remarks
-   * **API Key Usage**: When `preload` is set, tile requests are issued for the
+   * **API Key Usage**: When `experimental_preload` is set, tile requests are issued for the
    * target zoom. These count against your MapTiler Cloud API key quota.
    */
-  override zoomTo(zoom: number, options?: (AnimationOptions & { preload?: TilePreloadCallbacks }) | null, eventData?: object): this {
-    const { preload, ...zoomOptions } = options ?? {};
+  override zoomTo(zoom: number, options?: WithTilePreload<AnimationOptions> | null, eventData?: object): this {
+    const { experimental_preload: preload, ...zoomOptions } = options ?? {};
 
-    if (preload) {
-      this.tilePreloader.abortAll();
+    if (preload && this.options.useExperimentalTilePreloading) {
+      this.tilePreloader?.abortAll();
       const start = this.currentCameraPosition();
       const end: CameraPosition = { ...start, zoom };
       const superZoomTo = super.zoomTo.bind(this);
-      void this.tilePreloader.preloadForLinearPath(start, end, preload).then(() => superZoomTo(zoom, zoomOptions, eventData));
+      void this.tilePreloader?.preloadForLinearPath({ start, end, ...preload }).then(() => superZoomTo(zoom, zoomOptions, eventData));
       return this;
     }
 

@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>MapTiler SDK – flyTo Tile Preloading</title>
+  <title>MapTiler SDK – flyTo Tile Preloading (Experimental)</title>
   <style>
     html, body { margin: 0; font-family: sans-serif; }
 
@@ -98,8 +98,8 @@
   <div id="map"></div>
 
   <div id="panel">
-    <h3>flyTo Preloading</h3>
-    <p>Tiles along the flight path are preloaded concurrently with the animation. Toggle to compare.</p>
+    <h3>flyTo Preloading (Experimental)</h3>
+    <p>Tiles along the flight path are preloaded before the animation starts. Toggle to compare.</p>
 
     <button class="destination-btn" data-lng="-74.006" data-lat="40.7128" data-zoom="14">🗽 New York</button>
     <button class="destination-btn" data-lng="2.3522"  data-lat="48.8566" data-zoom="14">🗼 Paris</button>
@@ -112,7 +112,11 @@
 
     <div id="mode-toggle">
       <input type="checkbox" id="preload-toggle" checked />
-      <label for="preload-toggle">Preload tiles during flight</label>
+      <label for="preload-toggle">Use experimental_preload</label>
+    </div>
+    <div id="mode-toggle">
+      <input type="checkbox" id="preprocess-toggle" />
+      <label for="preprocess-toggle">Preprocess tiles after fetch</label>
     </div>
   </div>
 

@@ -183,7 +183,8 @@ export * from "./ml-types";
 export { Map, GeolocationType, type AttributionControlOptions, type MapOptions, type LoadWithTerrainEvent } from "./Map";
 export type {
   CameraPosition,
-  TilePreloadCallbacks,
+  TilePreloadOptions,
+  WithTilePreload,
   PreloadTilesForBoundsOptions,
   PreloadTilesForCameraPositionsOptions,
   PreloadTilesOptions,

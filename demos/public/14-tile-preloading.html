@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>MapTiler SDK – Tile Preloading</title>
+  <title>MapTiler SDK – Tile Preloading (Experimental)</title>
   <style>
     html,
     body {
@@ -35,6 +35,13 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: #333;
+    }
+
+    #panel p {
+      margin: 0 0 10px;
+      font-size: 11px;
+      color: #666;
+      line-height: 1.4;
     }
 
     .option-btn {
@@ -105,16 +112,17 @@
   <div id="map"></div>
 
   <div id="panel">
-    <h3>Tile Preloading Demo</h3>
+    <h3>Tile Preloading (Experimental)</h3>
+    <p>Preload tiles for a region, then jump there. Toggle to compare with uncached navigation.</p>
 
     <div id="progress-bar-wrap">
       <div id="progress-bar"></div>
     </div>
-    <div id="status">Ready — select a destination.</div>
+    <div id="status">Ready — select a region.</div>
 
     <div id="mode-toggle">
       <input type="checkbox" id="preload-toggle" checked />
-      <label for="preload-toggle">Enable preloading</label>
+      <label for="preload-toggle">Use experimental preloading</label>
     </div>
   </div>
 

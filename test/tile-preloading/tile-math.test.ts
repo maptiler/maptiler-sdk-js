@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildTileUrl, deduplicateTiles, formatTileID, parseTileID, sampleFlyToPath, sampleLinearPath, tilesForBounds, tilesForCameraPosition } from "../../src/tile-preloading/tile-math";
+import { buildTileUrl, boundsTreeForBounds, deduplicateTiles, formatTileID, parseTileID, sampleFlyToPath, sampleLinearPath, tilesForBounds, tilesForCameraPosition, viewBoundsForCameraPosition } from "../../src/tile-preloading/tile-math";
 import type { CameraPosition } from "../../src/tile-preloading/types";
 
 // ─── parseTileID ─────────────────────────────────────────────────────────────
@@ -119,6 +119,62 @@ describe("tilesForCameraPosition", () => {
     for (const tile of tiles) {
       expect(tile.x).toBeGreaterThanOrEqual(0);
       expect(tile.x).toBeLessThan(maxTile);
+    }
+  });
+});
+
+// ─── viewBoundsForCameraPosition / boundsTreeForBounds ───────────────────────
+
+describe("viewBoundsForCameraPosition", () => {
+  it("returns bounds centered on the camera position", () => {
+    const position: CameraPosition = { lng: 0, lat: 0, zoom: 2 };
+    const bounds = viewBoundsForCameraPosition(position, 512, 512) as [number, number, number, number];
+    const [west, south, east, north] = bounds;
+    expect((west + east) / 2).toBeCloseTo(0, 1);
+    expect((south + north) / 2).toBeCloseTo(0, 1);
+    expect(east).toBeGreaterThan(west);
+    expect(north).toBeGreaterThan(south);
+  });
+});
+
+describe("boundsTreeForBounds", () => {
+  const viewportWidth = 512;
+  const viewportHeight = 512;
+  const parentBounds = [-74.1, 40.6, -73.9, 40.8] as [number, number, number, number];
+
+  it("returns one view per zoom when parent fits in a single viewport", () => {
+    const tree = boundsTreeForBounds(parentBounds, 10, 10, viewportWidth, viewportHeight);
+    expect(tree.length).toBe(1);
+  });
+
+  it("returns views for every zoom level in range", () => {
+    const tree = boundsTreeForBounds(parentBounds, 10, 12, viewportWidth, viewportHeight);
+    expect(tree.length).toBeGreaterThan(3);
+  });
+
+  it("tessellates into a grid when parent bounds exceed viewport at a zoom", () => {
+    const wideBounds = [-77, 38, -72, 43] as [number, number, number, number];
+    const tree = boundsTreeForBounds(wideBounds, 7, 7, viewportWidth, viewportHeight);
+    expect(tree.length).toBeGreaterThan(1);
+  });
+
+  it("accepts min/max zoom in either order", () => {
+    const forward = boundsTreeForBounds(parentBounds, 10, 11, viewportWidth, viewportHeight);
+    const reverse = boundsTreeForBounds(parentBounds, 11, 10, viewportWidth, viewportHeight);
+    expect(reverse.length).toBe(forward.length);
+  });
+
+  it("each view bounds covers part of the parent bounds", () => {
+    const tree = boundsTreeForBounds(parentBounds, 10, 10, viewportWidth, viewportHeight);
+    const [parentWest, parentSouth, parentEast, parentNorth] = parentBounds;
+    for (const view of tree) {
+      const [west, south, east, north] = view as [number, number, number, number];
+      expect(east).toBeGreaterThan(west);
+      expect(north).toBeGreaterThan(south);
+      expect(east).toBeGreaterThanOrEqual(parentWest);
+      expect(west).toBeLessThanOrEqual(parentEast);
+      expect(north).toBeGreaterThanOrEqual(parentSouth);
+      expect(south).toBeLessThanOrEqual(parentNorth);
     }
   });
 });

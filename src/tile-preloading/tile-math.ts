@@ -17,6 +17,15 @@ function latToTileY(lat: number, zoom: number): number {
   return ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * z;
 }
 
+function tileXToLng(x: number, zoom: number): number {
+  return (x / Math.pow(2, zoom)) * 360 - 180;
+}
+
+function tileYToLat(y: number, zoom: number): number {
+  const latRad = Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / Math.pow(2, zoom))));
+  return (latRad * 180) / Math.PI;
+}
+
 /**
  * Returns all tile coordinates that fall within the given geographic bounds
  * at each integer zoom level from `minZoom` to `maxZoom` (inclusive).
@@ -93,6 +102,67 @@ export function tilesForCameraPosition(position: CameraPosition, viewportWidth: 
   }
 
   return tiles;
+}
+
+/**
+ * Returns the geographic bounds visible from a camera position at the given
+ * viewport size. Matches the tile footprint used by {@link tilesForCameraPosition}
+ * without the extra padding margin.
+ *
+ * @internal
+ */
+export function viewBoundsForCameraPosition(position: CameraPosition, viewportWidth: number, viewportHeight: number): LngLatBoundsLike {
+  const zoom = position.zoom;
+  const centerTileX = lngToTileX(position.lng, zoom);
+  const centerTileY = latToTileY(position.lat, zoom);
+  const tilesX = viewportWidth / TILE_SIZE;
+  const tilesY = viewportHeight / TILE_SIZE;
+
+  const west = tileXToLng(centerTileX - tilesX / 2, zoom);
+  const east = tileXToLng(centerTileX + tilesX / 2, zoom);
+  const north = tileYToLat(centerTileY - tilesY / 2, zoom);
+  const south = tileYToLat(centerTileY + tilesY / 2, zoom);
+
+  return [west, south, east, north];
+}
+
+/**
+ * Tessellates a parent bounds into viewport-sized geographic bounds at each
+ * integer zoom level from `minZoom` to `maxZoom` (inclusive).
+ *
+ * @internal
+ */
+export function boundsTreeForBounds(parentBounds: LngLatBoundsLike, minZoom: number, maxZoom: number, viewportWidth: number, viewportHeight: number): LngLatBoundsLike[] {
+  const lngLatBounds = LngLatBounds.convert(parentBounds);
+  const sw = lngLatBounds.getSouthWest();
+  const ne = lngLatBounds.getNorthEast();
+
+  const loZoom = Math.floor(Math.min(minZoom, maxZoom));
+  const hiZoom = Math.ceil(Math.max(minZoom, maxZoom));
+  const tilesX = viewportWidth / TILE_SIZE;
+  const tilesY = viewportHeight / TILE_SIZE;
+
+  const boundsTree: LngLatBoundsLike[] = [];
+
+  for (let z = loZoom; z <= hiZoom; z++) {
+    const parentMinX = Math.min(lngToTileX(sw.lng, z), lngToTileX(ne.lng, z));
+    const parentMaxX = Math.max(lngToTileX(sw.lng, z), lngToTileX(ne.lng, z));
+    const parentMinY = Math.min(latToTileY(ne.lat, z), latToTileY(sw.lat, z));
+    const parentMaxY = Math.max(latToTileY(ne.lat, z), latToTileY(sw.lat, z));
+
+    const numCols = Math.max(1, Math.ceil((parentMaxX - parentMinX) / tilesX));
+    const numRows = Math.max(1, Math.ceil((parentMaxY - parentMinY) / tilesY));
+
+    for (let row = 0; row < numRows; row++) {
+      for (let col = 0; col < numCols; col++) {
+        const centerTileX = parentMinX + tilesX / 2 + col * tilesX;
+        const centerTileY = parentMinY + tilesY / 2 + row * tilesY;
+        boundsTree.push(viewBoundsForCameraPosition({ lng: tileXToLng(centerTileX, z), lat: tileYToLat(centerTileY, z), zoom: z }, viewportWidth, viewportHeight));
+      }
+    }
+  }
+
+  return boundsTree;
 }
 
 /**

@@ -67,10 +67,10 @@ export async function prefetchTileUrl(url: string, signal?: AbortSignal): Promis
 
   const cache = CACHE_API_AVAILABLE ? await caches.open(LOCAL_CACHE_NAME) : null;
 
-  // if (cache) {
-  //   const cached = await cache.match(cacheKey);
-  //   if (cached) return;
-  // }
+  if (cache) {
+    const cached = await cache.match(cacheKey);
+    if (cached) return;
+  }
 
   const fetchableUrl = new URL(urlObj);
   fetchableUrl.searchParams.delete("last-modified");
