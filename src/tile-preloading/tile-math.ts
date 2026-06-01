@@ -127,45 +127,6 @@ export function viewBoundsForCameraPosition(position: CameraPosition, viewportWi
 }
 
 /**
- * Tessellates a parent bounds into viewport-sized geographic bounds at each
- * integer zoom level from `minZoom` to `maxZoom` (inclusive).
- *
- * @internal
- */
-export function boundsTreeForBounds(parentBounds: LngLatBoundsLike, minZoom: number, maxZoom: number, viewportWidth: number, viewportHeight: number): LngLatBoundsLike[] {
-  const lngLatBounds = LngLatBounds.convert(parentBounds);
-  const sw = lngLatBounds.getSouthWest();
-  const ne = lngLatBounds.getNorthEast();
-
-  const loZoom = Math.floor(Math.min(minZoom, maxZoom));
-  const hiZoom = Math.ceil(Math.max(minZoom, maxZoom));
-  const tilesX = viewportWidth / TILE_SIZE;
-  const tilesY = viewportHeight / TILE_SIZE;
-
-  const boundsTree: LngLatBoundsLike[] = [];
-
-  for (let z = loZoom; z <= hiZoom; z++) {
-    const parentMinX = Math.min(lngToTileX(sw.lng, z), lngToTileX(ne.lng, z));
-    const parentMaxX = Math.max(lngToTileX(sw.lng, z), lngToTileX(ne.lng, z));
-    const parentMinY = Math.min(latToTileY(ne.lat, z), latToTileY(sw.lat, z));
-    const parentMaxY = Math.max(latToTileY(ne.lat, z), latToTileY(sw.lat, z));
-
-    const numCols = Math.max(1, Math.ceil((parentMaxX - parentMinX) / tilesX));
-    const numRows = Math.max(1, Math.ceil((parentMaxY - parentMinY) / tilesY));
-
-    for (let row = 0; row < numRows; row++) {
-      for (let col = 0; col < numCols; col++) {
-        const centerTileX = parentMinX + tilesX / 2 + col * tilesX;
-        const centerTileY = parentMinY + tilesY / 2 + row * tilesY;
-        boundsTree.push(viewBoundsForCameraPosition({ lng: tileXToLng(centerTileX, z), lat: tileYToLat(centerTileY, z), zoom: z }, viewportWidth, viewportHeight));
-      }
-    }
-  }
-
-  return boundsTree;
-}
-
-/**
  * Samples positions along a linear camera path (panTo, easeTo) at the
  * given number of steps.
  *
