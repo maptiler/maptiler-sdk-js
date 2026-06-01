@@ -2,11 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TilePreloader } from "../../src/tile-preloading/TilePreloader";
 import type { Map as SDKMap } from "../../src/Map";
 
-// ─── Test helpers ─────────────────────────────────────────────────────────────
+//#region Test helpers
 
 function makeMockMap(sourceOverrides: Record<string, unknown> = {}): SDKMap {
   const defaultSources = {
-    "openmaptiles": {
+    openmaptiles: {
       tiles: ["https://api.maptiler.com/tiles/v3/{z}/{x}/{y}.pbf?key=test"],
       type: "vector",
     },
@@ -22,7 +22,9 @@ function makeMockMap(sourceOverrides: Record<string, unknown> = {}): SDKMap {
   } as unknown as SDKMap;
 }
 
-// ─── Mocking fetch and caches ─────────────────────────────────────────────────
+//#endregion
+
+//#region Mocking fetch and caches
 
 const fetchMock = vi.fn();
 const cachePutMock = vi.fn();
@@ -42,7 +44,9 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-// ─── preloadForBounds ─────────────────────────────────────────────────────────
+//#endregion
+
+//#region preloadForBounds
 
 describe("TilePreloader.preloadForBounds", () => {
   it("fetches tiles for each zoom level in the range", async () => {
@@ -69,7 +73,7 @@ describe("TilePreloader.preloadForBounds", () => {
       bounds: [-74.1, 40.6, -73.9, 40.8],
       minZoom: 10,
       maxZoom: 10,
-      onProgress: (done, total, tileID) => progressCalls.push([done, total, tileID]),
+      onProgress: (done, total, tileID) => progressCalls.push([done, total, tileID ?? ""]),
     });
 
     expect(progressCalls.length).toBeGreaterThan(0);
@@ -98,14 +102,12 @@ describe("TilePreloader.preloadForBounds", () => {
 
   it("does nothing when no tileable sources are present", async () => {
     const map = makeMockMap({ "geojson-source": { type: "geojson", data: {} } });
-    // Override getStyle to return only a non-tileable source
     (map as unknown as { getStyle: () => unknown }).getStyle = () => ({
       sources: { "geojson-source": { type: "geojson" } },
     });
     (map as unknown as { getSource: (id: string) => unknown }).getSource = () => ({
       type: "geojson",
       data: {},
-      // No tiles property
     });
 
     const preloader = new TilePreloader(map);
@@ -115,7 +117,9 @@ describe("TilePreloader.preloadForBounds", () => {
   });
 });
 
-// ─── preloadForCameraPositions ────────────────────────────────────────────────
+//#endregion
+
+//#region preloadForCameraPositions
 
 describe("TilePreloader.preloadForCameraPositions", () => {
   it("fetches tiles at the given zoom level", async () => {
@@ -151,7 +155,9 @@ describe("TilePreloader.preloadForCameraPositions", () => {
   });
 });
 
-// ─── preloadByTileIDs ─────────────────────────────────────────────────────────
+//#endregion
+
+//#region preloadByTileIDs
 
 describe("TilePreloader.preloadByTileIDs", () => {
   it("fetches the specified tile IDs", async () => {
@@ -194,7 +200,9 @@ describe("TilePreloader.preloadByTileIDs", () => {
   });
 });
 
-// ─── abortAll ─────────────────────────────────────────────────────────────────
+//#endregion
+
+//#region abortAll
 
 describe("TilePreloader.abortAll", () => {
   it("aborts in-flight requests when called", () => {
@@ -202,10 +210,13 @@ describe("TilePreloader.abortAll", () => {
     const preloader = new TilePreloader(map);
     const abortSpy = vi.fn();
 
-    vi.spyOn(global, "AbortController").mockImplementation(() => ({
-      signal: { aborted: false },
-      abort: abortSpy,
-    }) as unknown as AbortController);
+    vi.spyOn(global, "AbortController").mockImplementation(
+      () =>
+        ({
+          signal: { aborted: false },
+          abort: abortSpy,
+        }) as unknown as AbortController,
+    );
 
     // Start a preload but do not await it
     void preloader.preloadForBounds({
@@ -218,3 +229,5 @@ describe("TilePreloader.abortAll", () => {
     expect(abortSpy).toHaveBeenCalled();
   });
 });
+
+//#endregion

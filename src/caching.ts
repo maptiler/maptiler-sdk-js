@@ -16,6 +16,8 @@ export const CACHE_API_AVAILABLE = typeof caches !== "undefined";
 
 const { addProtocol } = maplibregl;
 
+//#region localCacheTransformRequest
+
 export function localCacheTransformRequest(reqUrl: URL, resourceType?: ResourceType): string {
   if (CACHE_API_AVAILABLE && config.caching && config.session && reqUrl.host === defaults.maptilerApiHost) {
     if (resourceType === "Source" && reqUrl.href.includes("tiles.json")) {
@@ -28,6 +30,28 @@ export function localCacheTransformRequest(reqUrl: URL, resourceType?: ResourceT
   }
   return reqUrl.href;
 }
+
+//#endregion
+
+//#region getTileCacheKey
+
+/**
+ * Derives a stable cache key from a tile URL by stripping ephemeral params
+ * (`key`, `mtsid`) that vary per-request but do not affect tile content.
+ * Both the prefetch path and the protocol handler must use this function so
+ * cache writes and reads always resolve to the same key.
+ * @internal
+ */
+export function getTileCacheKey(url: URL | string): string {
+  const u = new URL(url instanceof URL ? url.href : url);
+  u.searchParams.delete("key");
+  u.searchParams.delete("mtsid");
+  return u.toString();
+}
+
+//#endregion
+
+//#region cache management
 
 let cacheInstance: Cache;
 
@@ -48,6 +72,10 @@ async function limitCache() {
   }
 }
 
+//#endregion
+
+//#region prefetchTileUrl
+
 /**
  * Fetches a tile URL and stores it in the SDK cache so subsequent MapLibre
  * requests for the same tile are served from cache without a network round-trip.
@@ -59,13 +87,8 @@ async function limitCache() {
  */
 export async function prefetchTileUrl(url: string, signal?: AbortSignal): Promise<void> {
   const urlObj = new URL(url);
-
-  const cacheableUrl = new URL(urlObj);
-  cacheableUrl.searchParams.delete("mtsid");
-  cacheableUrl.searchParams.delete("key");
-  const cacheKey = cacheableUrl.toString();
-
-  const cache = CACHE_API_AVAILABLE ? await caches.open(LOCAL_CACHE_NAME) : null;
+  const cacheKey = getTileCacheKey(urlObj);
+  const cache = CACHE_API_AVAILABLE ? await getCache() : null;
 
   if (cache) {
     const cached = await cache.match(cacheKey);
@@ -73,17 +96,21 @@ export async function prefetchTileUrl(url: string, signal?: AbortSignal): Promis
   }
 
   const fetchableUrl = new URL(urlObj);
-  fetchableUrl.searchParams.delete("last-modified");
 
   const response = await fetch(fetchableUrl.toString(), { signal });
 
   if (cache && response.ok) {
-    cache.put(cacheKey, response.clone()).catch((e) => {
-      console.error("Error writing to cache", e);
+    try {
+      await cache.put(cacheKey, response);
+    } catch (_e) {
       // Ignore cache write errors (e.g. QuotaExceededError, AbortError mid-stream)
-    });
+    }
   }
 }
+
+//#endregion
+
+//#region registerLocalCacheProtocol
 
 export function registerLocalCacheProtocol() {
   addProtocol(
@@ -120,11 +147,7 @@ export function registerLocalCacheProtocol() {
     params.url = params.url.replace(`${LOCAL_CACHE_PROTOCOL_DATA}://`, "https://");
 
     const url = new URL(params.url);
-
-    const cacheableUrl = new URL(url);
-    cacheableUrl.searchParams.delete("mtsid");
-    cacheableUrl.searchParams.delete("key");
-    const cacheKey = cacheableUrl.toString();
+    const cacheKey = getTileCacheKey(url);
 
     const fetchableUrl = new URL(url);
     fetchableUrl.searchParams.delete("last-modified");
@@ -142,7 +165,8 @@ export function registerLocalCacheProtocol() {
     const cacheMatch = await cache.match(cacheKey);
 
     if (cacheMatch) {
-      return respond(cacheMatch);
+      console.log("cache match", cacheKey);
+      return await respond(cacheMatch);
     }
 
     const requestInit: RequestInit = params;
@@ -161,3 +185,5 @@ export function registerLocalCacheProtocol() {
     return respond(response);
   });
 }
+
+//#endregion

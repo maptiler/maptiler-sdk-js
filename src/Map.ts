@@ -263,8 +263,7 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo" | "attribut
    * Default is false.
    * @experimental
    * @remarks
-   * **API Key Usage**: Each tile request counts against your MapTiler Cloud API key quota. Use with caution
-   * If you intend to use preprocessing, increase the available workers with `setWorkerCount` see {@link TilePreloader.setWorkerCount} for more details.
+   * **API Key Usage**: Each tile request counts against your MapTiler Cloud API key quota. Use with caution.
    */
   useExperimentalTilePreloading?: boolean;
 };
@@ -639,6 +638,7 @@ export class Map extends maplibregl.Map {
 
     if (options.useExperimentalTilePreloading) {
       setWorkerCount(config.experimental_defaultWorkerCount);
+      console.info(`Using ${config.experimental_defaultWorkerCount} workers for experimental tile preloading.`);
     }
 
     super(superOptions);
@@ -1244,8 +1244,6 @@ export class Map extends maplibregl.Map {
   ): this {
     this.originalLabelStyle.clear();
     this.minimap?.setStyle(style);
-
-    this.tilePreloader?.setPreloaderMapStyle(style as StyleSpecificationWithMetaData);
 
     this.forceLanguageUpdate = true;
     this.once("idle", () => {
@@ -2267,10 +2265,10 @@ export class Map extends maplibregl.Map {
 
     if (preload) {
       this.tilePreloader?.abortAll();
-      const start = this.currentCameraPosition();
       const end = this.resolveCameraPosition(flyOptions);
-      const superFlyTo = super.flyTo.bind(this);
-      void this.tilePreloader?.preloadForFlyToPath({ start, end, curve: flyOptions.curve, ...preload }).then(() => superFlyTo(flyOptions, eventData));
+      // attempting to prefetch the tiles for all tiles along the flyTo path spams the network
+      // and workers, so we just prefetch the tiles for the destination position instead
+      void this.tilePreloader?.preloadForCameraPositions({ positions: [end], ...preload }).then(() => super.flyTo(flyOptions, eventData));
       return this;
     }
 

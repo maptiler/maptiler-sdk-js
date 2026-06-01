@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buildTileUrl, boundsTreeForBounds, deduplicateTiles, formatTileID, parseTileID, sampleFlyToPath, sampleLinearPath, tilesForBounds, tilesForCameraPosition, viewBoundsForCameraPosition } from "../../src/tile-preloading/tile-math";
+import { buildTileUrl, boundsTreeForBounds, deduplicateTiles, formatTileID, parseTileID, sampleLinearPath, tilesForBounds, tilesForCameraPosition, viewBoundsForCameraPosition } from "../../src/tile-preloading/tile-math";
 import type { CameraPosition } from "../../src/tile-preloading/types";
 
-// ─── parseTileID ─────────────────────────────────────────────────────────────
+//#region parseTileID
 
 describe("parseTileID", () => {
   it("parses a valid z/x/y string", () => {
@@ -23,7 +23,9 @@ describe("parseTileID", () => {
   });
 });
 
-// ─── formatTileID ────────────────────────────────────────────────────────────
+//#endregion
+
+//#region formatTileID
 
 describe("formatTileID", () => {
   it("formats z/x/y correctly", () => {
@@ -31,7 +33,9 @@ describe("formatTileID", () => {
   });
 });
 
-// ─── buildTileUrl ────────────────────────────────────────────────────────────
+//#endregion
+
+//#region buildTileUrl
 
 describe("buildTileUrl", () => {
   it("substitutes {z}, {x}, {y} placeholders", () => {
@@ -46,7 +50,9 @@ describe("buildTileUrl", () => {
   });
 });
 
-// ─── tilesForBounds ──────────────────────────────────────────────────────────
+//#endregion
+
+//#region tilesForBounds
 
 describe("tilesForBounds", () => {
   it("returns a single tile for a tiny bounds at zoom 0", () => {
@@ -88,7 +94,9 @@ describe("tilesForBounds", () => {
   });
 });
 
-// ─── tilesForCameraPosition ───────────────────────────────────────────────────
+//#endregion
+
+//#region tilesForCameraPosition
 
 describe("tilesForCameraPosition", () => {
   const viewportWidth = 1280;
@@ -123,7 +131,9 @@ describe("tilesForCameraPosition", () => {
   });
 });
 
-// ─── viewBoundsForCameraPosition / boundsTreeForBounds ───────────────────────
+//#endregion
+
+//#region viewBoundsForCameraPosition / boundsTreeForBounds
 
 describe("viewBoundsForCameraPosition", () => {
   it("returns bounds centered on the camera position", () => {
@@ -179,7 +189,9 @@ describe("boundsTreeForBounds", () => {
   });
 });
 
-// ─── deduplicateTiles ────────────────────────────────────────────────────────
+//#endregion
+
+//#region deduplicateTiles
 
 describe("deduplicateTiles", () => {
   it("removes exact duplicate tile coordinates", () => {
@@ -210,7 +222,9 @@ describe("deduplicateTiles", () => {
   });
 });
 
-// ─── sampleLinearPath ────────────────────────────────────────────────────────
+//#endregion
+
+//#region sampleLinearPath
 
 describe("sampleLinearPath", () => {
   const start: CameraPosition = { lng: 0, lat: 0, zoom: 5, pitch: 0, bearing: 0 };
@@ -241,37 +255,4 @@ describe("sampleLinearPath", () => {
   });
 });
 
-// ─── sampleFlyToPath ─────────────────────────────────────────────────────────
-
-describe("sampleFlyToPath", () => {
-  const start: CameraPosition = { lng: 0, lat: 0, zoom: 10, pitch: 0, bearing: 0 };
-  const end: CameraPosition = { lng: 50, lat: 30, zoom: 8, pitch: 0, bearing: 0 };
-
-  it("returns steps + 1 positions", () => {
-    const positions = sampleFlyToPath(start, end, 4);
-    expect(positions.length).toBe(5);
-  });
-
-  it("first position equals start center and zoom", () => {
-    const positions = sampleFlyToPath(start, end, 4);
-    expect(positions[0].lng).toBeCloseTo(0);
-    expect(positions[0].lat).toBeCloseTo(0);
-    expect(positions[0].zoom).toBeCloseTo(10); // No dip at t=0
-  });
-
-  it("last position equals end center and zoom", () => {
-    const positions = sampleFlyToPath(start, end, 4);
-    const last = positions[positions.length - 1];
-    expect(last.lng).toBeCloseTo(50);
-    expect(last.lat).toBeCloseTo(30);
-    expect(last.zoom).toBeCloseTo(8); // No dip at t=1
-  });
-
-  it("midpoint zoom is lower than both endpoints (zoom-out arc)", () => {
-    const positions = sampleFlyToPath(start, end, 10);
-    const midIndex = Math.floor(positions.length / 2);
-    const midZoom = positions[midIndex].zoom;
-    expect(midZoom).toBeLessThan(start.zoom);
-    expect(midZoom).toBeLessThan(end.zoom);
-  });
-});
+//#endregion

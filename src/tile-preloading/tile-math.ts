@@ -186,31 +186,6 @@ export function sampleLinearPath(start: CameraPosition, end: CameraPosition, ste
   return positions;
 }
 
-/**
- * Samples positions along a flyTo path, which zooms out and then in.
- * Uses a sine curve approximation of MapLibre's actual flyTo zoom trajectory.
- *
- * @internal
- */
-export function sampleFlyToPath(start: CameraPosition, end: CameraPosition, steps: number, curve = 1.42): CameraPosition[] {
-  const positions: CameraPosition[] = [];
-
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    // Approximate the flyTo zoom arc: zoom dips at the midpoint then rises
-    const zoomDip = Math.sin(t * Math.PI) * curve * 2;
-    positions.push({
-      lng: lerp(start.lng, end.lng, t),
-      lat: lerp(start.lat, end.lat, t),
-      zoom: lerp(start.zoom, end.zoom, t) - zoomDip,
-      pitch: lerp(start.pitch ?? 0, end.pitch ?? 0, t),
-      bearing: lerp(start.bearing ?? 0, end.bearing ?? 0, t),
-    });
-  }
-
-  return positions;
-}
-
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }

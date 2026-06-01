@@ -82,13 +82,17 @@
       min-height: 16px;
     }
 
-    #mode-toggle {
+    .mode-toggle {
       margin-top: 10px;
       font-size: 12px;
       color: #444;
       display: flex;
       align-items: center;
       gap: 6px;
+    }
+
+    .mode-toggle input {
+      cursor: pointer;
     }
   </style>
   <link rel="stylesheet" href="../build/maptiler-sdk.css">
@@ -110,13 +114,14 @@
     <div id="progress-bar-wrap"><div id="progress-bar"></div></div>
     <div id="status">Select a destination.</div>
 
-    <div id="mode-toggle">
+    <div class="mode-toggle">
       <input type="checkbox" id="preload-toggle" checked />
       <label for="preload-toggle">Use experimental_preload</label>
     </div>
-    <div id="mode-toggle">
-      <input type="checkbox" id="preprocess-toggle" />
-      <label for="preprocess-toggle">Preprocess tiles after fetch</label>
+
+    <div class="mode-toggle">
+      <input type="checkbox" id="clear-cache-toggle" />
+      <label for="clear-cache-toggle">Clear cache before run</label>
     </div>
   </div>
 

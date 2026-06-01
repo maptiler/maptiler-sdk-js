@@ -115,7 +115,7 @@ class SdkConfig extends EventEmitter {
   /**
    * The default number of steps to sample for the experimental flyTo path preloading.
    */
-  private _experimentalDefaultPathSampleSteps = 8;
+  private _experimentalDefaultPathSampleSteps = 4;
 
   get experimental_defaultPathSampleSteps(): number {
     return this._experimentalDefaultPathSampleSteps;

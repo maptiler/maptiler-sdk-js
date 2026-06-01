@@ -1843,6 +1843,131 @@ import { config } from "@maptiler/sdk";
 config.caching = false;
 ```
 
+### Prefetching (experimental)
+
+The SDK can prefetch tiles ahead of camera movements and store them in the browser cache, so they render instantly when the map arrives at the destination. This is an **experimental** feature — the API may change in future releases.
+
+> ⚠️ **API Key Usage**: Every prefetched tile counts against your MapTiler Cloud API key quota. Use narrow zoom ranges and small geographic areas where possible.
+
+#### Enabling
+
+Pass `useExperimentalTilePreloading: true` when creating the map:
+
+```ts
+import { Map } from "@maptiler/sdk";
+
+const map = new Map({
+  container: "map",
+  useExperimentalTilePreloading: true,
+});
+```
+
+#### Prefetching on camera animations
+
+Once enabled, pass `experimental_preload` in the options of any camera animation method. Tiles are fetched before the animation starts, so they are ready when the camera arrives.
+
+**`flyTo`** — prefetches tiles visible at the destination:
+
+```ts
+map.flyTo({
+  center: [-74.006, 40.7128],
+  zoom: 14,
+  experimental_preload: { maxTiles: 256 },
+});
+```
+
+**`panTo`** — prefetches tiles along the pan path:
+
+```ts
+map.panTo([-74.006, 40.7128], {
+  experimental_preload: {},
+});
+```
+
+**`easeTo`** — prefetches tiles along the ease path:
+
+```ts
+map.easeTo({
+  center: [-74.006, 40.7128],
+  zoom: 12,
+  experimental_preload: {},
+});
+```
+
+**`fitBounds`** — prefetches tiles for the destination viewport:
+
+```ts
+map.fitBounds([[-74.1, 40.6], [-73.9, 40.8]], {
+  experimental_preload: { maxTiles: 128 },
+});
+```
+
+**`zoomTo`** — prefetches tiles for the target zoom level:
+
+```ts
+map.zoomTo(15, {
+  experimental_preload: {},
+});
+```
+
+The `experimental_preload` object accepts these options:
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `maxTiles` | `number` | `512` | Maximum tiles to fetch. Tiles beyond this limit are silently dropped. |
+| `onProgress` | `(done, total, tileID?) => void` | — | Called after each tile fetch attempt (success or failure). |
+| `onError` | `(error) => void` | — | Called when a tile fails to load. |
+
+#### Prefetching manually
+
+Three methods let you prefetch tiles independently of camera animations.
+
+**`experimental_preloadTilesForBounds`** — fetches all tiles within a bounding box across a zoom range:
+
+```ts
+await map.experimental_preloadTilesForBounds({
+  bounds: map.getBounds(),
+  minZoom: 8,
+  maxZoom: 12,
+  onProgress: (done, total) => console.log(`${done}/${total}`),
+});
+```
+
+**`experimental_preloadTilesForCameraPositions`** — fetches tiles visible from one or more camera viewpoints:
+
+```ts
+await map.experimental_preloadTilesForCameraPositions({
+  positions: [
+    { lng: -74.006, lat: 40.7128, zoom: 12 },
+    { lng: -73.935, lat: 40.730,  zoom: 14, pitch: 45 },
+  ],
+  maxTiles: 256,
+});
+```
+
+**`experimental_preloadTiles`** — fetches a specific list of tiles by ID (`"z/x/y"` format):
+
+```ts
+await map.experimental_preloadTiles({
+  tileIDs: ["12/1205/1540", "12/1206/1540"],
+  onError: (err) => console.error(err),
+});
+```
+
+#### Global config options
+
+Two `config` properties tune the prefetching behaviour globally:
+
+```ts
+import { config } from "@maptiler/sdk";
+
+// Number of camera positions sampled along a path for panTo/easeTo/fitBounds/zoomTo (default: 4)
+config.experimental_defaultPathSampleSteps = 6;
+
+// Number of concurrent tile fetch workers (default: 4)
+config.experimental_defaultWorkerCount = 8;
+```
+
 ### Easy access to MapTiler API
 
 Our map SDK is not only about maps! We also provide plenty of wrappers to our API calls!

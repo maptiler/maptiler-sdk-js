@@ -47,11 +47,6 @@ export type TilePreloadOptions = {
    * @defaultValue 512
    */
   maxTiles?: number;
-  /**
-   * Whether to preprocess tiles after they are fetched. This feature may block the current JS thread and have a negative impact on the performance of the map.
-   * So it is recommended to use it with caution and / or increase the available workers with `setWorkerCount`
-   */
-  preprocessTiles?: boolean;
 };
 
 /**
@@ -117,28 +112,6 @@ export type PreloadTilesForCameraPositionsOptions = TilePreloadOptions & {
    * will be fetched and cached.
    */
   positions: CameraPosition[];
-};
-
-/**
- * Options for preloading tiles along a linear camera path.
- */
-export type PreloadTilesForFlyToPathOptions = TilePreloadOptions & {
-  /**
-   * Start camera position.
-   */
-  start: CameraPosition;
-  /**
-   * End camera position.
-   */
-  end: CameraPosition;
-  /**
-   * Curve to use for the flyTo path.
-   */
-  curve?: number;
-  /**
-   * Number of steps to sample along the path.
-   */
-  steps?: number;
 };
 
 /**

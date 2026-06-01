@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/no-floating-promises, @typescript-eslint/no-misused-promises */
 import "../../build/maptiler-sdk.css";
 
-import { Map, MapStyle, config, setMaxParallelImageRequests, setWorkerCount } from "../../src/index";
+import { Map, MapStyle, config } from "../../src/index";
 import { setupMapTilerApiKey } from "./demo-utils";
 
 setupMapTilerApiKey({ config });
@@ -9,11 +9,17 @@ setupMapTilerApiKey({ config });
 const progressBar = document.getElementById("progress-bar") as HTMLDivElement;
 const statusEl = document.getElementById("status") as HTMLDivElement;
 const preloadToggle = document.getElementById("preload-toggle") as HTMLInputElement;
-const preprocessToggle = document.getElementById("preprocess-toggle") as HTMLInputElement;
+const clearCacheToggle = document.getElementById("clear-cache-toggle") as HTMLInputElement;
 const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>(".destination-btn"));
 
-setWorkerCount(4);
-setMaxParallelImageRequests(16);
+const LOCAL_CACHE_NAME = "maptiler_sdk";
+
+async function clearTileCache() {
+  if (typeof caches === "undefined") return;
+  const cache = await caches.open(LOCAL_CACHE_NAME);
+  const keys = await cache.keys();
+  await Promise.all(keys.map((key) => cache.delete(key)));
+}
 
 const map = new Map({
   container: document.getElementById("map")!,
@@ -39,7 +45,7 @@ function setButtonsDisabled(disabled: boolean) {
 }
 
 buttons.forEach((btn) => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
     const lng = parseFloat(btn.dataset.lng!);
     const lat = parseFloat(btn.dataset.lat!);
     const zoom = parseFloat(btn.dataset.zoom!);
@@ -47,8 +53,12 @@ buttons.forEach((btn) => {
 
     setButtonsDisabled(true);
 
+    if (clearCacheToggle.checked) {
+      setStatus("Clearing tile cache…");
+      await clearTileCache();
+    }
+
     if (preloadToggle.checked) {
-      alert(`Preloading tiles for ${label}…`);
       setStatus(`Preloading tiles for ${label}…`);
 
       map.flyTo({
@@ -56,17 +66,11 @@ buttons.forEach((btn) => {
         zoom,
         duration: 4000,
         experimental_preload: {
-          preprocessTiles: preprocessToggle.checked,
-          onProgress: (done, total) => {
-            setProgress(done, total);
-          },
-          onError: (err) => {
-            console.warn("Preload error:", err);
-          },
+          onProgress: (done, total) => setProgress(done, total),
+          onError: (err) => console.warn("Preload error:", err),
         },
       });
     } else {
-      alert(`Flying to ${label}…`);
       setStatus(`Flying to ${label}…`);
       map.flyTo({ center: [lng, lat], zoom, duration: 4000 });
     }
@@ -77,4 +81,3 @@ buttons.forEach((btn) => {
     });
   });
 });
-
