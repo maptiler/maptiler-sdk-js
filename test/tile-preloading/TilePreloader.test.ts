@@ -61,7 +61,7 @@ describe("TilePreloader.preloadForBounds", () => {
 
     expect(fetchMock).toHaveBeenCalled();
     const urls: string[] = fetchMock.mock.calls.map((args: unknown[]) => args[0] as string);
-    console.log(urls);
+
     expect(urls.some((url) => url.includes("/10/"))).toBe(true);
     expect(urls.some((url) => url.includes("/9/"))).toBe(true);
   });
