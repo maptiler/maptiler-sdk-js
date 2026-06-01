@@ -33,7 +33,7 @@ function lerpVec4(a: Lerpable, b: Lerpable, t: number): Vec4 {
  *                0 returns a, 1 returns b, and values in between return a proportional mix
  * @returns The interpolated value between a and b
  */
-function lerp(a: number, b: number, alpha: number) {
+function lerp(a: number, b: number, alpha: number): number {
   return a + (b - a) * alpha;
 }
 
