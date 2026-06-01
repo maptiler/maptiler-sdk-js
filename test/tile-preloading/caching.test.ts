@@ -33,21 +33,15 @@ afterEach(() => {
 
 describe("getTileCacheKey", () => {
   it("strips the key param", () => {
-    expect(getTileCacheKey("https://api.maptiler.com/tiles/v3/14/8235/5349.pbf?key=MY_KEY")).toBe(
-      "https://api.maptiler.com/tiles/v3/14/8235/5349.pbf",
-    );
+    expect(getTileCacheKey("https://api.maptiler.com/tiles/v3/14/8235/5349.pbf?key=MY_KEY")).toBe("https://api.maptiler.com/tiles/v3/14/8235/5349.pbf");
   });
 
   it("strips the mtsid param", () => {
-    expect(getTileCacheKey("https://api.maptiler.com/tiles/v3/14/8235/5349.pbf?mtsid=SESSION")).toBe(
-      "https://api.maptiler.com/tiles/v3/14/8235/5349.pbf",
-    );
+    expect(getTileCacheKey("https://api.maptiler.com/tiles/v3/14/8235/5349.pbf?mtsid=SESSION")).toBe("https://api.maptiler.com/tiles/v3/14/8235/5349.pbf");
   });
 
   it("strips both key and mtsid but preserves other params", () => {
-    const result = getTileCacheKey(
-      "https://api.maptiler.com/tiles/v3/14/8235/5349.pbf?key=K&mtsid=S&last-modified=Mon%2C+01+Jan+2024",
-    );
+    const result = getTileCacheKey("https://api.maptiler.com/tiles/v3/14/8235/5349.pbf?key=K&mtsid=S&last-modified=Mon%2C+01+Jan+2024");
     expect(result).not.toContain("key=");
     expect(result).not.toContain("mtsid=");
     expect(result).toContain("last-modified=");

@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { buildTileUrl, boundsTreeForBounds, deduplicateTiles, formatTileID, parseTileID, sampleLinearPath, tilesForBounds, tilesForCameraPosition, viewBoundsForCameraPosition } from "../../src/tile-preloading/tile-math";
+import {
+  buildTileUrl,
+  boundsTreeForBounds,
+  deduplicateTiles,
+  formatTileID,
+  parseTileID,
+  sampleLinearPath,
+  tilesForBounds,
+  tilesForCameraPosition,
+  viewBoundsForCameraPosition,
+} from "../../src/tile-preloading/tile-math";
 import type { CameraPosition } from "../../src/tile-preloading/types";
 
 //#region parseTileID
