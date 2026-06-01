@@ -1,6 +1,7 @@
 import ml from "maplibre-gl";
 import type { LngLatBoundsLike } from "maplibre-gl";
 import type { CameraPosition, TileCoord } from "./types";
+import { lerp } from "../utils/math-utils";
 
 const TILE_SIZE = 256;
 
@@ -145,10 +146,6 @@ export function sampleLinearPath(start: CameraPosition, end: CameraPosition, ste
     });
   }
   return positions;
-}
-
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
 }
 
 /**
