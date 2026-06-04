@@ -7,6 +7,7 @@ on:
 
 jobs:
   update-snapshots:
+    timeout-minutes: 30
     # This is the magic "if" block
     if: >
       github.event.issue.pull_request &&
@@ -46,6 +47,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
+          cache: 'npm'
+          cache-dependency-path: ./package-lock.json
           node-version: lts/*
 
       - name: Install dependencies

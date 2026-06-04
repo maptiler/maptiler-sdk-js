@@ -1,10 +1,23 @@
 name: Unit tests
 
-on: [pull_request]
+on: 
+  pull_request:
+    branches: [ main, next ]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'vite.config-test.ts'
+
 
 jobs:
-  format-and-lint:
-    runs-on: ubuntu-latest
+  run-unit-tests:
+    timeout-minutes: 20
+    runs-on: ubuntu-slim
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
@@ -12,6 +25,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
+          cache: 'npm'
+          cache-dependency-path: ./package-lock.json
           node-version: lts/*
 
       - name: Install Node.js dependencies
