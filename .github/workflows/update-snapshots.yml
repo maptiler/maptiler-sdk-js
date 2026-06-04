@@ -8,6 +8,9 @@ on:
 jobs:
   update-snapshots:
     timeout-minutes: 30
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     # This is the magic "if" block
     if: >
       github.event.issue.pull_request &&

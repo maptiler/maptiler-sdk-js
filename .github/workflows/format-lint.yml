@@ -2,6 +2,7 @@ name: Format, Lint and Typecheck
 
 on:
   pull_request:
+    types: [opened, synchronize]
     branches: [ main, next ]
 
 jobs:
