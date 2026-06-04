@@ -3,7 +3,6 @@ import {
   findPreviousEntryAndIndexWithValue,
   getAverageDistance,
   KeyframeableGeoJSONFeature,
-  lerp,
   lerpArrayValues,
   parseGeoJSONFeatureToKeyframes,
   simplifyPath,
@@ -15,6 +14,7 @@ import { fixtureOne, invalidGeometryFixture, validFixture, validFixtureExpectedK
 import validSmoothedKeyframes from "../fixtures/animations/smoothed-keyframes.json";
 import { distancePoints, distancePointsTwo } from "../fixtures/animations/average-distance.fixture";
 import { complexPath, simplifiedAt5Meters, simplifiedPathAt10Meters } from "../fixtures/animations/simplify-path.fixture";
+import { lerp } from "../../src/utils/math-utils";
 
 expect.addEqualityTesters([
   (a: unknown, b: unknown): boolean | undefined => {

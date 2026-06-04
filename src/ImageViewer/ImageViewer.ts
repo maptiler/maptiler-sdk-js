@@ -393,7 +393,7 @@ export default class ImageViewer extends Evented {
     const cameraForBounds = this.sdk.cameraForBounds([tl, br], { padding: 50 });
     if (cameraForBounds) {
       if (ease) {
-        this.sdk.easeTo({ ...cameraForBounds, pitch: 0 }, null);
+        this.sdk.easeTo({ ...cameraForBounds, pitch: 0 });
       } else {
         this.sdk.jumpTo({ ...cameraForBounds, pitch: 0 }, null);
       }

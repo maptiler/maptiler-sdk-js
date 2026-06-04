@@ -2,6 +2,13 @@
 
 ## NEXT
 
+### ✨ Features and improvements
+- Adds experimental tile prefetching to reduce rendering latency during camera animations (`flyTo`, `panTo`, `easeTo`, `fitBounds`, `zoomTo`).
+  - Enable with `useExperimentalTilePreloading: true` on map options.
+  - Pass `experimental_preload` in any camera animation options object to prefetch tiles before the animation starts.
+  - Three standalone methods for manual prefetching: `experimental_preloadTilesForBounds`, `experimental_preloadTilesForCameraPositions`, `experimental_preloadTiles`.
+  - Global tuning via `config.experimental_defaultPathSampleSteps` and `config.experimental_defaultWorkerCount`.
+
 ### 🐛 Bug Fixes
 - Fixes `helpers.addPolyline` string data handling
   - It now correctly parses any string input (passed directly or fetched via URL) as GeoJSON, GPX, KML.

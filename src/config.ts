@@ -111,6 +111,31 @@ class SdkConfig extends EventEmitter {
   get fetch(): FetchFunction | null {
     return clientConfig.fetch;
   }
+
+  /**
+   * The default number of steps to sample for the experimental flyTo path preloading.
+   */
+  private _experimentalDefaultPathSampleSteps = 4;
+
+  get experimental_defaultPathSampleSteps(): number {
+    return this._experimentalDefaultPathSampleSteps;
+  }
+
+  set experimental_defaultPathSampleSteps(s: number) {
+    this._experimentalDefaultPathSampleSteps = s;
+    this.emit("experimentalDefaultPathSampleSteps", s);
+  }
+
+  private _experimentalDefaultWorkerCount = 4;
+
+  get experimental_defaultWorkerCount(): number {
+    return this._experimentalDefaultWorkerCount;
+  }
+
+  set experimental_defaultWorkerCount(w: number) {
+    this._experimentalDefaultWorkerCount = w;
+    this.emit("experimentalDefaultWorkerCount", w);
+  }
 }
 
 const config = new SdkConfig();
