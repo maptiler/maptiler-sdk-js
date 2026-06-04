@@ -10,6 +10,7 @@ import type {
   TilePreloadOptions,
 } from "./types";
 import { config } from "../config";
+import { v4 } from "uuid";
 
 type TileSource = {
   tiles: string[];
@@ -27,6 +28,9 @@ const PREFETCH_CONCURRENCY = 16;
  */
 function getActiveTileSources(map: SDKMap): Record<string, TileSource> {
   const style = map.getStyle();
+
+  // style.sources is _technically_ always defined, but we need to check.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!style?.sources) return {};
 
   const result: Record<string, TileSource> = {};
@@ -84,6 +88,14 @@ function buildFetchItems(sources: Record<string, TileSource>, tile: TileCoord): 
  * **API Key Usage**: Every tile fetched by this class counts against your
  * MapTiler Cloud API key quota. Prefer narrow zoom ranges and small geographic
  * areas where possible, and use the `onProgress` callback to monitor consumption.
+ *
+ * If you update the version of the tile preloader, please update the version in the `EXPERIMENTAL_TILE_PRELOADING_VERSION` constant.
+ * @example
+ * ```ts
+ * import { EXPERIMENTAL_TILE_PRELOADING_VERSION } from "./version";
+  
+ * EXPERIMENTAL_TILE_PRELOADING_VERSION = "0.2.0";
+ * ```
  */
 export class TilePreloader {
   private readonly map: SDKMap;
@@ -206,6 +218,8 @@ export class TilePreloader {
 
     if (fetchItems.length >= maxTiles) {
       console.warn(
+        // we are okay with type coercion here, it's just a warning message
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `[MapTiler SDK] Tile preloading capped at ${maxTiles} tiles, the remaining ${fetchItems.length - maxTiles} tile preloads will be skipped. Increase the \`maxTiles\` option to load more.`,
       );
     }
@@ -214,7 +228,7 @@ export class TilePreloader {
     let done = 0;
 
     const abortController = new AbortController();
-    const requestID = crypto.randomUUID();
+    const requestID = v4();
     this.activeAbortControllers.set(requestID, abortController);
 
     // Worker-pool concurrency: N workers drain a shared queue in order so
@@ -225,6 +239,8 @@ export class TilePreloader {
     try {
       await Promise.all(
         Array.from({ length: concurrency }, async () => {
+          // we need to use a while loop here because the queue is not guaranteed to be empty
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           while (true) {
             const item = queue.shift();
             if (!item) break;

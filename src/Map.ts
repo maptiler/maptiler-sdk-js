@@ -53,6 +53,7 @@ import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructor
 import { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 import { logSDKVersion } from "./utils/logSDKVersion";
 import { setWorkerCount } from ".";
+import { EXPERIMENTAL_TILE_PRELOADING_VERSION } from "./tile-preloading/version";
 
 export type LoadWithTerrainEvent = {
   type: "loadWithTerrain";
@@ -638,6 +639,8 @@ export class Map extends maplibregl.Map {
 
     if (options.useExperimentalTilePreloading) {
       setWorkerCount(config.experimental_defaultWorkerCount);
+      // we are okay with type coercion here, it's just a message to the console
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       console.info(`Using ${config.experimental_defaultWorkerCount} workers for experimental tile preloading.`);
     }
 
@@ -670,7 +673,7 @@ export class Map extends maplibregl.Map {
       if (options.useExperimentalTilePreloading && !this.tilePreloader) {
         this.tilePreloader = new TilePreloader(this);
         try {
-          this.telemetry.registerModule("experimental-tile-preloader", "0.1.0");
+          this.telemetry.registerModule("experimental-tile-preloader", EXPERIMENTAL_TILE_PRELOADING_VERSION);
         } catch {} // do nothing
       }
 
@@ -1144,7 +1147,7 @@ export class Map extends maplibregl.Map {
 
     Object.assign(this, new Map({ ...this.options }));
 
-    this.once("load", () => {
+    void this.once("load", () => {
       this.jumpTo(cameraOptions);
     });
   }
@@ -1246,7 +1249,7 @@ export class Map extends maplibregl.Map {
     this.minimap?.setStyle(style);
 
     this.forceLanguageUpdate = true;
-    this.once("idle", () => {
+    void this.once("idle", () => {
       this.forceLanguageUpdate = false;
     });
 

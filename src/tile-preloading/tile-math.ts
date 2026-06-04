@@ -86,17 +86,25 @@ export function tilesForCameraPosition(position: CameraPosition, viewportWidth: 
   // Pitch extends the visible area upward toward the horizon
   const pitchExtension = ((position.pitch ?? 0) / 90) * tilesY;
 
+  // calculate the min and max X tile coordinates
   const minX = Math.floor(centerTileX - tilesX / 2) - 1;
   const maxX = Math.ceil(centerTileX + tilesX / 2) + 1;
+
+  // calculate the min and max Y tile coordinates
   const minY = Math.floor(centerTileY - tilesY / 2 - pitchExtension) - 1;
   const maxY = Math.ceil(centerTileY + tilesY / 2) + 1;
 
   const tiles: TileCoord[] = [];
 
+  // iterate over the tiles in the viewport X
   for (let x = minX; x <= maxX; x++) {
+    // iterate over the tiles in the viewport Y
     for (let y = minY; y <= maxY; y++) {
+      // wrap the X coordinate to the tile count
       const wrappedX = ((x % tileCount) + tileCount) % tileCount;
+      // check if the Y coordinate is within the viewport
       if (y >= 0 && y < tileCount) {
+        // add the tile to the list
         tiles.push({ z: zoom, x: wrappedX, y });
       }
     }
@@ -170,7 +178,7 @@ export function parseTileID(tileID: string): TileCoord | null {
  * @internal
  */
 export function formatTileID(tile: TileCoord): string {
-  return `${tile.z}/${tile.x}/${tile.y}`;
+  return [tile.z, tile.x, tile.y].join("/");
 }
 
 /**

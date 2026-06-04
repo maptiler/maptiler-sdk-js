@@ -5,6 +5,7 @@ import { config } from "./config";
 import maplibregl from "maplibre-gl";
 
 import { defaults } from "./constants/defaults";
+import { TileJSON } from "@maptiler/client";
 
 const LOCAL_CACHE_PROTOCOL_SOURCE = "localcache_source";
 const LOCAL_CACHE_PROTOCOL_DATA = "localcache";
@@ -56,6 +57,8 @@ export function getTileCacheKey(url: URL | string): string {
 let cacheInstance: Cache;
 
 async function getCache() {
+  // cacheInstance is _technically_ always defined, but we need to check.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!cacheInstance) {
     cacheInstance = await caches.open(LOCAL_CACHE_NAME);
   }
@@ -68,7 +71,7 @@ async function limitCache() {
   const keys = await cache.keys();
   const toPurge = keys.slice(0, Math.max(keys.length - CACHE_LIMIT_ITEMS, 0));
   for (const key of toPurge) {
-    cache.delete(key);
+    void cache.delete(key);
   }
 }
 
@@ -102,7 +105,7 @@ export async function prefetchTileUrl(url: string, signal?: AbortSignal): Promis
   if (cache && response.ok) {
     try {
       await cache.put(cacheKey, response);
-    } catch (_e) {
+    } catch {
       // Ignore cache write errors (e.g. QuotaExceededError, AbortError mid-stream)
     }
   }
@@ -127,11 +130,13 @@ export function registerLocalCacheProtocol() {
       const requestInit: RequestInit = params;
       requestInit.signal = abortController.signal;
       const response = await fetch(params.url, requestInit);
-      const json = await response.json();
+      const json = (await response.json()) as TileJSON;
 
+      // we don't know if the tilesJSON from the reponsse is valid, so we need to check.
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (json.tiles && json.tiles.length > 0) {
         // move `Last-Modified` to query so it propagates to tile URLs
-        json.tiles[0] += `&last-modified=${response.headers.get("Last-Modified")}`;
+        json.tiles[0] = `${json.tiles[0]}&last-modified=${response.headers.get("Last-Modified") ?? ""}`;
       }
 
       return {
@@ -178,7 +183,7 @@ export function registerLocalCacheProtocol() {
         // can happen here because the response is not done streaming yet
       });
       if (++cachePutCounter > CACHE_LIMIT_CHECK_INTERVAL) {
-        limitCache();
+        void limitCache();
         cachePutCounter = 0;
       }
     }
