@@ -10,6 +10,9 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -18,7 +21,9 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ./package-lock.json
+          node-version: lts/*
           registry-url: https://registry.npmjs.org/
 
       - name: Clear NPM cache

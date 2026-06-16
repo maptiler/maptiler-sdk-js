@@ -1,10 +1,17 @@
-name: Format and Lint
+name: Format, Lint and Typecheck
 
-on: [pull_request]
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [ main, next ]
 
 jobs:
   format-and-lint:
-    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-slim
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
@@ -12,7 +19,9 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ./package-lock.json
+          node-version: lts/*
 
       - name: Install Node.js dependencies
         run: npm ci
