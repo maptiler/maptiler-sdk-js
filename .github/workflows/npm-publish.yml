@@ -3,6 +3,10 @@
 
 name: Node.js Package
 
+permissions:
+  id-token: write  # Required for NPM trusted publishing
+  contents: read
+
 on:
   release:
     types: [created]
@@ -40,15 +44,11 @@ jobs:
         if: "!github.event.release.prerelease"
         run: |
           npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
 
       - name: Publish NPM package (pre-release)
         if: "github.event.release.prerelease"
         run: |
           npm publish --tag next
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
 
       - name: Get Package version
         id: version
