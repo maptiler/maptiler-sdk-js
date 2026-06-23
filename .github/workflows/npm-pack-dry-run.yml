@@ -12,11 +12,11 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.release.target_commitish }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           cache: 'npm'
           cache-dependency-path: ./package-lock.json
@@ -41,5 +41,3 @@ jobs:
       - name: Pack NPM package (regular)
         run: |
           npm pack --dry-run
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
