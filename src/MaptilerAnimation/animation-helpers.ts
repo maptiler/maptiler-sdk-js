@@ -2,20 +2,7 @@ import { Feature, LineString, MultiLineString, MultiPoint, Polygon } from "geojs
 import { EasingFunctionName, Keyframe, NumericArrayWithNull } from "./types";
 import { arraysAreTheSameLength } from "../utils/array";
 import { LngLat } from "../";
-
-/**
- * Performs simple linear interpolation between two numbers.
- *
- * @param a - The start value
- * @param b - The end value
- * @param alpha - The interpolation factor (typically between 0 and 1):
- *                0 returns a, 1 returns b, and values in between return a proportional mix
- * @returns The interpolated value between a and b
- */
-export function lerp(a: number, b: number, alpha: number) {
-  return a + (b - a) * alpha;
-}
-
+import { lerp } from "../utils/math-utils";
 /**
  * Interpolates an array of numbers, replacing null values with interpolated values.
  *

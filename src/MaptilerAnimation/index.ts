@@ -8,7 +8,6 @@ export * from "./easing";
 export {
   type KeyframeableGeometry,
   type KeyframeableGeoJSONFeature,
-  lerp,
   lerpArrayValues,
   parseGeoJSONFeatureToKeyframes,
   createBezierPathFromCoordinates,

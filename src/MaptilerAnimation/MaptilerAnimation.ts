@@ -1,8 +1,9 @@
-import { lerp, lerpArrayValues } from "./animation-helpers";
+import { lerpArrayValues } from "./animation-helpers";
 import AnimationManager from "./AnimationManager";
 import { AnimationEventCallback, AnimationEventListenersRecord, AnimationEventTypes, AnimationEventTypesArray, EasingFunctionName, Keyframe } from "./types";
 import EasingFunctions from "./easing";
 import { v4 as uuidv4 } from "uuid";
+import { lerp } from "../utils/math-utils";
 
 /**
  * Configuration options for creating an animation.

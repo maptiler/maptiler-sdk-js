@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>MapTiler SDK – Tile Preloading (Experimental)</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    #map {
+      position: absolute;
+      width: 100vw;
+      height: 100vh;
+      background: #ccc;
+    }
+
+    #panel {
+      position: absolute;
+      z-index: 2;
+      top: 12px;
+      left: 12px;
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+      max-width: 280px;
+    }
+
+    #panel h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #333;
+    }
+
+    #panel p {
+      margin: 0 0 10px;
+      font-size: 11px;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .option-btn {
+      display: block;
+      width: 100%;
+      margin-bottom: 6px;
+      padding: 8px 12px;
+      border: 1.5px solid #ccc;
+      border-radius: 6px;
+      background: #f9f9f9;
+      cursor: pointer;
+      font-size: 13px;
+      text-align: left;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .option-btn:hover {
+      background: #eef4ff;
+      border-color: #4a80d8;
+    }
+
+    .option-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #progress-bar-wrap {
+      margin-top: 10px;
+      background: #eee;
+      border-radius: 4px;
+      height: 6px;
+      overflow: hidden;
+    }
+
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #4a80d8;
+      transition: width 0.1s linear;
+      border-radius: 4px;
+    }
+
+    #status {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #666;
+      min-height: 16px;
+    }
+
+    #mode-toggle {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #444;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #mode-toggle input {
+      cursor: pointer;
+    }
+  </style>
+
+  <link rel="stylesheet" href="../build/maptiler-sdk.css">
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <div id="panel">
+    <h3>Tile Preloading (Experimental)</h3>
+    <p>Preload tiles for a region, then jump there. Toggle to compare with uncached navigation.</p>
+
+    <div id="progress-bar-wrap">
+      <div id="progress-bar"></div>
+    </div>
+    <div id="status">Ready — select a region.</div>
+
+    <div id="mode-toggle">
+      <input type="checkbox" id="preload-toggle" checked />
+      <label for="preload-toggle">Use experimental preloading</label>
+    </div>
+  </div>
+
+  <script type="module" src="/src/14-tile-preloading.ts"></script>
+</body>
+
+</html>

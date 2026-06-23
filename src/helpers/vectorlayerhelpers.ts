@@ -19,7 +19,7 @@ import {
   radiusDrivenByPropertyHeatmap,
 } from "./stylehelper";
 
-import { gpx, gpxOrKml, kml } from "../converters";
+import { gpxOrKml } from "../converters";
 import { ColorRampCollection, type ColorRamp } from "../ColorRamp";
 
 /**
@@ -541,34 +541,22 @@ export async function addPolyline(
   if (typeof data === "string") {
     // if options.data exists and is a uuid string, we consider that it points to a MapTiler Dataset
     if (isUUID(data)) {
-      data = `https://api.maptiler.com/data/${options.data}/features.json?key=${config.apiKey}`;
-    }
-
-    // options.data could be a url to a .gpx file
-    else if (data.split(".").pop()?.toLowerCase().trim() === "gpx") {
-      // fetch the file
-      const res = await fetch(data, fetchOptions);
-      const gpxStr = await res.text();
-      // Convert it to geojson. Will throw is invalid GPX content
-      data = gpx(gpxStr);
-    }
-
-    // options.data could be a url to a .kml file
-    else if (data.split(".").pop()?.toLowerCase().trim() === "kml") {
-      // fetch the file
-      const res = await fetch(data, fetchOptions);
-      const kmlStr = await res.text();
-      // Convert it to geojson. Will throw is invalid GPX content
-      data = kml(kmlStr);
+      data = `https://api.maptiler.com/data/${data}/features.json?key=${config.apiKey}`;
     } else {
-      // From this point, we consider that the string content provided could
+      // options.data could be absolute or relative url
+      if (/^(?:\w+:|\.|\/)/.test(data)) {
+        // fetch the file
+        const res = await fetch(data, fetchOptions);
+        if (!res.ok) throw new Error(`Failed to fetch polyline data: fetching URL ${data} failed with status ${String(res.status)}.`);
+        data = await res.text();
+      }
+      // From this point, we consider that the string content provided or fetched could
       // be the string content of one of the compatible format (GeoJSON, KML, GPX)
-      const tmpData = jsonParseNoThrow<FeatureCollection<Geometry, GeoJsonProperties>>(data) ?? gpxOrKml(data);
-      if (tmpData) data = tmpData;
+      data = jsonParseNoThrow<FeatureCollection<Geometry, GeoJsonProperties>>(data) ?? gpxOrKml(data) ?? "";
     }
 
     if (!data) {
-      throw new Error("Polyline data was provided as string but is incompatible with valid formats.");
+      throw new Error("Failed to parse polyline data: expected GeoJSON, GPX, or KML.");
     }
   }
 

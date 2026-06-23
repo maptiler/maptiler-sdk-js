@@ -181,6 +181,16 @@ export * from "./ml-types";
 
 // SDK specific
 export { Map, GeolocationType, type AttributionControlOptions, type MapOptions, type LoadWithTerrainEvent } from "./Map";
+export type {
+  CameraPosition,
+  TilePreloadOptions,
+  WithTilePreload,
+  PreloadTilesForBoundsOptions,
+  PreloadTilesForCameraPositionsOptions,
+  PreloadTilesOptions,
+  TilePreloadErrorCallback,
+  TilePreloadProgressCallback,
+} from "./tile-preloading";
 
 export {
   type BaseGeocodingOptions,
