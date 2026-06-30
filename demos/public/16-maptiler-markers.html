@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>MapTiler Markers</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+    }
+
+    #map {
+      position: absolute;
+      width: 100vw;
+      height: 100vh;
+      background: #ccc;
+    }
+
+    #controls {
+      position: absolute;
+      z-index: 2;
+      top: 10px;
+      left: 10px;
+      background: white;
+      border: 2px solid black;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-family: sans-serif;
+      font-size: 14px;
+    }
+
+    #controls h3 {
+      margin: 0 0 4px 0;
+      font-size: 15px;
+    }
+
+    #controls button {
+      padding: 6px 12px;
+      cursor: pointer;
+      border: 2px solid black;
+      background: white;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+
+    #controls button:hover {
+      background: #ffaa07;
+    }
+  </style>
+
+  <link rel="stylesheet" href="../build/maptiler-sdk.css">
+</head>
+
+<body>
+  <div id="map"></div>
+  <div id="controls">
+    <h3>MapTiler Markers</h3>
+  </div>
+  <script type="module" src="/src/16-maptiler-markers.ts"></script>
+</body>
+
+</html>
