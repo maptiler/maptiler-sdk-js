@@ -1,4 +1,4 @@
-import { Alignment, Subscription, Marker, MarkerOptions, PointLike, Popup } from "../index";
+import { Alignment, Subscription, Marker, MarkerOptions, PointLike, Popup, MapTilerMarkerOptions } from "../index";
 import MapLibreGL from "maplibre-gl";
 import ImageViewer from "./ImageViewer";
 import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey } from "./symbols";
@@ -41,7 +41,7 @@ export class ImageViewerMarker extends Evented {
 
   constructor({ ...markerOptions }: ImageViewerMarkerOptions) {
     super();
-    this.marker = new Marker(markerOptions as MarkerOptions);
+    this.marker = new Marker(markerOptions as MapTilerMarkerOptions);
   }
 
   /**

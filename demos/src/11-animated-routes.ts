@@ -373,7 +373,7 @@ function createPOIMarkers(map: Map) {
     const marker = new Marker({
       element: createPOIMarkerElement(point.name, point.img),
       offset: [0, -50],
-      opacity: "0",
+      opacity: 0,
       subpixelPositioning: true,
     });
     marker.setLngLat(new LngLat(point.position[0], point.position[1]));
