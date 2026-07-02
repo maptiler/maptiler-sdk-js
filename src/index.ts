@@ -4,7 +4,7 @@ import maplibregl from "maplibre-gl";
 // Types from MapLibre are not re-exported one by one
 export type * from "maplibre-gl";
 
-export type { Marker as MLMarker } from "maplibre-gl"
+export type { Marker as MLMarker } from "maplibre-gl";
 
 /**
  * Get the version of MapTiler SDK, this is declared in the vite config
