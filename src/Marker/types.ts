@@ -195,28 +195,6 @@ export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" 
   collisionRadius?: number;
 };
 
-export const maptilerBaseOptionsKeys = [
-  "shape",
-  "size",
-  "innerColor",
-  "outerColor",
-  "contentColor",
-  "outline",
-  "outlineColor",
-  "shadow",
-  "opacity",
-  "opacityWhenCovered",
-  "name",
-  "title",
-  "htmlAttributes",
-  "scale",
-  "visible",
-  "priority",
-  "userData",
-  "collisionBehaviour",
-  "collisionRadius",
-] as const;
-
 //#endregion
 
 //#region Derived Types

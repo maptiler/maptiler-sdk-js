@@ -1,7 +1,7 @@
 import maplibregl from "maplibre-gl";
 import type { Map as MapMLGL, MarkerOptions } from "maplibre-gl";
 import type { Map as SDKMap } from "../Map";
-import { HTMLElementUpdateCue, maptilerBaseOptionsKeys, MapTilerMarkerElementProps, Vector2, type MapTilerMarkerOptions } from "./types";
+import { HTMLElementUpdateCue, MapTilerMarkerElementProps, Vector2, type MapTilerMarkerOptions } from "./types";
 import { omit } from "../utils/object";
 import { v4 as uuid } from "uuid";
 import { createMarkerElement, updateMarkerElement, wrap } from "./marker-dom-utils";
@@ -13,6 +13,28 @@ export * from "./types";
 const maplibreMarkerConstructorOverrides: MarkerOptions = {
   scale: 1, // scale in our class will be a 2D vector.
 };
+
+const maptilerBaseOptionsKeys = [
+  "shape",
+  "size",
+  "innerColor",
+  "outerColor",
+  "contentColor",
+  "outline",
+  "outlineColor",
+  "shadow",
+  "opacity",
+  "opacityWhenCovered",
+  "name",
+  "title",
+  "htmlAttributes",
+  "scale",
+  "visible",
+  "priority",
+  "userData",
+  "collisionBehaviour",
+  "collisionRadius",
+] as const;
 
 /**
  * A MapTiler marker with extended styling and batched DOM update support.
