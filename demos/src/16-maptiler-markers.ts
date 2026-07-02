@@ -14,6 +14,7 @@ async function main() {
   const map = new Map({
     container: el("map"),
     style: MapStyle.STREETS.DEFAULT,
+    projection: "globe",
     zoom: 5,
     center: [10, 50],
   });

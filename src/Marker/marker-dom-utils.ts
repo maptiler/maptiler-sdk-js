@@ -14,12 +14,16 @@ import {
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
+//#region svgEl
+
 // helper to create namespaced svg element
 function svgEl<K extends keyof SVGElementTagNameMap>(tag: K): SVGElementTagNameMap[K] {
   return document.createElementNS(SVG_NS, tag) as SVGElementTagNameMap[K];
 }
 
-//#region Public API
+//#endregion
+
+//#region createMarkerElement
 
 /**
  * Creates the root wrapper `div` for a marker, seeding all CSS custom
@@ -67,6 +71,10 @@ export function createMarkerElement(options: MapTilerMarkerOptions): HTMLDivElem
   wrapper.appendChild(sizeKey === "xs" ? buildDotSvg() : buildShapeSvg(shapeKey, sizeKey, options));
   return wrapper;
 }
+
+//#endregion
+
+//#region updateMarkerElement
 
 /**
  * Commits a batch of pending property updates onto a live marker element.
@@ -141,7 +149,7 @@ export function updateMarkerElement(element: HTMLElement, props: HTMLElementUpda
 
 //#endregion
 
-//#region Size helpers
+//#region applySize
 
 /**
  * Resizes the child SVG, or swaps it out entirely when crossing the `xs`
@@ -187,7 +195,7 @@ function applySize(wrapper: HTMLElement, size: MapTilerMarkerSize): void {
 
 //#endregion
 
-//#region SVG builders
+//#region buildDotSvg
 
 /** Builds the minimal dot SVG used for the `xs` size. */
 function buildDotSvg(): SVGSVGElement {
@@ -209,6 +217,10 @@ function buildDotSvg(): SVGSVGElement {
 
   return svg;
 }
+
+//#endregion
+
+//#region buildShapeSvg
 
 /**
  * Builds the full shape SVG for sizes `s` through `XL`.
@@ -251,7 +263,7 @@ function buildShapeSvg(shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>
 
 //#endregion
 
-//#region Helpers
+//#region applyTransform
 
 /**
  * Composes `data-scaleX`, `data-scaleY`, and `data-rotation` into a single
@@ -267,6 +279,10 @@ function applyTransform(wrapper: HTMLElement): void {
   wrapper.style.transform = `scale(${sx}, ${sy}) rotate(${rot}deg)`;
 }
 
+//#endregion
+
+//#region applyOutlineToPath
+
 /**
  * Sets `stroke-width` on the outer path when `options.outline` is truthy.
  * @param path - The `.marker-outer` path element.
@@ -277,6 +293,10 @@ function applyOutlineToPath(path: SVGPathElement, options: MapTilerMarkerOptions
   const width = options.outline === true ? DEFAULT_OUTLINE_WIDTH : options.outline;
   path.setAttribute("stroke-width", String(width));
 }
+
+//#endregion
+
+//#region appendContent
 
 /**
  * Appends the content layer to a shape SVG. Priority: `url` → `element` → `title`.
@@ -336,7 +356,7 @@ function appendContent(svg: SVGSVGElement, options: MapTilerMarkerOptions, shape
 
 //#endregion
 
-//#region Exports
+//#region wrap
 
 /**
  * Wraps `element` in a new container element.
