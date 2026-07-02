@@ -1,8 +1,6 @@
-import type MaptilerAnimation from "../MaptilerAnimation/MaptilerAnimation";
+import type { MarkerOptions } from "maplibre-gl";
 
-// ---------------------------------------------------------------------------
-// Enums & primitives
-// ---------------------------------------------------------------------------
+//#region Primitives
 
 /** Visual shape of the marker body. */
 export type MapTilerMarkerShape = "rounded" | "circle" | "bubble-circle" | "bubble-square" | "square" | "bulb" | "squircle" | "shield";
@@ -27,9 +25,13 @@ export enum CollisionBehaviour {
   CLUSTER = "CLUSTER",
 }
 
-// ---------------------------------------------------------------------------
+export type Vector2 = [number, number];
+
+//#endregion
+
+//#region Pending features
+
 // Animation (Non MVP)
-// ---------------------------------------------------------------------------
 
 // /** Predefined animation preset names. Each preset ships with a default easing curve. */
 // export type AnimationPreset = "grow" | "drop" | "emerge" | "pop" | "fade" | "draw";
@@ -56,9 +58,7 @@ export enum CollisionBehaviour {
 //     }
 //   | MaptilerAnimation;
 
-// ---------------------------------------------------------------------------
 // Transitions
-// ---------------------------------------------------------------------------
 
 // /** CSS transition config for interactive marker states. */
 // export type MapTilerMarkerTransitions = {
@@ -76,12 +76,12 @@ export enum CollisionBehaviour {
 //   active?: Record<string, string | number>;
 // };
 
-// ---------------------------------------------------------------------------
-// Content variants — exactly one branch must be provided
-// ---------------------------------------------------------------------------
+//#endregion
+
+//#region Content Variants
 
 /** Marker content driven by a built-in content-type identifier. */
-type MarkerContentByType = {
+export type MarkerContentByType = {
   /** Identifier for a built-in content type. */
   contentType: string;
   url?: never;
@@ -91,7 +91,7 @@ type MarkerContentByType = {
 };
 
 /** Marker content driven by an image or SVG URL. */
-type MarkerContentByUrl = {
+export type MarkerContentByUrl = {
   /** URL of an image or SVG to render as marker content. */
   url: string;
   contentType?: never;
@@ -101,7 +101,7 @@ type MarkerContentByUrl = {
 };
 
 /** Marker content driven by a named template and its parameters. */
-type MarkerContentByTemplate = {
+export type MarkerContentByTemplate = {
   /** Identifier for a registered template factory function. */
   template: string;
   /** Parameters forwarded to the template config function. */
@@ -115,7 +115,7 @@ type MarkerContentByTemplate = {
  * Marker content driven by an existing DOM or SVG element.
  * Useful when content is managed by a rendering engine such as React.
  */
-type MarkerContentByElement = {
+export type MarkerContentByElement = {
   /** An HTML or SVG element to use as marker content. */
   element: HTMLElement | SVGElement;
   contentType?: never;
@@ -124,13 +124,22 @@ type MarkerContentByElement = {
   templateParams?: never;
 };
 
-type MarkerContent = MarkerContentByType | MarkerContentByUrl | MarkerContentByTemplate | MarkerContentByElement;
+/** Marker with no explicit content — uses the default marker appearance. */
+export type MarkerContentNone = {
+  contentType?: never;
+  url?: never;
+  template?: never;
+  templateParams?: never;
+  element?: never;
+};
 
-// ---------------------------------------------------------------------------
-// Base options
-// ---------------------------------------------------------------------------
+export type MarkerContent = MarkerContentNone | MarkerContentByType | MarkerContentByUrl | MarkerContentByTemplate | MarkerContentByElement;
 
-type MapTilerMarkerBaseOptions = {
+//#endregion
+
+//#region Base Options
+
+export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" | "opacityWhenCovered"> & {
   /** Visual shape of the marker body. */
   shape?: MapTilerMarkerShape;
   /** Size of the marker. */
@@ -147,23 +156,19 @@ type MapTilerMarkerBaseOptions = {
   outlineColor?: string;
   /** Drop-shadow intensity. */
   shadow?: MapTilerMarkerShadow;
-  /** Opacity of the marker. */
   opacity?: number;
+  opacityWhenCovered?: number;
   /**
    * Unique marker name. Must be safe for use as a CSS class name.
    * A UUID is generated automatically when omitted.
    */
   name?: string;
-  /** Geographical position as `[longitude, latitude]`. Can also be set via `setPosition()`. */
-  position?: [number, number];
+
+  title?: string;
   /** HTML attributes applied directly to the marker's root element. */
   htmlAttributes?: Record<string, number | string>;
-  /** Clockwise rotation of the marker in degrees. Defaults to `0`. */
-  rotation?: number;
   /** 2-D scale of the marker as `[x, y]`. Defaults to `[1, 1]`. */
-  scale?: [number, number];
-  /** Pixel offset from the anchor position as `[x, y]`. Defaults to `[0, 0]`. */
-  offset?: [number, number];
+  scale?: Vector2;
   /** Initial visibility of the marker. Defaults to `true`. */
   visible?: boolean;
   /** Rendering priority used for collision detection and clustering. Accepts a numeric value or a MapLibre-style expression. */
@@ -190,12 +195,50 @@ type MapTilerMarkerBaseOptions = {
   collisionRadius?: number;
 };
 
-// ---------------------------------------------------------------------------
-// Public type
-// ---------------------------------------------------------------------------
+export const maptilerBaseOptionsKeys = [
+  "shape",
+  "size",
+  "innerColor",
+  "outerColor",
+  "contentColor",
+  "outline",
+  "outlineColor",
+  "shadow",
+  "opacity",
+  "opacityWhenCovered",
+  "name",
+  "title",
+  "htmlAttributes",
+  "scale",
+  "visible",
+  "priority",
+  "userData",
+  "collisionBehaviour",
+  "collisionRadius",
+] as const;
 
-/** Options for creating a MapTiler preset-based marker. */
-export type MapTilerMarkerPresetOptions = MapTilerMarkerBaseOptions & MarkerContent;
+//#endregion
 
-// keep MaptilerAnimation import used once animations are uncommented
-export type { MaptilerAnimation };
+//#region Derived Types
+
+type MapTilerMarkerElementPropKeys =
+  | "outerColor"
+  | "innerColor"
+  | "contentColor"
+  | "outline"
+  | "outlineColor"
+  | "shadow"
+  | "opacity"
+  | "title"
+  | "htmlAttributes"
+  | "rotation"
+  | "scale"
+  | "size";
+
+export type MapTilerMarkerElementProps = Pick<MapTilerMarkerBaseOptions, MapTilerMarkerElementPropKeys>;
+
+export type MapTilerMarkerOptions = MapTilerMarkerBaseOptions & MarkerContent;
+
+export type HTMLElementUpdateCue = Map<keyof MapTilerMarkerElementProps, MapTilerMarkerElementProps[keyof MapTilerMarkerElementProps]>;
+
+//#endregion

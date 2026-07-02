@@ -4,6 +4,8 @@ import maplibregl from "maplibre-gl";
 // Types from MapLibre are not re-exported one by one
 export type * from "maplibre-gl";
 
+export type { Marker as MLMarker } from "maplibre-gl"
+
 /**
  * Get the version of MapTiler SDK, this is declared in the vite config
  * to avoid importing the entire package.json
@@ -150,7 +152,8 @@ export type TwoFingersTouchZoomHandler = InstanceType<typeof TwoFingersTouchZoom
 export type TwoFingersTouchRotateHandler = InstanceType<typeof TwoFingersTouchRotateHandler>;
 
 // The following items are only MapLibre adapted to MapTiler SDK Map class
-export { Marker } from "./MLAdapters/Marker";
+export * from "./Marker";
+export { Marker } from "./Marker";
 export { Popup } from "./MLAdapters/Popup";
 export { Style } from "./MLAdapters/Style";
 export { CanvasSource } from "./MLAdapters/CanvasSource";

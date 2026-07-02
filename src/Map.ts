@@ -52,7 +52,8 @@ import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from 
 import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructorOptions } from "./custom-layers/RadialGradientLayer";
 import { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 import { logSDKVersion } from "./utils/logSDKVersion";
-import { setWorkerCount } from ".";
+import { MapTilerMarkerOptions, Marker, setWorkerCount } from ".";
+import { MarkerManager } from "./Marker/MarkerManager";
 import { EXPERIMENTAL_TILE_PRELOADING_VERSION } from "./tile-preloading/version";
 
 export type LoadWithTerrainEvent = {
@@ -1450,6 +1451,38 @@ export class Map extends maplibregl.Map {
   removeLayer(id: string): this {
     this.minimap?.removeLayer(id);
     return super.removeLayer(id);
+  }
+
+  /**
+   * TODO document this
+   */
+  addMarker(markerOrMarkerConfig: Marker | MapTilerMarkerOptions): this {
+    const marker = markerOrMarkerConfig instanceof Marker ? markerOrMarkerConfig : new Marker(markerOrMarkerConfig);
+    MarkerManager.register(marker, this);
+    return this;
+  }
+
+  removeMarker(id: string): this {
+    MarkerManager.deregisterById(this, id);
+    return this;
+  }
+
+  addMarkers(markers: (Marker | MapTilerMarkerOptions)[]): this {
+    markers.forEach((m) => this.addMarker(m));
+    return this;
+  }
+
+  removeMarkers(markerIds?: string[]): this {
+    MarkerManager.deregisterAll(this, markerIds);
+    return this;
+  }
+
+  getMarkers(): Marker[] {
+    return MarkerManager.getMarkers(this);
+  }
+
+  getMarker(id: string): Marker | undefined {
+    return MarkerManager.getMarker(this, id);
   }
 
   /**
