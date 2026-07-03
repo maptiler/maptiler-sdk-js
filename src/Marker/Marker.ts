@@ -1,5 +1,5 @@
 import maplibregl from "maplibre-gl";
-import type { Map as MapMLGL, MarkerOptions } from "maplibre-gl";
+import type { MarkerOptions } from "maplibre-gl";
 import type { Map as SDKMap } from "../Map";
 import { HTMLElementUpdateCue, MapTilerMarkerElementProps, MapTilerMarkerElementOptions, MapTilerMarkerSVGOptions, Vector2, type MapTilerMarkerOptions } from "./types";
 import { omit } from "../utils/object";
