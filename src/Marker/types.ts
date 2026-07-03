@@ -6,24 +6,26 @@ import type { MarkerOptions } from "maplibre-gl";
 export type MapTilerMarkerShape = "rounded" | "circle" | "bubble-circle" | "bubble-square" | "square" | "bulb" | "squircle" | "shield";
 
 /** T-shirt size for the marker. */
-export type MapTilerMarkerSize = "xs" | "s" | "m" | "L" | "XL";
+export type MapTilerMarkerSize = "xs" | "s" | "m" | "l" | "xl";
 
 /** Drop-shadow intensity applied beneath the marker. */
 export type MapTilerMarkerShadow = "soft" | "medium" | "strong";
 
 /** Behaviour when this marker spatially overlaps another. */
-export enum CollisionBehaviour {
+export const CollisionBehaviour = {
   /** No collision detection — marker is always shown. */
-  ALWAYS_SHOW = "ALWAYS_SHOW",
+  ALWAYS_SHOW: "ALWAYS_SHOW",
   /** Marker is hidden when it collides with a higher-priority marker. */
-  HIDE_BY_PRIORITY = "HIDE_BY_PRIORITY",
+  HIDE_BY_PRIORITY: "HIDE_BY_PRIORITY",
   /** Marker is minimised to a simple point/circle when colliding with a higher-priority marker. */
-  MINIMIZE_BY_PRIORITY = "MINIMIZE_BY_PRIORITY",
+  MINIMIZE_BY_PRIORITY: "MINIMIZE_BY_PRIORITY",
   /** Colliding markers are repositioned into a column at their average map position. */
-  REPOSITION_COLUMN = "REPOSITION_COLUMN",
+  REPOSITION_COLUMN: "REPOSITION_COLUMN",
   /** Colliding markers are grouped at their average position and expand on hover/click. */
-  CLUSTER = "CLUSTER",
-}
+  CLUSTER: "CLUSTER",
+} as const;
+
+export type CollisionBehaviour = (typeof CollisionBehaviour)[keyof typeof CollisionBehaviour];
 
 export type Vector2 = [number, number];
 
@@ -198,6 +200,21 @@ export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" 
 //#endregion
 
 //#region Derived Types
+
+/**
+ * Subset of {@link MapTilerMarkerBaseOptions} that applies when an external
+ * DOM/SVG element is supplied as marker content.  SVG-only layout fields
+ * (`shape`, `size`) are omitted because they only affect SVG generation.
+ * Color/shadow options are retained — they are applied as CSS custom properties
+ * on the wrapper and can be consumed by the custom element.
+ */
+export type MapTilerMarkerBehaviourOptions = Omit<MapTilerMarkerBaseOptions, "shape" | "size">;
+
+/** Options for a marker whose content is a pre-built DOM/SVG element. */
+export type MapTilerMarkerElementOptions = MapTilerMarkerBehaviourOptions & MarkerContentByElement;
+
+/** Options for a marker whose content is generated from the built-in SVG system. */
+export type MapTilerMarkerSVGOptions = MapTilerMarkerBaseOptions & Exclude<MarkerContent, MarkerContentByElement>;
 
 type MapTilerMarkerElementPropKeys =
   | "outerColor"

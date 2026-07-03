@@ -366,7 +366,7 @@ function appendContent(svg: SVGSVGElement, options: MapTilerMarkerOptions, shape
  * @param element - Element to wrap.
  * @param wrapperType - Tag name for the container. Defaults to `"div"`.
  */
-export function wrap(element: HTMLElement, wrapperType: string = "div") {
+export function wrap(element: HTMLElement, wrapperType: keyof HTMLElementTagNameMap = "div") {
   const div = document.createElement(wrapperType);
   div.appendChild(element);
   return div;

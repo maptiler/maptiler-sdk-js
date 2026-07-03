@@ -20,8 +20,8 @@ export const SIZE_PX: Record<NonNullable<MapTilerMarkerBaseOptions["size"]>, num
   xs: 5,
   s: 16,
   m: 28,
-  L: 40,
-  XL: 56,
+  l: 40,
+  xl: 56,
 };
 
 export const SHADOW_FILTER: Record<NonNullable<MapTilerMarkerBaseOptions["shadow"]>, string> = {
@@ -113,8 +113,8 @@ export const DEFAULT_OFFSET_Y: Record<NonNullable<MapTilerMarkerBaseOptions["siz
   xs: 0,
   s: 0,
   m: 0,
-  L: 0,
-  XL: 0,
+  l: 0,
+  xl: 0,
 };
 
 //#endregion

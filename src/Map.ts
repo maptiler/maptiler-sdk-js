@@ -52,7 +52,7 @@ import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from 
 import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructorOptions } from "./custom-layers/RadialGradientLayer";
 import { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 import { logSDKVersion } from "./utils/logSDKVersion";
-import { MapTilerMarkerOptions, Marker, setWorkerCount } from ".";
+import { MapTilerMarkerOptions, MapTilerMarkerSVGOptions, Marker, setWorkerCount } from ".";
 import { MarkerManager } from "./Marker/MarkerManager";
 import { EXPERIMENTAL_TILE_PRELOADING_VERSION } from "./tile-preloading/version";
 
@@ -1457,7 +1457,7 @@ export class Map extends maplibregl.Map {
    * TODO document this
    */
   addMarker(markerOrMarkerConfig: Marker | MapTilerMarkerOptions): this {
-    const marker = markerOrMarkerConfig instanceof Marker ? markerOrMarkerConfig : new Marker(markerOrMarkerConfig);
+    const marker = markerOrMarkerConfig instanceof Marker ? markerOrMarkerConfig : new Marker(markerOrMarkerConfig as MapTilerMarkerSVGOptions);
     MarkerManager.register(marker, this);
     return this;
   }

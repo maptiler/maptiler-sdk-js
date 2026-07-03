@@ -140,7 +140,7 @@ class MarkerManagerFactory {
   }
 
   // called when a marker state is updated
-  addMarkerUpdateToQue(marker: Marker): void {
+  addMarkerUpdateToQueue(marker: Marker): void {
     this.dirty.add(marker);
     this.scheduleFlush();
   }
