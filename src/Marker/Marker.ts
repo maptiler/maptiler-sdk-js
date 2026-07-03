@@ -150,8 +150,8 @@ export class Marker extends maplibregl.Marker {
    * Overrides the MapLibre signature to also accept the SDK `Map` type.
    * @param map - Target map instance.
    */
-  addTo(map: SDKMap | MapMLGL): this {
-    return super.addTo(map as MapMLGL);
+  addTo(map: SDKMap): this {
+    return super.addTo(map);
   }
 
   /**
