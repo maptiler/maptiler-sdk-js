@@ -170,7 +170,6 @@ export function registerLocalCacheProtocol() {
     const cacheMatch = await cache.match(cacheKey);
 
     if (cacheMatch) {
-      console.log("cache match", cacheKey);
       return await respond(cacheMatch);
     }
 
