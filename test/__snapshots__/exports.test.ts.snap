@@ -11,6 +11,7 @@ exports[`Module Exports > should match the snapshot of module exports 1`] = `
   "BoxZoomHandlerMLGL",
   "CanvasSource",
   "CanvasSourceMLGL",
+  "CollisionBehaviour",
   "ColorRamp",
   "ColorRampCollection",
   "CooperativeGesturesHandler",
