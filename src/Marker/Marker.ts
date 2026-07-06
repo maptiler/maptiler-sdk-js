@@ -34,6 +34,7 @@ const maptilerBaseOptionsKeys = [
   "userData",
   "collisionBehaviour",
   "collisionRadius",
+  "rotation",
 ] as const;
 
 /**
@@ -121,7 +122,7 @@ export class Marker extends maplibregl.Marker {
     const element = options.element ?? createMarkerElement(options);
 
     super({
-      element: options.element ?? wrap(element),
+      element,
       ...superOptions,
       ...maplibreMarkerConstructorOverrides,
     });

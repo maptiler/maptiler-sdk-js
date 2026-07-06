@@ -18,7 +18,7 @@ class MarkerManagerFactory {
   // the current rAF ID
   private animationFrameID: number | null = null;
 
-  // A WeakMap to store which Marker belongs to whcih Map.
+  // A WeakMap to store which Marker belongs to which Map.
   // When a map is removed from the page the WeakMap clears the state, so no manual clean up needed.
   private readonly markerMap = new WeakMap<Marker, SDKMap>();
 

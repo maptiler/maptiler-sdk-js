@@ -22,6 +22,9 @@ async function main() {
   await map.onLoadAsync();
 
   const marker = new Marker({
+    draggable: true,
+    rotation: 45,
+    scale: [4, 4],
     shape: "bubble-square",
     size: "m",
     innerColor: "hsl(223, 100%, 65%)",
@@ -31,6 +34,8 @@ async function main() {
     title: "1",
     subpixelPositioning: true,
   });
+
+  marker.on("click", console.log)
 
   marker.setLngLat([10, 50]);
   map.addMarker(marker);

@@ -25,6 +25,8 @@ function svgEl<K extends keyof SVGElementTagNameMap>(tag: K): SVGElementTagNameM
 
 //#region createMarkerElement
 
+const CUSTOM_ELEMENT_CLASSNAME = "marker-transform-wrapper";
+
 /**
  * Creates the root wrapper `div` for a marker, seeding all CSS custom
  * properties and the initial `data-*` attributes used by {@link applyTransform}.
@@ -37,7 +39,7 @@ export function createMarkerElement(options: MapTilerMarkerOptions): HTMLDivElem
 
   // wrapper: carries transform, opacity, and all CSS custom properties
   const wrapper = document.createElement("div");
-  wrapper.className = "marker-scale-wrapper";
+  wrapper.className = CUSTOM_ELEMENT_CLASSNAME;
   wrapper.style.transformOrigin = "center bottom";
   wrapper.dataset.markerShape = shapeKey;
   wrapper.dataset.markerSize = sizeKey;
@@ -69,7 +71,10 @@ export function createMarkerElement(options: MapTilerMarkerOptions): HTMLDivElem
   }
 
   wrapper.appendChild(sizeKey === "xs" ? buildDotSvg() : buildShapeSvg(shapeKey, sizeKey, options));
-  return wrapper;
+
+  forwardPointerEvents(wrapper);
+
+  return wrap(wrapper);
 }
 
 //#endregion
@@ -366,10 +371,25 @@ function appendContent(svg: SVGSVGElement, options: MapTilerMarkerOptions, shape
  * @param element - Element to wrap.
  * @param wrapperType - Tag name for the container. Defaults to `"div"`.
  */
-export function wrap(element: HTMLElement, wrapperType: keyof HTMLElementTagNameMap = "div") {
-  const div = document.createElement(wrapperType);
+export function wrap(element: HTMLElement) {
+  const div = document.createElement("div");
   div.appendChild(element);
   return div;
 }
 
+//#endregion
+
+//#region forwardPointerEvents
+/**
+ * @param parent: The top level marker element
+ * @description Prevents maplibre element events from firing when the parent event is clicked but the child is not
+ * eg whitespace withing the ML element.
+ */
+export function forwardPointerEvents(parent: HTMLElement) {
+  const child = parent.querySelector(CUSTOM_ELEMENT_CLASSNAME) as HTMLElement | null;
+  if (child) {
+    parent.style.pointerEvents = "none";
+    child.style.pointerEvents = "auto";
+  }
+}
 //#endregion
