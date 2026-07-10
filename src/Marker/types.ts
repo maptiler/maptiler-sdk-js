@@ -89,10 +89,13 @@ export type MarkerPriorityExpression = unknown[];
 
 //#region Content Variants
 
-/** Marker content driven by a built-in content-type identifier. */
-export type MarkerContentByType = {
-  /** Identifier for a built-in content type. */
-  contentType: string;
+/**
+ * Marker content driven by a built-in icon identifier.
+ * TODO: icons are not implemented yet — this is a placeholder and renders nothing.
+ */
+export type MarkerContentTypeIcon = {
+  /** Identifier for a built-in icon. */
+  icon: string;
   url?: never;
   template?: never;
   templateParams?: never;
@@ -100,22 +103,22 @@ export type MarkerContentByType = {
 };
 
 /** Marker content driven by an image or SVG URL. */
-export type MarkerContentByUrl = {
+export type MarkerContentTypeImageUrl = {
   /** URL of an image or SVG to render as marker content. */
   url: string;
-  contentType?: never;
+  icon?: never;
   template?: never;
   templateParams?: never;
   element?: never;
 };
 
 /** Marker content driven by a named template and its parameters. */
-export type MarkerContentByTemplate = {
+export type MarkerContentTypeTemplate = {
   /** Identifier for a registered template factory function. */
   template: string;
   /** Parameters forwarded to the template config function. */
   templateParams?: Record<string, number | string>;
-  contentType?: never;
+  icon?: never;
   url?: never;
   element?: never;
 };
@@ -124,25 +127,25 @@ export type MarkerContentByTemplate = {
  * Marker content driven by an existing DOM or SVG element.
  * Useful when content is managed by a rendering engine such as React.
  */
-export type MarkerContentByElement = {
+export type MarkerContentTypeElement = {
   /** An HTML or SVG element to use as marker content. */
   element: HTMLElement | SVGElement;
-  contentType?: never;
+  icon?: never;
   url?: never;
   template?: never;
   templateParams?: never;
 };
 
 /** Marker with no explicit content — uses the default marker appearance. */
-export type MarkerContentNone = {
-  contentType?: never;
+export type MarkerContentTypeNone = {
+  icon?: never;
   url?: never;
   template?: never;
   templateParams?: never;
   element?: never;
 };
 
-export type MarkerContent = MarkerContentNone | MarkerContentByType | MarkerContentByUrl | MarkerContentByTemplate | MarkerContentByElement;
+export type MarkerContent = MarkerContentTypeNone | MarkerContentTypeIcon | MarkerContentTypeImageUrl | MarkerContentTypeTemplate | MarkerContentTypeElement;
 
 //#endregion
 
@@ -234,10 +237,10 @@ export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" 
 export type MapTilerMarkerBehaviourOptions = Omit<MapTilerMarkerBaseOptions, "shape" | "size">;
 
 /** Options for a marker whose content is a pre-built DOM/SVG element. */
-export type MapTilerMarkerElementOptions = MapTilerMarkerBehaviourOptions & MarkerContentByElement;
+export type MapTilerMarkerElementOptions = MapTilerMarkerBehaviourOptions & MarkerContentTypeElement;
 
 /** Options for a marker whose content is generated from the built-in SVG system. */
-export type MapTilerMarkerSVGOptions = MapTilerMarkerBaseOptions & Exclude<MarkerContent, MarkerContentByElement>;
+export type MapTilerMarkerSVGOptions = MapTilerMarkerBaseOptions & Exclude<MarkerContent, MarkerContentTypeElement>;
 
 type MapTilerMarkerElementPropKeys =
   | "shape"
