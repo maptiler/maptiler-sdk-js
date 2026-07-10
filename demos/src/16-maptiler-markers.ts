@@ -139,7 +139,7 @@ async function main() {
 
   // Content mode — content variants are constructor-only, so switching
   // modes rebuilds the marker from markerOptions + the selected variant.
-  type ContentMode = "text" | "type" | "url" | "template" | "element" | "none";
+  type ContentMode = "text" | "icon" | "url" | "template" | "element" | "none";
   let contentMode: ContentMode = "text";
 
   function createConfiguredMarker(): Marker {
@@ -154,8 +154,9 @@ async function main() {
         return new Marker({ ...markerOptions });
       case "none":
         return new Marker(base);
-      case "type":
-        return new Marker({ ...base, contentType: "star" });
+      case "icon":
+        // TODO(icons): renders nothing until icon content is implemented
+        return new Marker({ ...base, icon: "star" });
       case "url":
         return new Marker({ ...base, url: "https://picsum.photos/128" });
       case "template":

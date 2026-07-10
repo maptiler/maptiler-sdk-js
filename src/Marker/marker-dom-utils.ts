@@ -11,7 +11,7 @@ import {
   SIZE_PX,
   type ShapeDescriptor,
 } from "./marker-svg-config";
-import { getMarkerContentType, getMarkerTemplate, GLYPH_VIEWBOX_SIZE } from "./marker-content-registry";
+import { getMarkerTemplate, GLYPH_VIEWBOX_SIZE } from "./marker-content-registry";
 import { getAdaptiveBgColor, resolveAdaptiveColor } from "./marker-adaptive-colors";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -451,7 +451,7 @@ function migrateContent(oldSvg: SVGSVGElement, newSvg: SVGSVGElement, shape: Sha
   if (!content) return;
 
   if (content instanceof SVGGElement) {
-    // contentType / SVG-template glyph: move it and refit to the new content circle
+    // icon / SVG-template glyph: move it and refit to the new content circle
     content.setAttribute("transform", glyphTransform(shape));
     newSvg.appendChild(content);
     return;
@@ -611,16 +611,16 @@ let clipIdCounter = 0;
 
 /**
  * Appends the content layer to a shape SVG.
- * Priority: `contentType` → `url` → `template` → `element` → `content` text.
+ * Priority: `icon` → `url` → `template` → `element` → `content` text.
  * Renders nothing when none of those fields is provided
- * ({@link MarkerContentNone} without `content`).
+ * ({@link MarkerContentTypeNone} without `content`).
  * @param svg - Target SVG element.
  * @param options - Marker options carrying the content variant.
  * @param shape - Shape descriptor supplying the content circle and optional image clip region.
  */
 function appendContent(svg: SVGSVGElement, options: MapTilerMarkerOptions, shape: ShapeDescriptor): void {
-  if ("contentType" in options && options.contentType) {
-    appendTypeContent(svg, options.contentType, shape);
+  if ("icon" in options && options.icon) {
+    appendIconContent(svg, options.icon, shape);
     return;
   }
 
@@ -645,18 +645,15 @@ function appendContent(svg: SVGSVGElement, options: MapTilerMarkerOptions, shape
 }
 
 /**
- * Appends a built-in content-type glyph, scaled into the content circle.
- * Unknown identifiers warn and render nothing.
+ * Placeholder for built-in icon content.
+ * TODO(icons): resolve the identifier to an icon glyph and append it scaled
+ * into the content circle. Renders nothing for now.
  */
-function appendTypeContent(svg: SVGSVGElement, contentType: string, shape: ShapeDescriptor): void {
-  const factory = getMarkerContentType(contentType);
-
-  if (!factory) {
-    console.warn(`Unknown marker contentType "${contentType}" — register it with registerMarkerContentType().`);
-    return;
-  }
-
-  appendGlyphContent(svg, factory(), shape);
+function appendIconContent(svg: SVGSVGElement, icon: string, shape: ShapeDescriptor): void {
+  // intentionally empty — icons not implemented yet
+  void svg;
+  void icon;
+  void shape;
 }
 
 /**
