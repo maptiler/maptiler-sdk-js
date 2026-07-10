@@ -1,15 +1,15 @@
 import type { Marker } from "./Marker";
 import type { Map as SDKMap } from "../Map";
-import { DetachFromDOMSymbol, FlushDOMUpdatesSymbol } from "./marker-symbols";
+import { DetachFromDOMSymbol, FlushDOMUpdatesSymbol, RefreshAdaptiveColorSymbol } from "./marker-symbols";
 
 /**
- * @class MarkerManagerFactory
+ * @class MarkerManagerImpl
  * @description This singleton is used to batch marker updates and flush them to the DOM in a
  * single animation frame to avoid multiple separate attribute writes
  * It is not exposed as a public API and only used internally in the `Map` and `Marker` classes.
  * It _may_ be used by multiple Maps.
  */
-class MarkerManagerFactory {
+class MarkerManagerImpl {
   //#region State
 
   // the markers that require updates
@@ -25,6 +25,10 @@ class MarkerManagerFactory {
   // Lookup in the opposite direction, gets the markers for a given map.
   // When a map is removed from the page the WeakMap clears the state, so no manual clean up needed.
   private readonly mapIndex = new WeakMap<SDKMap, Map<string, Marker>>();
+
+  // Last style id seen per map — used to skip redundant adaptive-colour
+  // refreshes, since `styledata` fires many times per style load.
+  private readonly lastStyleId = new WeakMap<SDKMap, string | undefined>();
 
   //#endregion
 
@@ -47,9 +51,28 @@ class MarkerManagerFactory {
     if (!index) {
       index = new Map();
       this.mapIndex.set(map, index);
+      // re-resolve adaptive marker colours whenever the map's style changes.
+      // The listener lives on the map itself, so it is released with the map.
+      map.on("styledata", () => {
+        this.refreshAdaptiveColors(map);
+      });
     }
 
     return index;
+  }
+
+  // queues an adaptive-colour re-resolution for every marker of a map,
+  // skipping when the style id has not actually changed
+  private refreshAdaptiveColors(map: SDKMap): void {
+    const styleId = this.getMapStyleId(map);
+    if (this.lastStyleId.get(map) === styleId) return;
+    this.lastStyleId.set(map, styleId);
+
+    const index = this.mapIndex.get(map);
+    if (!index) return;
+    for (const marker of index.values()) {
+      marker[RefreshAdaptiveColorSymbol]();
+    }
   }
 
   //#endregion
@@ -63,6 +86,10 @@ class MarkerManagerFactory {
     this.getOrCreateIndex(map).set(marker.id, marker);
 
     marker.addTo(map);
+
+    // adaptive colours could only resolve to `base` before the marker had a
+    // map — re-resolve against this map's style
+    marker[RefreshAdaptiveColorSymbol]();
   }
 
   // unregisters a Marker that no longer needs to be managed.
@@ -84,22 +111,14 @@ class MarkerManagerFactory {
     if (marker) this.deregister(marker);
   }
 
-  // removes all markers or a specified list of markers with IDs from a map
+  // removes all markers, or a specified list of markers by ID, from a map
   deregisterAll(map: SDKMap, ids?: string[]): void {
     const index = this.mapIndex.get(map);
     if (!index) return;
-    if (ids) {
-      for (const id of ids) {
-        const marker = index.get(id);
-        if (marker) this.deregister(marker);
-      }
-    } else {
-      for (const marker of index.values()) {
-        this.markerMap.delete(marker);
-        this.cancelCuedUpdatesForMarker(marker);
-        marker[DetachFromDOMSymbol]();
-      }
-      index.clear();
+    // copy before iterating — deregister mutates the index
+    const markers = ids ? ids.map((id) => index.get(id)) : [...index.values()];
+    for (const marker of markers) {
+      if (marker) this.deregister(marker);
     }
   }
 
@@ -110,6 +129,20 @@ class MarkerManagerFactory {
   // gets the map a marker belongs to
   getMap(marker: Marker): SDKMap | undefined {
     return this.markerMap.get(marker);
+  }
+
+  /**
+   * Returns the id of the map's current style (e.g. `"streets-v4-dark"`), or
+   * `undefined` when it cannot be determined (custom style spec / URL).
+   * Falls back to the raw stylesheet's `id` field, since the id is not part
+   * of the serialized `StyleSpecification` returned by `map.getStyle()`.
+   */
+  getMapStyleId(map: SDKMap): string | undefined {
+    const requestedId = map.getStyleId();
+    if (requestedId) return requestedId;
+
+    const stylesheet = map.style.stylesheet as { id?: unknown } | undefined;
+    return typeof stylesheet?.id === "string" ? stylesheet.id : undefined;
   }
 
   // gets the markers for a given map
@@ -153,4 +186,4 @@ class MarkerManagerFactory {
   //#endregion
 }
 
-export const MarkerManager = new MarkerManagerFactory();
+export const MarkerManager = new MarkerManagerImpl();
