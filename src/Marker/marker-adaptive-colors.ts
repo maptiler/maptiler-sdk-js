@@ -108,6 +108,7 @@ function normalizeStyleKey(styleId: string): string {
 export function getAdaptiveBgColor(color: AdaptiveColor, styleId: string): string {
   const bgColors: Record<string, string | undefined> = color.bgColors;
   const key = normalizeStyleKey(styleId);
+  // this is dirty but it's the only way to implement it for now...
   const referenceKey = key.split("-")[0];
   return bgColors[key] ?? bgColors[referenceKey] ?? color.bgColors.base;
 }

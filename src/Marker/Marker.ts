@@ -214,6 +214,8 @@ export class Marker extends maplibregl.Marker {
 
   //#region Getters & Setters
 
+  //#region Scale
+
   /**
    * Sets the 2-D scale of the marker as `[x, y]`.
    * @param scaleVector - Scale factors for the x and y axes.
@@ -226,6 +228,10 @@ export class Marker extends maplibregl.Marker {
   getScale() {
     return this.props.scale;
   }
+
+  //#endregion
+
+  //#region Shape
 
   /**
    * Sets the marker shape. Rebuilds the marker SVG in place, migrating the
@@ -246,6 +252,10 @@ export class Marker extends maplibregl.Marker {
     return this.props.shape;
   }
 
+  //#endregion
+
+  //#region Size
+
   /**
    * Sets the marker size.
    * @param size - T-shirt size key (`xs` | `s` | `m` | `l` | `xl`).
@@ -259,6 +269,10 @@ export class Marker extends maplibregl.Marker {
   getSize() {
     return this.props.size;
   }
+
+  //#endregion
+
+  //#region Shadow
 
   /**
    * Sets the drop-shadow intensity.
@@ -274,6 +288,10 @@ export class Marker extends maplibregl.Marker {
     return this.props.shadow;
   }
 
+  //#endregion
+
+  //#region Outer Color
+
   /**
    * Sets the fill colour of the outer body of the marker.
    * @param color - Any valid CSS colour string.
@@ -286,6 +304,10 @@ export class Marker extends maplibregl.Marker {
   getOuterColor() {
     return this.props.outerColor;
   }
+
+  //#endregion
+
+  //#region Adaptive Color
 
   /**
    * Sets the adaptive colour of the marker. The inner (background) colour is
@@ -305,6 +327,10 @@ export class Marker extends maplibregl.Marker {
   getColor() {
     return this.props.color;
   }
+
+  //#endregion
+
+  //#region Inner Color
 
   /**
    * Sets an explicit fill colour for the inner area of the marker.
@@ -335,6 +361,10 @@ export class Marker extends maplibregl.Marker {
     return undefined;
   }
 
+  //#endregion
+
+  //#region Content Color
+
   /**
    * Sets the colour applied to the marker content (icon, text, etc.).
    * @param color - Any valid CSS colour string.
@@ -347,6 +377,10 @@ export class Marker extends maplibregl.Marker {
   getContentColor() {
     return this.props.contentColor;
   }
+
+  //#endregion
+
+  //#region Outline Color
 
   /**
    * Sets the stroke colour of the marker outline.
@@ -362,6 +396,10 @@ export class Marker extends maplibregl.Marker {
     return this.props.outlineColor;
   }
 
+  //#endregion
+
+  //#region Outline
+
   /**
    * Sets the outline stroke width on the marker body.
    * @param outline - `true` for the default width, a positive `number` for an
@@ -376,6 +414,10 @@ export class Marker extends maplibregl.Marker {
     return this.props.outline;
   }
 
+  //#endregion
+
+  //#region Title
+
   /**
    * Sets the `title` attribute on the marker's root element (native tooltip).
    * @param title - Tooltip string, or `undefined` to remove the attribute.
@@ -389,6 +431,10 @@ export class Marker extends maplibregl.Marker {
     return this.props.title;
   }
 
+  //#endregion
+
+  //#region Content
+
   /**
    * Sets the text content displayed inside the marker body.
    * @param content - Label string, or `undefined` to clear.
@@ -401,6 +447,10 @@ export class Marker extends maplibregl.Marker {
   getContent() {
     return this.props.content;
   }
+
+  //#endregion
+
+  //#region Priority
 
   /**
    * Sets the rendering priority. Numeric values are applied as `z-index` on
@@ -419,6 +469,10 @@ export class Marker extends maplibregl.Marker {
     return this.props.priority;
   }
 
+  //#endregion
+
+  //#region Debug
+
   /**
    * Shows or hides the debug overlay, which renders the marker's bounding
    * box and center point on top of the marker element.
@@ -432,6 +486,10 @@ export class Marker extends maplibregl.Marker {
   getDebug() {
     return this.props.debug ?? false;
   }
+
+  //#endregion
+
+  //#region Rotation
 
   /**
    * Rotates the marker's inner shell element in degrees.
@@ -453,6 +511,8 @@ export class Marker extends maplibregl.Marker {
   override getRotation(): number {
     return this.props.rotation ?? 0;
   }
+
+  //#endregion
 
   //#endregion
 
