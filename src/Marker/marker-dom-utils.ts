@@ -367,8 +367,7 @@ function buildDebugOverlay(): SVGSVGElement {
   box.setAttribute("width", "100%");
   box.setAttribute("height", "100%");
   box.setAttribute("fill", "none");
-  box.setAttribute("stroke-dasharray", "0.1");
-  box.setAttribute("stroke-width", "0.1");
+  box.setAttribute("stroke-dasharray", "4 4");
   svg.appendChild(box);
 
   const hLine = svgEl("line");
@@ -377,7 +376,6 @@ function buildDebugOverlay(): SVGSVGElement {
   hLine.setAttribute("x2", "100%");
   hLine.setAttribute("y2", "50%");
   hLine.setAttribute("opacity", "0.5");
-  hLine.setAttribute("stroke-width", "0.1");
   svg.appendChild(hLine);
 
   const vLine = svgEl("line");
@@ -386,7 +384,6 @@ function buildDebugOverlay(): SVGSVGElement {
   vLine.setAttribute("x2", "50%");
   vLine.setAttribute("y2", "100%");
   vLine.setAttribute("opacity", "0.5");
-  vLine.setAttribute("stroke-width", "0.1");
   svg.appendChild(vLine);
 
   // zero-length round-capped line renders as a fixed-size dot — unlike a
@@ -397,7 +394,7 @@ function buildDebugOverlay(): SVGSVGElement {
   dot.setAttribute("x2", "50%");
   dot.setAttribute("y2", "50%");
   dot.setAttribute("stroke-linecap", "round");
-  dot.setAttribute("stroke-width", "1");
+  dot.setAttribute("stroke-width", "5");
   svg.appendChild(dot);
 
   for (const part of [box, hLine, vLine, dot]) {
