@@ -32,7 +32,7 @@ import { defaults } from "./constants/defaults";
 import { MaptilerLogoControl } from "./controls/MaptilerLogoControl";
 import { checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, enableRTL, replaceLanguage } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
-import { styleToStyle } from "./mapstyle";
+import { styleToStyle, styleToStyleId } from "./mapstyle";
 import { MaptilerTerrainControl } from "./controls/MaptilerTerrainControl";
 import { MaptilerNavigationControl } from "./controls/MaptilerNavigationControl";
 import { MapStyle, geolocation, getLanguageInfoFromFlag, toLanguageInfo } from "@maptiler/client";
@@ -580,6 +580,7 @@ export class Map extends maplibregl.Map {
   private terrainAnimationDuration = 1000;
   private monitoredStyleUrls!: Set<string>;
   private styleInProcess = false;
+  private currentStyleId?: string;
   private curentProjection: ProjectionTypes = undefined;
   private originalLabelStyle = new window.Map<string, ExpressionSpecification | string>();
   private isStyleLocalized = false;
@@ -1275,6 +1276,10 @@ export class Map extends maplibregl.Map {
       );
     }
 
+    // remember the requested style id ("streets-v4-dark") — used by markers
+    // to resolve adaptive colours; not recoverable from the parsed stylesheet
+    this.currentStyleId = styleToStyleId(styleInfo.isFallback ? null : style);
+
     this.spaceboxLoadingState.styleLoadedCallbackFired = false;
     this.spaceboxLoadingState.styleLoadCallbackSet = false;
 
@@ -1384,6 +1389,16 @@ export class Map extends maplibregl.Map {
     styleLoadCallbackSet: false,
     styleLoadedCallbackFired: false,
   };
+
+  /**
+   * Returns the id of the current MapTiler style (e.g. `"streets-v4-dark"`),
+   * derived from the value passed to the constructor or `setStyle`.
+   * `undefined` when the style is a custom `StyleSpecification` or a URL that
+   * doesn't follow the MapTiler Cloud `/maps/<id>/style.json` shape.
+   */
+  getStyleId(): string | undefined {
+    return this.currentStyleId;
+  }
 
   /**
    * Adds a [MapLibre style layer](https://maplibre.org/maplibre-style-spec/layers)

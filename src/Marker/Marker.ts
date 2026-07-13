@@ -1,14 +1,14 @@
 import maplibregl from "maplibre-gl";
 import type { MarkerOptions } from "maplibre-gl";
 import type { Map as SDKMap } from "../Map";
-import { HTMLElementUpdateCue, MapTilerMarkerElementProps, MapTilerMarkerElementOptions, MapTilerMarkerSVGOptions, Vector2, type MapTilerMarkerOptions } from "./types";
+import type { MapTilerMarkerElementProps, MapTilerMarkerElementOptions, MapTilerMarkerSVGOptions, PendingMarkerUpdates, Vector2, MapTilerMarkerOptions } from "./types";
 import { omit } from "../utils/object";
 import { v4 as uuid } from "uuid";
-import { createMarkerElement, updateMarkerElement, wrap } from "./marker-dom-utils";
-import { DEFAULT_OFFSET_Y, DEFAULT_SIZE } from "./marker-svg-config";
+import { applyMarkerStyleVariables, createMarkerElement, updateMarkerElement } from "./marker-dom-utils";
+import { DEFAULT_SHAPE, DEFAULT_SIZE, getShapeAnchorOffset } from "./marker-svg-config";
+import { getAdaptiveBgColor, resolveAdaptiveColor } from "./marker-adaptive-colors";
 import { MarkerManager } from "./MarkerManager";
-import { CuedUpdatesSymbol, DetachFromDOMSymbol, FlushDOMUpdatesSymbol, MarkerElementSymbol } from "./marker-symbols";
-export * from "./types";
+import { PendingUpdatesSymbol, DetachFromDOMSymbol, FlushDOMUpdatesSymbol, MarkerElementSymbol, RefreshAdaptiveColorSymbol } from "./marker-symbols";
 
 const maplibreMarkerConstructorOverrides: MarkerOptions = {
   scale: 1, // scale in our class will be a 2D vector.
@@ -17,6 +17,7 @@ const maplibreMarkerConstructorOverrides: MarkerOptions = {
 const maptilerBaseOptionsKeys = [
   "shape",
   "size",
+  "color",
   "innerColor",
   "outerColor",
   "contentColor",
@@ -27,6 +28,7 @@ const maptilerBaseOptionsKeys = [
   "opacityWhenCovered",
   "name",
   "title",
+  "content",
   "htmlAttributes",
   "scale",
   "visible",
@@ -34,58 +36,43 @@ const maptilerBaseOptionsKeys = [
   "userData",
   "collisionBehaviour",
   "collisionRadius",
+  "rotation",
+  "debug",
 ] as const;
 
 /**
  * A MapTiler marker with extended styling and batched DOM update support.
  *
  * Extends MapLibre's `Marker` with 2-D scale, named shapes, colour tokens,
- * and a cued-update system that defers all DOM writes to the next animation
+ * and a batched-update system that defers all DOM writes to the next animation
  * frame so that multiple property changes in the same tick cost only one
  * layout pass.
  */
 export class Marker extends maplibregl.Marker {
-  /** The resolved options used to construct this marker. */
-  options: MapTilerMarkerOptions;
+  /**
+   * The options used to construct this marker.
+   * A construction-time snapshot — not updated by setters; use the getters
+   * for current values.
+   */
+  readonly options: MapTilerMarkerOptions;
   readonly _scale = 1; // ML only allows scaling in 1 dimension, we want to add scaling in 2D so this is ignored.
 
   //#region Marker Properties
 
-  /** The size catetogry of the marker */
-  private size: MapTilerMarkerOptions["size"];
+  /** Current values of all element-affecting properties. Written only via {@link setProp}. */
+  private readonly props: MapTilerMarkerElementProps;
 
-  /** The scale vector of the marker [x, y] */
-  private scaleVector: MapTilerMarkerOptions["scale"];
-
-  /** The shadow option "soft" | "medium" | "strong" */
-  private shadow: MapTilerMarkerOptions["shadow"];
-
-  /** The color of the outermost part of the marker */
-  private outerColor: MapTilerMarkerOptions["outerColor"];
-
-  /** The color of the inner part of the marker */
-  private innerColor: MapTilerMarkerOptions["innerColor"];
-
-  /** The color of the inner part of the content */
-  private contentColor: MapTilerMarkerOptions["contentColor"];
-
-  /*& The color of the outline of the marker */
-  private outlineColor: MapTilerMarkerOptions["outlineColor"];
-
-  /** The width of the outline */
-  private outline: MapTilerMarkerOptions["outline"];
-
-  /** The value applied to the 'title' attribute of the marker */
-  private title: MapTilerMarkerOptions["title"];
-
-  /** The rotation of the marker in degrees */
-  private markerRotation: number | undefined;
+  /**
+   * Whether the shape anchor offset is managed automatically.
+   * `false` when the user supplied an explicit `offset` or a custom `element`.
+   */
+  private readonly managesOffset: boolean;
 
   /** The DOM element **/
   [MarkerElementSymbol]: HTMLElement;
 
-  /** A Map used to store updates needed */
-  [CuedUpdatesSymbol]: HTMLElementUpdateCue = new Map();
+  /** Property updates waiting to be flushed to the DOM on the next animation frame. */
+  [PendingUpdatesSymbol]: PendingMarkerUpdates = {};
 
   /** UUID that uniquely identifies this marker instance. */
   public readonly id = uuid();
@@ -99,8 +86,8 @@ export class Marker extends maplibregl.Marker {
    *
    * SVG-layout fields (`shape`, `size`) are not available in this signature —
    * they only affect the built-in SVG generator.  Color and shadow options
-   * are still accepted and applied as CSS custom properties on the wrapper so
-   * that the supplied element can inherit them.
+   * are still accepted and applied as CSS custom properties on the supplied
+   * element so that its styles can consume them.
    *
    * TODO: this will affect collision behaviour.
    */
@@ -115,27 +102,46 @@ export class Marker extends maplibregl.Marker {
     const sizeKey = options.size ?? DEFAULT_SIZE;
     const superOptions = {
       ...omit(options, maptilerBaseOptionsKeys),
-      offset: options.offset ?? [0, DEFAULT_OFFSET_Y[sizeKey]],
+      // custom-element markers get no automatic offset — their geometry is unknown
+      offset: options.offset ?? (options.element ? undefined : getShapeAnchorOffset(options.shape ?? DEFAULT_SHAPE, sizeKey)),
     } as MarkerOptions;
 
     const element = options.element ?? createMarkerElement(options);
 
     super({
-      element: options.element ?? wrap(element),
+      element,
       ...superOptions,
       ...maplibreMarkerConstructorOverrides,
     });
 
     this[MarkerElementSymbol] = element;
 
-    this.scaleVector = Array.from(options.scale ?? [1, 1]) as Vector2;
-    this.outerColor = options.outerColor;
-    this.innerColor = options.innerColor;
-    this.contentColor = options.contentColor;
-    this.outlineColor = options.outlineColor;
-    this.outline = options.outline;
-    this.title = options.title;
-    this.markerRotation = options.rotation;
+    // custom elements skip createMarkerElement, so seed their style variables here
+    if (options.element) applyMarkerStyleVariables(options.element, options);
+
+    this.managesOffset = !options.offset && !options.element;
+
+    this.props = {
+      shape: options.shape,
+      size: options.size,
+      scale: Array.from(options.scale ?? [1, 1]) as Vector2,
+      shadow: options.shadow,
+      color: options.color,
+      outerColor: options.outerColor,
+      innerColor: options.innerColor,
+      contentColor: options.contentColor,
+      outlineColor: options.outlineColor,
+      outline: options.outline,
+      opacity: options.opacity,
+      title: options.title,
+      content: options.content,
+      htmlAttributes: options.htmlAttributes,
+      rotation: options.rotation,
+      debug: options.debug,
+      priority: options.priority,
+    };
+
+    if (typeof options.priority === "number") element.style.zIndex = String(options.priority);
 
     this.options = options;
   }
@@ -155,57 +161,118 @@ export class Marker extends maplibregl.Marker {
   }
 
   /**
-   * Enqueues a single property update and schedules a DOM flush on the next
+   * Recomputes the shape anchor offset on the parent MapLibre marker so the
+   * shape's visual tip stays on the lngLat. No-op when the user supplied an
+   * explicit `offset` or a custom `element`.
+   */
+  private applyShapeAnchorOffset(): void {
+    if (!this.managesOffset) return;
+    this.setOffset(getShapeAnchorOffset(this.props.shape ?? DEFAULT_SHAPE, this.props.size ?? DEFAULT_SIZE));
+  }
+
+  /**
+   * Records a property's new value and schedules a DOM flush on the next
    * animation frame via {@link MarkerManager}.
    * @param prop - The element property to update.
    * @param value - The new value for the property.
    */
-  private cueMarkerElementUpdate(prop: keyof MapTilerMarkerElementProps, value: MapTilerMarkerElementProps[keyof MapTilerMarkerElementProps]) {
-    this[CuedUpdatesSymbol].set(prop, value);
+  private setProp<K extends keyof MapTilerMarkerElementProps>(prop: K, value: MapTilerMarkerElementProps[K]): void {
+    this.props[prop] = value;
+    this[PendingUpdatesSymbol][prop] = value;
     MarkerManager.addMarkerUpdateToQueue(this);
   }
 
   /**
-   * Applies all cued property updates to the marker element and clears the
-   * queue. Called by {@link MarkerManager} on the next animation frame.
+   * Applies all pending property updates to the marker element and clears
+   * the batch. Called by {@link MarkerManager} on the next animation frame.
    */
   [FlushDOMUpdatesSymbol](): void {
-    if (this[CuedUpdatesSymbol].size === 0) return;
-    updateMarkerElement(this[MarkerElementSymbol], this[CuedUpdatesSymbol]);
-    this[CuedUpdatesSymbol].clear();
+    const pending = this[PendingUpdatesSymbol];
+    if (Object.keys(pending).length === 0) return;
+    updateMarkerElement(this[MarkerElementSymbol], pending, this.getCurrentStyleId());
+    this[PendingUpdatesSymbol] = {};
+  }
+
+  /** Returns the style id of the map this marker is on, or `undefined` when detached. */
+  private getCurrentStyleId(): string | undefined {
+    const map = MarkerManager.getMap(this);
+    return map ? MarkerManager.getMapStyleId(map) : undefined;
+  }
+
+  /**
+   * Queues a re-resolution of the adaptive `color` against the current map
+   * style. Called by {@link MarkerManager} when the marker is registered and
+   * whenever the map style changes. No-op when the marker has no adaptive
+   * colour, or when an explicit `innerColor` pins the colour.
+   */
+  [RefreshAdaptiveColorSymbol](): void {
+    if (this.props.color === undefined || this.props.innerColor !== undefined) return;
+    this.setProp("color", this.props.color);
   }
 
   //#endregion
 
   //#region Getters & Setters
 
+  //#region Scale
+
   /**
    * Sets the 2-D scale of the marker as `[x, y]`.
    * @param scaleVector - Scale factors for the x and y axes.
    */
-  setScale(scaleVector: [number, number]) {
-    this.cueMarkerElementUpdate("scale", scaleVector);
-    this.scaleVector = scaleVector;
+  setScale(scaleVector: Vector2) {
+    this.setProp("scale", scaleVector);
   }
 
-  /** Returns the current 2-D scale, or `undefined` if never set. */
+  /** Returns the current 2-D scale. Defaults to `[1, 1]`. */
   getScale() {
-    return this.scaleVector;
+    return this.props.scale;
   }
+
+  //#endregion
+
+  //#region Shape
+
+  /**
+   * Sets the marker shape. Rebuilds the marker SVG in place, migrating the
+   * current content (title / image / element) to the new shape's geometry.
+   *
+   * Has no visible effect on markers constructed with a custom `element`,
+   * or while the size is `xs` (the dot rendering has no shape) — in the
+   * latter case the shape is applied when the size next changes.
+   * @param shape - Shape key (`rounded` | `circle` | `bubble-circle` | `bubble-square` | `square` | `bulb` | `squircle` | `shield`).
+   */
+  setShape(shape: MapTilerMarkerOptions["shape"]) {
+    this.setProp("shape", shape);
+    this.applyShapeAnchorOffset();
+  }
+
+  /** Returns the current shape, or `undefined` if never set. */
+  getShape() {
+    return this.props.shape;
+  }
+
+  //#endregion
+
+  //#region Size
 
   /**
    * Sets the marker size.
    * @param size - T-shirt size key (`xs` | `s` | `m` | `l` | `xl`).
    */
   setSize(size: MapTilerMarkerOptions["size"]) {
-    this.cueMarkerElementUpdate("size", size);
-    this.size = size;
+    this.setProp("size", size);
+    this.applyShapeAnchorOffset();
   }
 
   /** Returns the current size, or `undefined` if never explicitly set. */
   getSize() {
-    return this.size;
+    return this.props.size;
   }
+
+  //#endregion
+
+  //#region Shadow
 
   /**
    * Sets the drop-shadow intensity.
@@ -213,56 +280,107 @@ export class Marker extends maplibregl.Marker {
    *   `undefined` to remove the shadow.
    */
   setShadow(shadow: MapTilerMarkerOptions["shadow"]) {
-    this.cueMarkerElementUpdate("shadow", shadow);
-    this.shadow = shadow;
+    this.setProp("shadow", shadow);
   }
 
   /** Returns the current shadow preset, or `undefined` if none is set. */
   getShadow() {
-    return this.shadow;
+    return this.props.shadow;
   }
+
+  //#endregion
+
+  //#region Outer Color
 
   /**
    * Sets the fill colour of the outer body of the marker.
    * @param color - Any valid CSS colour string.
    */
   setOuterColor(color: MapTilerMarkerOptions["outerColor"]) {
-    this.cueMarkerElementUpdate("outerColor", color);
-    this.outerColor = color;
+    this.setProp("outerColor", color);
   }
 
   /** Returns the current outer body colour. */
   getOuterColor() {
-    return this.outerColor;
+    return this.props.outerColor;
   }
 
+  //#endregion
+
+  //#region Adaptive Color
+
   /**
-   * Sets the fill colour of the inner area of the marker.
+   * Sets the adaptive colour of the marker. The inner (background) colour is
+   * resolved against the current map style and re-resolved on style changes.
+   * Clears any explicit `innerColor` so adaptation takes effect immediately.
+   * @param color - Built-in palette name (`"blue"` | `"red"` | `"green"`), a
+   *   custom `AdaptiveColor` definition, or `undefined` to remove.
+   */
+  setColor(color: MapTilerMarkerOptions["color"]) {
+    this.props.innerColor = undefined;
+    // an innerColor queued earlier in the same tick would override this batch
+    delete this[PendingUpdatesSymbol].innerColor;
+    this.setProp("color", color);
+  }
+
+  /** Returns the current adaptive colour (name or definition), or `undefined` if none is set. */
+  getColor() {
+    return this.props.color;
+  }
+
+  //#endregion
+
+  //#region Inner Color
+
+  /**
+   * Sets an explicit fill colour for the inner area of the marker.
+   * Takes precedence over the adaptive `color` and disables adaptation while
+   * set; passing `undefined` re-enables the adaptive colour if one exists.
    * @param color - Any valid CSS colour string.
    */
   setInnerColor(color: MapTilerMarkerOptions["innerColor"]) {
-    this.cueMarkerElementUpdate("innerColor", color);
-    this.innerColor = color;
+    if (color === undefined && this.props.color !== undefined) {
+      this.props.innerColor = undefined;
+      this.setProp("color", this.props.color); // resume adaptation
+      return;
+    }
+    this.setProp("innerColor", color);
   }
 
-  /** Returns the current inner area colour. */
+  /**
+   * Returns the inner area colour currently in effect: the explicit
+   * `innerColor` when set, otherwise the adaptive `color` resolved against
+   * the current map style, otherwise `undefined` (default colour applies).
+   */
   getInnerColor() {
-    return this.innerColor;
+    if (this.props.innerColor !== undefined) return this.props.innerColor;
+    if (this.props.color !== undefined) {
+      const adaptive = resolveAdaptiveColor(this.props.color);
+      if (adaptive) return getAdaptiveBgColor(adaptive, this.getCurrentStyleId() ?? "");
+    }
+    return undefined;
   }
+
+  //#endregion
+
+  //#region Content Color
 
   /**
    * Sets the colour applied to the marker content (icon, text, etc.).
    * @param color - Any valid CSS colour string.
    */
   setContentColor(color: MapTilerMarkerOptions["contentColor"]) {
-    this.cueMarkerElementUpdate("contentColor", color);
-    this.contentColor = color;
+    this.setProp("contentColor", color);
   }
 
   /** Returns the current content colour. */
   getContentColor() {
-    return this.contentColor;
+    return this.props.contentColor;
   }
+
+  //#endregion
+
+  //#region Outline Color
 
   /**
    * Sets the stroke colour of the marker outline.
@@ -270,14 +388,17 @@ export class Marker extends maplibregl.Marker {
    * @param color - Any valid CSS colour string.
    */
   setOutlineColor(color: MapTilerMarkerOptions["outlineColor"]) {
-    this.cueMarkerElementUpdate("outlineColor", color);
-    this.outlineColor = color;
+    this.setProp("outlineColor", color);
   }
 
   /** Returns the current outline stroke colour. */
   getOutlineColor() {
-    return this.outlineColor;
+    return this.props.outlineColor;
   }
+
+  //#endregion
+
+  //#region Outline
 
   /**
    * Sets the outline stroke width on the marker body.
@@ -285,28 +406,90 @@ export class Marker extends maplibregl.Marker {
    *   explicit pixel width, or `undefined` to remove the outline.
    */
   setOutline(outline: MapTilerMarkerOptions["outline"]) {
-    this.cueMarkerElementUpdate("outline", outline);
-    this.outline = outline;
+    this.setProp("outline", outline);
   }
 
   /** Returns the current outline value (`true`, a pixel width, or `undefined`). */
   getOutline() {
-    return this.outline;
+    return this.props.outline;
   }
 
+  //#endregion
+
+  //#region Title
+
   /**
-   * Sets the text content displayed inside the marker.
-   * @param title - Label string, or `undefined` to clear.
+   * Sets the `title` attribute on the marker's root element (native tooltip).
+   * @param title - Tooltip string, or `undefined` to remove the attribute.
    */
   setTitle(title: MapTilerMarkerOptions["title"]) {
-    this.cueMarkerElementUpdate("title", title);
-    this.title = title;
+    this.setProp("title", title);
   }
 
   /** Returns the current title string. */
   getTitle() {
-    return this.title;
+    return this.props.title;
   }
+
+  //#endregion
+
+  //#region Content
+
+  /**
+   * Sets the text content displayed inside the marker body.
+   * @param content - Label string, or `undefined` to clear.
+   */
+  setContent(content: MapTilerMarkerOptions["content"]) {
+    this.setProp("content", content);
+  }
+
+  /** Returns the current content string. */
+  getContent() {
+    return this.props.content;
+  }
+
+  //#endregion
+
+  //#region Priority
+
+  /**
+   * Sets the rendering priority. Numeric values are applied as `z-index` on
+   * the marker element, so higher-priority markers stack above lower ones.
+   * Expression-form priorities are stored but only take effect once the
+   * collision engine resolves them.
+   * @param priority - Numeric priority, a MapLibre-style expression, or
+   *   `undefined` to restore DOM-order stacking.
+   */
+  setPriority(priority: MapTilerMarkerOptions["priority"]) {
+    this.setProp("priority", priority);
+  }
+
+  /** Returns the current rendering priority, or `undefined` if never set. */
+  getPriority() {
+    return this.props.priority;
+  }
+
+  //#endregion
+
+  //#region Debug
+
+  /**
+   * Shows or hides the debug overlay, which renders the marker's bounding
+   * box and center point on top of the marker element.
+   * @param debug - `true` to show the overlay, `false`/`undefined` to hide it.
+   */
+  setDebug(debug: MapTilerMarkerOptions["debug"]) {
+    this.setProp("debug", debug);
+  }
+
+  /** Returns whether the debug overlay is currently enabled. */
+  getDebug() {
+    return this.props.debug ?? false;
+  }
+
+  //#endregion
+
+  //#region Rotation
 
   /**
    * Rotates the marker's inner shell element in degrees.
@@ -317,8 +500,7 @@ export class Marker extends maplibregl.Marker {
    * @param rotation - Clockwise rotation in degrees.
    */
   override setRotation(rotation: number): this {
-    this.cueMarkerElementUpdate("rotation", rotation);
-    this.markerRotation = rotation;
+    this.setProp("rotation", rotation);
     return this;
   }
 
@@ -327,8 +509,10 @@ export class Marker extends maplibregl.Marker {
    * @returns Rotation in degrees; `0` if never set.
    */
   override getRotation(): number {
-    return this.markerRotation ?? 0;
+    return this.props.rotation ?? 0;
   }
+
+  //#endregion
 
   //#endregion
 
@@ -350,7 +534,12 @@ export class Marker extends maplibregl.Marker {
    * @returns `this` for chaining.
    */
   override remove(): this {
-    MarkerManager.deregister(this);
+    if (MarkerManager.getMap(this)) {
+      MarkerManager.deregister(this);
+    } else {
+      // never registered (added via addTo() directly) — plain MapLibre removal
+      super.remove();
+    }
     return this;
   }
 

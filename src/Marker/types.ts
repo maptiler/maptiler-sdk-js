@@ -1,4 +1,5 @@
 import type { MarkerOptions } from "maplibre-gl";
+import type { AdaptiveColor, AdaptiveColorName } from "./marker-adaptive-colors";
 
 //#region Primitives
 
@@ -14,20 +15,26 @@ export type MapTilerMarkerShadow = "soft" | "medium" | "strong";
 /** Behaviour when this marker spatially overlaps another. */
 export const CollisionBehaviour = {
   /** No collision detection — marker is always shown. */
-  ALWAYS_SHOW: "ALWAYS_SHOW",
+  ALWAYS_SHOW: "always-show",
   /** Marker is hidden when it collides with a higher-priority marker. */
-  HIDE_BY_PRIORITY: "HIDE_BY_PRIORITY",
+  HIDE_BY_PRIORITY: "hide-by-priority",
   /** Marker is minimised to a simple point/circle when colliding with a higher-priority marker. */
-  MINIMIZE_BY_PRIORITY: "MINIMIZE_BY_PRIORITY",
+  MINIMIZE_BY_PRIORITY: "minimize-by-priority",
   /** Colliding markers are repositioned into a column at their average map position. */
-  REPOSITION_COLUMN: "REPOSITION_COLUMN",
+  REPOSITION_COLUMN: "reposition-column",
   /** Colliding markers are grouped at their average position and expand on hover/click. */
-  CLUSTER: "CLUSTER",
+  CLUSTER: "cluster",
 } as const;
 
 export type CollisionBehaviour = (typeof CollisionBehaviour)[keyof typeof CollisionBehaviour];
 
 export type Vector2 = [number, number];
+
+/**
+ * MapLibre-style expression that resolves to a numeric priority.
+ * Evaluated by the collision engine, not applied directly to the DOM.
+ */
+export type MarkerPriorityExpression = unknown[];
 
 //#endregion
 
@@ -82,10 +89,13 @@ export type Vector2 = [number, number];
 
 //#region Content Variants
 
-/** Marker content driven by a built-in content-type identifier. */
-export type MarkerContentByType = {
-  /** Identifier for a built-in content type. */
-  contentType: string;
+/**
+ * Marker content driven by a built-in icon identifier.
+ * TODO: icons are not implemented yet — this is a placeholder and renders nothing.
+ */
+export type MarkerContentTypeIcon = {
+  /** Identifier for a built-in icon. */
+  icon: string;
   url?: never;
   template?: never;
   templateParams?: never;
@@ -93,22 +103,22 @@ export type MarkerContentByType = {
 };
 
 /** Marker content driven by an image or SVG URL. */
-export type MarkerContentByUrl = {
+export type MarkerContentTypeImageUrl = {
   /** URL of an image or SVG to render as marker content. */
   url: string;
-  contentType?: never;
+  icon?: never;
   template?: never;
   templateParams?: never;
   element?: never;
 };
 
 /** Marker content driven by a named template and its parameters. */
-export type MarkerContentByTemplate = {
+export type MarkerContentTypeTemplate = {
   /** Identifier for a registered template factory function. */
   template: string;
   /** Parameters forwarded to the template config function. */
   templateParams?: Record<string, number | string>;
-  contentType?: never;
+  icon?: never;
   url?: never;
   element?: never;
 };
@@ -117,36 +127,47 @@ export type MarkerContentByTemplate = {
  * Marker content driven by an existing DOM or SVG element.
  * Useful when content is managed by a rendering engine such as React.
  */
-export type MarkerContentByElement = {
+export type MarkerContentTypeElement = {
   /** An HTML or SVG element to use as marker content. */
   element: HTMLElement | SVGElement;
-  contentType?: never;
+  icon?: never;
   url?: never;
   template?: never;
   templateParams?: never;
 };
 
 /** Marker with no explicit content — uses the default marker appearance. */
-export type MarkerContentNone = {
-  contentType?: never;
+export type MarkerContentTypeNone = {
+  icon?: never;
   url?: never;
   template?: never;
   templateParams?: never;
   element?: never;
 };
 
-export type MarkerContent = MarkerContentNone | MarkerContentByType | MarkerContentByUrl | MarkerContentByTemplate | MarkerContentByElement;
+export type MarkerContent = MarkerContentTypeNone | MarkerContentTypeIcon | MarkerContentTypeImageUrl | MarkerContentTypeTemplate | MarkerContentTypeElement;
 
 //#endregion
 
 //#region Base Options
 
-export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" | "opacityWhenCovered"> & {
+// `color` is omitted from the MapLibre options because it styles the default
+// pin (which we replace entirely) — we repurpose the key for adaptive colours
+export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" | "opacityWhenCovered" | "color"> & {
   /** Visual shape of the marker body. */
   shape?: MapTilerMarkerShape;
   /** Size of the marker. */
   size?: MapTilerMarkerSize;
-  /** Fill colour of the inner area of the marker. */
+  /**
+   * Adaptive colour of the marker. Resolves the marker's inner (background)
+   * colour against the current map style via the colour's `bgColors`, and
+   * re-resolves whenever the map style changes.
+   * Accepts a built-in palette name (`"blue"` | `"red"` | `"green"`) or a
+   * custom {@link AdaptiveColor} definition.
+   * An explicit `innerColor` takes precedence and disables adaptation.
+   */
+  color?: AdaptiveColorName | AdaptiveColor;
+  /** Explicit fill colour of the inner area of the marker. Static — takes precedence over `color`. */
   innerColor?: string;
   /** Fill colour of the outer area (body/border) of the marker. */
   outerColor?: string;
@@ -161,20 +182,23 @@ export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" 
   opacity?: number;
   opacityWhenCovered?: number;
   /**
-   * Unique marker name. Must be safe for use as a CSS class name.
-   * A UUID is generated automatically when omitted.
+   * Optional marker name, added as a CSS class on the marker element.
+   * Must be safe for use as a CSS class name.
    */
   name?: string;
 
+  /** Applied to the `title` attribute of the marker's root element (native tooltip). */
   title?: string;
+  /** Text content rendered inside the marker body. */
+  content?: string;
   /** HTML attributes applied directly to the marker's root element. */
   htmlAttributes?: Record<string, number | string>;
   /** 2-D scale of the marker as `[x, y]`. Defaults to `[1, 1]`. */
   scale?: Vector2;
-  /** Initial visibility of the marker. Defaults to `true`. */
+  /** Initial visibility of the marker. Defaults to `true`. TODO: not implemented yet. */
   visible?: boolean;
   /** Rendering priority used for collision detection and clustering. Accepts a numeric value or a MapLibre-style expression. */
-  priority?: number | unknown[];
+  priority?: number | MarkerPriorityExpression;
   // /** Lifecycle animations. (Non MVP) Certain fields (e.g. `iterations`) are ignored for `enter` and `exit` animations. */
   // animations?: {
   //   /** Played when the marker is added to the map. Defaults to a subtle drop-in effect. */
@@ -190,6 +214,8 @@ export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" 
   userData?: Record<string, unknown>;
   /** Behaviour when this marker spatially overlaps another. */
   collisionBehaviour?: CollisionBehaviour;
+  /** When `true`, renders a debug overlay showing the marker's bounding box and center point. */
+  debug?: boolean;
   /**
    * Collision detection radius in pixels.
    * `0` means the marker's bounding box is used.
@@ -206,17 +232,19 @@ export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" 
  * DOM/SVG element is supplied as marker content.  SVG-only layout fields
  * (`shape`, `size`) are omitted because they only affect SVG generation.
  * Color/shadow options are retained — they are applied as CSS custom properties
- * on the wrapper and can be consumed by the custom element.
+ * on the supplied element and can be consumed by its styles.
  */
 export type MapTilerMarkerBehaviourOptions = Omit<MapTilerMarkerBaseOptions, "shape" | "size">;
 
 /** Options for a marker whose content is a pre-built DOM/SVG element. */
-export type MapTilerMarkerElementOptions = MapTilerMarkerBehaviourOptions & MarkerContentByElement;
+export type MapTilerMarkerElementOptions = MapTilerMarkerBehaviourOptions & MarkerContentTypeElement;
 
 /** Options for a marker whose content is generated from the built-in SVG system. */
-export type MapTilerMarkerSVGOptions = MapTilerMarkerBaseOptions & Exclude<MarkerContent, MarkerContentByElement>;
+export type MapTilerMarkerSVGOptions = MapTilerMarkerBaseOptions & Exclude<MarkerContent, MarkerContentTypeElement>;
 
 type MapTilerMarkerElementPropKeys =
+  | "shape"
+  | "color"
   | "outerColor"
   | "innerColor"
   | "contentColor"
@@ -225,15 +253,23 @@ type MapTilerMarkerElementPropKeys =
   | "shadow"
   | "opacity"
   | "title"
+  | "content"
   | "htmlAttributes"
   | "rotation"
   | "scale"
-  | "size";
+  | "size"
+  | "debug"
+  | "priority";
 
 export type MapTilerMarkerElementProps = Pick<MapTilerMarkerBaseOptions, MapTilerMarkerElementPropKeys>;
 
 export type MapTilerMarkerOptions = MapTilerMarkerBaseOptions & MarkerContent;
 
-export type HTMLElementUpdateCue = Map<keyof MapTilerMarkerElementProps, MapTilerMarkerElementProps[keyof MapTilerMarkerElementProps]>;
+/**
+ * Batch of property updates waiting to be flushed to the DOM.
+ * A key being present (even with an `undefined` value) means "apply this
+ * property" — e.g. `{ shadow: undefined }` removes the shadow.
+ */
+export type PendingMarkerUpdates = Partial<MapTilerMarkerElementProps>;
 
 //#endregion

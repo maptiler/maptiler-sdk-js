@@ -55,6 +55,17 @@
       gap: 4px;
     }
 
+    .shape-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+
+    .shape-grid .size-btn {
+      font-size: 10px;
+      padding: 0 2px;
+    }
+
     .size-btn {
       flex: 1;
       height: 28px;
@@ -179,6 +190,19 @@
       border-color: hsl(223, 100%, 65%);
     }
 
+    .debug-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: rgba(0, 0, 0, 0.6);
+      cursor: pointer;
+    }
+
+    .debug-row input[type="checkbox"] {
+      accent-color: hsl(223, 100%, 65%);
+    }
+
     #status {
       font-size: 10px;
       color: rgba(0, 0, 0, 0.45);
@@ -196,13 +220,41 @@
 
   <div id="panel">
     <div class="ctrl-group">
+      <div class="ctrl-label">Map style</div>
+      <div class="shape-grid">
+        <button class="size-btn" data-map-style="streets">streets</button>
+        <button class="size-btn" data-map-style="streets-dark">streets-dark</button>
+        <button class="size-btn" data-map-style="base">base</button>
+        <button class="size-btn" data-map-style="base-dark">base-dark</button>
+        <button class="size-btn" data-map-style="dataviz">dataviz</button>
+        <button class="size-btn" data-map-style="dataviz-dark">dataviz-dark</button>
+        <button class="size-btn" data-map-style="hybrid">hybrid</button>
+        <button class="size-btn" data-map-style="topo">topo</button>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Shape</div>
+      <div class="shape-grid">
+        <button class="size-btn" data-shape="rounded">rounded</button>
+        <button class="size-btn" data-shape="circle">circle</button>
+        <button class="size-btn" data-shape="bubble-circle">bubble-circle</button>
+        <button class="size-btn" data-shape="bubble-square">bubble-square</button>
+        <button class="size-btn" data-shape="square">square</button>
+        <button class="size-btn" data-shape="bulb">bulb</button>
+        <button class="size-btn" data-shape="squircle">squircle</button>
+        <button class="size-btn" data-shape="shield">shield</button>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
       <div class="ctrl-label">Size</div>
       <div class="size-row">
         <button class="size-btn" data-size="xs">xs</button>
         <button class="size-btn" data-size="s">s</button>
         <button class="size-btn" data-size="m">m</button>
-        <button class="size-btn" data-size="L">L</button>
-        <button class="size-btn" data-size="XL">XL</button>
+        <button class="size-btn" data-size="l">L</button>
+        <button class="size-btn" data-size="xl">XL</button>
       </div>
     </div>
 
@@ -213,6 +265,16 @@
         <button class="shadow-btn" data-shadow="soft">soft</button>
         <button class="shadow-btn" data-shadow="medium">medium</button>
         <button class="shadow-btn" data-shadow="strong">strong</button>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Adaptive color</div>
+      <div class="size-row">
+        <button class="size-btn" data-adaptive-color="">off</button>
+        <button class="size-btn" data-adaptive-color="blue">blue</button>
+        <button class="size-btn" data-adaptive-color="red">red</button>
+        <button class="size-btn" data-adaptive-color="green">green</button>
       </div>
     </div>
 
@@ -247,8 +309,20 @@
     </div>
 
     <div class="ctrl-group">
-      <div class="ctrl-label">Title</div>
-      <input id="title-input" class="text-input" type="text" value="1" />
+      <div class="ctrl-label">Content mode</div>
+      <div class="shape-grid">
+        <button class="size-btn" data-content-mode="text">text</button>
+        <button class="size-btn" data-content-mode="icon">icon: star (TODO)</button>
+        <button class="size-btn" data-content-mode="url">url: image</button>
+        <button class="size-btn" data-content-mode="template">template</button>
+        <button class="size-btn" data-content-mode="element">element</button>
+        <button class="size-btn" data-content-mode="none">none</button>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Content</div>
+      <input id="content-input" class="text-input" type="text" value="1" />
     </div>
 
     <div class="ctrl-group">
@@ -271,6 +345,19 @@
         <input id="scale-y" type="range" min="0.25" max="3" step="0.05" value="1" />
         <span class="scale-val" id="scale-y-val">1.00</span>
       </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Animation</div>
+      <button id="anim-toggle" class="size-btn">Pause</button>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Debug</div>
+      <label class="debug-row">
+        <input id="debug-toggle" type="checkbox" />
+        <span>Bounding box + center</span>
+      </label>
     </div>
 
     <div class="ctrl-group">

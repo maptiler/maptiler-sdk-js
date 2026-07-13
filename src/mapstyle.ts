@@ -139,3 +139,34 @@ export function convertStringToStyleSpecification(str: string): StyleValidationR
     };
   }
 }
+
+/**
+ * Derives the MapTiler style id (e.g. `"streets-v4-dark"`) from a style input,
+ * without expanding or fetching it.
+ * Returns `undefined` for custom `StyleSpecification`s and URLs that don't
+ * follow the MapTiler Cloud `/maps/<id>/style.json` shape.
+ */
+export function styleToStyleId(style: string | ReferenceMapStyle | MapStyleVariant | maplibregl.StyleSpecification | null | undefined): string | undefined {
+  if (!style) {
+    // same default as styleToStyle()
+    return MapStyle[mapStylePresetList[0].referenceStyleID as keyof typeof MapStyle].getDefaultVariant().getId();
+  }
+
+  if (style instanceof MapStyleVariant) return style.getId();
+
+  if (style instanceof ReferenceMapStyle) return (style.getDefaultVariant() as MapStyleVariant).getId();
+
+  if (typeof style === "string") {
+    const urlMatch = /\/maps\/([^/]+)\/style\.json/.exec(style);
+    if (urlMatch) return urlMatch[1];
+
+    // other URLs and inline JSON styles carry no derivable id
+    if (style.startsWith("http") || style.toLowerCase().includes(".json") || style.trim().startsWith("{")) return undefined;
+
+    // shorthand ("streets-v4", possibly "maptiler://streets-v4") or a MapTiler Cloud style UUID
+    return style.replace("maptiler://", "");
+  }
+
+  const id = (style as { id?: unknown }).id;
+  return typeof id === "string" ? id : undefined;
+}
