@@ -52,7 +52,7 @@ import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from 
 import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructorOptions } from "./custom-layers/RadialGradientLayer";
 import { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 import { logSDKVersion } from "./utils/logSDKVersion";
-import { MapTilerMarkerOptions, MapTilerMarkerSVGOptions, Marker, setWorkerCount } from ".";
+import { MapTilerMarkerOptions, MapTilerMarkerSVGOptions, Marker, MarkerCollisionOptions, setWorkerCount } from ".";
 import { MarkerManager } from "./Marker/MarkerManager";
 import { EXPERIMENTAL_TILE_PRELOADING_VERSION } from "./tile-preloading/version";
 
@@ -1498,6 +1498,20 @@ export class Map extends maplibregl.Map {
 
   getMarker(id: string): Marker | undefined {
     return MarkerManager.getMarker(this, id);
+  }
+
+  /**
+   * Configures marker collision detection for this map.
+   * @param options.proximityPadding - Distance in CSS px within which two
+   *   markers count as "in proximity". Overlap always uses 0.
+   * @param options.accuracy - `high` (default) tests rotated markers with
+   *   their actual rotated box; `low` uses the upright box enclosing it,
+   *   which is cheaper per pair but over-reports collisions for rotated
+   *   markers (it never misses a real one).
+   */
+  setMarkerCollisionOptions(options: MarkerCollisionOptions): this {
+    MarkerManager.setCollisionOptions(this, options);
+    return this;
   }
 
   /**

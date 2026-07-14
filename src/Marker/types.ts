@@ -67,6 +67,24 @@ export type MarkerCollisionGroups = {
 };
 
 /**
+ * How precisely marker collision boxes track rotation.
+ * - `high` (default) — rotated markers are tested with their actual rotated
+ *   box (separating-axis test), so collisions match the rendered footprint.
+ * - `low` — rotated markers are tested with the upright box enclosing the
+ *   rotated one. Cheaper per pair, but over-reports collisions for elongated
+ *   markers at strong rotations (never misses a real one).
+ */
+export type MarkerCollisionAccuracy = "low" | "high";
+
+/** Per-map configuration of the marker collision engine. */
+export type MarkerCollisionOptions = {
+  /** Distance in CSS px within which two markers count as "in proximity". Overlap always uses 0. */
+  proximityPadding?: number;
+  /** Collision box accuracy for rotated markers. Defaults to `high`. */
+  accuracy?: MarkerCollisionAccuracy;
+};
+
+/**
  * MapLibre-style expression that resolves to a numeric priority.
  * Evaluated by the collision engine, not applied directly to the DOM.
  */

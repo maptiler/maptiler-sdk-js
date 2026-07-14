@@ -1,7 +1,18 @@
 import type { Marker } from "./Marker";
 import type { Map as SDKMap } from "../Map";
-import type { MarkerCollisionGroups, MarkerCollisionKind } from "./types";
-import { computeMarkerAABB, createCandidateSource, deriveCollisionGroups, inflateBounds, boundsIntersect, DEFAULT_PROXIMITY_PADDING, type Bounds } from "./collision-helpers";
+import type { MarkerCollisionAccuracy, MarkerCollisionGroups, MarkerCollisionKind, MarkerCollisionOptions } from "./types";
+import {
+  computeMarkerOBB,
+  obbToAABB,
+  obbIntersect,
+  createCandidateSource,
+  deriveCollisionGroups,
+  inflateBounds,
+  boundsIntersect,
+  DEFAULT_PROXIMITY_PADDING,
+  type Bounds,
+  type OBB,
+} from "./collision-helpers";
 import {
   DetachFromDOMSymbol,
   FlushDOMUpdatesSymbol,
@@ -23,15 +34,19 @@ type MapCollisionState = {
   groups: MarkerCollisionGroups;
   /** Proximity threshold in CSS px (overlap always uses 0). */
   proximityPadding: number;
+  /** Collision box accuracy: `high` tests rotated boxes exactly, `low` tests their enclosing upright boxes. */
+  accuracy: MarkerCollisionAccuracy;
 };
 
 /** One marker's resolved geometry within a detection pass. */
 type CollisionEntry = {
   index: number;
   marker: Marker;
-  /** Exact box — the overlap test. */
+  /** Exact rotated box — the narrow-phase test at `high` accuracy. */
+  obb: OBB;
+  /** Upright box enclosing `obb` — the overlap test at `low` accuracy. */
   bounds: Bounds;
-  /** Box inflated by half the proximity padding — two of these intersecting means the gap is within the padding. */
+  /** `bounds` inflated by half the proximity padding — the broad-phase / `low`-accuracy proximity box. */
   proximityBounds: Bounds;
 };
 
@@ -315,10 +330,14 @@ class MarkerManagerImpl {
    * Configures collision detection for a map.
    * @param options.proximityPadding - Distance in CSS px within which two
    *   markers count as "in proximity". Overlap always uses 0.
+   * @param options.accuracy - `high` (default) tests rotated markers with
+   *   their actual rotated box; `low` uses the enclosing upright box, which
+   *   is cheaper but over-reports collisions for rotated markers.
    */
-  setCollisionOptions(map: SDKMap, options: { proximityPadding?: number }): void {
+  setCollisionOptions(map: SDKMap, options: MarkerCollisionOptions): void {
     const state = this.getOrCreateCollisionState(map);
     if (options.proximityPadding !== undefined) state.proximityPadding = options.proximityPadding;
+    if (options.accuracy !== undefined) state.accuracy = options.accuracy;
     this.invalidateCollisions(map);
   }
 
@@ -332,6 +351,7 @@ class MarkerManagerImpl {
         previous: { overlap: new Map(), proximity: new Map() },
         groups: { overlap: [], proximity: [] },
         proximityPadding: DEFAULT_PROXIMITY_PADDING,
+        accuracy: "high",
       };
       this.collisionState.set(map, state);
 
@@ -364,6 +384,7 @@ class MarkerManagerImpl {
     // half on each box: two inflated boxes touch exactly when the gap
     // between the exact boxes is the full padding
     const halfPadding = state.proximityPadding / 2;
+    const exact = state.accuracy === "high";
 
     const entries: CollisionEntry[] = [];
     for (const marker of index.values()) {
@@ -371,13 +392,15 @@ class MarkerManagerImpl {
       const angle = (footprint.mapAligned ? bearing : 0) + footprint.rotation;
       // the box is rebuilt from a fresh projection every pass — the camera
       // has usually moved since the last one, so caching it would lie
-      const bounds = computeMarkerAABB(map.project(marker.getLngLat()), footprint, angle);
-      entries.push({ index: entries.length, marker, bounds, proximityBounds: inflateBounds(bounds, halfPadding) });
+      const obb = computeMarkerOBB(map.project(marker.getLngLat()), footprint, angle);
+      const bounds = obbToAABB(obb);
+      entries.push({ index: entries.length, marker, obb, bounds, proximityBounds: inflateBounds(bounds, halfPadding) });
     }
 
-    // overlap and proximity are the same test at different paddings: the
-    // candidate query IS the proximity test (both boxes pre-inflated), and
-    // the exact boxes re-tested inside it give overlap
+    // overlap and proximity are the same test at different paddings. At low
+    // accuracy the upright boxes decide both directly; at high accuracy the
+    // upright-box query is only a broad-phase prefilter (it can over-include
+    // but never miss) and the rotated boxes decide
     const source = createCandidateSource(entries, (entry) => entry.proximityBounds);
     const overlapPairs: [number, number][] = [];
     const proximityPairs: [number, number][] = [];
@@ -386,9 +409,11 @@ class MarkerManagerImpl {
     for (const entry of entries) {
       for (const other of source.query(entry.proximityBounds)) {
         if (other.index <= entry.index) continue; // each pair once, and never self
+        if (exact && !obbIntersect(entry.obb, other.obb, halfPadding)) continue;
         proximityPairs.push([entry.index, other.index]);
         this.linkCollision(next.proximity, entry.marker, other.marker);
-        if (boundsIntersect(entry.bounds, other.bounds)) {
+        const overlaps = exact ? obbIntersect(entry.obb, other.obb) : boundsIntersect(entry.bounds, other.bounds);
+        if (overlaps) {
           overlapPairs.push([entry.index, other.index]);
           this.linkCollision(next.overlap, entry.marker, other.marker);
         }

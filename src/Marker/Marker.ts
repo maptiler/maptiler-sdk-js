@@ -258,18 +258,20 @@ export class Marker extends maplibregl.Marker {
       mapAligned: this.getRotationAlignment() === "map",
     };
 
-    // explicit collision radius replaces the visual box with a centred square
+    // explicit collision radius replaces the visual box with a centred
+    // square pinned on the anchor point — rotation must not move it
     const radius = this.options.collisionRadius;
     if (radius && radius > 0) {
-      return { width: radius * 2, height: radius * 2, anchor: "center", ...shared };
+      return { width: radius * 2, height: radius * 2, anchor: "center", ...shared, pivot: [0, 0] };
     }
 
     const anchor = this.options.anchor ?? "center";
 
-    // custom element: size measured once at registration
+    // custom element: size measured once at registration; rotation uses the
+    // CSS default transform-origin (element center)
     if (this.options.element) {
       const [w, h] = this[MeasuredElementSizeSymbol] ?? [0, 0];
-      return { width: w * sx, height: h * sy, anchor, ...shared };
+      return { width: w * sx, height: h * sy, anchor, ...shared, pivot: [0, 0] };
     }
 
     // built-in SVG: height comes from the size key, width from the shape's
@@ -278,7 +280,11 @@ export class Marker extends maplibregl.Marker {
     const heightPx = SIZE_PX[size];
     const shape = SHAPES[this.props.shape ?? DEFAULT_SHAPE];
     const widthPx = size === "xs" ? heightPx : heightPx * (shape.viewBox[0] / shape.viewBox[1]);
-    return { width: widthPx * sx, height: heightPx * sy, anchor, ...shared };
+    const height = heightPx * sy;
+    // bottom-anchored shapes rotate around their tip (transform-origin
+    // "center bottom" — see createMarkerElement / applyShape)
+    const pivot: Vector2 = shape.anchor === "center" ? [0, 0] : [0, height / 2];
+    return { width: widthPx * sx, height, anchor, ...shared, pivot };
   }
 
   /**
