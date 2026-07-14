@@ -1,14 +1,33 @@
 import maplibregl from "maplibre-gl";
-import type { MarkerOptions } from "maplibre-gl";
+import type { LngLatLike, MarkerOptions, PointLike } from "maplibre-gl";
 import type { Map as SDKMap } from "../Map";
-import type { MapTilerMarkerElementProps, MapTilerMarkerElementOptions, MapTilerMarkerSVGOptions, PendingMarkerUpdates, Vector2, MapTilerMarkerOptions } from "./types";
+import type {
+  MapTilerMarkerElementProps,
+  MapTilerMarkerElementOptions,
+  MapTilerMarkerSVGOptions,
+  PendingMarkerUpdates,
+  Vector2,
+  MapTilerMarkerOptions,
+  MarkerCollisionEventData,
+} from "./types";
 import { omit } from "../utils/object";
 import { v4 as uuid } from "uuid";
 import { applyMarkerStyleVariables, createMarkerElement, updateMarkerElement } from "./marker-dom-utils";
-import { DEFAULT_SHAPE, DEFAULT_SIZE, getShapeAnchorOffset } from "./marker-svg-config";
+import { DEFAULT_SHAPE, DEFAULT_SIZE, SHAPES, SIZE_PX, getShapeAnchorOffset } from "./marker-svg-config";
 import { getAdaptiveBgColor, resolveAdaptiveColor } from "./marker-adaptive-colors";
 import { MarkerManager } from "./MarkerManager";
-import { PendingUpdatesSymbol, DetachFromDOMSymbol, FlushDOMUpdatesSymbol, MarkerElementSymbol, RefreshAdaptiveColorSymbol } from "./marker-symbols";
+import type { MarkerFootprint } from "./collision-helpers";
+import {
+  PendingUpdatesSymbol,
+  DetachFromDOMSymbol,
+  FlushDOMUpdatesSymbol,
+  MarkerElementSymbol,
+  RefreshAdaptiveColorSymbol,
+  CollisionFootprintSymbol,
+  EmitCollisionDiffSymbol,
+  ShouldHideSymbol,
+  MeasuredElementSizeSymbol,
+} from "./marker-symbols";
 
 const maplibreMarkerConstructorOverrides: MarkerOptions = {
   scale: 1, // scale in our class will be a 2D vector.
@@ -73,6 +92,14 @@ export class Marker extends maplibregl.Marker {
 
   /** Property updates waiting to be flushed to the DOM on the next animation frame. */
   [PendingUpdatesSymbol]: PendingMarkerUpdates = {};
+
+  /**
+   * Unscaled CSS pixel size of a custom `element`, measured once by
+   * {@link MarkerManager} when the marker is registered (the only time DOM
+   * measurement is allowed — never during a collision pass).
+   * `null` until measured; built-in SVG markers never need it.
+   */
+  [MeasuredElementSizeSymbol]: Vector2 | null = null;
 
   /** UUID that uniquely identifies this marker instance. */
   public readonly id = uuid();
@@ -208,6 +235,100 @@ export class Marker extends maplibregl.Marker {
   [RefreshAdaptiveColorSymbol](): void {
     if (this.props.color === undefined || this.props.innerColor !== undefined) return;
     this.setProp("color", this.props.color);
+  }
+
+  //#endregion
+
+  //#region Collision
+
+  /**
+   * Resolves the marker's screen footprint for collision detection.
+   *
+   * Built entirely from stored props / lookup tables — no DOM reads — so it
+   * is safe to call once per marker per detection pass. Called by
+   * {@link MarkerManager} which pairs it with the marker's projected screen
+   * position to build the collision box.
+   */
+  [CollisionFootprintSymbol](): MarkerFootprint {
+    const [sx, sy] = this.props.scale ?? [1, 1];
+    const offset = this.getOffset();
+    const shared = {
+      offset: [offset.x, offset.y] as Vector2,
+      rotation: this.props.rotation ?? 0,
+      mapAligned: this.getRotationAlignment() === "map",
+    };
+
+    // explicit collision radius replaces the visual box with a centred square
+    const radius = this.options.collisionRadius;
+    if (radius && radius > 0) {
+      return { width: radius * 2, height: radius * 2, anchor: "center", ...shared };
+    }
+
+    const anchor = this.options.anchor ?? "center";
+
+    // custom element: size measured once at registration
+    if (this.options.element) {
+      const [w, h] = this[MeasuredElementSizeSymbol] ?? [0, 0];
+      return { width: w * sx, height: h * sy, anchor, ...shared };
+    }
+
+    // built-in SVG: height comes from the size key, width from the shape's
+    // aspect ratio (see setMarkerSVGDimensions); `xs` renders a square dot
+    const size = this.props.size ?? DEFAULT_SIZE;
+    const heightPx = SIZE_PX[size];
+    const shape = SHAPES[this.props.shape ?? DEFAULT_SHAPE];
+    const widthPx = size === "xs" ? heightPx : heightPx * (shape.viewBox[0] / shape.viewBox[1]);
+    return { width: widthPx * sx, height: heightPx * sy, anchor, ...shared };
+  }
+
+  /**
+   * Fires the state-change collision event (`markeroverlap` or
+   * `markerproximity`) for this marker. Called by {@link MarkerManager}
+   * after diffing the pass results against the previous pass — only
+   * transitions reach this point, unchanged collisions are never re-emitted.
+   */
+  [EmitCollisionDiffSymbol](data: MarkerCollisionEventData): void {
+    this.fire(data.kind === "overlap" ? "markeroverlap" : "markerproximity", data);
+  }
+
+  /**
+   * Whether the marker should currently be hidden by the collision engine.
+   *
+   * Placeholder seam for the behaviour layer: the next PR resolves this from
+   * the marker's `collisionBehaviour` (see {@link CollisionBehaviour}),
+   * `priority` and the detected collision groups. In this PR detection only
+   * reports collisions — nothing is ever hidden.
+   */
+  [ShouldHideSymbol](): boolean {
+    return false;
+  }
+
+  /**
+   * Sets the marker's geographical position.
+   *
+   * Overridden to re-run collision detection — a marker moving changes
+   * collisions with no map event to hang the pass on.
+   * @param lnglat - The new position.
+   */
+  override setLngLat(lnglat: LngLatLike): this {
+    super.setLngLat(lnglat);
+    const map = MarkerManager.getMap(this);
+    if (map) MarkerManager.invalidateCollisions(map);
+    return this;
+  }
+
+  /**
+   * Sets the marker's screen-space pixel offset.
+   *
+   * Overridden to re-run collision detection — the offset shifts the
+   * marker's collision box.
+   * @param offset - Offset in pixels (+y down).
+   */
+  override setOffset(offset: PointLike): this {
+    super.setOffset(offset);
+    const map = MarkerManager.getMap(this);
+    if (map) MarkerManager.invalidateCollisions(map);
+    return this;
   }
 
   //#endregion

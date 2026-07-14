@@ -3,3 +3,7 @@ export const PendingUpdatesSymbol = Symbol("MapTiler:Marker:pendingUpdates");
 export const MarkerElementSymbol = Symbol("MapTiler:Marker:markerElement");
 export const DetachFromDOMSymbol = Symbol("MapTiler:Marker:detachFromDOM");
 export const RefreshAdaptiveColorSymbol = Symbol("MapTiler:Marker:refreshAdaptiveColor");
+export const CollisionFootprintSymbol = Symbol("MapTiler:Marker:collisionFootprint");
+export const EmitCollisionDiffSymbol = Symbol("MapTiler:Marker:emitCollisionDiff");
+export const ShouldHideSymbol = Symbol("MapTiler:Marker:shouldHide");
+export const MeasuredElementSizeSymbol = Symbol("MapTiler:Marker:measuredElementSize");

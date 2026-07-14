@@ -1,4 +1,5 @@
-import { Map, MapStyle, Marker, config, registerMarkerTemplate } from "../../src/index";
+import { Map, MapStyle, Marker, config } from "../../src/index";
+import { registerMarkerTemplate } from "../../src/Marker/marker-content-registry";
 import { setupMapTilerApiKey } from "./demo-utils";
 import type { MapTilerMarkerBaseOptions, MapTilerMarkerOptions, MapTilerMarkerSVGOptions, MarkerCollisionEventData } from "../../src/Marker";
 
@@ -172,12 +173,6 @@ async function main() {
         return new Marker({ ...behaviour, element: pin });
       }
     }
-  }
-
-  // collision logging — markers emit only enter/exit transitions, so the
-  // console stays quiet while a collision persists between passes
-  function markerLabel(m: Marker): string {
-    return m.getTitle() ?? m.getContent() ?? m.id.slice(0, 8);
   }
 
   function logCollisions(m: Marker) {

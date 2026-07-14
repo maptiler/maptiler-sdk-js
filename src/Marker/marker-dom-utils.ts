@@ -662,7 +662,7 @@ function appendTemplateContent(svg: SVGSVGElement, template: string, params: Rec
   const factory = getMarkerTemplate(template);
 
   if (!factory) {
-    console.warn(`Unknown marker template "${template}" — register it with registerMarkerTemplate().`);
+    console.warn(`Unknown marker template "${template}".`);
     return;
   }
 
