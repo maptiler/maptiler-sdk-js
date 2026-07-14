@@ -1,5 +1,6 @@
 import type { MarkerOptions } from "maplibre-gl";
 import type { AdaptiveColor, AdaptiveColorName } from "./marker-adaptive-colors";
+import type { Marker } from "./Marker";
 
 //#region Primitives
 
@@ -29,6 +30,59 @@ export const CollisionBehaviour = {
 export type CollisionBehaviour = (typeof CollisionBehaviour)[keyof typeof CollisionBehaviour];
 
 export type Vector2 = [number, number];
+
+/**
+ * Kind of spatial collision between two markers.
+ * - `overlap` — the markers' boxes intersect.
+ * - `proximity` — the boxes are within the configured proximity padding
+ *   (a superset of `overlap`).
+ */
+export type MarkerCollisionKind = "overlap" | "proximity";
+
+/**
+ * Payload of the `markeroverlap` / `markerproximity` events.
+ *
+ * Emitted on state change only: a marker fires when counterparts *enter* or
+ * *exit* collision with it, never for collisions that persist unchanged
+ * between passes.
+ */
+export type MarkerCollisionEventData = {
+  kind: MarkerCollisionKind;
+  /** Markers that started colliding with this marker in this pass. */
+  entered: Marker[];
+  /** Markers that stopped colliding with this marker in this pass (may already be removed from the map). */
+  exited: Marker[];
+  /** All markers currently colliding with this marker. */
+  current: Marker[];
+};
+
+/**
+ * Sets of mutually-colliding markers from the latest detection pass —
+ * connected components of the pairwise collision graph, with no
+ * winner/loser resolution applied.
+ */
+export type MarkerCollisionGroups = {
+  overlap: Marker[][];
+  proximity: Marker[][];
+};
+
+/**
+ * How precisely marker collision boxes track rotation.
+ * - `high` (default) — rotated markers are tested with their actual rotated
+ *   box (separating-axis test), so collisions match the rendered footprint.
+ * - `low` — rotated markers are tested with the upright box enclosing the
+ *   rotated one. Cheaper per pair, but over-reports collisions for elongated
+ *   markers at strong rotations (never misses a real one).
+ */
+export type MarkerCollisionAccuracy = "low" | "high";
+
+/** Per-map configuration of the marker collision engine. */
+export type MarkerCollisionOptions = {
+  /** Distance in CSS px within which two markers count as "in proximity". Overlap always uses 0. */
+  proximityPadding?: number;
+  /** Collision box accuracy for rotated markers. Defaults to `high`. */
+  accuracy?: MarkerCollisionAccuracy;
+};
 
 /**
  * MapLibre-style expression that resolves to a numeric priority.
