@@ -52,7 +52,7 @@ export function maptilerCloudTransformRequest(url: string, resourceType?: Resour
     };
   }
 
-  if (reqUrl.host === defaults.maptilerApiHost) {
+  if (reqUrl.host === config.apiHost) {
     if (!reqUrl.searchParams.has("key")) {
       reqUrl.searchParams.append("key", config.apiKey);
     }

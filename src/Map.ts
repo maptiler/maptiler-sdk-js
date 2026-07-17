@@ -1693,7 +1693,7 @@ export class Map extends maplibregl.Map {
       const sourceURL = new URL(source.url);
 
       // Only layers managed by MapTiler are considered for language switch
-      if (sourceURL.host !== defaults.maptilerApiHost) {
+      if (sourceURL.host !== config.apiHost) {
         continue;
       }
 
@@ -1890,7 +1890,7 @@ export class Map extends maplibregl.Map {
 
       this.addSource(defaults.terrainSourceId, {
         type: "raster-dem",
-        url: defaults.terrainSourceURL,
+        url: `${config.apiURL}tiles/terrain-rgb-v2/tiles.json`,
       });
 
       // Setting up the terrain with a 0 exaggeration factor

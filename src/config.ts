@@ -113,6 +113,37 @@ class SdkConfig extends EventEmitter {
   }
 
   /**
+   * Switch between the default `api.maptiler.com` host and the EU-based `api.maptiler.eu` host.
+   * Call with `false` to switch back to the default.
+   */
+  useEuEndpoints(value = true): void {
+    clientConfig.useEuEndpoints(value);
+    this.emit("useEuEndpoints", value);
+  }
+
+  /**
+   * Whether the EU-based `api.maptiler.eu` host is currently in use instead of the default `api.maptiler.com`
+   */
+  get isUsingEuEndpoints(): boolean {
+    return clientConfig.isUsingEuEndpoints;
+  }
+
+  /**
+   * The host currently used for the MapTiler API requests (`api.maptiler.com` or `api.maptiler.eu`)
+   */
+  get apiHost(): string {
+    return clientConfig.apiHost;
+  }
+
+  /**
+   * The base URL currently used for the MapTiler API requests
+   * (`https://api.maptiler.com/` or `https://api.maptiler.eu/`)
+   */
+  get apiURL(): string {
+    return clientConfig.apiURL;
+  }
+
+  /**
    * The default number of steps to sample for the experimental flyTo path preloading.
    */
   private _experimentalDefaultPathSampleSteps = 4;

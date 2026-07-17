@@ -911,5 +911,5 @@ function getAPIBasePath() {
     return overrideUrl;
   }
 
-  return "https://api.maptiler.com/images";
+  return `${config.apiURL}images`;
 }
