@@ -1,6 +1,7 @@
 import type { CustomLayerInterface, CustomRenderMethodInput } from "maplibre-gl";
 import { mat4 } from "gl-matrix";
 
+import { config } from "../../config";
 import type { Map as MapSDK } from "../../Map";
 import { createObject3D, type WebGLContext, type Object3D, parseColorStringToVec4, Vec4 } from "../../utils/webgl-utils";
 
@@ -12,7 +13,9 @@ import { cubemapPresets, type CubemapDefinition, type CubemapFaces, type Cubemap
 import { lerp, lerpVec4 } from "../../utils/math-utils";
 import { orderObjectKeys } from "../../utils/object";
 
-const SPACE_IMAGES_BASE_URL = "https://api.maptiler.com/resources/space";
+function getSpaceImagesBaseUrl(): string {
+  return `${config.apiURL}resources/space`;
+}
 
 const ATTRIBUTES_KEYS = ["vertexPosition"] as const;
 const UNIFORMS_KEYS = ["projectionMatrix", "modelViewMatrix", "cubeSampler", "bgColor", "fadeOpacity"] as const;
@@ -718,12 +721,12 @@ function getCubemapFaces(options: CubemapDefinition): CubemapFaces | null {
 
   if (options.preset) {
     return {
-      pX: `${SPACE_IMAGES_BASE_URL}/${options.preset}/px.webp`,
-      nX: `${SPACE_IMAGES_BASE_URL}/${options.preset}/nx.webp`,
-      pY: `${SPACE_IMAGES_BASE_URL}/${options.preset}/py.webp`,
-      nY: `${SPACE_IMAGES_BASE_URL}/${options.preset}/ny.webp`,
-      pZ: `${SPACE_IMAGES_BASE_URL}/${options.preset}/pz.webp`,
-      nZ: `${SPACE_IMAGES_BASE_URL}/${options.preset}/nz.webp`,
+      pX: `${getSpaceImagesBaseUrl()}/${options.preset}/px.webp`,
+      nX: `${getSpaceImagesBaseUrl()}/${options.preset}/nx.webp`,
+      pY: `${getSpaceImagesBaseUrl()}/${options.preset}/py.webp`,
+      nY: `${getSpaceImagesBaseUrl()}/${options.preset}/ny.webp`,
+      pZ: `${getSpaceImagesBaseUrl()}/${options.preset}/pz.webp`,
+      nZ: `${getSpaceImagesBaseUrl()}/${options.preset}/nz.webp`,
     };
   }
 
