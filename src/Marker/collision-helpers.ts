@@ -1,4 +1,5 @@
 import type { MarkerOptions } from "maplibre-gl";
+import type { MarkerCollisionDisplayState } from "./types";
 
 /**
  * Pure geometry and grouping helpers for marker collision detection.
@@ -207,6 +208,137 @@ export function createCandidateSource<T>(items: readonly T[], boundsOf: (item: T
       return items.filter((item) => boundsIntersect(boundsOf(item), bounds));
     },
   };
+}
+
+//#endregion
+
+//#region Radius Clustering
+
+/** Default cluster radius in CSS px: markers within this distance of a cluster seed join its cluster. */
+export const DEFAULT_CLUSTER_RADIUS = 60;
+
+/** A screen-space point with priority, input to {@link deriveRadiusClusters}. */
+export type ClusterPoint = { x: number; y: number; priority: number };
+
+/**
+ * Greedy radius clustering: repeatedly seeds on the highest-priority
+ * unassigned point (ties: input order) and absorbs every unassigned point
+ * within `radius` px of it. Produces compact, disc-shaped groups (diameter
+ * ≤ 2·radius) around high-priority markers — unlike connected components of
+ * pairwise overlap, which chain into arbitrarily large irregular shapes in
+ * dense fields.
+ *
+ * A seed that finds no neighbours stays unassigned, so a later
+ * (lower-priority) seed nearby can still absorb it.
+ *
+ * @returns Groups of two or more indices into `points`, members in input
+ *   order; singletons are not groups.
+ */
+export function deriveRadiusClusters(points: readonly ClusterPoint[], radius: number): number[][] {
+  const order = points.map((_, i) => i).sort((a, b) => points[b].priority - points[a].priority || a - b);
+  const assigned = new Array<boolean>(points.length).fill(false);
+  const radiusSq = radius * radius;
+  const groups: number[][] = [];
+
+  for (const seed of order) {
+    if (assigned[seed]) continue;
+    const members: number[] = [];
+    for (let i = 0; i < points.length; i++) {
+      if (assigned[i]) continue;
+      const dx = points[i].x - points[seed].x;
+      const dy = points[i].y - points[seed].y;
+      if (dx * dx + dy * dy <= radiusSq) members.push(i);
+    }
+    if (members.length < 2) continue;
+    for (const member of members) assigned[member] = true;
+    groups.push(members);
+  }
+
+  return groups;
+}
+
+//#endregion
+
+//#region Cluster Scale
+
+/**
+ * Visual (and blocking-box) scale of a cluster representative: grows
+ * logarithmically with member count so large clusters read as large without
+ * ever dwarfing the map. Capped at 2x.
+ */
+export function clusterScaleFactor(count: number): number {
+  return Math.min(1 + 0.15 * Math.log2(count), 2);
+}
+
+//#endregion
+
+//#region Behaviour Resolution
+
+/**
+ * How a marker participates in the greedy priority resolution.
+ * - `always` — always shown, but still reserves its space (blocks losers).
+ * - `hide` — hidden when it collides with an already-placed marker; frees
+ *   its space.
+ * - `minimize` — minimized when it collides with an already-placed marker;
+ *   still reserves its *full-size* box (renders small, blocks full), so
+ *   priority order is strict: a lower-priority marker can never show
+ *   full-size in space a minimized higher-priority marker occupies.
+ */
+export type ResolutionMode = "always" | "hide" | "minimize";
+
+/** One marker's input to {@link resolveDisplayStates}. */
+export type ResolutionEntry = {
+  mode: ResolutionMode;
+  /** Numeric priority; higher wins. */
+  priority: number;
+  /** Full-size box at the marker's rendered position. */
+  obb: OBB;
+};
+
+/**
+ * Greedy priority placement — the winner/loser resolution behind the
+ * hide/minimize collision behaviours.
+ *
+ * Entries are placed in priority order (ties: input order, i.e. registration
+ * order). Each entry is tested only against already-placed boxes; hidden
+ * markers free their space for lower-priority ones, while `always` and
+ * minimized markers keep reserving their full box. Rerunning on the same
+ * input always yields the same output — placement never feeds back into the
+ * boxes it is tested against, so results cannot oscillate between passes.
+ *
+ * @param entries - One entry per marker still in contention, in registration order.
+ * @param exact - `true` tests the rotated boxes (SAT), `false` their enclosing
+ *   upright boxes — mirrors the detection pass's `accuracy` setting.
+ * @returns Display state per entry, indexed like `entries`.
+ */
+export function resolveDisplayStates(entries: readonly ResolutionEntry[], exact = true): MarkerCollisionDisplayState[] {
+  const order = entries.map((_, i) => i).sort((a, b) => entries[b].priority - entries[a].priority || a - b);
+
+  const states: MarkerCollisionDisplayState[] = new Array<MarkerCollisionDisplayState>(entries.length).fill("visible");
+  const placed: { obb: OBB; bounds: Bounds }[] = [];
+
+  // broad-phase on the enclosing upright boxes, then (at high accuracy) the
+  // exact rotated-box test — same two-tier scheme as the detection pass
+  const collides = (obb: OBB, bounds: Bounds): boolean => placed.some((p) => boundsIntersect(p.bounds, bounds) && (!exact || obbIntersect(p.obb, obb)));
+  const place = (obb: OBB): void => {
+    placed.push({ obb, bounds: obbToAABB(obb) });
+  };
+
+  for (const i of order) {
+    const entry = entries[i];
+    if (entry.mode === "always" || !collides(entry.obb, obbToAABB(entry.obb))) {
+      place(entry.obb);
+      continue;
+    }
+    if (entry.mode === "hide") {
+      states[i] = "hidden";
+      continue;
+    }
+    states[i] = "minimized";
+    place(entry.obb);
+  }
+
+  return states;
 }
 
 //#endregion

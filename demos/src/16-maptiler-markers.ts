@@ -1,7 +1,7 @@
 import { Map, MapStyle, Marker, config } from "../../src/index";
 import { registerMarkerTemplate } from "../../src/Marker/marker-content-registry";
 import { setupMapTilerApiKey } from "./demo-utils";
-import type { MapTilerMarkerBaseOptions, MapTilerMarkerOptions, MapTilerMarkerSVGOptions, MarkerCollisionEventData } from "../../src/Marker";
+import type { MapTilerMarkerBaseOptions, MapTilerMarkerOptions, MapTilerMarkerSVGOptions } from "../../src/Marker";
 
 // demo template: dark round badge with a label
 registerMarkerTemplate("badge", (params) => {
@@ -175,25 +175,8 @@ async function main() {
     }
   }
 
-  function logCollisions(m: Marker) {
-    for (const eventName of ["markeroverlap"] as const) {
-      m.on(eventName, (event: MarkerCollisionEventData) => {
-        const current = event.current;
-        const exited = event.exited;
-        current.forEach(m => {
-          m.setColor("green");
-        });
-        exited.forEach(m => {
-          m.setColor("blue");
-        });
-      });
-
-    }
-  }
-
   function mountMarker(m: Marker, lngLat: [number, number]) {
     m.on("click", console.log);
-    logCollisions(m);
     m.setLngLat(lngLat);
     map.addMarker(m);
   }
@@ -226,7 +209,6 @@ async function main() {
   for (let i = 0; i < 4; i++) {
     const otherMarker = new Marker({ ...markerOptions, content: String(i + 2), title: `Marker ${String(i + 2)}`, priority: 1 + i });
     otherMarker.on("click", console.log);
-    logCollisions(otherMarker);
     const offsetLat = Math.sin((i / 4) * Math.PI * 2) / 20;
     const offsetLon = Math.cos((i / 4) * Math.PI * 2) / 20;
     otherMarker.setLngLat([10 + offsetLon, 50 + offsetLat]);

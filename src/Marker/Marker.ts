@@ -1,5 +1,5 @@
 import maplibregl from "maplibre-gl";
-import type { LngLatLike, MarkerOptions, PointLike } from "maplibre-gl";
+import type { LngLat, LngLatLike, MarkerOptions, PointLike } from "maplibre-gl";
 import type { Map as SDKMap } from "../Map";
 import type {
   MapTilerMarkerElementProps,
@@ -9,10 +9,22 @@ import type {
   Vector2,
   MapTilerMarkerOptions,
   MarkerCollisionEventData,
+  MarkerCollisionDisplayState,
 } from "./types";
 import { omit } from "../utils/object";
 import { v4 as uuid } from "uuid";
-import { applyMarkerStyleVariables, createMarkerElement, updateMarkerElement } from "./marker-dom-utils";
+import {
+  applyClusterCount,
+  applyCollisionCulled,
+  applyCollisionHidden,
+  applyMarkerStyleVariables,
+  applyMinimizedDot,
+  createMarkerElement,
+  setWrapperScale,
+  updateMarkerElement,
+  COLLISION_FADE_DURATION_MS,
+} from "./marker-dom-utils";
+import { clusterScaleFactor } from "./collision-helpers";
 import { DEFAULT_SHAPE, DEFAULT_SIZE, SHAPES, SIZE_PX, getShapeAnchorOffset } from "./marker-svg-config";
 import { getAdaptiveBgColor, resolveAdaptiveColor } from "./marker-adaptive-colors";
 import { MarkerManager } from "./MarkerManager";
@@ -25,13 +37,24 @@ import {
   RefreshAdaptiveColorSymbol,
   CollisionFootprintSymbol,
   EmitCollisionDiffSymbol,
-  ShouldHideSymbol,
+  ApplyCollisionDisplayStateSymbol,
+  SetClusterStateSymbol,
   MeasuredElementSizeSymbol,
 } from "./marker-symbols";
 
 const maplibreMarkerConstructorOverrides: MarkerOptions = {
   scale: 1, // scale in our class will be a 2D vector.
 };
+
+/**
+ * Outline applied to a cluster representative so cluster bubbles read
+ * differently from plain markers: a thick ring in the marker's own inner
+ * colour (via CSS custom property indirection, so it tracks adaptive
+ * colours). The marker's own outline props are restored when the cluster
+ * disbands.
+ */
+const CLUSTER_OUTLINE_WIDTH = 4;
+const CLUSTER_OUTLINE_COLOR = "var(--marker-inner-color)";
 
 const maptilerBaseOptionsKeys = [
   "shape",
@@ -55,6 +78,7 @@ const maptilerBaseOptionsKeys = [
   "userData",
   "collisionBehaviour",
   "collisionRadius",
+  "minimizedOptions",
   "rotation",
   "debug",
 ] as const;
@@ -103,6 +127,44 @@ export class Marker extends maplibregl.Marker {
 
   /** UUID that uniquely identifies this marker instance. */
   public readonly id = uuid();
+
+  /** How the collision engine is currently displaying this marker. */
+  private collisionDisplayState: MarkerCollisionDisplayState = "visible";
+
+  /**
+   * Visual props overridden while minimized — masked out of DOM flushes so a
+   * queued user update can't clobber the minimized appearance, and restored
+   * from {@link props} on un-minimize. Empty when not minimized.
+   */
+  private minimizedKeys: (keyof PendingMarkerUpdates)[] = [];
+
+  /**
+   * Whether the minimized appearance is currently applied to the DOM. Lags
+   * behind {@link collisionDisplayState} during fades: the swap happens at
+   * the invisible midpoint of a fade-through, and a marker hidden while
+   * minimized keeps its minimized DOM until it un-hides.
+   */
+  private minimizedApplied = false;
+
+  /** Pending mid-fade appearance swap for minimize transitions. */
+  private minimizeSwapTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Pending post-fade cull (`display: none`) while hidden. */
+  private cullTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /**
+   * The marker's real geographic position while it is rendered elsewhere as
+   * a cluster representative; `null` when not clustered. {@link getLngLat}
+   * always reports this real position.
+   */
+  private clusterRealLngLat: LngLat | null = null;
+
+  /**
+   * Member count while this marker represents a cluster; `null` otherwise.
+   * Drives the count label, the cluster scale, and the masking of `scale`
+   * updates in the DOM flush.
+   */
+  private clusterCount: number | null = null;
 
   //#endregion
 
@@ -194,6 +256,9 @@ export class Marker extends maplibregl.Marker {
    */
   private applyShapeAnchorOffset(): void {
     if (!this.managesOffset) return;
+    // while the minimized appearance is applied, the live offset belongs to
+    // the minimized shape/size; the props-based offset is restored on un-minimize
+    if (this.minimizedApplied) return;
     this.setOffset(getShapeAnchorOffset(this.props.shape ?? DEFAULT_SHAPE, this.props.size ?? DEFAULT_SIZE));
   }
 
@@ -214,10 +279,19 @@ export class Marker extends maplibregl.Marker {
    * the batch. Called by {@link MarkerManager} on the next animation frame.
    */
   [FlushDOMUpdatesSymbol](): void {
-    const pending = this[PendingUpdatesSymbol];
+    let pending = this[PendingUpdatesSymbol];
+    this[PendingUpdatesSymbol] = {};
+    // while the minimized appearance is applied, it owns its keys — the props
+    // are already recorded and get applied when the marker un-minimizes
+    if (this.minimizedApplied && this.minimizedKeys.length > 0) {
+      pending = omit(pending, this.minimizedKeys);
+    }
+    // the cluster appearance owns the wrapper scale and outline the same way
+    if (this.clusterCount !== null) {
+      pending = omit(pending, ["scale", "outline", "outlineColor"]);
+    }
     if (Object.keys(pending).length === 0) return;
     updateMarkerElement(this[MarkerElementSymbol], pending, this.getCurrentStyleId());
-    this[PendingUpdatesSymbol] = {};
   }
 
   /** Returns the style id of the map this marker is on, or `undefined` when detached. */
@@ -248,12 +322,14 @@ export class Marker extends maplibregl.Marker {
    * is safe to call once per marker per detection pass. Called by
    * {@link MarkerManager} which pairs it with the marker's projected screen
    * position to build the collision box.
+   *
+   * Always the *full-size* footprint: a minimized marker keeps reserving its
+   * full box (strict priority order), so the minimized rendering never has a
+   * footprint of its own.
    */
   [CollisionFootprintSymbol](): MarkerFootprint {
     const [sx, sy] = this.props.scale ?? [1, 1];
-    const offset = this.getOffset();
     const shared = {
-      offset: [offset.x, offset.y] as Vector2,
       rotation: this.props.rotation ?? 0,
       mapAligned: this.getRotationAlignment() === "map",
     };
@@ -262,7 +338,7 @@ export class Marker extends maplibregl.Marker {
     // square pinned on the anchor point — rotation must not move it
     const radius = this.options.collisionRadius;
     if (radius && radius > 0) {
-      return { width: radius * 2, height: radius * 2, anchor: "center", ...shared, pivot: [0, 0] };
+      return { width: radius * 2, height: radius * 2, anchor: "center", offset: this.footprintOffset(), ...shared, pivot: [0, 0] };
     }
 
     const anchor = this.options.anchor ?? "center";
@@ -271,20 +347,48 @@ export class Marker extends maplibregl.Marker {
     // CSS default transform-origin (element center)
     if (this.options.element) {
       const [w, h] = this[MeasuredElementSizeSymbol] ?? [0, 0];
-      return { width: w * sx, height: h * sy, anchor, ...shared, pivot: [0, 0] };
+      return { width: w * sx, height: h * sy, anchor, offset: this.footprintOffset(), ...shared, pivot: [0, 0] };
     }
 
     // built-in SVG: height comes from the size key, width from the shape's
     // aspect ratio (see setMarkerSVGDimensions); `xs` renders a square dot
-    const size = this.props.size ?? DEFAULT_SIZE;
+    const { shape: shapeKey, size } = this.effectiveShapeAndSize(false);
     const heightPx = SIZE_PX[size];
-    const shape = SHAPES[this.props.shape ?? DEFAULT_SHAPE];
+    const shape = SHAPES[shapeKey];
     const widthPx = size === "xs" ? heightPx : heightPx * (shape.viewBox[0] / shape.viewBox[1]);
     const height = heightPx * sy;
     // bottom-anchored shapes rotate around their tip (transform-origin
     // "center bottom" — see createMarkerElement / applyShape)
     const pivot: Vector2 = shape.anchor === "center" ? [0, 0] : [0, height / 2];
-    return { width: widthPx * sx, height, anchor, ...shared, pivot };
+    return { width: widthPx * sx, height, anchor, offset: this.footprintOffset(), ...shared, pivot };
+  }
+
+  /**
+   * The marker's shape/size keys, or their minimized substitutes: the
+   * minimized appearance defaults to the `xs` dot, with `minimizedOptions`
+   * overriding individual keys.
+   */
+  private effectiveShapeAndSize(minimized: boolean): { shape: NonNullable<MapTilerMarkerOptions["shape"]>; size: NonNullable<MapTilerMarkerOptions["size"]> } {
+    const shape = this.props.shape ?? DEFAULT_SHAPE;
+    const size = this.props.size ?? DEFAULT_SIZE;
+    if (!minimized) return { shape, size };
+    const overrides = this.options.minimizedOptions;
+    return { shape: overrides?.shape ?? shape, size: overrides?.size ?? "xs" };
+  }
+
+  /**
+   * Screen offset used in the collision footprint. Managed offsets are
+   * recomputed from the props rather than read back from MapLibre — the live
+   * offset temporarily belongs to the minimized shape while the marker is
+   * minimized (see {@link applyMinimizedAppearance}).
+   */
+  private footprintOffset(): Vector2 {
+    if (this.managesOffset) {
+      const { shape, size } = this.effectiveShapeAndSize(false);
+      return getShapeAnchorOffset(shape, size);
+    }
+    const offset = this.getOffset();
+    return [offset.x, offset.y];
   }
 
   /**
@@ -298,15 +402,223 @@ export class Marker extends maplibregl.Marker {
   }
 
   /**
-   * Whether the marker should currently be hidden by the collision engine.
+   * Applies the display state decided by the collision engine's behaviour
+   * resolution. Idempotent — reapplying the current state is a no-op, so
+   * unchanged markers cost nothing per pass.
    *
-   * Placeholder seam for the behaviour layer: the next PR resolves this from
-   * the marker's `collisionBehaviour` (see {@link CollisionBehaviour}),
-   * `priority` and the detected collision groups. In this PR detection only
-   * reports collisions — nothing is ever hidden.
+   * Never touches {@link props}: hiding toggles the fade classes on the
+   * root element (see `applyCollisionHidden`) and minimizing writes the
+   * minimized visuals directly to the DOM, so detection keeps seeing the
+   * marker's real properties and the user's values survive the round-trip.
+   *
+   * Every transition fades. Hide/show fade in place; minimize transitions
+   * with both endpoints on screen fade *through* zero — dip out, swap the
+   * appearance at the invisible midpoint, fade back in — since the SVG swap
+   * itself cannot crossfade. A transition arriving mid-fade cancels the
+   * pending swap and supersedes it.
    */
-  [ShouldHideSymbol](): boolean {
-    return false;
+  [ApplyCollisionDisplayStateSymbol](state: MarkerCollisionDisplayState): void {
+    if (state === this.collisionDisplayState) return;
+    const previous = this.collisionDisplayState;
+    this.collisionDisplayState = state;
+
+    if (this.minimizeSwapTimer !== null) {
+      clearTimeout(this.minimizeSwapTimer);
+      this.minimizeSwapTimer = null;
+    }
+    if (this.cullTimer !== null) {
+      clearTimeout(this.cullTimer);
+      this.cullTimer = null;
+    }
+
+    const element = this.getElement();
+
+    if (state === "hidden") {
+      // fade out as-is; a minimized appearance is restored lazily on un-hide.
+      // Once the fade completes the marker leaves rendering entirely
+      // (display: none), so masses of hidden markers cost nothing per frame.
+      applyCollisionHidden(element, true);
+      this.cullTimer = setTimeout(() => {
+        this.cullTimer = null;
+        applyCollisionCulled(this.getElement(), true);
+      }, COLLISION_FADE_DURATION_MS);
+      return;
+    }
+
+    const wantMinimized = state === "minimized";
+
+    if (previous === "hidden") {
+      // re-enter rendering, swap the appearance while still invisible, then
+      // fade in. During a pass the un-cull (and the reflow the fade-in
+      // needs) already happened batched in MarkerManager, making this a
+      // no-op; on direct calls (e.g. deregister) the fade may snap, which
+      // never shows.
+      applyCollisionCulled(element, false);
+      this.setMinimizedApplied(wantMinimized);
+      applyCollisionHidden(element, false);
+      return;
+    }
+
+    if (this.minimizedApplied === wantMinimized) {
+      // nothing to swap (e.g. a cancelled dip reversed itself) — just fade back
+      applyCollisionHidden(element, false);
+      return;
+    }
+
+    // visible <-> minimized: fade through zero
+    applyCollisionHidden(element, true);
+    this.minimizeSwapTimer = setTimeout(() => {
+      this.minimizeSwapTimer = null;
+      this.setMinimizedApplied(wantMinimized);
+      applyCollisionHidden(this.getElement(), false);
+    }, COLLISION_FADE_DURATION_MS);
+  }
+
+  /** Applies or restores the minimized appearance iff it differs from what the DOM shows. */
+  private setMinimizedApplied(applied: boolean): void {
+    if (this.minimizedApplied === applied) return;
+    this.minimizedApplied = applied;
+    this.applyMinimizedAppearance(applied);
+  }
+
+  /** Returns how the collision engine is currently displaying this marker. */
+  getCollisionDisplayState(): MarkerCollisionDisplayState {
+    return this.collisionDisplayState;
+  }
+
+  /** The visual props the minimized appearance overrides for this marker. */
+  private minimizedOverrides(): PendingMarkerUpdates {
+    const overrides = this.options.minimizedOptions ?? {};
+    if (!this.options.element) return { size: "xs", ...overrides };
+
+    // custom elements minimize to a dot — only the props the dot (or the
+    // element's own styles) can consume as CSS custom properties apply
+    const updates: Record<string, unknown> = {};
+    for (const key of ["color", "innerColor", "outerColor", "contentColor", "shadow", "opacity"] as const) {
+      if (key in overrides) updates[key] = overrides[key];
+    }
+    return updates as PendingMarkerUpdates;
+  }
+
+  /**
+   * Applies or restores the minimized appearance. Everything goes straight
+   * to the DOM (never through {@link setProp}), so the user's props survive;
+   * the anchor offset follows the minimized shape exactly like a real
+   * shape/size change would (see {@link applyShapeAnchorOffset}).
+   */
+  private applyMinimizedAppearance(enabled: boolean): void {
+    const styleId = this.getCurrentStyleId();
+
+    if (enabled) {
+      const overrides = this.minimizedOverrides();
+      this.minimizedKeys = Object.keys(overrides) as (keyof PendingMarkerUpdates)[];
+      if (this.options.element) applyMinimizedDot(this.options.element, this.options.anchor ?? "center", true);
+      if (this.minimizedKeys.length > 0) updateMarkerElement(this[MarkerElementSymbol], overrides, styleId);
+      if (this.managesOffset) {
+        const { shape, size } = this.effectiveShapeAndSize(true);
+        super.setOffset(getShapeAnchorOffset(shape, size));
+      }
+      return;
+    }
+
+    const restore = this.restoreUpdates(this.minimizedKeys);
+    this.minimizedKeys = [];
+    if (this.options.element) applyMinimizedDot(this.options.element, this.options.anchor ?? "center", false);
+    if (Object.keys(restore).length > 0) updateMarkerElement(this[MarkerElementSymbol], restore, styleId);
+    if (this.managesOffset) {
+      super.setOffset(getShapeAnchorOffset(this.props.shape ?? DEFAULT_SHAPE, this.props.size ?? DEFAULT_SIZE));
+    }
+  }
+
+  /**
+   * Builds the batch that restores the given keys to their prop values.
+   * `color` / `innerColor` are restored together respecting their
+   * precedence: an explicit `innerColor` wins, otherwise the adaptive
+   * `color` (or the default) is re-resolved.
+   */
+  private restoreUpdates(keys: readonly (keyof PendingMarkerUpdates)[]): PendingMarkerUpdates {
+    const updates: Record<string, unknown> = {};
+    for (const key of keys) {
+      if (key === "color" || key === "innerColor") continue;
+      updates[key] = this.props[key];
+    }
+    if (keys.includes("color") || keys.includes("innerColor")) {
+      if (this.props.innerColor !== undefined) updates.innerColor = this.props.innerColor;
+      else updates.color = this.props.color;
+    }
+    return updates as PendingMarkerUpdates;
+  }
+
+  /**
+   * Assigns or clears this marker's cluster-representative rendering: the
+   * marker is moved to the cluster's average position, shows the member
+   * count as its main text (its own content is hidden, not lost), and is
+   * scaled up with the member count — while {@link getLngLat} keeps
+   * reporting its real position. Called by {@link MarkerManager};
+   * repositioning goes through the parent class so it cannot re-trigger the
+   * collision pass that invoked it.
+   *
+   * Reassignment is cheap: the pass runs per-frame during camera movement,
+   * so the position write is skipped while the average is unchanged (the
+   * same members yield a bit-identical mean each pass) and the appearance
+   * writes are skipped while the count is unchanged.
+   */
+  [SetClusterStateSymbol](cluster: { lngLat: [number, number]; count: number } | null): void {
+    if (cluster) {
+      this.clusterRealLngLat ??= super.getLngLat();
+      const rendered = super.getLngLat();
+      if (rendered.lng !== cluster.lngLat[0] || rendered.lat !== cluster.lngLat[1]) {
+        super.setLngLat(cluster.lngLat);
+      }
+      if (this.clusterCount !== cluster.count) {
+        const firstAssign = this.clusterCount === null;
+        this.clusterCount = cluster.count;
+        applyClusterCount(this.getElement(), cluster.count);
+        this.applyClusterScale();
+        if (firstAssign) this.applyClusterOutline(true);
+      }
+    } else if (this.clusterRealLngLat) {
+      const real = this.clusterRealLngLat;
+      this.clusterRealLngLat = null;
+      super.setLngLat(real);
+      this.clusterCount = null;
+      applyClusterCount(this.getElement(), null);
+      this.applyClusterScale();
+      this.applyClusterOutline(false);
+    }
+  }
+
+  /**
+   * Applies the cluster-representative outline ring, or restores the
+   * marker's own outline props. Straight to the DOM — props untouched.
+   */
+  private applyClusterOutline(enabled: boolean): void {
+    const updates: PendingMarkerUpdates = enabled
+      ? { outline: CLUSTER_OUTLINE_WIDTH, outlineColor: CLUSTER_OUTLINE_COLOR }
+      : { outline: this.props.outline, outlineColor: this.props.outlineColor };
+    updateMarkerElement(this[MarkerElementSymbol], updates, this.getCurrentStyleId());
+  }
+
+  /**
+   * Writes the wrapper scale: the `scale` prop multiplied by the cluster
+   * factor while representing a cluster, the plain prop otherwise. Straight
+   * to the DOM — the prop itself is never touched.
+   */
+  private applyClusterScale(): void {
+    const [sx, sy] = this.props.scale ?? [1, 1];
+    const factor = this.clusterCount !== null ? clusterScaleFactor(this.clusterCount) : 1;
+    setWrapperScale(this[MarkerElementSymbol], sx * factor, sy * factor);
+  }
+
+  /**
+   * Returns the marker's geographical position.
+   *
+   * Overridden to always report the real position — while the marker is
+   * rendered at a cluster's average position, the rendered position is a
+   * display concern only.
+   */
+  override getLngLat(): LngLat {
+    return this.clusterRealLngLat ?? super.getLngLat();
   }
 
   /**
@@ -317,7 +629,13 @@ export class Marker extends maplibregl.Marker {
    * @param lnglat - The new position.
    */
   override setLngLat(lnglat: LngLatLike): this {
-    super.setLngLat(lnglat);
+    // while rendered as a cluster representative, only the real position is
+    // updated — the next pass re-derives the cluster rendering from it
+    if (this.clusterRealLngLat) {
+      this.clusterRealLngLat = maplibregl.LngLat.convert(lnglat);
+    } else {
+      super.setLngLat(lnglat);
+    }
     const map = MarkerManager.getMap(this);
     if (map) MarkerManager.invalidateCollisions(map);
     return this;

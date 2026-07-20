@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>MapTiler Markers – Collisions</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    #map {
+      position: absolute;
+      inset: 0;
+    }
+
+    #panel {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 100;
+      width: 240px;
+      max-height: calc(100vh - 24px);
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .ctrl-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ctrl-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.45);
+    }
+
+    .ctrl-hint {
+      font-size: 10px;
+      color: rgba(0, 0, 0, 0.45);
+      line-height: 1.4;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 4px;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+
+    .ctrl-btn {
+      flex: 1;
+      height: 28px;
+      border: 1.5px solid rgba(0, 0, 0, 0.12);
+      border-radius: 6px;
+      background: transparent;
+      font: 600 11px system-ui;
+      color: rgba(0, 0, 0, 0.55);
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+
+    .ctrl-btn:hover {
+      border-color: rgba(0, 0, 0, 0.25);
+      color: rgba(0, 0, 0, 0.8);
+    }
+
+    .ctrl-btn.active {
+      background: hsl(223, 100%, 65%);
+      border-color: hsl(223, 100%, 65%);
+      color: #fff;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .slider-row input[type="range"] {
+      flex: 1;
+      height: 4px;
+      accent-color: hsl(223, 100%, 65%);
+    }
+
+    .slider-val {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.6);
+      width: 36px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: rgba(0, 0, 0, 0.6);
+      cursor: pointer;
+    }
+
+    .check-row input[type="checkbox"] {
+      accent-color: hsl(223, 100%, 65%);
+    }
+
+    #status {
+      font-size: 10px;
+      color: rgba(0, 0, 0, 0.45);
+      font-family: monospace;
+      line-height: 1.4;
+      word-break: break-all;
+    }
+  </style>
+
+  <link rel="stylesheet" href="../build/maptiler-sdk.css">
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <div id="panel">
+    <div class="ctrl-group">
+      <div class="ctrl-label">Collision behaviour (map default)</div>
+      <div class="btn-grid">
+        <button class="ctrl-btn" data-collision-behaviour="always-show">always show</button>
+        <button class="ctrl-btn" data-collision-behaviour="hide-by-priority">hide</button>
+        <button class="ctrl-btn" data-collision-behaviour="minimize-by-priority">minimize</button>
+        <button class="ctrl-btn" data-collision-behaviour="cluster">cluster</button>
+      </div>
+      <div class="ctrl-hint">
+        Labels show priority — higher wins. Zoom out to force collisions.
+        Cluster: the representative shows the member count and scales with it;
+        hover to preview members, click to pin; map click or zoom collapses.
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Collision radius (px, 0 = bounding box)</div>
+      <div class="slider-row">
+        <input id="collision-radius" type="range" min="0" max="40" step="1" value="0" />
+        <span class="slider-val" id="collision-radius-val">box</span>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Markers</div>
+      <div class="btn-row">
+        <button id="randomize" class="ctrl-btn">Randomize positions</button>
+      </div>
+      <label class="check-row">
+        <input id="debug-toggle" type="checkbox" />
+        <span>Debug bounding boxes</span>
+      </label>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Display states</div>
+      <div id="status"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/17-maptiler-markers-collision.ts"></script>
+</body>
+
+</html>

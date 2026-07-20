@@ -5,5 +5,6 @@ export const DetachFromDOMSymbol = Symbol("MapTiler:Marker:detachFromDOM");
 export const RefreshAdaptiveColorSymbol = Symbol("MapTiler:Marker:refreshAdaptiveColor");
 export const CollisionFootprintSymbol = Symbol("MapTiler:Marker:collisionFootprint");
 export const EmitCollisionDiffSymbol = Symbol("MapTiler:Marker:emitCollisionDiff");
-export const ShouldHideSymbol = Symbol("MapTiler:Marker:shouldHide");
+export const ApplyCollisionDisplayStateSymbol = Symbol("MapTiler:Marker:applyCollisionDisplayState");
+export const SetClusterStateSymbol = Symbol("MapTiler:Marker:setClusterState");
 export const MeasuredElementSizeSymbol = Symbol("MapTiler:Marker:measuredElementSize");

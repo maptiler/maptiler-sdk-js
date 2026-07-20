@@ -160,6 +160,60 @@
   line-height: 14px;
 }
 
+/* The map container must be its own stacking context: markers carry their
+   priority as z-index, and without isolation those values compete with the
+   host page's UI at the root level — a marker with priority 200 would paint
+   above a page overlay with z-index 100. `isolation` creates the context
+   without affecting layout or the map-internal stacking order.
+   (`.maptiler-map` is added by the SDK Map constructor.) */
+.maptiler-map {
+  isolation: isolate;
+}
+
+/* Same containment one level down: markers live in the canvas container, so
+   isolating it keeps their z-indexes from competing with MapLibre's controls
+   (z-index: 2) and popups within the map itself. */
+.maptiler-map .maplibregl-canvas-container {
+  isolation: isolate;
+}
+
+/* Fade for markers hidden/shown by the marker collision engine.
+   The fade class stays on the element; the hidden class toggles. Opacity
+   fades, visibility flips only once the fade completes, pointer events stop
+   immediately so a fading-out marker can't be clicked. */
+.maptiler-marker-collision-fade {
+  transition: opacity 150ms ease, visibility 150ms ease;
+}
+
+.maptiler-marker-collision-hidden {
+  opacity: 0 !important;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Applied on top of the hidden class once the fade-out has completed:
+   removes the marker from rendering entirely, so hundreds of hidden markers
+   stop costing style, paint, and compositor layers (markers carry
+   `will-change: transform`). Removed — with a forced reflow — before the
+   fade-in starts. */
+.maptiler-marker-collision-culled {
+  display: none !important;
+}
+
+/* The marker also scales to zero around its anchor point while hiding. The
+   scale lives on the inner transform wrapper — the outer element's transform
+   belongs to MapLibre's positioning — so custom-element markers (no wrapper)
+   fall back to the plain opacity fade. `!important` overrides the wrapper's
+   inline `scale() rotate()` transform; the mismatched transform lists
+   interpolate via matrix decomposition. */
+.maptiler-marker-collision-fade .marker-transform-wrapper {
+  transition: transform 150ms ease;
+}
+
+.maptiler-marker-collision-hidden .marker-transform-wrapper {
+  transform: scale(0) !important;
+}
+
 .webgl-warning-div {
   position: absolute;
   top: 0;
