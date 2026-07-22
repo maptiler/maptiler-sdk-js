@@ -60,8 +60,8 @@
     "make": "npm run build",
     "e2e:serve": "npm run build-css && tsc --project ./e2e && NODE_ENV=development vite -c vite.config-e2e.ts",
     "e2e:local": "npx playwright test --config=playwright.config.ts --ui",
-    "e2e:ci": "npx playwright test --config=playwright.config.ts",
-    "e2e:ci-update": "npx playwright test --config=playwright.config.ts -u"
+    "e2e:ci": "npm run build-css && concurrently --kill-others --success first \"tsc --project ./e2e && NODE_ENV=production vite -c vite.config-e2e.ts\" \"npx playwright test --config=playwright.config.ts\"",
+    "e2e:ci-update": "npm run build-css && concurrently --kill-others --success first \"tsc --project ./e2e && NODE_ENV=production vite -c vite.config-e2e.ts\" \"npx playwright test --config=playwright.config.ts -u\""
   },
   "lint-staged": {
     "*.ts": "npm run lint:fix"
