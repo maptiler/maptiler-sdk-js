@@ -106,7 +106,7 @@
     "events": "^3.3.0",
     "gl-matrix": "^3.4.4",
     "js-base64": "^3.7.7",
-    "maplibre-gl": "~5.21.1",
+    "maplibre-gl": "5.24",
     "uuid": "^14.0.0"
   }
 }
