@@ -34,6 +34,8 @@ async function setupPage(browser: Browser, fixtureOptions: Partial<LoadFixtureAn
     ...fixtureOptions,
   });
 
+  await page.waitForTimeout(2000); //  we need to give the space images a chance to load
+
   expect(await page.title()).toBe("MapTiler E2E Halo Space");
 
   return page;
