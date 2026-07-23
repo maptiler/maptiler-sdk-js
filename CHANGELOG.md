@@ -14,6 +14,9 @@
   - It now correctly parses any string input (passed directly or fetched via URL) as GeoJSON, GPX, KML.
   - It is no longer needed to provide URL with a supported filename extension, format is autodetected.
 
+### ⚙️ Others
+- Bumps maplibre-gl-js to v5.24
+
 ## 4.0.2
 
 ### ✨ Features and improvements
