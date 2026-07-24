@@ -79,15 +79,10 @@ export const DEFAULT_PROXIMITY_PADDING = 4;
  * Displacement from the anchor point to the element center, unrotated.
  * E.g. a `bottom` anchor puts the element's bottom edge on the point, so the
  * center sits half a height *above* it (-y).
- * TODO: refactor this to avoid a complicated if / else chain.
  */
 function anchorToCenter(anchor: MarkerFootprint["anchor"], width: number, height: number): [number, number] {
-  let dx = 0;
-  let dy = 0;
-  if (anchor.includes("left")) dx = width / 2;
-  else if (anchor.includes("right")) dx = -width / 2;
-  if (anchor.includes("top")) dy = height / 2;
-  else if (anchor.includes("bottom")) dy = -height / 2;
+  const dx = anchor.includes("left") ? width / 2 : anchor.includes("right") ? -width / 2 : 0;
+  const dy = anchor.includes("top") ? height / 2 : anchor.includes("bottom") ? -height / 2 : 0;
   return [dx, dy];
 }
 
@@ -212,66 +207,6 @@ export function createCandidateSource<T>(items: readonly T[], boundsOf: (item: T
 
 //#endregion
 
-//#region Radius Clustering
-
-/** Default cluster radius in CSS px: markers within this distance of a cluster seed join its cluster. */
-export const DEFAULT_CLUSTER_RADIUS = 60;
-
-/** A screen-space point with priority, input to {@link deriveRadiusClusters}. */
-export type ClusterPoint = { x: number; y: number; priority: number };
-
-/**
- * Greedy radius clustering: repeatedly seeds on the highest-priority
- * unassigned point (ties: input order) and absorbs every unassigned point
- * within `radius` px of it. Produces compact, disc-shaped groups (diameter
- * ≤ 2·radius) around high-priority markers — unlike connected components of
- * pairwise overlap, which chain into arbitrarily large irregular shapes in
- * dense fields.
- *
- * A seed that finds no neighbours stays unassigned, so a later
- * (lower-priority) seed nearby can still absorb it.
- *
- * @returns Groups of two or more indices into `points`, members in input
- *   order; singletons are not groups.
- */
-export function deriveRadiusClusters(points: readonly ClusterPoint[], radius: number): number[][] {
-  const order = points.map((_, i) => i).sort((a, b) => points[b].priority - points[a].priority || a - b);
-  const assigned = new Array<boolean>(points.length).fill(false);
-  const radiusSq = radius * radius;
-  const groups: number[][] = [];
-
-  for (const seed of order) {
-    if (assigned[seed]) continue;
-    const members: number[] = [];
-    for (let i = 0; i < points.length; i++) {
-      if (assigned[i]) continue;
-      const dx = points[i].x - points[seed].x;
-      const dy = points[i].y - points[seed].y;
-      if (dx * dx + dy * dy <= radiusSq) members.push(i);
-    }
-    if (members.length < 2) continue;
-    for (const member of members) assigned[member] = true;
-    groups.push(members);
-  }
-
-  return groups;
-}
-
-//#endregion
-
-//#region Cluster Scale
-
-/**
- * Visual (and blocking-box) scale of a cluster representative: grows
- * logarithmically with member count so large clusters read as large without
- * ever dwarfing the map. Capped at 2x.
- */
-export function clusterScaleFactor(count: number): number {
-  return Math.min(1 + 0.15 * Math.log2(count), 2);
-}
-
-//#endregion
-
 //#region Behaviour Resolution
 
 /**
@@ -349,8 +284,8 @@ export function resolveDisplayStates(entries: readonly ResolutionEntry[], exact 
  * Derives collision groups (connected components) from pairwise collisions.
  *
  * Groups keep the *full set* of mutually-colliding items — no winners or
- * losers. Behaviours like reposition-column and cluster need every member to
- * compute an average position, which winner/loser output cannot provide.
+ * losers — so consumers can inspect full collision sets rather than only
+ * the greedy placement outcome.
  *
  * @param items - All entries in the pass, indexable by the pair indices.
  * @param pairs - Colliding index pairs `[i, j]`.

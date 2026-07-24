@@ -1,5 +1,5 @@
 import maplibregl from "maplibre-gl";
-import type { LngLat, LngLatLike, MarkerOptions, PointLike } from "maplibre-gl";
+import type { LngLatLike, MarkerOptions, PointLike } from "maplibre-gl";
 import type { Map as SDKMap } from "../Map";
 import type {
   MapTilerMarkerElementProps,
@@ -14,17 +14,14 @@ import type {
 import { omit } from "../utils/object";
 import { v4 as uuid } from "uuid";
 import {
-  applyClusterCount,
   applyCollisionCulled,
   applyCollisionHidden,
   applyMarkerStyleVariables,
   applyMinimizedDot,
   createMarkerElement,
-  setWrapperScale,
   updateMarkerElement,
   COLLISION_FADE_DURATION_MS,
 } from "./marker-dom-utils";
-import { clusterScaleFactor } from "./collision-helpers";
 import { DEFAULT_SHAPE, DEFAULT_SIZE, SHAPES, SIZE_PX, getShapeAnchorOffset } from "./marker-svg-config";
 import { getAdaptiveBgColor, resolveAdaptiveColor } from "./marker-adaptive-colors";
 import { MarkerManager } from "./MarkerManager";
@@ -38,23 +35,12 @@ import {
   CollisionFootprintSymbol,
   EmitCollisionDiffSymbol,
   ApplyCollisionDisplayStateSymbol,
-  SetClusterStateSymbol,
   MeasuredElementSizeSymbol,
 } from "./marker-symbols";
 
 const maplibreMarkerConstructorOverrides: MarkerOptions = {
   scale: 1, // scale in our class will be a 2D vector.
 };
-
-/**
- * Outline applied to a cluster representative so cluster bubbles read
- * differently from plain markers: a thick ring in the marker's own inner
- * colour (via CSS custom property indirection, so it tracks adaptive
- * colours). The marker's own outline props are restored when the cluster
- * disbands.
- */
-const CLUSTER_OUTLINE_WIDTH = 4;
-const CLUSTER_OUTLINE_COLOR = "var(--marker-inner-color)";
 
 const maptilerBaseOptionsKeys = [
   "shape",
@@ -151,20 +137,6 @@ export class Marker extends maplibregl.Marker {
 
   /** Pending post-fade cull (`display: none`) while hidden. */
   private cullTimer: ReturnType<typeof setTimeout> | null = null;
-
-  /**
-   * The marker's real geographic position while it is rendered elsewhere as
-   * a cluster representative; `null` when not clustered. {@link getLngLat}
-   * always reports this real position.
-   */
-  private clusterRealLngLat: LngLat | null = null;
-
-  /**
-   * Member count while this marker represents a cluster; `null` otherwise.
-   * Drives the count label, the cluster scale, and the masking of `scale`
-   * updates in the DOM flush.
-   */
-  private clusterCount: number | null = null;
 
   //#endregion
 
@@ -279,17 +251,11 @@ export class Marker extends maplibregl.Marker {
    * the batch. Called by {@link MarkerManager} on the next animation frame.
    */
   [FlushDOMUpdatesSymbol](): void {
-    let pending = this[PendingUpdatesSymbol];
+    const raw = this[PendingUpdatesSymbol];
     this[PendingUpdatesSymbol] = {};
     // while the minimized appearance is applied, it owns its keys — the props
     // are already recorded and get applied when the marker un-minimizes
-    if (this.minimizedApplied && this.minimizedKeys.length > 0) {
-      pending = omit(pending, this.minimizedKeys);
-    }
-    // the cluster appearance owns the wrapper scale and outline the same way
-    if (this.clusterCount !== null) {
-      pending = omit(pending, ["scale", "outline", "outlineColor"]);
-    }
+    const pending: PendingMarkerUpdates = this.minimizedApplied && this.minimizedKeys.length > 0 ? omit(raw, this.minimizedKeys) : raw;
     if (Object.keys(pending).length === 0) return;
     updateMarkerElement(this[MarkerElementSymbol], pending, this.getCurrentStyleId());
   }
@@ -550,78 +516,6 @@ export class Marker extends maplibregl.Marker {
   }
 
   /**
-   * Assigns or clears this marker's cluster-representative rendering: the
-   * marker is moved to the cluster's average position, shows the member
-   * count as its main text (its own content is hidden, not lost), and is
-   * scaled up with the member count — while {@link getLngLat} keeps
-   * reporting its real position. Called by {@link MarkerManager};
-   * repositioning goes through the parent class so it cannot re-trigger the
-   * collision pass that invoked it.
-   *
-   * Reassignment is cheap: the pass runs per-frame during camera movement,
-   * so the position write is skipped while the average is unchanged (the
-   * same members yield a bit-identical mean each pass) and the appearance
-   * writes are skipped while the count is unchanged.
-   */
-  [SetClusterStateSymbol](cluster: { lngLat: [number, number]; count: number } | null): void {
-    if (cluster) {
-      this.clusterRealLngLat ??= super.getLngLat();
-      const rendered = super.getLngLat();
-      if (rendered.lng !== cluster.lngLat[0] || rendered.lat !== cluster.lngLat[1]) {
-        super.setLngLat(cluster.lngLat);
-      }
-      if (this.clusterCount !== cluster.count) {
-        const firstAssign = this.clusterCount === null;
-        this.clusterCount = cluster.count;
-        applyClusterCount(this.getElement(), cluster.count);
-        this.applyClusterScale();
-        if (firstAssign) this.applyClusterOutline(true);
-      }
-    } else if (this.clusterRealLngLat) {
-      const real = this.clusterRealLngLat;
-      this.clusterRealLngLat = null;
-      super.setLngLat(real);
-      this.clusterCount = null;
-      applyClusterCount(this.getElement(), null);
-      this.applyClusterScale();
-      this.applyClusterOutline(false);
-    }
-  }
-
-  /**
-   * Applies the cluster-representative outline ring, or restores the
-   * marker's own outline props. Straight to the DOM — props untouched.
-   */
-  private applyClusterOutline(enabled: boolean): void {
-    const updates: PendingMarkerUpdates = enabled
-      ? { outline: CLUSTER_OUTLINE_WIDTH, outlineColor: CLUSTER_OUTLINE_COLOR }
-      : { outline: this.props.outline, outlineColor: this.props.outlineColor };
-    updateMarkerElement(this[MarkerElementSymbol], updates, this.getCurrentStyleId());
-  }
-
-  /**
-   * Writes the wrapper scale: the `scale` prop multiplied by the cluster
-   * factor while representing a cluster, the plain prop otherwise. Straight
-   * to the DOM — the prop itself is never touched.
-   */
-  private applyClusterScale(): void {
-    const [sx, sy] = this.props.scale ?? [1, 1];
-    const factor = this.clusterCount !== null ? clusterScaleFactor(this.clusterCount) : 1;
-    setWrapperScale(this[MarkerElementSymbol], sx * factor, sy * factor);
-  }
-
-  /**
-   * Returns the marker's geographical position.
-   *
-   * Overridden to always report the real position — while the marker is
-   * rendered at a cluster's average position, the rendered position is a
-   * display concern only.
-   */
-  override getLngLat(): LngLat {
-    return this.clusterRealLngLat ?? super.getLngLat();
-  }
-
-  /**
    * Sets the marker's geographical position.
    *
    * Overridden to re-run collision detection — a marker moving changes
@@ -629,13 +523,7 @@ export class Marker extends maplibregl.Marker {
    * @param lnglat - The new position.
    */
   override setLngLat(lnglat: LngLatLike): this {
-    // while rendered as a cluster representative, only the real position is
-    // updated — the next pass re-derives the cluster rendering from it
-    if (this.clusterRealLngLat) {
-      this.clusterRealLngLat = maplibregl.LngLat.convert(lnglat);
-    } else {
-      super.setLngLat(lnglat);
-    }
+    super.setLngLat(lnglat);
     const map = MarkerManager.getMap(this);
     if (map) MarkerManager.invalidateCollisions(map);
     return this;

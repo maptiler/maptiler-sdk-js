@@ -1514,11 +1514,8 @@ export class Map extends maplibregl.Map {
    *   markers (it never misses a real one).
    * @param options.behaviour - Default collision behaviour applied to every
    *   marker on this map (`always-show` | `hide-by-priority` |
-   *   `minimize-by-priority` | `cluster`). A marker's own
-   *   `collisionBehaviour` option overrides it. Defaults to `always-show`.
-   * @param options.clusterRadius - Cluster radius in CSS px: `cluster`
-   *   markers within this distance of a cluster seed (the highest-priority
-   *   unclustered marker) join its cluster. Defaults to 60.
+   *   `minimize-by-priority`). A marker's own `collisionBehaviour` option
+   *   overrides it. Defaults to `always-show`.
    */
   setMarkerCollisionOptions(options: MarkerCollisionOptions): this {
     MarkerManager.setCollisionOptions(this, options);

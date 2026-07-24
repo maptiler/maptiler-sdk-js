@@ -39,8 +39,8 @@ async function main() {
 
   await map.onLoadAsync();
 
-  // every marker gets a unique priority (1..100) so hide/minimize winners and
-  // cluster representatives are unambiguous; the label shows it
+  // every marker gets a unique priority (1..N) so hide/minimize winners are
+  // unambiguous; the label shows it
   const specs: MarkerSpec[] = Array.from({ length: MARKER_COUNT }, (_, i) => ({
     priority: i + 1,
     color: COLORS[Math.floor(Math.random() * COLORS.length)],

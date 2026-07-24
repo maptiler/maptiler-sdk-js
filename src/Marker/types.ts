@@ -21,13 +21,6 @@ export const CollisionBehaviour = {
   HIDE_BY_PRIORITY: "hide-by-priority",
   /** Marker is minimised to a simple point/circle when colliding with a higher-priority marker. */
   MINIMIZE_BY_PRIORITY: "minimize-by-priority",
-  /**
-   * Colliding markers are repositioned into a column at their average map position.
-   * TODO: not implemented yet — currently falls back to `HIDE_BY_PRIORITY`.
-   */
-  REPOSITION_COLUMN: "reposition-column",
-  /** Colliding markers are grouped at their average position and expand on hover/click. */
-  CLUSTER: "cluster",
 } as const;
 
 export type CollisionBehaviour = (typeof CollisionBehaviour)[keyof typeof CollisionBehaviour];
@@ -91,22 +84,15 @@ export type MarkerCollisionOptions = {
    * (nothing is ever hidden until a behaviour is opted into).
    */
   behaviour?: CollisionBehaviour;
-  /**
-   * Cluster radius in CSS px: `cluster` markers within this distance of a
-   * cluster seed (the highest-priority unclustered marker) join its cluster,
-   * so clusters are compact discs of at most twice this radius.
-   * Defaults to 60.
-   */
-  clusterRadius?: number;
 };
 
 /**
  * How the collision engine is currently displaying a marker.
  * - `visible` — displayed normally.
  * - `hidden` — hidden because it lost to a higher-priority marker
- *   (`hide-by-priority`), is a non-representative member of a collapsed
- *   cluster, or sits outside the viewport (off-screen markers are excluded
- *   from collision processing and hidden regardless of behaviour).
+ *   (`hide-by-priority`), or sits outside the viewport (off-screen markers
+ *   are excluded from collision processing and hidden regardless of
+ *   behaviour).
  * - `minimized` — displayed as its minimized variant (`minimize-by-priority`).
  */
 export type MarkerCollisionDisplayState = "visible" | "hidden" | "minimized";
@@ -293,7 +279,7 @@ export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" 
   scale?: Vector2;
   /** Initial visibility of the marker. Defaults to `true`. TODO: not implemented yet. */
   visible?: boolean;
-  /** Rendering priority used for collision detection and clustering. Accepts a numeric value or a MapLibre-style expression. */
+  /** Rendering priority used for collision detection. Accepts a numeric value or a MapLibre-style expression. */
   priority?: number | MarkerPriorityExpression;
   // /** Lifecycle animations. (Non MVP) Certain fields (e.g. `iterations`) are ignored for `enter` and `exit` animations. */
   // animations?: {
