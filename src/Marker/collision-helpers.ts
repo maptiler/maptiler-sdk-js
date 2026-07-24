@@ -136,6 +136,10 @@ export function obbToAABB(obb: OBB, padding = 0): Bounds {
  * theorem: two convex boxes are disjoint iff some axis of either box
  * separates their projections, so only the four box axes need testing.
  *
+ * SAT is the computational form of Minkowski-difference collision detection
+ * for convex polytopes — see
+ * https://en.wikipedia.org/wiki/Minkowski_addition#Collision_detection
+ *
  * @param padding - Inflates both boxes' half extents; the two-box test then
  *   answers "are the exact boxes within `2 * padding` of each other" the same
  *   way the pre-inflated AABBs do for the axis-aligned path.
