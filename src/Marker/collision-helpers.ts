@@ -79,6 +79,7 @@ export const DEFAULT_PROXIMITY_PADDING = 4;
  * Displacement from the anchor point to the element center, unrotated.
  * E.g. a `bottom` anchor puts the element's bottom edge on the point, so the
  * center sits half a height *above* it (-y).
+ * TODO: refactor this to avoid a complicated if / else chain.
  */
 function anchorToCenter(anchor: MarkerFootprint["anchor"], width: number, height: number): [number, number] {
   const dx = anchor.includes("left") ? width / 2 : anchor.includes("right") ? -width / 2 : 0;
