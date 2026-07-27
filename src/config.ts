@@ -114,18 +114,18 @@ class SdkConfig extends EventEmitter {
 
   /**
    * Switch between the default `api.maptiler.com` host and the EU-based `api.maptiler.eu` host.
-   * Call with `false` to switch back to the default.
+   * Set to `false` to switch back to the default.
    */
-  useEuEndpoints(value = true): void {
-    clientConfig.useEuEndpoints(value);
+  set useEuEndpoints(value: boolean) {
+    clientConfig.useEuEndpoints = value;
     this.emit("useEuEndpoints", value);
   }
 
   /**
    * Whether the EU-based `api.maptiler.eu` host is currently in use instead of the default `api.maptiler.com`
    */
-  get isUsingEuEndpoints(): boolean {
-    return clientConfig.isUsingEuEndpoints;
+  get useEuEndpoints(): boolean {
+    return clientConfig.useEuEndpoints;
   }
 
   /**
