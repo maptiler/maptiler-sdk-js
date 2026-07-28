@@ -5,19 +5,21 @@ name: Node.js Package
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize]
 
 jobs:
-  test-build-and-publish:
-    runs-on: ubuntu-latest
+  test-build-and-pack:
+    runs-on: ubuntu-slim
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.release.target_commitish }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
+          cache: 'npm'
+          cache-dependency-path: ./package-lock.json
           node-version: lts/*
           registry-url: https://registry.npmjs.org/
 
@@ -36,16 +38,6 @@ jobs:
         run: exit 1
 
         id: check-build-status
-      - name: Publish NPM package (regular)
-        if: "!github.event.release.prerelease"
+      - name: Pack NPM package (regular)
         run: |
-          npm publish --dry-run
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
-
-      - name: Publish NPM package (pre-release)
-        if: "github.event.release.prerelease"
-        run: |
-          npm publish --tag next --dry-run
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+          npm pack --dry-run
