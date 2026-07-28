@@ -134,7 +134,7 @@ export function obbToAABB(obb: OBB, padding = 0): Bounds {
 
 /**
  * Exact intersection test for two oriented boxes via the separating axis
- * theorem: two convex boxes are disjoint iff some axis of either box
+ * theorem: two convex boxes are disjoint if some axis of either box
  * separates their projections, so only the four box axes need testing.
  *
  * SAT is the computational form of Minkowski-difference collision detection
