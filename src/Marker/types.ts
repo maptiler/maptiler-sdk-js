@@ -21,10 +21,6 @@ export const CollisionBehaviour = {
   HIDE_BY_PRIORITY: "hide-by-priority",
   /** Marker is minimised to a simple point/circle when colliding with a higher-priority marker. */
   MINIMIZE_BY_PRIORITY: "minimize-by-priority",
-  /** Colliding markers are repositioned into a column at their average map position. */
-  REPOSITION_COLUMN: "reposition-column",
-  /** Colliding markers are grouped at their average position and expand on hover/click. */
-  CLUSTER: "cluster",
 } as const;
 
 export type CollisionBehaviour = (typeof CollisionBehaviour)[keyof typeof CollisionBehaviour];
@@ -82,7 +78,39 @@ export type MarkerCollisionOptions = {
   proximityPadding?: number;
   /** Collision box accuracy for rotated markers. Defaults to `high`. */
   accuracy?: MarkerCollisionAccuracy;
+  /**
+   * Default collision behaviour for every marker on the map. A marker's own
+   * `collisionBehaviour` option overrides it. Defaults to `always-show`
+   * (nothing is ever hidden until a behaviour is opted into).
+   */
+  behaviour?: CollisionBehaviour;
 };
+
+/**
+ * How the collision engine is currently displaying a marker.
+ * - `visible` — displayed normally.
+ * - `hidden` — hidden because it lost to a higher-priority marker
+ *   (`hide-by-priority`), or sits outside the viewport (off-screen markers
+ *   are excluded from collision processing and hidden regardless of
+ *   behaviour).
+ * - `minimized` — displayed as its minimized variant (`minimize-by-priority`).
+ */
+export type MarkerCollisionDisplayState = "visible" | "hidden" | "minimized";
+
+/**
+ * Visual overrides applied while a `minimize-by-priority` marker is
+ * minimized. Merged over the default minimized appearance (`{ size: "xs" }`,
+ * which renders the marker as a small dot in its own colours). The marker's
+ * regular values are restored when it un-minimizes.
+ *
+ * Only affects markers built by the SVG system — markers constructed with a
+ * custom `element` minimize to a plain dot, of which only the colour fields
+ * apply (consumed as CSS custom properties).
+ */
+export type MarkerMinimizedOptions = Pick<
+  MapTilerMarkerBaseOptions,
+  "shape" | "size" | "color" | "innerColor" | "outerColor" | "contentColor" | "outline" | "outlineColor" | "shadow" | "opacity"
+>;
 
 /**
  * MapLibre-style expression that resolves to a numeric priority.
@@ -251,7 +279,7 @@ export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" 
   scale?: Vector2;
   /** Initial visibility of the marker. Defaults to `true`. TODO: not implemented yet. */
   visible?: boolean;
-  /** Rendering priority used for collision detection and clustering. Accepts a numeric value or a MapLibre-style expression. */
+  /** Rendering priority used for collision detection. Accepts a numeric value or a MapLibre-style expression. */
   priority?: number | MarkerPriorityExpression;
   // /** Lifecycle animations. (Non MVP) Certain fields (e.g. `iterations`) are ignored for `enter` and `exit` animations. */
   // animations?: {
@@ -266,8 +294,14 @@ export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" 
   // transitions?: MapTilerMarkerTransitions;
   /** Arbitrary user-defined data attached to the marker instance. */
   userData?: Record<string, unknown>;
-  /** Behaviour when this marker spatially overlaps another. */
+  /** Behaviour when this marker spatially overlaps another. Overrides the map-level default (see `MarkerCollisionOptions`). */
   collisionBehaviour?: CollisionBehaviour;
+  /**
+   * Visual overrides applied while the marker is minimized by the
+   * `minimize-by-priority` collision behaviour. Merged over the default
+   * minimized appearance (`{ size: "xs" }`).
+   */
+  minimizedOptions?: MarkerMinimizedOptions;
   /** When `true`, renders a debug overlay showing the marker's bounding box and center point. */
   debug?: boolean;
   /**

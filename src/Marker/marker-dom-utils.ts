@@ -1,3 +1,4 @@
+import type { MarkerOptions } from "maplibre-gl";
 import type { MapTilerMarkerBaseOptions, MapTilerMarkerOptions, PendingMarkerUpdates, MapTilerMarkerSize } from "./types";
 import {
   DEFAULT_CONTENT_COLOR,
@@ -501,6 +502,102 @@ function buildDotSvg(): SVGSVGElement {
 
 //#endregion
 
+//#region applyCollisionHidden
+
+const COLLISION_FADE_CLASSNAME = "maptiler-marker-collision-fade";
+const COLLISION_HIDDEN_CLASSNAME = "maptiler-marker-collision-hidden";
+
+/** Matches the fade duration in the SDK stylesheet (`.maptiler-marker-collision-fade`). */
+export const COLLISION_FADE_DURATION_MS = 150;
+
+/**
+ * Toggles the collision-engine hidden state with a fade. The rules ship in
+ * the SDK stylesheet: opacity transitions, visibility flips once the fade
+ * completes, pointer events stop immediately. `opacity` is forced with
+ * `!important`, so it cannot fight the inline opacity managed by MapLibre
+ * (`opacityWhenCovered`) or the marker's own `opacity` prop.
+ * @param element - The marker's outer root element (or the custom element).
+ * @param hidden - Whether the marker is hidden by the collision engine.
+ */
+export function applyCollisionHidden(element: HTMLElement, hidden: boolean): void {
+  element.classList.add(COLLISION_FADE_CLASSNAME);
+  element.classList.toggle(COLLISION_HIDDEN_CLASSNAME, hidden);
+}
+
+const COLLISION_CULLED_CLASSNAME = "maptiler-marker-collision-culled";
+
+/**
+ * Removes a collision-hidden marker from rendering entirely
+ * (`display: none`) — applied once its fade-out has completed, so hidden
+ * markers stop costing style, paint, and a compositor layer each.
+ *
+ * Un-culling deliberately does NOT flush layout: for the fade-in to
+ * transition (instead of popping) a reflow must happen between the un-cull
+ * and the hidden-class removal, but forcing it per marker would stall a
+ * dense pass that un-hides hundreds at once. {@link MarkerManagerImpl}
+ * un-culls everything first and flushes layout once per pass.
+ * @param element - The marker's outer root element (or the custom element).
+ * @param culled - Whether the marker is removed from rendering.
+ * @returns `true` when the call actually changed the culled state.
+ */
+export function applyCollisionCulled(element: HTMLElement, culled: boolean): boolean {
+  if (culled) {
+    if (element.classList.contains(COLLISION_CULLED_CLASSNAME)) return false;
+    element.classList.add(COLLISION_CULLED_CLASSNAME);
+    return true;
+  }
+  if (!element.classList.contains(COLLISION_CULLED_CLASSNAME)) return false;
+  element.classList.remove(COLLISION_CULLED_CLASSNAME);
+  return true;
+}
+
+//#endregion
+
+//#region applyMinimizedDot
+
+const MINIMIZED_DOT_CLASSNAME = "marker-minimized-dot";
+
+/**
+ * Minimized rendering for markers built from a custom `element`: hides the
+ * element's own content (via `visibility`, so its layout box — and therefore
+ * MapLibre's positioning — is preserved) and overlays a dot pinned on the
+ * element's anchor point. The dot consumes the marker's colour CSS custom
+ * properties.
+ *
+ * SVG-root custom elements can't host the HTML dot — they are hidden without
+ * a dot.
+ * @param element - The custom marker element.
+ * @param anchor - The marker's `anchor` option; places the dot on that point.
+ * @param enabled - Whether the minimized rendering is active.
+ */
+export function applyMinimizedDot(element: HTMLElement | SVGElement, anchor: NonNullable<MarkerOptions["anchor"]>, enabled: boolean): void {
+  const existing = element.querySelector<SVGSVGElement>(`svg.${MINIMIZED_DOT_CLASSNAME}`);
+
+  if (!enabled) {
+    existing?.remove();
+    element.style.visibility = "";
+    return;
+  }
+
+  // children inherit `hidden` but can override it — the dot opts back in
+  element.style.visibility = "hidden";
+
+  if (existing || !(element instanceof HTMLElement)) return;
+
+  const dot = buildDotSvg();
+  dot.classList.add(MINIMIZED_DOT_CLASSNAME);
+  dot.style.visibility = "visible";
+  dot.style.position = "absolute";
+  dot.style.left = anchor.includes("left") ? "0%" : anchor.includes("right") ? "100%" : "50%";
+  dot.style.top = anchor.includes("top") ? "0%" : anchor.includes("bottom") ? "100%" : "50%";
+  dot.style.transform = "translate(-50%, -50%)";
+
+  element.style.position = "relative";
+  element.appendChild(dot);
+}
+
+//#endregion
+
 //#region buildShapeSvg
 
 /**
@@ -783,12 +880,12 @@ function appendElementContent(svg: SVGSVGElement, element: HTMLElement | SVGElem
 }
 
 /** Appends a text label centred on the content circle. */
-function appendTextContent(svg: SVGSVGElement, title: string, shape: ShapeDescriptor): void {
+function appendTextContent(svg: SVGSVGElement, title: string, shape: ShapeDescriptor, className = "marker-content"): SVGTextElement {
   const { cx, cy, r } = shape.content;
   const fontSize = r * 1.4;
 
   const text = svgEl("text");
-  text.classList.add("marker-content");
+  text.classList.add(className);
   text.setAttribute("clip-path", appendContentClip(svg, shape));
   text.setAttribute("x", String(cx));
   text.setAttribute("y", String(cy));
@@ -802,6 +899,7 @@ function appendTextContent(svg: SVGSVGElement, title: string, shape: ShapeDescri
   text.style.fontVariantNumeric = "tabular-nums";
   text.textContent = title;
   svg.appendChild(text);
+  return text;
 }
 
 //#endregion

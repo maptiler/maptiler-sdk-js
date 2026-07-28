@@ -1,4 +1,5 @@
 import type { MarkerOptions } from "maplibre-gl";
+import type { MarkerCollisionDisplayState } from "./types";
 
 /**
  * Pure geometry and grouping helpers for marker collision detection.
@@ -81,12 +82,8 @@ export const DEFAULT_PROXIMITY_PADDING = 4;
  * TODO: refactor this to avoid a complicated if / else chain.
  */
 function anchorToCenter(anchor: MarkerFootprint["anchor"], width: number, height: number): [number, number] {
-  let dx = 0;
-  let dy = 0;
-  if (anchor.includes("left")) dx = width / 2;
-  else if (anchor.includes("right")) dx = -width / 2;
-  if (anchor.includes("top")) dy = height / 2;
-  else if (anchor.includes("bottom")) dy = -height / 2;
+  const dx = anchor.includes("left") ? width / 2 : anchor.includes("right") ? -width / 2 : 0;
+  const dy = anchor.includes("top") ? height / 2 : anchor.includes("bottom") ? -height / 2 : 0;
   return [dx, dy];
 }
 
@@ -137,8 +134,12 @@ export function obbToAABB(obb: OBB, padding = 0): Bounds {
 
 /**
  * Exact intersection test for two oriented boxes via the separating axis
- * theorem: two convex boxes are disjoint iff some axis of either box
+ * theorem: two convex boxes are disjoint if some axis of either box
  * separates their projections, so only the four box axes need testing.
+ *
+ * SAT is the computational form of Minkowski-difference collision detection
+ * for convex polytopes — see
+ * https://en.wikipedia.org/wiki/Minkowski_addition#Collision_detection
  *
  * @param padding - Inflates both boxes' half extents; the two-box test then
  *   answers "are the exact boxes within `2 * padding` of each other" the same
@@ -211,14 +212,85 @@ export function createCandidateSource<T>(items: readonly T[], boundsOf: (item: T
 
 //#endregion
 
+//#region Behaviour Resolution
+
+/**
+ * How a marker participates in the greedy priority resolution.
+ * - `always` — always shown, but still reserves its space (blocks losers).
+ * - `hide` — hidden when it collides with an already-placed marker; frees
+ *   its space.
+ * - `minimize` — minimized when it collides with an already-placed marker;
+ *   still reserves its *full-size* box (renders small, blocks full), so
+ *   priority order is strict: a lower-priority marker can never show
+ *   full-size in space a minimized higher-priority marker occupies.
+ */
+export type ResolutionMode = "always" | "hide" | "minimize";
+
+/** One marker's input to {@link resolveDisplayStates}. */
+export type ResolutionEntry = {
+  mode: ResolutionMode;
+  /** Numeric priority; higher wins. */
+  priority: number;
+  /** Full-size box at the marker's rendered position. */
+  obb: OBB;
+};
+
+/**
+ * Greedy priority placement — the winner/loser resolution behind the
+ * hide/minimize collision behaviours.
+ *
+ * Entries are placed in priority order (ties: input order, i.e. registration
+ * order). Each entry is tested only against already-placed boxes; hidden
+ * markers free their space for lower-priority ones, while `always` and
+ * minimized markers keep reserving their full box. Rerunning on the same
+ * input always yields the same output — placement never feeds back into the
+ * boxes it is tested against, so results cannot oscillate between passes.
+ *
+ * @param entries - One entry per marker still in contention, in registration order.
+ * @param exact - `true` tests the rotated boxes (SAT), `false` their enclosing
+ *   upright boxes — mirrors the detection pass's `accuracy` setting.
+ * @returns Display state per entry, indexed like `entries`.
+ */
+export function resolveDisplayStates(entries: readonly ResolutionEntry[], exact = true): MarkerCollisionDisplayState[] {
+  const order = entries.map((_, i) => i).sort((a, b) => entries[b].priority - entries[a].priority || a - b);
+
+  const states: MarkerCollisionDisplayState[] = new Array<MarkerCollisionDisplayState>(entries.length).fill("visible");
+  const placed: { obb: OBB; bounds: Bounds }[] = [];
+
+  // broad-phase on the enclosing upright boxes, then (at high accuracy) the
+  // exact rotated-box test — same two-tier scheme as the detection pass
+  const collides = (obb: OBB, bounds: Bounds): boolean => placed.some((p) => boundsIntersect(p.bounds, bounds) && (!exact || obbIntersect(p.obb, obb)));
+  const place = (obb: OBB): void => {
+    placed.push({ obb, bounds: obbToAABB(obb) });
+  };
+
+  for (const i of order) {
+    const entry = entries[i];
+    if (entry.mode === "always" || !collides(entry.obb, obbToAABB(entry.obb))) {
+      place(entry.obb);
+      continue;
+    }
+    if (entry.mode === "hide") {
+      states[i] = "hidden";
+      continue;
+    }
+    states[i] = "minimized";
+    place(entry.obb);
+  }
+
+  return states;
+}
+
+//#endregion
+
 //#region Grouping
 
 /**
  * Derives collision groups (connected components) from pairwise collisions.
  *
  * Groups keep the *full set* of mutually-colliding items — no winners or
- * losers. Behaviours like reposition-column and cluster need every member to
- * compute an average position, which winner/loser output cannot provide.
+ * losers — so consumers can inspect full collision sets rather than only
+ * the greedy placement outcome.
  *
  * @param items - All entries in the pass, indexable by the pair indices.
  * @param pairs - Colliding index pairs `[i, j]`.

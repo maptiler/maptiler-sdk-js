@@ -30,9 +30,10 @@ vi.mock("maplibre-gl", async () => {
       Map: class extends actual.default.Evented {
         constructor(options: any) {
           super();
-          this._container = options.container;
+          this._container = typeof options.container === "string" ? document.createElement("div") : options.container;
         }
         setStyle = vi.fn();
+        getContainer = actual.default.Map.prototype.getContainer;
       },
     },
   };

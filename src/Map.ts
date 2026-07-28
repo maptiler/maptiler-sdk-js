@@ -648,6 +648,10 @@ export class Map extends maplibregl.Map {
 
     super(superOptions);
 
+    // SDK hook for MapTiler-specific styling (e.g. stacking-context isolation
+    // in the SDK stylesheet) without touching MapLibre's own class
+    this.getContainer().classList.add("maptiler-map");
+
     this.options = options;
 
     this.setStyle(style);
@@ -1508,6 +1512,10 @@ export class Map extends maplibregl.Map {
    *   their actual rotated box; `low` uses the upright box enclosing it,
    *   which is cheaper per pair but over-reports collisions for rotated
    *   markers (it never misses a real one).
+   * @param options.behaviour - Default collision behaviour applied to every
+   *   marker on this map (`always-show` | `hide-by-priority` |
+   *   `minimize-by-priority`). A marker's own `collisionBehaviour` option
+   *   overrides it. Defaults to `always-show`.
    */
   setMarkerCollisionOptions(options: MarkerCollisionOptions): this {
     MarkerManager.setCollisionOptions(this, options);
