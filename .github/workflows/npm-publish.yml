@@ -3,6 +3,10 @@
 
 name: Node.js Package
 
+permissions:
+  id-token: write  # Required for NPM trusted publishing
+  contents: read
+
 on:
   release:
     types: [created]
@@ -10,14 +14,19 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.release.target_commitish }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
+          cache: 'npm'
+          cache-dependency-path: ./package-lock.json
           node-version: lts/*
           registry-url: https://registry.npmjs.org/
 
@@ -40,15 +49,11 @@ jobs:
         if: "!github.event.release.prerelease"
         run: |
           npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
 
       - name: Publish NPM package (pre-release)
         if: "github.event.release.prerelease"
         run: |
           npm publish --tag next
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
 
       - name: Get Package version
         id: version

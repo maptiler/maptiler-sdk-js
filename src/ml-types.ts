@@ -270,7 +270,13 @@ export type SortKeyRange = SymbolBucket["sortKeyRanges"][number];
 export type Entry = GlyphManager["entries"][string];
 
 /** @deprecated Will be removed from public API in MapTiler SDK v4 */
-export type PoolObject = ReturnType<RenderPool["getObjectForId"]>;
+export type PoolObject = {
+  id: number;
+  fbo: Framebuffer;
+  texture: Texture;
+  stamp: number;
+  inUse: boolean;
+};
 
 /** @deprecated Will be removed from public API in MapTiler SDK v4 */
 export type RenderPass = "offscreen" | "opaque" | "translucent";
@@ -810,9 +816,6 @@ type GlyphManager = Painter["glyphManager"];
 
 /** @deprecated Will be removed from public API in MapTiler SDK v4 */
 type RenderToTexture = Painter["renderToTexture"];
-
-/** @deprecated Will be removed from public API in MapTiler SDK v4 */
-type RenderPool = RenderToTexture["pool"];
 
 /** @deprecated Will be removed from public API in MapTiler SDK v4 */
 type CollisionIndex = Placement["collisionIndex"];
