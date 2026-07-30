@@ -1,6 +1,15 @@
 # MapTiler SDK Changelog
 
 ## NEXT
+### ✨ Features and improvements
+
+### 🐛 Bug Fixes
+ - Fixes a bug in halo where a mismatch between the layer added to the map and the layer added to the `.halo` field were different instances, causing a runtime error.
+
+### ⚙️ Others
+
+
+## 4.1.0
 
 ### ✨ Features and improvements
 - Adds experimental tile prefetching to reduce rendering latency during camera animations (`flyTo`, `panTo`, `easeTo`, `fitBounds`, `zoomTo`).
