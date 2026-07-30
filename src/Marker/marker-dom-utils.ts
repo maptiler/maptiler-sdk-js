@@ -31,6 +31,15 @@ function svgEl<K extends keyof SVGElementTagNameMap>(tag: K): SVGElementTagNameM
 const CUSTOM_ELEMENT_CLASSNAME = "marker-transform-wrapper";
 
 /**
+ * Resolves the inner transform wrapper from a marker's outer root element
+ * (or returns `element` itself when it already is the wrapper, or has none).
+ * @param element - The marker's outer root element.
+ */
+export function resolveMarkerWrapper(element: HTMLElement): HTMLElement {
+  return element.classList.contains(CUSTOM_ELEMENT_CLASSNAME) ? element : (element.querySelector<HTMLElement>(`.${CUSTOM_ELEMENT_CLASSNAME}`) ?? element);
+}
+
+/**
  * Seeds the CSS custom properties that drive marker colors and shadow.
  * Used on the generated wrapper, and on user-supplied custom elements so
  * their styles can consume the same variables.
@@ -119,7 +128,7 @@ export function updateMarkerElement(element: HTMLElement, props: PendingMarkerUp
   // inner transform wrapper. Updates must target the wrapper — writing to the
   // outer element either gets masked by the wrapper's inline values (CSS vars)
   // or clobbered by MapLibre (transform).
-  const wrapper = element.classList.contains(CUSTOM_ELEMENT_CLASSNAME) ? element : (element.querySelector<HTMLElement>(`.${CUSTOM_ELEMENT_CLASSNAME}`) ?? element);
+  const wrapper = resolveMarkerWrapper(element);
 
   if ("outerColor" in props) {
     wrapper.style.setProperty("--marker-outer-color", props.outerColor ?? DEFAULT_OUTER_COLOR);
@@ -522,6 +531,19 @@ export const COLLISION_FADE_DURATION_MS = 150;
 export function applyCollisionHidden(element: HTMLElement, hidden: boolean): void {
   element.classList.add(COLLISION_FADE_CLASSNAME);
   element.classList.toggle(COLLISION_HIDDEN_CLASSNAME, hidden);
+}
+
+/**
+ * Removes the fade class added by {@link applyCollisionHidden}. Callers must
+ * only do this once no fade/dip transition is in flight — otherwise the
+ * `.marker-transform-wrapper` transition it carries would cut out mid-animation.
+ * Left on indefinitely, that transition would also apply to unrelated
+ * `transform` writes (scale, rotation) made long after the collision
+ * transition settled.
+ * @param element - The marker's outer root element (or the custom element).
+ */
+export function releaseCollisionFadeClass(element: HTMLElement): void {
+  element.classList.remove(COLLISION_FADE_CLASSNAME);
 }
 
 const COLLISION_CULLED_CLASSNAME = "maptiler-marker-collision-culled";
