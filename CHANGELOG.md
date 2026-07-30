@@ -1,6 +1,6 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## 4.1.0
 
 ### ✨ Features and improvements
 - Adds experimental tile prefetching to reduce rendering latency during camera animations (`flyTo`, `panTo`, `easeTo`, `fitBounds`, `zoomTo`).
