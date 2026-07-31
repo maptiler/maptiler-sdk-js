@@ -71,15 +71,30 @@ window.setFixtureWithConfig = async function setFixtureWithConfig({ id, options,
     const map = fixtureManager.getMap();
 
     if (options.space) {
-      await new Promise((resolve) => {
-        void map?.once("cubemaplayer:animateincomplete", resolve);
-      });
+      try {
+        await new Promise((resolve, reject) => {
+          void map?.on("cubemaplayer:animateindone", resolve);
+          setTimeout(() => {
+            reject(new Error("Timeout waiting for cubemaplayer:animateindone"));
+          }, 30000);
+        });
+      } catch (e) {
+        console.error("Error waiting for cubemaplayer:animateindone", e);
+        throw e;
+      }
     }
 
     if (options.halo) {
-      await new Promise((resolve) => {
-        void map?.once("radialgradientlayer:animateincomplete", resolve);
-      });
+      try {
+        await new Promise((resolve, reject) => {
+          void map?.on("radialgradientlayer:animateindone", resolve);
+          setTimeout(() => {
+            reject(new Error("Timeout waiting for radialgradientlayer:animateindone"));
+          }, 30000);
+        });
+      } catch (e) {
+        console.error("Error waiting for radialgradientlayer:animateindone", e);
+      }
     }
 
     window.__testUtils = {

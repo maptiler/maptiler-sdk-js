@@ -17,7 +17,7 @@ function main() {
     projection: "globe",
     center: [0, -20],
     space: true, // these can also be config objects CubemapLayerConstructorOptions
-    halo: true,// same here, RadialGradientLayerConstructorOptions
+    halo: true, // same here, RadialGradientLayerConstructorOptions
   });
 
   let currentHaloIndex = 0;
@@ -142,6 +142,13 @@ function main() {
       } as CubemapDefinition);
     }
     console.log("Current config:", map.getSpace()?.getConfig());
+  });
+
+  map.on("cubemaplayer:animateindone", () => {
+    console.log("Cubemap layer animation complete");
+  });
+  map.on("radialgradientlayer:animateindone", () => {
+    console.log("Halo layer animation complete");
   });
 }
 

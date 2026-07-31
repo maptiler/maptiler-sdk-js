@@ -224,7 +224,7 @@ export class RadialGradientLayer implements CustomLayerInterface {
           requestAnimationFrame(animate);
           return;
         }
-        this.fireEvent("radialgradientlayer:animateincomplete", this);
+        this.fireEvent("radialgradientlayer:animateindone", this);
         resolve();
       };
 
@@ -260,7 +260,7 @@ export class RadialGradientLayer implements CustomLayerInterface {
           return;
         }
         resolve();
-        this.fireEvent("radialgradientlayer:animateoutcomplete", this);
+        this.fireEvent("radialgradientlayer:animateoutdone", this);
       };
       animate();
     });

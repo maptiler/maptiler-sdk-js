@@ -394,7 +394,7 @@ class CubemapLayer implements CustomLayerInterface {
         }
         this.imageIsAnimating = false;
         this.imageFadeInDelta = 0.0;
-        this.fireEvent("cubemaplayer:animateincomplete", this);
+        this.fireEvent("cubemaplayer:animateindone", this);
         resolve();
       };
 
@@ -421,7 +421,7 @@ class CubemapLayer implements CustomLayerInterface {
         if (this.imageFadeInDelta >= 1.0) {
           this.imageIsAnimating = false;
           this.imageFadeInDelta = 0.0;
-          this.fireEvent("cubemaplayer:animateoutcomplete", this);
+          this.fireEvent("cubemaplayer:animateoutdone", this);
           resolve();
           return;
         }
