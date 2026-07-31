@@ -68,8 +68,20 @@ const fixtureManager = createFixtureManager();
 window.setFixtureWithConfig = async function setFixtureWithConfig({ id, options, requiresScreenShot }: { id: string; options: MapOptions; requiresScreenShot?: boolean }) {
   try {
     await fixtureManager.setNewMap(id, options, requiresScreenShot);
-
     const map = fixtureManager.getMap();
+
+    if (options.space) {
+      await new Promise((resolve) => {
+        void map?.once("cubemaplayer:animateincomplete", resolve);
+      });
+    }
+
+    if (options.halo) {
+      await new Promise((resolve) => {
+        void map?.once("radialgradientlayer:animateincomplete", resolve);
+      });
+    }
+
     window.__testUtils = {
       getHaloConfig: () => map?.getHalo()?.getConfig(),
       getSpaceConfig: () => map?.getSpace()?.getConfig(),

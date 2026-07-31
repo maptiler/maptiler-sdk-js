@@ -224,6 +224,7 @@ export class RadialGradientLayer implements CustomLayerInterface {
           requestAnimationFrame(animate);
           return;
         }
+        this.fireEvent("radialgradientlayer:animateincomplete", this);
         resolve();
       };
 
@@ -259,6 +260,7 @@ export class RadialGradientLayer implements CustomLayerInterface {
           return;
         }
         resolve();
+        this.fireEvent("radialgradientlayer:animateoutcomplete", this);
       };
       animate();
     });
@@ -269,6 +271,11 @@ export class RadialGradientLayer implements CustomLayerInterface {
       gl.deleteProgram(this.plane.shaderProgram);
       gl.deleteBuffer(this.plane.positionBuffer);
     }
+    this.fireEvent("radialgradientlayer:onremove", this);
+  }
+
+  private fireEvent(event: string, layer: RadialGradientLayer) {
+    this.map.fire(event, layer);
   }
 
   public prerender(_gl: WebGLRenderingContext | WebGL2RenderingContext, _options: CustomRenderMethodInput): void {}
