@@ -91,7 +91,6 @@ function main() {
 
   const randomHaloBtn = document.getElementById("random-halo") as HTMLButtonElement;
   randomHaloBtn.addEventListener("click", () => {
-    console.log(map.getLayersOrder());
     currentHaloIndex = (currentHaloIndex + 1) % stopsSelection.length;
     const { scale, stops } = stopsSelection[currentHaloIndex];
     map.setHalo({
