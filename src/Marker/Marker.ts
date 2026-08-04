@@ -490,7 +490,7 @@ export class Marker extends maplibregl.Marker {
     }, COLLISION_FADE_DURATION_MS);
   }
 
-  /** Applies or restores the minimized appearance iff it differs from what the DOM shows. */
+  /** Applies or restores the minimized appearance if it differs from what the DOM shows. */
   private setMinimizedApplied(applied: boolean): void {
     if (this.minimizedApplied === applied) return;
     this.minimizedApplied = applied;
