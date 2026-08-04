@@ -1,6 +1,15 @@
 # MapTiler SDK Changelog
 
 ## NEXT
+### ✨ Features and improvements
+
+### 🐛 Bug Fixes
+ - Fixes a bug in halo where a mismatch between the layer added to the map and the layer added to the `.halo` field were different instances, causing a runtime error.
+
+### ⚙️ Others
+
+
+## 4.1.0
 
 ### ✨ Features and improvements
 - Adds experimental tile prefetching to reduce rendering latency during camera animations (`flyTo`, `panTo`, `easeTo`, `fitBounds`, `zoomTo`).
@@ -13,6 +22,9 @@
 - Fixes `helpers.addPolyline` string data handling
   - It now correctly parses any string input (passed directly or fetched via URL) as GeoJSON, GPX, KML.
   - It is no longer needed to provide URL with a supported filename extension, format is autodetected.
+
+### ⚙️ Others
+- Bumps maplibre-gl-js to v5.24
 
 ## 4.0.2
 
