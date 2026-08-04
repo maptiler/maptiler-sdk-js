@@ -7,7 +7,7 @@ function main() {
 
   const map = new Map({
     container: document.getElementById("map")!,
-    style: MapStyle.SATELLITE.DEFAULT,
+    style: MapStyle.OCEAN.DEFAULT,
     hash: false,
     geolocate: true,
     scaleControl: true,
