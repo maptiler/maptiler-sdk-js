@@ -160,9 +160,7 @@ export class RadialGradientLayer implements CustomLayerInterface {
    * @returns void
    */
   public onAdd(map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
-    console.log("onAdd", this.testID, layerInstances.get(this.testID));
     this.map = map;
-    console.log("onAdd", this.testID);
     this.plane = createObject3D({
       gl,
       vertexShaderSource,
@@ -214,7 +212,6 @@ export class RadialGradientLayer implements CustomLayerInterface {
    * @returns {Promise<void>} A promise that resolves when the animation completes
    */
   private async animateIn() {
-    console.log("animateIn", this.testID);
     if (!this.animationActive) {
       this.scale = this.gradient.scale;
       this.animationDelta = 1;
@@ -258,8 +255,6 @@ export class RadialGradientLayer implements CustomLayerInterface {
     }
 
     this.animationDelta = 0;
-
-    console.log("animateOut", this.testID, this.map);
 
     return new Promise<void>((resolve) => {
       const animate = () => {
