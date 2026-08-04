@@ -71,7 +71,6 @@ const layerInstances = new Map<string, MapSDK>();
 export class RadialGradientLayer implements CustomLayerInterface {
   private testID = Math.random().toString(36).substring(2, 15);
 
-  private map!: MapSDK;
   public id: string = "Halo Layer";
   public type: CustomLayerInterface["type"] = "custom";
   public renderingMode: CustomLayerInterface["renderingMode"] = "3d";
@@ -105,7 +104,7 @@ export class RadialGradientLayer implements CustomLayerInterface {
    * @private
    * @type {MapSDK}
    */
-  // private map!: MapSDK;
+  private map!: MapSDK;
 
   /**
    * The 3D object representing the radial gradient plane.
