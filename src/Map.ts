@@ -513,27 +513,22 @@ export class Map extends maplibregl.Map {
     if (this.halo && this.getLayer(this.halo.id)) {
       return;
     }
-
     if (options.halo === false) return;
 
     const haloOptionsFromStyleSpec = spec;
     if (options.halo && options.halo !== true) {
       this.halo = new RadialGradientLayer(options.halo);
-      this.removeLayer(this.halo.id);
       this.addLayer(this.halo, before);
       return;
     }
 
     if (haloOptionsFromStyleSpec) {
       this.halo = new RadialGradientLayer(haloOptionsFromStyleSpec);
-      this.removeLayer(this.halo.id);
       this.addLayer(this.halo, before);
-      return;
     }
 
     if (this.options.halo === true) {
       this.halo = new RadialGradientLayer(true);
-      this.removeLayer(this.halo.id);
       this.addLayer(this.halo, before);
       return;
     }
