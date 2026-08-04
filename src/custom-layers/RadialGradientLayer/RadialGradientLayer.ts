@@ -69,17 +69,9 @@ const DELTA_CHANGE = 0.06;
 const layerInstances = new Map<string, MapSDK>();
 
 export class RadialGradientLayer implements CustomLayerInterface {
-  get map() {
-    return this._map;
-  }
-  set map(value: MapSDK) {
-    console.log("set map!", value);
-    this._map = value;
-  }
-
   private testID = Math.random().toString(36).substring(2, 15);
 
-  private _map!: MapSDK;
+  private map!: MapSDK;
   public id: string = "Halo Layer";
   public type: CustomLayerInterface["type"] = "custom";
   public renderingMode: CustomLayerInterface["renderingMode"] = "3d";
