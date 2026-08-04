@@ -68,8 +68,35 @@ const fixtureManager = createFixtureManager();
 window.setFixtureWithConfig = async function setFixtureWithConfig({ id, options, requiresScreenShot }: { id: string; options: MapOptions; requiresScreenShot?: boolean }) {
   try {
     await fixtureManager.setNewMap(id, options, requiresScreenShot);
-
     const map = fixtureManager.getMap();
+
+    if (options.space) {
+      try {
+        await new Promise((resolve, reject) => {
+          void map?.on("cubemaplayer:animateindone", resolve);
+          setTimeout(() => {
+            reject(new Error("Timeout waiting for cubemaplayer:animateindone"));
+          }, 30000);
+        });
+      } catch (e) {
+        console.error("Error waiting for cubemaplayer:animateindone", e);
+        throw e;
+      }
+    }
+
+    if (options.halo) {
+      try {
+        await new Promise((resolve, reject) => {
+          void map?.on("radialgradientlayer:animateindone", resolve);
+          setTimeout(() => {
+            reject(new Error("Timeout waiting for radialgradientlayer:animateindone"));
+          }, 30000);
+        });
+      } catch (e) {
+        console.error("Error waiting for radialgradientlayer:animateindone", e);
+      }
+    }
+
     window.__testUtils = {
       getHaloConfig: () => map?.getHalo()?.getConfig(),
       getSpaceConfig: () => map?.getSpace()?.getConfig(),
