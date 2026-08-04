@@ -289,6 +289,7 @@ class CubemapLayer implements CustomLayerInterface {
       }
       gl.deleteProgram(this.cubemap.shaderProgram);
       gl.deleteBuffer(this.cubemap.positionBuffer);
+      this.fireEvent("cubemaplayer:onremove", this);
     }
   }
 
@@ -393,6 +394,7 @@ class CubemapLayer implements CustomLayerInterface {
         }
         this.imageIsAnimating = false;
         this.imageFadeInDelta = 0.0;
+        this.fireEvent("cubemaplayer:animateindone", this);
         resolve();
       };
 
@@ -419,6 +421,7 @@ class CubemapLayer implements CustomLayerInterface {
         if (this.imageFadeInDelta >= 1.0) {
           this.imageIsAnimating = false;
           this.imageFadeInDelta = 0.0;
+          this.fireEvent("cubemaplayer:animateoutdone", this);
           resolve();
           return;
         }
@@ -428,6 +431,10 @@ class CubemapLayer implements CustomLayerInterface {
 
       requestAnimationFrame(animateOut);
     });
+  }
+
+  private fireEvent(event: string, layer: CubemapLayer) {
+    this.map.fire(event, layer);
   }
 
   public setAnimationActive(active: boolean) {
