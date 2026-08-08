@@ -42,6 +42,7 @@ import {
   EmitCollisionDiffSymbol,
   ApplyCollisionDisplayStateSymbol,
   MeasuredElementSizeSymbol,
+  ClearFocusStateSymbol,
 } from "./marker-symbols";
 
 const maplibreMarkerConstructorOverrides: MarkerOptions = {
@@ -923,6 +924,15 @@ export class Marker extends maplibregl.Marker {
     target.addEventListener("focus", () => {
       this.setUIStateActive("focus", true);
     });
+
+    // Click-to-focus is the default action of mousedown, which MapLibre's
+    // handler prevents on the map container. Take focus explicitly
+    // instead of relying on that default. pointerdown (not click) lands the
+    // state on press and covers touch/pen.
+    target.addEventListener("pointerdown", () => {
+      target.focus();
+    });
+
     target.addEventListener("blur", () => {
       this.setUIStateActive("focus", false);
     });
@@ -933,6 +943,16 @@ export class Marker extends maplibregl.Marker {
     this.on("dragend", () => {
       this.setUIStateActive("dragging", false);
     });
+  }
+
+  /**
+   * Blurs the marker's focusable element. The map's own mousedown handling
+   * prevents focus from ever naturally moving off the marker on background
+   * clicks, so {@link MarkerManager} calls this explicitly on map `click` to
+   * clear a stuck `focus` UI state.
+   */
+  [ClearFocusStateSymbol](): void {
+    resolveMarkerWrapper(this[MarkerElementSymbol]).blur();
   }
 
   private setUIStateActive(name: MapTilerMarkerUIStateName, active: boolean): void {
