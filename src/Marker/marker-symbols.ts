@@ -7,3 +7,4 @@ export const CollisionFootprintSymbol = Symbol("MapTiler:Marker:collisionFootpri
 export const EmitCollisionDiffSymbol = Symbol("MapTiler:Marker:emitCollisionDiff");
 export const ApplyCollisionDisplayStateSymbol = Symbol("MapTiler:Marker:applyCollisionDisplayState");
 export const MeasuredElementSizeSymbol = Symbol("MapTiler:Marker:measuredElementSize");
+export const ClearFocusStateSymbol = Symbol("MapTiler:Marker:clearFocusState");

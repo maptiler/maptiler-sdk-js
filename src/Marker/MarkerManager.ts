@@ -26,6 +26,8 @@ import {
   EmitCollisionDiffSymbol,
   ApplyCollisionDisplayStateSymbol,
   MeasuredElementSizeSymbol,
+  MarkerElementSymbol,
+  ClearFocusStateSymbol,
 } from "./marker-symbols";
 
 /** Pending props that change a marker's footprint and therefore its collisions. */
@@ -140,6 +142,18 @@ class MarkerManagerImpl {
     map.on("styledata", () => {
       this.refreshAdaptiveColors(map);
     });
+
+    // DragPan prevents mousedown's default action on the map container, so
+    // focus never naturally moves off a marker on a background click — clear
+    // any stuck `focus` state explicitly here instead.
+    map.on("click", (e) => {
+      const clickTarget = e.originalEvent.target as Node | null;
+      for (const marker of index.values()) {
+        if (clickTarget && marker[MarkerElementSymbol].contains(clickTarget)) continue;
+        marker[ClearFocusStateSymbol]();
+      }
+    });
+
     return index;
   }
 
