@@ -231,6 +231,19 @@ export type MarkerContent = MarkerContentTypeNone | MarkerContentTypeIcon | Mark
 
 //#endregion
 
+//#region UI States
+
+/** UI "state" types that can restyle a marker. */
+export type MapTilerMarkerUIStateName = "hover" | "focus" | "active" | "dragging";
+
+/** Property overrides applied while a UI state is active. Keys are any settable marker property (e.g. `shape`, `opacity`, `scale`). */
+export type UIStateSpec = Partial<MapTilerMarkerElementProps>;
+
+/** Per-state property overrides, keyed by UI state name. */
+export type MapTilerMarkerUIStates = Partial<Record<MapTilerMarkerUIStateName, UIStateSpec>>;
+
+//#endregion
+
 //#region Base Options
 
 // `color` is omitted from the MapLibre options because it styles the default
@@ -309,6 +322,11 @@ export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" 
    * `0` means the marker's bounding box is used.
    */
   collisionRadius?: number;
+  /**
+   * Per-state property overrides applied while the marker is hovered,
+   * focused, active (pointer down), or being dragged.
+   */
+  states?: MapTilerMarkerUIStates;
 };
 
 //#endregion

@@ -10,6 +10,9 @@ import type {
   MapTilerMarkerOptions,
   MarkerCollisionEventData,
   MarkerCollisionDisplayState,
+  MapTilerMarkerUIStateName,
+  MapTilerMarkerUIStates,
+  UIStateSpec,
 } from "./types";
 import { omit } from "../utils/object";
 import { v4 as uuid } from "uuid";
@@ -20,12 +23,15 @@ import {
   applyMinimizedDot,
   createMarkerElement,
   updateMarkerElement,
+  resolveMarkerWrapper,
+  releaseCollisionFadeClass,
   COLLISION_FADE_DURATION_MS,
 } from "./marker-dom-utils";
 import { DEFAULT_SHAPE, DEFAULT_SIZE, SHAPES, SIZE_PX, getShapeAnchorOffset } from "./marker-svg-config";
 import { getAdaptiveBgColor, resolveAdaptiveColor } from "./marker-adaptive-colors";
 import { MarkerManager } from "./MarkerManager";
 import type { MarkerFootprint } from "./collision-helpers";
+import { flattenUIStates } from "./marker-state-helpers";
 import {
   PendingUpdatesSymbol,
   DetachFromDOMSymbol,
@@ -41,6 +47,10 @@ import {
 const maplibreMarkerConstructorOverrides: MarkerOptions = {
   scale: 1, // scale in our class will be a 2D vector.
 };
+
+// custom elements minimize to a dot — only these props are consumable as
+// CSS custom properties by the dot (or the element's own styles)
+const CUSTOM_ELEMENT_MINIMIZED_KEYS = ["color", "innerColor", "outerColor", "contentColor", "shadow", "opacity"] as const satisfies readonly (keyof MapTilerMarkerElementProps)[];
 
 const maptilerBaseOptionsKeys = [
   "shape",
@@ -67,6 +77,7 @@ const maptilerBaseOptionsKeys = [
   "minimizedOptions",
   "rotation",
   "debug",
+  "states",
 ] as const;
 
 /**
@@ -138,6 +149,28 @@ export class Marker extends maplibregl.Marker {
   /** Pending post-fade cull (`display: none`) while hidden. */
   private cullTimer: ReturnType<typeof setTimeout> | null = null;
 
+  /**
+   * Pending release of the collision fade class once no fade/dip transition
+   * is in flight — keeps the class (and the `transform` transition it
+   * carries) from lingering on the element after the marker settles, where
+   * it would otherwise silently apply to unrelated `transform` writes (e.g.
+   * {@link setScale}, {@link setRotation}).
+   */
+  private fadeClassReleaseTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Registered property overrides per UI state, keyed by state name. */
+  private uiStates: MapTilerMarkerUIStates;
+
+  /** UI states currently active (interaction-driven). */
+  private readonly activeUIStates = new Set<MapTilerMarkerUIStateName>();
+
+  /**
+   * Keys currently owned by the flattened active UI state — masked out of
+   * DOM flushes so a queued user update can't clobber the UI state's
+   * appearance, mirroring {@link minimizedKeys}.
+   */
+  private appliedUIStateKeys: (keyof PendingMarkerUpdates)[] = [];
+
   //#endregion
 
   //#region Constructor
@@ -205,6 +238,8 @@ export class Marker extends maplibregl.Marker {
     if (typeof options.priority === "number") element.style.zIndex = String(options.priority);
 
     this.options = options;
+    this.uiStates = { ...options.states };
+    this.attachUIStateListeners();
   }
 
   //#endregion
@@ -253,9 +288,10 @@ export class Marker extends maplibregl.Marker {
   [FlushDOMUpdatesSymbol](): void {
     const raw = this[PendingUpdatesSymbol];
     this[PendingUpdatesSymbol] = {};
-    // while the minimized appearance is applied, it owns its keys — the props
-    // are already recorded and get applied when the marker un-minimizes
-    const pending: PendingMarkerUpdates = this.minimizedApplied && this.minimizedKeys.length > 0 ? omit(raw, this.minimizedKeys) : raw;
+    // while the minimized appearance or an active UI state owns a key, the
+    // props are already recorded and get applied once that owner releases it
+    const maskedKeys = [...(this.minimizedApplied ? this.minimizedKeys : []), ...this.appliedUIStateKeys];
+    const pending: PendingMarkerUpdates = maskedKeys.length > 0 ? omit(raw, maskedKeys) : raw;
     if (Object.keys(pending).length === 0) return;
     updateMarkerElement(this[MarkerElementSymbol], pending, this.getCurrentStyleId());
   }
@@ -403,7 +439,7 @@ export class Marker extends maplibregl.Marker {
       // fade out as-is; a minimized appearance is restored lazily on un-hide.
       // Once the fade completes the marker leaves rendering entirely
       // (display: none), so masses of hidden markers cost nothing per frame.
-      applyCollisionHidden(element, true);
+      this.setCollisionHidden(true);
       this.cullTimer = setTimeout(() => {
         this.cullTimer = null;
         applyCollisionCulled(this.getElement(), true);
@@ -421,22 +457,36 @@ export class Marker extends maplibregl.Marker {
       // never shows.
       applyCollisionCulled(element, false);
       this.setMinimizedApplied(wantMinimized);
-      applyCollisionHidden(element, false);
+      this.setCollisionHidden(false);
       return;
     }
 
     if (this.minimizedApplied === wantMinimized) {
       // nothing to swap (e.g. a cancelled dip reversed itself) — just fade back
-      applyCollisionHidden(element, false);
+      this.setCollisionHidden(false);
       return;
     }
 
     // visible <-> minimized: fade through zero
-    applyCollisionHidden(element, true);
+    this.setCollisionHidden(true);
     this.minimizeSwapTimer = setTimeout(() => {
       this.minimizeSwapTimer = null;
       this.setMinimizedApplied(wantMinimized);
-      applyCollisionHidden(this.getElement(), false);
+      this.setCollisionHidden(false);
+    }, COLLISION_FADE_DURATION_MS);
+  }
+
+  /**
+   * Toggles the collision-hidden fade, and (re)schedules releasing the fade
+   * class once {@link COLLISION_FADE_DURATION_MS} passes with no further
+   * fade/dip transition — see {@link fadeClassReleaseTimer}.
+   */
+  private setCollisionHidden(hidden: boolean): void {
+    applyCollisionHidden(this.getElement(), hidden);
+    if (this.fadeClassReleaseTimer !== null) clearTimeout(this.fadeClassReleaseTimer);
+    this.fadeClassReleaseTimer = setTimeout(() => {
+      this.fadeClassReleaseTimer = null;
+      releaseCollisionFadeClass(this.getElement());
     }, COLLISION_FADE_DURATION_MS);
   }
 
@@ -457,10 +507,8 @@ export class Marker extends maplibregl.Marker {
     const overrides = this.options.minimizedOptions ?? {};
     if (!this.options.element) return { size: "xs", ...overrides };
 
-    // custom elements minimize to a dot — only the props the dot (or the
-    // element's own styles) can consume as CSS custom properties apply
     const updates: Record<string, unknown> = {};
-    for (const key of ["color", "innerColor", "outerColor", "contentColor", "shadow", "opacity"] as const) {
+    for (const key of CUSTOM_ELEMENT_MINIMIZED_KEYS) {
       if (key in overrides) updates[key] = overrides[key];
     }
     return updates as PendingMarkerUpdates;
@@ -846,6 +894,78 @@ export class Marker extends maplibregl.Marker {
   }
 
   //#endregion
+
+  //#endregion
+
+  //#region UI States
+
+  private attachUIStateListeners(): void {
+    const target = resolveMarkerWrapper(this[MarkerElementSymbol]);
+
+    if (!target.hasAttribute("tabindex")) target.tabIndex = 0;
+
+    target.addEventListener("pointerenter", () => {
+      this.setUIStateActive("hover", true);
+    });
+    target.addEventListener("pointerleave", () => {
+      this.setUIStateActive("active", false);
+      this.setUIStateActive("hover", false);
+    });
+    target.addEventListener("pointerdown", () => {
+      this.setUIStateActive("active", true);
+    });
+    target.addEventListener("pointerup", () => {
+      this.setUIStateActive("active", false);
+    });
+    target.addEventListener("pointercancel", () => {
+      this.setUIStateActive("active", false);
+    });
+    target.addEventListener("focus", () => {
+      this.setUIStateActive("focus", true);
+    });
+    target.addEventListener("blur", () => {
+      this.setUIStateActive("focus", false);
+    });
+
+    this.on("dragstart", () => {
+      this.setUIStateActive("dragging", true);
+    });
+    this.on("dragend", () => {
+      this.setUIStateActive("dragging", false);
+    });
+  }
+
+  private setUIStateActive(name: MapTilerMarkerUIStateName, active: boolean): void {
+    if (active === this.activeUIStates.has(name)) return;
+    if (active) this.activeUIStates.add(name);
+    else this.activeUIStates.delete(name);
+    this.applyUIStates();
+  }
+
+  private applyUIStates(): void {
+    const flattened = flattenUIStates(this.uiStates, this.activeUIStates);
+    const newKeys = Object.keys(flattened) as (keyof PendingMarkerUpdates)[];
+
+    const restoreKeys = this.appliedUIStateKeys.filter((key) => !(key in flattened));
+    const restore = restoreKeys.length > 0 ? this.restoreUpdates(restoreKeys) : {};
+
+    this.appliedUIStateKeys = newKeys;
+
+    const batch = { ...restore, ...flattened } as PendingMarkerUpdates;
+    if (Object.keys(batch).length === 0) return;
+    updateMarkerElement(this[MarkerElementSymbol], batch, this.getCurrentStyleId());
+  }
+
+  /**
+   * Registers (or replaces) the property overrides applied while `name` is
+   * active. Applies immediately if that state is currently active.
+   * @param name - UI state to configure (`hover` | `focus` | `active` | `dragging`).
+   * @param spec - Property overrides to apply while the state is active.
+   */
+  setUIState(name: MapTilerMarkerUIStateName, spec: UIStateSpec): void {
+    this.uiStates[name] = spec;
+    if (this.activeUIStates.has(name)) this.applyUIStates();
+  }
 
   //#endregion
 
