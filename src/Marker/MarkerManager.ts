@@ -16,7 +16,7 @@ import {
   type ResolutionEntry,
   type ResolutionMode,
 } from "./collision-helpers";
-import { applyCollisionCulled } from "./marker-dom-utils";
+import { applyCollisionCulled, COLLISION_FADE_DURATION_MS } from "./marker-dom-utils";
 import {
   DetachFromDOMSymbol,
   FlushDOMUpdatesSymbol,
@@ -53,6 +53,10 @@ type MapCollisionState = {
   accuracy: MarkerCollisionAccuracy;
   /** Map-wide default collision behaviour; a marker's own `collisionBehaviour` overrides it. */
   behaviour: CollisionBehaviour;
+  /** Duration in ms of the hide/show/minimize fade transition. */
+  transitionDuration: number;
+  /** CSS easing function for the fade transition. */
+  transitionEasing: string;
 };
 
 /** One marker's resolved geometry within a detection pass. */
@@ -377,13 +381,31 @@ class MarkerManagerImpl {
    * @param options.behaviour - Default collision behaviour for every marker
    *   on the map; a marker's own `collisionBehaviour` option overrides it.
    *   Defaults to `always-show`.
+   * @param options.transitionDuration - Duration in ms of the hide/show/minimize fade. Defaults to `150`.
+   * @param options.transitionEasing - CSS easing function for the fade. Defaults to `"ease"`.
    */
   setCollisionOptions(map: SDKMap, options: MarkerCollisionOptions): void {
     const state = this.getOrCreateCollisionState(map);
     if (options.proximityPadding !== undefined) state.proximityPadding = options.proximityPadding;
     if (options.accuracy !== undefined) state.accuracy = options.accuracy;
     if (options.behaviour !== undefined) state.behaviour = options.behaviour;
+    if (options.transitionDuration !== undefined) state.transitionDuration = options.transitionDuration;
+    if (options.transitionEasing !== undefined) state.transitionEasing = options.transitionEasing;
+    this.applyCollisionTransitionVars(map, state);
     this.invalidateCollisions(map);
+  }
+
+  /** Returns the fade-transition duration (ms) configured for `map`, or the SDK default if never configured. */
+  getCollisionTransitionDuration(map: SDKMap): number {
+    return this.collisionState.get(map)?.transitionDuration ?? COLLISION_FADE_DURATION_MS;
+  }
+
+  // exposes the per-map fade duration/easing to CSS, so the collision fade
+  // classes (defined once in the stylesheet) pick up per-map overrides
+  private applyCollisionTransitionVars(map: SDKMap, state: MapCollisionState): void {
+    const container = map.getContainer();
+    container.style.setProperty("--maptiler-collision-transition-duration", `${state.transitionDuration}ms`);
+    container.style.setProperty("--maptiler-collision-transition-easing", state.transitionEasing);
   }
 
   // lazily creates the per-map collision state and attaches the camera
@@ -398,8 +420,11 @@ class MarkerManagerImpl {
       proximityPadding: DEFAULT_PROXIMITY_PADDING,
       accuracy: "high",
       behaviour: CollisionBehaviour.ALWAYS_SHOW,
+      transitionDuration: COLLISION_FADE_DURATION_MS,
+      transitionEasing: "ease",
     };
     this.collisionState.set(map, state);
+    this.applyCollisionTransitionVars(map, state);
 
     // the pass runs when movement settles — during camera movement markers
     // track their positions via MapLibre's own per-frame update, and in

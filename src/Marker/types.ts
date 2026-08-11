@@ -84,6 +84,17 @@ export type MarkerCollisionOptions = {
    * (nothing is ever hidden until a behaviour is opted into).
    */
   behaviour?: CollisionBehaviour;
+  /**
+   * Duration in milliseconds of the hide/show/minimize fade transition
+   * markers go through under collision behaviours. Defaults to `150`.
+   */
+  transitionDuration?: number;
+  /**
+   * CSS easing function for the fade transition (e.g. `"ease"`,
+   * `"ease-in-out"`, `"linear"`, or a `cubic-bezier(...)` expression).
+   * Defaults to `"ease"`.
+   */
+  transitionEasing?: string;
 };
 
 /**
@@ -149,23 +160,39 @@ export type MarkerPriorityExpression = unknown[];
 //     }
 //   | MaptilerAnimation;
 
-// Transitions
+//#endregion
 
-// /** CSS transition config for interactive marker states. */
-// export type MapTilerMarkerTransitions = {
-//   /**
-//    * CSS `transition` property value applied to the marker element
-//    * (e.g. `'transform 0.3s ease, opacity 0.3s ease'`).
-//    * A sensible default is used when omitted.
-//    */
-//   property?: string;
-//   /** CSS properties applied while the cursor is over the marker. */
-//   hover?: Record<string, string | number>;
-//   /** CSS properties applied while the marker has keyboard focus. */
-//   focus?: Record<string, string | number>;
-//   /** CSS properties applied while the marker is being activated (e.g. mousedown). */
-//   active?: Record<string, string | number>;
-// };
+//#region Transitions
+
+/** Marker properties that can be eased from their old value to a new one instead of snapping. */
+export type MarkerTransitionProperty = "position" | "scale" | "rotation" | "outerColor" | "innerColor" | "contentColor" | "outlineColor";
+
+/**
+ * Configures how a transitionable property eases to a newly-set value.
+ * `[duration, easing?, delay?]`, all in milliseconds except `easing`.
+ * `easing` names any {@link EasingFunctionName} (case-insensitive — e.g.
+ * `"bouncein"` resolves to `"BounceIn"`); unrecognised names fall back to
+ * `"Linear"`. Defaults to no delay when omitted.
+ */
+export type MarkerTransitionSpec = [duration: number, easing?: string, delay?: number];
+
+/** Per-property transition configuration, keyed by {@link MarkerTransitionProperty}. */
+export type MapTilerMarkerTransitions = Partial<Record<MarkerTransitionProperty, MarkerTransitionSpec>>;
+
+/**
+ * Event fired by a marker's `transitionstart` / `transitionend` — the same
+ * shape as MapLibre's own marker events (`type`, `target`), plus `props`.
+ */
+export type MarkerTransitionEventData = {
+  type: "transitionstart" | "transitionend";
+  target: Marker;
+  /**
+   * The property being transitioned, keyed to its value at the time of the
+   * event — the value it's easing from on `transitionstart`, the value it
+   * reached on `transitionend`.
+   */
+  props: Partial<Record<MarkerTransitionProperty, unknown>>;
+};
 
 //#endregion
 
@@ -303,8 +330,12 @@ export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" 
   //   /** Loops continuously while the marker is idle on the map. */
   //   idle?: AnimationOptions[];
   // };
-  // /** CSS transitions for interactive marker states. */
-  // transitions?: MapTilerMarkerTransitions;
+  /**
+   * Per-property easing applied when a transitionable property (`position`,
+   * `scale`, `rotation`, or a colour) is next set, instead of the change
+   * snapping immediately. See {@link setTransitionForProperty}.
+   */
+  transitions?: MapTilerMarkerTransitions;
   /** Arbitrary user-defined data attached to the marker instance. */
   userData?: Record<string, unknown>;
   /** Behaviour when this marker spatially overlaps another. Overrides the map-level default (see `MarkerCollisionOptions`). */

@@ -1521,6 +1521,8 @@ export class Map extends maplibregl.Map {
    *   marker on this map (`always-show` | `hide-by-priority` |
    *   `minimize-by-priority`). A marker's own `collisionBehaviour` option
    *   overrides it. Defaults to `always-show`.
+   * @param options.transitionDuration - Duration in ms of the hide/show/minimize fade. Defaults to `150`.
+   * @param options.transitionEasing - CSS easing function for the fade. Defaults to `"ease"`.
    */
   setMarkerCollisionOptions(options: MarkerCollisionOptions): this {
     MarkerManager.setCollisionOptions(this, options);

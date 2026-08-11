@@ -182,7 +182,8 @@
    fades, visibility flips only once the fade completes, pointer events stop
    immediately so a fading-out marker can't be clicked. */
 .maptiler-marker-collision-fade {
-  transition: opacity 150ms ease, visibility 150ms ease;
+  transition: opacity var(--maptiler-collision-transition-duration, 150ms) var(--maptiler-collision-transition-easing, ease),
+    visibility var(--maptiler-collision-transition-duration, 150ms) var(--maptiler-collision-transition-easing, ease);
 }
 
 .maptiler-marker-collision-hidden {
@@ -207,7 +208,7 @@
    inline `scale() rotate()` transform; the mismatched transform lists
    interpolate via matrix decomposition. */
 .maptiler-marker-collision-fade .marker-transform-wrapper {
-  transition: transform 150ms ease;
+  transition: transform var(--maptiler-collision-transition-duration, 150ms) var(--maptiler-collision-transition-easing, ease);
 }
 
 .maptiler-marker-collision-hidden .marker-transform-wrapper {

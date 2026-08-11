@@ -152,6 +152,27 @@
         <span id="dom-transform">—</span>
       </div>
     </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Transitions (T marker)</div>
+      <div class="ctrl-hint">
+        <code>scale</code>, <code>outerColor</code> and <code>position</code>
+        each ease to their new value over a configured duration/easing/delay
+        instead of snapping — set via the <code>transitions</code> option or
+        <code>setTransitionForProperty()</code>.
+      </div>
+      <div class="btn-row">
+        <button id="transition-scale" class="ctrl-btn">Toggle scale</button>
+        <button id="transition-color" class="ctrl-btn">Toggle color</button>
+      </div>
+      <div class="btn-row">
+        <button id="transition-position" class="ctrl-btn">Nudge position</button>
+        <button id="transition-toggle" class="ctrl-btn">Disable transitions</button>
+      </div>
+      <div class="ctrl-hint">Last events (<code>transitionstart</code> / <code>transitionend</code>):</div>
+      <div class="legend" id="transition-log"></div>
+      <div class="ctrl-hint" style="word-break: break-all;" id="transition-config"></div>
+    </div>
   </div>
 
   <script type="module" src="/src/18-maptiler-markers-ui-states.ts"></script>
