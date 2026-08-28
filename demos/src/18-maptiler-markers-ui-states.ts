@@ -157,10 +157,11 @@ async function main() {
 
   const eventLogEl = el("transition-log");
   const logTransitionEvent = (type: string, props: Record<string, unknown>) => {
+    const time = new Date().toLocaleTimeString(undefined, { hour12: false, minute: "2-digit", second: "2-digit", fractionalSecondDigits: 3 } as Intl.DateTimeFormatOptions);
     const line = document.createElement("div");
-    line.textContent = `${type} · ${JSON.stringify(props)}`;
+    line.textContent = `${time} · ${type} · ${JSON.stringify(props)}`;
     eventLogEl.prepend(line);
-    while (eventLogEl.childNodes.length > 4) eventLogEl.lastChild?.remove();
+    while (eventLogEl.childNodes.length > 5) eventLogEl.lastChild?.remove();
   };
   transitionMarker.on("transitionstart", (e: MarkerTransitionEventData) => {
     logTransitionEvent("start", e.props);

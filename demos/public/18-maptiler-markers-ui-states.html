@@ -100,6 +100,19 @@
       font-weight: 700;
       color: hsl(223, 100%, 45%);
     }
+
+    #transition-log {
+      font-family: monospace;
+      font-size: 10px;
+      max-height: 90px;
+      overflow-y: auto;
+    }
+
+    #transition-log div {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   </style>
 
   <link rel="stylesheet" href="../build/maptiler-sdk.css">
@@ -169,7 +182,7 @@
         <button id="transition-position" class="ctrl-btn">Nudge position</button>
         <button id="transition-toggle" class="ctrl-btn">Disable transitions</button>
       </div>
-      <div class="ctrl-hint">Last events (<code>transitionstart</code> / <code>transitionend</code>):</div>
+      <div class="ctrl-hint">Last 5 events (<code>transitionstart</code> / <code>transitionend</code>):</div>
       <div class="legend" id="transition-log"></div>
       <div class="ctrl-hint" style="word-break: break-all;" id="transition-config"></div>
     </div>
