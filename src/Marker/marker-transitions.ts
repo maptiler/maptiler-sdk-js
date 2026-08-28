@@ -1,24 +1,6 @@
 import { MaptilerAnimation } from "../MaptilerAnimation";
-import type { EasingFunctionName } from "../MaptilerAnimation/types";
-import EasingFunctions from "../MaptilerAnimation/easing";
 import { parseColorStringToVec4 } from "../utils/webgl-utils";
 import type { MarkerTransitionSpec, Vector2 } from "./types";
-
-const EASING_NAMES_LOWER: Record<string, EasingFunctionName> = Object.keys(EasingFunctions).reduce<Record<string, EasingFunctionName>>((acc, name) => {
-  acc[name.toLowerCase()] = name as EasingFunctionName;
-  return acc;
-}, {});
-
-/** Resolves a transition's easing name case-insensitively (e.g. `"bouncein"` -> `"BounceIn"`), falling back to `"Linear"` for unknown names. */
-export function resolveTransitionEasing(name: string | undefined): EasingFunctionName {
-  if (!name) return "Linear";
-  const resolved = EASING_NAMES_LOWER[name.toLowerCase()];
-  if (!resolved) {
-    console.warn(`[Marker] Unknown transition easing "${name}", falling back to "Linear".`);
-    return "Linear";
-  }
-  return resolved;
-}
 
 /** Bridges a transitionable property's real value to/from the flat numeric props {@link MaptilerAnimation} interpolates between. */
 export type TransitionValueCodec<T> = {
@@ -73,7 +55,7 @@ export function runPropertyTransition<T>(from: T, to: T, spec: MarkerTransitionS
 
   const animation = new MaptilerAnimation({
     keyframes: [
-      { delta: 0, props: handlers.codec.toNumeric(from), easing: resolveTransitionEasing(easing) },
+      { delta: 0, props: handlers.codec.toNumeric(from), easing: easing ?? "Linear" },
       { delta: 1, props: handlers.codec.toNumeric(to) },
     ],
     duration,

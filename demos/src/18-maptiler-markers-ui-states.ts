@@ -137,12 +137,11 @@ async function main() {
   }, 100);
 
   // Transitions: scale/colour/position ease over their configured
-  // duration+easing+delay instead of snapping. Easing names are
-  // case-insensitive ("bouncein" resolves the same as "BounceIn").
+  // duration+easing+delay instead of snapping.
   const TRANSITIONS: MapTilerMarkerTransitions = {
-    scale: [500, "bouncein"],
-    outerColor: [600, "linear", 100],
-    position: [700, "sinusoidalinout"],
+    scale: [500, "BounceIn"],
+    outerColor: [600, "Linear", 100],
+    position: [700, "SinusoidalInOut"],
   };
 
   const transitionMarker = new Marker({

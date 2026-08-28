@@ -1,4 +1,5 @@
 import type { MarkerOptions } from "maplibre-gl";
+import type { EasingFunctionName } from "../MaptilerAnimation/types";
 import type { AdaptiveColor, AdaptiveColorName } from "./marker-adaptive-colors";
 import type { Marker } from "./Marker";
 
@@ -170,11 +171,10 @@ export type MarkerTransitionProperty = "position" | "scale" | "rotation" | "oute
 /**
  * Configures how a transitionable property eases to a newly-set value.
  * `[duration, easing?, delay?]`, all in milliseconds except `easing`.
- * `easing` names any {@link EasingFunctionName} (case-insensitive — e.g.
- * `"bouncein"` resolves to `"BounceIn"`); unrecognised names fall back to
- * `"Linear"`. Defaults to no delay when omitted.
+ * `easing` is any {@link EasingFunctionName}, defaulting to `"Linear"` when omitted.
+ * Defaults to no delay when omitted.
  */
-export type MarkerTransitionSpec = [duration: number, easing?: string, delay?: number];
+export type MarkerTransitionSpec = [duration: number, easing?: EasingFunctionName, delay?: number];
 
 /** Per-property transition configuration, keyed by {@link MarkerTransitionProperty}. */
 export type MapTilerMarkerTransitions = Partial<Record<MarkerTransitionProperty, MarkerTransitionSpec>>;
