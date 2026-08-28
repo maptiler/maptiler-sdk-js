@@ -3,6 +3,9 @@ import { MaptilerAnimation } from "../MaptilerAnimation";
 import { parseColorStringToVec4 } from "../utils/webgl-utils";
 import type { MarkerTransitionSpec, Vector2 } from "./types";
 
+// Without this codec layer, either MaptilerAnimation would need bespoke interpolation
+// logic per property type (defeating the point of a shared engine), or Marker.ts would
+// need to hand-roll lerping for every transitionable property itself.
 /** Bridges a transitionable property's real value to/from the flat numeric props {@link MaptilerAnimation} interpolates between. */
 export type TransitionValueCodec<T> = {
   toNumeric(value: T): Record<string, number>;
@@ -20,6 +23,8 @@ export const rotationTransitionCodec: TransitionValueCodec<number> = {
 };
 
 export const positionTransitionCodec: TransitionValueCodec<LngLat> = {
+  // this looks pointless, but its designed to strip the LngLat object of its type
+  // so that it can be passed to the MaptilerAnimation engine
   toNumeric: ({ lng, lat }) => ({ lng, lat }),
   fromNumeric: ({ lng, lat }) => new LngLat(lng, lat),
 };
