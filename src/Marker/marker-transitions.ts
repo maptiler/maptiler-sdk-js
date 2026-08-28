@@ -1,3 +1,4 @@
+import { LngLat } from "../index";
 import { MaptilerAnimation } from "../MaptilerAnimation";
 import { parseColorStringToVec4 } from "../utils/webgl-utils";
 import type { MarkerTransitionSpec, Vector2 } from "./types";
@@ -18,11 +19,9 @@ export const rotationTransitionCodec: TransitionValueCodec<number> = {
   fromNumeric: (props) => props.value,
 };
 
-export type LngLatPosition = { lng: number; lat: number };
-
-export const positionTransitionCodec: TransitionValueCodec<LngLatPosition> = {
+export const positionTransitionCodec: TransitionValueCodec<LngLat> = {
   toNumeric: ({ lng, lat }) => ({ lng, lat }),
-  fromNumeric: ({ lng, lat }) => ({ lng, lat }),
+  fromNumeric: ({ lng, lat }) => new LngLat(lng, lat),
 };
 
 // colours with no value (unset) have nothing to interpolate from/to — fall
