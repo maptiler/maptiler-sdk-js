@@ -2,6 +2,10 @@
 
 ## NEXT
 ### ✨ Features and improvements
+- Adds a marker `transitions` API: `position`, `scale`, `rotation`, and colour properties (`outerColor`, `innerColor`, `contentColor`, `outlineColor`) can now ease to a new value instead of snapping.
+  - Configure via the `transitions` constructor option or `setTransitionForProperty(property, [duration, easing?, delay?] | null)`; inspect with `getTransitions()`.
+  - Fires `transitionstart` / `transitionend` events — same shape as MapLibre's marker events (`type`, `target`), plus `props`: the transitioning property keyed to its value at that point (the eased-from value on `transitionstart`, the reached value on `transitionend`).
+  - Collision hide/show/minimize fade transitions are now parameterised per map via `setMarkerCollisionOptions({ transitionDuration, transitionEasing })`.
 
 ### 🐛 Bug Fixes
  - Fixes a bug in halo where a mismatch between the layer added to the map and the layer added to the `.halo` field were different instances, causing a runtime error.

@@ -1,6 +1,6 @@
 import { Map, MapStyle, Marker, config } from "../../src/index";
 import { setupMapTilerApiKey } from "./demo-utils";
-import type { MapTilerMarkerOptions } from "../../src/Marker";
+import type { MapTilerMarkerOptions, MapTilerMarkerTransitions, MarkerTransitionProperty, MarkerTransitionSpec, MarkerTransitionEventData } from "../../src/Marker";
 
 setupMapTilerApiKey({ config });
 
@@ -135,6 +135,69 @@ async function main() {
     propScaleEl.textContent = JSON.stringify(liveMarker.getScale());
     domTransformEl.textContent = renderedTransform(liveMarker);
   }, 100);
+
+  // Transitions: scale/colour/position ease over their configured
+  // duration+easing+delay instead of snapping.
+  const TRANSITIONS: MapTilerMarkerTransitions = {
+    scale: [500, "SinusoidalInOut"],
+    outerColor: [600, "Linear", 100],
+    position: [700, "ElasticOut"],
+  };
+
+  const transitionMarker = new Marker({
+    ...base,
+    content: "T",
+    title: "Transitions",
+    transitions: { ...TRANSITIONS },
+  });
+  transitionMarker.setLngLat(at(4));
+  map.addMarker(transitionMarker);
+  addCaption(map, at(4), "TRANSITIONS (see panel)");
+
+  const eventLogEl = el("transition-log");
+  const logTransitionEvent = (type: string, props: Record<string, unknown>) => {
+    const time = new Date().toLocaleTimeString(undefined, { hour12: false, minute: "2-digit", second: "2-digit", fractionalSecondDigits: 3 } as Intl.DateTimeFormatOptions);
+    const line = document.createElement("div");
+    line.textContent = `${time} · ${type} · ${JSON.stringify(props)}`;
+    eventLogEl.prepend(line);
+    while (eventLogEl.childNodes.length > 5) eventLogEl.lastChild?.remove();
+  };
+  transitionMarker.on("transitionstart", (e: MarkerTransitionEventData) => {
+    logTransitionEvent("start", e.props);
+  });
+  transitionMarker.on("transitionend", (e: MarkerTransitionEventData) => {
+    logTransitionEvent("end", e.props);
+  });
+
+  let scaledUp = false;
+  el<HTMLButtonElement>("transition-scale").addEventListener("click", () => {
+    scaledUp = !scaledUp;
+    transitionMarker.setScale(scaledUp ? [1.6, 1.6] : [1, 1]);
+  });
+
+  let colorSwapped = false;
+  el<HTMLButtonElement>("transition-color").addEventListener("click", () => {
+    colorSwapped = !colorSwapped;
+    transitionMarker.setOuterColor(colorSwapped ? "#ef4444" : undefined);
+  });
+
+  let nudged = false;
+  el<HTMLButtonElement>("transition-position").addEventListener("click", () => {
+    nudged = !nudged;
+    transitionMarker.setLngLat(nudged ? at(4.6) : at(4));
+  });
+
+  const transitionsToggleEl = el<HTMLButtonElement>("transition-toggle");
+  let transitionsEnabled = true;
+  transitionsToggleEl.addEventListener("click", () => {
+    transitionsEnabled = !transitionsEnabled;
+    for (const [property, spec] of Object.entries(TRANSITIONS) as [MarkerTransitionProperty, MarkerTransitionSpec][]) {
+      transitionMarker.setTransitionForProperty(property, transitionsEnabled ? spec : null);
+    }
+    transitionsToggleEl.textContent = transitionsEnabled ? "Disable transitions" : "Enable transitions";
+  });
+
+  el("transition-config").textContent = JSON.stringify(transitionMarker.getTransitions());
 }
 
 void main();

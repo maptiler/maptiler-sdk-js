@@ -13,6 +13,10 @@ import type {
   MapTilerMarkerUIStateName,
   MapTilerMarkerUIStates,
   UIStateSpec,
+  MarkerTransitionProperty,
+  MapTilerMarkerTransitions,
+  MarkerTransitionSpec,
+  MarkerTransitionEventData,
 } from "./types";
 import { omit } from "../utils/object";
 import { v4 as uuid } from "uuid";
@@ -32,6 +36,15 @@ import { getAdaptiveBgColor, resolveAdaptiveColor } from "./marker-adaptive-colo
 import { MarkerManager } from "./MarkerManager";
 import type { MarkerFootprint } from "./collision-helpers";
 import { flattenUIStates } from "./marker-state-helpers";
+import {
+  runPropertyTransition,
+  scaleTransitionCodec,
+  rotationTransitionCodec,
+  colorTransitionCodec,
+  positionTransitionCodec,
+  type TransitionValueCodec,
+} from "./marker-transitions";
+import type { MaptilerAnimation } from "../MaptilerAnimation";
 import {
   PendingUpdatesSymbol,
   DetachFromDOMSymbol,
@@ -79,6 +92,7 @@ const maptilerBaseOptionsKeys = [
   "rotation",
   "debug",
   "states",
+  "transitions",
 ] as const;
 
 /**
@@ -172,6 +186,12 @@ export class Marker extends maplibregl.Marker {
    */
   private appliedUIStateKeys: (keyof PendingMarkerUpdates)[] = [];
 
+  /** Registered per-property transition config, keyed by property name. */
+  private transitions: MapTilerMarkerTransitions;
+
+  /** In-flight transitions, keyed by property name — at most one per property. */
+  private readonly activeTransitions = new Map<MarkerTransitionProperty, MaptilerAnimation>();
+
   //#endregion
 
   //#region Constructor
@@ -240,6 +260,7 @@ export class Marker extends maplibregl.Marker {
 
     this.options = options;
     this.uiStates = { ...options.states };
+    this.transitions = { ...options.transitions };
     this.attachUIStateListeners();
   }
 
@@ -444,7 +465,7 @@ export class Marker extends maplibregl.Marker {
       this.cullTimer = setTimeout(() => {
         this.cullTimer = null;
         applyCollisionCulled(this.getElement(), true);
-      }, COLLISION_FADE_DURATION_MS);
+      }, this.collisionTransitionMs());
       return;
     }
 
@@ -474,13 +495,13 @@ export class Marker extends maplibregl.Marker {
       this.minimizeSwapTimer = null;
       this.setMinimizedApplied(wantMinimized);
       this.setCollisionHidden(false);
-    }, COLLISION_FADE_DURATION_MS);
+    }, this.collisionTransitionMs());
   }
 
   /**
    * Toggles the collision-hidden fade, and (re)schedules releasing the fade
-   * class once {@link COLLISION_FADE_DURATION_MS} passes with no further
-   * fade/dip transition — see {@link fadeClassReleaseTimer}.
+   * class once the map's collision transition duration passes with no
+   * further fade/dip transition — see {@link fadeClassReleaseTimer}.
    */
   private setCollisionHidden(hidden: boolean): void {
     applyCollisionHidden(this.getElement(), hidden);
@@ -488,7 +509,13 @@ export class Marker extends maplibregl.Marker {
     this.fadeClassReleaseTimer = setTimeout(() => {
       this.fadeClassReleaseTimer = null;
       releaseCollisionFadeClass(this.getElement());
-    }, COLLISION_FADE_DURATION_MS);
+    }, this.collisionTransitionMs());
+  }
+
+  /** The fade duration (ms) configured for this marker's map, or the SDK default when off a map. */
+  private collisionTransitionMs(): number {
+    const map = MarkerManager.getMap(this);
+    return map ? MarkerManager.getCollisionTransitionDuration(map) : COLLISION_FADE_DURATION_MS;
   }
 
   /** Applies or restores the minimized appearance if it differs from what the DOM shows. */
@@ -572,9 +599,12 @@ export class Marker extends maplibregl.Marker {
    * @param lnglat - The new position.
    */
   override setLngLat(lnglat: LngLatLike): this {
-    super.setLngLat(lnglat);
-    const map = MarkerManager.getMap(this);
-    if (map) MarkerManager.invalidateCollisions(map);
+    const target = maplibregl.LngLat.convert(lnglat);
+    this.applyTransitionable("position", this.getLngLat(), target, positionTransitionCodec, (v) => {
+      super.setLngLat(v);
+      const map = MarkerManager.getMap(this);
+      if (map) MarkerManager.invalidateCollisions(map);
+    });
     return this;
   }
 
@@ -603,7 +633,9 @@ export class Marker extends maplibregl.Marker {
    * @param scaleVector - Scale factors for the x and y axes.
    */
   setScale(scaleVector: Vector2) {
-    this.setProp("scale", scaleVector);
+    this.applyTransitionable<Vector2>("scale", this.props.scale ?? [1, 1], scaleVector, scaleTransitionCodec, (v) => {
+      this.setProp("scale", v);
+    });
   }
 
   /** Returns the current 2-D scale. Defaults to `[1, 1]`. */
@@ -679,7 +711,9 @@ export class Marker extends maplibregl.Marker {
    * @param color - Any valid CSS colour string.
    */
   setOuterColor(color: MapTilerMarkerOptions["outerColor"]) {
-    this.setProp("outerColor", color);
+    this.applyTransitionable("outerColor", this.props.outerColor, color, colorTransitionCodec, (v) => {
+      this.setProp("outerColor", v);
+    });
   }
 
   /** Returns the current outer body colour. */
@@ -726,7 +760,9 @@ export class Marker extends maplibregl.Marker {
       this.setProp("color", this.props.color); // resume adaptation
       return;
     }
-    this.setProp("innerColor", color);
+    this.applyTransitionable("innerColor", this.props.innerColor, color, colorTransitionCodec, (v) => {
+      this.setProp("innerColor", v);
+    });
   }
 
   /**
@@ -752,7 +788,9 @@ export class Marker extends maplibregl.Marker {
    * @param color - Any valid CSS colour string.
    */
   setContentColor(color: MapTilerMarkerOptions["contentColor"]) {
-    this.setProp("contentColor", color);
+    this.applyTransitionable("contentColor", this.props.contentColor, color, colorTransitionCodec, (v) => {
+      this.setProp("contentColor", v);
+    });
   }
 
   /** Returns the current content colour. */
@@ -770,7 +808,9 @@ export class Marker extends maplibregl.Marker {
    * @param color - Any valid CSS colour string.
    */
   setOutlineColor(color: MapTilerMarkerOptions["outlineColor"]) {
-    this.setProp("outlineColor", color);
+    this.applyTransitionable("outlineColor", this.props.outlineColor, color, colorTransitionCodec, (v) => {
+      this.setProp("outlineColor", v);
+    });
   }
 
   /** Returns the current outline stroke colour. */
@@ -882,7 +922,9 @@ export class Marker extends maplibregl.Marker {
    * @param rotation - Clockwise rotation in degrees.
    */
   override setRotation(rotation: number): this {
-    this.setProp("rotation", rotation);
+    this.applyTransitionable("rotation", this.props.rotation ?? 0, rotation, rotationTransitionCodec, (v) => {
+      this.setProp("rotation", v);
+    });
     return this;
   }
 
@@ -989,6 +1031,78 @@ export class Marker extends maplibregl.Marker {
 
   //#endregion
 
+  //#region Transitions
+
+  /**
+   * Configures (or clears) the easing used the next time `property` changes.
+   * Applies immediately, before the config takes effect on a future call —
+   * it does not retroactively animate the property's current value.
+   * @param property - Transitionable property (`position` | `scale` | `rotation` | `outerColor` | `innerColor` | `contentColor` | `outlineColor`).
+   * @param transition - `[duration, easing?, delay?]` in milliseconds, or `null` to make future changes snap immediately again.
+   */
+  setTransitionForProperty(property: MarkerTransitionProperty, transition: MarkerTransitionSpec | null): void {
+    if (transition) {
+      this.transitions[property] = transition;
+      return;
+    }
+    this.transitions = omit(this.transitions, [property]);
+  }
+
+  /** Returns a copy of the currently configured per-property transitions. */
+  getTransitions(): MapTilerMarkerTransitions {
+    return { ...this.transitions };
+  }
+
+  /**
+   * Applies `to` to `property`, either immediately or, when a transition is
+   * configured for it and the marker is on a map, by easing from `from` over
+   * the configured duration/easing/delay. Fires `transitionstart` once
+   * playback begins (i.e. after `delay`) and `transitionend` once `to` is
+   * reached. Supersedes any transition already in flight for `property`.
+   * @param property - Transitionable property being changed.
+   * @param from - Current value.
+   * @param to - Value being set.
+   * @param codec - Bridges `T` to/from the flat numeric props the underlying animation interpolates.
+   * @param apply - Writes an interpolated (or the immediate) value to the marker.
+   */
+  private applyTransitionable<T>(property: MarkerTransitionProperty, from: T, to: T, codec: TransitionValueCodec<T>, apply: (value: T) => void): void {
+    this.cancelTransition(property);
+
+    const spec = this.transitions[property];
+    if (!spec || !MarkerManager.getMap(this)) {
+      apply(to);
+      return;
+    }
+
+    const animation = runPropertyTransition(from, to, spec, {
+      codec,
+      onUpdate: apply,
+      onStart: () => this.fire("transitionstart", { props: { [property]: from } } as Pick<MarkerTransitionEventData, "props">),
+      onEnd: (finalValue) => {
+        this.activeTransitions.delete(property);
+        apply(finalValue);
+        this.fire("transitionend", { props: { [property]: finalValue } } as Pick<MarkerTransitionEventData, "props">);
+      },
+    });
+
+    this.activeTransitions.set(property, animation);
+  }
+
+  /** Cancels any transition in flight for `property`, leaving its current (mid-transition) value as-is. */
+  private cancelTransition(property: MarkerTransitionProperty): void {
+    const animation = this.activeTransitions.get(property);
+    if (!animation) return;
+    animation.destroy();
+    this.activeTransitions.delete(property);
+  }
+
+  /** Cancels every transition in flight. Called on removal so a destroyed marker's props can't keep animating. */
+  private cancelAllTransitions(): void {
+    for (const property of [...this.activeTransitions.keys()]) this.cancelTransition(property);
+  }
+
+  //#endregion
+
   //#region Lifecycle
 
   /**
@@ -998,6 +1112,7 @@ export class Marker extends maplibregl.Marker {
    * up its own state — calling `remove()` here would cause infinite recursion.
    */
   [DetachFromDOMSymbol](): void {
+    this.cancelAllTransitions();
     super.remove();
   }
 
