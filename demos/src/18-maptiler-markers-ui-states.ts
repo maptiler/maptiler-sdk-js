@@ -139,9 +139,9 @@ async function main() {
   // Transitions: scale/colour/position ease over their configured
   // duration+easing+delay instead of snapping.
   const TRANSITIONS: MapTilerMarkerTransitions = {
-    scale: [500, "BounceIn"],
+    scale: [500, "SinusoidalInOut"],
     outerColor: [600, "Linear", 100],
-    position: [700, "SinusoidalInOut"],
+    position: [700, "ElasticOut"],
   };
 
   const transitionMarker = new Marker({
