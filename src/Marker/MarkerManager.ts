@@ -222,8 +222,11 @@ class MarkerManagerImpl {
     marker[RefreshAdaptiveColorSymbol]();
   }
 
-  // unregisters a Marker that no longer needs to be managed.
-  deregister(marker: Marker): void {
+  // unregisters a Marker that no longer needs to be managed. `deferDetach`
+  // skips the final DOM detach — used by Marker.remove() to play an exit
+  // animation while every other bookkeeping (index, collisions, drag
+  // handlers) updates immediately, same as a normal removal.
+  deregister(marker: Marker, options?: { deferDetach?: boolean }): void {
     const map = this.markerMap.get(marker);
 
     if (!map) return;
@@ -250,7 +253,7 @@ class MarkerManagerImpl {
     marker[ApplyCollisionDisplayStateSymbol]("visible");
     this.invalidateCollisions(map);
 
-    marker[DetachFromDOMSymbol]();
+    if (!options?.deferDetach) marker[DetachFromDOMSymbol]();
   }
 
   // As above but with a Markers ID instead.

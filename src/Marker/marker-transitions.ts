@@ -22,6 +22,11 @@ export const rotationTransitionCodec: TransitionValueCodec<number> = {
   fromNumeric: (props) => props.value,
 };
 
+export const opacityTransitionCodec: TransitionValueCodec<number> = {
+  toNumeric: (value) => ({ value }),
+  fromNumeric: (props) => props.value,
+};
+
 export const positionTransitionCodec: TransitionValueCodec<LngLat> = {
   // this looks pointless, but its designed to strip the LngLat object of its type
   // so that it can be passed to the MaptilerAnimation engine

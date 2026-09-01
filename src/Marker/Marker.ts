@@ -17,6 +17,9 @@ import type {
   MapTilerMarkerTransitions,
   MarkerTransitionSpec,
   MarkerTransitionEventData,
+  MapTilerMarkerAnimations,
+  MarkerAnimationOptions,
+  MarkerLifecycleAnimationEventData,
 } from "./types";
 import { omit } from "../utils/object";
 import { v4 as uuid } from "uuid";
@@ -42,6 +45,7 @@ import {
   rotationTransitionCodec,
   colorTransitionCodec,
   positionTransitionCodec,
+  opacityTransitionCodec,
   type TransitionValueCodec,
 } from "./marker-transitions";
 import type { MaptilerAnimation } from "../MaptilerAnimation";
@@ -189,8 +193,24 @@ export class Marker extends maplibregl.Marker {
   /** Registered per-property transition config, keyed by property name. */
   private transitions: MapTilerMarkerTransitions;
 
-  /** In-flight transitions, keyed by property name — at most one per property. */
-  private readonly activeTransitions = new Map<MarkerTransitionProperty, MaptilerAnimation>();
+  /**
+   * In-flight transitions, keyed by property name — at most one per property.
+   * `"opacity"` isn't a public {@link MarkerTransitionProperty}; it's reused
+   * here so an enter/exit fade is cancelled the same way any other in-flight
+   * transition would be.
+   */
+  private readonly activeTransitions = new Map<MarkerTransitionProperty | "opacity", MaptilerAnimation>();
+
+  /** Configured enter/idle/exit lifecycle animations. */
+  private animations: MapTilerMarkerAnimations;
+
+  /**
+   * Set while `addTo()` is calling into MapLibre's base `addTo()`, which
+   * itself calls `this.remove()` first (to detach from any previous map).
+   * Without this guard that reentrant call would play a full exit animation
+   * every time a marker is (re-)added.
+   */
+  private suppressLifecycleAnimations = false;
 
   //#endregion
 
@@ -261,6 +281,7 @@ export class Marker extends maplibregl.Marker {
     this.options = options;
     this.uiStates = { ...options.states };
     this.transitions = { ...options.transitions };
+    this.animations = { ...options.animations };
     this.attachUIStateListeners();
   }
 
@@ -272,10 +293,20 @@ export class Marker extends maplibregl.Marker {
    * Adds the marker to a map.
    *
    * Overrides the MapLibre signature to also accept the SDK `Map` type.
+   * Plays the configured `enter` animation, if any, once attached.
    * @param map - Target map instance.
    */
   addTo(map: SDKMap): this {
-    return super.addTo(map);
+    // MapLibre's own addTo() calls this.remove() first (to detach from any
+    // previous map) — suppress the exit animation for that reentrant call.
+    this.suppressLifecycleAnimations = true;
+    super.addTo(map);
+    this.suppressLifecycleAnimations = false;
+
+    const enterSpec = this.animations.enter;
+    if (enterSpec) this.playLifecycleAnimation("enter", enterSpec);
+
+    return this;
   }
 
   /**
@@ -1089,7 +1120,7 @@ export class Marker extends maplibregl.Marker {
   }
 
   /** Cancels any transition in flight for `property`, leaving its current (mid-transition) value as-is. */
-  private cancelTransition(property: MarkerTransitionProperty): void {
+  private cancelTransition(property: MarkerTransitionProperty | "opacity"): void {
     const animation = this.activeTransitions.get(property);
     if (!animation) return;
     animation.destroy();
@@ -1099,6 +1130,38 @@ export class Marker extends maplibregl.Marker {
   /** Cancels every transition in flight. Called on removal so a destroyed marker's props can't keep animating. */
   private cancelAllTransitions(): void {
     for (const property of [...this.activeTransitions.keys()]) this.cancelTransition(property);
+  }
+
+  //#endregion
+
+  //#region Lifecycle Animations
+
+  /**
+   * Plays the configured `enter`/`exit` fade. Every preset currently resolves
+   * to the same opacity fade — distinct per-preset keyframes land later.
+   * Fires `${phase}animationstart`/`${phase}animationend` and calls
+   * `onComplete` once the target opacity is reached.
+   */
+  private playLifecycleAnimation(phase: "enter" | "exit", spec: MarkerAnimationOptions, onComplete?: () => void): void {
+    this.cancelTransition("opacity");
+
+    const baseOpacity = this.props.opacity ?? 1;
+    const from = phase === "enter" ? 0 : baseOpacity;
+    const to = phase === "enter" ? baseOpacity : 0;
+
+    const animation = runPropertyTransition(from, to, [spec.duration ?? 1000, spec.easing, spec.delay ?? 0], {
+      codec: opacityTransitionCodec,
+      onUpdate: (v) => this.setProp("opacity", v),
+      onStart: () => this.fire(`${phase}animationstart`, { preset: spec.preset } as Pick<MarkerLifecycleAnimationEventData, "preset">),
+      onEnd: (finalValue) => {
+        this.activeTransitions.delete("opacity");
+        this.setProp("opacity", finalValue);
+        this.fire(`${phase}animationend`, { preset: spec.preset } as Pick<MarkerLifecycleAnimationEventData, "preset">);
+        onComplete?.();
+      },
+    });
+
+    this.activeTransitions.set("opacity", animation);
   }
 
   //#endregion
@@ -1118,17 +1181,38 @@ export class Marker extends maplibregl.Marker {
 
   /**
    * Deregisters the marker from {@link MarkerManager} and removes it from
-   * the map.
+   * the map. If an `exit` animation is configured, the marker is deregistered
+   * immediately (collision/index bookkeeping updates right away) but stays
+   * attached and visible until the animation finishes.
    * @returns `this` for chaining.
    */
   override remove(): this {
+    // reentrant call from addTo()'s internal remove(), or a genuine remove()
+    // with nothing configured to animate — plain, immediate removal.
+    if (this.suppressLifecycleAnimations) {
+      this.detachImmediately();
+      return this;
+    }
+
+    const exitSpec = this.animations.exit;
+    if (!exitSpec || !MarkerManager.getMap(this)) {
+      this.detachImmediately();
+      return this;
+    }
+
+    MarkerManager.deregister(this, { deferDetach: true });
+    this.playLifecycleAnimation("exit", exitSpec, () => this[DetachFromDOMSymbol]());
+    return this;
+  }
+
+  /** Deregisters (if registered) and detaches from the DOM immediately — no exit animation. */
+  private detachImmediately(): void {
     if (MarkerManager.getMap(this)) {
       MarkerManager.deregister(this);
     } else {
       // never registered (added via addTo() directly) — plain MapLibre removal
-      super.remove();
+      this[DetachFromDOMSymbol]();
     }
-    return this;
   }
 
   //#endregion

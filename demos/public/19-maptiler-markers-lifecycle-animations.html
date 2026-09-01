@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>MapTiler Markers – Lifecycle Animations</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    #map {
+      position: absolute;
+      inset: 0;
+    }
+
+    #panel {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 100;
+      width: 280px;
+      max-height: calc(100vh - 24px);
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .ctrl-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ctrl-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.45);
+    }
+
+    .ctrl-hint {
+      font-size: 11px;
+      color: rgba(0, 0, 0, 0.6);
+      line-height: 1.5;
+    }
+
+    .ctrl-hint b {
+      color: rgba(0, 0, 0, 0.85);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 4px;
+    }
+
+    .ctrl-btn {
+      flex: 1;
+      height: 28px;
+      border: 1.5px solid rgba(0, 0, 0, 0.12);
+      border-radius: 6px;
+      background: transparent;
+      font: 600 11px system-ui;
+      color: rgba(0, 0, 0, 0.55);
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+
+    .ctrl-btn:hover {
+      border-color: rgba(0, 0, 0, 0.25);
+      color: rgba(0, 0, 0, 0.8);
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    #lifecycle-log {
+      font-family: monospace;
+      font-size: 10px;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+
+    #lifecycle-log div {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+
+  <link rel="stylesheet" href="../build/maptiler-sdk.css">
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <div id="panel">
+    <div class="ctrl-group">
+      <div class="ctrl-label">Enter (E marker)</div>
+      <div class="ctrl-hint">No <code>exit</code> configured — <b>Add</b> fades in, <b>Remove</b> snaps away instantly.</div>
+      <div class="btn-row">
+        <button id="toggle-enter" class="ctrl-btn">Add</button>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Exit (X marker)</div>
+      <div class="ctrl-hint">No <code>enter</code> configured — <b>Remove</b> fades out (the marker stays on the map until the fade finishes), <b>Add</b> snaps back instantly.</div>
+      <div class="btn-row">
+        <button id="toggle-exit" class="ctrl-btn">Remove</button>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Idle (I marker)</div>
+      <div class="ctrl-hint"><code>idle</code> is accepted and typed, but is currently a no-op — no visual change, no events fired. Add/remove both snap.</div>
+      <div class="btn-row">
+        <button id="toggle-idle" class="ctrl-btn">Remove</button>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Enter + Idle + Exit (A marker)</div>
+      <div class="ctrl-hint">All three configured together — <b>Add</b> fades in, <b>Remove</b> fades out; idle is still a no-op in between.</div>
+      <div class="btn-row">
+        <button id="toggle-all" class="ctrl-btn">Add</button>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Last 8 events</div>
+      <div id="lifecycle-log"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/19-maptiler-markers-lifecycle-animations.ts"></script>
+</body>
+
+</html>
