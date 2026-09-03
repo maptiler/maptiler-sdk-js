@@ -2,6 +2,7 @@ import { LngLat } from "../index";
 import { MaptilerAnimation } from "../MaptilerAnimation";
 import { parseColorStringToVec4 } from "../utils/webgl-utils";
 import type { MarkerTransitionSpec, Vector2 } from "./types";
+import type { LifecycleAnimationValue } from "./marker-animation-presets";
 
 // Without this codec layer, either MaptilerAnimation would need bespoke interpolation
 // logic per property type (defeating the point of a shared engine), or Marker.ts would
@@ -25,6 +26,12 @@ export const rotationTransitionCodec: TransitionValueCodec<number> = {
 export const opacityTransitionCodec: TransitionValueCodec<number> = {
   toNumeric: (value) => ({ value }),
   fromNumeric: (props) => props.value,
+};
+
+/** Bridges an `enter`/`exit` preset's combined opacity/scale/lift state to the numeric props {@link MaptilerAnimation} interpolates between. */
+export const lifecycleTransitionCodec: TransitionValueCodec<LifecycleAnimationValue> = {
+  toNumeric: ({ opacity, scale: [scaleX, scaleY], lift }) => ({ opacity, scaleX, scaleY, lift }),
+  fromNumeric: ({ opacity, scaleX, scaleY, lift }) => ({ opacity, scale: [scaleX, scaleY], lift }),
 };
 
 export const positionTransitionCodec: TransitionValueCodec<LngLat> = {

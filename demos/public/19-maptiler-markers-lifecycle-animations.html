@@ -60,6 +60,16 @@
       color: rgba(0, 0, 0, 0.85);
     }
 
+    select.ctrl-select {
+      height: 28px;
+      border: 1.5px solid rgba(0, 0, 0, 0.12);
+      border-radius: 6px;
+      background: white;
+      font: 600 11px system-ui;
+      color: rgba(0, 0, 0, 0.75);
+      padding: 0 6px;
+    }
+
     .btn-row {
       display: flex;
       gap: 4px;
@@ -109,41 +119,34 @@
 
   <div id="panel">
     <div class="ctrl-group">
-      <div class="ctrl-label">Enter (E marker)</div>
-      <div class="ctrl-hint">No <code>exit</code> configured — <b>Add</b> fades in, <b>Remove</b> snaps away instantly.</div>
-      <div class="btn-row">
-        <button id="toggle-enter" class="ctrl-btn">Add</button>
-      </div>
+      <div class="ctrl-label">Enter</div>
+      <select id="enter-preset" class="ctrl-select"></select>
     </div>
 
-    <hr>
-
     <div class="ctrl-group">
-      <div class="ctrl-label">Exit (X marker)</div>
-      <div class="ctrl-hint">No <code>enter</code> configured — <b>Remove</b> fades out (the marker stays on the map until the fade finishes), <b>Add</b> snaps back instantly.</div>
-      <div class="btn-row">
-        <button id="toggle-exit" class="ctrl-btn">Remove</button>
-      </div>
+      <div class="ctrl-label">Idle</div>
+      <select id="idle-preset" class="ctrl-select"></select>
     </div>
 
-    <hr>
-
     <div class="ctrl-group">
-      <div class="ctrl-label">Idle (I marker)</div>
-      <div class="ctrl-hint"><code>idle</code> is accepted and typed, but is currently a no-op — no visual change, no events fired. Add/remove both snap.</div>
-      <div class="btn-row">
-        <button id="toggle-idle" class="ctrl-btn">Remove</button>
-      </div>
+      <div class="ctrl-label">Exit</div>
+      <select id="exit-preset" class="ctrl-select"></select>
     </div>
 
-    <hr>
-
     <div class="ctrl-group">
-      <div class="ctrl-label">Enter + Idle + Exit (A marker)</div>
-      <div class="ctrl-hint">All three configured together — <b>Add</b> fades in, <b>Remove</b> fades out; idle is still a no-op in between.</div>
-      <div class="btn-row">
-        <button id="toggle-all" class="ctrl-btn">Add</button>
-      </div>
+      <div class="ctrl-label">Magnitude (<span id="magnitude-value">1.0</span>)</div>
+      <input id="magnitude" type="range" min="0" max="2" step="0.1" value="1">
+    </div>
+
+    <div class="ctrl-hint">Picking a preset (or "custom") only affects markers added <b>after</b> the change — each marker is built from the selections at the moment it's added. Magnitude is ignored by "custom" and "none".</div>
+
+    <div class="btn-row">
+      <button id="add-marker" class="ctrl-btn">Add one</button>
+      <button id="add-5-markers" class="ctrl-btn">Add 10</button>
+    </div>
+
+    <div class="btn-row">
+      <button id="remove-all-markers" class="ctrl-btn">Remove all (<span id="marker-count">0</span>)</button>
     </div>
 
     <hr>

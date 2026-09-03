@@ -1,37 +1,67 @@
 import { Map, MapStyle, Marker, config } from "../../src/index";
-import { setupMapTilerApiKey } from "./demo-utils";
-import type { MapTilerMarkerOptions, MarkerLifecycleAnimationEventData } from "../../src/Marker";
+import { el, setupMapTilerApiKey } from "./demo-utils";
+import type {
+  EnterAnimationPreset,
+  ExitAnimationPreset,
+  IdleAnimationPreset,
+  MapTilerMarkerAnimations,
+  MapTilerMarkerSVGOptions,
+  MarkerLifecycleAnimationEventData,
+} from "../../src/Marker";
 
 setupMapTilerApiKey({ config });
 
-function el<T extends HTMLElement = HTMLElement>(id: string): T {
-  const found = document.getElementById(id);
-  if (!found) throw new Error(`#${id} not found`);
-  return found as T;
-}
-
 const CENTER: [number, number] = [14.42, 50.08];
 const SPACING = 0.0026;
+const GRID_COLUMNS = 10;
 
-/** Static caption pinned under a marker's position — always visible, unlike a hover-only `title` tooltip. */
-function addCaption(map: Map, lngLat: [number, number], text: string) {
-  const captionEl = document.createElement("div");
-  captionEl.textContent = text;
-  captionEl.style.font = "700 10px system-ui";
-  captionEl.style.letterSpacing = "0.03em";
-  captionEl.style.color = "rgba(0, 0, 0, 0.75)";
-  captionEl.style.background = "rgba(255, 255, 255, 0.85)";
-  captionEl.style.padding = "2px 6px";
-  captionEl.style.borderRadius = "4px";
-  captionEl.style.whiteSpace = "nowrap";
-  captionEl.style.pointerEvents = "none";
+const LIFECYCLE_EVENTS = [
+  "enteranimationstart",
+  "enteranimationend",
+  "exitanimationstart",
+  "exitanimationend",
+  "idleanimationstart",
+  "idleanimationiteration",
+  "idleanimationend",
+] as const;
 
-  const caption = new Marker({ element: captionEl, anchor: "top", offset: [0, 34], htmlAttributes: { tabindex: "-1" } });
-  caption.setLngLat(lngLat);
-  map.addMarker(caption);
+const TIME_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = { hour12: false, minute: "2-digit", second: "2-digit", fractionalSecondDigits: 3 };
+
+const NONE = "none";
+const CUSTOM = "custom";
+const ENTER_PRESETS: EnterAnimationPreset[] = ["grow", "drop", "pop", "bounce", "fade"];
+const IDLE_PRESETS: IdleAnimationPreset[] = ["pulsescale", "ring", "pulseopacity", "bounce"];
+const EXIT_PRESETS: ExitAnimationPreset[] = ["shrink", "fade", "pop", "explode"];
+
+// `custom` examples — combine public setters (setScale/setRotation) with direct
+// element opacity, since the SDK has no public setOpacity() (only the built-in
+// lifecycle presets can reach it, via an internal prop). Alpha is already eased.
+function customEnter(alpha: number, marker: Marker) {
+  marker.setScale([alpha, alpha]);
+  marker.setRotation(360 * (1 - alpha));
+  marker.getElement().style.opacity = String(alpha);
 }
 
-const LIFECYCLE_EVENTS = ["enteranimationstart", "enteranimationend", "exitanimationstart", "exitanimationend", "idleanimationstart", "idleanimationiteration", "idleanimationend"] as const;
+function customExit(alpha: number, marker: Marker) {
+  marker.setScale([1 - alpha, 1 - alpha]);
+  marker.setRotation(360 * alpha);
+  marker.getElement().style.opacity = String(1 - alpha);
+}
+
+function customIdle(alpha: number, marker: Marker) {
+  marker.setRotation(Math.sin(alpha * Math.PI * 2) * 15);
+}
+
+function populateSelect(selectId: string, options: string[]) {
+  const select = el<HTMLSelectElement>(selectId);
+  for (const value of [NONE, ...options, CUSTOM]) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
+  }
+  return select;
+}
 
 async function main() {
   const map = new Map({
@@ -43,98 +73,86 @@ async function main() {
 
   await map.onLoadAsync();
 
-  const base: MapTilerMarkerOptions = { shape: "circle", size: "l", color: "blue" };
-  const at = (i: number): [number, number] => [CENTER[0] + i * SPACING, CENTER[1]];
+  const base: MapTilerMarkerSVGOptions = { shape: "circle", size: "l", color: "blue", content: "M" };
 
-  // Shared event feed — every marker below logs into this.
+  const enterSelect = populateSelect("enter-preset", ENTER_PRESETS);
+  const idleSelect = populateSelect("idle-preset", IDLE_PRESETS);
+  const exitSelect = populateSelect("exit-preset", EXIT_PRESETS);
+
+  const magnitudeInput = el<HTMLInputElement>("magnitude");
+  const magnitudeValueEl = el("magnitude-value");
+  magnitudeInput.addEventListener("input", () => {
+    magnitudeValueEl.textContent = Number(magnitudeInput.value).toFixed(1);
+  });
+
   const eventLogEl = el("lifecycle-log");
-  const logEvent = (label: string, type: string) => {
-    const time = new Date().toLocaleTimeString(undefined, { hour12: false, minute: "2-digit", second: "2-digit", fractionalSecondDigits: 3 } as Intl.DateTimeFormatOptions);
+  function logEvent(type: string) {
+    const time = new Date().toLocaleTimeString(undefined, TIME_FORMAT_OPTIONS);
     const line = document.createElement("div");
-    line.textContent = `${time} · ${label} · ${type}`;
+    line.textContent = `${time} · ${type}`;
     eventLogEl.prepend(line);
     while (eventLogEl.childNodes.length > 8) eventLogEl.lastChild?.remove();
+  }
+
+  const markers: Marker[] = [];
+  let nextSlot = 0;
+  const countEl = el("marker-count");
+  const updateCount = () => {
+    countEl.textContent = String(markers.length);
   };
 
-  function wireLogging(marker: Marker, label: string) {
-    for (const type of LIFECYCLE_EVENTS) {
-      marker.on(type, (e: MarkerLifecycleAnimationEventData) => logEvent(label, e.type));
+  function addOneMarker() {
+    const magnitude = Number(magnitudeInput.value);
+    const animations: MapTilerMarkerAnimations = {};
+
+    if (enterSelect.value === CUSTOM) {
+      animations.enter = { custom: customEnter, duration: 900 };
+    } else if (enterSelect.value !== NONE) {
+      animations.enter = { preset: enterSelect.value as EnterAnimationPreset, duration: 900, magnitude };
     }
+
+    if (idleSelect.value === CUSTOM) {
+      animations.idle = { custom: customIdle, duration: 1500, iterations: Infinity };
+    } else if (idleSelect.value !== NONE) {
+      animations.idle = { preset: idleSelect.value as IdleAnimationPreset, iterations: Infinity, magnitude };
+    }
+
+    if (exitSelect.value === CUSTOM) {
+      animations.exit = { custom: customExit, duration: 900 };
+    } else if (exitSelect.value !== NONE) {
+      animations.exit = { preset: exitSelect.value as ExitAnimationPreset, duration: 900, magnitude };
+    }
+
+    const marker = new Marker({ ...base, animations });
+    const col = nextSlot % GRID_COLUMNS;
+    const row = Math.floor(nextSlot / GRID_COLUMNS);
+    nextSlot++;
+    marker.setLngLat([CENTER[0] + (col - (GRID_COLUMNS - 1) / 2) * SPACING, CENTER[1] + row * SPACING]);
+
+    for (const type of LIFECYCLE_EVENTS) {
+      marker.on(type, (e: MarkerLifecycleAnimationEventData) => {
+        logEvent(`${e.type} (${e.preset})`);
+      });
+    }
+
+    map.addMarker(marker);
+    markers.push(marker);
+    updateCount();
   }
 
-  /** Wires a button to add/remove `marker`, toggling its label. `exit` only plays through `marker.remove()` — never `map.removeMarker()`. */
-  function setupToggle(buttonId: string, marker: Marker, initiallyOnMap: boolean) {
-    const button = el<HTMLButtonElement>(buttonId);
-    let onMap = initiallyOnMap;
-    button.textContent = onMap ? "Remove" : "Add";
-
-    button.addEventListener("click", () => {
-      if (onMap) {
-        marker.remove();
-      } else {
-        map.addMarker(marker);
-      }
-      onMap = !onMap;
-      button.textContent = onMap ? "Remove" : "Add";
-    });
-  }
-
-  // ENTER only — starts off the map so "Add" shows the fade-in. Removing
-  // has no exit configured, so it snaps away instantly.
-  const enterMarker = new Marker({
-    ...base,
-    content: "E",
-    title: "Enter",
-    animations: { enter: { preset: "fade", duration: 900, easing: "SinusoidalOut" } },
+  el<HTMLButtonElement>("add-marker").addEventListener("click", () => {
+    addOneMarker();
   });
-  enterMarker.setLngLat(at(-3));
-  wireLogging(enterMarker, "ENTER");
-  addCaption(map, at(-3), "ENTER (click Add)");
-  setupToggle("toggle-enter", enterMarker, false);
 
-  // EXIT only — starts on the map so "Remove" shows the fade-out; the
-  // marker stays visible/interactive until the fade finishes.
-  const exitMarker = new Marker({
-    ...base,
-    content: "X",
-    title: "Exit",
-    animations: { exit: { preset: "fade", duration: 900, easing: "SinusoidalIn" } },
+  el<HTMLButtonElement>("add-5-markers").addEventListener("click", () => {
+    for (let i = 0; i < 10; i++) addOneMarker();
   });
-  exitMarker.setLngLat(at(-1));
-  map.addMarker(exitMarker);
-  wireLogging(exitMarker, "EXIT");
-  addCaption(map, at(-1), "EXIT (click Remove)");
-  setupToggle("toggle-exit", exitMarker, true);
 
-  // IDLE only — MVP stub: accepted and typed, but currently a no-op, so
-  // add/remove both snap and the event log never fires for this marker.
-  const idleMarker = new Marker({
-    ...base,
-    content: "I",
-    title: "Idle",
-    animations: { idle: { preset: "fade", duration: 1200, iterations: Infinity } },
+  el<HTMLButtonElement>("remove-all-markers").addEventListener("click", () => {
+    for (const marker of markers.splice(0)) marker.remove();
+    nextSlot = 0;
+    updateCount();
   });
-  idleMarker.setLngLat(at(1));
-  map.addMarker(idleMarker);
-  wireLogging(idleMarker, "IDLE");
-  addCaption(map, at(1), "IDLE (no-op for now)");
-  setupToggle("toggle-idle", idleMarker, true);
-
-  // ALL THREE — enter fades in, idle is configured (no-op), exit fades out.
-  const allMarker = new Marker({
-    ...base,
-    content: "A",
-    title: "Enter + Idle + Exit",
-    animations: {
-      enter: { preset: "fade", duration: 700, easing: "SinusoidalOut" },
-      idle: { preset: "fade", duration: 1200, iterations: Infinity },
-      exit: { preset: "fade", duration: 700, easing: "SinusoidalIn" },
-    },
-  });
-  allMarker.setLngLat(at(3));
-  wireLogging(allMarker, "ALL");
-  addCaption(map, at(3), "ENTER + IDLE + EXIT");
-  setupToggle("toggle-all", allMarker, false);
 }
 
 void main();

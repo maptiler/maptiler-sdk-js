@@ -18,14 +18,21 @@ import type {
   MarkerTransitionSpec,
   MarkerTransitionEventData,
   MapTilerMarkerAnimations,
+  MarkerAnimationBase,
   MarkerAnimationOptions,
+  MarkerCustomAnimationOptions,
+  MarkerIdleAnimationOptions,
   MarkerLifecycleAnimationEventData,
+  EnterAnimationPreset,
+  ExitAnimationPreset,
+  IdleAnimationPreset,
 } from "./types";
 import { omit } from "../utils/object";
 import { v4 as uuid } from "uuid";
 import {
   applyCollisionCulled,
   applyCollisionHidden,
+  applyLifecycleLift,
   applyMarkerStyleVariables,
   applyMinimizedDot,
   createMarkerElement,
@@ -45,10 +52,23 @@ import {
   rotationTransitionCodec,
   colorTransitionCodec,
   positionTransitionCodec,
+  lifecycleTransitionCodec,
   opacityTransitionCodec,
   type TransitionValueCodec,
 } from "./marker-transitions";
-import type { MaptilerAnimation } from "../MaptilerAnimation";
+import { MaptilerAnimation } from "../MaptilerAnimation";
+import type { Keyframe } from "../MaptilerAnimation/types";
+import {
+  ENTER_PRESET_EASING,
+  EXIT_PRESET_EASING,
+  enterPresetHiddenValue,
+  exitPresetHiddenValue,
+  scaleLifecycleMagnitude,
+  scaleIdleMagnitude,
+  IDLE_PRESET_CONFIG,
+  IDLE_PRESET_DEFAULT_DURATION,
+  type LifecycleAnimationValue,
+} from "./marker-animation-presets";
 import {
   PendingUpdatesSymbol,
   DetachFromDOMSymbol,
@@ -201,6 +221,9 @@ export class Marker extends maplibregl.Marker {
    */
   private readonly activeTransitions = new Map<MarkerTransitionProperty | "opacity", MaptilerAnimation>();
 
+  /** The currently-looping `idle` animation, if any — started after `enter` finishes (or immediately), stopped on `remove()`. */
+  private idleAnimation: MaptilerAnimation | null = null;
+
   /** Configured enter/idle/exit lifecycle animations. */
   private animations: MapTilerMarkerAnimations;
 
@@ -254,6 +277,25 @@ export class Marker extends maplibregl.Marker {
     // custom elements skip createMarkerElement, so seed their style variables here
     if (options.element) applyMarkerStyleVariables(options.element, options);
 
+    // If an `enter` animation is configured, mask the element right away.
+    // addTo() attaches it to the DOM synchronously, but MaptilerAnimation
+    // only applies its first keyframe on the *next* animation frame (play()
+    // just starts the clock) — without this, the marker would render at its
+    // full configured opacity for one frame before the enter animation's
+    // first tick pulls it down to its hidden starting state, a visible
+    // "flash" before it fades/grows/pops in.
+    //
+    // This has to be the *outer* element (not the inner `.marker-transform-
+    // wrapper` a preset animates via setProp) so it's just as effective for
+    // a `custom` enter — whose callback can only reach the marker through
+    // the public `getElement()`, i.e. this same outer element. Whichever
+    // kind of enter animation actually runs is responsible for clearing this
+    // mask on its first real frame (see playLifecycleTransition /
+    // playCustomLifecycleAnimation) — until then it stays fully masked.
+    if (options.animations?.enter) {
+      element.style.opacity = "0";
+    }
+
     this.managesOffset = !options.offset && !options.element;
 
     this.props = {
@@ -304,7 +346,15 @@ export class Marker extends maplibregl.Marker {
     this.suppressLifecycleAnimations = false;
 
     const enterSpec = this.animations.enter;
-    if (enterSpec) this.playLifecycleAnimation("enter", enterSpec);
+    const idleSpec = this.animations.idle;
+
+    if (enterSpec) {
+      this.playEnterAnimation(enterSpec, () => {
+        if (idleSpec) this.startIdleAnimation(idleSpec);
+      });
+    } else if (idleSpec) {
+      this.startIdleAnimation(idleSpec);
+    }
 
     return this;
   }
@@ -1137,31 +1187,215 @@ export class Marker extends maplibregl.Marker {
   //#region Lifecycle Animations
 
   /**
-   * Plays the configured `enter`/`exit` fade. Every preset currently resolves
-   * to the same opacity fade — distinct per-preset keyframes land later.
-   * Fires `${phase}animationstart`/`${phase}animationend` and calls
-   * `onComplete` once the target opacity is reached.
+   * Runs `preset`'s enter/exit motion (opacity + scale + lift, see
+   * {@link enterPresetHiddenValue}/{@link exitPresetHiddenValue}) from `from`
+   * to `to`. Fires `${phase}animationstart`/`${phase}animationend` and calls
+   * `onComplete` once the target state is reached.
    */
-  private playLifecycleAnimation(phase: "enter" | "exit", spec: MarkerAnimationOptions, onComplete?: () => void): void {
+  private playLifecycleTransition(
+    phase: "enter" | "exit",
+    from: LifecycleAnimationValue,
+    to: LifecycleAnimationValue,
+    easing: MarkerAnimationBase["easing"],
+    spec: MarkerAnimationBase,
+    preset: EnterAnimationPreset | ExitAnimationPreset,
+    onComplete?: () => void,
+  ): void {
     this.cancelTransition("opacity");
+    this.cancelTransition("scale");
 
-    const baseOpacity = this.props.opacity ?? 1;
-    const from = phase === "enter" ? 0 : baseOpacity;
-    const to = phase === "enter" ? baseOpacity : 0;
-
-    const animation = runPropertyTransition(from, to, [spec.duration ?? 1000, spec.easing, spec.delay ?? 0], {
-      codec: opacityTransitionCodec,
-      onUpdate: (v) => this.setProp("opacity", v),
-      onStart: () => this.fire(`${phase}animationstart`, { preset: spec.preset } as Pick<MarkerLifecycleAnimationEventData, "preset">),
+    const animation = runPropertyTransition(from, to, [spec.duration ?? 1000, easing, spec.delay ?? 0], {
+      codec: lifecycleTransitionCodec,
+      onUpdate: (v) => {
+        this.clearEnterMask();
+        this.setProp("opacity", v.opacity);
+        this.setProp("scale", v.scale);
+        applyLifecycleLift(this[MarkerElementSymbol], v.lift);
+      },
+      onStart: () => this.fire(`${phase}animationstart`, { preset } as Pick<MarkerLifecycleAnimationEventData, "preset">),
       onEnd: (finalValue) => {
+        this.clearEnterMask();
         this.activeTransitions.delete("opacity");
-        this.setProp("opacity", finalValue);
-        this.fire(`${phase}animationend`, { preset: spec.preset } as Pick<MarkerLifecycleAnimationEventData, "preset">);
+        this.activeTransitions.delete("scale");
+        this.setProp("opacity", finalValue.opacity);
+        this.setProp("scale", finalValue.scale);
+        applyLifecycleLift(this[MarkerElementSymbol], finalValue.lift);
+        this.fire(`${phase}animationend`, { preset } as Pick<MarkerLifecycleAnimationEventData, "preset">);
         onComplete?.();
       },
     });
 
     this.activeTransitions.set("opacity", animation);
+    this.activeTransitions.set("scale", animation);
+  }
+
+  /**
+   * Runs a `custom` enter/exit animation: a plain `0`→`1` alpha (already
+   * eased) handed to `spec.custom` every frame. `0` is enter's hidden /
+   * exit's shown state; `1` is the opposite end.
+   */
+  private playCustomLifecycleAnimation(phase: "enter" | "exit", spec: MarkerCustomAnimationOptions, onComplete?: () => void): void {
+    this.cancelTransition("opacity");
+    this.cancelTransition("scale");
+
+    const animation = runPropertyTransition(0, 1, [spec.duration ?? 1000, spec.easing, spec.delay ?? 0], {
+      codec: opacityTransitionCodec,
+      onUpdate: (alpha) => {
+        this.clearEnterMask();
+        spec.custom(alpha, this);
+      },
+      onStart: () => this.fire(`${phase}animationstart`, { preset: "custom" } as Pick<MarkerLifecycleAnimationEventData, "preset">),
+      onEnd: (alpha) => {
+        this.clearEnterMask();
+        this.activeTransitions.delete("opacity");
+        spec.custom(alpha, this);
+        this.fire(`${phase}animationend`, { preset: "custom" } as Pick<MarkerLifecycleAnimationEventData, "preset">);
+        onComplete?.();
+      },
+    });
+
+    this.activeTransitions.set("opacity", animation);
+  }
+
+  /**
+   * Clears the outer-element opacity mask set at construction time when an
+   * `enter` animation is configured (see the constructor). Called from the
+   * first real frame of whichever enter/exit animation runs — preset or
+   * `custom` — so a `custom` enter is never left invisible: it's the only
+   * thing responsible for un-masking itself, since the SDK has no way to
+   * know in advance whether (or how) a `custom` callback touches opacity.
+   * Safe to call unconditionally, including for `exit` (never masked) and
+   * repeatedly (idempotent) — it's just clearing an inline style back to "".
+   */
+  private clearEnterMask(): void {
+    this[MarkerElementSymbol].style.opacity = "";
+  }
+
+  /** Plays the configured `enter` animation, easing from {@link enterPresetHiddenValue} up to the marker's own configured state. */
+  private playEnterAnimation(spec: MarkerAnimationOptions<EnterAnimationPreset>, onComplete?: () => void): void {
+    if (typeof spec.custom === "function") {
+      this.playCustomLifecycleAnimation("enter", spec, onComplete);
+      return;
+    }
+
+    const baseOpacity = this.props.opacity ?? 1;
+    const baseScale = this.props.scale ?? [1, 1];
+    const shown: LifecycleAnimationValue = { opacity: baseOpacity, scale: baseScale, lift: 0 };
+    const hidden = scaleLifecycleMagnitude(shown, enterPresetHiddenValue(spec.preset, baseOpacity, baseScale), spec.magnitude ?? 1);
+    this.playLifecycleTransition("enter", hidden, shown, spec.easing ?? ENTER_PRESET_EASING[spec.preset], spec, spec.preset, onComplete);
+  }
+
+  /** Plays the configured `exit` animation, easing from the marker's own configured state down to {@link exitPresetHiddenValue}. */
+  private playExitAnimation(spec: MarkerAnimationOptions<ExitAnimationPreset>, onComplete?: () => void): void {
+    if (typeof spec.custom === "function") {
+      this.playCustomLifecycleAnimation("exit", spec, onComplete);
+      return;
+    }
+
+    const baseOpacity = this.props.opacity ?? 1;
+    const baseScale = this.props.scale ?? [1, 1];
+    const shown: LifecycleAnimationValue = { opacity: baseOpacity, scale: baseScale, lift: 0 };
+    const hidden = scaleLifecycleMagnitude(shown, exitPresetHiddenValue(spec.preset, baseOpacity, baseScale), spec.magnitude ?? 1);
+    this.playLifecycleTransition("exit", shown, hidden, spec.easing ?? EXIT_PRESET_EASING[spec.preset], spec, spec.preset, onComplete);
+  }
+
+  /**
+   * Wires the play/iteration/stop bookkeeping shared by every idle loop
+   * (preset or `custom`) around a `value`-keyframed animation, and plays it.
+   */
+  private runIdleAnimation(
+    preset: IdleAnimationPreset | "custom",
+    keyframes: Keyframe[],
+    apply: (value: number) => void,
+    duration: number,
+    iterations: number,
+    delay: number,
+  ): void {
+    const animation = new MaptilerAnimation({ keyframes, duration, iterations, delay });
+
+    animation.addEventListener("play", () => this.fire("idleanimationstart", { preset } as Pick<MarkerLifecycleAnimationEventData, "preset">));
+    animation.addEventListener("timeupdate", (event) => {
+      apply(event.props.value);
+    });
+    animation.addEventListener("iteration", () => this.fire("idleanimationiteration", { preset } as Pick<MarkerLifecycleAnimationEventData, "preset">));
+    // "animationend" fires on every loop-boundary reset, not just a true
+    // stop — "stop" only fires once, when `stopIdleAnimation()` interrupts it
+    // or (for a finite `iterations`) it naturally runs out. Never call
+    // `destroy()` in here: `destroy()` itself calls `stop()`, which would
+    // re-emit "stop" into this same listener and recurse.
+    animation.addEventListener("stop", () => {
+      this.idleAnimation = null;
+      this.fire("idleanimationend", { preset } as Pick<MarkerLifecycleAnimationEventData, "preset">);
+    });
+
+    this.idleAnimation = animation;
+    animation.play();
+  }
+
+  /**
+   * Starts the configured `idle` loop — `preset`'s single channel (see
+   * {@link IDLE_PRESET_CONFIG}) eased out from rest and back per iteration,
+   * or a `custom` callback fed a `0`→`1` alpha that resets every iteration.
+   * Replaces any idle animation already running.
+   */
+  private startIdleAnimation(spec: MarkerIdleAnimationOptions): void {
+    this.stopIdleAnimation();
+
+    if (typeof spec.custom === "function") {
+      this.runIdleAnimation(
+        "custom",
+        [
+          { delta: 0, props: { value: 0 }, easing: spec.easing ?? "Linear" },
+          { delta: 1, props: { value: 1 } },
+        ],
+        (value) => {
+          spec.custom(value, this);
+        },
+        spec.duration ?? 1000,
+        spec.iterations ?? Infinity,
+        spec.delay ?? 0,
+      );
+      return;
+    }
+
+    const { channel, keyframes } = IDLE_PRESET_CONFIG[spec.preset];
+    const magnitude = spec.magnitude ?? 1;
+    const baseOpacity = this.props.opacity ?? 1;
+    const baseScale = this.props.scale ?? [1, 1];
+    const baseRotation = this.props.rotation ?? 0;
+
+    const apply = (value: number) => {
+      switch (channel) {
+        case "scale":
+          this.setProp("scale", [baseScale[0] * value, baseScale[1] * value]);
+          break;
+        case "opacity":
+          this.setProp("opacity", baseOpacity * value);
+          break;
+        case "rotation":
+          this.setRotation(baseRotation + value);
+          break;
+        case "lift":
+          applyLifecycleLift(this[MarkerElementSymbol], value);
+          break;
+      }
+    };
+
+    this.runIdleAnimation(
+      spec.preset,
+      keyframes.map((kf) => ({ delta: kf.delta, props: { value: scaleIdleMagnitude(channel, kf.value, magnitude) }, easing: kf.easing ?? "Linear" })),
+      apply,
+      spec.duration ?? IDLE_PRESET_DEFAULT_DURATION[spec.preset],
+      spec.iterations ?? Infinity,
+      spec.delay ?? 0,
+    );
+  }
+
+  /** Stops the currently-looping `idle` animation, if any, leaving the marker at its current (mid-loop) state. */
+  private stopIdleAnimation(): void {
+    if (!this.idleAnimation) return;
+    this.idleAnimation.destroy();
+    this.idleAnimation = null;
   }
 
   //#endregion
@@ -1175,6 +1409,7 @@ export class Marker extends maplibregl.Marker {
    * up its own state — calling `remove()` here would cause infinite recursion.
    */
   [DetachFromDOMSymbol](): void {
+    this.stopIdleAnimation();
     this.cancelAllTransitions();
     super.remove();
   }
@@ -1194,6 +1429,11 @@ export class Marker extends maplibregl.Marker {
       return this;
     }
 
+    // stop straight away, not deferred to [DetachFromDOMSymbol] — otherwise
+    // it would keep looping (and fighting the exit motion) for the whole
+    // exit animation instead of stopping the moment removal starts.
+    this.stopIdleAnimation();
+
     const exitSpec = this.animations.exit;
     if (!exitSpec || !MarkerManager.getMap(this)) {
       this.detachImmediately();
@@ -1201,7 +1441,9 @@ export class Marker extends maplibregl.Marker {
     }
 
     MarkerManager.deregister(this, { deferDetach: true });
-    this.playLifecycleAnimation("exit", exitSpec, () => this[DetachFromDOMSymbol]());
+    this.playExitAnimation(exitSpec, () => {
+      this[DetachFromDOMSymbol]();
+    });
     return this;
   }
 
