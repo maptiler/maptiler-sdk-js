@@ -22,7 +22,6 @@ import type {
   MarkerAnimationOptions,
   MarkerCustomAnimationOptions,
   MarkerIdleAnimationOptions,
-  MarkerLifecycleAnimationEventData,
   EnterAnimationPreset,
   ExitAnimationPreset,
   IdleAnimationPreset,
@@ -1212,7 +1211,7 @@ export class Marker extends maplibregl.Marker {
         this.setProp("scale", v.scale);
         applyLifecycleLift(this[MarkerElementSymbol], v.lift);
       },
-      onStart: () => this.fire(`${phase}animationstart`, { preset } as Pick<MarkerLifecycleAnimationEventData, "preset">),
+      onStart: () => this.fire(`${phase}animationstart`, { preset }),
       onEnd: (finalValue) => {
         this.clearEnterMask();
         this.activeTransitions.delete("opacity");
@@ -1220,7 +1219,7 @@ export class Marker extends maplibregl.Marker {
         this.setProp("opacity", finalValue.opacity);
         this.setProp("scale", finalValue.scale);
         applyLifecycleLift(this[MarkerElementSymbol], finalValue.lift);
-        this.fire(`${phase}animationend`, { preset } as Pick<MarkerLifecycleAnimationEventData, "preset">);
+        this.fire(`${phase}animationend`, { preset });
         onComplete?.();
       },
     });
@@ -1244,12 +1243,12 @@ export class Marker extends maplibregl.Marker {
         this.clearEnterMask();
         spec.custom(alpha, this);
       },
-      onStart: () => this.fire(`${phase}animationstart`, { preset: "custom" } as Pick<MarkerLifecycleAnimationEventData, "preset">),
+      onStart: () => this.fire(`${phase}animationstart`, { preset: "custom" }),
       onEnd: (alpha) => {
         this.clearEnterMask();
         this.activeTransitions.delete("opacity");
         spec.custom(alpha, this);
-        this.fire(`${phase}animationend`, { preset: "custom" } as Pick<MarkerLifecycleAnimationEventData, "preset">);
+        this.fire(`${phase}animationend`, { preset: "custom" });
         onComplete?.();
       },
     });
@@ -1313,11 +1312,11 @@ export class Marker extends maplibregl.Marker {
   ): void {
     const animation = new MaptilerAnimation({ keyframes, duration, iterations, delay });
 
-    animation.addEventListener("play", () => this.fire("idleanimationstart", { preset } as Pick<MarkerLifecycleAnimationEventData, "preset">));
+    animation.addEventListener("play", () => this.fire("idleanimationstart", { preset }));
     animation.addEventListener("timeupdate", (event) => {
       apply(event.props.value);
     });
-    animation.addEventListener("iteration", () => this.fire("idleanimationiteration", { preset } as Pick<MarkerLifecycleAnimationEventData, "preset">));
+    animation.addEventListener("iteration", () => this.fire("idleanimationiteration", { preset }));
     // "animationend" fires on every loop-boundary reset, not just a true
     // stop — "stop" only fires once, when `stopIdleAnimation()` interrupts it
     // or (for a finite `iterations`) it naturally runs out. Never call
@@ -1325,7 +1324,7 @@ export class Marker extends maplibregl.Marker {
     // re-emit "stop" into this same listener and recurse.
     animation.addEventListener("stop", () => {
       this.idleAnimation = null;
-      this.fire("idleanimationend", { preset } as Pick<MarkerLifecycleAnimationEventData, "preset">);
+      this.fire("idleanimationend", { preset });
     });
 
     this.idleAnimation = animation;

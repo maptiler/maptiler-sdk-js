@@ -67,8 +67,6 @@ async function main() {
     languageOption.innerHTML = l.name;
     languageDropdown.appendChild(languageOption);
   });
-
-  console.log(map.getLayersOrder());
 }
 
 void main();
