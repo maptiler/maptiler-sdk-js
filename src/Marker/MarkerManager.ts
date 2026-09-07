@@ -222,8 +222,11 @@ class MarkerManagerImpl {
     marker[RefreshAdaptiveColorSymbol]();
   }
 
-  // unregisters a Marker that no longer needs to be managed.
-  deregister(marker: Marker): void {
+  // unregisters a Marker that no longer needs to be managed. `deferDetach`
+  // skips the final DOM detach — used by Marker.remove() to play an exit
+  // animation while every other bookkeeping (index, collisions, drag
+  // handlers) updates immediately, same as a normal removal.
+  deregister(marker: Marker, options?: { deferDetach?: boolean }): void {
     const map = this.markerMap.get(marker);
 
     if (!map) return;
@@ -250,7 +253,7 @@ class MarkerManagerImpl {
     marker[ApplyCollisionDisplayStateSymbol]("visible");
     this.invalidateCollisions(map);
 
-    marker[DetachFromDOMSymbol]();
+    if (!options?.deferDetach) marker[DetachFromDOMSymbol]();
   }
 
   // As above but with a Markers ID instead.
@@ -556,12 +559,7 @@ class MarkerManagerImpl {
   private applyCollisionBehaviours(map: SDKMap, state: MapCollisionState, entries: CollisionEntry[]): void {
     const resolution: ResolutionEntry[] = entries.map((entry) => {
       const behaviour = this.effectiveBehaviour(entry.marker, state);
-      const mode: ResolutionMode =
-        behaviour === CollisionBehaviour.HIDE_BY_PRIORITY
-          ? "hide"
-          : behaviour === CollisionBehaviour.MINIMIZE_BY_PRIORITY
-            ? "minimize"
-            : "always";
+      const mode: ResolutionMode = behaviour === CollisionBehaviour.HIDE_BY_PRIORITY ? "hide" : behaviour === CollisionBehaviour.MINIMIZE_BY_PRIORITY ? "minimize" : "always";
       return { mode, priority: numericPriority(entry.marker), obb: entry.obb };
     });
 
@@ -573,8 +571,7 @@ class MarkerManagerImpl {
     // marker (a dense zoom threshold un-hiding hundreds stalled for frames)
     // reduce (not `.some`) — every visible marker must be un-culled; short-circuit would skip the rest
     const needsReflow = entries.reduce(
-      (needs, entry) =>
-        displayStates[entry.index] === "hidden" ? needs : applyCollisionCulled(entry.marker.getElement(), false) || needs,
+      (needs, entry) => (displayStates[entry.index] === "hidden" ? needs : applyCollisionCulled(entry.marker.getElement(), false) || needs),
       false,
     );
     if (needsReflow) void map.getContainer().offsetWidth;

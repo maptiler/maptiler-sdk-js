@@ -691,17 +691,35 @@ function buildInnerElement(inner: ShapeDescriptor["inner"]): SVGCircleElement | 
 //#region applyTransform
 
 /**
- * Composes `data-scaleX`, `data-scaleY`, and `data-rotation` into a single
- * CSS `transform` string on the wrapper. Reading from dataset rather than
- * accepting individual arguments ensures scale and rotation never clobber
- * each other when only one property changes at a time.
+ * Composes `data-scaleX`, `data-scaleY`, `data-rotation`, and `data-lift`
+ * into a single CSS `transform` string on the wrapper. Reading from dataset
+ * rather than accepting individual arguments ensures these never clobber
+ * each other when only one changes at a time.
+ *
+ * `translateY` is listed first (outermost) so `data-lift` is always a fixed
+ * CSS px offset, unaffected by the scale applied after it.
  * @param wrapper - The marker wrapper element.
  */
 function applyTransform(wrapper: HTMLElement): void {
   const sx = wrapper.dataset.scaleX ?? "1";
   const sy = wrapper.dataset.scaleY ?? "1";
   const rot = wrapper.dataset.rotation ?? "0";
-  wrapper.style.transform = `scale(${sx}, ${sy}) rotate(${rot}deg)`;
+  const lift = wrapper.dataset.lift ?? "0";
+  wrapper.style.transform = `translateY(${lift}px) scale(${sx}, ${sy}) rotate(${rot}deg)`;
+}
+
+/**
+ * Sets the wrapper's lifecycle-animation vertical offset (`enter`'s
+ * `drop`/`bounce`, idle's `bounce`) in CSS px. Animation-only — not a public
+ * marker property, so it bypasses {@link updateMarkerElement}'s
+ * pending-update batching.
+ * @param element - The marker's outer root element.
+ * @param liftPx - Vertical offset in CSS px; `0` is the resting position.
+ */
+export function applyLifecycleLift(element: HTMLElement, liftPx: number): void {
+  const wrapper = resolveMarkerWrapper(element);
+  wrapper.dataset.lift = String(liftPx);
+  applyTransform(wrapper);
 }
 
 //#endregion

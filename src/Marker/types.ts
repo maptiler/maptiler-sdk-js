@@ -132,34 +132,117 @@ export type MarkerPriorityExpression = unknown[];
 
 //#endregion
 
-//#region Pending features
+//#region Lifecycle Animations
 
-// Animation (Non MVP)
+/**
+ * Predefined `enter` animation types.
+ * - `fade` — opacity only.
+ * - `grow` — uniform scale from nothing, plus fade.
+ * - `pop` — uniform scale from nothing with a springy overshoot, plus fade.
+ * - `drop` — slides straight down into place, plus fade.
+ * - `bounce` — slides down into place with a bounce-settle, fully opaque throughout.
+ *
+ * See `marker-animation-presets.ts` for each preset's exact motion/easing config.
+ */
+export type EnterAnimationPreset = "grow" | "drop" | "pop" | "bounce" | "fade";
 
-// /** Predefined animation preset names. Each preset ships with a default easing curve. */
-// export type AnimationPreset = "grow" | "drop" | "emerge" | "pop" | "fade" | "draw";
+/**
+ * Predefined `exit` animation types.
+ * - `fade` — opacity only.
+ * - `shrink` — uniform scale to nothing, fully opaque throughout.
+ * - `pop` — scale to nothing combined with a fade, springy overshoot.
+ * - `explode` — scales up (2x) while fading out.
+ *
+ * See `marker-animation-presets.ts` for each preset's exact motion/easing config.
+ */
+export type ExitAnimationPreset = "shrink" | "fade" | "pop" | "explode";
 
-// /**
-//  * Configures a single animation stage for a marker lifecycle event.
-//  * Accepts either a preset-based config object or an existing `MaptilerAnimation` instance.
-//  */
-// export type AnimationOptions =
-//   | {
-//       /** Predefined animation type. The preset also supplies a default easing function. */
-//       preset: AnimationPreset;
-//       /** Overrides the default easing function for the preset. */
-//       easing?: (t: number) => number;
-//       /** Duration in milliseconds. Defaults to 1000. */
-//       duration?: number;
-//       /** Delay before the animation starts in milliseconds. Defaults to 0. */
-//       delay?: number;
-//       /**
-//        * When `true` the animation plays immediately on creation.
-//        * When `false` and `delay` is set, playback waits `delay` ms after `play()` is called.
-//        */
-//       autoplay?: boolean;
-//     }
-//   | MaptilerAnimation;
+/**
+ * Predefined `idle` animation types — each loops a single channel out and
+ * back to rest once per iteration, peaking at the midpoint (`delta` `0.5`).
+ * - `pulsescale` — scales up and back down, ~1 cycle/second by default.
+ * - `pulseopacity` — dims and back to full opacity, ~1 cycle/second by default.
+ * - `ring` — a rotational shake (several alternating wiggles) clustered around the midpoint, every few seconds by default.
+ * - `bounce` — a vertical hop clustered around the midpoint, every few seconds by default.
+ *
+ * See `marker-animation-presets.ts` for each preset's exact keyframe config.
+ */
+export type IdleAnimationPreset = "pulsescale" | "ring" | "pulseopacity" | "bounce";
+
+/** Fields shared by every enter/exit/idle animation spec, whether preset-based or {@link MarkerCustomAnimationOptions}. */
+export type MarkerAnimationBase = {
+  /** Overrides the preset's default easing. Defaults to `"Linear"`. Also applies to a `custom` animation's `alpha`. */
+  easing?: EasingFunctionName;
+  /** Duration in milliseconds. Defaults to `1000`. */
+  duration?: number;
+  /** Delay before the animation starts, in milliseconds. Defaults to `0`. */
+  delay?: number;
+};
+
+/** Configures a marker's `enter`/`exit`/`idle` animation via a predefined preset. */
+export type MarkerPresetAnimationOptions<Preset extends string> = MarkerAnimationBase & {
+  /** Predefined animation type. */
+  preset: Preset;
+  custom?: never;
+  /**
+   * Scales the preset's motion from rest (`0`) up to its full designed
+   * displacement (`1`, the default) — values beyond `1` exaggerate it.
+   * Has no effect on presets with no independent "how far" axis.
+   */
+  magnitude?: number;
+};
+
+/** Configures a marker's `enter`/`exit`/`idle` animation via a custom per-frame callback instead of a preset. */
+export type MarkerCustomAnimationOptions = MarkerAnimationBase & {
+  preset?: never;
+  magnitude?: never;
+  /**
+   * Called every frame with the already-eased progress (`0`–`1`, `easing`
+   * already applied) and the marker being animated. For `enter`, `0` is the
+   * starting (hidden) state and `1` is fully shown; for `exit`, `0` is fully
+   * shown and `1` is the end (hidden) state; for `idle`, `alpha` resets to
+   * `0` at the start of every loop iteration.
+   */
+  custom: (alpha: number, marker: Marker) => void;
+};
+
+/** Configures a marker's `enter` or `exit` lifecycle animation. */
+export type MarkerAnimationOptions<Preset extends string = EnterAnimationPreset | ExitAnimationPreset> = MarkerPresetAnimationOptions<Preset> | MarkerCustomAnimationOptions;
+
+/** Configures a marker's `idle` lifecycle animation. */
+export type MarkerIdleAnimationOptions = MarkerAnimationOptions<IdleAnimationPreset> & {
+  /** Number of loop iterations. Omit, or pass `Infinity`, to loop continuously. */
+  iterations?: number;
+};
+
+/**
+ * Lifecycle animations played as a marker enters, idles on, and exits the map.
+ */
+export type MapTilerMarkerAnimations = {
+  /** Played once the marker is added to a map. */
+  enter?: MarkerAnimationOptions<EnterAnimationPreset>;
+  /**
+   * Played when `remove()` is called. The marker stays on the map, still
+   * receiving updates, until this animation finishes.
+   */
+  exit?: MarkerAnimationOptions<ExitAnimationPreset>;
+  /**
+   * Looped while the marker sits on the map, after `enter` finishes (or
+   * immediately, if no `enter` is configured).
+   */
+  idle?: MarkerIdleAnimationOptions;
+};
+
+/**
+ * Event fired by a marker's lifecycle animations — `enter`/`exit` fire
+ * `start`/`end` once each; `idle` additionally fires `iteration` once per loop.
+ */
+export type MarkerLifecycleAnimationEventData = {
+  type: "enteranimationstart" | "enteranimationend" | "exitanimationstart" | "exitanimationend" | "idleanimationstart" | "idleanimationiteration" | "idleanimationend";
+  target: Marker;
+  /** The preset configured for the phase that fired this event, or `"custom"` for a {@link MarkerCustomAnimationOptions} animation. */
+  preset: EnterAnimationPreset | ExitAnimationPreset | IdleAnimationPreset | "custom";
+};
 
 //#endregion
 
@@ -321,15 +404,8 @@ export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" 
   visible?: boolean;
   /** Rendering priority used for collision detection. Accepts a numeric value or a MapLibre-style expression. */
   priority?: number | MarkerPriorityExpression;
-  // /** Lifecycle animations. (Non MVP) Certain fields (e.g. `iterations`) are ignored for `enter` and `exit` animations. */
-  // animations?: {
-  //   /** Played when the marker is added to the map. Defaults to a subtle drop-in effect. */
-  //   enter?: AnimationOptions[];
-  //   /** Played when the marker is removed from the map. Defaults to a fade-out effect. */
-  //   exit?: AnimationOptions[];
-  //   /** Loops continuously while the marker is idle on the map. */
-  //   idle?: AnimationOptions[];
-  // };
+  /** Lifecycle animations played as the marker enters, idles on, and exits the map. */
+  animations?: MapTilerMarkerAnimations;
   /**
    * Per-property easing applied when a transitionable property (`position`,
    * `scale`, `rotation`, or a colour) is next set, instead of the change

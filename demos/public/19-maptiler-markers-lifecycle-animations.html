@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>MapTiler Markers – Lifecycle Animations</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    #map {
+      position: absolute;
+      inset: 0;
+    }
+
+    #panel {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 100;
+      width: 280px;
+      max-height: calc(100vh - 24px);
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .ctrl-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ctrl-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.45);
+    }
+
+    .ctrl-hint {
+      font-size: 11px;
+      color: rgba(0, 0, 0, 0.6);
+      line-height: 1.5;
+    }
+
+    .ctrl-hint b {
+      color: rgba(0, 0, 0, 0.85);
+    }
+
+    select.ctrl-select {
+      height: 28px;
+      border: 1.5px solid rgba(0, 0, 0, 0.12);
+      border-radius: 6px;
+      background: white;
+      font: 600 11px system-ui;
+      color: rgba(0, 0, 0, 0.75);
+      padding: 0 6px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 4px;
+    }
+
+    .ctrl-btn {
+      flex: 1;
+      height: 28px;
+      border: 1.5px solid rgba(0, 0, 0, 0.12);
+      border-radius: 6px;
+      background: transparent;
+      font: 600 11px system-ui;
+      color: rgba(0, 0, 0, 0.55);
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+
+    .ctrl-btn:hover {
+      border-color: rgba(0, 0, 0, 0.25);
+      color: rgba(0, 0, 0, 0.8);
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    #lifecycle-log {
+      font-family: monospace;
+      font-size: 10px;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+
+    #lifecycle-log div {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+
+  <link rel="stylesheet" href="../build/maptiler-sdk.css">
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <div id="panel">
+    <div class="ctrl-group">
+      <div class="ctrl-label">Enter</div>
+      <select id="enter-preset" class="ctrl-select"></select>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Idle</div>
+      <select id="idle-preset" class="ctrl-select"></select>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Exit</div>
+      <select id="exit-preset" class="ctrl-select"></select>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Magnitude (<span id="magnitude-value">1.0</span>)</div>
+      <input id="magnitude" type="range" min="0" max="2" step="0.1" value="1">
+    </div>
+
+    <div class="ctrl-hint">Picking a preset (or "custom") only affects markers added <b>after</b> the change — each marker is built from the selections at the moment it's added. Magnitude is ignored by "custom" and "none".</div>
+
+    <div class="btn-row">
+      <button id="add-marker" class="ctrl-btn">Add one</button>
+      <button id="add-5-markers" class="ctrl-btn">Add 10</button>
+    </div>
+
+    <div class="btn-row">
+      <button id="remove-all-markers" class="ctrl-btn">Remove all (<span id="marker-count">0</span>)</button>
+    </div>
+
+    <hr>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Last 8 events</div>
+      <div id="lifecycle-log"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/19-maptiler-markers-lifecycle-animations.ts"></script>
+</body>
+
+</html>
