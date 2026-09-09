@@ -575,6 +575,25 @@ export function applyCollisionCulled(element: HTMLElement, culled: boolean): boo
 
 //#endregion
 
+//#region applyAltitudeHidden
+
+const ALTITUDE_HIDDEN_CLASSNAME = "maptiler-marker-altitude-hidden";
+export const GROUND_LINE_CLASSNAME = "maptiler-marker-groundline";
+
+/**
+ * Toggles whether a marker is hidden because its altitude-projected
+ * position is off-screen/behind the camera. Independent of
+ * {@link applyCollisionHidden} — see the CSS comment in the SDK stylesheet
+ * for why the two never fight over the same element.
+ * @param element - The marker's outer root element (or the custom element).
+ * @param hidden - Whether the marker's altitude projection is currently unusable.
+ */
+export function applyAltitudeHidden(element: HTMLElement, hidden: boolean): void {
+  element.classList.toggle(ALTITUDE_HIDDEN_CLASSNAME, hidden);
+}
+
+//#endregion
+
 //#region applyMinimizedDot
 
 const MINIMIZED_DOT_CLASSNAME = "marker-minimized-dot";

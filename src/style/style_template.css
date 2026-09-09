@@ -215,6 +215,35 @@
   transform: scale(0) !important;
 }
 
+/* Marker altitude (setAltitude/setGroundLine). Hidden when the altitude
+   projection is off-screen/behind the camera — independent of, and
+   composes with, the collision engine's own hide above (both are plain
+   "force hidden, else say nothing" rules on the same element, so either one
+   hiding it is enough; opacity on this element also visually hides the
+   ground-line child below, no extra wiring needed for that). */
+.maptiler-marker-altitude-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Dashed line from a marker down (or up) to its ground point. Geometry
+   (left/top/width/rotation — left/top set once, from the marker's own
+   `anchor`, so the line pivots on the real anchor point rather than the
+   marker box's corner; width/rotation every frame) is written inline by the
+   marker; only the visual appearance belongs here. `:where()` keeps this at
+   zero specificity so a single-class override of your own always wins,
+   loaded before or after this stylesheet. */
+.maptiler-marker-groundline {
+  position: absolute;
+  height: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+:where(.maptiler-marker-groundline) {
+  border-top: 1.5px dashed rgba(20, 20, 20, 0.55);
+}
+
 .webgl-warning-div {
   position: absolute;
   top: 0;
