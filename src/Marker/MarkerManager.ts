@@ -79,6 +79,16 @@ type MapAltitudeState = {
   layerId: string;
   /** The matrix captured by the layer's `render()` this frame; null until the first frame after installation. */
   currentMatrix: mat4 | null;
+  /**
+   * `args.defaultProjectionData.projectionTransition` from that same frame —
+   * 0 (pure mercator) or 1 (pure globe) at rest, fractional mid-morph
+   * between projections. `getMatrixForModel`'s per-projection placement (see
+   * altitude-math.ts) has no defined meaning at fractional values, so the
+   * render loop freezes markers at their last good position rather than
+   * projecting through a blend it can't represent — same guard
+   * maptiler-3d-js's Layer3D uses for its 3D models.
+   */
+  currentProjectionTransition: number | null;
   installed: boolean;
   renderListener: (() => void) | null;
   styleLoadListener: (() => void) | null;
@@ -722,16 +732,23 @@ class MarkerManagerImpl {
     groundLineContainer.style.position = "absolute";
     groundLineContainer.style.inset = "0";
     groundLineContainer.style.pointerEvents = "none";
-    // Negative, not just "low" — reliably behind every marker regardless of
-    // `priority` (small non-negative ints) or the camera-depth ranking
-    // markers get while altitude-active (ALTITUDE_Z_INDEX_BASE and up).
-    groundLineContainer.style.zIndex = "-1";
-    map.getCanvasContainer().appendChild(groundLineContainer);
+    // No z-index here, deliberately — a negative one would drop this into
+    // the CSS "negative z-index" stacking bucket, which paints BEHIND the
+    // map's own WebGL canvas (z-index: auto, i.e. the normal/0 bucket) —
+    // the lines would still render, just hidden behind the opaque map
+    // surface. Instead this relies on DOM order within that same normal
+    // bucket: inserted right after the canvas (so it's above the map), and
+    // every marker element is `appendChild`ed later (so markers, later in
+    // DOM order, always paint on top of this) — markers with an explicit
+    // z-index (`priority`, or the camera-depth ranking altitude-active
+    // markers get) are in a higher bucket regardless and stay on top too.
+    map.getCanvas().after(groundLineContainer);
 
     const state: MapAltitudeState = {
       participants: new Set(),
       layerId: `__maptiler-altitude-capture-${String(this.altitudeLayerSequence++)}__`,
       currentMatrix: null,
+      currentProjectionTransition: null,
       installed: false,
       renderListener: null,
       styleLoadListener: null,
@@ -796,11 +813,16 @@ class MarkerManagerImpl {
         // MapLibre v4 called this render(gl, matrix: mat4) — `args` was the
         // matrix itself and `defaultProjectionData` didn't exist.
         state.currentMatrix = args.defaultProjectionData.mainMatrix;
+        state.currentProjectionTransition = args.defaultProjectionData.projectionTransition;
       },
     });
 
     const onRender = () => {
       if (!state.currentMatrix) return;
+      // Mid-morph between mercator and globe — freeze rather than project
+      // through a blend `getMatrixForModel` can't represent (see
+      // `currentProjectionTransition`'s doc comment).
+      if (state.currentProjectionTransition !== 0 && state.currentProjectionTransition !== 1) return;
 
       // Each marker projects itself and reports back its camera depth (or
       // null if off-screen/hidden this frame) — collected here rather than

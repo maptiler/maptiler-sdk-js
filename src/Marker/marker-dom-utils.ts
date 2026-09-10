@@ -582,7 +582,10 @@ export const GROUND_LINE_CLASSNAME = "maptiler-marker-groundline";
 
 /**
  * Toggles whether a marker is hidden because its altitude-projected
- * position is off-screen/behind the camera. Independent of
+ * position is unusable this frame — off-screen or behind the camera, i.e.
+ * there is no screen position to render it at, at all. NOT the below-ground
+ * case (see {@link applyAltitudeOccluded}), which has a perfectly good
+ * position and should still render there, just faded. Independent of
  * {@link applyCollisionHidden} — see the CSS comment in the SDK stylesheet
  * for why the two never fight over the same element.
  * @param element - The marker's outer root element (or the custom element).
@@ -590,6 +593,26 @@ export const GROUND_LINE_CLASSNAME = "maptiler-marker-groundline";
  */
 export function applyAltitudeHidden(element: HTMLElement, hidden: boolean): void {
   element.classList.toggle(ALTITUDE_HIDDEN_CLASSNAME, hidden);
+}
+
+//#endregion
+
+//#region applyAltitudeOccluded
+
+const ALTITUDE_OCCLUDED_CLASSNAME = "maptiler-marker-altitude-occluded";
+
+/**
+ * Toggles whether a marker is faded because it's below ground (see
+ * `computeAltitudeProjection`'s `belowGround`) — DOM markers aren't
+ * depth-tested against the terrain mesh, so nothing else would stand in for
+ * a hillside occluding it. Unlike {@link applyAltitudeHidden}, the marker
+ * still has a real position and stays there (and pointer events stay on —
+ * it's still there, just visually behind something) — only opacity changes.
+ * @param element - The marker's outer root element (or the custom element).
+ * @param occluded - Whether the marker is currently below ground.
+ */
+export function applyAltitudeOccluded(element: HTMLElement, occluded: boolean): void {
+  element.classList.toggle(ALTITUDE_OCCLUDED_CLASSNAME, occluded);
 }
 
 //#endregion
