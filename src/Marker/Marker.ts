@@ -1359,6 +1359,9 @@ export class Marker extends maplibregl.Marker {
 
     const projected = computeAltitudeProjection(this.getLngLat(), this.altitudeMeters, matrix, map, this.altitudeReference);
     if (!projected) {
+      // No valid screen position at all this frame (off-screen/behind the
+      // camera) — unlike belowGround below, there's nothing sane to
+      // position at, so this genuinely hides rather than fades.
       this.altitudeDelta = null;
       this.groundLineOrigin = null;
       this.setAltitudeHidden(true);

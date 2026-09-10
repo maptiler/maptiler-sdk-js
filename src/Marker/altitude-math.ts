@@ -67,6 +67,9 @@ export function computeAltitudeProjection(
   relativeTo: AltitudeReference,
 ): { groundBase: ScreenPoint; elevated: ScreenPoint; belowGround: boolean } | null {
   const nativeElevation = map.getTerrain() ? (map.queryTerrainElevation(lngLat) ?? 0) : 0;
+
+  // Where MapLibre's own marker _pos already sits — the baseline every
+  // pixel offset this SDK writes has to be measured from.
   const groundBase = projectLngLatAltitude(lngLat, nativeElevation, matrix, map);
 
   const targetElevation = relativeTo === "ground" ? nativeElevation + altitudeMeters : altitudeMeters;
