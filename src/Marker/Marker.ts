@@ -99,8 +99,7 @@ function pointLikeToXY(point: PointLike): [number, number] {
   return Array.isArray(point) ? [point[0], point[1]] : [point.x, point.y];
 }
 
-// custom elements minimize to a dot — only these props are consumable as
-// CSS custom properties by the dot (or the element's own styles)
+// props consumable as CSS custom properties on the minimized dot
 const CUSTOM_ELEMENT_MINIMIZED_KEYS = ["color", "innerColor", "outerColor", "contentColor", "shadow", "opacity"] as const satisfies readonly (keyof MapTilerMarkerElementProps)[];
 
 const maptilerBaseOptionsKeys = [
@@ -133,31 +132,21 @@ const maptilerBaseOptionsKeys = [
 ] as const;
 
 /**
- * A MapTiler marker with extended styling and batched DOM update support.
- *
- * Extends MapLibre's `Marker` with 2-D scale, named shapes, colour tokens,
- * and a batched-update system that defers all DOM writes to the next animation
- * frame so that multiple property changes in the same tick cost only one
- * layout pass.
+ * MapLibre's `Marker` extended with 2-D scale, named shapes, colour tokens,
+ * and batched DOM updates — property changes defer to the next animation
+ * frame so multiple changes in one tick cost only one layout pass.
  */
 export class Marker extends maplibregl.Marker {
-  /**
-   * The options used to construct this marker.
-   * A construction-time snapshot — not updated by setters; use the getters
-   * for current values.
-   */
+  /** Construction-time options snapshot — not updated by setters. */
   readonly options: MapTilerMarkerOptions;
-  readonly _scale = 1; // ML only allows scaling in 1 dimension, we want to add scaling in 2D so this is ignored.
+  readonly _scale = 1; // MapLibre only scales in 1D; ours is 2D via `props.scale`, so this is unused.
 
   //#region Marker Properties
 
   /** Current values of all element-affecting properties. Written only via {@link setProp}. */
   private readonly props: MapTilerMarkerElementProps;
 
-  /**
-   * Whether the shape anchor offset is managed automatically.
-   * `false` when the user supplied an explicit `offset` or a custom `element`.
-   */
+  /** Whether the shape anchor offset is auto-managed — `false` with an explicit `offset` or custom `element`. */
   private readonly managesOffset: boolean;
 
   /** The DOM element **/
@@ -166,12 +155,7 @@ export class Marker extends maplibregl.Marker {
   /** Property updates waiting to be flushed to the DOM on the next animation frame. */
   [PendingUpdatesSymbol]: PendingMarkerUpdates = {};
 
-  /**
-   * Unscaled CSS pixel size of a custom `element`, measured once by
-   * {@link MarkerManager} when the marker is registered (the only time DOM
-   * measurement is allowed — never during a collision pass).
-   * `null` until measured; built-in SVG markers never need it.
-   */
+  /** Unscaled CSS pixel size of a custom `element`, measured once at registration. `null` until measured; unused for built-in SVG markers. */
   [MeasuredElementSizeSymbol]: Vector2 | null = null;
 
   /** UUID that uniquely identifies this marker instance. */
@@ -180,19 +164,10 @@ export class Marker extends maplibregl.Marker {
   /** How the collision engine is currently displaying this marker. */
   private collisionDisplayState: MarkerCollisionDisplayState = "visible";
 
-  /**
-   * Visual props overridden while minimized — masked out of DOM flushes so a
-   * queued user update can't clobber the minimized appearance, and restored
-   * from {@link props} on un-minimize. Empty when not minimized.
-   */
+  /** Visual props overridden while minimized, restored from {@link props} on un-minimize. Empty when not minimized. */
   private minimizedKeys: (keyof PendingMarkerUpdates)[] = [];
 
-  /**
-   * Whether the minimized appearance is currently applied to the DOM. Lags
-   * behind {@link collisionDisplayState} during fades: the swap happens at
-   * the invisible midpoint of a fade-through, and a marker hidden while
-   * minimized keeps its minimized DOM until it un-hides.
-   */
+  /** Whether the minimized appearance is currently applied to the DOM. Lags {@link collisionDisplayState} during fades. */
   private minimizedApplied = false;
 
   /** Pending mid-fade appearance swap for minimize transitions. */
@@ -201,13 +176,7 @@ export class Marker extends maplibregl.Marker {
   /** Pending post-fade cull (`display: none`) while hidden. */
   private cullTimer: ReturnType<typeof setTimeout> | null = null;
 
-  /**
-   * Pending release of the collision fade class once no fade/dip transition
-   * is in flight — keeps the class (and the `transform` transition it
-   * carries) from lingering on the element after the marker settles, where
-   * it would otherwise silently apply to unrelated `transform` writes (e.g.
-   * {@link setScale}, {@link setRotation}).
-   */
+  /** Pending release of the collision fade class once no fade/dip is in flight. */
   private fadeClassReleaseTimer: ReturnType<typeof setTimeout> | null = null;
 
   /** Registered property overrides per UI state, keyed by state name. */
@@ -216,22 +185,13 @@ export class Marker extends maplibregl.Marker {
   /** UI states currently active (interaction-driven). */
   private readonly activeUIStates = new Set<MapTilerMarkerUIStateName>();
 
-  /**
-   * Keys currently owned by the flattened active UI state — masked out of
-   * DOM flushes so a queued user update can't clobber the UI state's
-   * appearance, mirroring {@link minimizedKeys}.
-   */
+  /** Keys owned by the flattened active UI state, masked out of DOM flushes like {@link minimizedKeys}. */
   private appliedUIStateKeys: (keyof PendingMarkerUpdates)[] = [];
 
   /** Registered per-property transition config, keyed by property name. */
   private transitions: MapTilerMarkerTransitions;
 
-  /**
-   * In-flight transitions, keyed by property name — at most one per property.
-   * `"opacity"` isn't a public {@link MarkerTransitionProperty}; it's reused
-   * here so an enter/exit fade is cancelled the same way any other in-flight
-   * transition would be.
-   */
+  /** In-flight transitions, keyed by property — at most one each. `"opacity"` isn't a public {@link MarkerTransitionProperty}, reused for enter/exit fades. */
   private readonly activeTransitions = new Map<MarkerTransitionProperty | "opacity", MaptilerAnimation>();
 
   /** The currently-looping `idle` animation, if any — started after `enter` finishes (or immediately), stopped on `remove()`. */
@@ -240,66 +200,31 @@ export class Marker extends maplibregl.Marker {
   /** Configured enter/idle/exit lifecycle animations. */
   private animations: MapTilerMarkerAnimations;
 
-  /**
-   * Set while `addTo()` is calling into MapLibre's base `addTo()`, which
-   * itself calls `this.remove()` first (to detach from any previous map).
-   * Without this guard that reentrant call would play a full exit animation
-   * every time a marker is (re-)added.
-   */
+  /** Set during `addTo()`'s call into the base `addTo()`, which calls `this.remove()` first to detach from any previous map. */
   private suppressLifecycleAnimations = false;
 
-  /**
-   * Altitude in meters above the ground plane, faked via a per-frame pixel
-   * offset (MapLibre's Marker has no native Z). 0 is the default and a
-   * genuine no-op — see {@link setAltitude}.
-   */
+  /** Altitude in meters, faked via a per-frame pixel offset (MapLibre's Marker has no native Z). 0 by default — see {@link setAltitude}. */
   private altitudeMeters = 0;
 
   /** What {@link altitudeMeters} is measured from — see {@link AltitudeReference}. */
   private altitudeReference: AltitudeReference = "ground";
 
-  /** True once {@link setAltitude} has been called at least once — from then on, tracking stays on for the marker's lifetime regardless of value; see {@link hasActiveAltitude}. */
+  /** True once {@link setAltitude} has been called at least once — see {@link hasActiveAltitude}. */
   private altitudeEngaged = false;
 
-  /**
-   * The offset MapLibre would show with no altitude applied — the shape
-   * anchor offset, an explicit `setOffset()` call, or the minimized-shape
-   * offset. The single source of truth {@link writeOffset} composes the
-   * altitude delta on top of; every internal call site that decides "what
-   * the offset should be" for a reason other than altitude must go through
-   * `writeOffset`, not `super.setOffset` directly, or altitude gets silently
-   * clobbered the next time that call site runs (e.g. a shape/size change).
-   */
+  /** The offset MapLibre would show with no altitude applied. Only {@link writeOffset} should write the real offset — anything that calls `super.setOffset` directly clobbers altitude. */
   private baseOffset: PointLike = [0, 0];
 
-  /**
-   * Pixel delta from `groundBase` (the point MapLibre's own `_pos` already
-   * sits at natively — terrain-elevated whenever the map has terrain,
-   * regardless of this marker's `relativeTo`) to `elevated`. This is what
-   * gets added to {@link baseOffset} and written to MapLibre, AND what the
-   * ground line's geometry comes from — both measured from the same
-   * baseline, since `groundBase` doubles as "the real ground" too. See
-   * `computeAltitudeProjection`'s doc comment. Null when off-screen/behind
-   * the camera.
-   */
+  /** Pixel delta from `groundBase` to `elevated`, added to {@link baseOffset}. Null when off-screen/behind camera. */
   private altitudeDelta: { x: number; y: number } | null = null;
 
-  /**
-   * The `elevated` point in absolute canvas CSS pixels — where the ground
-   * line's element gets positioned. The line lives in a shared container at
-   * the map level (see {@link MarkerManager.getGroundLineContainer}), not
-   * nested inside this marker's own (z-indexed, for camera-depth ordering)
-   * element, so a long line can't paint on top of some *other* marker's icon
-   * just because it happens to cross over it on screen. That independence
-   * means it needs its own absolute position every frame — it doesn't ride
-   * along with the marker's CSS transform for free the way a nested child would.
-   */
+  /** The `elevated` point in absolute canvas CSS pixels — the ground line's position. */
   private groundLineOrigin: { x: number; y: number } | null = null;
 
-  /** Whether this marker is currently hidden because its altitude projection is off-screen/behind the camera — no valid position exists at all. Independent of collision hide/minimize — see the CSS comment on `.maptiler-marker-altitude-hidden`. NOT the below-ground case, see {@link altitudeOccluded}. */
+  /** True when off-screen/behind the camera. Not the below-ground case — see {@link altitudeOccluded}. */
   private altitudeHidden = false;
 
-  /** Whether this marker is currently faded because it's below ground (see {@link computeAltitudeProjection}'s `belowGround`) — DOM markers aren't depth-tested against the terrain mesh, so this stands in for a hillside occluding it. Unlike {@link altitudeHidden}, the marker still has a real position and renders there. */
+  /** True when below ground (`computeAltitudeProjection`'s `belowGround`). */
   private altitudeOccluded = false;
 
   private groundLineEnabled = false;
@@ -311,21 +236,15 @@ export class Marker extends maplibregl.Marker {
   //#region Constructor
 
   /**
-   * Creates a marker whose content is a pre-built DOM or SVG element.
+   * Creates a marker from a pre-built DOM or SVG element.
    *
-   * SVG-layout fields (`shape`, `size`) are not available in this signature —
-   * they only affect the built-in SVG generator.  Color and shadow options
-   * are still accepted and applied as CSS custom properties on the supplied
-   * element so that its styles can consume them.
+   * `shape`/`size` don't apply. Color/shadow options still apply as CSS
+   * custom properties for the element's own styles to consume.
    *
    * TODO: this will affect collision behaviour.
    */
   constructor(options: MapTilerMarkerElementOptions);
-  /**
-   * Creates a marker whose content is generated by the built-in SVG system.
-   *
-   * Use `shape`, `size`, colour tokens, and shadow to style the marker.
-   */
+  /** Creates a marker styled via the built-in SVG system (`shape`, `size`, colour tokens, shadow). */
   constructor(options: MapTilerMarkerSVGOptions);
   constructor(options: MapTilerMarkerOptions) {
     const sizeKey = options.size ?? DEFAULT_SIZE;
@@ -349,21 +268,10 @@ export class Marker extends maplibregl.Marker {
     // custom elements skip createMarkerElement, so seed their style variables here
     if (options.element) applyMarkerStyleVariables(options.element, options);
 
-    // If an `enter` animation is configured, mask the element right away.
-    // addTo() attaches it to the DOM synchronously, but MaptilerAnimation
-    // only applies its first keyframe on the *next* animation frame (play()
-    // just starts the clock) — without this, the marker would render at its
-    // full configured opacity for one frame before the enter animation's
-    // first tick pulls it down to its hidden starting state, a visible
-    // "flash" before it fades/grows/pops in.
-    //
-    // This has to be the *outer* element (not the inner `.marker-transform-
-    // wrapper` a preset animates via setProp) so it's just as effective for
-    // a `custom` enter — whose callback can only reach the marker through
-    // the public `getElement()`, i.e. this same outer element. Whichever
-    // kind of enter animation actually runs is responsible for clearing this
-    // mask on its first real frame (see playLifecycleTransition /
-    // playCustomLifecycleAnimation) — until then it stays fully masked.
+    // Mask the outer element immediately when an `enter` animation is
+    // configured — avoids a one-frame flash before the animation's first
+    // tick. Cleared by whichever enter animation runs (see
+    // playLifecycleTransition / playCustomLifecycleAnimation).
     if (options.animations?.enter) {
       element.style.opacity = "0";
     }
@@ -404,15 +312,11 @@ export class Marker extends maplibregl.Marker {
   //#region Internal
 
   /**
-   * Adds the marker to a map.
-   *
-   * Overrides the MapLibre signature to also accept the SDK `Map` type.
-   * Plays the configured `enter` animation, if any, once attached.
+   * Adds the marker to a map, and plays the configured `enter` animation (if any) once attached.
    * @param map - Target map instance.
    */
   addTo(map: SDKMap): this {
-    // MapLibre's own addTo() calls this.remove() first (to detach from any
-    // previous map) — suppress the exit animation for that reentrant call.
+    // suppress the exit animation for addTo()'s own internal remove() call
     this.suppressLifecycleAnimations = true;
     super.addTo(map);
     this.suppressLifecycleAnimations = false;
@@ -431,15 +335,9 @@ export class Marker extends maplibregl.Marker {
     return this;
   }
 
-  /**
-   * Recomputes the shape anchor offset on the parent MapLibre marker so the
-   * shape's visual tip stays on the lngLat. No-op when the user supplied an
-   * explicit `offset` or a custom `element`.
-   */
+  /** Recomputes the shape anchor offset so the shape's tip stays on the lngLat. No-op with an explicit `offset` or custom `element`. */
   private applyShapeAnchorOffset(): void {
     if (!this.managesOffset) return;
-    // while the minimized appearance is applied, the live offset belongs to
-    // the minimized shape/size; the props-based offset is restored on un-minimize
     if (this.minimizedApplied) return;
     this.setOffset(getShapeAnchorOffset(this.props.shape ?? DEFAULT_SHAPE, this.props.size ?? DEFAULT_SIZE));
   }
@@ -463,8 +361,6 @@ export class Marker extends maplibregl.Marker {
   [FlushDOMUpdatesSymbol](): void {
     const raw = this[PendingUpdatesSymbol];
     this[PendingUpdatesSymbol] = {};
-    // while the minimized appearance or an active UI state owns a key, the
-    // props are already recorded and get applied once that owner releases it
     const maskedKeys = [...(this.minimizedApplied ? this.minimizedKeys : []), ...this.appliedUIStateKeys];
     const pending: PendingMarkerUpdates = maskedKeys.length > 0 ? omit(raw, maskedKeys) : raw;
     if (Object.keys(pending).length === 0) return;
@@ -477,12 +373,7 @@ export class Marker extends maplibregl.Marker {
     return map ? MarkerManager.getMapStyleId(map) : undefined;
   }
 
-  /**
-   * Queues a re-resolution of the adaptive `color` against the current map
-   * style. Called by {@link MarkerManager} when the marker is registered and
-   * whenever the map style changes. No-op when the marker has no adaptive
-   * colour, or when an explicit `innerColor` pins the colour.
-   */
+  /** Queues re-resolving the adaptive `color` against the current map style. */
   [RefreshAdaptiveColorSymbol](): void {
     if (this.props.color === undefined || this.props.innerColor !== undefined) return;
     this.setProp("color", this.props.color);
@@ -492,18 +383,7 @@ export class Marker extends maplibregl.Marker {
 
   //#region Collision
 
-  /**
-   * Resolves the marker's screen footprint for collision detection.
-   *
-   * Built entirely from stored props / lookup tables — no DOM reads — so it
-   * is safe to call once per marker per detection pass. Called by
-   * {@link MarkerManager} which pairs it with the marker's projected screen
-   * position to build the collision box.
-   *
-   * Always the *full-size* footprint: a minimized marker keeps reserving its
-   * full box (strict priority order), so the minimized rendering never has a
-   * footprint of its own.
-   */
+  /** Resolves the marker's screen footprint for collision detection. Always full-size, even minimized. */
   [CollisionFootprintSymbol](): MarkerFootprint {
     const [sx, sy] = this.props.scale ?? [1, 1];
     const shared = {
@@ -511,8 +391,7 @@ export class Marker extends maplibregl.Marker {
       mapAligned: this.getRotationAlignment() === "map",
     };
 
-    // explicit collision radius replaces the visual box with a centred
-    // square pinned on the anchor point — rotation must not move it
+    // explicit radius: centred square on the anchor, unrotated
     const radius = this.options.collisionRadius;
     if (radius && radius > 0) {
       return { width: radius * 2, height: radius * 2, anchor: "center", offset: this.footprintOffset(), ...shared, pivot: [0, 0] };
@@ -520,31 +399,24 @@ export class Marker extends maplibregl.Marker {
 
     const anchor = this.options.anchor ?? "center";
 
-    // custom element: size measured once at registration; rotation uses the
-    // CSS default transform-origin (element center)
+    // custom element: measured size, CSS default transform-origin
     if (this.options.element) {
       const [w, h] = this[MeasuredElementSizeSymbol] ?? [0, 0];
       return { width: w * sx, height: h * sy, anchor, offset: this.footprintOffset(), ...shared, pivot: [0, 0] };
     }
 
-    // built-in SVG: height comes from the size key, width from the shape's
-    // aspect ratio (see setMarkerSVGDimensions); `xs` renders a square dot
+    // built-in SVG: height from size key, width from shape aspect ratio
     const { shape: shapeKey, size } = this.effectiveShapeAndSize(false);
     const heightPx = SIZE_PX[size];
     const shape = SHAPES[shapeKey];
     const widthPx = size === "xs" ? heightPx : heightPx * (shape.viewBox[0] / shape.viewBox[1]);
     const height = heightPx * sy;
-    // bottom-anchored shapes rotate around their tip (transform-origin
-    // "center bottom" — see createMarkerElement / applyShape)
+    // bottom-anchored shapes rotate around their tip
     const pivot: Vector2 = shape.anchor === "center" ? [0, 0] : [0, height / 2];
     return { width: widthPx * sx, height, anchor, offset: this.footprintOffset(), ...shared, pivot };
   }
 
-  /**
-   * The marker's shape/size keys, or their minimized substitutes: the
-   * minimized appearance defaults to the `xs` dot, with `minimizedOptions`
-   * overriding individual keys.
-   */
+  /** Shape/size keys, or minimized substitutes. */
   private effectiveShapeAndSize(minimized: boolean): { shape: NonNullable<MapTilerMarkerOptions["shape"]>; size: NonNullable<MapTilerMarkerOptions["size"]> } {
     const shape = this.props.shape ?? DEFAULT_SHAPE;
     const size = this.props.size ?? DEFAULT_SIZE;
@@ -553,12 +425,7 @@ export class Marker extends maplibregl.Marker {
     return { shape: overrides?.shape ?? shape, size: overrides?.size ?? "xs" };
   }
 
-  /**
-   * Screen offset used in the collision footprint. Managed offsets are
-   * recomputed from the props rather than read back from MapLibre — the live
-   * offset temporarily belongs to the minimized shape while the marker is
-   * minimized (see {@link applyMinimizedAppearance}).
-   */
+  /** Screen offset for the collision footprint. */
   private footprintOffset(): Vector2 {
     if (this.managesOffset) {
       const { shape, size } = this.effectiveShapeAndSize(false);
@@ -568,31 +435,16 @@ export class Marker extends maplibregl.Marker {
     return [offset.x, offset.y];
   }
 
-  /**
-   * Fires the state-change collision event (`markeroverlap` or
-   * `markerproximity`) for this marker. Called by {@link MarkerManager}
-   * after diffing the pass results against the previous pass — only
-   * transitions reach this point, unchanged collisions are never re-emitted.
-   */
+  /** Fires the collision transition event (`markeroverlap`/`markerproximity`). */
   [EmitCollisionDiffSymbol](data: MarkerCollisionEventData): void {
     this.fire(data.kind === "overlap" ? "markeroverlap" : "markerproximity", data);
   }
 
   /**
-   * Applies the display state decided by the collision engine's behaviour
-   * resolution. Idempotent — reapplying the current state is a no-op, so
-   * unchanged markers cost nothing per pass.
+   * Applies the collision engine's display-state decision.
    *
-   * Never touches {@link props}: hiding toggles the fade classes on the
-   * root element (see `applyCollisionHidden`) and minimizing writes the
-   * minimized visuals directly to the DOM, so detection keeps seeing the
-   * marker's real properties and the user's values survive the round-trip.
-   *
-   * Every transition fades. Hide/show fade in place; minimize transitions
-   * with both endpoints on screen fade *through* zero — dip out, swap the
-   * appearance at the invisible midpoint, fade back in — since the SVG swap
-   * itself cannot crossfade. A transition arriving mid-fade cancels the
-   * pending swap and supersedes it.
+   * Every transition fades. Hide/show fade in place; visible<->minimized
+   * fades *through* zero (dip out, swap at the invisible midpoint, fade back in).
    */
   [ApplyCollisionDisplayStateSymbol](state: MarkerCollisionDisplayState): void {
     if (state === this.collisionDisplayState) return;
@@ -611,9 +463,7 @@ export class Marker extends maplibregl.Marker {
     const element = this.getElement();
 
     if (state === "hidden") {
-      // fade out as-is; a minimized appearance is restored lazily on un-hide.
-      // Once the fade completes the marker leaves rendering entirely
-      // (display: none), so masses of hidden markers cost nothing per frame.
+      // fade out, then display:none once faded
       this.setCollisionHidden(true);
       this.cullTimer = setTimeout(() => {
         this.cullTimer = null;
@@ -625,11 +475,7 @@ export class Marker extends maplibregl.Marker {
     const wantMinimized = state === "minimized";
 
     if (previous === "hidden") {
-      // re-enter rendering, swap the appearance while still invisible, then
-      // fade in. During a pass the un-cull (and the reflow the fade-in
-      // needs) already happened batched in MarkerManager, making this a
-      // no-op; on direct calls (e.g. deregister) the fade may snap, which
-      // never shows.
+      // re-enter rendering, swap appearance while invisible, then fade in
       applyCollisionCulled(element, false);
       this.setMinimizedApplied(wantMinimized);
       this.setCollisionHidden(false);
@@ -637,7 +483,7 @@ export class Marker extends maplibregl.Marker {
     }
 
     if (this.minimizedApplied === wantMinimized) {
-      // nothing to swap (e.g. a cancelled dip reversed itself) — just fade back
+      // nothing to swap — just fade back
       this.setCollisionHidden(false);
       return;
     }
@@ -651,11 +497,7 @@ export class Marker extends maplibregl.Marker {
     }, this.collisionTransitionMs());
   }
 
-  /**
-   * Toggles the collision-hidden fade, and (re)schedules releasing the fade
-   * class once the map's collision transition duration passes with no
-   * further fade/dip transition — see {@link fadeClassReleaseTimer}.
-   */
+  /** Toggles the collision-hidden fade and reschedules releasing the fade class — see {@link fadeClassReleaseTimer}. */
   private setCollisionHidden(hidden: boolean): void {
     applyCollisionHidden(this.getElement(), hidden);
     if (this.fadeClassReleaseTimer !== null) clearTimeout(this.fadeClassReleaseTimer);
@@ -695,12 +537,7 @@ export class Marker extends maplibregl.Marker {
     return updates as PendingMarkerUpdates;
   }
 
-  /**
-   * Applies or restores the minimized appearance. Everything goes straight
-   * to the DOM (never through {@link setProp}), so the user's props survive;
-   * the anchor offset follows the minimized shape exactly like a real
-   * shape/size change would (see {@link applyShapeAnchorOffset}).
-   */
+  /** Applies or restores the minimized appearance, straight to the DOM (never {@link setProp}). */
   private applyMinimizedAppearance(enabled: boolean): void {
     const styleId = this.getCurrentStyleId();
 
@@ -711,8 +548,7 @@ export class Marker extends maplibregl.Marker {
       if (this.minimizedKeys.length > 0) updateMarkerElement(this[MarkerElementSymbol], overrides, styleId);
       if (this.managesOffset) {
         const { shape, size } = this.effectiveShapeAndSize(true);
-        // writeOffset, not super.setOffset directly — this is a "what the
-        // offset should be" call site, altitude must compose on top of it.
+        // writeOffset, not super.setOffset
         this.writeOffset(getShapeAnchorOffset(shape, size));
       }
       return;
@@ -727,12 +563,7 @@ export class Marker extends maplibregl.Marker {
     }
   }
 
-  /**
-   * Builds the batch that restores the given keys to their prop values.
-   * `color` / `innerColor` are restored together respecting their
-   * precedence: an explicit `innerColor` wins, otherwise the adaptive
-   * `color` (or the default) is re-resolved.
-   */
+  /** Builds the batch restoring `keys` to their prop values. */
   private restoreUpdates(keys: readonly (keyof PendingMarkerUpdates)[]): PendingMarkerUpdates {
     const updates: Record<string, unknown> = {};
     for (const key of keys) {
@@ -748,9 +579,6 @@ export class Marker extends maplibregl.Marker {
 
   /**
    * Sets the marker's geographical position.
-   *
-   * Overridden to re-run collision detection — a marker moving changes
-   * collisions with no map event to hang the pass on.
    * @param lnglat - The new position.
    */
   override setLngLat(lnglat: LngLatLike): this {
@@ -764,12 +592,7 @@ export class Marker extends maplibregl.Marker {
   }
 
   /**
-   * Sets the marker's screen-space pixel offset.
-   *
-   * Overridden to re-run collision detection — the offset shifts the
-   * marker's collision box — and to compose with any active altitude (see
-   * {@link writeOffset}): this becomes the new {@link baseOffset}, altitude
-   * is layered on top of it, not replaced by it.
+   * Sets the marker's screen-space pixel offset. Composes with altitude (see {@link writeOffset}) rather than replacing it.
    * @param offset - Offset in pixels (+y down).
    */
   override setOffset(offset: PointLike): this {
@@ -779,23 +602,9 @@ export class Marker extends maplibregl.Marker {
     return this;
   }
 
-  /**
-   * The single choke point for "what the offset should be right now, for
-   * reasons other than altitude": records `offset` as {@link baseOffset} and
-   * writes `base + altitudeDelta` to the real MapLibre offset. Every
-   * internal call site that used to call `super.setOffset` directly
-   * ({@link applyMinimizedAppearance}) now calls this instead — otherwise
-   * altitude would be silently overwritten the next time one of them runs
-   * (e.g. minimizing while elevated would drop back to ground level).
-   */
+  /** The only path that should write MapLibre's real offset: records `offset` as {@link baseOffset}, then writes `base + altitudeDelta`. Callers must never use `super.setOffset` directly, or altitude gets silently dropped. */
   private writeOffset(offset: PointLike): void {
     this.baseOffset = offset;
-    // `altitudeDelta` can be a real (non-zero) vector even at
-    // `altitudeMeters === 0` under `relativeTo: "ground"` — it's undoing
-    // MapLibre's own native terrain elevation in that case, not adding a
-    // user-visible altitude — so this always composes rather than
-    // special-casing `altitudeMeters === 0`; `?? 0` covers "not tracking at
-    // all" (altitudeDelta null) on its own.
     const [baseX, baseY] = pointLikeToXY(offset);
     const dx = this.altitudeDelta?.x ?? 0;
     const dy = this.altitudeDelta?.y ?? 0;
@@ -828,12 +637,10 @@ export class Marker extends maplibregl.Marker {
   //#region Shape
 
   /**
-   * Sets the marker shape. Rebuilds the marker SVG in place, migrating the
-   * current content (title / image / element) to the new shape's geometry.
-   *
-   * Has no visible effect on markers constructed with a custom `element`,
-   * or while the size is `xs` (the dot rendering has no shape) — in the
-   * latter case the shape is applied when the size next changes.
+   * Sets the marker shape, rebuilding the SVG in place and migrating
+   * current content (title/image/element) to the new geometry. No visible
+   * effect on custom `element` markers, or at size `xs` (dot has no shape
+   * — applies once size next changes).
    * @param shape - Shape key (`rounded` | `circle` | `bubble-circle` | `bubble-square` | `square` | `bulb` | `squircle` | `shield`).
    */
   setShape(shape: MapTilerMarkerOptions["shape"]) {
@@ -906,15 +713,12 @@ export class Marker extends maplibregl.Marker {
   //#region Adaptive Color
 
   /**
-   * Sets the adaptive colour of the marker. The inner (background) colour is
-   * resolved against the current map style and re-resolved on style changes.
-   * Clears any explicit `innerColor` so adaptation takes effect immediately.
+   * Sets the adaptive colour of the marker, resolved against the current map style.
    * @param color - Built-in palette name (`"blue"` | `"red"` | `"green"`), a
    *   custom `AdaptiveColor` definition, or `undefined` to remove.
    */
   setColor(color: MapTilerMarkerOptions["color"]) {
     this.props.innerColor = undefined;
-    // an innerColor queued earlier in the same tick would override this batch
     delete this[PendingUpdatesSymbol].innerColor;
     this.setProp("color", color);
   }
@@ -929,15 +733,14 @@ export class Marker extends maplibregl.Marker {
   //#region Inner Color
 
   /**
-   * Sets an explicit fill colour for the inner area of the marker.
-   * Takes precedence over the adaptive `color` and disables adaptation while
-   * set; passing `undefined` re-enables the adaptive colour if one exists.
+   * Sets an explicit fill colour for the inner area of the marker, taking
+   * precedence over the adaptive `color`.
    * @param color - Any valid CSS colour string.
    */
   setInnerColor(color: MapTilerMarkerOptions["innerColor"]) {
     if (color === undefined && this.props.color !== undefined) {
       this.props.innerColor = undefined;
-      this.setProp("color", this.props.color); // resume adaptation
+      this.setProp("color", this.props.color);
       return;
     }
     this.applyTransitionable("innerColor", this.props.innerColor, color, colorTransitionCodec, (v) => {
@@ -945,11 +748,7 @@ export class Marker extends maplibregl.Marker {
     });
   }
 
-  /**
-   * Returns the inner area colour currently in effect: the explicit
-   * `innerColor` when set, otherwise the adaptive `color` resolved against
-   * the current map style, otherwise `undefined` (default colour applies).
-   */
+  /** Returns the inner area colour currently in effect. */
   getInnerColor() {
     if (this.props.innerColor !== undefined) return this.props.innerColor;
     if (this.props.color !== undefined) {
@@ -1055,10 +854,7 @@ export class Marker extends maplibregl.Marker {
   //#region Priority
 
   /**
-   * Sets the rendering priority. Numeric values are applied as `z-index` on
-   * the marker element, so higher-priority markers stack above lower ones.
-   * Expression-form priorities are stored but only take effect once the
-   * collision engine resolves them.
+   * Sets the rendering priority.
    * @param priority - Numeric priority, a MapLibre-style expression, or
    *   `undefined` to restore DOM-order stacking.
    */
@@ -1094,11 +890,9 @@ export class Marker extends maplibregl.Marker {
   //#region Rotation
 
   /**
-   * Rotates the marker's inner shell element in degrees.
-   *
-   * Applied as part of the CSS `scale(x, y) rotate(deg)` compound transform
-   * on the inner wrapper — independent of MapLibre's own rotation, which is
-   * applied to the outer container element.
+   * Rotates the marker's inner shell element in degrees, via the CSS
+   * `scale(x, y) rotate(deg)` transform on the inner wrapper — independent
+   * of MapLibre's own rotation on the outer container.
    * @param rotation - Clockwise rotation in degrees.
    */
   override setRotation(rotation: number): this {
@@ -1147,10 +941,7 @@ export class Marker extends maplibregl.Marker {
       this.setUIStateActive("focus", true);
     });
 
-    // Click-to-focus is the default action of mousedown, which MapLibre's
-    // handler prevents on the map container. Take focus explicitly
-    // instead of relying on that default. pointerdown (not click) lands the
-    // state on press and covers touch/pen.
+    // explicit focus on pointerdown — covers touch/pen
     target.addEventListener("pointerdown", () => {
       target.focus();
     });
@@ -1167,12 +958,7 @@ export class Marker extends maplibregl.Marker {
     });
   }
 
-  /**
-   * Blurs the marker's focusable element. The map's own mousedown handling
-   * prevents focus from ever naturally moving off the marker on background
-   * clicks, so {@link MarkerManager} calls this explicitly on map `click` to
-   * clear a stuck `focus` UI state.
-   */
+  /** Blurs the marker's focusable element. Called by {@link MarkerManager} on map `click`. */
   [ClearFocusStateSymbol](): void {
     resolveMarkerWrapper(this[MarkerElementSymbol]).blur();
   }
@@ -1215,8 +1001,6 @@ export class Marker extends maplibregl.Marker {
 
   /**
    * Configures (or clears) the easing used the next time `property` changes.
-   * Applies immediately, before the config takes effect on a future call —
-   * it does not retroactively animate the property's current value.
    * @param property - Transitionable property (`position` | `scale` | `rotation` | `outerColor` | `innerColor` | `contentColor` | `outlineColor`).
    * @param transition - `[duration, easing?, delay?]` in milliseconds, or `null` to make future changes snap immediately again.
    */
@@ -1234,11 +1018,8 @@ export class Marker extends maplibregl.Marker {
   }
 
   /**
-   * Applies `to` to `property`, either immediately or, when a transition is
-   * configured for it and the marker is on a map, by easing from `from` over
-   * the configured duration/easing/delay. Fires `transitionstart` once
-   * playback begins (i.e. after `delay`) and `transitionend` once `to` is
-   * reached. Supersedes any transition already in flight for `property`.
+   * Applies `to` to `property`, either immediately or by easing from `from`
+   * when a transition is configured. Fires `transitionstart`/`transitionend`.
    * @param property - Transitionable property being changed.
    * @param from - Current value.
    * @param to - Value being set.
@@ -1285,12 +1066,7 @@ export class Marker extends maplibregl.Marker {
 
   //#region Lifecycle Animations
 
-  /**
-   * Runs `preset`'s enter/exit motion (opacity + scale + lift, see
-   * {@link enterPresetHiddenValue}/{@link exitPresetHiddenValue}) from `from`
-   * to `to`. Fires `${phase}animationstart`/`${phase}animationend` and calls
-   * `onComplete` once the target state is reached.
-   */
+  /** Runs `preset`'s enter/exit motion (opacity + scale + lift) from `from` to `to`. */
   private playLifecycleTransition(
     phase: "enter" | "exit",
     from: LifecycleAnimationValue,
@@ -1328,11 +1104,7 @@ export class Marker extends maplibregl.Marker {
     this.activeTransitions.set("scale", animation);
   }
 
-  /**
-   * Runs a `custom` enter/exit animation: a plain `0`→`1` alpha (already
-   * eased) handed to `spec.custom` every frame. `0` is enter's hidden /
-   * exit's shown state; `1` is the opposite end.
-   */
+  /** Runs a `custom` enter/exit animation: an eased `0`→`1` alpha handed to `spec.custom` every frame. */
   private playCustomLifecycleAnimation(phase: "enter" | "exit", spec: MarkerCustomAnimationOptions, onComplete?: () => void): void {
     this.cancelTransition("opacity");
     this.cancelTransition("scale");
@@ -1356,16 +1128,7 @@ export class Marker extends maplibregl.Marker {
     this.activeTransitions.set("opacity", animation);
   }
 
-  /**
-   * Clears the outer-element opacity mask set at construction time when an
-   * `enter` animation is configured (see the constructor). Called from the
-   * first real frame of whichever enter/exit animation runs — preset or
-   * `custom` — so a `custom` enter is never left invisible: it's the only
-   * thing responsible for un-masking itself, since the SDK has no way to
-   * know in advance whether (or how) a `custom` callback touches opacity.
-   * Safe to call unconditionally, including for `exit` (never masked) and
-   * repeatedly (idempotent) — it's just clearing an inline style back to "".
-   */
+  /** Clears the enter-mask opacity set at construction. */
   private clearEnterMask(): void {
     this[MarkerElementSymbol].style.opacity = "";
   }
@@ -1398,10 +1161,7 @@ export class Marker extends maplibregl.Marker {
     this.playLifecycleTransition("exit", shown, hidden, spec.easing ?? EXIT_PRESET_EASING[spec.preset], spec, spec.preset, onComplete);
   }
 
-  /**
-   * Wires the play/iteration/stop bookkeeping shared by every idle loop
-   * (preset or `custom`) around a `value`-keyframed animation, and plays it.
-   */
+  /** Wires play/iteration/stop bookkeeping around a `value`-keyframed animation, and plays it. */
   private runIdleAnimation(
     preset: IdleAnimationPreset | "custom",
     keyframes: Keyframe[],
@@ -1417,11 +1177,7 @@ export class Marker extends maplibregl.Marker {
       apply(event.props.value);
     });
     animation.addEventListener("iteration", () => this.fire("idleanimationiteration", { preset }));
-    // "animationend" fires on every loop-boundary reset, not just a true
-    // stop — "stop" only fires once, when `stopIdleAnimation()` interrupts it
-    // or (for a finite `iterations`) it naturally runs out. Never call
-    // `destroy()` in here: `destroy()` itself calls `stop()`, which would
-    // re-emit "stop" into this same listener and recurse.
+    // never call destroy() here — it calls stop() itself and would recurse
     animation.addEventListener("stop", () => {
       this.idleAnimation = null;
       this.fire("idleanimationend", { preset });
@@ -1431,12 +1187,7 @@ export class Marker extends maplibregl.Marker {
     animation.play();
   }
 
-  /**
-   * Starts the configured `idle` loop — `preset`'s single channel (see
-   * {@link IDLE_PRESET_CONFIG}) eased out from rest and back per iteration,
-   * or a `custom` callback fed a `0`→`1` alpha that resets every iteration.
-   * Replaces any idle animation already running.
-   */
+  /** Starts the configured `idle` loop — `preset`'s single channel (see {@link IDLE_PRESET_CONFIG}), or a `custom` callback fed a `0`→`1` alpha. */
   private startIdleAnimation(spec: MarkerIdleAnimationOptions): void {
     this.stopIdleAnimation();
 
@@ -1502,46 +1253,9 @@ export class Marker extends maplibregl.Marker {
   //#region Altitude
 
   /**
-   * Sets altitude in meters above the ground plane (negative is fine — below
-   * ground/sea level), faked via a per-frame pixel offset composed with
-   * {@link setOffset}/{@link baseOffset} (see {@link writeOffset}) —
-   * MapLibre's `Marker` has no native Z. Works under both mercator and
-   * globe projections, see `altitude-math.ts`.
-   *
-   * `options.relativeTo` (default `"ground"`) picks what the meters are
-   * measured from — see {@link AltitudeReference}. Passing it alone without
-   * changing `meters` still takes effect (e.g. flipping an already-elevated
-   * marker from ground- to sea-relative).
-   *
-   * Never having called this at all is a genuine no-op: never registers with
-   * {@link MarkerManager}'s shared per-map render loop, never writes an
-   * offset, costs nothing. Pass `false` to explicitly go back to that inert
-   * state — deregisters, restores the plain {@link baseOffset} and static
-   * `priority`-based z-index, and clamps the marker to wherever MapLibre's
-   * own native (terrain-aware, if the map has terrain) positioning puts it,
-   * skipping the per-frame altitude math entirely from then on. That's the
-   * ONLY zero-cost path once altitude has been touched at all — there is
-   * deliberately no "0 is free" fast path for `meters: 0` on either
-   * reference, not even `relativeTo: "sea"`. MapLibre's own native marker
-   * position (`_pos = map.project(lngLat)`) is ALREADY terrain-elevated
-   * whenever the *map* has terrain, regardless of this marker's
-   * `relativeTo` — MapLibre has no concept of a per-marker altitude
-   * reference. So doing nothing at `meters: 0` under `"sea"` would leave the
-   * marker sitting wherever MapLibre's native terrain-aware position puts
-   * it — on the terrain, not at sea level. Once engaged, only the actual
-   * composed delta (which can be a real non-zero vector even at
-   * `meters: 0`, to pull the marker back down off terrain MapLibre already
-   * elevated it onto) decides where the marker sits — see
-   * `computeAltitudeProjection`. (MapTiler's 3D module — `Item3D`/`Layer3D`
-   * in maptiler-3d-js — takes the same approach: no special-casing on the
-   * altitude value, only on reference type.)
-   *
-   * Only takes effect once the marker is on a map via {@link MarkerManager}
-   * (i.e. added through `map.addMarker()`) — same requirement as collision
-   * detection. Calling it before the marker has a map is fine; registration
-   * happens once it's added. If the map is otherwise idle (no camera
-   * movement in flight), this triggers a repaint so the change is visible
-   * immediately rather than on the next unrelated frame.
+   * Sets altitude in meters above the ground plane (negative is fine —
+   * below ground/sea level), faked via a per-frame pixel offset.
+   * Pass `false` to unset, clamping to ground level.
    * @param meters - Altitude in meters, measured per `options.relativeTo`, or `false` to unset altitude entirely.
    * @param options - See {@link SetAltitudeOptions}. Ignored when `meters` is `false`.
    */
@@ -1564,9 +1278,7 @@ export class Marker extends maplibregl.Marker {
       this.setAltitudeHidden(false);
       this.setAltitudeOccluded(false);
       this.updateGroundLineElement();
-      // camera-depth z-index only applies while altitude-active (see
-      // MarkerManager's onRender) — restore whatever it was before that,
-      // same as the constructor's own initial write.
+      // restore the static z-index the constructor set
       if (typeof this.options.priority === "number") this[MarkerElementSymbol].style.zIndex = String(this.options.priority);
       else this[MarkerElementSymbol].style.removeProperty("z-index");
       return this;
@@ -1596,28 +1308,12 @@ export class Marker extends maplibregl.Marker {
     return this.altitudeReference;
   }
 
-  /**
-   * Whether this marker currently needs per-frame altitude tracking — true
-   * for the lifetime of the marker as soon as {@link setAltitude} has been
-   * called once, regardless of the value (see its doc comment for why there
-   * is deliberately no "0 is free" fast path). Used by {@link MarkerManager}
-   * to catch `setAltitude()` calls made before the marker had a map.
-   */
+  /** True from the first {@link setAltitude} call onward. */
   hasActiveAltitude(): boolean {
     return this.altitudeEngaged;
   }
 
-  /**
-   * Stamps `altitude`/`altitudeReference`/`altitudeEngaged` onto every
-   * `dragstart`/`drag`/`dragend` event before it reaches listeners.
-   * MapLibre's base `Marker` fires these itself (from its own internal
-   * pointer handlers), with only `target`/`type` attached (see
-   * {@link Evented.fire}) — a drag listener otherwise has no way to read
-   * altitude without also holding a reference to the marker (`event.target`
-   * works, but only because it happens to be the marker itself; this makes
-   * it explicit and avoids an extra `getAltitude()`/`getAltitudeReference()`
-   * round-trip per listener).
-   */
+  /** Stamps `altitude`/`altitudeReference`/`altitudeEngaged` onto every `dragstart`/`drag`/`dragend` event. */
   override fire(event: string | { type: string }, properties?: Record<string, unknown>) {
     const type = typeof event === "string" ? event : event.type;
     if (type === "dragstart" || type === "drag" || type === "dragend") {
@@ -1638,7 +1334,7 @@ export class Marker extends maplibregl.Marker {
 
   /**
    * Toggles a dashed line from the marker down (or up) to its ground point.
-   * Off by default. Styled via CSS — see `.maptiler-marker-groundline` in
+   * Off by default. See `.maptiler-marker-groundline` in
    * the SDK stylesheet and {@link GroundLineOptions.className}.
    * @param enabled - Whether to show the line.
    * @param options - Optional extra CSS class for styling.
@@ -1660,27 +1356,13 @@ export class Marker extends maplibregl.Marker {
   }
 
   /**
-   * Per-frame altitude hook, called by {@link MarkerManager} once per render
-   * frame for every altitude-active marker, with the mercator -> clip-space
-   * matrix it captured from its shared no-op custom layer. Not part of the
-   * public API.
-   *
-   * Returns this frame's camera depth (the elevated point's clip-space W —
-   * see {@link ScreenPoint.depth}), or `null` when off-screen/behind the
-   * camera/below ground (hidden either way — see {@link setAltitudeHidden}).
-   * {@link MarkerManager} ranks every altitude-active marker on the map by
-   * this and assigns z-index by rank (nearest on top) — DOM markers have no
-   * real depth buffer, so without it a marker that's actually farther away
-   * can still render in front of a nearer one purely because of DOM order.
+   * Per-frame altitude hook, called by {@link MarkerManager}
    */
   [ApplyAltitudeFrameSymbol](matrix: mat4, map: SDKMap): number | null {
     if (!this.altitudeEngaged) return null; // shouldn't be registered otherwise
 
     const projected = computeAltitudeProjection(this.getLngLat(), this.altitudeMeters, matrix, map, this.altitudeReference);
     if (!projected) {
-      // No valid screen position at all this frame (off-screen/behind the
-      // camera) — unlike belowGround below, there's nothing sane to
-      // position at, so this genuinely hides rather than fades.
       this.altitudeDelta = null;
       this.groundLineOrigin = null;
       this.setAltitudeHidden(true);
@@ -1689,9 +1371,6 @@ export class Marker extends maplibregl.Marker {
       return null;
     }
 
-    // belowGround still has a perfectly good position — only the CSS
-    // opacity changes (setAltitudeOccluded), so the offset/ground-line math
-    // below runs exactly as normal either way.
     this.setAltitudeHidden(false);
     this.setAltitudeOccluded(projected.belowGround);
 
@@ -1720,20 +1399,10 @@ export class Marker extends maplibregl.Marker {
   }
 
   /**
-   * Creates/updates/removes the ground-line element. Its geometry
-   * (position/width/rotation) comes straight from {@link altitudeDelta} and
-   * {@link groundLineOrigin} — no second projection. Lives in a shared,
-   * always-behind-markers container at the map level (see
-   * {@link MarkerManager.getGroundLineContainer}) rather than nested inside
-   * this marker's own element — otherwise a long line inherits its marker's
-   * camera-depth z-index and can paint on top of some *other* marker's icon
-   * it happens to cross on screen, which a purely decorative line should
-   * never do. Because it's independent, its absolute position gets written
-   * every frame here, not just its width/rotation.
-   *
-   * The rotation is a pure vector, so a marker that ends up below its ground
-   * point on screen (e.g. looking up from underneath at a steep pitch)
-   * renders correctly with no special-casing.
+   * Creates/updates/removes the ground-line element. Geometry
+   * (position/width/rotation) comes from {@link altitudeDelta} and
+   * {@link groundLineOrigin}
+   * (see {@link MarkerManager.getGroundLineContainer}).
    */
   private updateGroundLineElement(): void {
     if (!this.groundLineEnabled) return;
@@ -1762,11 +1431,6 @@ export class Marker extends maplibregl.Marker {
 
     this.groundLineEl.style.left = `${String(this.groundLineOrigin.x)}px`;
     this.groundLineEl.style.top = `${String(this.groundLineOrigin.y)}px`;
-    // The line lives in its own shared container, not nested inside the
-    // marker — so it doesn't inherit the marker's opacity from the
-    // occluded CSS class the way a real child would. Applied here too so a
-    // below-ground marker's line fades along with it instead of staying
-    // full-strength on its own.
     applyAltitudeOccluded(this.groundLineEl, this.altitudeOccluded);
 
     const { x: dx, y: dy } = this.altitudeDelta;
@@ -1785,36 +1449,20 @@ export class Marker extends maplibregl.Marker {
 
   //#region Lifecycle
 
-  /**
-   * Removes the marker from the DOM directly, bypassing {@link MarkerManager}.
-   *
-   * Called by {@link MarkerManager.deregister} after it has already cleaned
-   * up its own state — calling `remove()` here would cause infinite recursion.
-   */
+  /** Removes the marker from the DOM directly, bypassing {@link MarkerManager}. */
   [DetachFromDOMSymbol](): void {
     this.stopIdleAnimation();
     this.cancelAllTransitions();
     super.remove();
   }
 
-  /**
-   * Deregisters the marker from {@link MarkerManager} and removes it from
-   * the map. If an `exit` animation is configured, the marker is deregistered
-   * immediately (collision/index bookkeeping updates right away) but stays
-   * attached and visible until the animation finishes.
-   * @returns `this` for chaining.
-   */
+  /** Removes the marker, playing the configured `exit` animation first (if any) before detaching from the DOM. */
   override remove(): this {
-    // reentrant call from addTo()'s internal remove(), or a genuine remove()
-    // with nothing configured to animate — plain, immediate removal.
     if (this.suppressLifecycleAnimations) {
       this.detachImmediately();
       return this;
     }
 
-    // stop straight away, not deferred to [DetachFromDOMSymbol] — otherwise
-    // it would keep looping (and fighting the exit motion) for the whole
-    // exit animation instead of stopping the moment removal starts.
     this.stopIdleAnimation();
 
     const exitSpec = this.animations.exit;
@@ -1835,7 +1483,6 @@ export class Marker extends maplibregl.Marker {
     if (MarkerManager.getMap(this)) {
       MarkerManager.deregister(this);
     } else {
-      // never registered (added via addTo() directly) — plain MapLibre removal
       this[DetachFromDOMSymbol]();
     }
   }
