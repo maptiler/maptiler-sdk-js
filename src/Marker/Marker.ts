@@ -637,11 +637,8 @@ export class Marker extends maplibregl.Marker {
   //#region Shape
 
   /**
-   * Sets the marker shape, rebuilding the SVG in place and migrating
-   * current content (title/image/element) to the new geometry. No visible
-   * effect on custom `element` markers, or at size `xs` (dot has no shape
-   * — applies once size next changes).
-   * @param shape - Shape key (`rounded` | `circle` | `bubble-circle` | `bubble-square` | `square` | `bulb` | `squircle` | `shield`).
+   * Sets the marker shape. Applies the new anchor offset (see {@link applyShapeAnchorOffset}).
+   * @param shape - Marker shape key.
    */
   setShape(shape: MapTilerMarkerOptions["shape"]) {
     this.setProp("shape", shape);
@@ -659,7 +656,7 @@ export class Marker extends maplibregl.Marker {
 
   /**
    * Sets the marker size.
-   * @param size - T-shirt size key (`xs` | `s` | `m` | `l` | `xl`).
+   * @param size - Marker size key.
    */
   setSize(size: MapTilerMarkerOptions["size"]) {
     this.setProp("size", size);
@@ -677,8 +674,7 @@ export class Marker extends maplibregl.Marker {
 
   /**
    * Sets the drop-shadow intensity.
-   * @param shadow - Shadow preset (`soft` | `medium` | `strong`), or
-   *   `undefined` to remove the shadow.
+   * @param shadow - Shadow intensity preset, or `undefined` to remove it.
    */
   setShadow(shadow: MapTilerMarkerOptions["shadow"]) {
     this.setProp("shadow", shadow);
@@ -714,8 +710,7 @@ export class Marker extends maplibregl.Marker {
 
   /**
    * Sets the adaptive colour of the marker, resolved against the current map style.
-   * @param color - Built-in palette name (`"blue"` | `"red"` | `"green"`), a
-   *   custom `AdaptiveColor` definition, or `undefined` to remove.
+   * @param color - Built-in palette name or a custom `AdaptiveColor` definition, or `undefined` to remove.
    */
   setColor(color: MapTilerMarkerOptions["color"]) {
     this.props.innerColor = undefined;
@@ -987,7 +982,7 @@ export class Marker extends maplibregl.Marker {
   /**
    * Registers (or replaces) the property overrides applied while `name` is
    * active. Applies immediately if that state is currently active.
-   * @param name - UI state to configure (`hover` | `focus` | `active` | `dragging`).
+   * @param name - UI state to configure.
    * @param spec - Property overrides to apply while the state is active.
    */
   setUIState(name: MapTilerMarkerUIStateName, spec: UIStateSpec): void {
@@ -1001,7 +996,7 @@ export class Marker extends maplibregl.Marker {
 
   /**
    * Configures (or clears) the easing used the next time `property` changes.
-   * @param property - Transitionable property (`position` | `scale` | `rotation` | `outerColor` | `innerColor` | `contentColor` | `outlineColor`).
+   * @param property - Transitionable property to configure.
    * @param transition - `[duration, easing?, delay?]` in milliseconds, or `null` to make future changes snap immediately again.
    */
   setTransitionForProperty(property: MarkerTransitionProperty, transition: MarkerTransitionSpec | null): void {
@@ -1128,7 +1123,7 @@ export class Marker extends maplibregl.Marker {
     this.activeTransitions.set("opacity", animation);
   }
 
-  /** Clears the enter-mask opacity set at construction. */
+  /** Clears the enter-mask opacity set at construction. Idempotent, safe to call unconditionally — each enter/exit path (preset or `custom`) is responsible for calling it on its own first frame, since the SDK can't know in advance whether a `custom` callback touches opacity. */
   private clearEnterMask(): void {
     this[MarkerElementSymbol].style.opacity = "";
   }
@@ -1253,9 +1248,16 @@ export class Marker extends maplibregl.Marker {
   //#region Altitude
 
   /**
-   * Sets altitude in meters above the ground plane (negative is fine —
-   * below ground/sea level), faked via a per-frame pixel offset.
-   * Pass `false` to unset, clamping to ground level.
+   * Sets altitude in meters above the ground plane (negative is fine — below
+   * ground/sea level), faked via a per-frame pixel offset. `options.relativeTo`
+   * (default `"ground"`) picks what the meters are measured from. There is
+   * deliberately no fast path for `meters: 0`: MapLibre's native marker
+   * position is already terrain-elevated whenever the map has terrain, so
+   * doing nothing at `0` would leave the marker on the terrain, not at
+   * ground/sea level.
+   *
+   * Pass `false` to unset: deregisters and clamps to MapLibre's own native
+   * (terrain-aware) position, same as a marker that never called this.
    * @param meters - Altitude in meters, measured per `options.relativeTo`, or `false` to unset altitude entirely.
    * @param options - See {@link SetAltitudeOptions}. Ignored when `meters` is `false`.
    */
@@ -1356,7 +1358,7 @@ export class Marker extends maplibregl.Marker {
   }
 
   /**
-   * Per-frame altitude hook, called by {@link MarkerManager}
+   * Per-frame altitude hook, called by {@link MarkerManager} for every altitude-active marker. Returns the elevated point's camera depth (used to rank z-index among altitude-active markers), or `null` when off-screen/behind the camera.
    */
   [ApplyAltitudeFrameSymbol](matrix: mat4, map: SDKMap): number | null {
     if (!this.altitudeEngaged) return null; // shouldn't be registered otherwise
@@ -1399,10 +1401,7 @@ export class Marker extends maplibregl.Marker {
   }
 
   /**
-   * Creates/updates/removes the ground-line element. Geometry
-   * (position/width/rotation) comes from {@link altitudeDelta} and
-   * {@link groundLineOrigin}
-   * (see {@link MarkerManager.getGroundLineContainer}).
+   * Creates/updates/removes the ground-line element. Geometry (position/width/rotation) comes from {@link altitudeDelta}/{@link groundLineOrigin}. Lives in a shared container at the map level ({@link MarkerManager.getGroundLineContainer}), not nested in this marker's own element — otherwise a long line would inherit its marker's camera-depth z-index and could paint over another marker's icon.
    */
   private updateGroundLineElement(): void {
     if (!this.groundLineEnabled) return;
