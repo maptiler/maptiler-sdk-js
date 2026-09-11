@@ -109,37 +109,10 @@
       </div>
     </div>
 
-    <div class="ctrl-group">
-      <div class="ctrl-label">Altitude reference</div>
-      <div class="scale-row" style="gap: 14px;">
-        <label class="debug-row"><input type="radio" name="altref" value="ground" checked /><span>Ground (terrain)</span></label>
-        <label class="debug-row"><input type="radio" name="altref" value="sea" /><span>Sea level</span></label>
-      </div>
-    </div>
-
-    <div class="ctrl-group">
-      <div class="ctrl-label">Drone 1 altitude</div>
-      <div class="scale-row">
-        <input id="alt1" type="range" min="0" max="1500" step="10" value="400" />
-        <span class="scale-val" id="alt1-val">400m</span>
-      </div>
-    </div>
-
-    <div class="ctrl-group">
-      <div class="ctrl-label">Drone 2 altitude</div>
-      <div class="scale-row">
-        <input id="alt2" type="range" min="0" max="1500" step="10" value="900" />
-        <span class="scale-val" id="alt2-val">900m</span>
-      </div>
-    </div>
-
-    <div class="ctrl-group">
-      <div class="ctrl-label">Drone 3 altitude</div>
-      <div class="scale-row">
-        <input id="alt3" type="range" min="0" max="1500" step="10" value="150" />
-        <span class="scale-val" id="alt3-val">150m</span>
-      </div>
-    </div>
+    <!-- One block per drone injected here by 20-marker-altitude.ts (see
+         #drone-controls-template below) — each with its own altitude slider
+         AND its own ground/sea reference toggle, independent per marker. -->
+    <div id="drone-controls"></div>
 
     <div class="ctrl-group">
       <div class="ctrl-label">Ground lines</div>
@@ -149,6 +122,24 @@
       </label>
     </div>
   </div>
+
+  <template id="drone-controls-template">
+    <div class="ctrl-group">
+      <div class="ctrl-label drone-label"></div>
+      <div class="scale-row">
+        <input class="drone-altitude" type="range" min="0" max="20000" step="50" />
+        <span class="scale-val drone-altitude-val"></span>
+      </div>
+      <div class="scale-row" style="gap: 14px;">
+        <label class="debug-row"><input class="drone-altref" type="radio" value="ground" /><span>Ground</span></label>
+        <label class="debug-row"><input class="drone-altref" type="radio" value="sea" /><span>Sea</span></label>
+      </div>
+      <label class="debug-row">
+        <input class="drone-unset" type="checkbox" />
+        <span>Unset altitude (drape to terrain)</span>
+      </label>
+    </div>
+  </template>
 
   <script type="module" src="/src/20-marker-altitude.ts"></script>
 </body>

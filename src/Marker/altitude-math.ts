@@ -1,6 +1,12 @@
+// This module is pure math — no DOM, no MapLibre subclassing, no side
+// effects. Everything here is called once per marker per render frame (see
+// MarkerManager's altitude render loop), so it stays allocation-light and
+// free of anything that would need cleanup.
 import maplibregl from "maplibre-gl";
 import type { mat4 } from "gl-matrix";
 import type { AltitudeReference } from "./types";
+
+//#region ScreenPoint
 
 /** A screen-space position in CSS pixels, DOM convention (+y down). */
 export interface ScreenPoint {
@@ -16,24 +22,35 @@ export interface ScreenPoint {
   depth: number;
 }
 
+//#endregion
+
+//#region projectLngLatAltitude
+
 /**
  * `matrix` is column-major, OpenGL convention: element `matrix[col * 4 + row]`.
  * clip = matrix * [x, y, z, 1] — only the x, y and w rows are needed since
  * we're projecting a single point, not building a full transform.
  *
- * Mercator only: under globe projection this same matrix instead projects a
- * unit-sphere planet, not flat mercator tile space, and `MercatorCoordinate`
- * stops meaning the same thing to it — this function would silently return
- * plausible-looking but wrong screen positions. Guard on
- * `map.getProjection?.().type !== 'mercator'` before relying on any of this
- * if the app supports globe.
+ * Projection-agnostic: `map.transform.getMatrixForModel(lngLat, altitude)`
+ * (the same primitive maptiler-3d-js uses to place 3D models correctly under
+ * both projections) returns a matrix whose translation column is the world
+ * point for `lngLat`/`altitude` in whatever space the active projection
+ * uses — flat mercator tile space under mercator, a point on the unit-sphere
+ * planet under globe — which is exactly the space `matrix` (the custom
+ * layer's `mainMatrix`) expects either way. Under mercator this translation
+ * column is numerically identical to `MercatorCoordinate.fromLngLat`, so
+ * this is a superset of the old mercator-only math, not a behaviour change
+ * for it.
  */
 export function projectLngLatAltitude(lngLat: maplibregl.LngLat, altitudeMeters: number, matrix: mat4, map: maplibregl.Map): ScreenPoint | null {
-  const mercator = maplibregl.MercatorCoordinate.fromLngLat(lngLat, altitudeMeters);
+  const model = map.transform.getMatrixForModel(lngLat, altitudeMeters);
+  const worldX = model[12];
+  const worldY = model[13];
+  const worldZ = model[14];
 
-  const clipX = matrix[0] * mercator.x + matrix[4] * mercator.y + matrix[8] * mercator.z + matrix[12];
-  const clipY = matrix[1] * mercator.x + matrix[5] * mercator.y + matrix[9] * mercator.z + matrix[13];
-  const clipW = matrix[3] * mercator.x + matrix[7] * mercator.y + matrix[11] * mercator.z + matrix[15];
+  const clipX = matrix[0] * worldX + matrix[4] * worldY + matrix[8] * worldZ + matrix[12];
+  const clipY = matrix[1] * worldX + matrix[5] * worldY + matrix[9] * worldZ + matrix[13];
+  const clipW = matrix[3] * worldX + matrix[7] * worldY + matrix[11] * worldZ + matrix[15];
 
   // Point projects behind the camera — there is no sane screen position for it.
   if (clipW <= 0) return null;
@@ -55,6 +72,10 @@ export function projectLngLatAltitude(lngLat: maplibregl.LngLat, altitudeMeters:
     depth: clipW,
   };
 }
+
+//#endregion
+
+//#region computeAltitudeProjection
 
 /**
  * Two points, through the same matrix/frame:
@@ -89,6 +110,15 @@ export function projectLngLatAltitude(lngLat: maplibregl.LngLat, altitudeMeters:
  *
  * `queryTerrainElevation` returns `null` when terrain isn't enabled/loaded,
  * treated as 0.
+ *
+ * `belowGround` — `targetElevation < nativeElevation` — is mode-agnostic for
+ * free: under `"ground"` it only trips with a negative `altitudeMeters`
+ * (tunneling below whatever terrain/sea level it's relative to); under
+ * `"sea"` it trips whenever the absolute altitude is lower than the real
+ * terrain surface there, e.g. `0` over a hill. DOM markers aren't
+ * depth-tested against the terrain mesh, so without this a marker "below
+ * ground" would render right through the hillside instead of being hidden
+ * by it.
  */
 export function computeAltitudeProjection(
   lngLat: maplibregl.LngLat,
@@ -96,11 +126,25 @@ export function computeAltitudeProjection(
   matrix: mat4,
   map: maplibregl.Map,
   relativeTo: AltitudeReference,
-): { groundBase: ScreenPoint; elevated: ScreenPoint } | null {
+): { groundBase: ScreenPoint; elevated: ScreenPoint; belowGround: boolean } | null {
+  // 0 whenever the map has no terrain (or it hasn't loaded for this
+  // lngLat yet) — see the doc comment above for why this ignores `relativeTo`.
   const nativeElevation = map.getTerrain() ? (map.queryTerrainElevation(lngLat) ?? 0) : 0;
+
+  // Where MapLibre's own marker _pos already sits — the baseline every
+  // pixel offset this SDK writes has to be measured from.
   const groundBase = projectLngLatAltitude(lngLat, nativeElevation, matrix, map);
+
+  // Where the marker should actually end up, in mercator Z terms — see the
+  // `elevated` bullet in the doc comment for the two branches.
   const targetElevation = relativeTo === "ground" ? nativeElevation + altitudeMeters : altitudeMeters;
   const elevated = projectLngLatAltitude(lngLat, targetElevation, matrix, map);
+
+  // Either point can come back null if it's behind the camera this frame —
+  // bail out rather than return a partially-valid result.
   if (!groundBase || !elevated) return null;
-  return { groundBase, elevated };
+
+  return { groundBase, elevated, belowGround: targetElevation < nativeElevation };
 }
+
+//#endregion

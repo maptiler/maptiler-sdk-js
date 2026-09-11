@@ -36,6 +36,7 @@ import {
   applyCollisionCulled,
   applyCollisionHidden,
   applyAltitudeHidden,
+  applyAltitudeOccluded,
   applyLifecycleLift,
   applyMarkerStyleVariables,
   applyMinimizedDot,
@@ -257,7 +258,7 @@ export class Marker extends maplibregl.Marker {
   /** What {@link altitudeMeters} is measured from — see {@link AltitudeReference}. */
   private altitudeReference: AltitudeReference = "ground";
 
-  /** True once {@link setAltitude} has been called at least once — distinguishes "never touched altitude" from "explicitly set to ground-relative 0m", which still needs tracking. See {@link needsAltitudeTracking}. */
+  /** True once {@link setAltitude} has been called at least once — from then on, tracking stays on for the marker's lifetime regardless of value; see {@link hasActiveAltitude}. */
   private altitudeEngaged = false;
 
   /**
@@ -295,8 +296,11 @@ export class Marker extends maplibregl.Marker {
    */
   private groundLineOrigin: { x: number; y: number } | null = null;
 
-  /** Whether this marker is currently hidden because its altitude projection is off-screen/behind the camera. Independent of collision hide/minimize — see the CSS comment on `.maptiler-marker-altitude-hidden`. */
+  /** Whether this marker is currently hidden because its altitude projection is off-screen/behind the camera — no valid position exists at all. Independent of collision hide/minimize — see the CSS comment on `.maptiler-marker-altitude-hidden`. NOT the below-ground case, see {@link altitudeOccluded}. */
   private altitudeHidden = false;
+
+  /** Whether this marker is currently faded because it's below ground (see {@link computeAltitudeProjection}'s `belowGround`) — DOM markers aren't depth-tested against the terrain mesh, so this stands in for a hillside occluding it. Unlike {@link altitudeHidden}, the marker still has a real position and renders there. */
+  private altitudeOccluded = false;
 
   private groundLineEnabled = false;
   private groundLineOptions: GroundLineOptions = {};
@@ -1498,10 +1502,11 @@ export class Marker extends maplibregl.Marker {
   //#region Altitude
 
   /**
-   * Sets altitude in meters above the ground plane, faked via a per-frame
-   * pixel offset composed with {@link setOffset}/{@link baseOffset} (see
-   * {@link writeOffset}) — MapLibre's `Marker` has no native Z. Mercator
-   * projection only, see `altitude-math.ts`.
+   * Sets altitude in meters above the ground plane (negative is fine — below
+   * ground/sea level), faked via a per-frame pixel offset composed with
+   * {@link setOffset}/{@link baseOffset} (see {@link writeOffset}) —
+   * MapLibre's `Marker` has no native Z. Works under both mercator and
+   * globe projections, see `altitude-math.ts`.
    *
    * `options.relativeTo` (default `"ground"`) picks what the meters are
    * measured from — see {@link AltitudeReference}. Passing it alone without
@@ -1510,15 +1515,26 @@ export class Marker extends maplibregl.Marker {
    *
    * Never having called this at all is a genuine no-op: never registers with
    * {@link MarkerManager}'s shared per-map render loop, never writes an
-   * offset, costs nothing. Once engaged, `meters: 0` is a true no-op again
-   * ONLY under `relativeTo: "sea"` — 0m above sea level really is nothing to
-   * track. Under `relativeTo: "ground"` (the default), 0m still means "sit
-   * exactly on the terrain surface", which is a moving target as the camera
-   * or terrain changes, so it keeps tracking — see
-   * {@link needsAltitudeTracking}. (MapTiler's 3D module — `Item3D`/
-   * `Layer3D` in maptiler-3d-js — does the same: it re-queries
-   * `queryTerrainElevation` every update for `AltitudeReference.GROUND`
-   * regardless of the altitude value, branching only on reference type.)
+   * offset, costs nothing. Pass `false` to explicitly go back to that inert
+   * state — deregisters, restores the plain {@link baseOffset} and static
+   * `priority`-based z-index, and clamps the marker to wherever MapLibre's
+   * own native (terrain-aware, if the map has terrain) positioning puts it,
+   * skipping the per-frame altitude math entirely from then on. That's the
+   * ONLY zero-cost path once altitude has been touched at all — there is
+   * deliberately no "0 is free" fast path for `meters: 0` on either
+   * reference, not even `relativeTo: "sea"`. MapLibre's own native marker
+   * position (`_pos = map.project(lngLat)`) is ALREADY terrain-elevated
+   * whenever the *map* has terrain, regardless of this marker's
+   * `relativeTo` — MapLibre has no concept of a per-marker altitude
+   * reference. So doing nothing at `meters: 0` under `"sea"` would leave the
+   * marker sitting wherever MapLibre's native terrain-aware position puts
+   * it — on the terrain, not at sea level. Once engaged, only the actual
+   * composed delta (which can be a real non-zero vector even at
+   * `meters: 0`, to pull the marker back down off terrain MapLibre already
+   * elevated it onto) decides where the marker sits — see
+   * `computeAltitudeProjection`. (MapTiler's 3D module — `Item3D`/`Layer3D`
+   * in maptiler-3d-js — takes the same approach: no special-casing on the
+   * altitude value, only on reference type.)
    *
    * Only takes effect once the marker is on a map via {@link MarkerManager}
    * (i.e. added through `map.addMarker()`) — same requirement as collision
@@ -1526,25 +1542,27 @@ export class Marker extends maplibregl.Marker {
    * happens once it's added. If the map is otherwise idle (no camera
    * movement in flight), this triggers a repaint so the change is visible
    * immediately rather than on the next unrelated frame.
-   * @param meters - Altitude in meters, measured per `options.relativeTo`.
-   * @param options - See {@link SetAltitudeOptions}.
+   * @param meters - Altitude in meters, measured per `options.relativeTo`, or `false` to unset altitude entirely.
+   * @param options - See {@link SetAltitudeOptions}. Ignored when `meters` is `false`.
    */
-  setAltitude(meters: number, options: SetAltitudeOptions = {}): this {
-    const relativeTo = options.relativeTo ?? this.altitudeReference;
-    if (this.altitudeEngaged && this.altitudeMeters === meters && this.altitudeReference === relativeTo) return this;
-    this.altitudeEngaged = true;
-    this.altitudeMeters = meters;
-    this.altitudeReference = relativeTo;
+  setAltitude(meters: false): this;
+  setAltitude(meters: number, options?: SetAltitudeOptions): this;
+  setAltitude(meters: number | false, options: SetAltitudeOptions = {}): this {
+    if (meters === false) {
+      if (!this.altitudeEngaged) return this; // already inert — nothing to undo
 
-    const map = MarkerManager.getMap(this);
+      this.altitudeEngaged = false;
+      this.altitudeMeters = 0;
+      this.altitudeReference = "ground";
 
-    if (!this.needsAltitudeTracking()) {
-      // true no-op: 0m above sea level is always exactly baseOffset, nothing to track
+      const map = MarkerManager.getMap(this);
       if (map) MarkerManager.deregisterAltitudeParticipant(this, map);
+
       this.altitudeDelta = null;
       this.groundLineOrigin = null;
       this.writeOffset(this.baseOffset);
       this.setAltitudeHidden(false);
+      this.setAltitudeOccluded(false);
       this.updateGroundLineElement();
       // camera-depth z-index only applies while altitude-active (see
       // MarkerManager's onRender) — restore whatever it was before that,
@@ -1554,6 +1572,13 @@ export class Marker extends maplibregl.Marker {
       return this;
     }
 
+    const relativeTo = options.relativeTo ?? this.altitudeReference;
+    if (this.altitudeEngaged && this.altitudeMeters === meters && this.altitudeReference === relativeTo) return this;
+    this.altitudeEngaged = true;
+    this.altitudeMeters = meters;
+    this.altitudeReference = relativeTo;
+
+    const map = MarkerManager.getMap(this);
     if (map) {
       MarkerManager.registerAltitudeParticipant(this, map);
       map.triggerRepaint();
@@ -1571,18 +1596,44 @@ export class Marker extends maplibregl.Marker {
     return this.altitudeReference;
   }
 
-  /** Whether this marker currently needs per-frame altitude tracking — see {@link setAltitude}'s doc comment for why `meters: 0` alone doesn't decide this. Used by {@link MarkerManager} to catch `setAltitude()` calls made before the marker had a map. */
+  /**
+   * Whether this marker currently needs per-frame altitude tracking — true
+   * for the lifetime of the marker as soon as {@link setAltitude} has been
+   * called once, regardless of the value (see its doc comment for why there
+   * is deliberately no "0 is free" fast path). Used by {@link MarkerManager}
+   * to catch `setAltitude()` calls made before the marker had a map.
+   */
   hasActiveAltitude(): boolean {
-    return this.needsAltitudeTracking();
+    return this.altitudeEngaged;
   }
 
   /**
-   * True whenever there's a per-frame projection to maintain: a non-zero
-   * offset (`altitudeMeters !== 0`), or a ground reference that has to keep
-   * tracking the terrain surface even at exactly 0m above it.
+   * Stamps `altitude`/`altitudeReference`/`altitudeEngaged` onto every
+   * `dragstart`/`drag`/`dragend` event before it reaches listeners.
+   * MapLibre's base `Marker` fires these itself (from its own internal
+   * pointer handlers), with only `target`/`type` attached (see
+   * {@link Evented.fire}) — a drag listener otherwise has no way to read
+   * altitude without also holding a reference to the marker (`event.target`
+   * works, but only because it happens to be the marker itself; this makes
+   * it explicit and avoids an extra `getAltitude()`/`getAltitudeReference()`
+   * round-trip per listener).
    */
-  private needsAltitudeTracking(): boolean {
-    return this.altitudeEngaged && (this.altitudeMeters !== 0 || this.altitudeReference === "ground");
+  override fire(event: string | { type: string }, properties?: Record<string, unknown>) {
+    const type = typeof event === "string" ? event : event.type;
+    if (type === "dragstart" || type === "drag" || type === "dragend") {
+      const altitudeData = {
+        altitude: this.getAltitude(),
+        altitudeReference: this.getAltitudeReference(),
+        altitudeEngaged: this.hasActiveAltitude(),
+      };
+      if (typeof event === "string") {
+        properties = { ...properties, ...altitudeData };
+      } else {
+        Object.assign(event, altitudeData);
+      }
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- base Evented's Event type isn't exported by maplibre-gl
+    return super.fire(event as any, properties);
   }
 
   /**
@@ -1615,39 +1666,57 @@ export class Marker extends maplibregl.Marker {
    * public API.
    *
    * Returns this frame's camera depth (the elevated point's clip-space W —
-   * see {@link ScreenPoint.depth}), or `null` when off-screen/hidden.
+   * see {@link ScreenPoint.depth}), or `null` when off-screen/behind the
+   * camera/below ground (hidden either way — see {@link setAltitudeHidden}).
    * {@link MarkerManager} ranks every altitude-active marker on the map by
    * this and assigns z-index by rank (nearest on top) — DOM markers have no
    * real depth buffer, so without it a marker that's actually farther away
    * can still render in front of a nearer one purely because of DOM order.
    */
   [ApplyAltitudeFrameSymbol](matrix: mat4, map: SDKMap): number | null {
-    if (!this.needsAltitudeTracking()) return null; // shouldn't be registered, but state may have raced back to inert mid-frame
+    if (!this.altitudeEngaged) return null; // shouldn't be registered otherwise
 
     const projected = computeAltitudeProjection(this.getLngLat(), this.altitudeMeters, matrix, map, this.altitudeReference);
     if (!projected) {
+      // No valid screen position at all this frame (off-screen/behind the
+      // camera) — unlike belowGround below, there's nothing sane to
+      // position at, so this genuinely hides rather than fades.
       this.altitudeDelta = null;
       this.groundLineOrigin = null;
       this.setAltitudeHidden(true);
+      this.setAltitudeOccluded(false);
       this.updateGroundLineElement();
       return null;
     }
+
+    // belowGround still has a perfectly good position — only the CSS
+    // opacity changes (setAltitudeOccluded), so the offset/ground-line math
+    // below runs exactly as normal either way.
+    this.setAltitudeHidden(false);
+    this.setAltitudeOccluded(projected.belowGround);
 
     this.altitudeDelta = {
       x: projected.elevated.x - projected.groundBase.x,
       y: projected.elevated.y - projected.groundBase.y,
     };
     this.groundLineOrigin = { x: projected.elevated.x, y: projected.elevated.y };
-    this.setAltitudeHidden(false);
     this.writeOffset(this.baseOffset);
     this.updateGroundLineElement();
     return projected.elevated.depth;
   }
 
+  /** Idempotent toggle for {@link altitudeHidden} — cheap to call every frame regardless of whether the state actually changed. */
   private setAltitudeHidden(hidden: boolean): void {
     if (this.altitudeHidden === hidden) return;
     this.altitudeHidden = hidden;
     applyAltitudeHidden(this[MarkerElementSymbol], hidden);
+  }
+
+  /** Idempotent toggle for {@link altitudeOccluded} — cheap to call every frame regardless of whether the state actually changed. */
+  private setAltitudeOccluded(occluded: boolean): void {
+    if (this.altitudeOccluded === occluded) return;
+    this.altitudeOccluded = occluded;
+    applyAltitudeOccluded(this[MarkerElementSymbol], occluded);
   }
 
   /**
@@ -1693,6 +1762,12 @@ export class Marker extends maplibregl.Marker {
 
     this.groundLineEl.style.left = `${String(this.groundLineOrigin.x)}px`;
     this.groundLineEl.style.top = `${String(this.groundLineOrigin.y)}px`;
+    // The line lives in its own shared container, not nested inside the
+    // marker — so it doesn't inherit the marker's opacity from the
+    // occluded CSS class the way a real child would. Applied here too so a
+    // below-ground marker's line fades along with it instead of staying
+    // full-strength on its own.
+    applyAltitudeOccluded(this.groundLineEl, this.altitudeOccluded);
 
     const { x: dx, y: dy } = this.altitudeDelta;
     const length = Math.hypot(dx, dy);
