@@ -131,11 +131,7 @@ const maptilerBaseOptionsKeys = [
   "transitions",
 ] as const;
 
-/**
- * MapLibre's `Marker` extended with 2-D scale, named shapes, colour tokens,
- * and batched DOM updates — property changes defer to the next animation
- * frame so multiple changes in one tick cost only one layout pass.
- */
+/** MapLibre's `Marker` extended with 2-D scale, named shapes, colour tokens, and batched DOM updates. */
 export class Marker extends maplibregl.Marker {
   /** Construction-time options snapshot — not updated by setters. */
   readonly options: MapTilerMarkerOptions;
