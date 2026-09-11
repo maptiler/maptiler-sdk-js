@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Marker Altitude</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    #map {
+      position: absolute;
+      inset: 0;
+    }
+
+    #panel {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 100;
+      width: 220px;
+      max-height: calc(100vh - 24px);
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .ctrl-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ctrl-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.45);
+    }
+
+    .scale-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scale-row input[type="range"] {
+      flex: 1;
+      height: 4px;
+      accent-color: hsl(223, 100%, 65%);
+    }
+
+    .scale-val {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.6);
+      width: 38px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .debug-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: rgba(0, 0, 0, 0.6);
+      cursor: pointer;
+    }
+
+    .debug-row input[type="checkbox"] {
+      accent-color: hsl(223, 100%, 65%);
+    }
+
+    /* Ground-line default appearance lives in the SDK stylesheet
+       (`:where(.maptiler-marker-groundline)`, zero specificity) — thicker
+       and bright yellow here for visibility while checking it against
+       terrain. */
+    .groundline-red, .groundline-blue, .groundline-green {
+      border-top-width: 3px;
+      border-top-color: #ffea00;
+    }
+  </style>
+
+  <link rel="stylesheet" href="../build/maptiler-sdk.css">
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <div id="panel">
+    <div class="ctrl-group">
+      <div class="ctrl-label">Pitch</div>
+      <div class="scale-row">
+        <input id="pitch" type="range" min="0" max="85" step="1" value="55" />
+        <span class="scale-val" id="pitch-val">55°</span>
+      </div>
+    </div>
+
+    <!-- One block per drone injected here by 20-marker-altitude.ts (see
+         #drone-controls-template below) — each with its own altitude slider
+         AND its own ground/sea reference toggle, independent per marker. -->
+    <div id="drone-controls"></div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Ground lines</div>
+      <label class="debug-row">
+        <input id="groundlines" type="checkbox" checked />
+        <span>Show</span>
+      </label>
+    </div>
+  </div>
+
+  <template id="drone-controls-template">
+    <div class="ctrl-group">
+      <div class="ctrl-label drone-label"></div>
+      <div class="scale-row">
+        <input class="drone-altitude" type="range" min="0" max="20000" step="50" />
+        <span class="scale-val drone-altitude-val"></span>
+      </div>
+      <div class="scale-row" style="gap: 14px;">
+        <label class="debug-row"><input class="drone-altref" type="radio" value="ground" /><span>Ground</span></label>
+        <label class="debug-row"><input class="drone-altref" type="radio" value="sea" /><span>Sea</span></label>
+      </div>
+      <label class="debug-row">
+        <input class="drone-unset" type="checkbox" />
+        <span>Unset altitude (drape to terrain)</span>
+      </label>
+    </div>
+  </template>
+
+  <script type="module" src="/src/20-marker-altitude.ts"></script>
+</body>
+
+</html>

@@ -1,5 +1,6 @@
 import type { Marker } from "./Marker";
 import type { Map as SDKMap } from "../Map";
+import type { mat4 } from "gl-matrix";
 import { CollisionBehaviour } from "./types";
 import type { MarkerCollisionAccuracy, MarkerCollisionGroups, MarkerCollisionKind, MarkerCollisionOptions } from "./types";
 import {
@@ -25,6 +26,7 @@ import {
   CollisionFootprintSymbol,
   EmitCollisionDiffSymbol,
   ApplyCollisionDisplayStateSymbol,
+  ApplyAltitudeFrameSymbol,
   MeasuredElementSizeSymbol,
   MarkerElementSymbol,
   ClearFocusStateSymbol,
@@ -40,6 +42,16 @@ const FOOTPRINT_PROPS = ["shape", "size", "scale", "rotation"] as const;
  * or edge behaviour would churn while panning.
  */
 const VIEWPORT_CULL_MARGIN_PX = 200;
+
+/**
+ * Base z-index for camera-depth ordering among altitude-active markers (see
+ * the altitude render loop's `onRender`). Well above the small integers
+ * `priority` typically produces, so depth-ordered altitude markers land
+ * above statically-ordered ones rather than interleaving with them —
+ * "closer to the camera" is a different axis from "higher priority", and
+ * mixing the two into one ranking isn't attempted here.
+ */
+const ALTITUDE_Z_INDEX_BASE = 1000;
 
 /** Per-map state of the collision detection engine. */
 type MapCollisionState = {
@@ -57,6 +69,37 @@ type MapCollisionState = {
   transitionDuration: number;
   /** CSS easing function for the fade transition. */
   transitionEasing: string;
+};
+
+/** Per-map state of the altitude render loop — one shared no-op layer + `render` listener for every altitude-active marker on that map. */
+type MapAltitudeState = {
+  /** Markers currently faking altitude on this map. Empty ⇒ torn down. */
+  participants: Set<Marker>;
+  /** Id of the no-op custom layer used purely to read the projection matrix out of MapLibre's render pass. */
+  layerId: string;
+  /** The matrix captured by the layer's `render()` this frame; null until the first frame after installation. */
+  currentMatrix: mat4 | null;
+  /**
+   * `args.defaultProjectionData.projectionTransition` from that same frame —
+   * 0 (pure mercator) or 1 (pure globe) at rest, fractional mid-morph
+   * between projections. `getMatrixForModel`'s per-projection placement (see
+   * altitude-math.ts) has no defined meaning at fractional values, so the
+   * render loop freezes markers at their last good position rather than
+   * projecting through a blend it can't represent — same guard
+   * maptiler-3d-js's Layer3D uses for its 3D models.
+   */
+  currentProjectionTransition: number | null;
+  installed: boolean;
+  renderListener: (() => void) | null;
+  styleLoadListener: (() => void) | null;
+  terrainListener: (() => void) | null;
+  /**
+   * Shared container for every marker's ground-line element on this map —
+   * a sibling of the marker elements (not nested inside any one marker's own
+   * z-indexed element), pinned to a low z-index so lines never paint on top
+   * of a marker's icon. See {@link MarkerManagerImpl.getGroundLineContainer}.
+   */
+  groundLineContainer: HTMLDivElement;
 };
 
 /** One marker's resolved geometry within a detection pass. */
@@ -119,6 +162,10 @@ class MarkerManagerImpl {
 
   // Per-marker drag handlers (`drag` + `dragend`), kept so deregister can detach them.
   private readonly dragEndHandlers = new WeakMap<Marker, () => void>();
+
+  // Per-map altitude render-loop state (see MapAltitudeState).
+  private readonly altitudeState = new WeakMap<SDKMap, MapAltitudeState>();
+  private altitudeLayerSequence = 0;
 
   //#endregion
 
@@ -207,9 +254,13 @@ class MarkerManagerImpl {
     }
 
     // dragging moves the marker with no map event to re-run detection on;
-    // `drag` fires per pointer move and the pass is rAF-coalesced
+    // `drag` fires per pointer move and the pass is rAF-coalesced. Dragging
+    // also doesn't move the camera, so it doesn't imply a map repaint on its
+    // own — an altitude-active marker needs one anyway (its offset/ground
+    // line are computed inside the render loop, not written by drag itself).
     const onDrag = () => {
       this.invalidateCollisions(map);
+      if (marker.hasActiveAltitude()) map.triggerRepaint();
     };
     marker.on("drag", onDrag);
     marker.on("dragend", onDrag);
@@ -220,6 +271,10 @@ class MarkerManagerImpl {
     // adaptive colours could only resolve to `base` before the marker had a
     // map — re-resolve against this map's style
     marker[RefreshAdaptiveColorSymbol]();
+
+    // altitude may have been set before the marker had a map (setAltitude()
+    // no-ops with nowhere to register); pick that up now
+    if (marker.hasActiveAltitude()) this.registerAltitudeParticipant(marker, map);
   }
 
   // unregisters a Marker that no longer needs to be managed. `deferDetach`
@@ -234,6 +289,7 @@ class MarkerManagerImpl {
     this.markerMap.delete(marker);
     this.mapIndex.get(map)?.delete(marker.id);
     this.cancelCuedUpdatesForMarker(marker);
+    this.deregisterAltitudeParticipant(marker, map);
 
     const onDrag = this.dragEndHandlers.get(marker);
     if (onDrag) {
@@ -626,6 +682,224 @@ class MarkerManagerImpl {
       if (entered.length === 0 && exited.length === 0) continue;
       marker[EmitCollisionDiffSymbol]({ kind, entered, exited, current: [...nextSet] });
     }
+  }
+
+  //#endregion
+
+  //#region Altitude
+
+  /**
+   * Starts driving `marker`'s per-frame altitude projection on `map`. Shared
+   * across every altitude-active marker on the map — several markers here
+   * still cost one no-op custom layer and one `render` listener, not one
+   * each. Called by {@link Marker.setAltitude} (and by {@link register} for
+   * a marker whose altitude was set before it had a map).
+   */
+  registerAltitudeParticipant(marker: Marker, map: SDKMap): void {
+    const state = this.getOrCreateAltitudeState(map);
+    state.participants.add(marker);
+    this.ensureAltitudeLayerInstalled(map, state);
+  }
+
+  /** Stops driving `marker`'s altitude projection. Tears down the shared layer/listener once the last participant on `map` leaves. */
+  deregisterAltitudeParticipant(marker: Marker, map: SDKMap): void {
+    const state = this.altitudeState.get(map);
+    if (!state) return;
+    state.participants.delete(marker);
+    if (state.participants.size === 0) this.teardownAltitudeLayer(map, state);
+  }
+
+  /**
+   * The shared, always-behind-markers container every marker's ground-line
+   * element gets appended to on this map — a sibling of the marker elements
+   * (both live in `map.getCanvasContainer()`), not a descendant of any one
+   * marker, so a long line can never inherit a marker's camera-depth
+   * z-index and paint over some *other* marker's icon. Created together
+   * with the rest of the per-map altitude state.
+   */
+  getGroundLineContainer(map: SDKMap): HTMLDivElement {
+    return this.getOrCreateAltitudeState(map).groundLineContainer;
+  }
+
+  // lazily creates the per-map altitude state; final cleanup on map removal
+  // mirrors getOrCreateCollisionState's — release what this added, nothing
+  // heavier, since the map itself is already going away
+  private getOrCreateAltitudeState(map: SDKMap): MapAltitudeState {
+    const existing = this.altitudeState.get(map);
+    if (existing) return existing;
+
+    const groundLineContainer = document.createElement("div");
+    groundLineContainer.style.position = "absolute";
+    groundLineContainer.style.inset = "0";
+    groundLineContainer.style.pointerEvents = "none";
+    // No z-index here, deliberately — a negative one would drop this into
+    // the CSS "negative z-index" stacking bucket, which paints BEHIND the
+    // map's own WebGL canvas (z-index: auto, i.e. the normal/0 bucket) —
+    // the lines would still render, just hidden behind the opaque map
+    // surface. Instead this relies on DOM order within that same normal
+    // bucket: inserted right after the canvas (so it's above the map), and
+    // every marker element is `appendChild`ed later (so markers, later in
+    // DOM order, always paint on top of this) — markers with an explicit
+    // z-index (`priority`, or the camera-depth ranking altitude-active
+    // markers get) are in a higher bucket regardless and stay on top too.
+    map.getCanvas().after(groundLineContainer);
+
+    const state: MapAltitudeState = {
+      participants: new Set(),
+      layerId: `__maptiler-altitude-capture-${String(this.altitudeLayerSequence++)}__`,
+      currentMatrix: null,
+      currentProjectionTransition: null,
+      installed: false,
+      renderListener: null,
+      styleLoadListener: null,
+      terrainListener: null,
+      groundLineContainer,
+    };
+    this.altitudeState.set(map, state);
+
+    void map.once("remove", () => {
+      if (state.renderListener) map.off("render", state.renderListener);
+      if (state.styleLoadListener) map.off("style.load", state.styleLoadListener);
+      if (state.terrainListener) {
+        map.off("terrain", state.terrainListener);
+        map.off("terrainAnimationStop", state.terrainListener);
+        map.off("loadWithTerrain", state.terrainListener);
+      }
+      this.altitudeState.delete(map);
+    });
+
+    return state;
+  }
+
+  // MapLibre throws if you `addLayer` before the style has finished loading
+  // — defer installation until then. Safe to call redundantly; only the
+  // first call (with participants still non-empty) actually installs.
+  //
+  // Waits on "idle", not "load": "load" fires exactly once per map, ever.
+  // Markers are almost always registered well *after* the map's initial
+  // load (typically from application code that itself awaits load first),
+  // so by the time this runs "load" has usually already fired and been
+  // consumed — if `isStyleLoaded()` happens to be false at that exact
+  // moment (e.g. right after applying a style with extra sources/sprites
+  // still settling, like a terrain source), `once("load", ...)` would wait
+  // forever for an event that's never coming again. "idle" fires every time
+  // the map has no pending work, so it's safe to wait on regardless of
+  // where in the map's lifecycle this gets called.
+  private ensureAltitudeLayerInstalled(map: SDKMap, state: MapAltitudeState): void {
+    if (state.installed) return;
+    if (map.isStyleLoaded()) {
+      this.installAltitudeLayer(map, state);
+      return;
+    }
+    void map.once("idle", () => {
+      this.ensureAltitudeLayerInstalled(map, state);
+    });
+  }
+
+  private installAltitudeLayer(map: SDKMap, state: MapAltitudeState): void {
+    // a pending once('load', ...) can still fire after the last participant
+    // left (and teardown already ran) — don't resurrect the layer for nobody
+    if (state.installed || state.participants.size === 0) return;
+    if (map.getLayer(state.layerId)) return;
+
+    map.addLayer({
+      id: state.layerId,
+      type: "custom",
+      // "2d" is enough — this layer never draws anything, it only reads the
+      // projection args MapLibre hands to every custom layer.
+      renderingMode: "2d",
+      render: (_gl, args) => {
+        // MapLibre v5+: render(gl, args: CustomRenderMethodInput).
+        // MapLibre v4 called this render(gl, matrix: mat4) — `args` was the
+        // matrix itself and `defaultProjectionData` didn't exist.
+        state.currentMatrix = args.defaultProjectionData.mainMatrix;
+        state.currentProjectionTransition = args.defaultProjectionData.projectionTransition;
+      },
+    });
+
+    const onRender = () => {
+      if (!state.currentMatrix) return;
+      // Mid-morph between mercator and globe — freeze rather than project
+      // through a blend `getMatrixForModel` can't represent (see
+      // `currentProjectionTransition`'s doc comment).
+      if (state.currentProjectionTransition !== 0 && state.currentProjectionTransition !== 1) return;
+
+      // Each marker projects itself and reports back its camera depth (or
+      // null if off-screen/hidden this frame) — collected here rather than
+      // acted on inline so every participant's depth is known before any
+      // z-index gets written.
+      const depths: { marker: Marker; depth: number }[] = [];
+      for (const marker of state.participants) {
+        const depth = marker[ApplyAltitudeFrameSymbol](state.currentMatrix, map);
+        if (depth !== null) depths.push({ marker, depth });
+      }
+
+      // DOM markers have no real depth buffer — without this, a marker
+      // that's actually farther from the camera can still render on top of
+      // a nearer one purely because of DOM insertion order. Sort far-to-near
+      // and assign z-index by rank so nearer always wins, only among this
+      // map's altitude-active markers (a marker with no altitude keeps
+      // whatever static `priority`-based z-index it already had).
+      depths.sort((a, b) => b.depth - a.depth);
+      depths.forEach(({ marker }, index) => {
+        marker[MarkerElementSymbol].style.zIndex = String(ALTITUDE_Z_INDEX_BASE + index);
+      });
+    };
+    // `setStyle()` tears down every layer, including this one — reinstall
+    // once the new style finishes loading so altitude keeps working across
+    // style switches.
+    const onStyleLoad = () => {
+      state.installed = false;
+      state.currentMatrix = null;
+      this.ensureAltitudeLayerInstalled(map, state);
+    };
+
+    // Terrain readiness fires across a few different events, and markers
+    // need a fresh `queryTerrainElevation()` (i.e. a repaint) right when any
+    // of them land, not just "probably soon after" via some other repaint:
+    //  - "terrain": MapLibre's own event, fires as soon as `map.terrain` is
+    //    set/unset — early, DEM tiles for a given marker may not be loaded yet.
+    //  - "terrainAnimationStop": the SDK's grow/flatten animation (see
+    //    `Map.growTerrain`) reaching its target exaggeration — the actual
+    //    "terrain is ready and settled" moment for markers already on screen.
+    //  - "loadWithTerrain": the SDK's own "map ready with terrain non-null"
+    //    event, for the initial-load case (`terrain: true` in the constructor).
+    // growTerrain's own rAF loop already calls triggerRepaint() every tick,
+    // so onRender above tends to self-heal mid-animation anyway — but that's
+    // the same kind of implicit assumption that bit us for
+    // setAltitude()-while-idle and drag earlier, so it's not relied on here.
+    const onTerrainChange = () => {
+      map.triggerRepaint();
+    };
+
+    map.on("render", onRender);
+    map.on("style.load", onStyleLoad);
+    map.on("terrain", onTerrainChange);
+    map.on("terrainAnimationStop", onTerrainChange);
+    map.on("loadWithTerrain", onTerrainChange);
+    state.renderListener = onRender;
+    state.styleLoadListener = onStyleLoad;
+    state.terrainListener = onTerrainChange;
+    state.installed = true;
+  }
+
+  // the map is still alive here (unlike the 'remove' cleanup above) — actually remove the layer, not just the listeners
+  private teardownAltitudeLayer(map: SDKMap, state: MapAltitudeState): void {
+    if (state.renderListener) map.off("render", state.renderListener);
+    if (state.styleLoadListener) map.off("style.load", state.styleLoadListener);
+    if (state.terrainListener) {
+      map.off("terrain", state.terrainListener);
+      map.off("terrainAnimationStop", state.terrainListener);
+      map.off("loadWithTerrain", state.terrainListener);
+    }
+    if (map.getLayer(state.layerId)) map.removeLayer(state.layerId);
+    state.groundLineContainer.remove();
+    state.installed = false;
+    state.currentMatrix = null;
+    state.renderListener = null;
+    state.styleLoadListener = null;
+    state.terrainListener = null;
+    this.altitudeState.delete(map);
   }
 
   //#endregion
