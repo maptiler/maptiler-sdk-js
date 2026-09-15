@@ -27,7 +27,7 @@ describe("enterPresetHiddenValue", () => {
     expect(enterPresetHiddenValue("drop", 1, [1, 1])).toEqual({ opacity: 0, scale: [1, 1], lift: -LIFECYCLE_LIFT_PX });
   });
 
-  it("bounce: fully opaque throughout, base scale, lifted above", () => {
+  it("bounce: opacity unchanged from base, base scale, lifted above", () => {
     expect(enterPresetHiddenValue("bounce", 0.5, [1, 1])).toEqual({ opacity: 0.5, scale: [1, 1], lift: -LIFECYCLE_LIFT_PX });
   });
 });

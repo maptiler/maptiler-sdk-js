@@ -67,4 +67,16 @@ describe("getShapeAnchorOffset", () => {
     const expectedY = -(shape.anchorY * scale - heightPx / 2);
     expect(getShapeAnchorOffset(shapeKey, sizeKey)).toEqual([0, expectedY]);
   });
+
+  it("matches the manual formula for every other bottom-anchored shape", () => {
+    const sizeKey = "m" as const;
+    for (const shapeKey of ["bubble-circle", "bulb", "squircle", "shield"] as const) {
+      const shape = SHAPES[shapeKey];
+      expect(shape.anchor).toBe("bottom");
+      const heightPx = SIZE_PX[sizeKey];
+      const scale = heightPx / shape.viewBox[1];
+      const expectedY = -(shape.anchorY * scale - heightPx / 2);
+      expect(getShapeAnchorOffset(shapeKey, sizeKey)).toEqual([0, expectedY]);
+    }
+  });
 });
