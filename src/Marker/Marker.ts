@@ -236,8 +236,6 @@ export class Marker extends maplibregl.Marker {
    *
    * `shape`/`size` don't apply. Color/shadow options still apply as CSS
    * custom properties for the element's own styles to consume.
-   *
-   * TODO: this will affect collision behaviour.
    */
   constructor(options: MapTilerMarkerElementOptions);
   /** Creates a marker styled via the built-in SVG system (`shape`, `size`, colour tokens, shadow). */

@@ -37,9 +37,15 @@ export function projectLngLatAltitude(lngLat: maplibregl.LngLat, altitudeMeters:
   const cssWidth = map.getCanvas().clientWidth;
   const cssHeight = map.getCanvas().clientHeight;
 
+  // NDC axes both run -1..1 with the origin at screen center. `* 0.5 + 0.5`
+  // rescales that to 0..1, then `* cssWidth`/`cssHeight` turns the 0..1
+  // fraction into a pixel offset from the top-left corner — which is also
+  // why Y gets flipped first: NDC's +1 is the top of the screen, but DOM's
+  // pixel Y grows downward, so "near the top" must map to a small y, not a
+  // large one.
   return {
     x: (ndcX * 0.5 + 0.5) * cssWidth,
-    y: (1 - (ndcY * 0.5 + 0.5)) * cssHeight, // NDC Y is up, DOM Y is down
+    y: (1 - (ndcY * 0.5 + 0.5)) * cssHeight,
     depth: clipW,
   };
 }

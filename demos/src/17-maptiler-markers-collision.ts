@@ -1,15 +1,9 @@
 import { Map, MapStyle, Marker, config } from "../../src/index";
-import { addPerformanceStats, setupMapTilerApiKey } from "./demo-utils";
+import { addPerformanceStats, el, setupMapTilerApiKey } from "./demo-utils";
 import type { CollisionBehaviour, MapTilerMarkerOptions } from "../../src/Marker";
 
 setupMapTilerApiKey({ config });
 addPerformanceStats();
-
-function el<T extends HTMLElement = HTMLElement>(id: string): T {
-  const found = document.getElementById(id);
-  if (!found) throw new Error(`Element \`#${id}\` not found`);
-  return found as T;
-}
 
 // bounds the markers are scattered within (around Prague)
 const CENTER: [number, number] = [14.42, 50.08];

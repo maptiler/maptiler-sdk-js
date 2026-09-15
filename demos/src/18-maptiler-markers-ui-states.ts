@@ -1,14 +1,8 @@
 import { Map, MapStyle, Marker, config } from "../../src/index";
-import { setupMapTilerApiKey } from "./demo-utils";
+import { el, setupMapTilerApiKey } from "./demo-utils";
 import type { MapTilerMarkerOptions, MapTilerMarkerTransitions, MarkerTransitionProperty, MarkerTransitionSpec, MarkerTransitionEventData } from "../../src/Marker";
 
 setupMapTilerApiKey({ config });
-
-function el<T extends HTMLElement = HTMLElement>(id: string): T {
-  const found = document.getElementById(id);
-  if (!found) throw new Error(`#${id} not found`);
-  return found as T;
-}
 
 const CENTER: [number, number] = [14.42, 50.08];
 const SPACING = 0.0022;

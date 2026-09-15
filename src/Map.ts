@@ -246,21 +246,21 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo" | "attribut
   projection?: ProjectionTypes;
 
   /**
-   * MapLibre's plain `type: "globe"` renders a full sphere at every zoom level with no
-   * built-in transition back to flat mercator. That's needless once you're zoomed in close
-   * enough that a sphere and flat mercator render pixel-identical, and it's actively worse for
-   * anything that places objects via MapLibre's per-projection model matrix (marker altitude,
-   * `maptiler-3d-js`) — that placement is only well-defined while the globe/mercator blend is
-   * fully settled at one end, not mid-blend.
+   * MapLibre's plain `type: "globe"` already resolves to
+   * `["interpolate", ["linear"], ["zoom"], 11, "vertical-perspective", 12, "mercator"]` —
+   * vertical-perspective below zoom 11, linearly blended into flat mercator between 11 and 12.
+   * That blend is a MapLibre bug for anything that places objects via its per-projection model
+   * matrix (marker altitude, `maptiler-3d-js`): the matrix isn't well-defined mid-blend, only
+   * once it's settled fully at one end, so objects placed while zooming through 11-12 jump
+   * around.
    *
    * Whenever a projection change resolves to `"globe"` (constructor option, `setProjection`, or
    * the {@link MaptilerProjectionControl}), the SDK requests
    * `{ type: ["step", ["zoom"], "vertical-perspective", globeMercatorSwitchZoom, "mercator"] }`
    * instead of the literal string — spherical below this zoom, flat mercator at and above it,
-   * snapping instantly at the threshold rather than blending across a wide zoom band.
+   * snapping instantly at the threshold instead of blending across that zoom band.
    *
-   * Set to `false` to request MapLibre's own `"globe"` literally instead — a sphere at every
-   * zoom level.
+   * Set to `false` to request MapLibre's own `"globe"` literally instead, blend bug and all.
    *
    * Default: `11`
    */

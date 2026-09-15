@@ -1,6 +1,6 @@
 import { Map, MapStyle, Marker, config } from "../../src/index";
 import { registerMarkerTemplate } from "../../src/Marker/marker-content-registry";
-import { setupMapTilerApiKey } from "./demo-utils";
+import { el, setupMapTilerApiKey } from "./demo-utils";
 import type { MapTilerMarkerBaseOptions, MapTilerMarkerOptions, MapTilerMarkerSVGOptions } from "../../src/Marker";
 
 // demo template: dark round badge with a label
@@ -20,12 +20,6 @@ registerMarkerTemplate("badge", (params) => {
 });
 
 setupMapTilerApiKey({ config });
-
-function el<T extends HTMLElement = HTMLElement>(id: string): T {
-  const found = document.getElementById(id);
-  if (!found) throw new Error(`#${id} not found`);
-  return found as T;
-}
 
 const zoom = 12;
 

@@ -1,20 +1,9 @@
 import type { GeoJSONSource } from "maplibre-gl";
 import { Map, MapStyle, Marker, config } from "../../src/index";
-import { setupMapTilerApiKey } from "./demo-utils";
+import type { AltitudeReference } from "../../src/Marker/types";
+import { assertDefined, el, setupMapTilerApiKey } from "./demo-utils";
 
 setupMapTilerApiKey({ config });
-
-function el<T extends HTMLElement = HTMLElement>(id: string): T {
-  const found = document.getElementById(id);
-  if (!found) throw new Error(`#${id} not found`);
-  return found as T;
-}
-
-/** Throws instead of returning null — for required lookups inside a cloned `<template>`, where a miss means the template markup itself is wrong. */
-function must<T>(value: T | null): T {
-  if (!value) throw new Error("expected element not found in #drone-controls-template");
-  return value;
-}
 
 // Altitude/ground-line math works under both mercator and globe (see
 // altitude-math.ts's projectLngLatAltitude doc comment) — the sanctioned
@@ -96,11 +85,11 @@ async function main() {
 
   const markers = drones.map((drone) => {
     const fragment = template.content.cloneNode(true) as DocumentFragment;
-    const label = must(fragment.querySelector<HTMLElement>(".drone-label"));
-    const slider = must(fragment.querySelector<HTMLInputElement>(".drone-altitude"));
-    const valueLabel = must(fragment.querySelector<HTMLElement>(".drone-altitude-val"));
+    const label = assertDefined(fragment.querySelector<HTMLElement>(".drone-label"));
+    const slider = assertDefined(fragment.querySelector<HTMLInputElement>(".drone-altitude"));
+    const valueLabel = assertDefined(fragment.querySelector<HTMLElement>(".drone-altitude-val"));
     const altrefRadios = Array.from(fragment.querySelectorAll<HTMLInputElement>(".drone-altref"));
-    const unsetCheckbox = must(fragment.querySelector<HTMLInputElement>(".drone-unset"));
+    const unsetCheckbox = assertDefined(fragment.querySelector<HTMLInputElement>(".drone-unset"));
 
     label.textContent = drone.label;
     slider.value = String(drone.defaultAltitude);
@@ -122,7 +111,7 @@ async function main() {
       addDropPoint([lngLat.lng, lngLat.lat], drone.color);
     });
 
-    function currentAltitudeReference(): "ground" | "sea" {
+    function currentAltitudeReference(): AltitudeReference {
       const checked = altrefRadios.find((radio) => radio.checked);
       return checked?.value === "sea" ? "sea" : "ground";
     }
