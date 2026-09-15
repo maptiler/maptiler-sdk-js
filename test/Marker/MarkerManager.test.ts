@@ -92,6 +92,17 @@ describe("register / deregister", () => {
     // (MeasuredElementSizeSymbol is private wiring; footprint reflects it)
     expect(marker.getElement().isConnected).toBe(true);
   });
+
+  it("leaves a hidden marker in its natural (visible) collision state before removal, in case it's re-added elsewhere", () => {
+    const map = createMockMap();
+    const marker = footprintMarker([100, 0], 20); // offscreen -> hidden by the collision pass
+    MarkerManager.register(marker, map);
+    MarkerManager.flushUpdates();
+    expect(marker.getCollisionDisplayState()).toBe("hidden");
+
+    MarkerManager.deregister(marker);
+    expect(marker.getCollisionDisplayState()).toBe("visible");
+  });
 });
 
 //#endregion
@@ -340,7 +351,22 @@ describe("altitude render loop", () => {
     expect(map.addLayer).toHaveBeenCalledTimes(1);
   });
 
-  it("ranks altitude-active markers' z-index by camera depth on render", () => {
+  it("defers layer installation until the style finishes loading, then installs once idle fires", () => {
+    const map = createMockMap();
+    (map as unknown as { isStyleLoaded: () => boolean }).isStyleLoaded = () => false;
+    const marker = footprintMarker([0, 0]);
+    MarkerManager.register(marker, map);
+    marker.setAltitude(10);
+
+    expect(map.addLayer).not.toHaveBeenCalled();
+
+    (map as unknown as { isStyleLoaded: () => boolean }).isStyleLoaded = () => true;
+    map.fire("idle");
+
+    expect(map.addLayer).toHaveBeenCalledTimes(1);
+  });
+
+  it("ranks altitude-active markers' z-index by camera depth on render, nearer camera wins", () => {
     const map = createMockMap();
     const near = footprintMarker([0, 0]);
     const far = footprintMarker([1, 0]);
@@ -349,18 +375,30 @@ describe("altitude render loop", () => {
     near.setAltitude(5);
     far.setAltitude(5);
 
-    const layer = captureInstalledLayer(map);
-    const identity: mat4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] as unknown as mat4;
+    // The mock's getMatrixForModel otherwise returns a constant zero matrix
+    // regardless of lngLat, so every marker would project to the same depth.
+    // Fake a per-marker camera-distance signal via worldZ (model[14]),
+    // scaled by longitude, so "far" (lng=1) sits behind "near" (lng=0).
+    (map.transform.getMatrixForModel as unknown as ReturnType<typeof vi.fn>).mockImplementation((lngLat: { lng: number }) => {
+      const model = new Array(16).fill(0);
+      model[14] = lngLat.lng * 5; // worldZ
+      return model;
+    });
 
-    // "far" gets a larger clipW (depth) via a matrix that scales W by worldX-ish trick:
-    // simplest: call render twice is unnecessary — instead directly drive each marker with
-    // a matrix producing distinct depths through the shared onRender by faking currentMatrix.
-    layer.render(null, { defaultProjectionData: { mainMatrix: identity, projectionTransition: 0 } });
+    const layer = captureInstalledLayer(map);
+    // clipW = matrix[11] * worldZ + matrix[15] — a nonzero matrix[11] lets
+    // worldZ drive depth (clip-space W), with matrix[15] keeping it positive.
+    const matrix: mat4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 10] as unknown as mat4;
+
+    layer.render(null, { defaultProjectionData: { mainMatrix: matrix, projectionTransition: 0 } });
     map.fire("render");
 
-    // both participate; the exact z-index values aren't asserted (mock geometry is degenerate),
-    // only that the render pass ran without throwing and left the markers on-screen.
-    expect(near.getElement().style.zIndex).not.toBe("");
+    const nearZIndex = Number(near.getElement().style.zIndex);
+    const farZIndex = Number(far.getElement().style.zIndex);
+    expect(Number.isNaN(nearZIndex)).toBe(false);
+    expect(Number.isNaN(farZIndex)).toBe(false);
+    // nearer camera (smaller depth/clipW) ranks last in the far-to-near sort, so it gets the higher z-index and renders on top
+    expect(nearZIndex).toBeGreaterThan(farZIndex);
   });
 
   it("deregisterAltitudeParticipant tears down the layer once the last participant leaves", () => {
