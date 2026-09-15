@@ -17,10 +17,19 @@ import {
   wrap,
 } from "../../src/Marker/marker-dom-utils";
 import type { MapTilerMarkerOptions } from "../../src/Marker/types";
-import { DEFAULT_INNER_COLOR, DEFAULT_OUTER_COLOR } from "../../src/Marker/marker-svg-config";
+import { DEFAULT_INNER_COLOR, DEFAULT_OUTER_COLOR, SIZE_PX } from "../../src/Marker/marker-svg-config";
+import { registerMarkerTemplate } from "../../src/Marker/marker-content-registry";
+import { getAdaptiveBgColor, resolveAdaptiveColor } from "../../src/Marker/marker-adaptive-colors";
 
 function baseOptions(overrides: Partial<MapTilerMarkerOptions> = {}): MapTilerMarkerOptions {
   return { ...overrides } as MapTilerMarkerOptions;
+}
+
+// The real MapTilerMarkerOptions content fields are a discriminated union
+// (setting one types the others as `never`); tests that deliberately set
+// several at once to probe priority bypass that via this cast.
+function multiContentOptions(overrides: Record<string, unknown>): MapTilerMarkerOptions {
+  return { ...overrides } as unknown as MapTilerMarkerOptions;
 }
 
 //#region createMarkerElement
@@ -107,6 +116,57 @@ describe("createMarkerElement", () => {
     const wrapper = outer.querySelector<HTMLElement>(".marker-transform-wrapper")!;
     expect(wrapper.style.transform).toContain("scale(2, 3)");
     expect(wrapper.style.transform).toContain("rotate(45deg)");
+  });
+});
+
+//#endregion
+
+//#region appendContent priority
+
+describe("appendContent priority (icon > url > template > element > content)", () => {
+  it("icon wins over url/template/element/content, and renders nothing (icons not implemented)", () => {
+    registerMarkerTemplate("priority-template", () => "T");
+    const outer = createMarkerElement(
+      multiContentOptions({
+        icon: "pin",
+        url: "https://example.com/pin.png",
+        template: "priority-template",
+        element: document.createElement("span"),
+        content: "X",
+      }),
+    );
+    expect(outer.querySelector(".marker-content")).toBeNull();
+  });
+
+  it("url wins over template/element/content", () => {
+    registerMarkerTemplate("priority-template", () => "T");
+    const outer = createMarkerElement(
+      multiContentOptions({
+        url: "https://example.com/pin.png",
+        template: "priority-template",
+        element: document.createElement("span"),
+        content: "X",
+      }),
+    );
+    const content = outer.querySelector(".marker-content");
+    expect(content?.tagName.toLowerCase()).toBe("image");
+  });
+
+  it("template wins over element/content", () => {
+    registerMarkerTemplate("priority-template", () => "T");
+    const outer = createMarkerElement(multiContentOptions({ template: "priority-template", element: document.createElement("span"), content: "X" }));
+    const content = outer.querySelector(".marker-content");
+    expect(content?.tagName.toLowerCase()).toBe("text");
+    expect(content?.textContent).toBe("T");
+  });
+
+  it("element wins over content", () => {
+    const custom = document.createElement("span");
+    custom.textContent = "hi";
+    const outer = createMarkerElement(multiContentOptions({ element: custom, content: "X" }));
+    const content = outer.querySelector(".marker-content");
+    expect(content?.tagName.toLowerCase()).toBe("foreignobject");
+    expect(content?.contains(custom)).toBe(true);
   });
 });
 
@@ -205,7 +265,8 @@ describe("updateMarkerElement", () => {
     const outer = createMarkerElement(baseOptions());
     updateMarkerElement(outer, { color: "blue" }, "streets");
     const wrapper = resolveMarkerWrapper(outer);
-    expect(wrapper.style.getPropertyValue("--marker-inner-color")).not.toBe("");
+    const expected = getAdaptiveBgColor(resolveAdaptiveColor("blue")!, "streets");
+    expect(wrapper.style.getPropertyValue("--marker-inner-color")).toBe(expected);
   });
 
   it("sets and removes the outline stroke-width", () => {
@@ -264,6 +325,14 @@ describe("updateMarkerElement", () => {
     expect(wrapper.querySelector(".marker-content")?.textContent).toBe("new");
   });
 
+  it("does not remove non-text content (image) when content is cleared", () => {
+    const outer = createMarkerElement(baseOptions({ url: "https://example.com/pin.png" }));
+    updateMarkerElement(outer, { content: undefined });
+    const wrapper = resolveMarkerWrapper(outer);
+    const content = wrapper.querySelector(".marker-content");
+    expect(content?.tagName.toLowerCase()).toBe("image");
+  });
+
   it("applies custom htmlAttributes to the outer element", () => {
     const outer = createMarkerElement(baseOptions());
     updateMarkerElement(outer, { htmlAttributes: { "aria-label": "test" } });
@@ -306,6 +375,18 @@ describe("updateMarkerElement", () => {
     expect((shapeSvg.style as CSSStyleDeclaration).display).toBe("block");
   });
 
+  it("builds a fresh shape svg when growing past xs on a marker constructed at xs", () => {
+    const outer = createMarkerElement(baseOptions({ size: "xs", shape: "circle" }));
+    const wrapper = resolveMarkerWrapper(outer);
+    expect(wrapper.querySelector("svg.marker-shape")).toBeNull();
+
+    updateMarkerElement(outer, { size: "l" });
+    expect(wrapper.querySelector("svg.marker-dot")).toBeNull();
+    const shapeSvg = wrapper.querySelector<SVGSVGElement>("svg.marker-shape");
+    expect(shapeSvg).not.toBeNull();
+    expect(shapeSvg?.getAttribute("height")).toBe(String(SIZE_PX.l));
+  });
+
   it("swaps shape and preserves outline width on the new svg", () => {
     const outer = createMarkerElement(baseOptions({ shape: "circle", outline: 3 }));
     updateMarkerElement(outer, { shape: "square" });
@@ -319,6 +400,40 @@ describe("updateMarkerElement", () => {
     updateMarkerElement(outer, { shape: "square" });
     const wrapper = resolveMarkerWrapper(outer);
     expect(wrapper.querySelector(".marker-content")?.textContent).toBe("AB");
+  });
+
+  it("migrates glyph content (template returning an SVGElement) to the new shape when shape changes", () => {
+    registerMarkerTemplate("test-glyph", () => document.createElementNS("http://www.w3.org/2000/svg", "circle"));
+    const outer = createMarkerElement(baseOptions({ shape: "circle", template: "test-glyph" }));
+    const wrapper = resolveMarkerWrapper(outer);
+    const before = wrapper.querySelector(".marker-content");
+    expect(before?.tagName.toLowerCase()).toBe("g");
+
+    updateMarkerElement(outer, { shape: "square" });
+    expect(wrapper.dataset.markerShape).toBe("square");
+    const after = wrapper.querySelector(".marker-content");
+    expect(after?.tagName.toLowerCase()).toBe("g");
+    expect(after?.querySelector("circle")).not.toBeNull();
+  });
+
+  it("migrates image content to the new shape when shape changes", () => {
+    const outer = createMarkerElement(baseOptions({ shape: "circle", url: "https://example.com/pin.png" }));
+    updateMarkerElement(outer, { shape: "square" });
+    const wrapper = resolveMarkerWrapper(outer);
+    const content = wrapper.querySelector(".marker-content");
+    expect(content?.tagName.toLowerCase()).toBe("image");
+    expect(content?.getAttribute("href")).toBe("https://example.com/pin.png");
+  });
+
+  it("migrates element (foreignObject) content to the new shape when shape changes", () => {
+    const custom = document.createElement("span");
+    custom.textContent = "hi";
+    const outer = createMarkerElement(multiContentOptions({ shape: "circle", element: custom }));
+    updateMarkerElement(outer, { shape: "square" });
+    const wrapper = resolveMarkerWrapper(outer);
+    const content = wrapper.querySelector(".marker-content");
+    expect(content?.tagName.toLowerCase()).toBe("foreignobject");
+    expect(content?.contains(custom)).toBe(true);
   });
 
   it("adds and removes the debug overlay", () => {
