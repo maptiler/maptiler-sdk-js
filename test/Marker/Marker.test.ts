@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Marker } from "../../src/Marker/Marker";
 import { MarkerManager } from "../../src/Marker/MarkerManager";
-import { ApplyAltitudeFrameSymbol, CollisionFootprintSymbol, MeasuredElementSizeSymbol } from "../../src/Marker/marker-symbols";
+import { ApplyAltitudeFrameSymbol, ApplyCollisionDisplayStateSymbol, CollisionFootprintSymbol, MeasuredElementSizeSymbol } from "../../src/Marker/marker-symbols";
+import { SIZE_PX } from "../../src/Marker/marker-svg-config";
 import type { mat4 } from "gl-matrix";
 import { createMockMap, type MockMap } from "./mock-map";
 
@@ -11,6 +12,10 @@ function registeredMarker(map: MockMap, options: ConstructorParameters<typeof Ma
   MarkerManager.register(marker, map);
   return marker;
 }
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 //#region Constructor
 
@@ -289,8 +294,8 @@ describe("CollisionFootprintSymbol", () => {
   it("derives width/height from the built-in shape and size when no radius is set", () => {
     const marker = new Marker({ shape: "circle", size: "m", offset: [0, 0] });
     const footprint = marker[CollisionFootprintSymbol]();
-    expect(footprint.height).toBe(28); // SIZE_PX.m
-    expect(footprint.width).toBe(28); // circle viewBox is square
+    expect(footprint.height).toBe(SIZE_PX.m);
+    expect(footprint.width).toBe(SIZE_PX.m); // circle viewBox is square
   });
 
   it("uses a bottom pivot for a bottom-anchored shape", () => {
@@ -401,6 +406,7 @@ describe("setTransitionForProperty / getTransitions", () => {
   });
 
   it("eases a property change and fires transitionstart/transitionend when on a map", async () => {
+    vi.useFakeTimers();
     const map = createMockMap();
     const marker = registeredMarker(map);
     marker.setTransitionForProperty("rotation", [30]);
@@ -414,7 +420,8 @@ describe("setTransitionForProperty / getTransitions", () => {
     // mid-flight the value hasn't necessarily reached 90 yet
     expect(start).toHaveBeenCalled();
 
-    await vi.waitFor(() => expect(end).toHaveBeenCalled(), { timeout: 2000 });
+    await vi.advanceTimersByTimeAsync(200);
+    expect(end).toHaveBeenCalled();
     expect(marker.getRotation()).toBe(90);
   });
 });
@@ -425,6 +432,7 @@ describe("setTransitionForProperty / getTransitions", () => {
 
 describe("Lifecycle animations", () => {
   it("plays the enter animation on addTo and fires enteranimationstart/end", async () => {
+    vi.useFakeTimers();
     const map = createMockMap();
     const marker = new Marker({ animations: { enter: { preset: "fade", duration: 30 } } });
     marker.setLngLat([0, 0]);
@@ -437,11 +445,13 @@ describe("Lifecycle animations", () => {
     MarkerManager.register(marker, map);
     expect(start).toHaveBeenCalled();
 
-    await vi.waitFor(() => expect(end).toHaveBeenCalled(), { timeout: 2000 });
+    await vi.advanceTimersByTimeAsync(200);
+    expect(end).toHaveBeenCalled();
     expect(marker.getElement().style.opacity).not.toBe("0");
   });
 
   it("plays the exit animation on remove, deferring DOM detach until it completes", async () => {
+    vi.useFakeTimers();
     const map = createMockMap();
     const marker = new Marker({ animations: { exit: { preset: "fade", duration: 30 } } });
     marker.setLngLat([0, 0]);
@@ -454,8 +464,9 @@ describe("Lifecycle animations", () => {
     // still attached while the exit animation plays
     expect(marker.getElement().isConnected).toBe(true);
 
-    await vi.waitFor(() => expect(end).toHaveBeenCalled(), { timeout: 2000 });
-    await vi.waitFor(() => expect(marker.getElement().isConnected).toBe(false), { timeout: 2000 });
+    await vi.advanceTimersByTimeAsync(200);
+    expect(end).toHaveBeenCalled();
+    expect(marker.getElement().isConnected).toBe(false);
   });
 
   it("removes immediately with no exit animation configured", () => {
@@ -466,6 +477,7 @@ describe("Lifecycle animations", () => {
   });
 
   it("starts the idle animation after the enter animation completes", async () => {
+    vi.useFakeTimers();
     const map = createMockMap();
     const marker = new Marker({
       animations: { enter: { preset: "fade", duration: 20 }, idle: { preset: "pulsescale", duration: 20 } },
@@ -476,10 +488,15 @@ describe("Lifecycle animations", () => {
     marker.on("idleanimationstart", idleStart);
 
     MarkerManager.register(marker, map);
-    await vi.waitFor(() => expect(idleStart).toHaveBeenCalled(), { timeout: 2000 });
+    await vi.advanceTimersByTimeAsync(200);
+    expect(idleStart).toHaveBeenCalled();
+    // the idle preset loops forever (Infinity iterations) — stop it, or it
+    // keeps running in the shared AnimationManager singleton across tests
+    marker.remove();
   });
 
   it("invokes a custom enter animation callback with an eased 0->1 alpha", async () => {
+    vi.useFakeTimers();
     const map = createMockMap();
     const seen: number[] = [];
     const marker = new Marker({
@@ -498,7 +515,8 @@ describe("Lifecycle animations", () => {
     marker.on("enteranimationend", end);
     MarkerManager.register(marker, map);
 
-    await vi.waitFor(() => expect(end).toHaveBeenCalled(), { timeout: 2000 });
+    await vi.advanceTimersByTimeAsync(200);
+    expect(end).toHaveBeenCalled();
     expect(seen.length).toBeGreaterThan(0);
     expect(seen[seen.length - 1]).toBe(1);
   });
@@ -621,6 +639,148 @@ describe("getCollisionDisplayState", () => {
   it("defaults to visible", () => {
     const marker = new Marker({});
     expect(marker.getCollisionDisplayState()).toBe("visible");
+  });
+});
+
+//#endregion
+
+//#region ApplyCollisionDisplayStateSymbol (fade/timer state machine)
+
+const COLLISION_HIDDEN_CLASS = "maptiler-marker-collision-hidden";
+const COLLISION_CULLED_CLASS = "maptiler-marker-collision-culled";
+
+describe("ApplyCollisionDisplayStateSymbol", () => {
+  it("visible -> hidden fades out immediately, then culls (display:none) once the transition duration elapses", () => {
+    vi.useFakeTimers();
+    const marker = new Marker({});
+    const el = marker.getElement();
+
+    marker[ApplyCollisionDisplayStateSymbol]("hidden");
+
+    expect(marker.getCollisionDisplayState()).toBe("hidden");
+    expect(el.classList.contains(COLLISION_HIDDEN_CLASS)).toBe(true);
+    expect(el.classList.contains(COLLISION_CULLED_CLASS)).toBe(false); // not culled yet — still fading
+
+    vi.advanceTimersByTime(200);
+    expect(el.classList.contains(COLLISION_CULLED_CLASS)).toBe(true);
+  });
+
+  it("re-entering from hidden un-culls immediately and fades back to visible", () => {
+    vi.useFakeTimers();
+    const marker = new Marker({});
+    const el = marker.getElement();
+
+    marker[ApplyCollisionDisplayStateSymbol]("hidden");
+    vi.advanceTimersByTime(200);
+    expect(el.classList.contains(COLLISION_CULLED_CLASS)).toBe(true);
+
+    marker[ApplyCollisionDisplayStateSymbol]("visible");
+    expect(el.classList.contains(COLLISION_CULLED_CLASS)).toBe(false);
+    expect(el.classList.contains(COLLISION_HIDDEN_CLASS)).toBe(false);
+  });
+
+  it("re-entering from hidden into minimized swaps the appearance while still invisible", () => {
+    vi.useFakeTimers();
+    const marker = new Marker({});
+    const el = marker.getElement();
+
+    marker[ApplyCollisionDisplayStateSymbol]("hidden");
+    vi.advanceTimersByTime(200);
+
+    marker[ApplyCollisionDisplayStateSymbol]("minimized");
+
+    expect(marker.getCollisionDisplayState()).toBe("minimized");
+    expect(el.classList.contains(COLLISION_CULLED_CLASS)).toBe(false); // re-entered rendering
+    expect(el.querySelector("svg.marker-dot")).not.toBeNull(); // minimized appearance already applied
+  });
+
+  it("visible -> minimized fades out, swaps the DOM at the invisible midpoint, then fades back in", () => {
+    vi.useFakeTimers();
+    const marker = new Marker({});
+    const el = marker.getElement();
+
+    marker[ApplyCollisionDisplayStateSymbol]("minimized");
+    // fading out first — the swap hasn't happened yet
+    expect(el.classList.contains(COLLISION_HIDDEN_CLASS)).toBe(true);
+    expect(el.querySelector("svg.marker-dot")).toBeNull();
+
+    vi.advanceTimersByTime(200);
+    // swapped at the midpoint, then faded back in
+    expect(el.querySelector("svg.marker-dot")).not.toBeNull();
+    expect(el.classList.contains(COLLISION_HIDDEN_CLASS)).toBe(false);
+  });
+
+  it("reversing before the pending minimize swap fires cancels it and takes the no-swap fast path", () => {
+    vi.useFakeTimers();
+    const marker = new Marker({});
+    const el = marker.getElement();
+
+    marker[ApplyCollisionDisplayStateSymbol]("minimized"); // schedules the swap timer; not applied yet
+    marker[ApplyCollisionDisplayStateSymbol]("visible"); // reversed before the timer fires
+
+    expect(marker.getCollisionDisplayState()).toBe("visible");
+    expect(el.classList.contains(COLLISION_HIDDEN_CLASS)).toBe(false);
+    expect(el.querySelector("svg.marker-dot")).toBeNull();
+
+    // the cancelled timer must not fire later and re-apply the minimized swap
+    vi.advanceTimersByTime(200);
+    expect(el.querySelector("svg.marker-dot")).toBeNull();
+  });
+});
+
+//#endregion
+
+//#region Minimize / restore appearance cycle
+
+describe("minimize/restore appearance cycle", () => {
+  it("applies minimizedOptions overrides while minimized, and restores the original props after", () => {
+    vi.useFakeTimers();
+    const marker = new Marker({ shape: "circle", size: "l", outerColor: "red", minimizedOptions: { outerColor: "blue" } });
+    const wrapper = marker.getElement().querySelector<HTMLElement>(".marker-transform-wrapper")!;
+
+    marker[ApplyCollisionDisplayStateSymbol]("minimized");
+    vi.advanceTimersByTime(200);
+
+    expect(wrapper.style.getPropertyValue("--marker-outer-color")).toBe("blue");
+    expect(marker.getSize()).toBe("l"); // getSize() reflects props, unaffected by the DOM-only minimized override
+
+    marker[ApplyCollisionDisplayStateSymbol]("visible");
+    vi.advanceTimersByTime(200);
+
+    expect(wrapper.style.getPropertyValue("--marker-outer-color")).toBe("red");
+  });
+
+  it("restoring a minimized 'color' override when the live prop is an explicit innerColor restores innerColor raw, not re-resolved adaptively", () => {
+    vi.useFakeTimers();
+    // minimizedOptions overrides the adaptive `color`, but the marker's own live color is an explicit `innerColor` — restoreUpdates must restore the *live* one.
+    const marker = new Marker({ innerColor: "purple", minimizedOptions: { color: "red" } });
+    const wrapper = marker.getElement().querySelector<HTMLElement>(".marker-transform-wrapper")!;
+
+    marker[ApplyCollisionDisplayStateSymbol]("minimized");
+    vi.advanceTimersByTime(200);
+    expect(wrapper.style.getPropertyValue("--marker-inner-color")).not.toBe("purple"); // minimized override applied
+
+    marker[ApplyCollisionDisplayStateSymbol]("visible");
+    vi.advanceTimersByTime(200);
+
+    expect(wrapper.style.getPropertyValue("--marker-inner-color")).toBe("purple");
+  });
+
+  it("restoring a minimized 'innerColor' override when the live prop is an adaptive color re-resolves it", () => {
+    vi.useFakeTimers();
+    // minimizedOptions overrides innerColor directly, but the marker's own live color is the adaptive `color` — restoreUpdates must re-resolve it, not reuse the raw override.
+    const marker = new Marker({ color: "blue", minimizedOptions: { innerColor: "black" } });
+    const wrapper = marker.getElement().querySelector<HTMLElement>(".marker-transform-wrapper")!;
+
+    marker[ApplyCollisionDisplayStateSymbol]("minimized");
+    vi.advanceTimersByTime(200);
+    expect(wrapper.style.getPropertyValue("--marker-inner-color")).toBe("black");
+
+    marker[ApplyCollisionDisplayStateSymbol]("visible");
+    vi.advanceTimersByTime(200);
+
+    expect(wrapper.style.getPropertyValue("--marker-inner-color")).not.toBe("black");
+    expect(wrapper.style.getPropertyValue("--marker-inner-color")).toBe(marker.getInnerColor());
   });
 });
 
