@@ -57,6 +57,29 @@ describe("projectLngLatAltitude", () => {
     const spy = map.transform.getMatrixForModel as unknown as ReturnType<typeof vi.fn>;
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ lng: 12, lat: 34 }), 56);
   });
+
+  // IDENTITY's z-column (matrix[8], matrix[9], matrix[11]) is all zero, so it can't catch a
+  // broken worldZ term. These use a matrix with a nonzero z-column to prove altitude is wired
+  // into clipY/clipW, not just passed through and then dropped.
+  it("applies the matrix's z-column so altitude changes the projected screen y", () => {
+    const zToY: mat4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0.001, 0, 0, 0, 0, 0, 1] as unknown as mat4;
+    const map = mockMap({ clientWidth: 800, clientHeight: 600 });
+    const base = projectLngLatAltitude(new maplibregl.LngLat(0, 0), 0, zToY, map);
+    const elevated = projectLngLatAltitude(new maplibregl.LngLat(0, 0), 100, zToY, map);
+    expect(base!.y).toBeCloseTo(300);
+    // ndcY increases with altitude here, and DOM y is flipped from NDC y, so higher altitude moves the point up (smaller y)
+    expect(elevated!.y).toBeCloseTo(270);
+    expect(elevated!.y).toBeLessThan(base!.y);
+  });
+
+  it("applies the matrix's z-column so altitude changes clip-space W (depth)", () => {
+    const zToW: mat4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0.001, 0, 0, 0, 1] as unknown as mat4;
+    const map = mockMap();
+    const near = projectLngLatAltitude(new maplibregl.LngLat(0, 0), 0, zToW, map);
+    const far = projectLngLatAltitude(new maplibregl.LngLat(0, 0), 500, zToW, map);
+    expect(near!.depth).toBeCloseTo(1);
+    expect(far!.depth).toBeCloseTo(1.5);
+  });
 });
 
 //#endregion
@@ -65,12 +88,16 @@ describe("projectLngLatAltitude", () => {
 
 describe("computeAltitudeProjection", () => {
   it("uses 0 native elevation when terrain is off", () => {
-    const map = mockMap({ terrain: false });
+    // terrainElevation is nonzero to prove terrain-off forces nativeElevation to 0
+    // regardless of what queryTerrainElevation would have reported.
+    const map = mockMap({ terrain: false, terrainElevation: 999 });
     const result = computeAltitudeProjection(new maplibregl.LngLat(0, 0), 10, IDENTITY, map, "ground");
     expect(result).not.toBeNull();
-    // groundBase's world z came from nativeElevation (0); elevated's world z is nativeElevation + 10
     expect(result!.groundBase.y).toBeCloseTo(300); // world y unaffected, unchanged from ground
     expect(result!.belowGround).toBe(false);
+    const spy = map.transform.getMatrixForModel as unknown as ReturnType<typeof vi.fn>;
+    expect(spy).toHaveBeenNthCalledWith(1, expect.anything(), 0); // groundBase: nativeElevation
+    expect(spy).toHaveBeenNthCalledWith(2, expect.anything(), 10); // elevated: nativeElevation(0) + altitude(10)
   });
 
   it("adds altitude on top of terrain elevation when relativeTo is 'ground' and terrain is on", () => {
@@ -78,6 +105,9 @@ describe("computeAltitudeProjection", () => {
     const result = computeAltitudeProjection(new maplibregl.LngLat(0, 0), 10, IDENTITY, map, "ground");
     expect(result).not.toBeNull();
     expect(result!.belowGround).toBe(false);
+    const spy = map.transform.getMatrixForModel as unknown as ReturnType<typeof vi.fn>;
+    expect(spy).toHaveBeenNthCalledWith(1, expect.anything(), 100); // groundBase: nativeElevation
+    expect(spy).toHaveBeenNthCalledWith(2, expect.anything(), 110); // elevated: nativeElevation(100) + altitude(10)
   });
 
   it("ignores terrain elevation entirely when relativeTo is 'sea'", () => {
@@ -99,6 +129,11 @@ describe("computeAltitudeProjection", () => {
     const result = computeAltitudeProjection(new maplibregl.LngLat(0, 0), 5, IDENTITY, map, "ground");
     expect(result).not.toBeNull();
     expect(result!.belowGround).toBe(false);
+    // Asserting the actual elevation fed to getMatrixForModel (rather than just belowGround)
+    // catches a missing `?? 0` fallback: without it this would be NaN, not 0.
+    const spy = map.transform.getMatrixForModel as unknown as ReturnType<typeof vi.fn>;
+    expect(spy).toHaveBeenNthCalledWith(1, expect.anything(), 0); // groundBase: nativeElevation falls back to 0
+    expect(spy).toHaveBeenNthCalledWith(2, expect.anything(), 5); // elevated: nativeElevation(0) + altitude(5)
   });
 
   it("returns null when either projection is behind the camera", () => {

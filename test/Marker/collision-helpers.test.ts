@@ -61,6 +61,12 @@ describe("computeMarkerOBB", () => {
     expect(obb.cy).toBeCloseTo(0);
   });
 
+  it("shifts the center diagonally for a corner-anchored marker (dx and dy both nonzero)", () => {
+    const obb = computeMarkerOBB({ x: 0, y: 0 }, footprint({ anchor: "top-left", width: 40, height: 20 }), 0);
+    expect(obb.cx).toBeCloseTo(20); // width/2
+    expect(obb.cy).toBeCloseTo(10); // height/2
+  });
+
   it("computes cos/sin for a 90 degree rotation", () => {
     const obb = computeMarkerOBB({ x: 0, y: 0 }, footprint(), 90);
     expect(obb.cos).toBeCloseTo(0);
