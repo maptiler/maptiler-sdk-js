@@ -61,7 +61,6 @@ function createNewMocks() {
 
 describe("ImageViewerMarker", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     vi.resetAllMocks();
   });
 
@@ -206,14 +205,28 @@ describe("ImageViewerMarker", () => {
       expect(imageViewerMarker.getPosition()).toEqual(pos);
       expect(mockImageViewer[pxToLngLatInternalSymbolKey]).toHaveBeenCalledWith(pos);
 
-      imageViewerMarker.setPosition([10, 20]);
+      const expectedLngLat = new LngLat(1.5, 2.5);
+
+      // the most recent call reflects the setPosition under test (addTo also
+      // triggers an initial setLngLat call with the default [0, 0] position)
+      // @ts-expect-error - mock.calls is not available on the Marker instance
+      const lngLat = imageViewerMarker["marker"].setLngLat.mock.calls.at(-1)[0];
+
+      expect(lngLat.lng).toEqual(expectedLngLat.lng);
+      expect(lngLat.lat).toEqual(expectedLngLat.lat);
+    });
+
+    it("setPosition should call marker.setLngLat again when the position changes after being added", () => {
+      const { imageViewerMarker, mockImageViewer } = createNewMocks();
+
       imageViewerMarker.addTo(mockImageViewer);
+      imageViewerMarker.setPosition([10, 20]);
 
       expect(mockImageViewer[pxToLngLatInternalSymbolKey]).toHaveBeenCalledWith([10, 20]);
       const expectedLngLat = new LngLat(0.1, 0.2);
 
       // @ts-expect-error - mock.calls is not available on the Marker instance
-      const lngLat = imageViewerMarker["marker"].setLngLat.mock.calls[0][0];
+      const lngLat = imageViewerMarker["marker"].setLngLat.mock.calls.at(-1)[0];
 
       expect(lngLat.lng).toEqual(expectedLngLat.lng);
       expect(lngLat.lat).toEqual(expectedLngLat.lat);
@@ -323,9 +336,7 @@ describe("ImageViewerMarker", () => {
 
       const { imageViewerMarker, mockImageViewer } = createNewMocks();
 
-      const dragStartListener = vi.fn(() => {
-        console.log("dragstart");
-      });
+      const dragStartListener = vi.fn();
 
       imageViewerMarker.on("dragstart", dragStartListener);
 
@@ -362,6 +373,62 @@ describe("ImageViewerMarker", () => {
       expect(dragStartListener).toHaveBeenCalledWith(expect.objectContaining({ type: "dragstart", target: imageViewerMarker, originalEvent: "something" }));
       expect(dragEndListener).toHaveBeenCalledWith(expect.objectContaining({ type: "dragend", target: imageViewerMarker, originalEvent: "something" }));
     });
+
+    it("should strip forbidden values from forwarded marker events", async () => {
+      const MockMarker = vi.mocked(Marker);
+
+      // Temporarily give it a new, complex implementation for THIS TEST ONLY
+      // @ts-expect-error - MockMarker is not typed correctly
+      MockMarker.mockImplementation(() => {
+        const listeners = new Map<string, Function[]>();
+        return {
+          on: vi.fn((eventName, listener) => {
+            if (!listeners.has(eventName)) listeners.set(eventName, []);
+            listeners.get(eventName)!.push(listener);
+          }),
+          fire: vi.fn((eventName, eventObject) => {
+            if (listeners.has(eventName)) {
+              listeners.get(eventName)!.forEach((l) => l(eventObject));
+            }
+          }),
+          addTo: vi.fn().mockReturnThis(),
+          setLngLat: vi.fn().mockReturnThis(),
+        };
+      });
+
+      const { imageViewerMarker, mockImageViewer } = createNewMocks();
+
+      const dragListener = vi.fn();
+      imageViewerMarker.on("drag", dragListener);
+
+      imageViewerMarker.addTo(mockImageViewer);
+
+      const rawTarget = { getLngLat: () => new LngLat(0.5, 0.7) };
+      const mockMapLibreEvent = {
+        target: rawTarget,
+        lngLat: new LngLat(0.5, 0.7),
+        _defaultPrevented: false,
+        originalEvent: "something",
+      };
+
+      imageViewerMarker["marker"].fire("drag", mockMapLibreEvent);
+
+      await vi.waitFor(() => {
+        expect(dragListener).toHaveBeenCalled();
+      });
+
+      const forwardedEvent = dragListener.mock.calls[0][0];
+
+      // the forbidden raw values must not leak through onto the forwarded event...
+      expect(forwardedEvent).not.toHaveProperty("lngLat");
+      expect(forwardedEvent).not.toHaveProperty("_defaultPrevented");
+      // ...and "target" must remain the ImageViewerMarker set by the event
+      // constructor, not be clobbered by the raw MapLibre event's target
+      expect(forwardedEvent.target).toBe(imageViewerMarker);
+      expect(forwardedEvent.target).not.toBe(rawTarget);
+
+      expect(forwardedEvent.originalEvent).toBe("something");
+    });
   });
 
   describe("utility methods", () => {
@@ -377,6 +444,41 @@ describe("ImageViewerMarker", () => {
     it("remove should call marker.remove", () => {
       const { imageViewerMarker } = createNewMocks();
       imageViewerMarker.remove();
+      expect(imageViewerMarker["marker"].remove).toHaveBeenCalled();
+    });
+
+    it("remove should clean up registered listeners", () => {
+      const { imageViewerMarker } = createNewMocks();
+      const offSpy = vi.spyOn(imageViewerMarker, "off");
+
+      const dragListener1 = vi.fn();
+      const dragListener2 = vi.fn();
+      const dragEndOnceListener = vi.fn();
+
+      // the maplibre-gl-js typings don't expose these as public, but they're
+      // populated internally by Evented.on/once whenever a listener exists
+      // @ts-expect-error - _listeners is an untyped internal of maplibre's Evented
+      imageViewerMarker["marker"]._listeners = { drag: [dragListener1, dragListener2] };
+      // @ts-expect-error - _oneTimeListeners is an untyped internal of maplibre's Evented
+      imageViewerMarker["marker"]._oneTimeListeners = { dragend: [dragEndOnceListener] };
+
+      imageViewerMarker.remove();
+
+      expect(imageViewerMarker["marker"].remove).toHaveBeenCalled();
+      expect(offSpy).toHaveBeenCalledWith("drag", dragListener1);
+      expect(offSpy).toHaveBeenCalledWith("drag", dragListener2);
+      expect(offSpy).toHaveBeenCalledWith("dragend", dragEndOnceListener);
+    });
+
+    it("remove should not throw when there are no registered listeners", () => {
+      const { imageViewerMarker } = createNewMocks();
+
+      // @ts-expect-error - _listeners is an untyped internal of maplibre's Evented
+      imageViewerMarker["marker"]._listeners = undefined;
+      // @ts-expect-error - _oneTimeListeners is an untyped internal of maplibre's Evented
+      imageViewerMarker["marker"]._oneTimeListeners = undefined;
+
+      expect(() => imageViewerMarker.remove()).not.toThrow();
       expect(imageViewerMarker["marker"].remove).toHaveBeenCalled();
     });
 
