@@ -519,29 +519,13 @@ const COLLISION_HIDDEN_CLASSNAME = "maptiler-marker-collision-hidden";
 /** Matches the fade duration in the SDK stylesheet (`.maptiler-marker-collision-fade`). */
 export const COLLISION_FADE_DURATION_MS = 150;
 
-/**
- * Toggles the collision-engine hidden state with a fade. The rules ship in
- * the SDK stylesheet: opacity transitions, visibility flips once the fade
- * completes, pointer events stop immediately. `opacity` is forced with
- * `!important`, so it cannot fight the inline opacity managed by MapLibre
- * (`opacityWhenCovered`) or the marker's own `opacity` prop.
- * @param element - The marker's outer root element (or the custom element).
- * @param hidden - Whether the marker is hidden by the collision engine.
- */
+/** Toggles the collision-hidden fade (rules live in the SDK stylesheet). */
 export function applyCollisionHidden(element: HTMLElement, hidden: boolean): void {
   element.classList.add(COLLISION_FADE_CLASSNAME);
   element.classList.toggle(COLLISION_HIDDEN_CLASSNAME, hidden);
 }
 
-/**
- * Removes the fade class added by {@link applyCollisionHidden}. Callers must
- * only do this once no fade/dip transition is in flight — otherwise the
- * `.marker-transform-wrapper` transition it carries would cut out mid-animation.
- * Left on indefinitely, that transition would also apply to unrelated
- * `transform` writes (scale, rotation) made long after the collision
- * transition settled.
- * @param element - The marker's outer root element (or the custom element).
- */
+/** Removes the fade class — only call once no fade/dip is in flight, or it cuts the animation short. */
 export function releaseCollisionFadeClass(element: HTMLElement): void {
   element.classList.remove(COLLISION_FADE_CLASSNAME);
 }
@@ -549,17 +533,8 @@ export function releaseCollisionFadeClass(element: HTMLElement): void {
 const COLLISION_CULLED_CLASSNAME = "maptiler-marker-collision-culled";
 
 /**
- * Removes a collision-hidden marker from rendering entirely
- * (`display: none`) — applied once its fade-out has completed, so hidden
- * markers stop costing style, paint, and a compositor layer each.
- *
- * Un-culling deliberately does NOT flush layout: for the fade-in to
- * transition (instead of popping) a reflow must happen between the un-cull
- * and the hidden-class removal, but forcing it per marker would stall a
- * dense pass that un-hides hundreds at once. {@link MarkerManagerImpl}
- * un-culls everything first and flushes layout once per pass.
- * @param element - The marker's outer root element (or the custom element).
- * @param culled - Whether the marker is removed from rendering.
+ * `display: none`s a collision-hidden marker once its fade completes. Un-culling doesn't flush
+ * layout itself — {@link MarkerManagerImpl} batches that once per pass.
  * @returns `true` when the call actually changed the culled state.
  */
 export function applyCollisionCulled(element: HTMLElement, culled: boolean): boolean {
@@ -575,23 +550,34 @@ export function applyCollisionCulled(element: HTMLElement, culled: boolean): boo
 
 //#endregion
 
+//#region applyAltitudeHidden
+
+const ALTITUDE_HIDDEN_CLASSNAME = "maptiler-marker-altitude-hidden";
+export const GROUND_LINE_CLASSNAME = "maptiler-marker-groundline";
+
+/** Hides a marker with no valid altitude-projected position this frame (off-screen/behind camera). Not the below-ground case — see {@link applyAltitudeOccluded}. */
+export function applyAltitudeHidden(element: HTMLElement, hidden: boolean): void {
+  element.classList.toggle(ALTITUDE_HIDDEN_CLASSNAME, hidden);
+}
+
+//#endregion
+
+//#region applyAltitudeOccluded
+
+const ALTITUDE_OCCLUDED_CLASSNAME = "maptiler-marker-altitude-occluded";
+
+/** Fades a below-ground marker (DOM markers aren't depth-tested against terrain) — position and pointer events stay real, only opacity changes. */
+export function applyAltitudeOccluded(element: HTMLElement, occluded: boolean): void {
+  element.classList.toggle(ALTITUDE_OCCLUDED_CLASSNAME, occluded);
+}
+
+//#endregion
+
 //#region applyMinimizedDot
 
 const MINIMIZED_DOT_CLASSNAME = "marker-minimized-dot";
 
-/**
- * Minimized rendering for markers built from a custom `element`: hides the
- * element's own content (via `visibility`, so its layout box — and therefore
- * MapLibre's positioning — is preserved) and overlays a dot pinned on the
- * element's anchor point. The dot consumes the marker's colour CSS custom
- * properties.
- *
- * SVG-root custom elements can't host the HTML dot — they are hidden without
- * a dot.
- * @param element - The custom marker element.
- * @param anchor - The marker's `anchor` option; places the dot on that point.
- * @param enabled - Whether the minimized rendering is active.
- */
+/** Minimized rendering for custom `element` markers: hides its content via `visibility` (keeps the layout box for positioning) and overlays a dot on the anchor point. SVG-root elements get hidden without a dot. */
 export function applyMinimizedDot(element: HTMLElement | SVGElement, anchor: NonNullable<MarkerOptions["anchor"]>, enabled: boolean): void {
   const existing = element.querySelector<SVGSVGElement>(`svg.${MINIMIZED_DOT_CLASSNAME}`);
 
@@ -690,16 +676,7 @@ function buildInnerElement(inner: ShapeDescriptor["inner"]): SVGCircleElement | 
 
 //#region applyTransform
 
-/**
- * Composes `data-scaleX`, `data-scaleY`, `data-rotation`, and `data-lift`
- * into a single CSS `transform` string on the wrapper. Reading from dataset
- * rather than accepting individual arguments ensures these never clobber
- * each other when only one changes at a time.
- *
- * `translateY` is listed first (outermost) so `data-lift` is always a fixed
- * CSS px offset, unaffected by the scale applied after it.
- * @param wrapper - The marker wrapper element.
- */
+/** Composes `data-scaleX/scaleY/rotation/lift` into one CSS `transform`, so setting one never clobbers the others. `translateY` first (outermost) keeps lift a fixed px offset unaffected by scale. */
 function applyTransform(wrapper: HTMLElement): void {
   const sx = wrapper.dataset.scaleX ?? "1";
   const sy = wrapper.dataset.scaleY ?? "1";
@@ -708,14 +685,7 @@ function applyTransform(wrapper: HTMLElement): void {
   wrapper.style.transform = `translateY(${lift}px) scale(${sx}, ${sy}) rotate(${rot}deg)`;
 }
 
-/**
- * Sets the wrapper's lifecycle-animation vertical offset (`enter`'s
- * `drop`/`bounce`, idle's `bounce`) in CSS px. Animation-only — not a public
- * marker property, so it bypasses {@link updateMarkerElement}'s
- * pending-update batching.
- * @param element - The marker's outer root element.
- * @param liftPx - Vertical offset in CSS px; `0` is the resting position.
- */
+/** Sets the lifecycle-animation vertical offset in CSS px. Animation-only, bypasses {@link updateMarkerElement}'s batching. */
 export function applyLifecycleLift(element: HTMLElement, liftPx: number): void {
   const wrapper = resolveMarkerWrapper(element);
   wrapper.dataset.lift = String(liftPx);

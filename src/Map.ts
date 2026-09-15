@@ -87,6 +87,12 @@ type MapTerrainDataEvent = MapDataEvent & {
 export type ProjectionTypes = "mercator" | "globe" | undefined;
 
 /**
+ * Default zoom at/above which a `"globe"` projection request switches to flat mercator — see
+ * {@link MapOptions.globeMercatorSwitchZoom}.
+ */
+export const DEFAULT_GLOBE_MERCATOR_SWITCH_ZOOM = 11;
+
+/**
  * The {@link AttributionControl} options object
  */
 export interface AttributionControlOptions {
@@ -238,6 +244,27 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo" | "attribut
    * If not provided, the style takes precedence. If provided, overwrite the style.
    */
   projection?: ProjectionTypes;
+
+  /**
+   * MapLibre's plain `type: "globe"` already resolves to
+   * `["interpolate", ["linear"], ["zoom"], 11, "vertical-perspective", 12, "mercator"]` —
+   * vertical-perspective below zoom 11, linearly blended into flat mercator between 11 and 12.
+   * That blend is a MapLibre bug for anything that places objects via its per-projection model
+   * matrix (marker altitude, `maptiler-3d-js`): the matrix isn't well-defined mid-blend, only
+   * once it's settled fully at one end, so objects placed while zooming through 11-12 jump
+   * around.
+   *
+   * Whenever a projection change resolves to `"globe"` (constructor option, `setProjection`, or
+   * the {@link MaptilerProjectionControl}), the SDK requests
+   * `{ type: ["step", ["zoom"], "vertical-perspective", globeMercatorSwitchZoom, "mercator"] }`
+   * instead of the literal string — spherical below this zoom, flat mercator at and above it,
+   * snapping instantly at the threshold instead of blending across that zoom band.
+   *
+   * Set to `false` to request MapLibre's own `"globe"` literally instead, blend bug and all.
+   *
+   * Default: `11`
+   */
+  globeMercatorSwitchZoom?: number | false;
 
   /**
    * Turn on/off spacebox.
@@ -2183,7 +2210,11 @@ export class Map extends maplibregl.Map {
   }
 
   /**
-   * Returns whether a globe projection is currently being used
+   * Returns whether a globe-family projection is currently configured — `"globe"`,
+   * `"vertical-perspective"`, or the `globeMercatorSwitchZoom` step expression this class
+   * requests for `"globe"` (see {@link MapOptions.globeMercatorSwitchZoom}). This reflects the
+   * configured projection, not the instantaneous rendered state — under the step expression it
+   * stays `true` even after zooming past the switch threshold into flat mercator rendering.
    */
   isGlobeProjection(): boolean {
     const projection = this.getProjection();
@@ -2193,7 +2224,7 @@ export class Map extends maplibregl.Map {
       return false;
     }
 
-    return projection.type === "globe";
+    return projection.type !== "mercator";
   }
 
   /**
@@ -2218,6 +2249,13 @@ export class Map extends maplibregl.Map {
 
     if ((projection.type === "mercator" || projection.type === "globe") && options?.persist) {
       this.curentProjection = projection.type;
+    }
+
+    // See MapOptions.globeMercatorSwitchZoom's doc comment for why a bare "globe" request gets
+    // rewritten into a zoom-stepped one instead of being passed through literally.
+    if (projection.type === "globe" && this.options.globeMercatorSwitchZoom !== false) {
+      const switchZoom = this.options.globeMercatorSwitchZoom ?? DEFAULT_GLOBE_MERCATOR_SWITCH_ZOOM;
+      projection = { type: ["step", ["zoom"], "vertical-perspective", switchZoom, "mercator"] as unknown as NonNullable<ProjectionTypes> };
     }
 
     this.fire("projection.change", { target: this, projection });

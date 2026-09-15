@@ -132,6 +132,39 @@ export type MarkerPriorityExpression = unknown[];
 
 //#endregion
 
+//#region Altitude
+
+/**
+ * What {@link Marker.setAltitude}'s meters are measured from.
+ * - `ground` (default) — above the terrain surface under the marker's
+ *   lngLat, via `map.queryTerrainElevation()`. Falls back to the flat
+ *   mercator plane (sea level) when terrain isn't enabled/loaded — so this
+ *   is a safe default whether or not the map has terrain.
+ * - `sea` — above sea level / the flat mercator plane outright, ignoring
+ *   terrain entirely, even when it's enabled.
+ */
+export type AltitudeReference = "ground" | "sea";
+
+/** Options for {@link Marker.setAltitude}. */
+export type SetAltitudeOptions = {
+  /** What the altitude is measured from. Defaults to `"ground"`. */
+  relativeTo?: AltitudeReference;
+};
+
+/** Configures the optional dashed line from a marker down (or up) to its ground point. Off by default — see {@link Marker.setGroundLine}. */
+export type GroundLineOptions = {
+  /**
+   * Extra class applied to the ground-line element alongside the default
+   * `maptiler-marker-groundline`. Style colour/width/dashing from your own
+   * stylesheet using either selector — the line carries no inline colour so
+   * your CSS always wins (see the `:where()`-scoped default in the SDK
+   * stylesheet, kept at zero specificity for exactly this reason).
+   */
+  className?: string;
+};
+
+//#endregion
+
 //#region Lifecycle Animations
 
 /**

@@ -11,6 +11,12 @@ export function el<T extends HTMLElement = HTMLElement>(id: string): T {
   return found as T;
 }
 
+/** Throws instead of returning null — for required lookups where a miss means a bug in the caller, not a possible runtime state. */
+export function assertDefined<T>(value: T | null): T {
+  if (!value) throw new Error("expected value not found");
+  return value;
+}
+
 /** Static caption pinned under a marker's position — always visible, unlike a hover-only `title` tooltip. */
 export function addCaption(map: Map, lngLat: [number, number], text: string) {
   const captionEl = document.createElement("div");
