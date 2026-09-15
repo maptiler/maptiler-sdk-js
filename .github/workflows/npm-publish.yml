@@ -45,15 +45,37 @@ jobs:
         run: exit 1
 
         id: check-build-status
-      - name: Publish NPM package (regular)
-        if: "!github.event.release.prerelease"
+      - name: Determine npm dist-tag
+        id: npmtag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm publish
+          derive_tag_from_version() {
+            node -p "require('./package.json').version.split('-').slice(1).join('-').replace(/\.\d+$/, '') || '$1'"
+          }
 
-      - name: Publish NPM package (pre-release)
-        if: "github.event.release.prerelease"
-        run: |
-          npm publish --tag next
+          if [ "${{ github.event.release.prerelease }}" = "true" ]; then
+            # Explicit pre-release: tag from the version's prerelease identifier
+            # (e.g. 5.0.0-markers-alpha.0 -> markers-alpha), so it doesn't land
+            # on the shared "next" tag.
+            TAG=$(derive_tag_from_version next)
+          else
+            # Not marked pre-release, but GitHub also lets you leave a release
+            # unlabeled (neither "Set as the latest release" nor "pre-release").
+            # The webhook payload has no field for that, so ask the API whether
+            # this release is actually the current "latest" one.
+            LATEST_ID=$(gh api "repos/${{ github.repository }}/releases/latest" --jq .id 2>/dev/null || echo "")
+            if [ "$LATEST_ID" = "${{ github.event.release.id }}" ]; then
+              TAG=latest
+            else
+              TAG=$(derive_tag_from_version untagged)
+            fi
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Publish NPM package
+        run: npm publish --tag ${{ steps.npmtag.outputs.tag }}
 
       - name: Get Package version
         id: version
