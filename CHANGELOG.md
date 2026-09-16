@@ -1,6 +1,8 @@
 # MapTiler SDK Changelog
 
-## next
+## NEXT
+### ✨ Features and improvements
+- Adds Routing API module (directions), including session-based billing
 
 ### ⚠️ Breaking changes
 - Upgrades MapLibre GL JS to v6, which is ESM-only. See the [MapLibre changelog](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md) for changes to the MapLibre API itself.
