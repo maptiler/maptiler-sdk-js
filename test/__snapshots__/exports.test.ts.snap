@@ -146,6 +146,7 @@ exports[`Module Exports > should match the snapshot of module exports 1`] = `
   "prewarm",
   "removeProtocol",
   "resamplePath",
+  "routing",
   "setMaxParallelImageRequests",
   "setRTLTextPlugin",
   "setWorkerCount",

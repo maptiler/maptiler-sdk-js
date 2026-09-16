@@ -94,6 +94,7 @@ const expectedExports = Array.from(
     "mapStylePresetList",
     "math",
     "misc",
+    "routing",
     "staticMaps",
     "styleToStyle",
     "areSameLanguages",

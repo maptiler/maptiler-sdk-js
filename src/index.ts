@@ -202,6 +202,8 @@ export {
   geocoding,
 } from "./geocoding";
 
+export { type ExtraRoutingOptions, type RoutingOptions, routing } from "./routing";
+
 export * from "./controls";
 export {
   type AutomaticStaticMapOptions,
@@ -234,6 +236,23 @@ export {
   MapStyleVariant,
   type PixelData,
   ReferenceMapStyle,
+  type RoutingAvoidances,
+  type RoutingBicycleOptions,
+  type RoutingCarOptions,
+  type RoutingDistanceUnit,
+  type RoutingInstructionsLanguage,
+  type RoutingLocation,
+  type RoutingPedestrianOptions,
+  type RoutingProfile,
+  type RoutingProfileOptions,
+  type RoutingRequest,
+  type RoutingResponse,
+  type RoutingRoute,
+  type RoutingRouteLeg,
+  type RoutingRouteManeuver,
+  type RoutingRouteStep,
+  type RoutingSummary,
+  type RoutingTruckOptions,
   ServiceError,
   type StaticMapBaseOptions,
   type StaticMapMarker,
