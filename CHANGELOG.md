@@ -1,7 +1,6 @@
 # MapTiler SDK Changelog
 
-## next
-
+## NEXT
 ### ⚠️ Breaking changes
 - Upgrades MapLibre GL JS to v6, which is ESM-only. See the [MapLibre changelog](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md) for changes to the MapLibre API itself.
 - The MapLibre worker is now loaded from a separate file, which most bundlers do not emit on their own:
@@ -34,6 +33,7 @@
   - As with the UMD bundle, sites with a Content Security Policy need `worker-src 'self' blob: https://cdn.maptiler.com`.
 - SDK custom events (e.g. `ready`, `loadWithTerrain`, `projection.change`) are now typed in `on`, `once`, `off` and `fire`. Adds the `MaptilerMapEventType` and `MapEventTypeSDK` types.
 - Events of `CubemapLayer` (`cubemaplayer:*`), `RadialGradientLayer` (`radialgradientlayer:*`) and `ImageViewerMarker` are now typed.
+- Adds Routing API module (directions), including session-based billing
 
 ### 🐛 Bug Fixes
 - Fixes `ImageViewer` event types under MapLibre 6, where listeners typed with `ImageViewerEvent` were rejected by `on`, `once` and `off`.
