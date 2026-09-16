@@ -457,9 +457,7 @@ describe("ImageViewerMarker", () => {
 
       // the maplibre-gl-js typings don't expose these as public, but they're
       // populated internally by Evented.on/once whenever a listener exists
-      // @ts-expect-error - _listeners is an untyped internal of maplibre's Evented
       imageViewerMarker["marker"]._listeners = { drag: [dragListener1, dragListener2] };
-      // @ts-expect-error - _oneTimeListeners is an untyped internal of maplibre's Evented
       imageViewerMarker["marker"]._oneTimeListeners = { dragend: [dragEndOnceListener] };
 
       imageViewerMarker.remove();
