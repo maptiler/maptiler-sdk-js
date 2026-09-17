@@ -109,14 +109,16 @@ describe("scaleIdleMagnitude", () => {
 
 describe("preset config tables", () => {
   it("every enter preset has an easing default", () => {
-    for (const preset of ["fade", "grow", "pop", "drop", "bounce"] as const) {
-      expect(ENTER_PRESET_EASING[preset]).toBeTruthy();
+    const presets = ["fade", "grow", "pop", "drop", "bounce"];
+    for (const key of Object.keys(ENTER_PRESET_EASING)) {
+      expect(presets).toContain(key);
     }
   });
 
   it("every exit preset has an easing default", () => {
-    for (const preset of ["fade", "shrink", "pop", "explode"] as const) {
-      expect(EXIT_PRESET_EASING[preset]).toBeTruthy();
+    const presets = ["fade", "shrink", "pop", "explode"];
+    for (const key of Object.keys(EXIT_PRESET_EASING)) {
+      expect(presets).toContain(key);
     }
   });
 

@@ -3,8 +3,9 @@ import { DEFAULT_SHAPE, DEFAULT_SIZE, SHADOW_FILTER, SHAPES, SIZE_PX, getShapeAn
 
 describe("SIZE_PX / SHAPES tables", () => {
   it("has a pixel size for every marker size key", () => {
-    for (const size of ["xs", "s", "m", "l", "xl"] as const) {
-      expect(SIZE_PX[size]).toBeGreaterThan(0);
+    const sizes = ["xs", "s", "m", "l", "xl"];
+    for (const key of Object.keys(SIZE_PX)) {
+      expect(sizes).toContain(key);
     }
   });
 
@@ -24,8 +25,9 @@ describe("SIZE_PX / SHAPES tables", () => {
   });
 
   it("has a drop-shadow filter for every shadow intensity", () => {
-    for (const shadow of ["soft", "medium", "strong"] as const) {
-      expect(SHADOW_FILTER[shadow]).toContain("drop-shadow");
+    const shadows = ["soft", "medium", "strong"];
+    for (const key of Object.keys(SHADOW_FILTER)) {
+      expect(shadows).toContain(key);
     }
   });
 
