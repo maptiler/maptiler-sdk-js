@@ -310,7 +310,7 @@ describe("updateMarkerElement", () => {
   });
 
   it("updates text content, and removes it when set to undefined", () => {
-    const outer = createMarkerElement(baseOptions({ content: "1" }));
+    const outer = createMarkerElement(baseOptions({ shape: "circle", content: "1" }));
     updateMarkerElement(outer, { content: "2" });
     const wrapper = resolveMarkerWrapper(outer);
     expect(wrapper.querySelector(".marker-content")?.textContent).toBe("2");

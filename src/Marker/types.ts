@@ -6,10 +6,10 @@ import type { Marker } from "./Marker";
 //#region Primitives
 
 /** Visual shape of the marker body. */
-export type MapTilerMarkerShape = "rounded" | "circle" | "bubble-circle" | "bubble-square" | "square" | "bulb" | "squircle" | "shield";
+export type MapTilerMarkerShape = "circle" | "square" | "bubble-circle" | "bubble-square" | "maptiler" | "maptiler-full";
 
 /** T-shirt size for the marker. */
-export type MapTilerMarkerSize = "xs" | "s" | "m" | "l" | "xl";
+export type MapTilerMarkerSize = "xs" | "s" | "m" | "l";
 
 /** Drop-shadow intensity applied beneath the marker. */
 export type MapTilerMarkerShadow = "soft" | "medium" | "strong";
@@ -392,7 +392,7 @@ export type MapTilerMarkerUIStates = Partial<Record<MapTilerMarkerUIStateName, U
 // `color` is omitted from the MapLibre options because it styles the default
 // pin (which we replace entirely) — we repurpose the key for adaptive colours
 export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" | "opacityWhenCovered" | "color"> & {
-  /** Visual shape of the marker body. */
+  /** Visual shape of the marker body. Defaults to `"maptiler"`. */
   shape?: MapTilerMarkerShape;
   /** Size of the marker. */
   size?: MapTilerMarkerSize;

@@ -103,7 +103,9 @@ async function main() {
     // references above stay valid, they just now point at attached elements.
     controlsContainer.appendChild(fragment);
 
-    const marker = new Marker({ shape: "bulb", outerColor: drone.color, draggable: true }).setLngLat(drone.lngLat).setGroundLine(true, { className: drone.groundLineClass });
+    const marker = new Marker({ shape: "bubble-circle", outerColor: drone.color, draggable: true })
+      .setLngLat(drone.lngLat)
+      .setGroundLine(true, { className: drone.groundLineClass });
     map.addMarker(marker);
     marker.setAltitude(drone.defaultAltitude, { relativeTo: "ground" });
     marker.on("dragend", () => {

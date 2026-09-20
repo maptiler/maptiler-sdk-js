@@ -121,7 +121,7 @@ async function main() {
     draggable: true,
     scale: [1, 1],
     shape: "bubble-square",
-    size: "xl",
+    size: "l",
     color: "blue", // adaptive — resolves against the current map style
     outerColor: "#ffffff",
     contentColor: "#ffffff",
@@ -226,7 +226,7 @@ async function main() {
     });
   });
 
-  syncShapeButtons(marker.getShape() ?? "bubble-square");
+  syncShapeButtons(marker.getShape() ?? "maptiler");
 
   // Map style — exercises adaptive colour re-resolution on style change
   const mapStyles = {
@@ -428,7 +428,7 @@ async function main() {
   const statusEl = el("status");
 
   function syncStatus() {
-    const shape = marker.getShape() ?? "bubble-square";
+    const shape = marker.getShape() ?? "maptiler";
     const size = markerOptions.size ?? "m";
     const [sx, sy] = getScale();
     const color = marker.getColor();

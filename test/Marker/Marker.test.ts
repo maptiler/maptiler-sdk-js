@@ -118,8 +118,8 @@ describe("setSize / getSize", () => {
   it("sets the size and recomputes the anchor offset", () => {
     const marker = new Marker({ shape: "bubble-square", size: "s" });
     const smallOffset = marker.getOffset().y;
-    marker.setSize("xl");
-    expect(marker.getSize()).toBe("xl");
+    marker.setSize("l");
+    expect(marker.getSize()).toBe("l");
     expect(Math.abs(marker.getOffset().y)).toBeGreaterThan(Math.abs(smallOffset));
   });
 });

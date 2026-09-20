@@ -233,7 +233,7 @@ export function updateMarkerElement(element: HTMLElement, props: PendingMarkerUp
 
 const SHAPE_SVG_CLASSNAME = "marker-shape";
 
-/** Returns the shape SVG of a marker wrapper, or `null` when the marker was constructed at `xs` (dot only). */
+/** Returns the shape SVG of a marker wrapper, or `null` when the marker was constructed at `xs` size (dot only). */
 function getShapeSvg(wrapper: HTMLElement): SVGSVGElement | null {
   return wrapper.querySelector<SVGSVGElement>(`svg.${SHAPE_SVG_CLASSNAME}`);
 }
@@ -255,12 +255,14 @@ function applyContent(wrapper: HTMLElement, value: string | undefined): void {
   if (!svg) return;
 
   const existing = svg.querySelector(".marker-content");
+  const shapeKey = (wrapper.dataset.markerShape ?? DEFAULT_SHAPE) as NonNullable<MapTilerMarkerBaseOptions["shape"]>;
 
   if (existing instanceof SVGTextElement) {
     if (value) {
       existing.textContent = value;
     } else {
       existing.remove();
+      ensureDefaultContent(svg, SHAPES[shapeKey]);
     }
     return;
   }
@@ -268,7 +270,6 @@ function applyContent(wrapper: HTMLElement, value: string | undefined): void {
   if (!value) return;
 
   existing?.remove();
-  const shapeKey = (wrapper.dataset.markerShape ?? DEFAULT_SHAPE) as NonNullable<MapTilerMarkerBaseOptions["shape"]>;
   appendTextContent(svg, value, SHAPES[shapeKey]);
 }
 
@@ -299,7 +300,7 @@ function applySize(wrapper: HTMLElement, size: MapTilerMarkerSize): void {
   dotSvg?.remove();
 
   if (!shapeSvg) {
-    // marker was constructed at xs — no shape SVG to restore, build fresh
+    // marker was constructed at xs size — no shape SVG to restore, build fresh
     // (content not reconstructed here)
     const shapeKey = (wrapper.dataset.markerShape ?? DEFAULT_SHAPE) as NonNullable<MapTilerMarkerBaseOptions["shape"]>;
     wrapper.appendChild(buildShapeSvg(shapeKey, size));
@@ -432,11 +433,11 @@ function applyShape(wrapper: HTMLElement, shape: NonNullable<MapTilerMarkerBaseO
   wrapper.style.transformOrigin = SHAPES[shape].anchor === "center" ? "center" : "center bottom";
 
   // the shape SVG exists even at xs size (hidden behind the dot); a marker
-  // constructed at xs has none, and gets its SVG built on the next size change
+  // constructed at xs size has none, and gets its SVG built on the next size change
   const existingSvg = getShapeSvg(wrapper);
   if (!existingSvg) return;
 
-  // while hidden at xs the build size is nominal — restoring recomputes it
+  // while hidden at xs size the build size is nominal — restoring recomputes it
   const sizeKey = (wrapper.dataset.markerSize ?? DEFAULT_SIZE) as MapTilerMarkerSize;
   const newSvg = buildShapeSvg(shape, sizeKey === "xs" ? DEFAULT_SIZE : sizeKey);
 
@@ -445,7 +446,8 @@ function applyShape(wrapper: HTMLElement, shape: NonNullable<MapTilerMarkerBaseO
   if (strokeWidth) newSvg.querySelector(".marker-outer")?.setAttribute("stroke-width", strokeWidth);
 
   migrateContent(existingSvg, newSvg, SHAPES[shape]);
-  newSvg.style.display = existingSvg.style.display; // stay hidden while at xs
+  ensureDefaultContent(newSvg, SHAPES[shape]);
+  newSvg.style.display = existingSvg.style.display; // stay hidden while at xs size
   existingSvg.replaceWith(newSvg);
 }
 
@@ -455,7 +457,8 @@ function applyShape(wrapper: HTMLElement, shape: NonNullable<MapTilerMarkerBaseO
  */
 function migrateContent(oldSvg: SVGSVGElement, newSvg: SVGSVGElement, shape: ShapeDescriptor): void {
   const content = oldSvg.querySelector(".marker-content");
-  if (!content) return;
+  // the old shape's default glyph isn't user content — the new shape supplies its own
+  if (!content || content.classList.contains(DEFAULT_CONTENT_CLASSNAME)) return;
 
   if (content instanceof SVGGElement) {
     // icon / SVG-template glyph: move it and refit to the new content circle
@@ -485,21 +488,30 @@ function migrateContent(oldSvg: SVGSVGElement, newSvg: SVGSVGElement, shape: Sha
 
 //#region buildDotSvg
 
+/** Built once and cloned per marker — never attached or mutated itself. */
+let dotSvgTemplate: SVGSVGElement | undefined;
+
 /** Builds the minimal dot SVG used for the `xs` size. */
 function buildDotSvg(): SVGSVGElement {
+  dotSvgTemplate ??= createDotSvgTemplate();
+  return dotSvgTemplate.cloneNode(true) as SVGSVGElement;
+}
+
+function createDotSvgTemplate(): SVGSVGElement {
   const svg = svgEl("svg");
   svg.classList.add("marker-dot");
-  svg.setAttribute("viewBox", "0 0 5 5");
-  svg.setAttribute("width", "5");
-  svg.setAttribute("height", "5");
+  const diameter = SIZE_PX.xs;
+  svg.setAttribute("viewBox", `0 0 ${String(diameter)} ${String(diameter)}`);
+  svg.setAttribute("width", String(diameter));
+  svg.setAttribute("height", String(diameter));
   svg.style.display = "block";
   svg.style.overflow = "visible";
   svg.style.filter = "none";
 
   const circle = svgEl("circle");
-  circle.setAttribute("cx", "2.5");
-  circle.setAttribute("cy", "2.5");
-  circle.setAttribute("r", "2.5");
+  circle.setAttribute("cx", String(diameter / 2));
+  circle.setAttribute("cy", String(diameter / 2));
+  circle.setAttribute("r", String(diameter / 2));
   circle.setAttribute("stroke-width", "1");
   circle.setAttribute("vector-effect", "non-scaling-stroke");
   circle.style.fill = "var(--marker-inner-color)";
@@ -608,13 +620,37 @@ export function applyMinimizedDot(element: HTMLElement | SVGElement, anchor: Non
 
 //#region buildShapeSvg
 
+/** Bare shape SVGs (no outline or content) keyed by shape and size — built once, cloned per marker, never attached or mutated themselves. */
+const shapeSvgTemplates = new Map<string, SVGSVGElement>();
+
 /**
- * Builds the full shape SVG for sizes `s` through `XL`.
+ * Builds the full shape SVG for every size except `xs`, by cloning a cached
+ * per-shape-and-size template. Only the per-marker parts (outline, content)
+ * are applied to the clone.
  * @param shapeKey - Shape variant to render.
  * @param sizeKey - Target pixel height; drives `width`/`height` attributes via aspect ratio.
  * @param options - When provided, applies outline and appends the content layer.
  */
 function buildShapeSvg(shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>, sizeKey: MapTilerMarkerSize, options?: MapTilerMarkerOptions): SVGSVGElement {
+  const cacheKey = `${shapeKey}:${sizeKey}`;
+  let template = shapeSvgTemplates.get(cacheKey);
+  if (!template) {
+    template = createShapeSvgTemplate(shapeKey, sizeKey);
+    shapeSvgTemplates.set(cacheKey, template);
+  }
+
+  const svg = template.cloneNode(true) as SVGSVGElement;
+
+  if (options) {
+    // the outer path is always the template's first child
+    applyOutlineToPath(svg.firstElementChild as SVGPathElement, options);
+    appendContent(svg, options, SHAPES[shapeKey]);
+  }
+
+  return svg;
+}
+
+function createShapeSvgTemplate(shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>, sizeKey: MapTilerMarkerSize): SVGSVGElement {
   const shapeDesc = SHAPES[shapeKey];
   const heightPx = SIZE_PX[sizeKey];
   const [viewBoxW, viewBoxH] = shapeDesc.viewBox;
@@ -636,15 +672,12 @@ function buildShapeSvg(shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>
   outerPath.setAttribute("vector-effect", "non-scaling-stroke");
   outerPath.style.fill = "var(--marker-outer-color)";
   outerPath.style.stroke = "var(--marker-outline-color)";
-  if (options) applyOutlineToPath(outerPath, options);
   svg.appendChild(outerPath);
 
   const innerEl = buildInnerElement(shapeDesc.inner);
   innerEl.classList.add("marker-inner");
   innerEl.style.fill = "var(--marker-inner-color)";
   svg.appendChild(innerEl);
-
-  if (options) appendContent(svg, options, shapeDesc);
 
   return svg;
 }
@@ -745,7 +778,40 @@ function appendContent(svg: SVGSVGElement, options: MapTilerMarkerOptions, shape
 
   if (options.content) {
     appendTextContent(svg, options.content, shape);
+    return;
   }
+
+  appendDefaultContent(svg, shape);
+}
+
+const DEFAULT_CONTENT_CLASSNAME = "marker-default-content";
+
+/**
+ * Appends the shape's default glyph, when it has one, centered on the content
+ * circle. Carries `marker-content` like any other content so colour updates
+ * reach it, plus a marker class so shape changes know not to migrate it.
+ */
+function appendDefaultContent(svg: SVGSVGElement, shape: ShapeDescriptor): void {
+  const { defaultContent } = shape;
+  if (!defaultContent) return;
+
+  const { cx, cy } = shape.content;
+  const half = defaultContent.size / 2;
+
+  const g = svgEl("g");
+  g.classList.add("marker-content", DEFAULT_CONTENT_CLASSNAME);
+  g.setAttribute("fill", "var(--marker-content-color)");
+  g.setAttribute("transform", `translate(${String(cx - half)}, ${String(cy - half)})`);
+
+  const path = svgEl("path");
+  path.setAttribute("d", defaultContent.d);
+  g.appendChild(path);
+  svg.appendChild(g);
+}
+
+/** Restores the shape's default glyph when the SVG has no content layer. */
+function ensureDefaultContent(svg: SVGSVGElement, shape: ShapeDescriptor): void {
+  if (!svg.querySelector(".marker-content")) appendDefaultContent(svg, shape);
 }
 
 /**
