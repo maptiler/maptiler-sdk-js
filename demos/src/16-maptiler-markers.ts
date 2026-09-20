@@ -122,9 +122,6 @@ async function main() {
     scale: [1, 1],
     shape: "bubble-square",
     size: "l",
-    color: "blue", // adaptive — resolves against the current map style
-    outerColor: "#ffffff",
-    contentColor: "#ffffff",
     shadow: "medium",
     content: "1",
     title: "Marker 1",
@@ -256,27 +253,6 @@ async function main() {
 
   syncStyleButtons("streets");
 
-  // Adaptive color
-  const adaptiveButtons = document.querySelectorAll<HTMLButtonElement>("[data-adaptive-color]");
-
-  function syncAdaptiveButtons(active: string) {
-    adaptiveButtons.forEach((b) => b.classList.toggle("active", b.dataset.adaptiveColor === active));
-  }
-
-  adaptiveButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const key = btn.dataset.adaptiveColor ?? "";
-      const color = (key === "" ? undefined : key) as MapTilerMarkerOptions["color"];
-      markerOptions.color = color;
-      if (color) markerOptions.innerColor = undefined; // adaptive takes over from explicit inner
-      marker.setColor(color);
-      syncAdaptiveButtons(key);
-      syncStatus();
-    });
-  });
-
-  syncAdaptiveButtons(typeof markerOptions.color === "string" ? markerOptions.color : "");
-
   // Size
   const sizeButtons = document.querySelectorAll<HTMLButtonElement>("[data-size]");
 
@@ -330,9 +306,9 @@ async function main() {
   const contentColorInput = el<HTMLInputElement>("content-color");
   const outlineColorInput = el<HTMLInputElement>("outline-color");
 
-  outerColorInput.value = colorToHex(markerOptions.outerColor ?? "#ffffff");
-  innerColorInput.value = colorToHex(marker.getInnerColor() ?? "#ffffff");
-  contentColorInput.value = colorToHex(markerOptions.contentColor ?? "#ffffff");
+  outerColorInput.value = colorToHex(marker.getOuterColor());
+  innerColorInput.value = colorToHex(marker.getInnerColor());
+  contentColorInput.value = colorToHex(marker.getContentColor());
   outlineColorInput.value = colorToHex(markerOptions.outlineColor ?? "#ffffff");
 
   outerColorInput.addEventListener("input", () => {
@@ -341,9 +317,23 @@ async function main() {
     syncStatus();
   });
   innerColorInput.addEventListener("input", () => {
-    // explicit innerColor pins the colour and pauses adaptation
+    // explicit innerColor pins the colour and pauses adaptation to the map style
     markerOptions.innerColor = innerColorInput.value;
     marker.setInnerColor(innerColorInput.value);
+    syncStatus();
+  });
+  el("colors-reset").addEventListener("click", () => {
+    markerOptions.outerColor = undefined;
+    markerOptions.innerColor = undefined;
+    markerOptions.contentColor = undefined;
+    markerOptions.outlineColor = undefined;
+    marker.setOuterColor(undefined);
+    marker.setInnerColor(undefined);
+    marker.setContentColor(undefined);
+    marker.setOutlineColor(undefined);
+    outerColorInput.value = colorToHex(marker.getOuterColor());
+    innerColorInput.value = colorToHex(marker.getInnerColor());
+    contentColorInput.value = colorToHex(marker.getContentColor());
     syncStatus();
   });
   contentColorInput.addEventListener("input", () => {
@@ -431,12 +421,8 @@ async function main() {
     const shape = marker.getShape() ?? "maptiler";
     const size = markerOptions.size ?? "m";
     const [sx, sy] = getScale();
-    const color = marker.getColor();
-    const colorLabel = color === undefined ? "off" : typeof color === "string" ? `"${color}"` : color.name;
-    const innerColor = marker.getInnerColor() ?? "default";
-    statusEl.textContent =
-      `getShape() → "${shape}"  |  getSize() → "${size}"  |  getScale() → [${sx.toFixed(2)}, ${sy.toFixed(2)}]` +
-      `  |  getColor() → ${colorLabel}  |  getInnerColor() → ${innerColor}`;
+    const innerColor = marker.getInnerColor();
+    statusEl.textContent = `getShape() → "${shape}"  |  getSize() → "${size}"  |  getScale() → [${sx.toFixed(2)}, ${sy.toFixed(2)}]` + `  |  getInnerColor() → ${innerColor}`;
   }
 
   syncStatus();

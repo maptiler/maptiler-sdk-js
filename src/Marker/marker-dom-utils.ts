@@ -1,19 +1,8 @@
 import type { MarkerOptions } from "maplibre-gl";
 import type { MapTilerMarkerBaseOptions, MapTilerMarkerOptions, PendingMarkerUpdates, MapTilerMarkerSize } from "./types";
-import {
-  DEFAULT_CONTENT_COLOR,
-  DEFAULT_INNER_COLOR,
-  DEFAULT_OUTER_COLOR,
-  DEFAULT_OUTLINE_WIDTH,
-  DEFAULT_SHAPE,
-  DEFAULT_SIZE,
-  SHADOW_FILTER,
-  SHAPES,
-  SIZE_PX,
-  type ShapeDescriptor,
-} from "./marker-svg-config";
+import { DEFAULT_OUTLINE_WIDTH, DEFAULT_SHAPE, DEFAULT_SIZE, SHADOW_FILTER, SHAPES, SIZE_PX, type ShapeDescriptor } from "./marker-svg-config";
 import { getMarkerTemplate, GLYPH_VIEWBOX_SIZE } from "./marker-content-registry";
-import { getAdaptiveBgColor, resolveAdaptiveColor } from "./marker-adaptive-colors";
+import { getAdaptiveColors, type AdaptiveColorSet } from "./marker-adaptive-colors";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -47,15 +36,14 @@ export function resolveMarkerWrapper(element: HTMLElement): HTMLElement {
  * @param options - Resolved marker options.
  */
 export function applyMarkerStyleVariables(element: HTMLElement | SVGElement, options: MapTilerMarkerOptions): void {
-  // the adaptive `color` can only resolve to its `base` value here — the
-  // marker has no map yet; MarkerManager re-resolves on registration
-  const adaptive = options.color !== undefined ? resolveAdaptiveColor(options.color) : undefined;
-  const innerColor = options.innerColor ?? (adaptive ? getAdaptiveBgColor(adaptive, "") : undefined) ?? DEFAULT_INNER_COLOR;
+  // unset colours can only resolve to the `base` defaults here — the marker
+  // has no map yet; MarkerManager re-resolves on registration
+  const defaults = getAdaptiveColors("");
 
-  element.style.setProperty("--marker-outer-color", options.outerColor ?? DEFAULT_OUTER_COLOR);
-  element.style.setProperty("--marker-inner-color", innerColor);
-  element.style.setProperty("--marker-content-color", options.contentColor ?? DEFAULT_CONTENT_COLOR);
-  element.style.setProperty("--marker-outline-color", options.outlineColor ?? "transparent");
+  element.style.setProperty("--marker-outer-color", options.outerColor ?? defaults.outerColor);
+  element.style.setProperty("--marker-inner-color", options.innerColor ?? defaults.innerColor);
+  element.style.setProperty("--marker-content-color", options.contentColor ?? defaults.contentColor);
+  element.style.setProperty("--marker-outline-color", options.outlineColor ?? defaults.outlineColor);
   element.style.setProperty("--marker-shadow", options.shadow ? SHADOW_FILTER[options.shadow] : "none");
 }
 
@@ -120,7 +108,7 @@ export function createMarkerElement(options: MapTilerMarkerOptions): HTMLDivElem
  * "apply this property".
  * @param element - The marker's outer root element.
  * @param props - Pending property updates.
- * @param styleId - Current map style id, used to resolve the adaptive `color`.
+ * @param styleId - Current map style id, used to resolve unset colours to their map-style defaults.
  */
 export function updateMarkerElement(element: HTMLElement, props: PendingMarkerUpdates, styleId?: string): void {
   // `element` is the outer MapLibre-positioned container; all marker state
@@ -130,28 +118,26 @@ export function updateMarkerElement(element: HTMLElement, props: PendingMarkerUp
   // or clobbered by MapLibre (transform).
   const wrapper = resolveMarkerWrapper(element);
 
-  if ("outerColor" in props) {
-    wrapper.style.setProperty("--marker-outer-color", props.outerColor ?? DEFAULT_OUTER_COLOR);
-  }
+  // an undefined colour means "use the map-style default"
+  let defaults: AdaptiveColorSet | undefined;
+  const getDefaults = () => (defaults ??= getAdaptiveColors(styleId ?? ""));
 
-  // before `innerColor`: an explicit innerColor in the same batch wins
-  if ("color" in props) {
-    const adaptive = props.color !== undefined ? resolveAdaptiveColor(props.color) : undefined;
-    wrapper.style.setProperty("--marker-inner-color", adaptive ? getAdaptiveBgColor(adaptive, styleId ?? "") : DEFAULT_INNER_COLOR);
+  if ("outerColor" in props) {
+    wrapper.style.setProperty("--marker-outer-color", props.outerColor ?? getDefaults().outerColor);
   }
 
   if ("innerColor" in props) {
-    wrapper.style.setProperty("--marker-inner-color", props.innerColor ?? DEFAULT_INNER_COLOR);
+    wrapper.style.setProperty("--marker-inner-color", props.innerColor ?? getDefaults().innerColor);
   }
 
   if ("contentColor" in props) {
-    wrapper.style.setProperty("--marker-content-color", props.contentColor ?? DEFAULT_CONTENT_COLOR);
+    wrapper.style.setProperty("--marker-content-color", props.contentColor ?? getDefaults().contentColor);
     const contentEl = wrapper.querySelector(".marker-content");
     if (contentEl) contentEl.setAttribute("fill", "var(--marker-content-color)");
   }
 
   if ("outlineColor" in props) {
-    wrapper.style.setProperty("--marker-outline-color", props.outlineColor ?? "transparent");
+    wrapper.style.setProperty("--marker-outline-color", props.outlineColor ?? getDefaults().outlineColor);
   }
 
   if ("outline" in props) {

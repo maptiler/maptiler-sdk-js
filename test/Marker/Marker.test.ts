@@ -3,6 +3,7 @@ import { Marker } from "../../src/Marker/Marker";
 import { MarkerManager } from "../../src/Marker/MarkerManager";
 import { ApplyAltitudeFrameSymbol, ApplyCollisionDisplayStateSymbol, CollisionFootprintSymbol, MeasuredElementSizeSymbol } from "../../src/Marker/marker-symbols";
 import { SIZE_PX } from "../../src/Marker/marker-svg-config";
+import { ADAPTIVE_COLORS } from "../../src/Marker/marker-adaptive-colors";
 import type { mat4 } from "gl-matrix";
 import { createMockMap, type MockMap } from "./mock-map";
 
@@ -158,31 +159,22 @@ describe("setOuterColor / getOuterColor", () => {
   });
 });
 
-describe("setColor / getColor / setInnerColor / getInnerColor", () => {
-  it("setColor stores the adaptive color and clears any explicit innerColor", () => {
-    const marker = new Marker({ innerColor: "purple" });
-    marker.setColor("blue");
-    expect(marker.getColor()).toBe("blue");
-    expect(marker.getInnerColor()).toBeDefined();
-  });
-
-  it("getInnerColor returns the explicit innerColor when set, over the adaptive color", () => {
-    const marker = new Marker({ color: "blue" });
+describe("setInnerColor / getInnerColor", () => {
+  it("getInnerColor returns the explicit innerColor when set, over the map-style default", () => {
+    const marker = new Marker({});
     marker.setInnerColor("magenta");
     expect(marker.getInnerColor()).toBe("magenta");
   });
 
-  it("setInnerColor(undefined) while an adaptive color is set falls back to re-resolving the adaptive color", () => {
-    const marker = new Marker({ color: "blue" });
-    marker.setInnerColor("magenta");
+  it("setInnerColor(undefined) returns to the map-style default", () => {
+    const marker = new Marker({ innerColor: "purple" });
     marker.setInnerColor(undefined);
-    expect(marker.getInnerColor()).toBeDefined();
-    expect(marker.getInnerColor()).not.toBe("magenta");
+    expect(marker.getInnerColor()).toBe(ADAPTIVE_COLORS.base.innerColor);
   });
 
-  it("getInnerColor returns undefined when neither innerColor nor color is set", () => {
+  it("getInnerColor returns the base default when innerColor is not set and the marker has no map", () => {
     const marker = new Marker({});
-    expect(marker.getInnerColor()).toBeUndefined();
+    expect(marker.getInnerColor()).toBe(ADAPTIVE_COLORS.base.innerColor);
   });
 });
 
@@ -750,10 +742,10 @@ describe("minimize/restore appearance cycle", () => {
     expect(wrapper.style.getPropertyValue("--marker-outer-color")).toBe("red");
   });
 
-  it("restoring a minimized 'color' override when the live prop is an explicit innerColor restores innerColor raw, not re-resolved adaptively", () => {
+  it("restoring a minimized 'innerColor' override when the live prop is an explicit innerColor restores the explicit value", () => {
     vi.useFakeTimers();
-    // minimizedOptions overrides the adaptive `color`, but the marker's own live color is an explicit `innerColor` — restoreUpdates must restore the *live* one.
-    const marker = new Marker({ innerColor: "purple", minimizedOptions: { color: "red" } });
+    // minimizedOptions overrides innerColor, but the marker's own live color is a different explicit `innerColor` — restoreUpdates must restore the *live* one.
+    const marker = new Marker({ innerColor: "purple", minimizedOptions: { innerColor: "red" } });
     const wrapper = marker.getElement().querySelector<HTMLElement>(".marker-transform-wrapper")!;
 
     marker[ApplyCollisionDisplayStateSymbol]("minimized");
@@ -766,10 +758,10 @@ describe("minimize/restore appearance cycle", () => {
     expect(wrapper.style.getPropertyValue("--marker-inner-color")).toBe("purple");
   });
 
-  it("restoring a minimized 'innerColor' override when the live prop is an adaptive color re-resolves it", () => {
+  it("restoring a minimized 'innerColor' override when the live prop is unset re-resolves the map-style default", () => {
     vi.useFakeTimers();
-    // minimizedOptions overrides innerColor directly, but the marker's own live color is the adaptive `color` — restoreUpdates must re-resolve it, not reuse the raw override.
-    const marker = new Marker({ color: "blue", minimizedOptions: { innerColor: "black" } });
+    // minimizedOptions overrides innerColor directly, but the marker's own live color is the map-style default — restoreUpdates must re-resolve it, not reuse the raw override.
+    const marker = new Marker({ minimizedOptions: { innerColor: "black" } });
     const wrapper = marker.getElement().querySelector<HTMLElement>(".marker-transform-wrapper")!;
 
     marker[ApplyCollisionDisplayStateSymbol]("minimized");

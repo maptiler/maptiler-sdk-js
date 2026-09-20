@@ -169,9 +169,6 @@ export const SHAPES: Record<NonNullable<MapTilerMarkerBaseOptions["shape"]>, Sha
 export const DEFAULT_SHAPE: NonNullable<MapTilerMarkerBaseOptions["shape"]> = "maptiler";
 export const DEFAULT_SIZE: NonNullable<MapTilerMarkerBaseOptions["size"]> = "m";
 export const DEFAULT_OUTLINE_WIDTH = 2;
-export const DEFAULT_OUTER_COLOR = "#FFFFFF";
-export const DEFAULT_INNER_COLOR = "hsl(223, 100%, 65%)";
-export const DEFAULT_CONTENT_COLOR = "#FFFFFF";
 
 //#endregion
 
