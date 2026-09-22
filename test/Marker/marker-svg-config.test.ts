@@ -25,7 +25,7 @@ describe("SIZE_PX / SHAPES tables", () => {
   });
 
   it("has a drop-shadow filter for every shadow intensity", () => {
-    const shadows = ["soft", "medium", "strong"];
+    const shadows = ["none", "soft", "medium", "strong"];
     for (const key of Object.keys(SHADOW_FILTER)) {
       expect(shadows).toContain(key);
     }

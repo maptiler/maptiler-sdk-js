@@ -46,6 +46,7 @@ import {
   releaseCollisionFadeClass,
   COLLISION_FADE_DURATION_MS,
   GROUND_LINE_CLASSNAME,
+  MARKER_FONT_CLASSNAME,
 } from "./marker-dom-utils";
 import { DEFAULT_SHAPE, DEFAULT_SIZE, SHAPES, SIZE_PX, getShapeAnchorOffset } from "./marker-svg-config";
 import { getAdaptiveColors, type AdaptiveColorSet } from "./marker-adaptive-colors";
@@ -159,6 +160,15 @@ export class Marker extends maplibregl.Marker {
   /** UUID that uniquely identifies this marker instance. */
   public readonly id = uuid();
 
+  /**
+   * The `classList` of the marker's wrapper element — the inner transform
+   * wrapper of a built-in marker, or the custom `element` itself. Read-only
+   * reference; add and remove classes through the returned list.
+   */
+  get classList(): DOMTokenList {
+    return resolveMarkerWrapper(this[MarkerElementSymbol]).classList;
+  }
+
   /** How the collision engine is currently displaying this marker. */
   private collisionDisplayState: MarkerCollisionDisplayState = "visible";
 
@@ -259,6 +269,7 @@ export class Marker extends maplibregl.Marker {
     });
 
     this[MarkerElementSymbol] = element;
+    this.classList.add(MARKER_FONT_CLASSNAME);
     this.baseOffset = superOptions.offset ?? [0, 0];
 
     // custom elements skip createMarkerElement, so seed their style variables here
@@ -418,15 +429,14 @@ export class Marker extends maplibregl.Marker {
       return { width: w * sx, height: h * sy, anchor, offset: this.footprintOffset(), ...shared, pivot: [0, 0] };
     }
 
-    // built-in SVG: height from size key, width from shape aspect ratio
+    // built-in SVG: a square box, sized by the size key
     const { shape: shapeKey, size } = this.effectiveShapeAndSize(false);
-    const heightPx = SIZE_PX[size];
+    const sizePx = SIZE_PX[size];
     const shape = SHAPES[shapeKey];
-    const widthPx = size === "xs" ? heightPx : heightPx * (shape.viewBox[0] / shape.viewBox[1]);
-    const height = heightPx * sy;
+    const height = sizePx * sy;
     // bottom-anchored shapes rotate around their tip
     const pivot: Vector2 = shape.anchor === "center" ? [0, 0] : [0, height / 2];
-    return { width: widthPx * sx, height, anchor, offset: this.footprintOffset(), ...shared, pivot };
+    return { width: sizePx * sx, height, anchor, offset: this.footprintOffset(), ...shared, pivot };
   }
 
   /** Shape/size keys, or minimized substitutes. */

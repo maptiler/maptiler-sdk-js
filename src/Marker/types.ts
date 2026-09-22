@@ -11,7 +11,7 @@ export type MapTilerMarkerShape = "circle" | "square" | "bubble-circle" | "bubbl
 export type MapTilerMarkerSize = "xs" | "s" | "m" | "l";
 
 /** Drop-shadow intensity applied beneath the marker. */
-export type MapTilerMarkerShadow = "soft" | "medium" | "strong";
+export type MapTilerMarkerShadow = "none" | "soft" | "medium" | "strong";
 
 /** Behaviour when this marker spatially overlaps another. */
 export const CollisionBehaviour = {

@@ -1,3 +1,15 @@
+@font-face {
+  font-family: "MapTiler Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("//cdn.maptiler.com/sdk-assets/fonts/Inter/MapTilerInter.woff2") format("woff2");
+  unicode-range: U+0020-007E, U+00A0-00FF, U+0100-017F, U+2026, U+2212; /* Basic Latin, Latin-1 Supplement, Latin Extended-A, Ellipsis, Em Dash / Minus Sign */
+}
+
+.maptiler-sdk-marker-font {
+  font-family: "Inter", "MapTiler Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
 
 .mapboxgl-ctrl-group:not(:empty), .maplibregl-ctrl-group:not(:empty) {
   box-shadow: 0 0 6px 2px rgb(0 0 0 / 8%);

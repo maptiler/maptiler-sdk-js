@@ -117,22 +117,27 @@ async function main() {
   });
   // Single source of truth for the marker configuration.
   // Control handlers write here as well as calling the setter.
+  // The first marker starts as the default marker: default shape, size and shadow, no content.
   const markerOptions: MapTilerMarkerSVGOptions = {
     draggable: true,
     scale: [1, 1],
-    shape: "bubble-square",
-    size: "l",
-    shadow: "medium",
-    content: "1",
     title: "Marker 1",
     subpixelPositioning: true,
     priority: 100,
   };
 
+  // The surrounding numbered markers keep a fixed look.
+  const otherMarkerOptions: MapTilerMarkerSVGOptions = {
+    ...markerOptions,
+    shape: "bubble-square",
+    size: "l",
+    shadow: "medium",
+  };
+
   // Content mode — content variants are constructor-only, so switching
   // modes rebuilds the marker from markerOptions + the selected variant.
   type ContentMode = "text" | "icon" | "url" | "template" | "element" | "none";
-  let contentMode: ContentMode = "text";
+  let contentMode: ContentMode = "none";
 
   function createConfiguredMarker(): Marker {
     // widen away the SVG-options `never` variant keys and drop the maplibre
@@ -174,7 +179,6 @@ async function main() {
 
   let marker = createConfiguredMarker();
   mountMarker(marker, [10, 50]);
-  marker.setDebug(true);
 
   const contentModeButtons = document.querySelectorAll<HTMLButtonElement>("[data-content-mode]");
 
@@ -198,7 +202,7 @@ async function main() {
   syncContentModeButtons(contentMode);
 
   for (let i = 0; i < 4; i++) {
-    const otherMarker = new Marker({ ...markerOptions, content: String(i + 2), title: `Marker ${String(i + 2)}`, priority: 1 + i });
+    const otherMarker = new Marker({ ...otherMarkerOptions, content: String(i + 2), title: `Marker ${String(i + 2)}`, priority: 1 + i });
     otherMarker.on("click", console.log);
     const offsetLat = Math.sin((i / 4) * Math.PI * 2) / 20;
     const offsetLon = Math.cos((i / 4) * Math.PI * 2) / 20;
@@ -281,7 +285,7 @@ async function main() {
 
   shadowButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
-      const shadow = (btn.dataset.shadow === "" ? undefined : btn.dataset.shadow) as MapTilerMarkerOptions["shadow"];
+      const shadow = btn.dataset.shadow as MapTilerMarkerOptions["shadow"];
       markerOptions.shadow = shadow;
       marker.setShadow(shadow);
       syncShadowButtons(btn.dataset.shadow ?? "");
@@ -289,7 +293,7 @@ async function main() {
     });
   });
 
-  syncShadowButtons(markerOptions.shadow ?? "");
+  syncShadowButtons(markerOptions.shadow ?? "none");
 
   // Colors
   function colorToHex(color: string): string {

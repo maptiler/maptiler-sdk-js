@@ -18,6 +18,8 @@ function svgEl<K extends keyof SVGElementTagNameMap>(tag: K): SVGElementTagNameM
 //#region createMarkerElement
 
 const CUSTOM_ELEMENT_CLASSNAME = "marker-transform-wrapper";
+/** Added to every marker's wrapper element so marker text can pick up the SDK font. */
+export const MARKER_FONT_CLASSNAME = "maptiler-sdk-marker-font";
 
 /**
  * Resolves the inner transform wrapper from a marker's outer root element
@@ -293,20 +295,12 @@ function applySize(wrapper: HTMLElement, size: MapTilerMarkerSize): void {
     return;
   }
 
-  // restore (if hidden) and resize via the viewBox aspect ratio
+  // restore (if hidden) and resize — viewBoxes are square, so width = height = size
   shapeSvg.style.display = "block";
 
-  const viewBoxRaw = shapeSvg.getAttribute("viewBox");
-
-  if (!viewBoxRaw) return;
-  const parts = viewBoxRaw.split(" ").map(Number);
-  const viewBoxW = parts[2];
-  const viewBoxH = parts[3];
-
-  const h = SIZE_PX[size];
-  const w = h * (viewBoxW / viewBoxH);
-  shapeSvg.setAttribute("width", String(w));
-  shapeSvg.setAttribute("height", String(h));
+  const sizePx = String(SIZE_PX[size]);
+  shapeSvg.setAttribute("width", sizePx);
+  shapeSvg.setAttribute("height", sizePx);
 }
 
 //#endregion
@@ -638,15 +632,14 @@ function buildShapeSvg(shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>
 
 function createShapeSvgTemplate(shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>, sizeKey: MapTilerMarkerSize): SVGSVGElement {
   const shapeDesc = SHAPES[shapeKey];
-  const heightPx = SIZE_PX[sizeKey];
+  const sizePx = SIZE_PX[sizeKey];
   const [viewBoxW, viewBoxH] = shapeDesc.viewBox;
-  const widthPx = heightPx * (viewBoxW / viewBoxH);
 
   const svg = svgEl("svg");
   svg.classList.add(SHAPE_SVG_CLASSNAME);
   svg.setAttribute("viewBox", `0 0 ${String(viewBoxW)} ${String(viewBoxH)}`);
-  svg.setAttribute("width", String(widthPx));
-  svg.setAttribute("height", String(heightPx));
+  svg.setAttribute("width", String(sizePx));
+  svg.setAttribute("height", String(sizePx));
   svg.style.display = "block";
   svg.style.overflow = "visible";
   svg.style.filter = "var(--marker-shadow)";
@@ -908,7 +901,7 @@ function appendImageContent(svg: SVGSVGElement, href: string, shape: ShapeDescri
  * Appends a `<clipPath>` for the shape's content circle and returns its
  * `url(#…)` reference — used to hide content that overflows the circle.
  */
-function appendContentClip(svg: SVGSVGElement, shape: ShapeDescriptor): string {
+function appendContentClip(svg: SVGSVGElement, shape: ShapeDescriptor, radius?: number): string {
   const { cx, cy, r } = shape.content;
 
   const clipId = `maptiler-marker-clip-${String(++clipIdCounter)}`;
@@ -918,7 +911,7 @@ function appendContentClip(svg: SVGSVGElement, shape: ShapeDescriptor): string {
   const clipShape = svgEl("circle");
   clipShape.setAttribute("cx", String(cx));
   clipShape.setAttribute("cy", String(cy));
-  clipShape.setAttribute("r", String(r));
+  clipShape.setAttribute("r", String(radius ?? r));
   clip.appendChild(clipShape);
   svg.appendChild(clip);
 
@@ -943,18 +936,17 @@ function appendElementContent(svg: SVGSVGElement, element: HTMLElement | SVGElem
 
 /** Appends a text label centred on the content circle. */
 function appendTextContent(svg: SVGSVGElement, title: string, shape: ShapeDescriptor, className = "marker-content"): SVGTextElement {
-  const { cx, cy, r } = shape.content;
-  const fontSize = r * 1.4;
+  const { cx, cy } = shape.content;
+  const fontSize = 14;
 
   const text = svgEl("text");
-  text.classList.add(className);
-  text.setAttribute("clip-path", appendContentClip(svg, shape));
+  text.classList.add(className, MARKER_FONT_CLASSNAME);
+  text.setAttribute("clip-path", appendContentClip(svg, shape, 14));
   text.setAttribute("x", String(cx));
   text.setAttribute("y", String(cy));
   text.setAttribute("text-anchor", "middle");
   text.setAttribute("dominant-baseline", "central");
-  text.setAttribute("font-family", "Inter, system-ui, sans-serif");
-  text.setAttribute("font-weight", "700");
+  text.setAttribute("font-weight", "500");
   text.setAttribute("font-size", String(fontSize));
   text.style.fill = "var(--marker-content-color)";
   text.style.userSelect = "none";
