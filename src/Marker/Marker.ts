@@ -89,7 +89,11 @@ import {
   ApplyAltitudeFrameSymbol,
   MeasuredElementSizeSymbol,
   ClearFocusStateSymbol,
+  AttachToMapSymbol,
 } from "./marker-symbols";
+
+// `addTo` deprecation warning is logged once per session
+let hasWarnedAddToDeprecation = false;
 
 const maplibreMarkerConstructorOverrides: MarkerOptions = {
   scale: 1, // scale in our class will be a 2D vector.
@@ -318,10 +322,25 @@ export class Marker extends maplibregl.Marker {
   //#region Internal
 
   /**
-   * Adds the marker to a map, and plays the configured `enter` animation (if any) once attached.
+   * Adds the marker to a map. Equivalent to `map.addMarker(marker)`, which it delegates to.
+   * @deprecated Use `map.addMarker(marker)` instead. Kept for MapLibre-style call sites and will be removed in a future major version.
    * @param map - Target map instance.
    */
   addTo(map: SDKMap): this {
+    if (!hasWarnedAddToDeprecation) {
+      hasWarnedAddToDeprecation = true;
+      console.warn("[Marker]: `marker.addTo(map)` is deprecated and will be removed in a future major version. Use `map.addMarker(marker)` instead.");
+    }
+    map.addMarker(this);
+    return this;
+  }
+
+  /**
+   * Attaches the marker to a map, and plays the configured `enter` animation (if any) once attached.
+   * Called only by `MarkerManager` during registration.
+   * @param map - Target map instance.
+   */
+  [AttachToMapSymbol](map: SDKMap): this {
     // suppress the exit animation for addTo()'s own internal remove() call
     this.suppressLifecycleAnimations = true;
     super.addTo(map);
@@ -1240,6 +1259,7 @@ export class Marker extends maplibregl.Marker {
    * (terrain-aware) position, same as a marker that never called this.
    * @param meters - Altitude in meters, measured per `options.relativeTo`, or `false` to unset altitude entirely.
    * @param options - See {@link SetAltitudeOptions}. Ignored when `meters` is `false`.
+   * @experimental
    */
   setAltitude(meters: false): this;
   setAltitude(meters: number, options?: SetAltitudeOptions): this;
@@ -1280,17 +1300,26 @@ export class Marker extends maplibregl.Marker {
     return this;
   }
 
-  /** Returns the current altitude in meters, or 0 if never set. */
+  /**
+   * Returns the current altitude in meters, or 0 if never set.
+   * @experimental
+   */
   getAltitude(): number {
     return this.altitudeMeters;
   }
 
-  /** Returns what {@link getAltitude}'s meters are measured from. Defaults to `"ground"`. */
+  /**
+   * Returns what {@link getAltitude}'s meters are measured from. Defaults to `"ground"`.
+   * @experimental
+   */
   getAltitudeReference(): AltitudeReference {
     return this.altitudeReference;
   }
 
-  /** True from the first {@link setAltitude} call onward. */
+  /**
+   * True from the first {@link setAltitude} call onward.
+   * @experimental
+   */
   hasActiveAltitude(): boolean {
     return this.altitudeEngaged;
   }
@@ -1320,6 +1349,7 @@ export class Marker extends maplibregl.Marker {
    * the SDK stylesheet and {@link GroundLineOptions.className}.
    * @param enabled - Whether to show the line.
    * @param options - Optional extra CSS class for styling.
+   * @experimental
    */
   setGroundLine(enabled: boolean, options: GroundLineOptions = {}): this {
     this.groundLineEnabled = enabled;

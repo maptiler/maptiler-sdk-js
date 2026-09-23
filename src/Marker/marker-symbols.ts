@@ -9,3 +9,4 @@ export const ApplyCollisionDisplayStateSymbol = Symbol("MapTiler:Marker:applyCol
 export const MeasuredElementSizeSymbol = Symbol("MapTiler:Marker:measuredElementSize");
 export const ClearFocusStateSymbol = Symbol("MapTiler:Marker:clearFocusState");
 export const ApplyAltitudeFrameSymbol = Symbol("MapTiler:Marker:applyAltitudeFrame");
+export const AttachToMapSymbol = Symbol("MapTiler:Marker:attachToMap");
