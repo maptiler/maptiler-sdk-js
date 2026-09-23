@@ -109,7 +109,7 @@ e2e/test-results
 
 .vscode
 demos/tmp_*
-dist
+demos/dist
 docs
 docsmd
 build

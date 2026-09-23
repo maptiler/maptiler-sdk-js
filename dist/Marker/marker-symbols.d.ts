@@ -1,0 +1,11 @@
+export declare const FlushDOMUpdatesSymbol: unique symbol;
+export declare const PendingUpdatesSymbol: unique symbol;
+export declare const MarkerElementSymbol: unique symbol;
+export declare const DetachFromDOMSymbol: unique symbol;
+export declare const RefreshAdaptiveColorSymbol: unique symbol;
+export declare const CollisionFootprintSymbol: unique symbol;
+export declare const EmitCollisionDiffSymbol: unique symbol;
+export declare const ApplyCollisionDisplayStateSymbol: unique symbol;
+export declare const MeasuredElementSizeSymbol: unique symbol;
+export declare const ClearFocusStateSymbol: unique symbol;
+export declare const ApplyAltitudeFrameSymbol: unique symbol;
