@@ -1,5 +1,6 @@
 import type { EasingFunctionName } from "../MaptilerAnimation/types";
 import type { EnterAnimationPreset, ExitAnimationPreset, IdleAnimationPreset, Vector2 } from "./types";
+import { EXPLODE_SCALE_MULTIPLIER, IDLE_BOUNCE_LIFT_PX, LIFECYCLE_LIFT_PX, PULSE_OPACITY_PEAK, PULSE_SCALE_PEAK, RING_PEAK_DEG } from "./marker-constants";
 
 //#region Enter / Exit
 
@@ -12,18 +13,6 @@ export type LifecycleAnimationValue = {
   opacity: number;
   scale: Vector2;
   lift: number;
-};
-
-/** Vertical offset (CSS px) `enter`'s `drop`/`bounce` start from on `enter`. */
-export const LIFECYCLE_LIFT_PX = 48;
-
-/** Default easing per `enter` preset, used when `MarkerAnimationOptions.easing` doesn't override it. */
-export const ENTER_PRESET_EASING: Record<EnterAnimationPreset, EasingFunctionName> = {
-  fade: "Linear",
-  grow: "CubicOut",
-  pop: "ElasticOut",
-  drop: "CubicOut",
-  bounce: "BounceOut",
 };
 
 /**
@@ -44,17 +33,6 @@ export function enterPresetHiddenValue(preset: EnterAnimationPreset, baseOpacity
       return { opacity: baseOpacity, scale: baseScale, lift: -LIFECYCLE_LIFT_PX };
   }
 }
-
-/** Default easing per `exit` preset, used when `MarkerAnimationOptions.easing` doesn't override it. */
-export const EXIT_PRESET_EASING: Record<ExitAnimationPreset, EasingFunctionName> = {
-  fade: "Linear",
-  shrink: "CubicIn",
-  pop: "ElasticIn",
-  explode: "CubicOut",
-};
-
-/** Scale multiplier `explode` grows the marker to (from its own base scale) while it fades out. */
-const EXPLODE_SCALE_MULTIPLIER = 2;
 
 /**
  * The "hidden" end of `preset`'s `exit` animation — the value a marker
@@ -128,11 +106,6 @@ export type IdlePresetConfig = {
   keyframes: IdleAnimationKeyframe[];
 };
 
-const PULSE_SCALE_PEAK = 1.15;
-const PULSE_OPACITY_PEAK = 0.45;
-const RING_PEAK_DEG = 12;
-const IDLE_BOUNCE_LIFT_PX = 14;
-
 //region Idle Animation Presets
 
 export const IDLE_PRESET_CONFIG: Record<IdleAnimationPreset, IdlePresetConfig> = {
@@ -191,19 +164,6 @@ export const IDLE_PRESET_CONFIG: Record<IdleAnimationPreset, IdlePresetConfig> =
     ],
   },
   //endregion
-};
-
-/**
- * Default loop duration (ms) per idle preset, used when
- * `MarkerIdleAnimationOptions.duration` is omitted — overrides the generic
- * `1000` documented on {@link MarkerAnimationOptions}. `pulsescale`/
- * `pulseopacity` default to ~1Hz; `ring`/`bounce` recur every few seconds.
- */
-export const IDLE_PRESET_DEFAULT_DURATION: Record<IdleAnimationPreset, number> = {
-  pulsescale: 1000,
-  pulseopacity: 1000,
-  ring: 3000,
-  bounce: 3000,
 };
 
 //#endregion

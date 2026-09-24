@@ -236,32 +236,29 @@
     <div class="ctrl-group">
       <div class="ctrl-label">Shape</div>
       <div class="shape-grid">
-        <button class="size-btn" data-shape="rounded">rounded</button>
         <button class="size-btn" data-shape="circle">circle</button>
+        <button class="size-btn" data-shape="square">square</button>
         <button class="size-btn" data-shape="bubble-circle">bubble-circle</button>
         <button class="size-btn" data-shape="bubble-square">bubble-square</button>
-        <button class="size-btn" data-shape="square">square</button>
-        <button class="size-btn" data-shape="bulb">bulb</button>
-        <button class="size-btn" data-shape="squircle">squircle</button>
-        <button class="size-btn" data-shape="shield">shield</button>
+        <button class="size-btn" data-shape="maptiler">maptiler</button>
+        <button class="size-btn" data-shape="maptiler-full">maptiler-full</button>
       </div>
     </div>
 
     <div class="ctrl-group">
       <div class="ctrl-label">Size</div>
       <div class="size-row">
-        <button class="size-btn" data-size="xs">xs</button>
-        <button class="size-btn" data-size="s">s</button>
-        <button class="size-btn" data-size="m">m</button>
+        <button class="size-btn" data-size="xs">XS</button>
+        <button class="size-btn" data-size="s">S</button>
+        <button class="size-btn" data-size="m">M</button>
         <button class="size-btn" data-size="l">L</button>
-        <button class="size-btn" data-size="xl">XL</button>
       </div>
     </div>
 
     <div class="ctrl-group">
       <div class="ctrl-label">Shadow</div>
       <div class="shadow-row">
-        <button class="shadow-btn" data-shadow="">none</button>
+        <button class="shadow-btn" data-shadow="none">none</button>
         <button class="shadow-btn" data-shadow="soft">soft</button>
         <button class="shadow-btn" data-shadow="medium">medium</button>
         <button class="shadow-btn" data-shadow="strong">strong</button>
@@ -269,12 +266,9 @@
     </div>
 
     <div class="ctrl-group">
-      <div class="ctrl-label">Adaptive color</div>
+      <div class="ctrl-label">Adaptive colors</div>
       <div class="size-row">
-        <button class="size-btn" data-adaptive-color="">off</button>
-        <button class="size-btn" data-adaptive-color="blue">blue</button>
-        <button class="size-btn" data-adaptive-color="red">red</button>
-        <button class="size-btn" data-adaptive-color="green">green</button>
+        <button class="size-btn" id="colors-reset">reset to map style default</button>
       </div>
     </div>
 
@@ -322,7 +316,7 @@
 
     <div class="ctrl-group">
       <div class="ctrl-label">Content</div>
-      <input id="content-input" class="text-input" type="text" value="1" />
+      <input id="content-input" class="text-input" type="text" value="" />
     </div>
 
     <div class="ctrl-group">

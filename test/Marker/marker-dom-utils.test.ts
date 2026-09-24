@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  COLLISION_FADE_DURATION_MS,
-  GROUND_LINE_CLASSNAME,
   applyAltitudeHidden,
   applyAltitudeOccluded,
   applyCollisionCulled,
@@ -17,9 +15,9 @@ import {
   wrap,
 } from "../../src/Marker/marker-dom-utils";
 import type { MapTilerMarkerOptions } from "../../src/Marker/types";
-import { DEFAULT_INNER_COLOR, DEFAULT_OUTER_COLOR, SIZE_PX } from "../../src/Marker/marker-svg-config";
+import { ADAPTIVE_COLORS, COLLISION_FADE_DURATION_MS, GROUND_LINE_CLASSNAME, SIZE_PX } from "../../src/Marker/marker-constants";
 import { registerMarkerTemplate } from "../../src/Marker/marker-content-registry";
-import { getAdaptiveBgColor, resolveAdaptiveColor } from "../../src/Marker/marker-adaptive-colors";
+import { getAdaptiveColors } from "../../src/Marker/marker-adaptive-colors";
 
 function baseOptions(overrides: Partial<MapTilerMarkerOptions> = {}): MapTilerMarkerOptions {
   return { ...overrides } as MapTilerMarkerOptions;
@@ -178,8 +176,9 @@ describe("applyMarkerStyleVariables", () => {
   it("sets default colors when none are provided", () => {
     const el = document.createElement("div");
     applyMarkerStyleVariables(el, baseOptions());
-    expect(el.style.getPropertyValue("--marker-outer-color")).toBe(DEFAULT_OUTER_COLOR);
-    expect(el.style.getPropertyValue("--marker-inner-color")).toBe(DEFAULT_INNER_COLOR);
+    expect(el.style.getPropertyValue("--marker-outer-color")).toBe(ADAPTIVE_COLORS.base.outerColor);
+    expect(el.style.getPropertyValue("--marker-inner-color")).toBe(ADAPTIVE_COLORS.base.innerColor);
+    expect(el.style.getPropertyValue("--marker-content-color")).toBe(ADAPTIVE_COLORS.base.contentColor);
   });
 
   it("uses explicit outer/inner/content/outline colors when given", () => {
@@ -191,16 +190,16 @@ describe("applyMarkerStyleVariables", () => {
     expect(el.style.getPropertyValue("--marker-outline-color")).toBe("black");
   });
 
-  it("defaults outline color to transparent", () => {
+  it("defaults outline color to the base default", () => {
     const el = document.createElement("div");
     applyMarkerStyleVariables(el, baseOptions());
-    expect(el.style.getPropertyValue("--marker-outline-color")).toBe("transparent");
+    expect(el.style.getPropertyValue("--marker-outline-color")).toBe(ADAPTIVE_COLORS.base.outlineColor);
   });
 
-  it("resolves an adaptive color's base bg color for the inner color", () => {
+  it("uses an explicit innerColor over the map-style default", () => {
     const el = document.createElement("div");
-    applyMarkerStyleVariables(el, baseOptions({ color: "green" }));
-    expect(el.style.getPropertyValue("--marker-inner-color")).not.toBe(DEFAULT_INNER_COLOR);
+    applyMarkerStyleVariables(el, baseOptions({ innerColor: "purple" }));
+    expect(el.style.getPropertyValue("--marker-inner-color")).toBe("purple");
   });
 
   it("sets shadow filter var to 'none' when no shadow is given", () => {
@@ -254,19 +253,15 @@ describe("updateMarkerElement", () => {
     expect(wrapper.style.getPropertyValue("--marker-outline-color")).toBe("black");
   });
 
-  it("innerColor takes precedence over color when both are in the same batch", () => {
-    const outer = createMarkerElement(baseOptions());
-    updateMarkerElement(outer, { color: "blue", innerColor: "purple" });
+  it("resolves undefined colours against the given styleId", () => {
+    const outer = createMarkerElement(baseOptions({ outerColor: "red", innerColor: "purple", contentColor: "green", outlineColor: "black" }));
+    updateMarkerElement(outer, { outerColor: undefined, innerColor: undefined, contentColor: undefined, outlineColor: undefined }, "streets-dark");
     const wrapper = resolveMarkerWrapper(outer);
-    expect(wrapper.style.getPropertyValue("--marker-inner-color")).toBe("purple");
-  });
-
-  it("resolves the adaptive color against the given styleId", () => {
-    const outer = createMarkerElement(baseOptions());
-    updateMarkerElement(outer, { color: "blue" }, "streets");
-    const wrapper = resolveMarkerWrapper(outer);
-    const expected = getAdaptiveBgColor(resolveAdaptiveColor("blue")!, "streets");
-    expect(wrapper.style.getPropertyValue("--marker-inner-color")).toBe(expected);
+    const expected = getAdaptiveColors("streets-dark");
+    expect(wrapper.style.getPropertyValue("--marker-outer-color")).toBe(expected.outerColor);
+    expect(wrapper.style.getPropertyValue("--marker-inner-color")).toBe(expected.innerColor);
+    expect(wrapper.style.getPropertyValue("--marker-content-color")).toBe(expected.contentColor);
+    expect(wrapper.style.getPropertyValue("--marker-outline-color")).toBe(expected.outlineColor);
   });
 
   it("sets and removes the outline stroke-width", () => {
@@ -310,7 +305,7 @@ describe("updateMarkerElement", () => {
   });
 
   it("updates text content, and removes it when set to undefined", () => {
-    const outer = createMarkerElement(baseOptions({ content: "1" }));
+    const outer = createMarkerElement(baseOptions({ shape: "circle", content: "1" }));
     updateMarkerElement(outer, { content: "2" });
     const wrapper = resolveMarkerWrapper(outer);
     expect(wrapper.querySelector(".marker-content")?.textContent).toBe("2");

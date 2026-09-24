@@ -1,15 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  ENTER_PRESET_EASING,
-  EXIT_PRESET_EASING,
-  IDLE_PRESET_CONFIG,
-  IDLE_PRESET_DEFAULT_DURATION,
-  LIFECYCLE_LIFT_PX,
-  enterPresetHiddenValue,
-  exitPresetHiddenValue,
-  scaleIdleMagnitude,
-  scaleLifecycleMagnitude,
-} from "../../src/Marker/marker-animation-presets";
+import { ENTER_PRESET_EASING, EXIT_PRESET_EASING, IDLE_PRESET_DEFAULT_DURATION, LIFECYCLE_LIFT_PX } from "../../src/Marker/marker-constants";
+import { IDLE_PRESET_CONFIG, enterPresetHiddenValue, exitPresetHiddenValue, scaleIdleMagnitude, scaleLifecycleMagnitude } from "../../src/Marker/marker-animation-presets";
 
 //#region enterPresetHiddenValue
 

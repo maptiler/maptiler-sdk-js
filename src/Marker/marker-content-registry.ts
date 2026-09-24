@@ -5,16 +5,13 @@
  * May return a string (rendered as marker text), an `HTMLElement` (rendered
  * in a foreignObject sized to the content circle), or an `SVGElement`
  * (treated like a content-type glyph, designed in a
- * {@link GLYPH_VIEWBOX_SIZE}-unit square).
+ * `GLYPH_VIEWBOX_SIZE`-unit square).
  */
 export type MarkerTemplateFactory = (params?: Record<string, number | string>) => string | HTMLElement | SVGElement;
 
 //#endregion
 
 //#region Registries
-
-/** Design-space size (units) for SVG template glyphs. */
-export const GLYPH_VIEWBOX_SIZE = 24;
 
 // TODO(icons): built-in icon registry backing the marker `icon` option.
 
