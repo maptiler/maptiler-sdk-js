@@ -691,7 +691,7 @@ export class Marker extends maplibregl.Marker {
 
   /**
    * Sets the drop-shadow intensity.
-   * @param shadow - Shadow intensity preset, or `undefined` to remove it.
+   * @param shadow - Shadow intensity preset, or `undefined` to reset to the default (`"medium"`). Use `"none"` to disable.
    */
   setShadow(shadow: MapTilerMarkerOptions["shadow"]) {
     this.setProp("shadow", shadow);

@@ -1,6 +1,6 @@
 import type { MarkerOptions } from "maplibre-gl";
 import type { MapTilerMarkerBaseOptions, MapTilerMarkerOptions, PendingMarkerUpdates, MapTilerMarkerSize } from "./types";
-import { DEFAULT_OUTLINE_WIDTH, DEFAULT_SHAPE, DEFAULT_SIZE, SHADOW_FILTER, SHAPES, SIZE_PX, type ShapeDescriptor } from "./marker-svg-config";
+import { DEFAULT_OUTLINE_WIDTH, DEFAULT_SHADOW, DEFAULT_SHAPE, DEFAULT_SIZE, SHADOW_FILTER, SHAPES, SIZE_PX, type ShapeDescriptor } from "./marker-svg-config";
 import { getMarkerTemplate, GLYPH_VIEWBOX_SIZE } from "./marker-content-registry";
 import { getAdaptiveColors, type AdaptiveColorSet } from "./marker-adaptive-colors";
 
@@ -46,7 +46,7 @@ export function applyMarkerStyleVariables(element: HTMLElement | SVGElement, opt
   element.style.setProperty("--marker-inner-color", options.innerColor ?? defaults.innerColor);
   element.style.setProperty("--marker-content-color", options.contentColor ?? defaults.contentColor);
   element.style.setProperty("--marker-outline-color", options.outlineColor ?? defaults.outlineColor);
-  element.style.setProperty("--marker-shadow", options.shadow ? SHADOW_FILTER[options.shadow] : "none");
+  element.style.setProperty("--marker-shadow", SHADOW_FILTER[options.shadow ?? DEFAULT_SHADOW]);
 }
 
 /**
@@ -153,7 +153,7 @@ export function updateMarkerElement(element: HTMLElement, props: PendingMarkerUp
   }
 
   if ("shadow" in props) {
-    wrapper.style.setProperty("--marker-shadow", props.shadow ? SHADOW_FILTER[props.shadow] : "none");
+    wrapper.style.setProperty("--marker-shadow", SHADOW_FILTER[props.shadow ?? DEFAULT_SHADOW]);
   }
 
   if ("opacity" in props) {

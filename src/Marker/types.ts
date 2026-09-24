@@ -409,7 +409,7 @@ export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" 
   outline?: true | number;
   /** Colour of the marker outline. Defaults to the current map style's colour, like `innerColor`. */
   outlineColor?: string;
-  /** Drop-shadow intensity. */
+  /** Drop-shadow intensity. Defaults to `"medium"`; use `"none"` to disable. */
   shadow?: MapTilerMarkerShadow;
   opacity?: number;
   opacityWhenCovered?: number;
@@ -507,7 +507,7 @@ export type MapTilerMarkerOptions = MapTilerMarkerBaseOptions & MarkerContent;
 /**
  * Batch of property updates waiting to be flushed to the DOM.
  * A key being present (even with an `undefined` value) means "apply this
- * property" — e.g. `{ shadow: undefined }` removes the shadow.
+ * property" — e.g. `{ shadow: undefined }` resets the shadow to its default.
  */
 export type PendingMarkerUpdates = Partial<MapTilerMarkerElementProps>;
 

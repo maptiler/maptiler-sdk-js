@@ -169,6 +169,7 @@ export const SHAPES: Record<NonNullable<MapTilerMarkerBaseOptions["shape"]>, Sha
 
 export const DEFAULT_SHAPE: NonNullable<MapTilerMarkerBaseOptions["shape"]> = "maptiler";
 export const DEFAULT_SIZE: NonNullable<MapTilerMarkerBaseOptions["size"]> = "m";
+export const DEFAULT_SHADOW: NonNullable<MapTilerMarkerBaseOptions["shadow"]> = "medium";
 export const DEFAULT_OUTLINE_WIDTH = 2;
 
 //#endregion
