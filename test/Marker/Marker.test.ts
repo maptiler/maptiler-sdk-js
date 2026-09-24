@@ -2,8 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { Marker } from "../../src/Marker/Marker";
 import { MarkerManager } from "../../src/Marker/MarkerManager";
 import { ApplyAltitudeFrameSymbol, ApplyCollisionDisplayStateSymbol, CollisionFootprintSymbol, MeasuredElementSizeSymbol } from "../../src/Marker/marker-symbols";
-import { SIZE_PX } from "../../src/Marker/marker-svg-config";
-import { ADAPTIVE_COLORS } from "../../src/Marker/marker-adaptive-colors";
+import { ADAPTIVE_COLORS, SIZE_PX } from "../../src/Marker/marker-constants";
 import type { mat4 } from "gl-matrix";
 import { createMockMap, type MockMap } from "./mock-map";
 

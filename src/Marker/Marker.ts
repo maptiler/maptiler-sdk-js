@@ -44,11 +44,8 @@ import {
   updateMarkerElement,
   resolveMarkerWrapper,
   releaseCollisionFadeClass,
-  COLLISION_FADE_DURATION_MS,
-  GROUND_LINE_CLASSNAME,
-  MARKER_FONT_CLASSNAME,
 } from "./marker-dom-utils";
-import { DEFAULT_SHAPE, DEFAULT_SIZE, SHAPES, SIZE_PX, getShapeAnchorOffset } from "./marker-svg-config";
+import { SHAPES, getShapeAnchorOffset } from "./marker-svg-config";
 import { getAdaptiveColors, type AdaptiveColorSet } from "./marker-adaptive-colors";
 import { MarkerManager } from "./MarkerManager";
 import type { MarkerFootprint } from "./collision-helpers";
@@ -67,14 +64,11 @@ import {
 import { MaptilerAnimation } from "../MaptilerAnimation";
 import type { Keyframe } from "../MaptilerAnimation/types";
 import {
-  ENTER_PRESET_EASING,
-  EXIT_PRESET_EASING,
   enterPresetHiddenValue,
   exitPresetHiddenValue,
   scaleLifecycleMagnitude,
   scaleIdleMagnitude,
   IDLE_PRESET_CONFIG,
-  IDLE_PRESET_DEFAULT_DURATION,
   type LifecycleAnimationValue,
 } from "./marker-animation-presets";
 import {
@@ -90,49 +84,29 @@ import {
   MeasuredElementSizeSymbol,
   ClearFocusStateSymbol,
 } from "./marker-symbols";
-
-const maplibreMarkerConstructorOverrides: MarkerOptions = {
-  scale: 1, // scale in our class will be a 2D vector.
-};
+import {
+  ADAPTIVE_COLOR_KEYS,
+  COLLISION_FADE_DURATION_MS,
+  CUSTOM_ELEMENT_MINIMIZED_KEYS,
+  DEFAULT_ANCHOR,
+  DEFAULT_ANIMATION_DURATION_MS,
+  DEFAULT_MINIMIZED_SIZE,
+  DEFAULT_SHAPE,
+  DEFAULT_SIZE,
+  ENTER_PRESET_EASING,
+  EXIT_PRESET_EASING,
+  GROUND_LINE_CLASSNAME,
+  IDLE_PRESET_DEFAULT_DURATION,
+  MAPLIBRE_MARKER_CONSTRUCTOR_OVERRIDES,
+  MAPTILER_BASE_OPTIONS_KEYS,
+  MARKER_FONT_CLASSNAME,
+  SIZE_PX,
+} from "./marker-constants";
 
 /** `PointLike` is a `Point` (from point-geometry) or a plain `[number, number]` — normalizes either to a tuple. */
 function pointLikeToXY(point: PointLike): [number, number] {
   return Array.isArray(point) ? [point[0], point[1]] : [point.x, point.y];
 }
-
-// props consumable as CSS custom properties on the minimized dot
-const CUSTOM_ELEMENT_MINIMIZED_KEYS = ["innerColor", "outerColor", "contentColor", "shadow", "opacity"] as const satisfies readonly (keyof MapTilerMarkerElementProps)[];
-
-// colour props that fall back to a per-map-style default when unset
-const ADAPTIVE_COLOR_KEYS = ["outerColor", "innerColor", "contentColor", "outlineColor"] as const satisfies readonly (keyof AdaptiveColorSet)[];
-
-const maptilerBaseOptionsKeys = [
-  "shape",
-  "size",
-  "innerColor",
-  "outerColor",
-  "contentColor",
-  "outline",
-  "outlineColor",
-  "shadow",
-  "opacity",
-  "opacityWhenCovered",
-  "name",
-  "title",
-  "content",
-  "htmlAttributes",
-  "scale",
-  "visible",
-  "priority",
-  "userData",
-  "collisionBehaviour",
-  "collisionRadius",
-  "minimizedOptions",
-  "rotation",
-  "debug",
-  "states",
-  "transitions",
-] as const;
 
 /** MapLibre's `Marker` extended with 2-D scale, named shapes, colour tokens, and batched DOM updates. */
 export class Marker extends maplibregl.Marker {
@@ -255,7 +229,7 @@ export class Marker extends maplibregl.Marker {
   constructor(options: MapTilerMarkerOptions) {
     const sizeKey = options.size ?? DEFAULT_SIZE;
     const superOptions = {
-      ...omit(options, maptilerBaseOptionsKeys),
+      ...omit(options, MAPTILER_BASE_OPTIONS_KEYS),
       // custom-element markers get no automatic offset — their geometry is unknown
       offset: options.offset ?? (options.element ? undefined : getShapeAnchorOffset(options.shape ?? DEFAULT_SHAPE, sizeKey)),
     } as MarkerOptions;
@@ -265,7 +239,7 @@ export class Marker extends maplibregl.Marker {
     super({
       element,
       ...superOptions,
-      ...maplibreMarkerConstructorOverrides,
+      ...MAPLIBRE_MARKER_CONSTRUCTOR_OVERRIDES,
     });
 
     this[MarkerElementSymbol] = element;
@@ -421,7 +395,7 @@ export class Marker extends maplibregl.Marker {
       return { width: radius * 2, height: radius * 2, anchor: "center", offset: this.footprintOffset(), ...shared, pivot: [0, 0] };
     }
 
-    const anchor = this.options.anchor ?? "center";
+    const anchor = this.options.anchor ?? DEFAULT_ANCHOR;
 
     // custom element: measured size, CSS default transform-origin
     if (this.options.element) {
@@ -445,7 +419,7 @@ export class Marker extends maplibregl.Marker {
     const size = this.props.size ?? DEFAULT_SIZE;
     if (!minimized) return { shape, size };
     const overrides = this.options.minimizedOptions;
-    return { shape: overrides?.shape ?? shape, size: overrides?.size ?? "xs" };
+    return { shape: overrides?.shape ?? shape, size: overrides?.size ?? DEFAULT_MINIMIZED_SIZE };
   }
 
   /** Screen offset for the collision footprint. */
@@ -567,7 +541,7 @@ export class Marker extends maplibregl.Marker {
     if (enabled) {
       const overrides = this.minimizedOverrides();
       this.minimizedKeys = Object.keys(overrides) as (keyof PendingMarkerUpdates)[];
-      if (this.options.element) applyMinimizedDot(this.options.element, this.options.anchor ?? "center", true);
+      if (this.options.element) applyMinimizedDot(this.options.element, this.options.anchor ?? DEFAULT_ANCHOR, true);
       if (this.minimizedKeys.length > 0) updateMarkerElement(this[MarkerElementSymbol], overrides, styleId);
       if (this.managesOffset) {
         const { shape, size } = this.effectiveShapeAndSize(true);
@@ -579,7 +553,7 @@ export class Marker extends maplibregl.Marker {
 
     const restore = this.restoreUpdates(this.minimizedKeys);
     this.minimizedKeys = [];
-    if (this.options.element) applyMinimizedDot(this.options.element, this.options.anchor ?? "center", false);
+    if (this.options.element) applyMinimizedDot(this.options.element, this.options.anchor ?? DEFAULT_ANCHOR, false);
     if (Object.keys(restore).length > 0) updateMarkerElement(this[MarkerElementSymbol], restore, styleId);
     if (this.managesOffset) {
       this.writeOffset(getShapeAnchorOffset(this.props.shape ?? DEFAULT_SHAPE, this.props.size ?? DEFAULT_SIZE));
@@ -1054,7 +1028,7 @@ export class Marker extends maplibregl.Marker {
     this.cancelTransition("opacity");
     this.cancelTransition("scale");
 
-    const animation = runPropertyTransition(from, to, [spec.duration ?? 1000, easing, spec.delay ?? 0], {
+    const animation = runPropertyTransition(from, to, [spec.duration ?? DEFAULT_ANIMATION_DURATION_MS, easing, spec.delay ?? 0], {
       codec: lifecycleTransitionCodec,
       onUpdate: (v) => {
         this.clearEnterMask();
@@ -1084,7 +1058,7 @@ export class Marker extends maplibregl.Marker {
     this.cancelTransition("opacity");
     this.cancelTransition("scale");
 
-    const animation = runPropertyTransition(0, 1, [spec.duration ?? 1000, spec.easing, spec.delay ?? 0], {
+    const animation = runPropertyTransition(0, 1, [spec.duration ?? DEFAULT_ANIMATION_DURATION_MS, spec.easing, spec.delay ?? 0], {
       codec: opacityTransitionCodec,
       onUpdate: (alpha) => {
         this.clearEnterMask();
@@ -1176,7 +1150,7 @@ export class Marker extends maplibregl.Marker {
         (value) => {
           spec.custom(value, this);
         },
-        spec.duration ?? 1000,
+        spec.duration ?? DEFAULT_ANIMATION_DURATION_MS,
         spec.iterations ?? Infinity,
         spec.delay ?? 0,
       );

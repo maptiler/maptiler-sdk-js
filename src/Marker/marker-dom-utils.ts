@@ -1,10 +1,30 @@
 import type { MarkerOptions } from "maplibre-gl";
 import type { MapTilerMarkerBaseOptions, MapTilerMarkerOptions, PendingMarkerUpdates, MapTilerMarkerSize } from "./types";
-import { DEFAULT_OUTLINE_WIDTH, DEFAULT_SHADOW, DEFAULT_SHAPE, DEFAULT_SIZE, SHADOW_FILTER, SHAPES, SIZE_PX, type ShapeDescriptor } from "./marker-svg-config";
-import { getMarkerTemplate, GLYPH_VIEWBOX_SIZE } from "./marker-content-registry";
+import { SHAPES, type ShapeDescriptor } from "./marker-svg-config";
+import { getMarkerTemplate } from "./marker-content-registry";
 import { getAdaptiveColors, type AdaptiveColorSet } from "./marker-adaptive-colors";
-
-const SVG_NS = "http://www.w3.org/2000/svg";
+import {
+  ALTITUDE_HIDDEN_CLASSNAME,
+  ALTITUDE_OCCLUDED_CLASSNAME,
+  COLLISION_CULLED_CLASSNAME,
+  COLLISION_FADE_CLASSNAME,
+  COLLISION_HIDDEN_CLASSNAME,
+  CUSTOM_ELEMENT_CLASSNAME,
+  DEBUG_COLOR,
+  DEFAULT_CONTENT_CLASSNAME,
+  DEFAULT_OUTLINE_WIDTH,
+  DEFAULT_SHADOW,
+  DEFAULT_SHAPE,
+  DEFAULT_SIZE,
+  GLYPH_VIEWBOX_SIZE,
+  MARKER_FONT_CLASSNAME,
+  MINIMIZED_DOT_CLASSNAME,
+  SHADOW_FILTER,
+  SHAPE_SVG_CLASSNAME,
+  SIZE_PX,
+  SVG_NS,
+  TEXT_CONTENT_FONT_SIZE,
+} from "./marker-constants";
 
 //#region svgEl
 
@@ -16,10 +36,6 @@ function svgEl<K extends keyof SVGElementTagNameMap>(tag: K): SVGElementTagNameM
 //#endregion
 
 //#region createMarkerElement
-
-const CUSTOM_ELEMENT_CLASSNAME = "marker-transform-wrapper";
-/** Added to every marker's wrapper element so marker text can pick up the SDK font. */
-export const MARKER_FONT_CLASSNAME = "maptiler-sdk-marker-font";
 
 /**
  * Resolves the inner transform wrapper from a marker's outer root element
@@ -219,8 +235,6 @@ export function updateMarkerElement(element: HTMLElement, props: PendingMarkerUp
 
 //#region getShapeSvg
 
-const SHAPE_SVG_CLASSNAME = "marker-shape";
-
 /** Returns the shape SVG of a marker wrapper, or `null` when the marker was constructed at `xs` size (dot only). */
 function getShapeSvg(wrapper: HTMLElement): SVGSVGElement | null {
   return wrapper.querySelector<SVGSVGElement>(`svg.${SHAPE_SVG_CLASSNAME}`);
@@ -306,8 +320,6 @@ function applySize(wrapper: HTMLElement, size: MapTilerMarkerSize): void {
 //#endregion
 
 //#region applyDebug
-
-const DEBUG_COLOR = "#ff00ff";
 
 /**
  * Attaches or removes the debug overlay: a dashed outline around the marker
@@ -505,12 +517,6 @@ function createDotSvgTemplate(): SVGSVGElement {
 
 //#region applyCollisionHidden
 
-const COLLISION_FADE_CLASSNAME = "maptiler-marker-collision-fade";
-const COLLISION_HIDDEN_CLASSNAME = "maptiler-marker-collision-hidden";
-
-/** Matches the fade duration in the SDK stylesheet (`.maptiler-marker-collision-fade`). */
-export const COLLISION_FADE_DURATION_MS = 150;
-
 /** Toggles the collision-hidden fade (rules live in the SDK stylesheet). */
 export function applyCollisionHidden(element: HTMLElement, hidden: boolean): void {
   element.classList.add(COLLISION_FADE_CLASSNAME);
@@ -521,8 +527,6 @@ export function applyCollisionHidden(element: HTMLElement, hidden: boolean): voi
 export function releaseCollisionFadeClass(element: HTMLElement): void {
   element.classList.remove(COLLISION_FADE_CLASSNAME);
 }
-
-const COLLISION_CULLED_CLASSNAME = "maptiler-marker-collision-culled";
 
 /**
  * `display: none`s a collision-hidden marker once its fade completes. Un-culling doesn't flush
@@ -544,9 +548,6 @@ export function applyCollisionCulled(element: HTMLElement, culled: boolean): boo
 
 //#region applyAltitudeHidden
 
-const ALTITUDE_HIDDEN_CLASSNAME = "maptiler-marker-altitude-hidden";
-export const GROUND_LINE_CLASSNAME = "maptiler-marker-groundline";
-
 /** Hides a marker with no valid altitude-projected position this frame (off-screen/behind camera). Not the below-ground case — see {@link applyAltitudeOccluded}. */
 export function applyAltitudeHidden(element: HTMLElement, hidden: boolean): void {
   element.classList.toggle(ALTITUDE_HIDDEN_CLASSNAME, hidden);
@@ -556,8 +557,6 @@ export function applyAltitudeHidden(element: HTMLElement, hidden: boolean): void
 
 //#region applyAltitudeOccluded
 
-const ALTITUDE_OCCLUDED_CLASSNAME = "maptiler-marker-altitude-occluded";
-
 /** Fades a below-ground marker (DOM markers aren't depth-tested against terrain) — position and pointer events stay real, only opacity changes. */
 export function applyAltitudeOccluded(element: HTMLElement, occluded: boolean): void {
   element.classList.toggle(ALTITUDE_OCCLUDED_CLASSNAME, occluded);
@@ -566,8 +565,6 @@ export function applyAltitudeOccluded(element: HTMLElement, occluded: boolean): 
 //#endregion
 
 //#region applyMinimizedDot
-
-const MINIMIZED_DOT_CLASSNAME = "marker-minimized-dot";
 
 /** Minimized rendering for custom `element` markers: hides its content via `visibility` (keeps the layout box for positioning) and overlays a dot on the anchor point. SVG-root elements get hidden without a dot. */
 export function applyMinimizedDot(element: HTMLElement | SVGElement, anchor: NonNullable<MarkerOptions["anchor"]>, enabled: boolean): void {
@@ -763,8 +760,6 @@ function appendContent(svg: SVGSVGElement, options: MapTilerMarkerOptions, shape
   appendDefaultContent(svg, shape);
 }
 
-const DEFAULT_CONTENT_CLASSNAME = "marker-default-content";
-
 /**
  * Appends the shape's default glyph, when it has one, centered on the content
  * circle. Carries `marker-content` like any other content so colour updates
@@ -937,8 +932,6 @@ function appendElementContent(svg: SVGSVGElement, element: HTMLElement | SVGElem
 /** Appends a text label centred on the content circle. */
 function appendTextContent(svg: SVGSVGElement, title: string, shape: ShapeDescriptor, className = "marker-content"): SVGTextElement {
   const { cx, cy } = shape.content;
-  const fontSize = 14;
-
   const text = svgEl("text");
   text.classList.add(className, MARKER_FONT_CLASSNAME);
   text.setAttribute("clip-path", appendContentClip(svg, shape, 14));
@@ -947,7 +940,7 @@ function appendTextContent(svg: SVGSVGElement, title: string, shape: ShapeDescri
   text.setAttribute("text-anchor", "middle");
   text.setAttribute("dominant-baseline", "central");
   text.setAttribute("font-weight", "500");
-  text.setAttribute("font-size", String(fontSize));
+  text.setAttribute("font-size", String(TEXT_CONTENT_FONT_SIZE));
   text.style.fill = "var(--marker-content-color)";
   text.style.userSelect = "none";
   text.style.fontVariantNumeric = "tabular-nums";

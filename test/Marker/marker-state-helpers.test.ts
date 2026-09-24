@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { UI_STATE_PRIORITY, flattenUIStates } from "../../src/Marker/marker-state-helpers";
+import { flattenUIStates } from "../../src/Marker/marker-state-helpers";
+import { UI_STATE_PRIORITY } from "../../src/Marker/marker-constants";
 import type { MapTilerMarkerUIStates } from "../../src/Marker/types";
 
 describe("UI_STATE_PRIORITY", () => {

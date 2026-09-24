@@ -1,4 +1,5 @@
 import { defaultReferenceStyleMap } from "@maptiler/client";
+import { ADAPTIVE_COLORS } from "./marker-constants";
 
 //#region Types
 
@@ -30,22 +31,6 @@ export type AdaptiveColorSet = {
   contentColor: string;
   /** Stroke of the outline (only visible when an outline width is set). */
   outlineColor: string;
-};
-
-/**
- * Default marker colours per map style. `base` doubles as the fallback for
- * styles without a dedicated entry.
- * TODO: outline (and outer / content on light styles) are placeholders — the former global defaults — until the designs specify them per style.
- */
-export const ADAPTIVE_COLORS: { base: AdaptiveColorSet } & Partial<Record<AdaptiveStyleKey, AdaptiveColorSet>> = {
-  base: { innerColor: "#4D7FFF", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
-  "base-dark": { innerColor: "#80A4FF", outerColor: "#292929", contentColor: "#292929", outlineColor: "transparent" },
-  streets: { innerColor: "#0060E5", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
-  "streets-dark": { innerColor: "#4D97FF", outerColor: "#292929", contentColor: "#292929", outlineColor: "transparent" },
-  hybrid: { innerColor: "#0073E5", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
-  dataviz: { innerColor: "#1A94FF", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
-  "dataviz-dark": { innerColor: "#4DACFF", outerColor: "#292929", contentColor: "#292929", outlineColor: "transparent" },
-  topo: { innerColor: "#1A79FF", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
 };
 
 //#endregion

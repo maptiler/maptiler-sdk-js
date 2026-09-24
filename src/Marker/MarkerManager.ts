@@ -11,13 +11,13 @@ import {
   inflateBounds,
   boundsIntersect,
   resolveDisplayStates,
-  DEFAULT_PROXIMITY_PADDING,
   type Bounds,
   type OBB,
   type ResolutionEntry,
   type ResolutionMode,
 } from "./collision-helpers";
-import { applyCollisionCulled, COLLISION_FADE_DURATION_MS } from "./marker-dom-utils";
+import { applyCollisionCulled } from "./marker-dom-utils";
+import { ALTITUDE_Z_INDEX_BASE, COLLISION_FADE_DURATION_MS, DEFAULT_PROXIMITY_PADDING, FOOTPRINT_PROPS, VIEWPORT_CULL_MARGIN_PX } from "./marker-constants";
 import {
   DetachFromDOMSymbol,
   FlushDOMUpdatesSymbol,
@@ -31,27 +31,6 @@ import {
   MarkerElementSymbol,
   ClearFocusStateSymbol,
 } from "./marker-symbols";
-
-/** Pending props that change a marker's footprint and therefore its collisions. */
-const FOOTPRINT_PROPS = ["shape", "size", "scale", "rotation"] as const;
-
-/**
- * Minimum margin in CSS px around the viewport within which markers still
- * participate in the pass. Off-viewport markers are excluded and hidden, but
- * a marker just past the edge must keep blocking its on-screen neighbours,
- * or edge behaviour would churn while panning.
- */
-const VIEWPORT_CULL_MARGIN_PX = 200;
-
-/**
- * Base z-index for camera-depth ordering among altitude-active markers (see
- * the altitude render loop's `onRender`). Well above the small integers
- * `priority` typically produces, so depth-ordered altitude markers land
- * above statically-ordered ones rather than interleaving with them —
- * "closer to the camera" is a different axis from "higher priority", and
- * mixing the two into one ranking isn't attempted here.
- */
-const ALTITUDE_Z_INDEX_BASE = 1000;
 
 /** Per-map state of the collision detection engine. */
 type MapCollisionState = {

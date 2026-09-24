@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  COLLISION_FADE_DURATION_MS,
-  GROUND_LINE_CLASSNAME,
   applyAltitudeHidden,
   applyAltitudeOccluded,
   applyCollisionCulled,
@@ -17,9 +15,9 @@ import {
   wrap,
 } from "../../src/Marker/marker-dom-utils";
 import type { MapTilerMarkerOptions } from "../../src/Marker/types";
-import { SIZE_PX } from "../../src/Marker/marker-svg-config";
+import { ADAPTIVE_COLORS, COLLISION_FADE_DURATION_MS, GROUND_LINE_CLASSNAME, SIZE_PX } from "../../src/Marker/marker-constants";
 import { registerMarkerTemplate } from "../../src/Marker/marker-content-registry";
-import { ADAPTIVE_COLORS, getAdaptiveColors } from "../../src/Marker/marker-adaptive-colors";
+import { getAdaptiveColors } from "../../src/Marker/marker-adaptive-colors";
 
 function baseOptions(overrides: Partial<MapTilerMarkerOptions> = {}): MapTilerMarkerOptions {
   return { ...overrides } as MapTilerMarkerOptions;

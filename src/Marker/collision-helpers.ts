@@ -63,16 +63,6 @@ export type MarkerFootprint = {
 
 //#endregion
 
-//#region Config
-
-/**
- * Default proximity threshold in CSS px: two markers whose boxes come within
- * this distance of each other are "in proximity". Overlap always uses 0.
- */
-export const DEFAULT_PROXIMITY_PADDING = 4;
-
-//#endregion
-
 //#region Geometry
 
 /**

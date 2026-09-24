@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { DEFAULT_PROXIMITY_PADDING } from "../../src/Marker/marker-constants";
 import {
-  DEFAULT_PROXIMITY_PADDING,
   boundsIntersect,
   computeMarkerOBB,
   createCandidateSource,

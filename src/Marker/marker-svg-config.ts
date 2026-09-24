@@ -1,4 +1,5 @@
 import type { MapTilerMarkerBaseOptions } from "./types";
+import { SIZE_PX } from "./marker-constants";
 
 //#region Types
 
@@ -48,24 +49,6 @@ export type ShapeDescriptor = {
   pointerPath?: string;
   /** Glyph shown in place of content when the marker has none. */
   defaultContent?: ShapeDefaultContent;
-};
-
-//#endregion
-
-//#region Lookup Tables
-
-export const SIZE_PX: Record<NonNullable<MapTilerMarkerBaseOptions["size"]>, number> = {
-  xs: 8,
-  s: 24,
-  m: 32,
-  l: 40,
-};
-
-export const SHADOW_FILTER: Record<NonNullable<MapTilerMarkerBaseOptions["shadow"]>, string> = {
-  none: "none",
-  soft: "drop-shadow(0px 1px 0px rgba(0, 0, 0, 0.2))",
-  medium: "drop-shadow(0px 2px 2px rgba(29, 29, 29, 0.2))",
-  strong: "drop-shadow(0px 2px 4px rgba(29, 29, 29, 0.2))",
 };
 
 //#endregion
@@ -162,15 +145,6 @@ export const SHAPES: Record<NonNullable<MapTilerMarkerBaseOptions["shape"]>, Sha
     content: { cx: 20, cy: 17, r: 11 },
   },
 };
-
-//#endregion
-
-//#region Defaults
-
-export const DEFAULT_SHAPE: NonNullable<MapTilerMarkerBaseOptions["shape"]> = "maptiler";
-export const DEFAULT_SIZE: NonNullable<MapTilerMarkerBaseOptions["size"]> = "m";
-export const DEFAULT_SHADOW: NonNullable<MapTilerMarkerBaseOptions["shadow"]> = "medium";
-export const DEFAULT_OUTLINE_WIDTH = 2;
 
 //#endregion
 
