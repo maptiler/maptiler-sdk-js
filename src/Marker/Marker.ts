@@ -46,9 +46,10 @@ import {
   releaseCollisionFadeClass,
   COLLISION_FADE_DURATION_MS,
   GROUND_LINE_CLASSNAME,
+  MARKER_FONT_CLASSNAME,
 } from "./marker-dom-utils";
 import { DEFAULT_SHAPE, DEFAULT_SIZE, SHAPES, SIZE_PX, getShapeAnchorOffset } from "./marker-svg-config";
-import { getAdaptiveBgColor, resolveAdaptiveColor } from "./marker-adaptive-colors";
+import { getAdaptiveColors, type AdaptiveColorSet } from "./marker-adaptive-colors";
 import { MarkerManager } from "./MarkerManager";
 import type { MarkerFootprint } from "./collision-helpers";
 import { flattenUIStates } from "./marker-state-helpers";
@@ -88,7 +89,11 @@ import {
   ApplyAltitudeFrameSymbol,
   MeasuredElementSizeSymbol,
   ClearFocusStateSymbol,
+  AttachToMapSymbol,
 } from "./marker-symbols";
+
+// `addTo` deprecation warning is logged once per session
+let hasWarnedAddToDeprecation = false;
 
 const maplibreMarkerConstructorOverrides: MarkerOptions = {
   scale: 1, // scale in our class will be a 2D vector.
@@ -100,12 +105,14 @@ function pointLikeToXY(point: PointLike): [number, number] {
 }
 
 // props consumable as CSS custom properties on the minimized dot
-const CUSTOM_ELEMENT_MINIMIZED_KEYS = ["color", "innerColor", "outerColor", "contentColor", "shadow", "opacity"] as const satisfies readonly (keyof MapTilerMarkerElementProps)[];
+const CUSTOM_ELEMENT_MINIMIZED_KEYS = ["innerColor", "outerColor", "contentColor", "shadow", "opacity"] as const satisfies readonly (keyof MapTilerMarkerElementProps)[];
+
+// colour props that fall back to a per-map-style default when unset
+const ADAPTIVE_COLOR_KEYS = ["outerColor", "innerColor", "contentColor", "outlineColor"] as const satisfies readonly (keyof AdaptiveColorSet)[];
 
 const maptilerBaseOptionsKeys = [
   "shape",
   "size",
-  "color",
   "innerColor",
   "outerColor",
   "contentColor",
@@ -156,6 +163,15 @@ export class Marker extends maplibregl.Marker {
 
   /** UUID that uniquely identifies this marker instance. */
   public readonly id = uuid();
+
+  /**
+   * The `classList` of the marker's wrapper element — the inner transform
+   * wrapper of a built-in marker, or the custom `element` itself. Read-only
+   * reference; add and remove classes through the returned list.
+   */
+  get classList(): DOMTokenList {
+    return resolveMarkerWrapper(this[MarkerElementSymbol]).classList;
+  }
 
   /** How the collision engine is currently displaying this marker. */
   private collisionDisplayState: MarkerCollisionDisplayState = "visible";
@@ -257,6 +273,7 @@ export class Marker extends maplibregl.Marker {
     });
 
     this[MarkerElementSymbol] = element;
+    this.classList.add(MARKER_FONT_CLASSNAME);
     this.baseOffset = superOptions.offset ?? [0, 0];
 
     // custom elements skip createMarkerElement, so seed their style variables here
@@ -277,7 +294,6 @@ export class Marker extends maplibregl.Marker {
       size: options.size,
       scale: Array.from(options.scale ?? [1, 1]) as Vector2,
       shadow: options.shadow,
-      color: options.color,
       outerColor: options.outerColor,
       innerColor: options.innerColor,
       contentColor: options.contentColor,
@@ -306,10 +322,25 @@ export class Marker extends maplibregl.Marker {
   //#region Internal
 
   /**
-   * Adds the marker to a map, and plays the configured `enter` animation (if any) once attached.
+   * Adds the marker to a map. Equivalent to `map.addMarker(marker)`, which it delegates to.
+   * @deprecated Use `map.addMarker(marker)` instead. Kept for MapLibre-style call sites and will be removed in a future major version.
    * @param map - Target map instance.
    */
   addTo(map: SDKMap): this {
+    if (!hasWarnedAddToDeprecation) {
+      hasWarnedAddToDeprecation = true;
+      console.warn("[Marker]: `marker.addTo(map)` is deprecated and will be removed in a future major version. Use `map.addMarker(marker)` instead.");
+    }
+    map.addMarker(this);
+    return this;
+  }
+
+  /**
+   * Attaches the marker to a map, and plays the configured `enter` animation (if any) once attached.
+   * Called only by `MarkerManager` during registration.
+   * @param map - Target map instance.
+   */
+  [AttachToMapSymbol](map: SDKMap): this {
     // suppress the exit animation for addTo()'s own internal remove() call
     this.suppressLifecycleAnimations = true;
     super.addTo(map);
@@ -367,10 +398,28 @@ export class Marker extends maplibregl.Marker {
     return map ? MarkerManager.getMapStyleId(map) : undefined;
   }
 
-  /** Queues re-resolving the adaptive `color` against the current map style. */
+  /** Queues re-resolving every unset colour against the current map style. */
   [RefreshAdaptiveColorSymbol](): void {
-    if (this.props.color === undefined || this.props.innerColor !== undefined) return;
-    this.setProp("color", this.props.color);
+    for (const key of ADAPTIVE_COLOR_KEYS) {
+      if (this.props[key] === undefined) this.setProp(key, undefined);
+    }
+  }
+
+  /** Sets one colour prop; `undefined` returns it to its map-style default (resolved at flush time, so nothing to transition to). */
+  private setColorProp(prop: keyof AdaptiveColorSet, color: string | undefined): void {
+    if (color === undefined) {
+      this.cancelTransition(prop);
+      this.setProp(prop, undefined);
+      return;
+    }
+    this.applyTransitionable(prop, this.getEffectiveColor(prop), color, colorTransitionCodec, (v) => {
+      this.setProp(prop, v);
+    });
+  }
+
+  /** A colour prop's value in effect — the explicit one, else the default for the map's style. */
+  private getEffectiveColor(prop: keyof AdaptiveColorSet): string {
+    return this.props[prop] ?? getAdaptiveColors(this.getCurrentStyleId() ?? "")[prop];
   }
 
   //#endregion
@@ -399,15 +448,14 @@ export class Marker extends maplibregl.Marker {
       return { width: w * sx, height: h * sy, anchor, offset: this.footprintOffset(), ...shared, pivot: [0, 0] };
     }
 
-    // built-in SVG: height from size key, width from shape aspect ratio
+    // built-in SVG: a square box, sized by the size key
     const { shape: shapeKey, size } = this.effectiveShapeAndSize(false);
-    const heightPx = SIZE_PX[size];
+    const sizePx = SIZE_PX[size];
     const shape = SHAPES[shapeKey];
-    const widthPx = size === "xs" ? heightPx : heightPx * (shape.viewBox[0] / shape.viewBox[1]);
-    const height = heightPx * sy;
+    const height = sizePx * sy;
     // bottom-anchored shapes rotate around their tip
     const pivot: Vector2 = shape.anchor === "center" ? [0, 0] : [0, height / 2];
-    return { width: widthPx * sx, height, anchor, offset: this.footprintOffset(), ...shared, pivot };
+    return { width: sizePx * sx, height, anchor, offset: this.footprintOffset(), ...shared, pivot };
   }
 
   /** Shape/size keys, or minimized substitutes. */
@@ -560,14 +608,8 @@ export class Marker extends maplibregl.Marker {
   /** Builds the batch restoring `keys` to their prop values. */
   private restoreUpdates(keys: readonly (keyof PendingMarkerUpdates)[]): PendingMarkerUpdates {
     const updates: Record<string, unknown> = {};
-    for (const key of keys) {
-      if (key === "color" || key === "innerColor") continue;
-      updates[key] = this.props[key];
-    }
-    if (keys.includes("color") || keys.includes("innerColor")) {
-      if (this.props.innerColor !== undefined) updates.innerColor = this.props.innerColor;
-      else updates.color = this.props.color;
-    }
+    // an undefined `innerColor` restores to the map-style default at flush time
+    for (const key of keys) updates[key] = this.props[key];
     return updates as PendingMarkerUpdates;
   }
 
@@ -685,36 +727,15 @@ export class Marker extends maplibregl.Marker {
 
   /**
    * Sets the fill colour of the outer body of the marker.
-   * @param color - Any valid CSS colour string.
+   * @param color - Any valid CSS colour string, or `undefined` to return to the map-style default.
    */
   setOuterColor(color: MapTilerMarkerOptions["outerColor"]) {
-    this.applyTransitionable("outerColor", this.props.outerColor, color, colorTransitionCodec, (v) => {
-      this.setProp("outerColor", v);
-    });
+    this.setColorProp("outerColor", color);
   }
 
-  /** Returns the current outer body colour. */
+  /** Returns the outer body colour currently in effect — the explicit `outerColor`, else the default for the map's style. */
   getOuterColor() {
-    return this.props.outerColor;
-  }
-
-  //#endregion
-
-  //#region Adaptive Color
-
-  /**
-   * Sets the adaptive colour of the marker, resolved against the current map style.
-   * @param color - Built-in palette name or a custom `AdaptiveColor` definition, or `undefined` to remove.
-   */
-  setColor(color: MapTilerMarkerOptions["color"]) {
-    this.props.innerColor = undefined;
-    delete this[PendingUpdatesSymbol].innerColor;
-    this.setProp("color", color);
-  }
-
-  /** Returns the current adaptive colour (name or definition), or `undefined` if none is set. */
-  getColor() {
-    return this.props.color;
+    return this.getEffectiveColor("outerColor");
   }
 
   //#endregion
@@ -722,29 +743,17 @@ export class Marker extends maplibregl.Marker {
   //#region Inner Color
 
   /**
-   * Sets an explicit fill colour for the inner area of the marker, taking
-   * precedence over the adaptive `color`.
-   * @param color - Any valid CSS colour string.
+   * Sets an explicit fill colour for the inner area of the marker, replacing
+   * the map-style default.
+   * @param color - Any valid CSS colour string, or `undefined` to return to the map-style default.
    */
   setInnerColor(color: MapTilerMarkerOptions["innerColor"]) {
-    if (color === undefined && this.props.color !== undefined) {
-      this.props.innerColor = undefined;
-      this.setProp("color", this.props.color);
-      return;
-    }
-    this.applyTransitionable("innerColor", this.props.innerColor, color, colorTransitionCodec, (v) => {
-      this.setProp("innerColor", v);
-    });
+    this.setColorProp("innerColor", color);
   }
 
-  /** Returns the inner area colour currently in effect. */
+  /** Returns the inner area colour currently in effect — the explicit `innerColor`, else the default for the map's style. */
   getInnerColor() {
-    if (this.props.innerColor !== undefined) return this.props.innerColor;
-    if (this.props.color !== undefined) {
-      const adaptive = resolveAdaptiveColor(this.props.color);
-      if (adaptive) return getAdaptiveBgColor(adaptive, this.getCurrentStyleId() ?? "");
-    }
-    return undefined;
+    return this.getEffectiveColor("innerColor");
   }
 
   //#endregion
@@ -753,17 +762,15 @@ export class Marker extends maplibregl.Marker {
 
   /**
    * Sets the colour applied to the marker content (icon, text, etc.).
-   * @param color - Any valid CSS colour string.
+   * @param color - Any valid CSS colour string, or `undefined` to return to the map-style default.
    */
   setContentColor(color: MapTilerMarkerOptions["contentColor"]) {
-    this.applyTransitionable("contentColor", this.props.contentColor, color, colorTransitionCodec, (v) => {
-      this.setProp("contentColor", v);
-    });
+    this.setColorProp("contentColor", color);
   }
 
-  /** Returns the current content colour. */
+  /** Returns the content colour currently in effect — the explicit `contentColor`, else the default for the map's style. */
   getContentColor() {
-    return this.props.contentColor;
+    return this.getEffectiveColor("contentColor");
   }
 
   //#endregion
@@ -773,17 +780,15 @@ export class Marker extends maplibregl.Marker {
   /**
    * Sets the stroke colour of the marker outline.
    * Has no visible effect unless {@link setOutline} is also called.
-   * @param color - Any valid CSS colour string.
+   * @param color - Any valid CSS colour string, or `undefined` to return to the map-style default.
    */
   setOutlineColor(color: MapTilerMarkerOptions["outlineColor"]) {
-    this.applyTransitionable("outlineColor", this.props.outlineColor, color, colorTransitionCodec, (v) => {
-      this.setProp("outlineColor", v);
-    });
+    this.setColorProp("outlineColor", color);
   }
 
-  /** Returns the current outline stroke colour. */
+  /** Returns the outline stroke colour currently in effect — the explicit `outlineColor`, else the default for the map's style. */
   getOutlineColor() {
-    return this.props.outlineColor;
+    return this.getEffectiveColor("outlineColor");
   }
 
   //#endregion
@@ -1254,6 +1259,7 @@ export class Marker extends maplibregl.Marker {
    * (terrain-aware) position, same as a marker that never called this.
    * @param meters - Altitude in meters, measured per `options.relativeTo`, or `false` to unset altitude entirely.
    * @param options - See {@link SetAltitudeOptions}. Ignored when `meters` is `false`.
+   * @experimental
    */
   setAltitude(meters: false): this;
   setAltitude(meters: number, options?: SetAltitudeOptions): this;
@@ -1294,17 +1300,26 @@ export class Marker extends maplibregl.Marker {
     return this;
   }
 
-  /** Returns the current altitude in meters, or 0 if never set. */
+  /**
+   * Returns the current altitude in meters, or 0 if never set.
+   * @experimental
+   */
   getAltitude(): number {
     return this.altitudeMeters;
   }
 
-  /** Returns what {@link getAltitude}'s meters are measured from. Defaults to `"ground"`. */
+  /**
+   * Returns what {@link getAltitude}'s meters are measured from. Defaults to `"ground"`.
+   * @experimental
+   */
   getAltitudeReference(): AltitudeReference {
     return this.altitudeReference;
   }
 
-  /** True from the first {@link setAltitude} call onward. */
+  /**
+   * True from the first {@link setAltitude} call onward.
+   * @experimental
+   */
   hasActiveAltitude(): boolean {
     return this.altitudeEngaged;
   }
@@ -1334,6 +1349,7 @@ export class Marker extends maplibregl.Marker {
    * the SDK stylesheet and {@link GroundLineOptions.className}.
    * @param enabled - Whether to show the line.
    * @param options - Optional extra CSS class for styling.
+   * @experimental
    */
   setGroundLine(enabled: boolean, options: GroundLineOptions = {}): this {
     this.groundLineEnabled = enabled;

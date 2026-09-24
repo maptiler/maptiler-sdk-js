@@ -44,6 +44,7 @@
   },
   "scripts": {
     "prepare": "husky",
+    "prepack": "npm run build",
     "doc": "rm -rf docs/* && typedoc --out docs && cp -r images docs/",
     "ncu": "npx npm-check-updates",
     "lint": "tsc --noEmit && eslint src",

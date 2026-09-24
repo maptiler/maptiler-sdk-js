@@ -73,7 +73,7 @@ async function main() {
 
   await map.onLoadAsync();
 
-  const base: MapTilerMarkerSVGOptions = { shape: "circle", size: "l", color: "blue", content: "M" };
+  const base: MapTilerMarkerSVGOptions = { shape: "circle", size: "l", content: "M" };
 
   const enterSelect = populateSelect("enter-preset", ENTER_PRESETS);
   const idleSelect = populateSelect("idle-preset", IDLE_PRESETS);

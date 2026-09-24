@@ -1,18 +1,17 @@
 import type { MarkerOptions } from "maplibre-gl";
 import type { EasingFunctionName } from "../MaptilerAnimation/types";
-import type { AdaptiveColor, AdaptiveColorName } from "./marker-adaptive-colors";
 import type { Marker } from "./Marker";
 
 //#region Primitives
 
 /** Visual shape of the marker body. */
-export type MapTilerMarkerShape = "rounded" | "circle" | "bubble-circle" | "bubble-square" | "square" | "bulb" | "squircle" | "shield";
+export type MapTilerMarkerShape = "circle" | "square" | "bubble-circle" | "bubble-square" | "maptiler" | "maptiler-full";
 
 /** T-shirt size for the marker. */
-export type MapTilerMarkerSize = "xs" | "s" | "m" | "l" | "xl";
+export type MapTilerMarkerSize = "xs" | "s" | "m" | "l";
 
 /** Drop-shadow intensity applied beneath the marker. */
-export type MapTilerMarkerShadow = "soft" | "medium" | "strong";
+export type MapTilerMarkerShadow = "none" | "soft" | "medium" | "strong";
 
 /** Behaviour when this marker spatially overlaps another. */
 export const CollisionBehaviour = {
@@ -121,7 +120,7 @@ export type MarkerCollisionDisplayState = "visible" | "hidden" | "minimized";
  */
 export type MarkerMinimizedOptions = Pick<
   MapTilerMarkerBaseOptions,
-  "shape" | "size" | "color" | "innerColor" | "outerColor" | "contentColor" | "outline" | "outlineColor" | "shadow" | "opacity"
+  "shape" | "size" | "innerColor" | "outerColor" | "contentColor" | "outline" | "outlineColor" | "shadow" | "opacity"
 >;
 
 /**
@@ -142,16 +141,23 @@ export type MarkerPriorityExpression = unknown[];
  *   is a safe default whether or not the map has terrain.
  * - `sea` — above sea level / the flat mercator plane outright, ignoring
  *   terrain entirely, even when it's enabled.
+ * @experimental
  */
 export type AltitudeReference = "ground" | "sea";
 
-/** Options for {@link Marker.setAltitude}. */
+/**
+ * Options for {@link Marker.setAltitude}.
+ * @experimental
+ */
 export type SetAltitudeOptions = {
   /** What the altitude is measured from. Defaults to `"ground"`. */
   relativeTo?: AltitudeReference;
 };
 
-/** Configures the optional dashed line from a marker down (or up) to its ground point. Off by default — see {@link Marker.setGroundLine}. */
+/**
+ * Configures the optional dashed line from a marker down (or up) to its ground point. Off by default — see {@link Marker.setGroundLine}.
+ * @experimental
+ */
 export type GroundLineOptions = {
   /**
    * Extra class applied to the ground-line element alongside the default
@@ -390,30 +396,25 @@ export type MapTilerMarkerUIStates = Partial<Record<MapTilerMarkerUIStateName, U
 //#region Base Options
 
 // `color` is omitted from the MapLibre options because it styles the default
-// pin (which we replace entirely) — we repurpose the key for adaptive colours
+// pin, which we replace entirely
 export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" | "opacityWhenCovered" | "color"> & {
-  /** Visual shape of the marker body. */
+  /** Visual shape of the marker body. Defaults to `"maptiler"`. */
   shape?: MapTilerMarkerShape;
   /** Size of the marker. */
   size?: MapTilerMarkerSize;
   /**
-   * Adaptive colour of the marker. Resolves the marker's inner (background)
-   * colour against the current map style via the colour's `bgColors`, and
-   * re-resolves whenever the map style changes.
-   * Accepts a built-in palette name (`"blue"` | `"red"` | `"green"`) or a
-   * custom {@link AdaptiveColor} definition.
-   * An explicit `innerColor` takes precedence and disables adaptation.
+   * Fill colour of the inner area of the marker. Defaults to a colour chosen
+   * for the current map style, re-resolved whenever the style changes.
+   * Setting it explicitly makes the colour static.
    */
-  color?: AdaptiveColorName | AdaptiveColor;
-  /** Explicit fill colour of the inner area of the marker. Static — takes precedence over `color`. */
   innerColor?: string;
-  /** Fill colour of the outer area (body/border) of the marker. */
+  /** Fill colour of the outer area (body/border) of the marker. Defaults to the current map style's colour, like `innerColor`. */
   outerColor?: string;
-  /** Colour applied to the marker content (icon, text, etc.). */
+  /** Colour applied to the marker content (icon, text, etc.). Defaults to the current map style's colour, like `innerColor`. */
   contentColor?: string;
   /** Outline width in pixels. Pass `true` to use the default width. */
   outline?: true | number;
-  /** Colour of the marker outline. */
+  /** Colour of the marker outline. Defaults to the current map style's colour, like `innerColor`. */
   outlineColor?: string;
   /** Drop-shadow intensity. */
   shadow?: MapTilerMarkerShadow;
@@ -490,7 +491,6 @@ export type MapTilerMarkerSVGOptions = MapTilerMarkerBaseOptions & Exclude<Marke
 
 type MapTilerMarkerElementPropKeys =
   | "shape"
-  | "color"
   | "outerColor"
   | "innerColor"
   | "contentColor"

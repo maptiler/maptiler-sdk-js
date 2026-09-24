@@ -9,85 +9,48 @@ import { defaultReferenceStyleMap } from "@maptiler/client";
 export type ReferenceStyleKey = Lowercase<keyof typeof defaultReferenceStyleMap>;
 
 /**
- * Style key an adaptive colour can target: an unversioned reference-style id,
+ * Style key the marker colours can target: an unversioned reference-style id,
  * optionally with a variant suffix (e.g. `"streets"`, `"streets-dark"`).
  * Versioned style ids (`"streets-v4-dark"`) are normalised to this form by
- * {@link getAdaptiveBgColor}.
+ * {@link getAdaptiveColors}.
  */
 export type AdaptiveStyleKey = ReferenceStyleKey | `${ReferenceStyleKey}-${string}`;
-
-/** A named colour with per-map-style background variants. */
-export type AdaptiveColor = {
-  /** Human-readable display name. */
-  name: string;
-  /**
-   * Background colour per map style. `base` doubles as the fallback for
-   * styles without a dedicated entry.
-   */
-  bgColors: { base: string } & Partial<Record<AdaptiveStyleKey, string>>;
-};
 
 //#endregion
 
 //#region Palette
 
-export const ADAPTIVE_COLORS = {
-  blue: {
-    name: "Blue",
-    bgColors: {
-      base: "hsl(223, 100%, 65%)",
-      "base-dark": "hsl(223, 100%, 75%)",
-      streets: "hsl(215, 100%, 45%)",
-      "streets-dark": "hsl(215, 100%, 65%)",
-      hybrid: "hsl(210, 100%, 45%)",
-      dataviz: "hsl(208, 100%, 55%)",
-      "dataviz-dark": "hsl(208, 100%, 65%)",
-      topo: "hsl(215, 100%, 55%)",
-    },
-  },
-  red: {
-    name: "Red",
-    bgColors: {
-      base: "hsl(358, 100%, 65%)",
-      "base-dark": "hsl(358, 100%, 75%)",
-      streets: "hsl(350, 100%, 45%)",
-      "streets-dark": "hsl(350, 100%, 55%)",
-      hybrid: "hsl(0, 100%, 45%)",
-      dataviz: "hsl(3, 100%, 55%)",
-      "dataviz-dark": "hsl(3, 100%, 65%)",
-      topo: "hsl(5, 100%, 45%)",
-    },
-  },
-  green: {
-    name: "Green",
-    bgColors: {
-      base: "hsl(145, 100%, 30%)",
-      "base-dark": "hsl(145, 100%, 40%)",
-      streets: "hsl(149, 100%, 35%)",
-      "streets-dark": "hsl(149, 100%, 45%)",
-      hybrid: "hsl(155, 100%, 40%)",
-      dataviz: "hsl(160, 100%, 35%)",
-      "dataviz-dark": "hsl(160, 100%, 45%)",
-      topo: "hsl(145, 100%, 25%)",
-    },
-  },
-} satisfies Record<string, AdaptiveColor>;
+/** The colours of each marker part for one map style. */
+export type AdaptiveColorSet = {
+  /** Fill of the inner area. */
+  innerColor: string;
+  /** Fill of the outer body / border. */
+  outerColor: string;
+  /** Colour of the content (text, glyph). */
+  contentColor: string;
+  /** Stroke of the outline (only visible when an outline width is set). */
+  outlineColor: string;
+};
 
-/** Name of a built-in adaptive colour. */
-export type AdaptiveColorName = keyof typeof ADAPTIVE_COLORS;
+/**
+ * Default marker colours per map style. `base` doubles as the fallback for
+ * styles without a dedicated entry.
+ * TODO: outline (and outer / content on light styles) are placeholders — the former global defaults — until the designs specify them per style.
+ */
+export const ADAPTIVE_COLORS: { base: AdaptiveColorSet } & Partial<Record<AdaptiveStyleKey, AdaptiveColorSet>> = {
+  base: { innerColor: "#4D7FFF", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
+  "base-dark": { innerColor: "#80A4FF", outerColor: "#292929", contentColor: "#292929", outlineColor: "transparent" },
+  streets: { innerColor: "#0060E5", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
+  "streets-dark": { innerColor: "#4D97FF", outerColor: "#292929", contentColor: "#292929", outlineColor: "transparent" },
+  hybrid: { innerColor: "#0073E5", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
+  dataviz: { innerColor: "#1A94FF", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
+  "dataviz-dark": { innerColor: "#4DACFF", outerColor: "#292929", contentColor: "#292929", outlineColor: "transparent" },
+  topo: { innerColor: "#1A79FF", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
+};
 
 //#endregion
 
 //#region Resolution
-
-/**
- * Resolves a marker `color` option value to its {@link AdaptiveColor}
- * definition: built-in palette names are looked up, definitions pass through.
- * Returns `undefined` for names unknown at runtime (untyped callers).
- */
-export function resolveAdaptiveColor(color: AdaptiveColorName | AdaptiveColor): AdaptiveColor | undefined {
-  return typeof color === "string" ? (ADAPTIVE_COLORS[color] as AdaptiveColor | undefined) : color;
-}
 
 /**
  * Normalises a style id to an {@link AdaptiveStyleKey} by dropping the
@@ -98,19 +61,18 @@ function normalizeStyleKey(styleId: string): string {
 }
 
 /**
- * Resolves the background colour of an adaptive colour for a given map style.
+ * Resolves the default marker colours for a given map style.
  *
  * Lookup order: exact style key (version stripped, variant kept) → reference
- * style without variant → `base`.
- * @param color - Adaptive colour definition.
+ * style without variant → `base`, so an unknown style id resolves to `base`.
  * @param styleId - Style id, versioned (`"streets-v4-dark"`) or not (`"streets-dark"`).
  */
-export function getAdaptiveBgColor(color: AdaptiveColor, styleId: string): string {
-  const bgColors: Record<string, string | undefined> = color.bgColors;
+export function getAdaptiveColors(styleId: string): AdaptiveColorSet {
+  const colors: Record<string, AdaptiveColorSet | undefined> = ADAPTIVE_COLORS;
   const key = normalizeStyleKey(styleId);
   // this is dirty but it's the only way to implement it for now...
   const referenceKey = key.split("-")[0];
-  return bgColors[key] ?? bgColors[referenceKey] ?? color.bgColors.base;
+  return colors[key] ?? colors[referenceKey] ?? ADAPTIVE_COLORS.base;
 }
 
 //#endregion

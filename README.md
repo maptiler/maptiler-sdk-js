@@ -1337,6 +1337,52 @@ When defining a new _ramp_, the colors can be an RGB array (`[number, number, nu
 
 Many methods are available on color ramps, such as getting the `<canvas>` element of it, rescaling it, flipping it or [resampling it in a non-linear way](colorramp.md). Read more on [our reference page](https://docs.maptiler.com/sdk-js/api/color-ramp/) and have a look at our [examples](https://docs.maptiler.com/sdk-js/examples/?q=colorramp) to see how they work.
 
+### Markers
+
+The SDK's `Marker` is an enhanced version of MapLibre's marker, designed for MapTiler maps. It adds built-in shapes and sizes, colours that follow the active MapTiler style, collision handling, interaction states, transitions and enter/idle/exit animations.
+
+Add markers through the map, so they are registered for collisions and style-aware colours:
+
+```ts
+import { Map, Marker } from "@maptiler/sdk";
+
+// from options
+map.addMarker({ lngLat: [8.54, 47.37], shape: "bubble-circle", size: "m", content: "A1" });
+
+// or from an instance
+const marker = new Marker({
+  shape: "circle",
+  priority: 10,
+  states: { hover: { scale: [1.2, 1.2] } },
+  transitions: { position: [600, "QuadraticInOut"] },
+  animations: { enter: { preset: "drop" }, exit: { preset: "fade" } },
+}).setLngLat([8.55, 47.38]);
+map.addMarker(marker);
+
+map.setMarkerCollisionOptions({ behaviour: "hide-by-priority" });
+
+map.getMarker(marker.id);
+map.removeMarker(marker.id);
+```
+
+> [!WARNING]
+> `marker.addTo(map)` is deprecated. It now delegates to `map.addMarker(marker)` and logs a one-time warning. Use `map.addMarker()` instead.
+
+Main differences from the MapLibre marker:
+- The `color` option is removed. Use `innerColor`, `outerColor`, `contentColor` and `outlineColor`.
+- `scale` is a 2D vector, `[x, y]`.
+- `setRotation()` rotates the marker's shape rather than its container.
+
+The plain MapLibre marker is still available as `MarkerMLGL`:
+
+```ts
+import { MarkerMLGL } from "@maptiler/sdk";
+
+new MarkerMLGL({ color: "#f00" }).setLngLat([8.54, 47.37]).addTo(map);
+```
+
+See `demos/16-maptiler-markers.html` to `demos/19-maptiler-markers-lifecycle-animations.html` for examples.
+
 ### Camera routes and animations
 
 The SDK comes with several classes to help with animations, particularly route animations.
@@ -1369,7 +1415,8 @@ const marker = new Marker().setLngLat(
     -7.449346225791231,
     39.399728941536836,
   )
-).addTo(map);
+);
+map.addMarker(marker);
 
 // TimeUpdate is fired every frame
 animation.addEventListener(AnimationEventTypes.TimeUpdate, (e) => {

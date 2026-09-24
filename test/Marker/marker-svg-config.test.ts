@@ -3,14 +3,14 @@ import { DEFAULT_SHAPE, DEFAULT_SIZE, SHADOW_FILTER, SHAPES, SIZE_PX, getShapeAn
 
 describe("SIZE_PX / SHAPES tables", () => {
   it("has a pixel size for every marker size key", () => {
-    const sizes = ["xs", "s", "m", "l", "xl"];
+    const sizes = ["xs", "s", "m", "l"];
     for (const key of Object.keys(SIZE_PX)) {
       expect(sizes).toContain(key);
     }
   });
 
-  it("sizes increase monotonically from xs to xl", () => {
-    const ordered = (["xs", "s", "m", "l", "xl"] as const).map((s) => SIZE_PX[s]);
+  it("sizes increase monotonically from xs to l", () => {
+    const ordered = (["xs", "s", "m", "l"] as const).map((s) => SIZE_PX[s]);
     for (let i = 1; i < ordered.length; i++) {
       expect(ordered[i]).toBeGreaterThan(ordered[i - 1]);
     }
@@ -25,7 +25,7 @@ describe("SIZE_PX / SHAPES tables", () => {
   });
 
   it("has a drop-shadow filter for every shadow intensity", () => {
-    const shadows = ["soft", "medium", "strong"];
+    const shadows = ["none", "soft", "medium", "strong"];
     for (const key of Object.keys(SHADOW_FILTER)) {
       expect(shadows).toContain(key);
     }
@@ -56,12 +56,12 @@ describe("getShapeAnchorOffset", () => {
 
   it("scales the offset with size", () => {
     const small = getShapeAnchorOffset("bubble-square", "s")[1];
-    const large = getShapeAnchorOffset("bubble-square", "xl")[1];
+    const large = getShapeAnchorOffset("bubble-square", "l")[1];
     expect(Math.abs(large)).toBeGreaterThan(Math.abs(small));
   });
 
   it("matches the manual formula for a bottom-anchored shape", () => {
-    const shapeKey = "rounded" as const;
+    const shapeKey = "maptiler" as const;
     const sizeKey = "m" as const;
     const shape = SHAPES[shapeKey];
     const heightPx = SIZE_PX[sizeKey];
@@ -72,7 +72,7 @@ describe("getShapeAnchorOffset", () => {
 
   it("matches the manual formula for every other bottom-anchored shape", () => {
     const sizeKey = "m" as const;
-    for (const shapeKey of ["bubble-circle", "bulb", "squircle", "shield"] as const) {
+    for (const shapeKey of ["bubble-circle", "bubble-square", "maptiler", "maptiler-full"] as const) {
       const shape = SHAPES[shapeKey];
       expect(shape.anchor).toBe("bottom");
       const heightPx = SIZE_PX[sizeKey];

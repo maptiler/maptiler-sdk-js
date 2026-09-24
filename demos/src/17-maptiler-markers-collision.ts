@@ -11,12 +11,9 @@ const LNG_SPREAD = 0.4;
 const LAT_SPREAD = 0.4;
 const MARKER_COUNT = 400;
 
-const COLORS = ["blue"] as const;
-
 /** Static per-marker traits; positions live separately so they can be reshuffled. */
 type MarkerSpec = {
   priority: number;
-  color: (typeof COLORS)[number];
 };
 
 function randomPosition(): [number, number] {
@@ -37,7 +34,6 @@ async function main() {
   // unambiguous; the label shows it
   const specs: MarkerSpec[] = Array.from({ length: MARKER_COUNT }, (_, i) => ({
     priority: i + 1,
-    color: COLORS[Math.floor(Math.random() * COLORS.length)],
   }));
 
   let positions = specs.map(() => randomPosition());
@@ -54,7 +50,6 @@ async function main() {
       const options: MapTilerMarkerOptions = {
         shape: "circle",
         size: "m",
-        color: spec.color,
         content: String(spec.priority),
         title: `priority ${String(spec.priority)}`,
         priority: spec.priority,

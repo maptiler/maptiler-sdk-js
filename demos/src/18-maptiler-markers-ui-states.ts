@@ -41,7 +41,7 @@ async function main() {
 
   await map.onLoadAsync();
 
-  const base: MapTilerMarkerOptions = { shape: "circle", size: "l", color: "blue" };
+  const base: MapTilerMarkerOptions = { shape: "circle", size: "l" };
   const at = (i: number): [number, number] => [CENTER[0] + i * SPACING, CENTER[1]];
 
   const hoverMarker = new Marker({
@@ -68,7 +68,7 @@ async function main() {
     ...base,
     content: "A",
     title: "Active",
-    states: { active: { shape: "square", color: "red" } },
+    states: { active: { shape: "square", innerColor: "red" } },
   });
   activeMarker.setLngLat(at(0));
   map.addMarker(activeMarker);
@@ -79,7 +79,7 @@ async function main() {
     content: "D",
     title: "Dragging",
     draggable: true,
-    states: { dragging: { scale: [1.5, 1.5], color: "red" } },
+    states: { dragging: { scale: [1.5, 1.5], innerColor: "red" } },
   });
   dragMarker.setLngLat(at(1));
   map.addMarker(dragMarker);
