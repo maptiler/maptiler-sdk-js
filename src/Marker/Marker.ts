@@ -89,9 +89,6 @@ import {
 // `addTo` deprecation warning is logged once per session
 let hasWarnedAddToDeprecation = false;
 
-const maplibreMarkerConstructorOverrides: MarkerOptions = {
-  scale: 1, // scale in our class will be a 2D vector.
-};
 import {
   ADAPTIVE_COLOR_KEYS,
   COLLISION_FADE_DURATION_MS,
