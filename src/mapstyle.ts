@@ -1,8 +1,9 @@
 import { validateStyleMin } from "@maplibre/maplibre-gl-style-spec";
+import type { StyleSpecification } from "maplibre-gl";
 import { MapStyle, ReferenceMapStyle, MapStyleVariant, mapStylePresetList, expandMapStyle } from "@maptiler/client";
 
-export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant | maplibregl.StyleSpecification | null | undefined): {
-  style: string | maplibregl.StyleSpecification;
+export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant | StyleSpecification | null | undefined): {
+  style: string | StyleSpecification;
   requiresUrlMonitoring: boolean;
   isFallback: boolean;
   isJSON?: boolean;
@@ -83,7 +84,7 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
   // If the style validates as a StyleSpecification object, we use it
   if (validateStyleMin(style).length === 0) {
     return {
-      style: style as maplibregl.StyleSpecification,
+      style: style as StyleSpecification,
       requiresUrlMonitoring: false,
       isFallback: false,
       isJSON: true,
@@ -118,7 +119,7 @@ export function urlToAbsoluteUrl(url: string): string {
 type StyleValidationReport = {
   isValidJSON: boolean;
   isValidStyle: boolean;
-  styleObject: maplibregl.StyleSpecification | null;
+  styleObject: StyleSpecification | null;
 };
 
 export function convertStringToStyleSpecification(str: string): StyleValidationReport {
@@ -129,7 +130,7 @@ export function convertStringToStyleSpecification(str: string): StyleValidationR
     return {
       isValidJSON: true,
       isValidStyle: styleErrs.length === 0,
-      styleObject: styleErrs.length === 0 ? (styleObj as maplibregl.StyleSpecification) : null,
+      styleObject: styleErrs.length === 0 ? (styleObj as StyleSpecification) : null,
     };
   } catch (_e) {
     return {

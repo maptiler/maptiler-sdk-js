@@ -10,7 +10,6 @@ async function main() {
     container: "map",
     apiKey: "DOESNT_MATTER",
     language: Language.ARABIC,
-    rtlTextPlugin: disableRTL ? false : undefined,
     zoom: 7.5,
     center: [43.648, 33.15],
     terrain: false,

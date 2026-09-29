@@ -1,4 +1,4 @@
-import maplibregl from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 import { Base64 } from "js-base64";
 import type {
   StyleSpecification,
@@ -6,9 +6,9 @@ import type {
   ControlPosition,
   StyleSwapOptions,
   StyleOptions,
-  MapDataEvent,
+  MapSourceDataEvent,
+  MapStyleDataEvent,
   // Tile,
-  RasterDEMSourceSpecification,
   RequestTransformFunction,
   Source,
   LayerSpecification,
@@ -25,20 +25,27 @@ import type {
   AnimationOptions,
   LngLatBoundsLike,
   LngLatLike,
+  AllPaintProperties,
+  AllLayoutProperties,
+  MapEventType,
+  MapLayerEventType,
+  MapTerrainEvent,
+  Listener,
+  Subscription,
+  TerrainSpecification,
 } from "maplibre-gl";
 import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
 import { defaults } from "./constants/defaults";
 import { MaptilerLogoControl } from "./controls/MaptilerLogoControl";
-import { checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, enableRTL, replaceLanguage } from "./tools";
+import { checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, replaceLanguage } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
 import { styleToStyle } from "./mapstyle";
 import { MaptilerTerrainControl } from "./controls/MaptilerTerrainControl";
 import { MaptilerNavigationControl } from "./controls/MaptilerNavigationControl";
 import { MapStyle, geolocation, getLanguageInfoFromFlag, toLanguageInfo } from "@maptiler/client";
 import { MaptilerGeolocateControl } from "./controls/MaptilerGeolocateControl";
-import { ScaleControl } from "./MLAdapters/ScaleControl";
-import { FullscreenControl } from "./MLAdapters/FullscreenControl";
+import { ScaleControl, FullscreenControl } from "maplibre-gl";
 import { MaptilerExternalControlType, MaptilerExternalControl } from "./controls/MaptilerExternalControl";
 
 import Minimap from "./controls/Minimap";
@@ -64,6 +71,40 @@ export type LoadWithTerrainEvent = {
   };
 };
 
+/**
+ * Shape of an event fired by the SDK on top of the MapLibre events,
+ * with the properties passed to `fire(type, properties)` merged in.
+ */
+type SDKMapEvent<TType extends string, TProps extends object = object> = maplibregl.Event<TType> & { target: Map } & TProps;
+
+/**
+ * Events fired by the MapTiler SDK `Map` in addition to the MapLibre ones.
+ */
+export type MaptilerMapEventType = {
+  /** Fired once the map style and the SDK controls are ready */
+  ready: SDKMapEvent<"ready">;
+  /** Fired once the map is loaded and the terrain (if any) is ready */
+  loadWithTerrain: LoadWithTerrainEvent;
+  /** Fired when the WebGL context is lost unexpectedly (i.e. not after `map.remove()`) */
+  webglContextLost: SDKMapEvent<"webglContextLost">;
+  terrainAnimationStart: SDKMapEvent<"terrainAnimationStart", { terrain: TerrainSpecification | null }>;
+  terrainAnimationStop: SDKMapEvent<"terrainAnimationStop", { terrain: TerrainSpecification | null }>;
+  "projection.change": SDKMapEvent<"projection.change", { projection: ProjectionSpecification }>;
+  "cubemaplayer:animateindone": SDKMapEvent<"cubemaplayer:animateindone", Partial<CubemapLayer>>;
+  "cubemaplayer:animateoutdone": SDKMapEvent<"cubemaplayer:animateoutdone", Partial<CubemapLayer>>;
+  "cubemaplayer:onremove": SDKMapEvent<"cubemaplayer:onremove", Partial<CubemapLayer>>;
+  "radialgradientlayer:animateindone": SDKMapEvent<"radialgradientlayer:animateindone", Partial<RadialGradientLayer>>;
+  "radialgradientlayer:animateoutdone": SDKMapEvent<"radialgradientlayer:animateoutdone", Partial<RadialGradientLayer>>;
+  "radialgradientlayer:onremove": SDKMapEvent<"radialgradientlayer:onremove", Partial<RadialGradientLayer>>;
+};
+
+/**
+ * All the events that can be listened to on a MapTiler SDK `Map`: the MapLibre ones plus the SDK ones.
+ * Since MapLibre v6.3, `on`/`once`/`off`/`fire` only accept the keys of `MapEventType`,
+ * so the SDK `Map` overrides them to accept its own events as well.
+ */
+export type MapEventTypeSDK = MapEventType & MaptilerMapEventType;
+
 export const GeolocationType: {
   POINT: "POINT";
   COUNTRY: "COUNTRY";
@@ -71,13 +112,6 @@ export const GeolocationType: {
   POINT: "POINT",
   COUNTRY: "COUNTRY",
 } as const;
-
-type MapTerrainDataEvent = MapDataEvent & {
-  isSourceLoaded: boolean;
-  // tile: Tile;
-  sourceId: string;
-  source: RasterDEMSourceSpecification;
-};
 
 /**
  * The type of projection, `undefined` means it's decided by the style and if the style does not contain any projection info,
@@ -253,13 +287,6 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo" | "attribut
   logSDKVersion?: boolean;
 
   /**
-   * Whether to enable the RTL plugin or import a different one.
-   * Default is undefined, which means the plugin is enabled by default.
-   */
-
-  rtlTextPlugin?: boolean | string;
-
-  /**
    * Whether to enable the experimental tile preloading feature.
    * Default is false.
    * @experimental
@@ -291,6 +318,51 @@ export interface ProjectionChangeOptions {
  */
 export class Map extends maplibregl.Map {
   public readonly telemetry: Telemetry;
+
+  /**
+   * Adds a listener for events of a specified type, optionally limited to features in one or more layers.
+   * Accepts the MapLibre events as well as the SDK events (see {@link MaptilerMapEventType}).
+   */
+  override on<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[], listener: (ev: MapLayerEventType[T] & object) => void): Subscription;
+  override on<T extends keyof MapEventTypeSDK>(type: T, listener: (ev: MapEventTypeSDK[T] & object) => void): Subscription;
+  override on(type: keyof MapEventTypeSDK, listener: Listener): Subscription;
+  override on(type: keyof MapEventTypeSDK, layerIdsOrListener: string | string[] | Listener, listener?: Listener): Subscription {
+    // The SDK event names are not part of MapLibre's `MapEventType`, but MapLibre's `Evented` handles any string at runtime
+    return (super.on as (...args: unknown[]) => Subscription).call(this, type, layerIdsOrListener, listener);
+  }
+
+  /**
+   * Adds a listener that will be called only once to a specified event type, optionally limited to features in one or more layers.
+   * Accepts the MapLibre events as well as the SDK events (see {@link MaptilerMapEventType}).
+   */
+  override once<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[], listener: (ev: MapLayerEventType[T] & object) => void): this;
+  override once<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[]): Promise<MapLayerEventType[T] & object>;
+  override once<T extends keyof MapEventTypeSDK>(type: T, listener: (ev: MapEventTypeSDK[T] & object) => void): this;
+  override once<T extends keyof MapEventTypeSDK>(type: T): Promise<MapEventTypeSDK[T] & object>;
+  override once(type: keyof MapEventTypeSDK, listener?: Listener): this | Promise<any>;
+  override once(type: keyof MapEventTypeSDK, layerIdsOrListener?: string | string[] | Listener, listener?: Listener): this | Promise<any> {
+    return (super.once as (...args: unknown[]) => this | Promise<any>).call(this, type, layerIdsOrListener, listener);
+  }
+
+  /**
+   * Removes an event listener previously added with {@link Map.on} or {@link Map.once}.
+   * Accepts the MapLibre events as well as the SDK events (see {@link MaptilerMapEventType}).
+   */
+  override off<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[], listener: (ev: MapLayerEventType[T] & object) => void): this;
+  override off<T extends keyof MapEventTypeSDK>(type: T, listener: (ev: MapEventTypeSDK[T] & object) => void): this;
+  override off(type: keyof MapEventTypeSDK, listener: Listener): this;
+  override off(type: keyof MapEventTypeSDK, layerIdsOrListener: string | string[] | Listener, listener?: Listener): this {
+    return (super.off as (...args: unknown[]) => this).call(this, type, layerIdsOrListener, listener);
+  }
+
+  /**
+   * Fires an event. Accepts the MapLibre events as well as the SDK events (see {@link MaptilerMapEventType}).
+   */
+  override fire(event: MapEventTypeSDK[keyof MapEventTypeSDK]): this;
+  override fire(type: keyof MapEventTypeSDK, properties?: object): this;
+  override fire(typeOrEvent: keyof MapEventTypeSDK | MapEventTypeSDK[keyof MapEventTypeSDK], properties?: object): this {
+    return super.fire(typeOrEvent as never, properties);
+  }
 
   private space?: CubemapLayer;
   private halo?: RadialGradientLayer;
@@ -680,13 +752,6 @@ export class Map extends maplibregl.Map {
         try {
           this.telemetry.registerModule("experimental-tile-preloader", EXPERIMENTAL_TILE_PRELOADING_VERSION);
         } catch {} // do nothing
-      }
-
-      // If the rtlTextPlugin option is a string, we assume it is a url and enable the plugin
-      // If the rtlTextPlugin option is undefined, it is enabled by default and will override the default url
-      // If the rtlTextPlugin option is false (ot anything else), we don't enable the plugin
-      if (typeof options.rtlTextPlugin === "string" || typeof options.rtlTextPlugin === "undefined") {
-        void enableRTL(options.rtlTextPlugin);
       }
     });
 
@@ -1084,7 +1149,8 @@ export class Map extends maplibregl.Map {
       }
     });
 
-    const terrainCallback = (evt: LoadWithTerrainEvent) => {
+    // MapLibre fires the "terrain" event with the terrain specification merged in, but does not type it
+    const terrainCallback = (evt: MapTerrainEvent & { terrain?: LoadWithTerrainEvent["terrain"] | null }) => {
       if (!evt.terrain) return;
       terrainEventTriggered = true;
       terrainEventData = {
@@ -1107,7 +1173,7 @@ export class Map extends maplibregl.Map {
     }
 
     // Display a message if WebGL context is lost
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+
     this.once("load", () => {
       this.getCanvas().addEventListener("webglcontextlost", (event) => {
         if (this._removed === true) {
@@ -1308,7 +1374,7 @@ export class Map extends maplibregl.Map {
       this.setHaloFromStyle({ style: styleInfo.style as StyleSpecificationWithMetaData });
     };
 
-    const handleStyleLoad = (e?: maplibregl.MapStyleDataEvent) => {
+    const handleStyleLoad = (e?: maplibregl.MapStyleLoadEvent | MaptilerMapEventType["projection.change"]) => {
       const styleSpec = (e?.target.getStyle() ?? styleInfo.style) as StyleSpecificationWithMetaData;
 
       if (this.spaceboxLoadingState.styleLoadedCallbackFired) {
@@ -1503,7 +1569,7 @@ export class Map extends maplibregl.Map {
    * map.setPaintProperty('my-layer', 'fill-color', '#faafee');
    * ```
    */
-  setPaintProperty(layerId: string, name: string, value: any, options?: StyleSetterOptions): this {
+  setPaintProperty<K extends keyof AllPaintProperties>(layerId: string, name: K, value: AllPaintProperties[K], options?: StyleSetterOptions): this {
     this.minimap?.setPaintProperty(layerId, name, value, options);
     return super.setPaintProperty(layerId, name, value, options);
   }
@@ -1521,7 +1587,7 @@ export class Map extends maplibregl.Map {
    * @param options - Options object.
    * @returns `this`
    */
-  setLayoutProperty(layerId: string, name: string, value: any, options?: StyleSetterOptions): this {
+  setLayoutProperty<K extends keyof AllLayoutProperties>(layerId: string, name: K, value: AllLayoutProperties[K], options?: StyleSetterOptions): this {
     this.minimap?.setLayoutProperty(layerId, name, value, options);
     return super.setLayoutProperty(layerId, name, value, options);
   }
@@ -1826,8 +1892,6 @@ export class Map extends maplibregl.Map {
         this.fire("terrainAnimationStop", { terrain: this.terrain });
       }
 
-      // When growing the terrain, this is only necessary before rendering
-      this._elevationFreeze = false;
       this.triggerRepaint();
     };
 
@@ -1851,7 +1915,7 @@ export class Map extends maplibregl.Map {
 
     // This function is mapped to a map "data" event. It checks that the terrain
     // tiles are loaded and when so, it starts an animation to make the terrain grow
-    const dataEventTerrainGrow = (evt: MapTerrainDataEvent) => {
+    const dataEventTerrainGrow = (evt: MapSourceDataEvent | MapStyleDataEvent) => {
       if (!this.terrain) {
         return;
       }
@@ -1965,10 +2029,6 @@ export class Map extends maplibregl.Map {
 
       // normalized value in interval [0, 1] of where we are currently in the animation loop
       const positionInLoop = (performance.now() - startTime) / this.terrainAnimationDuration;
-
-      // At disabling, this should be togled fo both the setTerrain() (at the end of the animation)
-      // and also just before triggerRepain(), this is why we moved it this high
-      this._elevationFreeze = false;
 
       // The animation goes on until we reached 99% of the growing sequence duration
       if (positionInLoop < 0.99) {

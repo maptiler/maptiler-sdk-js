@@ -1,4 +1,4 @@
-import maplibregl from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 import type { RequestParameters, ResourceType, RequestTransformFunction, SymbolLayerSpecification } from "maplibre-gl";
 import { defaults } from "./constants/defaults";
 import { config } from "./config";
@@ -8,21 +8,6 @@ import type { Map as MapSDK } from "./Map";
 
 // TODO These function should gradually be moved to
 // to utils directory
-
-export async function enableRTL(customPluginURL?: string) {
-  // Prevent this from running server side
-  if (typeof window === "undefined") return;
-
-  const status = maplibregl.getRTLTextPluginStatus();
-
-  if (status === "unavailable" || status === "requested") {
-    try {
-      await maplibregl.setRTLTextPlugin(customPluginURL ?? defaults.rtlPluginURL, true);
-    } catch (_e) {
-      console.error("Error enabling RTL plugin. It is enabled by default and cannot be unset after. Are you attempting to enable it twice?", _e);
-    }
-  }
-}
 
 // This comes from:
 // https://github.com/maplibre/maplibre-gl-js/blob/v2.4.0/src/util/util.ts#L223
@@ -391,7 +376,7 @@ export function computeLabelsLocalizationMetrics(layers: maplibregl.LayerSpecifi
       continue;
     }
 
-    const textFieldLayoutProp: string | maplibregl.ExpressionSpecification = map.getLayoutProperty(id, "text-field");
+    const textFieldLayoutProp = map.getLayoutProperty(id, "text-field") as string | maplibregl.ExpressionSpecification | undefined;
 
     if (!textFieldLayoutProp) {
       continue;

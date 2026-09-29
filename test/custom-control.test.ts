@@ -15,7 +15,7 @@ vi.mock("../src/Map", async () => {
   const maplibre: any = await vi.importActual("maplibre-gl");
   return {
     ...actual,
-    Map: class extends maplibre.default.Evented {
+    Map: class extends maplibre.Evented {
       constructor(options: any) {
         super();
         this._container = options.container;

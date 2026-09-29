@@ -17,6 +17,8 @@ import type {
   SourceSpecification,
   StyleOptions,
   StyleSetterOptions,
+  AllPaintProperties,
+  AllLayoutProperties,
   StyleSpecification,
   StyleSwapOptions,
 } from "maplibre-gl";
@@ -151,25 +153,13 @@ export default class Minimap implements IControl {
     return this;
   }
 
-  setPaintProperty(
-    layerId: string,
-    name: string,
-    // maplibre controlled types
-    value: any,
-    options?: StyleSetterOptions,
-  ): this {
+  setPaintProperty<K extends keyof AllPaintProperties>(layerId: string, name: K, value: AllPaintProperties[K], options?: StyleSetterOptions): this {
     if (!this.#differentStyle) this.map.setPaintProperty(layerId, name, value, options);
     this.#setParentBounds();
     return this;
   }
 
-  setLayoutProperty(
-    layerId: string,
-    name: string,
-    // maplibre controlled types
-    value: any,
-    options?: StyleSetterOptions,
-  ): this {
+  setLayoutProperty<K extends keyof AllLayoutProperties>(layerId: string, name: K, value: AllLayoutProperties[K], options?: StyleSetterOptions): this {
     if (!this.#differentStyle) this.map.setLayoutProperty(layerId, name, value, options);
     this.#setParentBounds();
     return this;
