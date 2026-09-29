@@ -1,6 +1,5 @@
 import type { MapTilerMarkerUIStateName, MapTilerMarkerUIStates, UIStateSpec } from "./types";
-
-export const UI_STATE_PRIORITY: readonly MapTilerMarkerUIStateName[] = ["hover", "focus", "active", "dragging"];
+import { UI_STATE_PRIORITY } from "./marker-constants";
 
 export function flattenUIStates(states: MapTilerMarkerUIStates, active: ReadonlySet<MapTilerMarkerUIStateName>): UIStateSpec {
   const flattened: UIStateSpec = {};

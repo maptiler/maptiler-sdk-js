@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ADAPTIVE_COLORS, getAdaptiveColors } from "../../src/Marker/marker-adaptive-colors";
+import { getAdaptiveColors } from "../../src/Marker/marker-adaptive-colors";
+import { ADAPTIVE_COLORS } from "../../src/Marker/marker-constants";
 
 //#region getAdaptiveColors
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SHAPE, DEFAULT_SIZE, SHADOW_FILTER, SHAPES, SIZE_PX, getShapeAnchorOffset } from "../../src/Marker/marker-svg-config";
+import { SHAPES, getShapeAnchorOffset } from "../../src/Marker/marker-svg-config";
+import { DEFAULT_SHAPE, DEFAULT_SIZE, SHADOW_FILTER, SIZE_PX } from "../../src/Marker/marker-constants";
 
 describe("SIZE_PX / SHAPES tables", () => {
   it("has a pixel size for every marker size key", () => {
