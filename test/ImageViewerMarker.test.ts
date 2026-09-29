@@ -7,9 +7,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ImageViewerMarker, ImageViewerMarkerEvent } from "../src/ImageViewer/ImageViewerMarker";
 import ImageViewer from "../src/ImageViewer/ImageViewer";
 import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey } from "../src/ImageViewer/symbols";
-import { Popup, Alignment, LngLat, Marker, Point, Map as SDKMap } from "../src/index";
+import { Popup, Alignment, LngLat, Point, Map as SDKMap } from "../src/index";
+import { Marker } from "../src/MLAdapters/Marker";
 
 vi.mock("../src/index");
+vi.mock("../src/MLAdapters/Marker");
 
 vi.mock("../src/ImageViewer/ImageViewer", async (importOriginal) => {
   const actual = (await importOriginal()) as typeof import("../src/ImageViewer/ImageViewer") as typeof import("../src/ImageViewer/ImageViewer");

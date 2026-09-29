@@ -30,6 +30,7 @@ import {
   MeasuredElementSizeSymbol,
   MarkerElementSymbol,
   ClearFocusStateSymbol,
+  AttachToMapSymbol,
 } from "./marker-symbols";
 
 /** Per-map state of the collision detection engine. */
@@ -207,10 +208,13 @@ class MarkerManagerImpl {
 
   // registers a marker to be managed, called internally in Map.addMarker
   register(marker: Marker, map: SDKMap): void {
+    // already on this map — re-attaching would replay the enter animation
+    if (this.markerMap.get(marker) === map) return;
+
     // maplibre's addTo() starts with this.remove() (detach from any previous
     // map), which routes through our remove() override and would deregister
     // the marker we are registering — add first, track after
-    marker.addTo(map);
+    marker[AttachToMapSymbol](map);
 
     this.markerMap.set(marker, map);
 

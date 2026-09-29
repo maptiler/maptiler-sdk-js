@@ -141,16 +141,23 @@ export type MarkerPriorityExpression = unknown[];
  *   is a safe default whether or not the map has terrain.
  * - `sea` — above sea level / the flat mercator plane outright, ignoring
  *   terrain entirely, even when it's enabled.
+ * @experimental
  */
 export type AltitudeReference = "ground" | "sea";
 
-/** Options for {@link Marker.setAltitude}. */
+/**
+ * Options for {@link Marker.setAltitude}.
+ * @experimental
+ */
 export type SetAltitudeOptions = {
   /** What the altitude is measured from. Defaults to `"ground"`. */
   relativeTo?: AltitudeReference;
 };
 
-/** Configures the optional dashed line from a marker down (or up) to its ground point. Off by default — see {@link Marker.setGroundLine}. */
+/**
+ * Configures the optional dashed line from a marker down (or up) to its ground point. Off by default — see {@link Marker.setGroundLine}.
+ * @experimental
+ */
 export type GroundLineOptions = {
   /**
    * Extra class applied to the ground-line element alongside the default
