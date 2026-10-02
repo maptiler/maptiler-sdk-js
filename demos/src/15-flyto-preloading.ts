@@ -1,3 +1,5 @@
+// Sets the MapLibre worker URL, as Vite users of the SDK do
+import "@maptiler/sdk/vite-worker";
 /* eslint-disable @typescript-eslint/no-floating-promises, @typescript-eslint/no-misused-promises */
 import "../../build/maptiler-sdk.css";
 

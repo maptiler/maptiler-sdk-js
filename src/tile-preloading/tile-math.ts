@@ -1,4 +1,4 @@
-import ml from "maplibre-gl";
+import * as ml from "maplibre-gl";
 import type { LngLatBoundsLike } from "maplibre-gl";
 import type { CameraPosition, TileCoord } from "./types";
 import { lerp } from "../utils/math-utils";

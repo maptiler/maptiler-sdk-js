@@ -2,7 +2,7 @@ import type { GetResourceResponse, RequestParameters, ResourceType } from "mapli
 
 import { config } from "./config";
 
-import maplibregl from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 
 import { defaults } from "./constants/defaults";
 import { TileJSON } from "@maptiler/client";

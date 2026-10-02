@@ -13,37 +13,36 @@ globalThis.WebGL2RenderingContext = class WebGL2RenderingContextMock {} as any;
 
 vi.mock("maplibre-gl", async () => {
   const actual: any = await vi.importActual("maplibre-gl");
+  // maplibre-gl v6 is ESM-only: the mock must mirror its named exports, there is no default export
   return {
-    default: {
-      ...actual.default,
-      Map: class extends actual.default.Evented {
-        constructor(options: any) {
-          super();
-          this._container = options.container;
-          actual.default.Map.prototype._setupContainer.call(this);
-        }
-        _controls: maplibregl.IControl[] = [];
-        getCanvas = actual.default.Map.prototype.getCanvas;
-        addControl = vi.fn(actual.default.Map.prototype.addControl);
-        zoomIn = vi.fn();
-        remove() {
-          for (const control of this._controls) control.onRemove(this as any);
-        }
-        getCenter = () => ({ lng: 2, lat: 3 });
-        getZoom = () => 4;
-        getBearing = () => 5;
-        getPitch = () => 6;
-        getRoll = () => 7;
-        isGlobeProjection = () => 8;
-        hasTerrain = () => 9;
-        getStyle = () => ({ version: 8, sources: {}, layers: [] });
-        setStyle = () => {};
-        getLayersOrder = () => [];
-        _getUIString = (str: string) => str;
-        _containerDimensions = () => [0, 0];
-        _getClampedPixelRatio = () => 1;
-        _resizeCanvas = () => {};
-      },
+    ...actual,
+    Map: class extends actual.Evented {
+      constructor(options: any) {
+        super();
+        this._container = options.container;
+        actual.Map.prototype._setupContainer.call(this);
+      }
+      _controls: maplibregl.IControl[] = [];
+      getCanvas = actual.Map.prototype.getCanvas;
+      addControl = vi.fn(actual.Map.prototype.addControl);
+      zoomIn = vi.fn();
+      remove() {
+        for (const control of this._controls) control.onRemove(this as any);
+      }
+      getCenter = () => ({ lng: 2, lat: 3 });
+      getZoom = () => 4;
+      getBearing = () => 5;
+      getPitch = () => 6;
+      getRoll = () => 7;
+      isGlobeProjection = () => 8;
+      hasTerrain = () => 9;
+      getStyle = () => ({ version: 8, sources: {}, layers: [] });
+      setStyle = () => {};
+      getLayersOrder = () => [];
+      _getUIString = (str: string) => str;
+      _containerDimensions = () => [0, 0];
+      _getClampedPixelRatio = () => 1;
+      _resizeCanvas = () => {};
     },
   };
 });

@@ -1,5 +1,5 @@
 import "./polyfills";
-import maplibregl from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 
 // Types from MapLibre are not re-exported one by one
 export type * from "maplibre-gl";
@@ -149,38 +149,37 @@ export type DoubleClickZoomHandler = InstanceType<typeof DoubleClickZoomHandler>
 export type TwoFingersTouchZoomHandler = InstanceType<typeof TwoFingersTouchZoomHandler>;
 export type TwoFingersTouchRotateHandler = InstanceType<typeof TwoFingersTouchRotateHandler>;
 
-// The following items are only MapLibre adapted to MapTiler SDK Map class
-export { Marker } from "./MLAdapters/Marker";
-export { Popup } from "./MLAdapters/Popup";
-export { Style } from "./MLAdapters/Style";
-export { CanvasSource } from "./MLAdapters/CanvasSource";
-export { GeoJSONSource } from "./MLAdapters/GeoJSONSource";
-export { ImageSource } from "./MLAdapters/ImageSource";
-export { RasterTileSource } from "./MLAdapters/RasterTileSource";
-export { RasterDEMTileSource } from "./MLAdapters/RasterDEMTileSource";
-export { VectorTileSource } from "./MLAdapters/VectorTileSource";
-export { VideoSource } from "./MLAdapters/VideoSource";
-export { NavigationControl } from "./MLAdapters/NavigationControl";
-export { GeolocateControl } from "./MLAdapters/GeolocateControl";
-export { AttributionControl } from "./MLAdapters/AttributionControl";
-export { LogoControl } from "./MLAdapters/LogoControl";
-export { ScaleControl } from "./MLAdapters/ScaleControl";
-export { FullscreenControl } from "./MLAdapters/FullscreenControl";
-export { TerrainControl } from "./MLAdapters/TerrainControl";
-export { BoxZoomHandler } from "./MLAdapters/BoxZoomHandler";
-export { ScrollZoomHandler } from "./MLAdapters/ScrollZoomHandler";
-export { CooperativeGesturesHandler } from "./MLAdapters/CooperativeGesturesHandler";
-export { KeyboardHandler } from "./MLAdapters/KeyboardHandler";
-export { TwoFingersTouchPitchHandler } from "./MLAdapters/TwoFingersTouchPitchHandler";
-export { MapWheelEvent } from "./MLAdapters/MapWheelEvent";
-export { MapTouchEvent } from "./MLAdapters/MapTouchEvent";
-export { MapMouseEvent } from "./MLAdapters/MapMouseEvent";
-
-// types changed to internal since MapLibre 5.7.0
-export * from "./ml-types";
+// The SDK `Map` extends the MapLibre `Map`, so the MapLibre classes accept it as is
+export {
+  Marker,
+  Popup,
+  Style,
+  CanvasSource,
+  GeoJSONSource,
+  ImageSource,
+  RasterTileSource,
+  RasterDEMTileSource,
+  VectorTileSource,
+  VideoSource,
+  NavigationControl,
+  GeolocateControl,
+  AttributionControl,
+  LogoControl,
+  ScaleControl,
+  FullscreenControl,
+  TerrainControl,
+  BoxZoomHandler,
+  ScrollZoomHandler,
+  CooperativeGesturesHandler,
+  KeyboardHandler,
+  TwoFingersTouchPitchHandler,
+  MapWheelEvent,
+  MapTouchEvent,
+  MapMouseEvent,
+} from "maplibre-gl";
 
 // SDK specific
-export { Map, GeolocationType, type AttributionControlOptions, type MapOptions, type LoadWithTerrainEvent } from "./Map";
+export { Map, GeolocationType, type AttributionControlOptions, type MapOptions, type LoadWithTerrainEvent, type MaptilerMapEventType, type MapEventTypeSDK } from "./Map";
 export type {
   CameraPosition,
   TilePreloadOptions,

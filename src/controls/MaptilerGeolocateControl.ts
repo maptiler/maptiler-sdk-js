@@ -1,6 +1,6 @@
 import type { LngLatLike, MapLibreEvent } from "maplibre-gl";
-import maplibregl from "maplibre-gl";
-import { GeolocateControl } from "../MLAdapters/GeolocateControl";
+import * as maplibregl from "maplibre-gl";
+const GeolocateControl = maplibregl.GeolocateControl;
 import { DOMcreate } from "../utils/dom";
 
 const Marker = maplibregl.Marker;
@@ -135,7 +135,7 @@ export class MaptilerGeolocateControl extends GeolocateControl {
           this._geolocateButton.classList.add("maplibregl-ctrl-geolocate-background");
           this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-active");
 
-          this.fire(new Event("trackuserlocationend"));
+          this.fire(new maplibregl.GeolocateEvent("trackuserlocationend"));
         }
       });
     }

@@ -50,7 +50,7 @@ function projectToWorldCoordinates(worldSize: number, lnglat: LngLat): Point {
 }
 
 export const overpanningUnderzoomingTransformConstrain: TransformConstrainFunction = function (
-  this: Map["transform"],
+  this: Map["_camera"]["transform"],
   lngLat: LngLat,
   zoom: number,
 ): { center: LngLat; zoom: number } {
@@ -165,17 +165,14 @@ export const anchorTranslate: Record<PositionAnchor, string> = {
  * @param {Marker} marker - The Marker instance to patch.
  */
 export function monkeyPatchMarkerInstanceToRemoveWrapping(marker: Marker) {
-  function update(this: Marker, e?: { type: "move" | "moveend" | "terrain" | "render" }) {
+  // Mirrors MapLibre v6's `Marker._update`, minus the `smartWrap` of `_lngLat`.
+  function update(this: Marker, e?: Parameters<Marker["_update"]>[0]) {
     if (!this._map) return;
-
-    const isFullyLoaded = this._map.loaded() && !this._map.isMoving();
-    if (e?.type === "terrain" || (e?.type === "render" && !isFullyLoaded)) {
-      this._map.once("render", this._update);
-    }
 
     this._flatPos = this._pos = this._map.project(this._lngLat)._add(this._offset);
     if (this._map.terrain) {
-      this._flatPos = this._map.transform.locationToScreenPoint(this._lngLat)._add(this._offset);
+      // `map.transform` was removed from the public API in MapLibre v6
+      this._flatPos = this._map._camera.transform.locationToScreenPoint(this._lngLat)._add(this._offset);
     }
 
     let rotation = "";
@@ -192,12 +189,13 @@ export function monkeyPatchMarkerInstanceToRemoveWrapping(marker: Marker) {
       pitch = `rotateX(${this._map.getPitch()}deg)`;
     }
 
-    if (!this._subpixelPositioning && (!e || e.type === "moveend")) {
+    if (!this._subpixelPositioning && e?.type !== "move") {
       this._pos = this._pos.round();
     }
 
     const transform = `${anchorTranslate[this._anchor]} translate(${this._pos.x}px, ${this._pos.y}px) ${pitch} ${rotation}`;
     this._element.style.transform = transform;
+    this._updateOpacity();
   }
 
   marker._update = update.bind(marker);

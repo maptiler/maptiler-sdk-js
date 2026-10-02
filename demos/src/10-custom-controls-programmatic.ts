@@ -1,3 +1,5 @@
+// Sets the MapLibre worker URL, as Vite users of the SDK do
+import "@maptiler/sdk/vite-worker";
 /* eslint-disable @typescript-eslint/no-non-null-assertion, @typescript-eslint/non-nullable-type-assertion-style */
 import "../../src/style/style_template.css";
 import { Map, MapStyle, config, toggleProjection, toggleTerrain } from "../../src/index";

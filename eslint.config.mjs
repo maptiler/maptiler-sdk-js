@@ -15,7 +15,7 @@ export default tseslint.config(
       compat: eslintPluginCompat,
       import: {
         rules: {
-          "default-imports-only": {
+          "no-default-imports": {
             meta: {
               type: "suggestion",
               docs: {},
@@ -50,7 +50,7 @@ export default tseslint.config(
 
                         if (bannedLocationRegex.test(filePath)) {
                           node.specifiers.forEach((specifier) => {
-                            if (specifier.type !== "ImportDefaultSpecifier") {
+                            if (specifier.type === "ImportDefaultSpecifier") {
                               context.report({
                                 // @ts-expect-error `message` seems to work with this...
                                 message: config.message ?? `Importing from '${bannedImport}' is banned in '${fp}'`,
@@ -75,12 +75,12 @@ export default tseslint.config(
     },
     rules: {
       "compat/compat": "error",
-      "import/default-imports-only": [
+      "import/no-default-imports": [
         "error",
         {
           "maplibre-gl$": {
             locations: ["^(?!.*\.d\.ts$).*\.((ts|js))$"],
-            message: `Maplibre-gl uses CJS modules, only default imports are supported, named imports may fail on some setups.`,
+            message: `Maplibre-gl v6+ is ESM-only and has no default export, use \`import * as maplibregl from "maplibre-gl"\` or named imports.`,
             ignoreTypeImports: true,
           },
         },
