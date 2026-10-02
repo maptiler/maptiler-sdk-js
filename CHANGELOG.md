@@ -1,6 +1,6 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## 4.2.0
 
 ### ✨ Features and improvements
 - Adds support for EU-based MapTiler Cloud server
