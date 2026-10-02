@@ -59,6 +59,7 @@ import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from 
 import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructorOptions } from "./custom-layers/RadialGradientLayer";
 import { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 import { logSDKVersion } from "./utils/logSDKVersion";
+import { setDefaultWorkerUrl } from "./utils/defaultWorkerUrl";
 import { setWorkerCount } from ".";
 import { EXPERIMENTAL_TILE_PRELOADING_VERSION } from "./tile-preloading/version";
 
@@ -663,6 +664,9 @@ export class Map extends maplibregl.Map {
 
   constructor(options: MapOptions) {
     if (options.logSDKVersion !== false) logSDKVersion();
+
+    // Must happen before `super()`, which starts the MapLibre workers
+    setDefaultWorkerUrl();
 
     displayNoWebGlWarning(options.container);
 

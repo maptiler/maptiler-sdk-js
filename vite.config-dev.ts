@@ -53,6 +53,14 @@ const entrypoints = readdirSync(resolve(__dirname, 'demos/public')).filter((file
 export default defineConfig({
   mode: "development",
   root: "./demos",
+  resolve: {
+    alias: [
+      // The demos use the shipped Vite helper like customers do, but against the SDK source (no build needed):
+      // the helper's own `import ... from "@maptiler/sdk"` then resolves to `src`, so there's a single SDK instance.
+      { find: /^@maptiler\/sdk\/vite-worker$/, replacement: resolve(__dirname, 'bundler-helpers/vite-worker.mjs') },
+      { find: /^@maptiler\/sdk$/, replacement: resolve(__dirname, 'src/index.ts') },
+    ],
+  },
   build: {
     minify: false,
     sourcemap: true,
@@ -62,6 +70,7 @@ export default defineConfig({
   },
   define: {
     __MT_SDK_VERSION__: JSON.stringify(packagejson.version),
+    __MT_BUILD_FORMAT__: JSON.stringify("dev"),
     __MT_NODE_ENV__: JSON.stringify(process.env.NODE_ENV),
   },
   plugins: [

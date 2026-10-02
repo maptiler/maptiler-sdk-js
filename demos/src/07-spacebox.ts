@@ -1,3 +1,5 @@
+// Sets the MapLibre worker URL, as Vite users of the SDK do
+import "@maptiler/sdk/vite-worker";
 import { CubemapDefinition, Map, MapStyle, config } from "../../src";
 import { addPerformanceStats, setupMapTilerApiKey } from "./demo-utils";
 

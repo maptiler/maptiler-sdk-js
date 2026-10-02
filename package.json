@@ -13,6 +13,23 @@
       "import": "./dist/maptiler-sdk.mjs",
       "types": "./dist/maptiler-sdk.d.ts"
     },
+    "./vite-worker": {
+      "types": "./dist/bundler/side-effect.d.ts",
+      "import": "./dist/bundler/vite-worker.mjs"
+    },
+    "./webpack-worker": {
+      "types": "./dist/bundler/side-effect.d.ts",
+      "import": "./dist/bundler/webpack-worker.mjs"
+    },
+    "./next-worker": {
+      "types": "./dist/bundler/side-effect.d.ts",
+      "import": "./dist/bundler/next-worker.mjs"
+    },
+    "./next": {
+      "types": "./dist/bundler/next.d.ts",
+      "import": "./dist/bundler/next.mjs",
+      "require": "./dist/bundler/next.cjs"
+    },
     "./dist/maptiler-sdk.css": {
       "import": "./dist/maptiler-sdk.css"
     },
@@ -106,7 +123,7 @@
     "events": "^3.3.0",
     "gl-matrix": "^3.4.4",
     "js-base64": "^3.7.7",
-    "maplibre-gl": "6.11",
+    "maplibre-gl": "6.11.2",
     "uuid": "^14.0.0"
   }
 }

@@ -1,5 +1,9 @@
 import "../../dist/maptiler-sdk.css";
-import { Map as MapTiler, Language } from "../../src/index";
+import { Map as MapTiler, Language, setWorkerUrl } from "../../src/index";
+import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
+
+// MapLibre v6 loads its worker as a separate module, bundlers need its URL set explicitly
+setWorkerUrl(workerUrl);
 
 async function main() {
   const qp = new URLSearchParams(window.location.search);
