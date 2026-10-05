@@ -1,6 +1,5 @@
 import * as maplibregl from "maplibre-gl";
 import type { RequestParameters, ResourceType, RequestTransformFunction, SymbolLayerSpecification } from "maplibre-gl";
-import { defaults } from "./constants/defaults";
 import { config } from "./config";
 import { MAPTILER_SESSION_ID } from "./config";
 import { localCacheTransformRequest } from "./caching";
