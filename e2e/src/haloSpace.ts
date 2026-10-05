@@ -5,15 +5,32 @@ import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 // MapLibre v6 loads its worker as a separate module, bundlers need its URL set explicitly
 setWorkerUrl(workerUrl);
 
+function getSpaceImagesKey(space: unknown) {
+  if (typeof space !== "object" || space === null) return undefined;
+  const { faces, preset, path } = space as { faces?: unknown; preset?: unknown; path?: unknown };
+  return JSON.stringify(faces ?? preset ?? path);
+}
+
+// Same checks as Map.setSpaceFromStyle and the CubemapLayer: the style's space is ignored when the space option is
+// false or an object, and the images are only reloaded (and faded in) when faces, preset or path change
+function spaceImagesWillChange(map: MapTiler | undefined, options: MapOptions | undefined, style: StyleSpecificationWithMetaData) {
+  if (options?.space !== true && options?.space !== undefined) return false;
+
+  const nextKey = getSpaceImagesKey(style.metadata?.maptiler?.space);
+  return nextKey !== undefined && nextKey !== getSpaceImagesKey(map?.getSpace()?.getConfig());
+}
+
 function createFixtureManager() {
   const state = {
     map: undefined as MapTiler | undefined,
+    options: undefined as MapOptions | undefined,
     id: undefined as string | undefined,
   };
 
   const cleanup = () => {
     state.map?.remove();
     state.map = undefined;
+    state.options = undefined;
     state.id = undefined;
   };
 
@@ -27,6 +44,7 @@ function createFixtureManager() {
     });
 
     state.map = newMap;
+    state.options = options;
     state.id = id;
 
     await state.map.onReadyAsync();
@@ -37,6 +55,10 @@ function createFixtureManager() {
   };
 
   const setStyle = async (style: string | StyleSpecificationWithMetaData) => {
+    // When the style changes the space images, the new images are loaded and faded in after the style has loaded.
+    // Listen before setting the style, so the event cannot be missed.
+    const spaceFadedIn = typeof style !== "string" && spaceImagesWillChange(state.map, state.options, style) ? state.map?.once("cubemaplayer:animateindone") : undefined;
+
     state.map?.setStyle(style);
     if (typeof style === "string") {
       return new Promise((resolve) => {
@@ -47,13 +69,16 @@ function createFixtureManager() {
       });
     } else {
       await new Promise((resolve) => {
-        setInterval(() => {
+        const interval = setInterval(() => {
           if (state.map?.isStyleLoaded()) {
-            void window.notifyScreenshotStateReady({ id: state.id });
+            clearInterval(interval);
             resolve(true);
           }
         }, 1500);
       });
+
+      // isStyleLoaded() does not cover the space images, they load separately
+      await spaceFadedIn;
 
       void window.notifyScreenshotStateReady({ id: state.id });
     }
