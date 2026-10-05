@@ -2,7 +2,7 @@ import type { GetResourceResponse, RequestParameters, ResourceType } from "mapli
 
 import { config } from "./config";
 
-import * as maplibregl from "maplibre-gl";
+import { addProtocol } from "maplibre-gl";
 
 import { TileJSON } from "@maptiler/client";
 
@@ -13,8 +13,6 @@ const LOCAL_CACHE_NAME = "maptiler_sdk";
 const CACHE_LIMIT_ITEMS = 1000;
 const CACHE_LIMIT_CHECK_INTERVAL = 100;
 export const CACHE_API_AVAILABLE = typeof caches !== "undefined";
-
-const { addProtocol } = maplibregl;
 
 //#region localCacheTransformRequest
 

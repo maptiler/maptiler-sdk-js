@@ -1,4 +1,3 @@
-import * as MaplibreGL from "maplibre-gl";
 import {
   EaseToOptions,
   DoubleClickZoomHandler,
@@ -21,11 +20,9 @@ import { ImageViewerEvent, setupGlobalMapEventForwarder } from "./events";
 import { FetchError } from "../utils/errors";
 import { config } from "..";
 import { overpanningUnderzoomingTransformConstrain } from "./monkeyPatchML";
-import { NavigationControl } from "maplibre-gl";
+import { Evented, NavigationControl } from "maplibre-gl";
 import { ImageViewerFitImageToBoundsControl } from "../controls/ImageViewerFitImageToBoundsControl";
 import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey } from "./symbols";
-
-const { Evented } = MaplibreGL;
 
 //#region types
 

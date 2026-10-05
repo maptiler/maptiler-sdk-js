@@ -1,4 +1,4 @@
-import * as maplibregl from "maplibre-gl";
+import { getWorkerUrl, setWorkerUrl } from "maplibre-gl";
 
 /**
  * URL of the MapLibre worker published on the MapTiler CDN alongside the UMD bundle of this SDK version.
@@ -16,9 +16,9 @@ export function getCdnWorkerUrl(): string {
  */
 export function setDefaultWorkerUrl() {
   if (__MT_BUILD_FORMAT__ !== "es") return;
-  if (maplibregl.getWorkerUrl()) return;
+  if (getWorkerUrl()) return;
 
-  maplibregl.setWorkerUrl(createSameOriginWorkerUrl(getCdnWorkerUrl()));
+  setWorkerUrl(createSameOriginWorkerUrl(getCdnWorkerUrl()));
 }
 
 /**

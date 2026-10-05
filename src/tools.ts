@@ -1,5 +1,4 @@
-import * as maplibregl from "maplibre-gl";
-import type { RequestParameters, ResourceType, RequestTransformFunction, SymbolLayerSpecification } from "maplibre-gl";
+import type { ExpressionSpecification, LayerSpecification, RequestParameters, ResourceType, RequestTransformFunction, SymbolLayerSpecification } from "maplibre-gl";
 import { config } from "./config";
 import { MAPTILER_SESSION_ID } from "./config";
 import { localCacheTransformRequest } from "./caching";
@@ -192,20 +191,16 @@ function isGetNameLanguage(subExpr: unknown, localized: boolean): boolean {
  * This replacement happened regardless of how deep in the object the flag is.
  * Note that it does not replace the occurences of ["get", "name"] (local names)
  */
-export function changeFirstLanguage(
-  origExpr: maplibregl.ExpressionSpecification,
-  replacer: maplibregl.ExpressionSpecification,
-  localized: boolean,
-): maplibregl.ExpressionSpecification {
-  const expr = structuredClone(origExpr) as maplibregl.ExpressionSpecification;
+export function changeFirstLanguage(origExpr: ExpressionSpecification, replacer: ExpressionSpecification, localized: boolean): ExpressionSpecification {
+  const expr = structuredClone(origExpr) as ExpressionSpecification;
 
-  const exploreNode = (subExpr: maplibregl.ExpressionSpecification | string) => {
+  const exploreNode = (subExpr: ExpressionSpecification | string) => {
     if (typeof subExpr === "string") return;
     for (let i = 0; i < subExpr.length; i += 1) {
       if (isGetNameLanguage(subExpr[i], localized)) {
         subExpr[i] = structuredClone(replacer);
       } else {
-        exploreNode(subExpr[i] as maplibregl.ExpressionSpecification | string);
+        exploreNode(subExpr[i] as ExpressionSpecification | string);
       }
     }
   };
@@ -235,7 +230,7 @@ export function checkNamePattern(str: string, localized: boolean): { contains: b
 /**
  * Replaces the occurences of {name:xx} in a string by a provided object-expression to return a concat object expression
  */
-export function replaceLanguage(origLang: string, newLang: maplibregl.ExpressionSpecification, localized: boolean): maplibregl.ExpressionSpecification {
+export function replaceLanguage(origLang: string, newLang: ExpressionSpecification, localized: boolean): ExpressionSpecification {
   const regex = localized ? /\{name:\S+\}/ : /\{name\}/;
   const elementsToConcat = origLang.split(regex);
 
@@ -247,11 +242,11 @@ export function replaceLanguage(origLang: string, newLang: maplibregl.Expression
     return i === elementsToConcat.length - 1 ? [newItem] : [newItem, newLang];
   });
 
-  const expr = ["concat", ...allElements] as maplibregl.ExpressionSpecification;
+  const expr = ["concat", ...allElements] as ExpressionSpecification;
   return expr;
 }
 
-export function addFormatElevationExpressionFromString(expression: maplibregl.ExpressionSpecification | string): maplibregl.ExpressionSpecification | string {
+export function addFormatElevationExpressionFromString(expression: ExpressionSpecification | string): ExpressionSpecification | string {
   if (typeof expression !== "string") return expression;
   if (!expression.includes("{ele}")) return expression;
 
@@ -334,11 +329,11 @@ function isGetNameLanguageAndFind(subExpr: unknown): { isLanguage: boolean; loca
  * The returned array contains languages such as "en", "fr" but
  * can also contain null that stand for the use of {name}
  */
-export function findLanguageObj(origExpr: maplibregl.ExpressionSpecification): Array<string | null> {
+export function findLanguageObj(origExpr: ExpressionSpecification): Array<string | null> {
   const languageUsed = [] as Array<string | null>;
-  const expr = structuredClone(origExpr) as maplibregl.ExpressionSpecification;
+  const expr = structuredClone(origExpr) as ExpressionSpecification;
 
-  const exploreNode = (subExpr: maplibregl.ExpressionSpecification | string | Array<maplibregl.ExpressionSpecification | string>) => {
+  const exploreNode = (subExpr: ExpressionSpecification | string | Array<ExpressionSpecification | string>) => {
     if (typeof subExpr === "string") return;
 
     for (let i = 0; i < subExpr.length; i += 1) {
@@ -346,7 +341,7 @@ export function findLanguageObj(origExpr: maplibregl.ExpressionSpecification): A
       if (result) {
         languageUsed.push(result.localization);
       } else {
-        exploreNode(subExpr[i] as maplibregl.ExpressionSpecification | string);
+        exploreNode(subExpr[i] as ExpressionSpecification | string);
       }
     }
   };
@@ -355,7 +350,7 @@ export function findLanguageObj(origExpr: maplibregl.ExpressionSpecification): A
   return languageUsed;
 }
 
-export function computeLabelsLocalizationMetrics(layers: maplibregl.LayerSpecification[], map: MapSDK): { unlocalized: number; localized: Record<string, number> } {
+export function computeLabelsLocalizationMetrics(layers: LayerSpecification[], map: MapSDK): { unlocalized: number; localized: Record<string, number> } {
   const languages: Array<string | null>[] = [];
 
   for (const genericLayer of layers) {
@@ -375,7 +370,7 @@ export function computeLabelsLocalizationMetrics(layers: maplibregl.LayerSpecifi
       continue;
     }
 
-    const textFieldLayoutProp = map.getLayoutProperty(id, "text-field") as string | maplibregl.ExpressionSpecification | undefined;
+    const textFieldLayoutProp = map.getLayoutProperty(id, "text-field") as string | ExpressionSpecification | undefined;
 
     if (!textFieldLayoutProp) {
       continue;

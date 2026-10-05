@@ -1,10 +1,8 @@
 import { Alignment, Subscription, Marker, MarkerOptions, PointLike, Popup } from "../index";
-import * as MapLibreGL from "maplibre-gl";
+import { Evented, Event as EventML } from "maplibre-gl";
 import ImageViewer from "./ImageViewer";
 import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey } from "./symbols";
 import { monkeyPatchMarkerInstanceToRemoveWrapping } from "./monkeyPatchML";
-
-const { Evented } = MapLibreGL;
 
 export type ImageViewerMarkerOptions = MarkerOptions & {};
 
@@ -391,7 +389,7 @@ export type ImageViewerMarkerEventType = Record<MarkerEventTypes, ImageViewerMar
 const FORBIDDEN_EVENT_VALUES = ["lngLat", "_defaultPrevented", "target"];
 
 // Since MapLibre v6, `Evented` only dispatches instances of its `Event` class
-export class ImageViewerMarkerEvent extends MapLibreGL.Event<MarkerEventTypes> {
+export class ImageViewerMarkerEvent extends EventML<MarkerEventTypes> {
   declare target: ImageViewerMarker;
 
   [key: string]: any;

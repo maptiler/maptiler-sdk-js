@@ -1,4 +1,4 @@
-import * as maplibregl from "maplibre-gl";
+import { Map as MapMLGL, AJAXError, LngLat, ScaleControl, FullscreenControl } from "maplibre-gl";
 import { Base64 } from "js-base64";
 import type {
   StyleSpecification,
@@ -33,6 +33,10 @@ import type {
   Listener,
   Subscription,
   TerrainSpecification,
+  CameraOptions,
+  MapStyleLoadEvent,
+  VectorTileSource,
+  Event as EventML,
 } from "maplibre-gl";
 import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
@@ -45,7 +49,6 @@ import { MaptilerTerrainControl } from "./controls/MaptilerTerrainControl";
 import { MaptilerNavigationControl } from "./controls/MaptilerNavigationControl";
 import { MapStyle, geolocation, getLanguageInfoFromFlag, toLanguageInfo } from "@maptiler/client";
 import { MaptilerGeolocateControl } from "./controls/MaptilerGeolocateControl";
-import { ScaleControl, FullscreenControl } from "maplibre-gl";
 import { MaptilerExternalControlType, MaptilerExternalControl } from "./controls/MaptilerExternalControl";
 
 import Minimap from "./controls/Minimap";
@@ -76,7 +79,7 @@ export type LoadWithTerrainEvent = {
  * Shape of an event fired by the SDK on top of the MapLibre events,
  * with the properties passed to `fire(type, properties)` merged in.
  */
-type SDKMapEvent<TType extends string, TProps extends object = object> = maplibregl.Event<TType> & { target: Map } & TProps;
+type SDKMapEvent<TType extends string, TProps extends object = object> = EventML<TType> & { target: Map } & TProps;
 
 /**
  * Events fired by the MapTiler SDK `Map` in addition to the MapLibre ones.
@@ -317,7 +320,7 @@ export interface ProjectionChangeOptions {
 /**
  * The Map class can be instanciated to display a map in a `<div>`
  */
-export class Map extends maplibregl.Map {
+export class Map extends MapMLGL {
   public readonly telemetry: Telemetry;
 
   /**
@@ -709,7 +712,7 @@ export class Map extends maplibregl.Map {
       maplibreLogo: false,
       transformRequest: combineTransformRequest(options.transformRequest),
       attributionControl: options.forceNoAttributionControl === true ? false : attributionControlOptions,
-    } as maplibregl.MapOptions;
+    } as MapOptionsML;
 
     // Removing the style option from the super constructor so that we can initialize this.styleInProcess before
     // calling .setStyle(). Otherwise, if a style is provided to the super constructor, the setStyle method is called as
@@ -761,8 +764,8 @@ export class Map extends maplibregl.Map {
 
     // Safeguard for distant styles at non-http 2xx status URLs
     this.on("error", (event) => {
-      if (event.error instanceof maplibregl.AJAXError) {
-        const err = event.error as maplibregl.AJAXError;
+      if (event.error instanceof AJAXError) {
+        const err = event.error as AJAXError;
         const url = err.url;
         const cleanUrl = new URL(url);
         cleanUrl.search = "";
@@ -933,7 +936,7 @@ export class Map extends maplibregl.Map {
           .map((sourceName) => this.getSource(sourceName))
           .filter((s: Source | undefined) => s && "url" in s && typeof s.url === "string" && s.url.includes("tiles.json"));
 
-        const styleUrl = new URL((possibleSources[0] as maplibregl.VectorTileSource).url);
+        const styleUrl = new URL((possibleSources[0] as VectorTileSource).url);
 
         if (!styleUrl.searchParams.has("key")) {
           styleUrl.searchParams.append("key", config.apiKey);
@@ -1211,7 +1214,7 @@ export class Map extends maplibregl.Map {
    * Useful for WebGL context loss.
    */
   public recreate() {
-    const cameraOptions: maplibregl.CameraOptions = {
+    const cameraOptions: CameraOptions = {
       center: this.getCenter(),
       zoom: this.getZoom(),
       bearing: this.getBearing(),
@@ -1378,7 +1381,7 @@ export class Map extends maplibregl.Map {
       this.setHaloFromStyle({ style: styleInfo.style as StyleSpecificationWithMetaData });
     };
 
-    const handleStyleLoad = (e?: maplibregl.MapStyleLoadEvent | MaptilerMapEventType["projection.change"]) => {
+    const handleStyleLoad = (e?: MapStyleLoadEvent | MaptilerMapEventType["projection.change"]) => {
       const styleSpec = (e?.target.getStyle() ?? styleInfo.style) as StyleSpecificationWithMetaData;
 
       if (this.spaceboxLoadingState.styleLoadedCallbackFired) {
@@ -1782,7 +1785,7 @@ export class Map extends maplibregl.Map {
         continue;
       }
 
-      let textFieldLayoutProp: string | maplibregl.ExpressionSpecification;
+      let textFieldLayoutProp: string | ExpressionSpecification;
 
       // Keeping a copy of the text-field sub-object as it is in the original style
       if (firstPassOnStyle) {
@@ -2204,8 +2207,8 @@ export class Map extends maplibregl.Map {
    * Sets the projection to a {@linkcode ProjectionSpecification}.
    * @param projection - the projection specification to set
    */
-  override setProjection(projection: maplibregl.ProjectionSpecification): this;
-  override setProjection(projection: NonNullable<ProjectionTypes> | maplibregl.ProjectionSpecification, options?: ProjectionChangeOptions) {
+  override setProjection(projection: ProjectionSpecification): this;
+  override setProjection(projection: NonNullable<ProjectionTypes> | ProjectionSpecification, options?: ProjectionChangeOptions) {
     if (typeof projection === "string") projection = { type: projection };
 
     if ((projection.type === "mercator" || projection.type === "globe") && options?.persist) {
@@ -2362,7 +2365,7 @@ export class Map extends maplibregl.Map {
 
     if (preload && this.options.useExperimentalTilePreloading) {
       this.tilePreloader?.abortAll();
-      const lngLatObj = maplibregl.LngLat.convert(lnglat);
+      const lngLatObj = LngLat.convert(lnglat);
       const start = this.currentCameraPosition();
       const end: CameraPosition = { lng: lngLatObj.lng, lat: lngLatObj.lat, zoom: start.zoom, pitch: start.pitch, bearing: start.bearing };
       const superPanTo = super.panTo.bind(this);
@@ -2419,7 +2422,7 @@ export class Map extends maplibregl.Map {
       const cameraForBounds = this.cameraForBounds(bounds, fitOptions);
       if (cameraForBounds?.center) {
         const start = this.currentCameraPosition();
-        const center = maplibregl.LngLat.convert(cameraForBounds.center);
+        const center = LngLat.convert(cameraForBounds.center);
         const end: CameraPosition = {
           lng: center.lng,
           lat: center.lat,
@@ -2485,7 +2488,7 @@ export class Map extends maplibregl.Map {
     let lat = current.lat;
 
     if (options.center) {
-      const lngLat = maplibregl.LngLat.convert(options.center);
+      const lngLat = LngLat.convert(options.center);
       lng = lngLat.lng;
       lat = lngLat.lat;
     }

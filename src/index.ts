@@ -1,5 +1,4 @@
 import "./polyfills";
-import * as maplibregl from "maplibre-gl";
 
 // Types from MapLibre are not re-exported one by one
 export type * from "maplibre-gl";
@@ -12,68 +11,11 @@ export function getVersion(): string {
   return __MT_SDK_VERSION__;
 }
 
-const MapMLGL = maplibregl.Map;
-const MarkerMLGL = maplibregl.Marker;
-const PopupMLGL = maplibregl.Popup;
-const StyleMLGL = maplibregl.Style;
-const CanvasSourceMLGL = maplibregl.CanvasSource;
-const GeoJSONSourceMLGL = maplibregl.GeoJSONSource;
-const ImageSourceMLGL = maplibregl.ImageSource;
-const RasterTileSourceMLGL = maplibregl.RasterTileSource;
-const RasterDEMTileSourceMLGL = maplibregl.RasterDEMTileSource;
-const VectorTileSourceMLGL = maplibregl.VectorTileSource;
-const VideoSourceMLGL = maplibregl.VideoSource;
-const NavigationControMLGL = maplibregl.NavigationControl;
-const GeolocateControlMLGL = maplibregl.GeolocateControl;
-const AttributionControlMLGL = maplibregl.AttributionControl;
-const LogoControlMLGL = maplibregl.LogoControl;
-const ScaleControlMLGL = maplibregl.ScaleControl;
-const FullscreenControlMLGL = maplibregl.FullscreenControl;
-const TerrainControMLGL = maplibregl.TerrainControl;
-const BoxZoomHandlerMLGL = maplibregl.BoxZoomHandler;
-const ScrollZoomHandlerMLGL = maplibregl.ScrollZoomHandler;
-const CooperativeGesturesHandlerMLGL = maplibregl.CooperativeGesturesHandler;
-const KeyboardHandlerMLGL = maplibregl.KeyboardHandler;
-const TwoFingersTouchPitchHandlerMLGL = maplibregl.TwoFingersTouchPitchHandler;
-const MapWheelEventMLGL = maplibregl.MapWheelEvent;
-const MapTouchEventMLGL = maplibregl.MapTouchEvent;
-const MapMouseEventMLGL = maplibregl.MapMouseEvent;
-const configMLGL = maplibregl.config;
-const getMapLibreVersion = maplibregl.getVersion;
-
-const {
-  setRTLTextPlugin,
-  getRTLTextPluginStatus,
-  LngLat,
-  LngLatBounds,
-  MercatorCoordinate,
-  Evented,
-  AJAXError,
-  prewarm,
-  clearPrewarmedResources,
-  Hash,
-  Point,
-  EdgeInsets,
-  DragRotateHandler,
-  DragPanHandler,
-  TwoFingersTouchZoomRotateHandler,
-  DoubleClickZoomHandler,
-  TwoFingersTouchZoomHandler,
-  TwoFingersTouchRotateHandler,
-  getWorkerCount,
-  setWorkerCount,
-  getMaxParallelImageRequests,
-  setMaxParallelImageRequests,
-  getWorkerUrl,
-  setWorkerUrl,
-  addSourceType,
-  importScriptInWorkers,
-  addProtocol,
-  removeProtocol,
-} = maplibregl;
-
 export {
+  // Deprecated by MapLibre, still re-exported for anyone who needs a custom RTL text plugin
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   setRTLTextPlugin,
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   getRTLTextPluginStatus,
   LngLat,
   LngLatBounds,
@@ -101,53 +43,40 @@ export {
   importScriptInWorkers,
   addProtocol,
   removeProtocol,
-  // Below: Exported from MapLibre but as a different name
-  // in case dev wants to use the non-overloaded versions
-  getMapLibreVersion,
-  MapMLGL,
-  MarkerMLGL,
-  PopupMLGL,
-  StyleMLGL,
-  CanvasSourceMLGL,
-  GeoJSONSourceMLGL,
-  ImageSourceMLGL,
-  RasterTileSourceMLGL,
-  RasterDEMTileSourceMLGL,
-  VectorTileSourceMLGL,
-  VideoSourceMLGL,
-  NavigationControMLGL,
-  GeolocateControlMLGL,
-  AttributionControlMLGL,
-  LogoControlMLGL,
-  ScaleControlMLGL,
-  FullscreenControlMLGL,
-  TerrainControMLGL,
-  BoxZoomHandlerMLGL,
-  ScrollZoomHandlerMLGL,
-  CooperativeGesturesHandlerMLGL,
-  KeyboardHandlerMLGL,
-  TwoFingersTouchPitchHandlerMLGL,
-  MapWheelEventMLGL,
-  MapTouchEventMLGL,
-  MapMouseEventMLGL,
-  configMLGL,
-};
+} from "maplibre-gl";
 
-// Attaching the types to the
-export type LngLat = InstanceType<typeof LngLat>;
-export type LngLatBounds = InstanceType<typeof LngLatBounds>;
-export type MercatorCoordinate = InstanceType<typeof MercatorCoordinate>;
-export type Evented = InstanceType<typeof Evented>;
-export type AJAXError = InstanceType<typeof AJAXError>;
-export type Hash = InstanceType<typeof Hash>;
-export type Point = InstanceType<typeof Point>;
-export type EdgeInsets = InstanceType<typeof EdgeInsets>;
-export type DragRotateHandler = InstanceType<typeof DragRotateHandler>;
-export type DragPanHandler = InstanceType<typeof DragPanHandler>;
-export type TwoFingersTouchZoomRotateHandler = InstanceType<typeof TwoFingersTouchZoomRotateHandler>;
-export type DoubleClickZoomHandler = InstanceType<typeof DoubleClickZoomHandler>;
-export type TwoFingersTouchZoomHandler = InstanceType<typeof TwoFingersTouchZoomHandler>;
-export type TwoFingersTouchRotateHandler = InstanceType<typeof TwoFingersTouchRotateHandler>;
+// Exported from MapLibre but as a different name
+// in case dev wants to use the non-overloaded versions
+export {
+  getVersion as getMapLibreVersion,
+  Map as MapMLGL,
+  Marker as MarkerMLGL,
+  Popup as PopupMLGL,
+  Style as StyleMLGL,
+  CanvasSource as CanvasSourceMLGL,
+  GeoJSONSource as GeoJSONSourceMLGL,
+  ImageSource as ImageSourceMLGL,
+  RasterTileSource as RasterTileSourceMLGL,
+  RasterDEMTileSource as RasterDEMTileSourceMLGL,
+  VectorTileSource as VectorTileSourceMLGL,
+  VideoSource as VideoSourceMLGL,
+  NavigationControl as NavigationControMLGL,
+  GeolocateControl as GeolocateControlMLGL,
+  AttributionControl as AttributionControlMLGL,
+  LogoControl as LogoControlMLGL,
+  ScaleControl as ScaleControlMLGL,
+  FullscreenControl as FullscreenControlMLGL,
+  TerrainControl as TerrainControMLGL,
+  BoxZoomHandler as BoxZoomHandlerMLGL,
+  ScrollZoomHandler as ScrollZoomHandlerMLGL,
+  CooperativeGesturesHandler as CooperativeGesturesHandlerMLGL,
+  KeyboardHandler as KeyboardHandlerMLGL,
+  TwoFingersTouchPitchHandler as TwoFingersTouchPitchHandlerMLGL,
+  MapWheelEvent as MapWheelEventMLGL,
+  MapTouchEvent as MapTouchEventMLGL,
+  MapMouseEvent as MapMouseEventMLGL,
+  config as configMLGL,
+} from "maplibre-gl";
 
 // The SDK `Map` extends the MapLibre `Map`, so the MapLibre classes accept it as is
 export {
