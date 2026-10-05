@@ -1,5 +1,6 @@
 import "../../dist/maptiler-sdk.css";
 import { Map as MapTiler, StyleSpecificationWithMetaData, type MapOptions, setWorkerUrl } from "../../src/index";
+import { validateSpaceSpecification } from "../../src/custom-layers/CubemapLayer/CubemapLayer";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 
 // MapLibre v6 loads its worker as a separate module, bundlers need its URL set explicitly
@@ -12,11 +13,15 @@ function getSpaceImagesKey(space: unknown) {
 }
 
 // Same checks as Map.setSpaceFromStyle and the CubemapLayer: the style's space is ignored when the space option is
-// false or an object, and the images are only reloaded (and faded in) when faces, preset or path change
+// false or an object, an invalid space is rejected, and the images are only reloaded (and faded in)
+// when faces, preset or path change
 function spaceImagesWillChange(map: MapTiler | undefined, options: MapOptions | undefined, style: StyleSpecificationWithMetaData) {
   if (options?.space !== true && options?.space !== undefined) return false;
 
-  const nextKey = getSpaceImagesKey(style.metadata?.maptiler?.space);
+  const space = style.metadata?.maptiler?.space;
+  if (validateSpaceSpecification(space).length > 0) return false;
+
+  const nextKey = getSpaceImagesKey(space);
   return nextKey !== undefined && nextKey !== getSpaceImagesKey(map?.getSpace()?.getConfig());
 }
 
