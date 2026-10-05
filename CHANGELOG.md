@@ -1,13 +1,18 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## 4.2.0
+
 ### ✨ Features and improvements
+- Adds support for EU-based MapTiler Cloud server
+  - Adds `config.useEuEndpoints` to route all MapTiler Cloud requests through the EU-based `api.maptiler.eu` host instead of the default `api.maptiler.com`.
+  - Adds read-only `config.apiHost` and `config.apiURL`, exposing the host and base URL currently in use.
+  - Every MapTiler Cloud URL built by the SDK now follows the configured host, including the logo control, telemetry, the terrain source, space cubemap images, the image viewer, and the dataset URLs resolved from a UUID in the `addPolyline`, `addPolygon`, `addPoint` and `addHeatmap` helpers.
 
 ### 🐛 Bug Fixes
- - Fixes a bug in halo where a mismatch between the layer added to the map and the layer added to the `.halo` field were different instances, causing a runtime error.
+- Fixes a bug in halo where a mismatch between the layer added to the map and the layer added to the `.halo` field were different instances, causing a runtime error.
 
 ### ⚙️ Others
-
+- Bumps `@maptiler/client` to 3.1.0
 
 ## 4.1.0
 

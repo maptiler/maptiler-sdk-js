@@ -1,5 +1,6 @@
 import { LogoControl, type LogoControlOptions as LogoControlOptionsML } from "maplibre-gl";
 import { defaults } from "../constants/defaults";
+import { config } from "../config";
 import type { Map as SDKMap } from "../Map";
 
 type LogoControlOptions = LogoControlOptionsML & {
@@ -19,7 +20,7 @@ export class MaptilerLogoControl extends LogoControl {
   constructor(options: LogoControlOptions = {}) {
     super(options);
 
-    this.logoURL = options.logoURL ?? defaults.maptilerLogoURL;
+    this.logoURL = options.logoURL ?? `${config.apiURL}resources/logo.svg`;
     this.linkURL = options.linkURL ?? defaults.maptilerURL;
   }
 
