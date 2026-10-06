@@ -16,6 +16,7 @@ import {
   DEFAULT_SHADOW,
   DEFAULT_SHAPE,
   DEFAULT_SIZE,
+  DOT_STROKE_WIDTH,
   GLYPH_VIEWBOX_SIZE,
   MARKER_FONT_CLASSNAME,
   MINIMIZED_DOT_CLASSNAME,
@@ -23,7 +24,9 @@ import {
   SHAPE_SVG_CLASSNAME,
   SIZE_PX,
   SVG_NS,
+  TEXT_CONTENT_CLIP_RADIUS,
   TEXT_CONTENT_FONT_SIZE,
+  TEXT_CONTENT_FONT_WEIGHT,
 } from "./marker-constants";
 
 //#region svgEl
@@ -504,7 +507,7 @@ function createDotSvgTemplate(): SVGSVGElement {
   circle.setAttribute("cx", String(diameter / 2));
   circle.setAttribute("cy", String(diameter / 2));
   circle.setAttribute("r", String(diameter / 2));
-  circle.setAttribute("stroke-width", "1");
+  circle.setAttribute("stroke-width", String(DOT_STROKE_WIDTH));
   circle.setAttribute("vector-effect", "non-scaling-stroke");
   circle.style.fill = "var(--marker-inner-color)";
   circle.style.stroke = "var(--marker-outer-color)";
@@ -934,12 +937,12 @@ function appendTextContent(svg: SVGSVGElement, title: string, shape: ShapeDescri
   const { cx, cy } = shape.content;
   const text = svgEl("text");
   text.classList.add(className, MARKER_FONT_CLASSNAME);
-  text.setAttribute("clip-path", appendContentClip(svg, shape, 14));
+  text.setAttribute("clip-path", appendContentClip(svg, shape, TEXT_CONTENT_CLIP_RADIUS));
   text.setAttribute("x", String(cx));
   text.setAttribute("y", String(cy));
   text.setAttribute("text-anchor", "middle");
   text.setAttribute("dominant-baseline", "central");
-  text.setAttribute("font-weight", "500");
+  text.setAttribute("font-weight", String(TEXT_CONTENT_FONT_WEIGHT));
   text.setAttribute("font-size", String(TEXT_CONTENT_FONT_SIZE));
   text.style.fill = "var(--marker-content-color)";
   text.style.userSelect = "none";

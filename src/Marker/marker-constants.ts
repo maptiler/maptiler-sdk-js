@@ -39,12 +39,20 @@ export const SIZE_PX: Record<NonNullable<MapTilerMarkerBaseOptions["size"]>, num
   l: 40,
 };
 
-export const SHADOW_FILTER: Record<NonNullable<MapTilerMarkerBaseOptions["shadow"]>, string> = {
-  none: "none",
-  soft: "drop-shadow(0px 1px 0px rgba(0, 0, 0, 0.2))",
-  medium: "drop-shadow(0px 2px 2px rgba(29, 29, 29, 0.2))",
-  strong: "drop-shadow(0px 2px 4px rgba(29, 29, 29, 0.2))",
+/** Drop-shadow geometry in CSS px. `blur` follows the CSS `drop-shadow()` / canvas `shadowBlur` convention (twice the Gaussian standard deviation). */
+export type MarkerShadowParams = { offsetX: number; offsetY: number; blur: number; color: string };
+
+/** Single source of truth for marker shadows — the DOM path's CSS filter and the canvas path's `shadow*` settings are both derived from it. */
+export const SHADOW_PARAMS: Record<NonNullable<MapTilerMarkerBaseOptions["shadow"]>, MarkerShadowParams | null> = {
+  none: null,
+  soft: { offsetX: 0, offsetY: 1, blur: 0, color: "rgba(0, 0, 0, 0.2)" },
+  medium: { offsetX: 0, offsetY: 2, blur: 2, color: "rgba(29, 29, 29, 0.2)" },
+  strong: { offsetX: 0, offsetY: 2, blur: 4, color: "rgba(29, 29, 29, 0.2)" },
 };
+
+export const SHADOW_FILTER = Object.fromEntries(
+  Object.entries(SHADOW_PARAMS).map(([key, p]) => [key, p ? `drop-shadow(${String(p.offsetX)}px ${String(p.offsetY)}px ${String(p.blur)}px ${p.color})` : "none"]),
+) as Record<NonNullable<MapTilerMarkerBaseOptions["shadow"]>, string>;
 
 //#endregion
 
@@ -166,6 +174,21 @@ export const GLYPH_VIEWBOX_SIZE = 24;
 
 /** Font size (viewBox units) of text content. */
 export const TEXT_CONTENT_FONT_SIZE = 14;
+
+/** Font weight of text content. */
+export const TEXT_CONTENT_FONT_WEIGHT = 500;
+
+/** Radius (viewBox units) of the circle text content is clipped to, centred on the shape's content circle. */
+export const TEXT_CONTENT_CLIP_RADIUS = 14;
+
+/**
+ * Font stack for text content when drawn to canvas. Keep in sync with
+ * `.maptiler-sdk-marker-font` in style_template.css, which the DOM path uses.
+ */
+export const MARKER_FONT_FAMILY = '"Inter", "MapTiler Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+
+/** Stroke width in CSS px of the `xs` dot's outer ring. */
+export const DOT_STROKE_WIDTH = 1;
 
 /**
  * Minimum margin in CSS px around the viewport within which markers still
