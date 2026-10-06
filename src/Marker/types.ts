@@ -512,6 +512,17 @@ export type MapTilerMarkerElementProps = Pick<MapTilerMarkerBaseOptions, MapTile
 export type MapTilerMarkerOptions = MapTilerMarkerBaseOptions & MarkerContent;
 
 /**
+ * Visual subset of {@link MapTilerMarkerBaseOptions} — everything that
+ * determines how a marker looks, and nothing about how it behaves or where
+ * it sits. Unset fields fall back to the marker defaults; unset colours
+ * fall back to the current map style's adaptive colours.
+ */
+export type MarkerStyle = Pick<
+  MapTilerMarkerBaseOptions,
+  "shape" | "size" | "outerColor" | "innerColor" | "contentColor" | "outline" | "outlineColor" | "shadow" | "opacity" | "content"
+>;
+
+/**
  * Batch of property updates waiting to be flushed to the DOM.
  * A key being present (even with an `undefined` value) means "apply this
  * property" — e.g. `{ shadow: undefined }` resets the shadow to its default.
