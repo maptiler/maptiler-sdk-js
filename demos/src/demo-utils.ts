@@ -53,8 +53,12 @@ export function addPerformanceStats() {
  * Configures the MapTiler API key for the SDK.
  * If you don't want to use the URL parameter, you can set the key directly in the code.
  */
+declare const __MT_DEMO_API_KEY__: string | undefined;
+
 export function setupMapTilerApiKey({ config }: { config: SdkConfig }) {
-  config.apiKey = localStorage.getItem("MT_DEMO_API_KEY") ?? "API_KEY";
+  // key injected by the dev server from MAPTILER_API_KEY (env / .env) wins, then the stored one
+  const envKey = typeof __MT_DEMO_API_KEY__ === "undefined" ? "" : __MT_DEMO_API_KEY__;
+  config.apiKey = envKey || (localStorage.getItem("MT_DEMO_API_KEY") ?? "API_KEY");
 
   if (config.apiKey === "API_KEY") {
     const urlParams = new URLSearchParams(window.location.search);
