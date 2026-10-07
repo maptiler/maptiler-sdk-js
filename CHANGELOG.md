@@ -6,11 +6,20 @@
   - Configure via the `transitions` constructor option or `setTransitionForProperty(property, [duration, easing?, delay?] | null)`; inspect with `getTransitions()`.
   - Fires `transitionstart` / `transitionend` events — same shape as MapLibre's marker events (`type`, `target`), plus `props`: the transitioning property keyed to its value at that point (the eased-from value on `transitionstart`, the reached value on `transitionend`).
   - Collision hide/show/minimize fade transitions are now parameterised per map via `setMarkerCollisionOptions({ transitionDuration, transitionEasing })`.
+- Adds built-in marker icons: the `icon` option now renders one of 20 built-in icons (type `MapTilerMarkerIcon`), drawn in the content colour at 16 / 12 / 8 px for `l` / `m` / `s`.
+  - The `maptiler` shape's default mark is the built-in `maptiler` icon, drawn the same way.
+- Markers now match the design at every size: each shape has its own geometry for `l`, `m` and `s` instead of one drawing scaled to all three.
+  - Text content is sized per size (14 / 12 / 8 px), with −6 % letter-spacing and a whole-pixel baseline. A single letter or digit is drawn larger (15.5 / 13 / 10 px), positioned so its capitals look centred.
+  - Image content fills the whole inner area; on `bubble-square` it runs through the tail.
+- The default marker `shadow` now depends on the size: `strong` at `l`, `medium` at `m`, `soft` at `s` and `xs`. An unset shadow follows size changes; an explicit one is kept.
+- The `xs` dot is now 10 px with a 2 px ring and uses the marker shadow (`soft` by default).
 
 ### 🐛 Bug Fixes
  - Fixes a bug in halo where a mismatch between the layer added to the map and the layer added to the `.halo` field were different instances, causing a runtime error.
+- Fixes a thin line of the inner colour showing between image content and the marker ring.
 
 ### ⚙️ Others
+- The dev server passes `MAPTILER_API_KEY` (from the environment or `.env`) to the demos, so they no longer need `?key=`.
 
 
 ## 4.1.0
