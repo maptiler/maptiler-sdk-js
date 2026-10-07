@@ -19,7 +19,7 @@ const ICONS = new Map<string, string>(Object.entries(BUILT_IN_MARKER_ICONS));
 
 /**
  * Registers (or overrides) an icon usable via the marker `icon` option.
- * Built-in icons ({@link MARKER_ICON_NAMES}) are registered up front.
+ * The built-in icons ({@link MapTilerMarkerIcon}) are registered up front.
  * @param name - Identifier passed as `icon`.
  * @param source - SVG markup, drawn in the content colour and scaled from its viewBox to each size's icon box.
  */

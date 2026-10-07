@@ -22,6 +22,7 @@ import square from "../style/svg/marker-icons/square.svg?raw";
 import star from "../style/svg/marker-icons/star.svg?raw";
 import triangle from "../style/svg/marker-icons/triangle.svg?raw";
 import water from "../style/svg/marker-icons/water.svg?raw";
+import type { MapTilerMarkerIcon } from "./types";
 
 /** Names of the built-in marker icons, usable as the marker `icon` option. */
 export const MARKER_ICON_NAMES = [
@@ -45,30 +46,28 @@ export const MARKER_ICON_NAMES = [
   "star",
   "triangle",
   "water",
-] as const;
-
-export type MarkerIconName = (typeof MARKER_ICON_NAMES)[number];
+] as const satisfies readonly MapTilerMarkerIcon[];
 
 /** SVG markup of a built-in icon, designed at the L icon size and scaled to the marker size. */
-export const BUILT_IN_MARKER_ICONS: Record<MarkerIconName, string> = {
-  attraction: attraction,
-  bar: bar,
-  cafe: cafe,
-  car: car,
-  circle: circle,
-  clothes: clothes,
-  diamond: diamond,
-  flag: flag,
-  heart: heart,
-  hospital: hospital,
-  lodging: lodging,
-  mall: mall,
-  maptiler: maptiler,
-  park: park,
-  restaurant: restaurant,
-  shop: shop,
-  square: square,
-  star: star,
-  triangle: triangle,
-  water: water,
+export const BUILT_IN_MARKER_ICONS: Record<MapTilerMarkerIcon, string> = {
+  attraction,
+  bar,
+  cafe,
+  car,
+  circle,
+  clothes,
+  diamond,
+  flag,
+  heart,
+  hospital,
+  lodging,
+  mall,
+  maptiler,
+  park,
+  restaurant,
+  shop,
+  square,
+  star,
+  triangle,
+  water,
 };

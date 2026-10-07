@@ -236,7 +236,7 @@ describe("icon content", () => {
     expect(iconGroup(outer)?.dataset.icon).toBe("maptiler");
   });
 
-  it("every built-in icon has a source for every marker size", () => {
+  it("every built-in icon has a source and renders at every marker size", () => {
     for (const name of MARKER_ICON_NAMES) {
       for (const size of ["s", "m", "l"] as const) {
         const outer = createMarkerElement(baseOptions({ shape: "circle", size, icon: name }));

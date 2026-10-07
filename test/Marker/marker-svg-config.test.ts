@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { CONTENT_METRICS, SHAPES, getShapeAnchorOffset, getShapeGeometry } from "../../src/Marker/marker-svg-config";
-import { DEFAULT_SHAPE, DEFAULT_SIZE, SHADOW_FILTER, SIZE_PX } from "../../src/Marker/marker-constants";
+import { SHAPES, getShapeAnchorOffset, getShapeGeometry } from "../../src/Marker/marker-svg-config";
+import { CONTENT_METRICS, DEFAULT_SHAPE, DEFAULT_SIZE, SHADOW_FILTER, SIZE_PX } from "../../src/Marker/marker-constants";
 
 describe("SIZE_PX / SHAPES tables", () => {
   it("has a pixel size for every marker size key", () => {

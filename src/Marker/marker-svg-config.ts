@@ -1,6 +1,5 @@
-import type { MapTilerMarkerBaseOptions, MapTilerMarkerSize } from "./types";
+import type { MapTilerMarkerBaseOptions, MapTilerMarkerIcon, MapTilerMarkerSize } from "./types";
 import { SIZE_PX } from "./marker-constants";
-import type { MarkerIconName } from "./marker-icons";
 
 //#region Types
 
@@ -43,7 +42,7 @@ export type ShapeDescriptor = {
   /** Which point of the shape sits on the marker's geographic location — the box centre, or the tail tip at the bottom edge of the box. */
   anchor: "bottom" | "center";
   /** Built-in icon shown when the marker has no content of its own — drawn exactly like `icon` content. */
-  defaultIcon?: MarkerIconName;
+  defaultIcon?: MapTilerMarkerIcon;
   /** Per-size geometry. Sizes are drawn individually (fixed ring width, padding), not scaled from one another. */
   sizes: Record<ShapeSize, ShapeGeometry>;
 };
@@ -58,8 +57,8 @@ export type ContentMetrics = {
   font: number;
   /**
    * Distance from the content-box centre down to the text baseline. Whole pixels,
-   * so flat letter bottoms land on one crisp row on 1× screens — the design renders
-   * M/S on a half pixel (4.5 / 2.5), which reads as text sitting low.
+   * so flat letter bottoms land on one crisp row on 1× screens (a half-pixel
+   * baseline reads as text sitting low).
    */
   baseline: number;
 };
@@ -97,15 +96,6 @@ function bubbleSquare(
 // Geometry exported from the "Marker foundations" Figma frame (Map Controls UI),
 // component sets l-3px-outline / m-3px-outline / s-2px-outline, in marker-box px:
 // the same primitives and coordinates as the Figma SVG export.
-
-export const CONTENT_METRICS: Record<ShapeSize, ContentMetrics> = {
-  l: { box: 20, icon: 16, font: 14, baseline: 5 },
-  m: { box: 16, icon: 12, font: 12, baseline: 4 },
-  s: { box: 12, icon: 8, font: 8, baseline: 3 },
-};
-
-/** Letter spacing of text content, in em. */
-export const TEXT_LETTER_SPACING_EM = -0.08;
 
 export const SHAPES: Record<NonNullable<MapTilerMarkerBaseOptions["shape"]>, ShapeDescriptor> = {
   circle: {
@@ -262,7 +252,11 @@ export const SHAPES: Record<NonNullable<MapTilerMarkerBaseOptions["shape"]>, Sha
  * dot); it resolves to `fallback` so callers holding a hidden shape SVG
  * still get valid numbers.
  */
-export function getShapeGeometry(shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>, sizeKey: MapTilerMarkerSize, fallback: ShapeSize = "m"): ShapeGeometry {
+export function getShapeGeometry(
+  shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>,
+  sizeKey: NonNullable<MapTilerMarkerBaseOptions["size"]>,
+  fallback: ShapeSize = "m",
+): ShapeGeometry {
   return SHAPES[shapeKey].sizes[sizeKey === "xs" ? fallback : sizeKey];
 }
 

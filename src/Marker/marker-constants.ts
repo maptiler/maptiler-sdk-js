@@ -2,6 +2,7 @@ import type { MarkerOptions } from "maplibre-gl";
 import type { EasingFunctionName } from "../MaptilerAnimation/types";
 import type { EnterAnimationPreset, ExitAnimationPreset, IdleAnimationPreset, MapTilerMarkerBaseOptions, MapTilerMarkerElementProps, MapTilerMarkerUIStateName } from "./types";
 import type { AdaptiveColorSet, AdaptiveStyleKey } from "./marker-adaptive-colors";
+import type { ContentMetrics, ShapeSize } from "./marker-svg-config";
 
 //#region Defaults
 
@@ -39,7 +40,7 @@ export const COLLISION_FADE_DURATION_MS = 150;
 //#region Lookup Tables
 
 export const SIZE_PX: Record<NonNullable<MapTilerMarkerBaseOptions["size"]>, number> = {
-  // the dot (the design has 8px with a 1px ring — bumped to 10px / 2px ring, see DOT_RING_PX)
+  // the dot: a 10px disc with a DOT_RING_PX ring
   xs: 10,
   s: 24,
   m: 32,
@@ -53,8 +54,12 @@ export const SHADOW_FILTER: Record<NonNullable<MapTilerMarkerBaseOptions["shadow
   strong: "drop-shadow(0px 2px 4px rgba(29, 29, 29, 0.2))",
 };
 
-/** Width of the outer-colour ring around the xs dot's inner fill (px). */
-export const DOT_RING_PX = 2;
+/** Content sizing per marker size, shared by every shape (px). */
+export const CONTENT_METRICS: Record<ShapeSize, ContentMetrics> = {
+  l: { box: 20, icon: 16, font: 14, baseline: 5 },
+  m: { box: 16, icon: 12, font: 12, baseline: 4 },
+  s: { box: 12, icon: 8, font: 8, baseline: 3 },
+};
 
 //#endregion
 
@@ -173,6 +178,12 @@ export const IDLE_PRESET_DEFAULT_DURATION: Record<IdleAnimationPreset, number> =
 
 /** Design-space size (units) for SVG template glyphs. */
 export const GLYPH_VIEWBOX_SIZE = 24;
+
+/** Letter spacing of text content, in em. */
+export const TEXT_LETTER_SPACING_EM = -0.08;
+
+/** Width of the outer-colour ring around the xs dot's inner fill (px). */
+export const DOT_RING_PX = 2;
 
 /**
  * Minimum margin in CSS px around the viewport within which markers still

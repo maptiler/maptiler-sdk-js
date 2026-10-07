@@ -1,7 +1,6 @@
 import type { MarkerOptions } from "maplibre-gl";
 import type { EasingFunctionName } from "../MaptilerAnimation/types";
 import type { Marker } from "./Marker";
-import type { MarkerIconName } from "./marker-icons";
 
 //#region Primitives
 
@@ -13,6 +12,29 @@ export type MapTilerMarkerSize = "xs" | "s" | "m" | "l";
 
 /** Drop-shadow intensity applied beneath the marker. */
 export type MapTilerMarkerShadow = "none" | "soft" | "medium" | "strong";
+
+/** Built-in icon drawn as marker content; `maptiler` is the MapTiler mark (the `maptiler` shape's default content). */
+export type MapTilerMarkerIcon =
+  | "attraction"
+  | "bar"
+  | "cafe"
+  | "car"
+  | "circle"
+  | "clothes"
+  | "diamond"
+  | "flag"
+  | "heart"
+  | "hospital"
+  | "lodging"
+  | "mall"
+  | "maptiler"
+  | "park"
+  | "restaurant"
+  | "shop"
+  | "square"
+  | "star"
+  | "triangle"
+  | "water";
 
 /** Behaviour when this marker spatially overlaps another. */
 export const CollisionBehaviour = {
@@ -326,8 +348,8 @@ export type MarkerTransitionEventData = {
  * sized to the marker (16 / 12 / 8 px for `l` / `m` / `s`; `xs` shows no content).
  */
 export type MarkerContentTypeIcon = {
-  /** Name of a built-in icon (attraction, bar, cafe, car, circle, clothes, diamond, flag, heart, hospital, lodging, mall, park, restaurant, shop, square, star, triangle, water). */
-  icon: MarkerIconName;
+  /** Name of a built-in icon. */
+  icon: MapTilerMarkerIcon;
   url?: never;
   template?: never;
   templateParams?: never;

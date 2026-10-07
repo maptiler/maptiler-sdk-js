@@ -1,15 +1,6 @@
 import type { MarkerOptions } from "maplibre-gl";
-import type { MapTilerMarkerBaseOptions, MapTilerMarkerOptions, PendingMarkerUpdates, MapTilerMarkerSize } from "./types";
-import {
-  CONTENT_METRICS,
-  SHAPES,
-  TEXT_LETTER_SPACING_EM,
-  getShapeGeometry,
-  type ContentMetrics,
-  type ShapeGeometry,
-  type ShapePrimitive,
-  type ShapeSize,
-} from "./marker-svg-config";
+import type { MapTilerMarkerBaseOptions, MapTilerMarkerIcon, MapTilerMarkerOptions, PendingMarkerUpdates, MapTilerMarkerSize } from "./types";
+import { SHAPES, getShapeGeometry, type ContentMetrics, type ShapeGeometry, type ShapePrimitive, type ShapeSize } from "./marker-svg-config";
 import { getMarkerIcon, getMarkerTemplate } from "./marker-content-registry";
 import { getAdaptiveColors, type AdaptiveColorSet } from "./marker-adaptive-colors";
 import {
@@ -18,6 +9,7 @@ import {
   COLLISION_CULLED_CLASSNAME,
   COLLISION_FADE_CLASSNAME,
   COLLISION_HIDDEN_CLASSNAME,
+  CONTENT_METRICS,
   CUSTOM_ELEMENT_CLASSNAME,
   DEBUG_COLOR,
   DEFAULT_CONTENT_CLASSNAME,
@@ -33,14 +25,15 @@ import {
   SHAPE_SVG_CLASSNAME,
   SIZE_PX,
   SVG_NS,
+  TEXT_LETTER_SPACING_EM,
 } from "./marker-constants";
 
-type ShapeKey = NonNullable<MapTilerMarkerBaseOptions["shape"]>;
+//#region Layout
 
 /** Everything content placement needs for one shape at one size. */
-type MarkerLayout = { size: ShapeSize; geometry: ShapeGeometry; metrics: ContentMetrics; defaultIcon?: string };
+type MarkerLayout = { size: ShapeSize; geometry: ShapeGeometry; metrics: ContentMetrics; defaultIcon?: MapTilerMarkerIcon };
 
-function getLayout(shapeKey: ShapeKey, sizeKey: ShapeSize): MarkerLayout {
+function getLayout(shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>, sizeKey: ShapeSize): MarkerLayout {
   return { size: sizeKey, geometry: getShapeGeometry(shapeKey, sizeKey), metrics: CONTENT_METRICS[sizeKey], defaultIcon: SHAPES[shapeKey].defaultIcon };
 }
 
@@ -51,8 +44,10 @@ function getSvgSize(svg: SVGSVGElement): ShapeSize {
 
 /** Layout a shape SVG was built for — recorded on the SVG itself, so it stays right while the marker sits at `xs`. */
 function getSvgLayout(svg: SVGSVGElement): MarkerLayout {
-  return getLayout((svg.dataset.shape ?? DEFAULT_SHAPE) as ShapeKey, getSvgSize(svg));
+  return getLayout((svg.dataset.shape ?? DEFAULT_SHAPE) as NonNullable<MapTilerMarkerBaseOptions["shape"]>, getSvgSize(svg));
 }
+
+//#endregion
 
 //#region svgEl
 
@@ -95,11 +90,11 @@ export function applyMarkerStyleVariables(element: HTMLElement | SVGElement, opt
 
 /**
  * Sets the shadow filter variable. An unset shadow follows the size's default
- * and is re-resolved whenever the size changes (tracked via `data-shadow`).
+ * and is re-resolved whenever the size changes (an explicit one is tracked via `data-marker-shadow`).
  */
 function applyShadow(element: HTMLElement | SVGElement, shadow: MapTilerMarkerBaseOptions["shadow"], size: MapTilerMarkerSize): void {
-  if (shadow) element.dataset.shadow = shadow;
-  else delete element.dataset.shadow;
+  if (shadow) element.dataset.markerShadow = shadow;
+  else delete element.dataset.markerShadow;
   element.style.setProperty("--marker-shadow", SHADOW_FILTER[shadow ?? DEFAULT_SHADOW_BY_SIZE[size]]);
 }
 
@@ -249,7 +244,7 @@ export function updateMarkerElement(element: HTMLElement, props: PendingMarkerUp
     const size = props.size ?? DEFAULT_SIZE;
     applySize(wrapper, size);
     // an unset shadow follows the new size's default
-    if (!wrapper.dataset.shadow) applyShadow(wrapper, undefined, size);
+    if (!wrapper.dataset.markerShadow) applyShadow(wrapper, undefined, size);
   }
 
   if ("shape" in props) {
@@ -344,7 +339,7 @@ function applySize(wrapper: HTMLElement, size: MapTilerMarkerSize): void {
 
   dotSvg?.remove();
 
-  const shapeKey = (wrapper.dataset.markerShape ?? DEFAULT_SHAPE) as ShapeKey;
+  const shapeKey = (wrapper.dataset.markerShape ?? DEFAULT_SHAPE) as NonNullable<MapTilerMarkerBaseOptions["shape"]>;
 
   if (!shapeSvg) {
     // marker was constructed at xs size — no shape SVG to restore, build fresh
@@ -479,7 +474,7 @@ function applyShape(wrapper: HTMLElement, shape: NonNullable<MapTilerMarkerBaseO
  * outline width, content and visibility.
  * @returns The new SVG.
  */
-function replaceShapeSvg(existingSvg: SVGSVGElement, shape: ShapeKey, size: ShapeSize): SVGSVGElement {
+function replaceShapeSvg(existingSvg: SVGSVGElement, shape: NonNullable<MapTilerMarkerBaseOptions["shape"]>, size: ShapeSize): SVGSVGElement {
   const newSvg = buildShapeSvg(shape, size);
   const layout = getLayout(shape, size);
 
@@ -663,7 +658,7 @@ const shapeSvgTemplates = new Map<string, SVGSVGElement>();
  * @param sizeKey - Target pixel height; drives `width`/`height` attributes via aspect ratio.
  * @param options - When provided, applies outline and appends the content layer.
  */
-function buildShapeSvg(shapeKey: ShapeKey, sizeKey: ShapeSize, options?: MapTilerMarkerOptions): SVGSVGElement {
+function buildShapeSvg(shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>, sizeKey: ShapeSize, options?: MapTilerMarkerOptions): SVGSVGElement {
   const cacheKey = `${shapeKey}:${sizeKey}`;
   let template = shapeSvgTemplates.get(cacheKey);
   if (!template) {
@@ -682,7 +677,7 @@ function buildShapeSvg(shapeKey: ShapeKey, sizeKey: ShapeSize, options?: MapTile
   return svg;
 }
 
-function createShapeSvgTemplate(shapeKey: ShapeKey, sizeKey: ShapeSize): SVGSVGElement {
+function createShapeSvgTemplate(shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>, sizeKey: ShapeSize): SVGSVGElement {
   const geometry = getShapeGeometry(shapeKey, sizeKey);
   const sizePx = SIZE_PX[sizeKey];
 
