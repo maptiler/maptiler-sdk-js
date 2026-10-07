@@ -297,7 +297,8 @@ function applyContent(wrapper: HTMLElement, value: string | undefined): void {
 
   if (existing instanceof SVGTextElement) {
     if (value) {
-      existing.textContent = value;
+      // the label's length can change its size (one character on S is larger)
+      setTextLabel(existing, value, layout);
     } else {
       existing.remove();
       ensureDefaultContent(svg, layout);
@@ -997,24 +998,30 @@ function appendElementContent(svg: SVGSVGElement, element: HTMLElement | SVGElem
 
 /** Appends a text label centred on the content box, at the size's font size, baseline and letter spacing. */
 function appendTextContent(svg: SVGSVGElement, title: string, layout: MarkerLayout, className = "marker-content"): SVGTextElement {
-  const { cx, cy } = layout.geometry.content;
   const text = svgEl("text");
   text.classList.add(className, MARKER_FONT_CLASSNAME);
   text.setAttribute("clip-path", appendContentClip(svg, layout));
-  const { font, baseline } = layout.metrics;
+  text.setAttribute("text-anchor", "middle");
+  text.setAttribute("font-weight", "500");
+  text.setAttribute("letter-spacing", `${String(TEXT_LETTER_SPACING_EM)}em`);
+  text.style.fill = "var(--marker-content-color)";
+  text.style.userSelect = "none";
+  setTextLabel(text, title, layout);
+  svg.appendChild(text);
+  return text;
+}
+
+/** Sets a label's text, with the font size and position that go with its length. */
+function setTextLabel(text: SVGTextElement, label: string, layout: MarkerLayout): void {
+  const { cx, cy } = layout.geometry.content;
+  // one letter or digit (a single UTF-16 unit)
+  const { font, baseline } = (label.length === 1 ? layout.metrics.singleChar : undefined) ?? layout.metrics;
   // SVG adds letter-spacing after the last glyph too, which shifts middle-anchored
   // text by half a spacing; the design centres the glyphs themselves
   text.setAttribute("x", String(cx + (TEXT_LETTER_SPACING_EM * font) / 2));
   text.setAttribute("y", String(cy + baseline));
-  text.setAttribute("text-anchor", "middle");
-  text.setAttribute("font-weight", "500");
   text.setAttribute("font-size", String(font));
-  text.setAttribute("letter-spacing", `${String(TEXT_LETTER_SPACING_EM)}em`);
-  text.style.fill = "var(--marker-content-color)";
-  text.style.userSelect = "none";
-  text.textContent = title;
-  svg.appendChild(text);
-  return text;
+  text.textContent = label;
 }
 
 //#endregion

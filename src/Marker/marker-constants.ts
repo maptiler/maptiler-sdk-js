@@ -56,9 +56,9 @@ export const SHADOW_FILTER: Record<NonNullable<MapTilerMarkerBaseOptions["shadow
 
 /** Content sizing per marker size, shared by every shape (px). */
 export const CONTENT_METRICS: Record<ShapeSize, ContentMetrics> = {
-  l: { box: 20, icon: 16, font: 14, baseline: 5 },
-  m: { box: 16, icon: 12, font: 12, baseline: 4 },
-  s: { box: 12, icon: 8, font: 8, baseline: 3 },
+  l: { box: 20, icon: 16, font: 14, baseline: 5, singleChar: { font: 15.5, baseline: 5.5 } },
+  m: { box: 16, icon: 12, font: 12, baseline: 4, singleChar: { font: 13, baseline: 4.5 } },
+  s: { box: 12, icon: 8, font: 8, baseline: 3, singleChar: { font: 10, baseline: 3.5 } },
 };
 
 //#endregion
@@ -180,7 +180,7 @@ export const IDLE_PRESET_DEFAULT_DURATION: Record<IdleAnimationPreset, number> =
 export const GLYPH_VIEWBOX_SIZE = 24;
 
 /** Letter spacing of text content, in em. */
-export const TEXT_LETTER_SPACING_EM = -0.08;
+export const TEXT_LETTER_SPACING_EM = -0.06;
 
 /** Width of the outer-colour ring around the xs dot's inner fill (px). */
 export const DOT_RING_PX = 2;

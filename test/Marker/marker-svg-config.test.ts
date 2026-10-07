@@ -42,9 +42,9 @@ describe("SIZE_PX / SHAPES tables", () => {
   });
 
   it("uses the design's content metrics per size", () => {
-    expect(CONTENT_METRICS.l).toEqual({ box: 20, icon: 16, font: 14, baseline: 5 });
-    expect(CONTENT_METRICS.m).toEqual({ box: 16, icon: 12, font: 12, baseline: 4 });
-    expect(CONTENT_METRICS.s).toEqual({ box: 12, icon: 8, font: 8, baseline: 3 });
+    expect(CONTENT_METRICS.l).toEqual({ box: 20, icon: 16, font: 14, baseline: 5, singleChar: { font: 15.5, baseline: 5.5 } });
+    expect(CONTENT_METRICS.m).toEqual({ box: 16, icon: 12, font: 12, baseline: 4, singleChar: { font: 13, baseline: 4.5 } });
+    expect(CONTENT_METRICS.s).toEqual({ box: 12, icon: 8, font: 8, baseline: 3, singleChar: { font: 10, baseline: 3.5 } });
   });
 
   it("resolves xs to the fallback size's geometry", () => {

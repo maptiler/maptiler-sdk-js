@@ -61,6 +61,12 @@ export type ContentMetrics = {
    * baseline reads as text sitting low).
    */
   baseline: number;
+  /**
+   * Font size and baseline for a one-character label — a single letter or digit is drawn larger than a
+   * longer label. The baseline is chosen so the capitals sit optically centred (a hair above the
+   * centre); it may sit on a half pixel when no whole pixel does that.
+   */
+  singleChar?: { font: number; baseline: number };
 };
 
 //#endregion

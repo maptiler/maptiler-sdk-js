@@ -530,6 +530,38 @@ describe("updateMarkerElement", () => {
     expect(text?.getAttribute("font-size")).toBe("8");
   });
 
+  it("draws a one-character label larger than a longer one, at every size", () => {
+    const label = (content: string, size: "s" | "m" | "l" = "s") =>
+      resolveMarkerWrapper(createMarkerElement(baseOptions({ shape: "circle", size, content }))).querySelector("text")!;
+    // circle S: content centre (12, 12)
+    expect(label("A").getAttribute("font-size")).toBe("10");
+    expect(label("A").getAttribute("y")).toBe("15.5");
+    expect(label("7").getAttribute("font-size")).toBe("10");
+    expect(label("AB").getAttribute("font-size")).toBe("8");
+    expect(label("AB").getAttribute("y")).toBe("15");
+    // M and L too: circle M content centre (16, 16), circle L (20, 20)
+    expect(label("A", "m").getAttribute("font-size")).toBe("13");
+    expect(label("A", "m").getAttribute("y")).toBe("20.5");
+    expect(label("AB", "m").getAttribute("font-size")).toBe("12");
+    expect(label("A", "l").getAttribute("font-size")).toBe("15.5");
+    expect(label("A", "l").getAttribute("y")).toBe("25.5");
+    expect(label("AB", "l").getAttribute("font-size")).toBe("14");
+  });
+
+  it("re-sizes an S label when its length crosses one character", () => {
+    const outer = createMarkerElement(baseOptions({ shape: "circle", size: "s", content: "AB" }));
+    const text = () => resolveMarkerWrapper(outer).querySelector("text")!;
+    expect(text().getAttribute("font-size")).toBe("8");
+
+    updateMarkerElement(outer, { content: "A" });
+    expect(text().getAttribute("font-size")).toBe("10");
+    expect(text().getAttribute("y")).toBe("15.5");
+
+    updateMarkerElement(outer, { content: "12" });
+    expect(text().getAttribute("font-size")).toBe("8");
+    expect(text().getAttribute("y")).toBe("15");
+  });
+
   it("builds a fresh shape svg when growing past xs on a marker constructed at xs", () => {
     const outer = createMarkerElement(baseOptions({ size: "xs", shape: "circle" }));
     const wrapper = resolveMarkerWrapper(outer);
