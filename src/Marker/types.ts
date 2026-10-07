@@ -1,6 +1,7 @@
 import type { MarkerOptions } from "maplibre-gl";
 import type { EasingFunctionName } from "../MaptilerAnimation/types";
 import type { Marker } from "./Marker";
+import type { MarkerIconName } from "./marker-icons";
 
 //#region Primitives
 
@@ -321,12 +322,12 @@ export type MarkerTransitionEventData = {
 //#region Content Variants
 
 /**
- * Marker content driven by a built-in icon identifier.
- * TODO: icons are not implemented yet — this is a placeholder and renders nothing.
+ * Marker content driven by a built-in icon, drawn in the content colour and
+ * sized to the marker (16 / 12 / 8 px for `l` / `m` / `s`; `xs` shows no content).
  */
 export type MarkerContentTypeIcon = {
-  /** Identifier for a built-in icon. */
-  icon: string;
+  /** Name of a built-in icon (attraction, bar, cafe, car, circle, clothes, diamond, flag, heart, hospital, lodging, mall, park, restaurant, shop, square, star, triangle, water). */
+  icon: MarkerIconName;
   url?: never;
   template?: never;
   templateParams?: never;
@@ -416,7 +417,7 @@ export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" 
   outline?: true | number;
   /** Colour of the marker outline. Defaults to the current map style's colour, like `innerColor`. */
   outlineColor?: string;
-  /** Drop-shadow intensity. Defaults to `"medium"`; use `"none"` to disable. */
+  /** Drop-shadow intensity. Defaults per size: `"strong"` at `l`, `"medium"` at `m`, `"soft"` at `s` and `xs`; use `"none"` to disable. */
   shadow?: MapTilerMarkerShadow;
   opacity?: number;
   opacityWhenCovered?: number;

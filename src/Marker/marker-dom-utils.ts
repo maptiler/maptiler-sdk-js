@@ -1,7 +1,16 @@
 import type { MarkerOptions } from "maplibre-gl";
 import type { MapTilerMarkerBaseOptions, MapTilerMarkerOptions, PendingMarkerUpdates, MapTilerMarkerSize } from "./types";
-import { SHAPES, type ShapeDescriptor } from "./marker-svg-config";
-import { getMarkerTemplate } from "./marker-content-registry";
+import {
+  CONTENT_METRICS,
+  SHAPES,
+  TEXT_LETTER_SPACING_EM,
+  getShapeGeometry,
+  type ContentMetrics,
+  type ShapeGeometry,
+  type ShapePrimitive,
+  type ShapeSize,
+} from "./marker-svg-config";
+import { getMarkerIcon, getMarkerTemplate } from "./marker-content-registry";
 import { getAdaptiveColors, type AdaptiveColorSet } from "./marker-adaptive-colors";
 import {
   ALTITUDE_HIDDEN_CLASSNAME,
@@ -12,8 +21,9 @@ import {
   CUSTOM_ELEMENT_CLASSNAME,
   DEBUG_COLOR,
   DEFAULT_CONTENT_CLASSNAME,
+  DOT_RING_PX,
   DEFAULT_OUTLINE_WIDTH,
-  DEFAULT_SHADOW,
+  DEFAULT_SHADOW_BY_SIZE,
   DEFAULT_SHAPE,
   DEFAULT_SIZE,
   GLYPH_VIEWBOX_SIZE,
@@ -23,8 +33,26 @@ import {
   SHAPE_SVG_CLASSNAME,
   SIZE_PX,
   SVG_NS,
-  TEXT_CONTENT_FONT_SIZE,
 } from "./marker-constants";
+
+type ShapeKey = NonNullable<MapTilerMarkerBaseOptions["shape"]>;
+
+/** Everything content placement needs for one shape at one size. */
+type MarkerLayout = { size: ShapeSize; geometry: ShapeGeometry; metrics: ContentMetrics; defaultIcon?: string };
+
+function getLayout(shapeKey: ShapeKey, sizeKey: ShapeSize): MarkerLayout {
+  return { size: sizeKey, geometry: getShapeGeometry(shapeKey, sizeKey), metrics: CONTENT_METRICS[sizeKey], defaultIcon: SHAPES[shapeKey].defaultIcon };
+}
+
+/** Size a shape SVG was built at (recorded on the SVG by {@link createShapeSvgTemplate}). */
+function getSvgSize(svg: SVGSVGElement): ShapeSize {
+  return (svg.dataset.size ?? "m") as ShapeSize;
+}
+
+/** Layout a shape SVG was built for — recorded on the SVG itself, so it stays right while the marker sits at `xs`. */
+function getSvgLayout(svg: SVGSVGElement): MarkerLayout {
+  return getLayout((svg.dataset.shape ?? DEFAULT_SHAPE) as ShapeKey, getSvgSize(svg));
+}
 
 //#region svgEl
 
@@ -62,7 +90,17 @@ export function applyMarkerStyleVariables(element: HTMLElement | SVGElement, opt
   element.style.setProperty("--marker-inner-color", options.innerColor ?? defaults.innerColor);
   element.style.setProperty("--marker-content-color", options.contentColor ?? defaults.contentColor);
   element.style.setProperty("--marker-outline-color", options.outlineColor ?? defaults.outlineColor);
-  element.style.setProperty("--marker-shadow", SHADOW_FILTER[options.shadow ?? DEFAULT_SHADOW]);
+  applyShadow(element, options.shadow, options.size ?? DEFAULT_SIZE);
+}
+
+/**
+ * Sets the shadow filter variable. An unset shadow follows the size's default
+ * and is re-resolved whenever the size changes (tracked via `data-shadow`).
+ */
+function applyShadow(element: HTMLElement | SVGElement, shadow: MapTilerMarkerBaseOptions["shadow"], size: MapTilerMarkerSize): void {
+  if (shadow) element.dataset.shadow = shadow;
+  else delete element.dataset.shadow;
+  element.style.setProperty("--marker-shadow", SHADOW_FILTER[shadow ?? DEFAULT_SHADOW_BY_SIZE[size]]);
 }
 
 /**
@@ -159,7 +197,7 @@ export function updateMarkerElement(element: HTMLElement, props: PendingMarkerUp
   }
 
   if ("outline" in props) {
-    const outerPath = wrapper.querySelector<SVGPathElement>(".marker-outer");
+    const outerPath = wrapper.querySelector<SVGGeometryElement>(".marker-outer");
     if (props.outline) {
       const width = props.outline === true ? DEFAULT_OUTLINE_WIDTH : props.outline;
       outerPath?.setAttribute("stroke-width", String(width));
@@ -169,7 +207,7 @@ export function updateMarkerElement(element: HTMLElement, props: PendingMarkerUp
   }
 
   if ("shadow" in props) {
-    wrapper.style.setProperty("--marker-shadow", SHADOW_FILTER[props.shadow ?? DEFAULT_SHADOW]);
+    applyShadow(wrapper, props.shadow, (props.size ?? wrapper.dataset.markerSize ?? DEFAULT_SIZE) as MapTilerMarkerSize);
   }
 
   if ("opacity" in props) {
@@ -208,7 +246,10 @@ export function updateMarkerElement(element: HTMLElement, props: PendingMarkerUp
   }
 
   if ("size" in props) {
-    applySize(wrapper, props.size ?? DEFAULT_SIZE);
+    const size = props.size ?? DEFAULT_SIZE;
+    applySize(wrapper, size);
+    // an unset shadow follows the new size's default
+    if (!wrapper.dataset.shadow) applyShadow(wrapper, undefined, size);
   }
 
   if ("shape" in props) {
@@ -257,14 +298,14 @@ function applyContent(wrapper: HTMLElement, value: string | undefined): void {
   if (!svg) return;
 
   const existing = svg.querySelector(".marker-content");
-  const shapeKey = (wrapper.dataset.markerShape ?? DEFAULT_SHAPE) as NonNullable<MapTilerMarkerBaseOptions["shape"]>;
+  const layout = getSvgLayout(svg);
 
   if (existing instanceof SVGTextElement) {
     if (value) {
       existing.textContent = value;
     } else {
       existing.remove();
-      ensureDefaultContent(svg, SHAPES[shapeKey]);
+      ensureDefaultContent(svg, layout);
     }
     return;
   }
@@ -272,7 +313,8 @@ function applyContent(wrapper: HTMLElement, value: string | undefined): void {
   if (!value) return;
 
   existing?.remove();
-  appendTextContent(svg, value, SHAPES[shapeKey]);
+  setInnerFillHidden(svg, false); // an image may have hidden it
+  appendTextContent(svg, value, layout);
 }
 
 //#endregion
@@ -280,8 +322,9 @@ function applyContent(wrapper: HTMLElement, value: string | undefined): void {
 //#region applySize
 
 /**
- * Resizes the child SVG, or swaps it out entirely when crossing the `xs`
- * boundary (`xs` uses a dot SVG rather than a shape SVG).
+ * Rebuilds the shape SVG for the new size (each size has its own geometry),
+ * or swaps it for the dot when entering `xs` (`xs` uses a dot SVG rather
+ * than a shape SVG).
  * @param wrapper - The marker wrapper element.
  * @param size - The new size key.
  */
@@ -301,20 +344,17 @@ function applySize(wrapper: HTMLElement, size: MapTilerMarkerSize): void {
 
   dotSvg?.remove();
 
+  const shapeKey = (wrapper.dataset.markerShape ?? DEFAULT_SHAPE) as ShapeKey;
+
   if (!shapeSvg) {
     // marker was constructed at xs size — no shape SVG to restore, build fresh
     // (content not reconstructed here)
-    const shapeKey = (wrapper.dataset.markerShape ?? DEFAULT_SHAPE) as NonNullable<MapTilerMarkerBaseOptions["shape"]>;
     wrapper.appendChild(buildShapeSvg(shapeKey, size));
     return;
   }
 
-  // restore (if hidden) and resize — viewBoxes are square, so width = height = size
-  shapeSvg.style.display = "block";
-
-  const sizePx = String(SIZE_PX[size]);
-  shapeSvg.setAttribute("width", sizePx);
-  shapeSvg.setAttribute("height", sizePx);
+  // restore (if hidden) at the new size's geometry
+  replaceShapeSvg(shapeSvg, shapeKey, size).style.display = "block";
 }
 
 //#endregion
@@ -429,50 +469,67 @@ function applyShape(wrapper: HTMLElement, shape: NonNullable<MapTilerMarkerBaseO
   const existingSvg = getShapeSvg(wrapper);
   if (!existingSvg) return;
 
-  // while hidden at xs size the build size is nominal — restoring recomputes it
+  // while hidden at xs size, keep the size the SVG was last built at — restoring rebuilds it anyway
   const sizeKey = (wrapper.dataset.markerSize ?? DEFAULT_SIZE) as MapTilerMarkerSize;
-  const newSvg = buildShapeSvg(shape, sizeKey === "xs" ? DEFAULT_SIZE : sizeKey);
+  replaceShapeSvg(existingSvg, shape, sizeKey === "xs" ? getSvgSize(existingSvg) : sizeKey);
+}
+
+/**
+ * Swaps `existingSvg` for a freshly built shape SVG, carrying over the
+ * outline width, content and visibility.
+ * @returns The new SVG.
+ */
+function replaceShapeSvg(existingSvg: SVGSVGElement, shape: ShapeKey, size: ShapeSize): SVGSVGElement {
+  const newSvg = buildShapeSvg(shape, size);
+  const layout = getLayout(shape, size);
 
   // preserve outline width (stored as an attribute on the outer path)
   const strokeWidth = existingSvg.querySelector(".marker-outer")?.getAttribute("stroke-width");
   if (strokeWidth) newSvg.querySelector(".marker-outer")?.setAttribute("stroke-width", strokeWidth);
 
-  migrateContent(existingSvg, newSvg, SHAPES[shape]);
-  ensureDefaultContent(newSvg, SHAPES[shape]);
+  migrateContent(existingSvg, newSvg, layout);
+  ensureDefaultContent(newSvg, layout);
   newSvg.style.display = existingSvg.style.display; // stay hidden while at xs size
   existingSvg.replaceWith(newSvg);
+  return newSvg;
 }
 
 /**
  * Re-creates the `.marker-content` layer from `oldSvg` inside `newSvg`,
- * repositioned for the new shape's content geometry.
+ * repositioned for the new shape/size's content geometry.
  */
-function migrateContent(oldSvg: SVGSVGElement, newSvg: SVGSVGElement, shape: ShapeDescriptor): void {
+function migrateContent(oldSvg: SVGSVGElement, newSvg: SVGSVGElement, layout: MarkerLayout): void {
   const content = oldSvg.querySelector(".marker-content");
   // the old shape's default glyph isn't user content — the new shape supplies its own
   if (!content || content.classList.contains(DEFAULT_CONTENT_CLASSNAME)) return;
 
+  // icons are re-drawn for the new size's icon box and content centre
+  if (content instanceof SVGGElement && content.dataset.icon) {
+    appendIconContent(newSvg, content.dataset.icon, layout);
+    return;
+  }
+
   if (content instanceof SVGGElement) {
-    // icon / SVG-template glyph: move it and refit to the new content circle
-    content.setAttribute("transform", glyphTransform(shape));
+    // SVG-template glyph: move it and refit to the new icon box
+    content.setAttribute("transform", glyphTransform(layout));
     newSvg.appendChild(content);
     return;
   }
 
   if (content instanceof SVGImageElement) {
     const href = content.getAttribute("href");
-    if (href) appendImageContent(newSvg, href, shape);
+    if (href) appendImageContent(newSvg, href, layout);
     return;
   }
 
   if (content instanceof SVGForeignObjectElement) {
     const child = content.firstElementChild;
-    if (child instanceof HTMLElement || child instanceof SVGElement) appendElementContent(newSvg, child, shape);
+    if (child instanceof HTMLElement || child instanceof SVGElement) appendElementContent(newSvg, child, layout);
     return;
   }
 
   if (content instanceof SVGTextElement && content.textContent) {
-    appendTextContent(newSvg, content.textContent, shape);
+    appendTextContent(newSvg, content.textContent, layout);
   }
 }
 
@@ -498,17 +555,15 @@ function createDotSvgTemplate(): SVGSVGElement {
   svg.setAttribute("height", String(diameter));
   svg.style.display = "block";
   svg.style.overflow = "visible";
-  svg.style.filter = "none";
+  svg.style.filter = "var(--marker-shadow)";
 
-  const circle = svgEl("circle");
-  circle.setAttribute("cx", String(diameter / 2));
-  circle.setAttribute("cy", String(diameter / 2));
-  circle.setAttribute("r", String(diameter / 2));
-  circle.setAttribute("stroke-width", "1");
-  circle.setAttribute("vector-effect", "non-scaling-stroke");
-  circle.style.fill = "var(--marker-inner-color)";
-  circle.style.stroke = "var(--marker-outer-color)";
-  svg.appendChild(circle);
+  // the outer-colour disc with the inner-colour disc DOT_RING_PX inside it
+  const center = diameter / 2;
+  const outer = buildPrimitive({ type: "circle", cx: center, cy: center, r: center });
+  outer.style.fill = "var(--marker-outer-color)";
+  const inner = buildPrimitive({ type: "circle", cx: center, cy: center, r: center - DOT_RING_PX });
+  inner.style.fill = "var(--marker-inner-color)";
+  svg.append(outer, inner);
 
   return svg;
 }
@@ -608,7 +663,7 @@ const shapeSvgTemplates = new Map<string, SVGSVGElement>();
  * @param sizeKey - Target pixel height; drives `width`/`height` attributes via aspect ratio.
  * @param options - When provided, applies outline and appends the content layer.
  */
-function buildShapeSvg(shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>, sizeKey: MapTilerMarkerSize, options?: MapTilerMarkerOptions): SVGSVGElement {
+function buildShapeSvg(shapeKey: ShapeKey, sizeKey: ShapeSize, options?: MapTilerMarkerOptions): SVGSVGElement {
   const cacheKey = `${shapeKey}:${sizeKey}`;
   let template = shapeSvgTemplates.get(cacheKey);
   if (!template) {
@@ -620,65 +675,77 @@ function buildShapeSvg(shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>
 
   if (options) {
     // the outer path is always the template's first child
-    applyOutlineToPath(svg.firstElementChild as SVGPathElement, options);
-    appendContent(svg, options, SHAPES[shapeKey]);
+    applyOutlineToPath(svg.firstElementChild as SVGGeometryElement, options);
+    appendContent(svg, options, getLayout(shapeKey, sizeKey));
   }
 
   return svg;
 }
 
-function createShapeSvgTemplate(shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>, sizeKey: MapTilerMarkerSize): SVGSVGElement {
-  const shapeDesc = SHAPES[shapeKey];
+function createShapeSvgTemplate(shapeKey: ShapeKey, sizeKey: ShapeSize): SVGSVGElement {
+  const geometry = getShapeGeometry(shapeKey, sizeKey);
   const sizePx = SIZE_PX[sizeKey];
-  const [viewBoxW, viewBoxH] = shapeDesc.viewBox;
 
   const svg = svgEl("svg");
   svg.classList.add(SHAPE_SVG_CLASSNAME);
-  svg.setAttribute("viewBox", `0 0 ${String(viewBoxW)} ${String(viewBoxH)}`);
+  // the viewBox is the marker box itself — geometry is in px, 1 unit = 1px
+  svg.setAttribute("viewBox", `0 0 ${String(sizePx)} ${String(sizePx)}`);
   svg.setAttribute("width", String(sizePx));
   svg.setAttribute("height", String(sizePx));
   svg.style.display = "block";
   svg.style.overflow = "visible";
   svg.style.filter = "var(--marker-shadow)";
+  svg.dataset.shape = shapeKey;
+  svg.dataset.size = sizeKey;
 
-  const outerPath = svgEl("path");
-  outerPath.classList.add("marker-outer");
-  outerPath.setAttribute("d", shapeDesc.outerPath);
-  // stroke width in screen pixels — viewBox unit scales vary wildly between shapes
-  outerPath.setAttribute("vector-effect", "non-scaling-stroke");
-  outerPath.style.fill = "var(--marker-outer-color)";
-  outerPath.style.stroke = "var(--marker-outline-color)";
-  svg.appendChild(outerPath);
+  const outer = buildPrimitive(geometry.outer);
+  outer.classList.add("marker-outer");
+  // stroke width in screen pixels, unaffected by the wrapper's scale transform
+  outer.setAttribute("vector-effect", "non-scaling-stroke");
+  outer.style.fill = "var(--marker-outer-color)";
+  outer.style.stroke = "var(--marker-outline-color)";
+  svg.appendChild(outer);
 
-  const innerEl = buildInnerElement(shapeDesc.inner);
-  innerEl.classList.add("marker-inner");
-  innerEl.style.fill = "var(--marker-inner-color)";
-  svg.appendChild(innerEl);
+  // separate elements, like the design — merging them would change edge anti-aliasing where they overlap
+  for (const primitive of geometry.inner) {
+    const inner = buildPrimitive(primitive);
+    inner.classList.add("marker-inner");
+    inner.style.fill = "var(--marker-inner-color)";
+    svg.appendChild(inner);
+  }
 
   return svg;
 }
 
 //#endregion
 
-//#region buildInnerElement
+//#region buildPrimitive
 
-/**
- * Builds the inner (fill) element of a shape — a `<circle>` or a `<path>`
- * depending on the shape descriptor.
- * @param inner - Inner region descriptor.
- */
-function buildInnerElement(inner: ShapeDescriptor["inner"]): SVGCircleElement | SVGPathElement {
-  if (inner.type === "circle") {
-    const circle = svgEl("circle");
-    circle.setAttribute("cx", String(inner.cx));
-    circle.setAttribute("cy", String(inner.cy));
-    circle.setAttribute("r", String(inner.r));
-    return circle;
+/** Builds the SVG element for a shape primitive — `<path>`, `<circle>` or `<rect>`. */
+function buildPrimitive(primitive: ShapePrimitive): SVGGeometryElement {
+  switch (primitive.type) {
+    case "circle": {
+      const circle = svgEl("circle");
+      circle.setAttribute("cx", String(primitive.cx));
+      circle.setAttribute("cy", String(primitive.cy));
+      circle.setAttribute("r", String(primitive.r));
+      return circle;
+    }
+    case "rect": {
+      const rect = svgEl("rect");
+      rect.setAttribute("x", String(primitive.x));
+      rect.setAttribute("y", String(primitive.y));
+      rect.setAttribute("width", String(primitive.w));
+      rect.setAttribute("height", String(primitive.h));
+      rect.setAttribute("rx", String(primitive.rx));
+      return rect;
+    }
+    case "path": {
+      const path = svgEl("path");
+      path.setAttribute("d", primitive.d);
+      return path;
+    }
   }
-
-  const path = svgEl("path");
-  path.setAttribute("d", inner.d);
-  return path;
 }
 
 //#endregion
@@ -710,7 +777,7 @@ export function applyLifecycleLift(element: HTMLElement, liftPx: number): void {
  * @param path - The `.marker-outer` path element.
  * @param options - Marker options carrying the `outline` value.
  */
-function applyOutlineToPath(path: SVGPathElement, options: MapTilerMarkerOptions): void {
+function applyOutlineToPath(path: SVGGeometryElement, options: MapTilerMarkerOptions): void {
   if (!options.outline) return;
   const width = options.outline === true ? DEFAULT_OUTLINE_WIDTH : options.outline;
   path.setAttribute("stroke-width", String(width));
@@ -729,75 +796,101 @@ let clipIdCounter = 0;
  * ({@link MarkerContentTypeNone} without `content`).
  * @param svg - Target SVG element.
  * @param options - Marker options carrying the content variant.
- * @param shape - Shape descriptor supplying the content circle and optional image clip region.
+ * @param layout - Shape geometry and content metrics for the marker's shape and size.
  */
-function appendContent(svg: SVGSVGElement, options: MapTilerMarkerOptions, shape: ShapeDescriptor): void {
+function appendContent(svg: SVGSVGElement, options: MapTilerMarkerOptions, layout: MarkerLayout): void {
   if ("icon" in options && options.icon) {
-    appendIconContent(svg, options.icon, shape);
+    appendIconContent(svg, options.icon, layout);
     return;
   }
 
   if ("url" in options && options.url) {
-    appendImageContent(svg, options.url, shape);
+    appendImageContent(svg, options.url, layout);
     return;
   }
 
   if ("template" in options && options.template) {
-    appendTemplateContent(svg, options.template, options.templateParams, shape);
+    appendTemplateContent(svg, options.template, options.templateParams, layout);
     return;
   }
 
   if ("element" in options && options.element) {
-    appendElementContent(svg, options.element, shape);
+    appendElementContent(svg, options.element, layout);
     return;
   }
 
   if (options.content) {
-    appendTextContent(svg, options.content, shape);
+    appendTextContent(svg, options.content, layout);
     return;
   }
 
-  appendDefaultContent(svg, shape);
+  appendDefaultContent(svg, layout);
 }
 
 /**
- * Appends the shape's default glyph, when it has one, centered on the content
- * circle. Carries `marker-content` like any other content so colour updates
- * reach it, plus a marker class so shape changes know not to migrate it.
+ * Appends the shape's default icon, when it has one — drawn exactly like
+ * `icon` content, plus a marker class so shape changes know not to migrate it.
  */
-function appendDefaultContent(svg: SVGSVGElement, shape: ShapeDescriptor): void {
-  const { defaultContent } = shape;
-  if (!defaultContent) return;
-
-  const { cx, cy } = shape.content;
-  const half = defaultContent.size / 2;
-
-  const g = svgEl("g");
-  g.classList.add("marker-content", DEFAULT_CONTENT_CLASSNAME);
-  g.setAttribute("fill", "var(--marker-content-color)");
-  g.setAttribute("transform", `translate(${String(cx - half)}, ${String(cy - half)})`);
-
-  const path = svgEl("path");
-  path.setAttribute("d", defaultContent.d);
-  g.appendChild(path);
-  svg.appendChild(g);
+function appendDefaultContent(svg: SVGSVGElement, layout: MarkerLayout): void {
+  if (!layout.defaultIcon) return;
+  appendIconContent(svg, layout.defaultIcon, layout)?.classList.add(DEFAULT_CONTENT_CLASSNAME);
 }
 
 /** Restores the shape's default glyph when the SVG has no content layer. */
-function ensureDefaultContent(svg: SVGSVGElement, shape: ShapeDescriptor): void {
-  if (!svg.querySelector(".marker-content")) appendDefaultContent(svg, shape);
+function ensureDefaultContent(svg: SVGSVGElement, layout: MarkerLayout): void {
+  if (!svg.querySelector(".marker-content")) appendDefaultContent(svg, layout);
+}
+
+/** Parsed icon sources, keyed by the SVG markup itself — parsed once, cloned per marker. */
+const iconTemplates = new Map<string, SVGSVGElement>();
+
+function parseIconSvg(source: string): SVGSVGElement | null {
+  let parsed = iconTemplates.get(source);
+  if (!parsed) {
+    const root = new DOMParser().parseFromString(source, "image/svg+xml").documentElement;
+    if (!(root instanceof SVGSVGElement)) return null;
+    parsed = root;
+    iconTemplates.set(source, parsed);
+  }
+  return parsed;
 }
 
 /**
- * Placeholder for built-in icon content.
- * TODO(icons): resolve the identifier to an icon glyph and append it scaled
- * into the content circle. Renders nothing for now.
+ * Appends a registered icon in the content colour, scaled to the size's icon
+ * box and centred on the content box. Unknown identifiers warn and render nothing.
  */
-function appendIconContent(svg: SVGSVGElement, icon: string, shape: ShapeDescriptor): void {
-  // intentionally empty — icons not implemented yet
-  void svg;
-  void icon;
-  void shape;
+function appendIconContent(svg: SVGSVGElement, icon: string, layout: MarkerLayout): SVGGElement | null {
+  const source = getMarkerIcon(icon);
+  const iconSvg = source ? parseIconSvg(source) : null;
+
+  if (!iconSvg) {
+    console.warn(`Unknown marker icon "${icon}".`);
+    return null;
+  }
+
+  const { cx, cy } = layout.geometry.content;
+  const box = layout.metrics.icon;
+  // built-in sources are designed at the L icon box (16px) and scaled down for M and S
+  const viewBoxWidth = iconSvg.viewBox.baseVal.width || box;
+  const scale = box / viewBoxWidth;
+
+  const g = svgEl("g");
+  g.classList.add("marker-content");
+  g.dataset.icon = icon;
+  g.setAttribute("fill", "var(--marker-content-color)");
+  g.setAttribute("transform", `translate(${String(cx - box / 2)}, ${String(cy - box / 2)})${scale === 1 ? "" : ` scale(${String(scale)})`}`);
+
+  for (const child of iconSvg.children) {
+    const node = document.importNode(child, true);
+    // the design's own fill (e.g. black) gives way to the content colour inherited from the group
+    for (const el of [node, ...node.querySelectorAll("*")]) {
+      if (el.getAttribute("fill") !== "none") el.removeAttribute("fill");
+    }
+    g.appendChild(node);
+  }
+
+  svg.appendChild(g);
+  return g;
 }
 
 /**
@@ -805,7 +898,7 @@ function appendIconContent(svg: SVGSVGElement, icon: string, shape: ShapeDescrip
  * as marker text, HTML elements in a foreignObject, SVG elements as glyphs.
  * Unknown identifiers warn and render nothing.
  */
-function appendTemplateContent(svg: SVGSVGElement, template: string, params: Record<string, number | string> | undefined, shape: ShapeDescriptor): void {
+function appendTemplateContent(svg: SVGSVGElement, template: string, params: Record<string, number | string> | undefined, layout: MarkerLayout): void {
   const factory = getMarkerTemplate(template);
 
   if (!factory) {
@@ -816,134 +909,114 @@ function appendTemplateContent(svg: SVGSVGElement, template: string, params: Rec
   const produced = factory(params);
 
   if (typeof produced === "string") {
-    appendTextContent(svg, produced, shape);
+    appendTextContent(svg, produced, layout);
   } else if (produced instanceof SVGElement) {
-    appendGlyphContent(svg, produced, shape);
+    appendGlyphContent(svg, produced, layout);
   } else {
-    appendElementContent(svg, produced, shape);
+    appendElementContent(svg, produced, layout);
   }
 }
 
 /**
  * Wraps an SVG glyph (designed in a {@link GLYPH_VIEWBOX_SIZE}-unit square)
- * in a `<g>` scaled and centered on the shape's content circle.
+ * in a `<g>` scaled to the icon box and centred on the content box.
  */
-function appendGlyphContent(svg: SVGSVGElement, glyph: SVGElement, shape: ShapeDescriptor): void {
+function appendGlyphContent(svg: SVGSVGElement, glyph: SVGElement, layout: MarkerLayout): void {
   const g = svgEl("g");
   g.classList.add("marker-content");
   g.setAttribute("fill", "var(--marker-content-color)");
-  g.setAttribute("transform", glyphTransform(shape));
+  g.setAttribute("transform", glyphTransform(layout));
   g.appendChild(glyph);
   svg.appendChild(g);
 }
 
-/** Transform that fits the glyph design box into the shape's content circle. */
-function glyphTransform(shape: ShapeDescriptor): string {
-  const { cx, cy, r } = shape.content;
-  const scale = (r * 1.4) / GLYPH_VIEWBOX_SIZE;
-  const half = (GLYPH_VIEWBOX_SIZE / 2) * scale;
-  return `translate(${String(cx - half)}, ${String(cy - half)}) scale(${String(scale)})`;
+/** Transform that fits the glyph design box into the icon box. */
+function glyphTransform(layout: MarkerLayout): string {
+  const { cx, cy } = layout.geometry.content;
+  const { icon } = layout.metrics;
+  const scale = icon / GLYPH_VIEWBOX_SIZE;
+  return `translate(${String(cx - icon / 2)}, ${String(cy - icon / 2)}) scale(${String(scale)})`;
 }
 
 /**
- * Appends image content, clipped to the shape's `imageClip` region when
- * defined (full-bleed) or to the circular content area otherwise.
+ * Appends image content filling the shape's inner body edge to edge, clipped
+ * to its outline.
  */
-function appendImageContent(svg: SVGSVGElement, href: string, shape: ShapeDescriptor): void {
+function appendImageContent(svg: SVGSVGElement, href: string, layout: MarkerLayout): void {
+  const { clip } = layout.geometry;
+
+  // the image covers the whole inner fill, edge to edge — painting the fill
+  // underneath would let it bleed through the image's anti-aliased edge as a
+  // hairline between the photo and the outer ring
+  setInnerFillHidden(svg, true);
+
   const img = svgEl("image");
   img.classList.add("marker-content");
   img.setAttribute("href", href);
   img.setAttribute("preserveAspectRatio", "xMidYMid slice");
-
-  if (shape.imageClip) {
-    // full-bleed: image fills the inner body, clipped to its outline
-    const clipId = `maptiler-marker-clip-${String(++clipIdCounter)}`;
-    const clip = svgEl("clipPath");
-    clip.setAttribute("id", clipId);
-
-    const clipShape = svgEl("path");
-    clipShape.setAttribute("d", shape.imageClip.d);
-    clip.appendChild(clipShape);
-    svg.appendChild(clip);
-
-    img.setAttribute("clip-path", `url(#${clipId})`);
-    img.setAttribute("x", String(shape.imageClip.x));
-    img.setAttribute("y", String(shape.imageClip.y));
-    img.setAttribute("width", String(shape.imageClip.w));
-    img.setAttribute("height", String(shape.imageClip.h));
-  } else {
-    // no dedicated clip region: fill the circular content area
-    const { cx, cy, r } = shape.content;
-    img.setAttribute("clip-path", appendContentClip(svg, shape));
-    img.setAttribute("x", String(cx - r));
-    img.setAttribute("y", String(cy - r));
-    img.setAttribute("width", String(r * 2));
-    img.setAttribute("height", String(r * 2));
-  }
-
+  img.setAttribute("clip-path", appendContentClip(svg, layout));
+  img.setAttribute("x", String(clip.x));
+  img.setAttribute("y", String(clip.y));
+  img.setAttribute("width", String(clip.w));
+  img.setAttribute("height", String(clip.h));
   svg.appendChild(img);
+}
 
-  // re-paint the pointer/tail over the image so it stays in the inner color
-  if (shape.pointerPath) {
-    const pointer = svgEl("path");
-    pointer.setAttribute("d", shape.pointerPath);
-    pointer.style.fill = "var(--marker-inner-color)";
-    svg.appendChild(pointer);
+/** Hides (or restores) the inner-colour fill elements of a shape SVG. */
+function setInnerFillHidden(svg: SVGSVGElement, hidden: boolean): void {
+  for (const inner of svg.querySelectorAll<SVGElement>(".marker-inner")) {
+    inner.style.visibility = hidden ? "hidden" : "";
   }
 }
 
 /**
- * Appends a `<clipPath>` for the shape's content circle and returns its
- * `url(#…)` reference — used to hide content that overflows the circle.
+ * Appends a `<clipPath>` for the shape's inner body and returns its
+ * `url(#…)` reference — used to keep content inside the inner fill.
  */
-function appendContentClip(svg: SVGSVGElement, shape: ShapeDescriptor, radius?: number): string {
-  const { cx, cy, r } = shape.content;
-
+function appendContentClip(svg: SVGSVGElement, layout: MarkerLayout): string {
   const clipId = `maptiler-marker-clip-${String(++clipIdCounter)}`;
   const clip = svgEl("clipPath");
   clip.setAttribute("id", clipId);
 
-  const clipShape = svgEl("circle");
-  clipShape.setAttribute("cx", String(cx));
-  clipShape.setAttribute("cy", String(cy));
-  clipShape.setAttribute("r", String(radius ?? r));
-  clip.appendChild(clipShape);
+  clip.appendChild(buildPrimitive(layout.geometry.clip.shape));
   svg.appendChild(clip);
 
   return `url(#${clipId})`;
 }
 
-/** Appends a foreignObject wrapping `element`, sized to the content circle. */
-function appendElementContent(svg: SVGSVGElement, element: HTMLElement | SVGElement, shape: ShapeDescriptor): void {
-  const { cx, cy, r } = shape.content;
-  const size = r * 1.4;
+/** Appends a foreignObject wrapping `element`, sized to the content box. */
+function appendElementContent(svg: SVGSVGElement, element: HTMLElement | SVGElement, layout: MarkerLayout): void {
+  const { cx, cy } = layout.geometry.content;
+  const { box } = layout.metrics;
 
   const fo = svgEl("foreignObject");
   fo.classList.add("marker-content");
-  fo.setAttribute("x", String(cx - size / 2));
-  fo.setAttribute("y", String(cy - size / 2));
-  fo.setAttribute("width", String(size));
-  fo.setAttribute("height", String(size));
-  fo.setAttribute("clip-path", appendContentClip(svg, shape));
+  fo.setAttribute("x", String(cx - box / 2));
+  fo.setAttribute("y", String(cy - box / 2));
+  fo.setAttribute("width", String(box));
+  fo.setAttribute("height", String(box));
+  fo.setAttribute("clip-path", appendContentClip(svg, layout));
   fo.appendChild(element);
   svg.appendChild(fo);
 }
 
-/** Appends a text label centred on the content circle. */
-function appendTextContent(svg: SVGSVGElement, title: string, shape: ShapeDescriptor, className = "marker-content"): SVGTextElement {
-  const { cx, cy } = shape.content;
+/** Appends a text label centred on the content box, at the size's font size, baseline and letter spacing. */
+function appendTextContent(svg: SVGSVGElement, title: string, layout: MarkerLayout, className = "marker-content"): SVGTextElement {
+  const { cx, cy } = layout.geometry.content;
   const text = svgEl("text");
   text.classList.add(className, MARKER_FONT_CLASSNAME);
-  text.setAttribute("clip-path", appendContentClip(svg, shape, 14));
-  text.setAttribute("x", String(cx));
-  text.setAttribute("y", String(cy));
+  text.setAttribute("clip-path", appendContentClip(svg, layout));
+  const { font, baseline } = layout.metrics;
+  // SVG adds letter-spacing after the last glyph too, which shifts middle-anchored
+  // text by half a spacing; the design centres the glyphs themselves
+  text.setAttribute("x", String(cx + (TEXT_LETTER_SPACING_EM * font) / 2));
+  text.setAttribute("y", String(cy + baseline));
   text.setAttribute("text-anchor", "middle");
-  text.setAttribute("dominant-baseline", "central");
   text.setAttribute("font-weight", "500");
-  text.setAttribute("font-size", String(TEXT_CONTENT_FONT_SIZE));
+  text.setAttribute("font-size", String(font));
+  text.setAttribute("letter-spacing", `${String(TEXT_LETTER_SPACING_EM)}em`);
   text.style.fill = "var(--marker-content-color)";
   text.style.userSelect = "none";
-  text.style.fontVariantNumeric = "tabular-nums";
   text.textContent = title;
   svg.appendChild(text);
   return text;

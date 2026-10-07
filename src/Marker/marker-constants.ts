@@ -7,7 +7,13 @@ import type { AdaptiveColorSet, AdaptiveStyleKey } from "./marker-adaptive-color
 
 export const DEFAULT_SHAPE: NonNullable<MapTilerMarkerBaseOptions["shape"]> = "maptiler";
 export const DEFAULT_SIZE: NonNullable<MapTilerMarkerBaseOptions["size"]> = "m";
-export const DEFAULT_SHADOW: NonNullable<MapTilerMarkerBaseOptions["shadow"]> = "medium";
+/** Shadow used when `shadow` isn't set — per size, as in the design (L strong, M medium, S and the xs dot soft). */
+export const DEFAULT_SHADOW_BY_SIZE: Record<NonNullable<MapTilerMarkerBaseOptions["size"]>, NonNullable<MapTilerMarkerBaseOptions["shadow"]>> = {
+  xs: "soft",
+  s: "soft",
+  m: "medium",
+  l: "strong",
+};
 export const DEFAULT_OUTLINE_WIDTH = 2;
 
 /** Anchor used when `MarkerOptions.anchor` is unset (matches MapLibre's own default). */
@@ -33,7 +39,8 @@ export const COLLISION_FADE_DURATION_MS = 150;
 //#region Lookup Tables
 
 export const SIZE_PX: Record<NonNullable<MapTilerMarkerBaseOptions["size"]>, number> = {
-  xs: 8,
+  // the dot (the design has 8px with a 1px ring — bumped to 10px / 2px ring, see DOT_RING_PX)
+  xs: 10,
   s: 24,
   m: 32,
   l: 40,
@@ -45,6 +52,9 @@ export const SHADOW_FILTER: Record<NonNullable<MapTilerMarkerBaseOptions["shadow
   medium: "drop-shadow(0px 2px 2px rgba(29, 29, 29, 0.2))",
   strong: "drop-shadow(0px 2px 4px rgba(29, 29, 29, 0.2))",
 };
+
+/** Width of the outer-colour ring around the xs dot's inner fill (px). */
+export const DOT_RING_PX = 2;
 
 //#endregion
 
@@ -163,9 +173,6 @@ export const IDLE_PRESET_DEFAULT_DURATION: Record<IdleAnimationPreset, number> =
 
 /** Design-space size (units) for SVG template glyphs. */
 export const GLYPH_VIEWBOX_SIZE = 24;
-
-/** Font size (viewBox units) of text content. */
-export const TEXT_CONTENT_FONT_SIZE = 14;
 
 /**
  * Minimum margin in CSS px around the viewport within which markers still
