@@ -21,6 +21,7 @@ What changed in the code, before and after: `marker-changes-report.md`.
 - **Icons:** only the L drawing is bundled and scaled to 12 / 8 px; Figma's M / S variants were removed.
 - **MapTiler mark:** the built-in `maptiler` icon, drawn like any icon (12 / 9 / 6 px).
 - **Letter spacing:** −6 % at every size (was −8 %). Same in Figma.
+- **Weight:** 575 (was 500 / Medium), real weight from the variable font — `@font-face` now declares 400–600. Same in Figma (Inter, variable weight 575).
 - **Photo in bubble-square:** runs through the tail, like Figma's image mask. Bubble-circle is unchanged; its tail belongs to the outer body.
 - **Shadows:** L strong, M medium, S and XS soft. Soft has no blur.
 - **XS dot:** 10 px with a 2 px ring, soft shadow.
@@ -34,6 +35,7 @@ All made on master components, so every instance follows.
 | Text `label` y: M 3.5 → 3, S 2.5 → 3 | `_Content` (`444:2911`, `444:2913`), `_Marker content / M` and `/ S` |
 | New `Type=Single char` variants: L 15.5 px / baseline 5.5, M 13 px / 4.5, S 10 px / 3.5; descriptions on all text variants; "Changes" frame lines (frame 1008 → 1067 px tall) | `_Content` (`715:13358`, `715:13362`, `715:13240`), `_Marker content / L` `/ M` `/ S` (`715:13360`, `715:13364`, `715:13242`), Changes (`578:5153`) |
 | Letter spacing −8 % → −6 % on every text label (12 masters; 169 labels follow) | `_Content`, `_Marker content / L|M|S` |
+| Weight Inter Medium → variable weight 575 on every text label (12 masters; 168 labels follow); "Changes" frame line updated | `_Content`, `_Marker content / L|M|S`, Changes (`578:5153`) |
 | Soft shadow blur 2 → 0; swatch label updated | Effect style `Marker/Shadow/Soft`; Foundations text `444:3976` |
 | Icons: differing M / S drawings replaced by scaled L; then all M / S variants removed, every instance swapped to L | "Map icons" (`680:2441`) |
 | Icon previews: white fill restored after the swap | `_Marker icons / M` and `/ S` (`_Helper for icons`) |

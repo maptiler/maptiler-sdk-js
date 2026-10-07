@@ -20,7 +20,7 @@
 | Shape geometry | One drawing per shape in its own viewBox (32–40 units), scaled to each size | Exact geometry for each size (L / M / S), in px. The viewBox is the marker box, so 1 unit = 1 px |
 | SVG primitives | Outer always a `<path>`; inner a `<circle>` or `<path>` | `<path>`, `<circle>` or `<rect>`, the same primitive Figma uses. Inner can be several elements |
 | Anchor (bottom shapes) | Computed from `anchorY` and the viewBox scale | Tail tip sits on the box's bottom edge at every size → offset `-SIZE_PX / 2` |
-| Text | 14 px at every size; `dominant-baseline: central`; tabular numerals; clipped to a circle of r = 14 | 14 / 12 / 8 px (L / M / S), a single character 15.5 / 13 / 10 px; baseline 5 / 4 / 3 px below the content centre (single character 5.5 / 4.5 / 3.5); −6 % letter-spacing; clipped to the inner fill |
+| Text | 14 px at every size; `dominant-baseline: central`; tabular numerals; clipped to a circle of r = 14 | 14 / 12 / 8 px (L / M / S), a single character 15.5 / 13 / 10 px; baseline 5 / 4 / 3 px below the content centre (single character 5.5 / 4.5 / 3.5); weight 575; −6 % letter-spacing; clipped to the inner fill |
 | Icons | `icon` option was a placeholder (rendered nothing, TODO) | 20 built-in icons (Figma "Icons for export", L drawing), scaled to 16 / 12 / 8 px |
 | Default `maptiler` mark | Separate hard-coded diamond path (`defaultContent`) | The built-in `maptiler` icon, drawn exactly like `icon` content |
 | Images | Clipped to the content circle (or `imageClip` where a shape had one). Bubble-square tail re-painted on top in the inner colour | Fill the whole inner area, edge to edge. On bubble-square the photo runs through the tail. Inner fill hidden underneath |
@@ -73,6 +73,7 @@
 
 - **One character:** a label of a single letter or digit is drawn larger (`CONTENT_METRICS[size].singleChar`), so it reads at a glance: L 15.5 px (baseline 5.5), M 13 px (baseline 4.5), S 10 px (baseline 3.5): about 10 % larger on L and M, 25 % on S, whose two-character text is the smallest. Each baseline puts the capitals a hair above the centre (L and S 0.14 px, M 0.23 px), which reads as centred; a whole-pixel baseline would put them visibly low or high. The half-pixel baselines make the bottom edge of single characters slightly softer on 1× screens. The size is re-picked whenever the label changes (`setTextLabel`). Figma has matching `Type=Single char` variants at every size.
 - **Text position:** `y = cy + baseline`. Labels of two or more characters sit on a whole pixel, so letter bottoms stay crisp on 1× screens (the design had M / S on a half pixel, which read as text sitting low). Figma was updated to the same baselines.
+- **Weight:** `TEXT_FONT_WEIGHT = 575`, between Medium (500) and SemiBold (600), so labels read more firmly. The marker font is a variable font covering 400–600; its `@font-face` in `style_template.css` now declares that range (`font-weight: 400 600`). Before, it declared 500 only, so any other weight would have been synthesised. Figma uses Inter at variable weight 575.
 - **Letter spacing:** `TEXT_LETTER_SPACING_EM = -0.06`. The design had −8 %; −6 % was chosen during this QA and Figma was updated to match. SVG also adds spacing after the last glyph, so `x` is shifted by half a spacing to keep the glyphs themselves centred, as Figma does.
 - **Clipping:** text, elements and images are clipped to the shape's inner fill, not to a fixed circle.
 - **Numerals:** tabular numerals were dropped; the design uses Inter's default figures.
@@ -168,6 +169,7 @@ No new exported functions. The icon registry stays internal, like `registerMarke
 | `SIZE_PX.xs` | 8 | 10 |
 | `TEXT_CONTENT_FONT_SIZE` | 14 (Layout) | Removed → `CONTENT_METRICS` (Lookup Tables, per size) |
 | `TEXT_LETTER_SPACING_EM` | — | −0.06 (Layout) |
+| `TEXT_FONT_WEIGHT` | 500 (hard-coded) | 575 (Layout) |
 | `DOT_RING_PX` | — | 2 (Layout) |
 
 ## Internal structure (`marker-dom-utils.ts`)
@@ -220,6 +222,7 @@ The code was the reference. The design file was changed where it disagreed, alwa
 - **XS dot:** the `dot-2px-outline-light` / `-dark` masters went 8 → 10 px with a 2 px ring, and the Foundations size swatch changed to "dot 10px".
 - **Single-character labels:** new `Type=Single char` variants (L 15.5 px / baseline 5.5, M 13 px / 4.5, S 10 px / 3.5) in `_Content` and `_Marker content / L|M|S`, with component descriptions on every text variant and a line in the "Changes" frame.
 - **Letter spacing:** −8 % → −6 % on every marker text label.
+- **Weight:** Inter Medium (500) → Inter at variable weight 575 on every marker text label.
 
 Full log: `marker-qa-notes.md`.
 
