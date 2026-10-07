@@ -520,6 +520,7 @@ describe("updateMarkerElement", () => {
     const outer = createMarkerElement(baseOptions({ shape: "circle", size: "l", content: "AB" }));
     const wrapper = resolveMarkerWrapper(outer);
     expect(wrapper.querySelector("text")?.getAttribute("font-size")).toBe("14");
+    expect(wrapper.querySelector("text")?.getAttribute("font-weight")).toBe("575");
 
     updateMarkerElement(outer, { size: "s" });
     const svg = wrapper.querySelector<SVGSVGElement>("svg.marker-shape")!;

@@ -25,6 +25,7 @@ import {
   SHAPE_SVG_CLASSNAME,
   SIZE_PX,
   SVG_NS,
+  TEXT_FONT_WEIGHT,
   TEXT_LETTER_SPACING_EM,
 } from "./marker-constants";
 
@@ -1002,7 +1003,7 @@ function appendTextContent(svg: SVGSVGElement, title: string, layout: MarkerLayo
   text.classList.add(className, MARKER_FONT_CLASSNAME);
   text.setAttribute("clip-path", appendContentClip(svg, layout));
   text.setAttribute("text-anchor", "middle");
-  text.setAttribute("font-weight", "500");
+  text.setAttribute("font-weight", String(TEXT_FONT_WEIGHT));
   text.setAttribute("letter-spacing", `${String(TEXT_LETTER_SPACING_EM)}em`);
   text.style.fill = "var(--marker-content-color)";
   text.style.userSelect = "none";

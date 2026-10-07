@@ -182,6 +182,9 @@ export const GLYPH_VIEWBOX_SIZE = 24;
 /** Letter spacing of text content, in em. */
 export const TEXT_LETTER_SPACING_EM = -0.06;
 
+/** Font weight of text content — between Medium (500) and SemiBold (600); the marker font is variable (400–600). */
+export const TEXT_FONT_WEIGHT = 575;
+
 /** Width of the outer-colour ring around the xs dot's inner fill (px). */
 export const DOT_RING_PX = 2;
 
