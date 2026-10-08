@@ -22,7 +22,7 @@ vi.mock("maplibre-gl", async () => {
         this._container = options.container;
         actual.Map.prototype._setupContainer.call(this);
       }
-      _controls: maplibregl.IControl[] = [];
+      _controls: IControl[] = [];
       getCanvas = actual.Map.prototype.getCanvas;
       addControl = vi.fn(actual.Map.prototype.addControl);
       zoomIn = vi.fn();
@@ -73,6 +73,7 @@ vi.mock("../src/controls/MaptilerNavigationControl", () => ({
 }));
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { IControl } from "maplibre-gl";
 import { Map as SDKMap } from "../src/Map";
 import { MaptilerExternalControl } from "../src/controls";
 

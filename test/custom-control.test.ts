@@ -23,7 +23,7 @@ vi.mock("../src/Map", async () => {
       }
       _container: HTMLElement;
       _setupContainer = actual.Map.prototype._setupContainer;
-      _controls: maplibregl.IControl[] = [];
+      _controls: IControl[] = [];
       addControl = actual.Map.prototype.addControl;
       removeControl = actual.Map.prototype.removeControl;
       _getUIString = (str: string) => str;
@@ -35,6 +35,7 @@ vi.mock("../src/Map", async () => {
 });
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { IControl } from "maplibre-gl";
 import { Map as SDKMap } from "../src/Map";
 import { MaptilerCustomControl } from "../src/controls";
 
