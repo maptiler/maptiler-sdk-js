@@ -22,7 +22,6 @@ export {
   MercatorCoordinate,
   Evented,
   AJAXError,
-  prewarm,
   clearPrewarmedResources,
   Hash,
   Point,
@@ -193,6 +192,7 @@ export {
 } from "@maptiler/client";
 export * from "./ImageViewer";
 export { getWebGLSupportError, displayWebGLContextLostWarning } from "./tools";
+export { prewarm } from "./utils/defaultWorkerUrl";
 export { config, SdkConfig } from "./config";
 export * from "./language";
 export type { Unit } from "./types";

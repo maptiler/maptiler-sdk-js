@@ -1,4 +1,4 @@
-import { getWorkerUrl, setWorkerUrl } from "maplibre-gl";
+import { getWorkerUrl, prewarm as prewarmMLGL, setWorkerUrl } from "maplibre-gl";
 
 /**
  * URL of the MapLibre worker published on the MapTiler CDN alongside the UMD bundle of this SDK version.
@@ -19,6 +19,15 @@ export function setDefaultWorkerUrl() {
   if (getWorkerUrl()) return;
 
   setWorkerUrl(createSameOriginWorkerUrl(getCdnWorkerUrl()));
+}
+
+/**
+ * Same as MapLibre's `prewarm`, but sets the default worker URL first,
+ * as the workers it starts are the ones later used by the maps.
+ */
+export function prewarm() {
+  setDefaultWorkerUrl();
+  prewarmMLGL();
 }
 
 /**
