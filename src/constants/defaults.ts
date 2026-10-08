@@ -5,8 +5,6 @@ import { Language } from "../language";
  */
 const defaults = {
   maptilerURL: "https://www.maptiler.com/",
-  maptilerApiHost: "api.maptiler.com",
-  telemetryURL: "https://api.maptiler.com/metrics",
   primaryLanguage: Language.STYLE,
   secondaryLanguage: Language.LOCAL,
   terrainSourceId: "maptiler-terrain",
