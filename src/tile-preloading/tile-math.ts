@@ -1,11 +1,9 @@
-import ml from "maplibre-gl";
+import { LngLatBounds } from "maplibre-gl";
 import type { LngLatBoundsLike } from "maplibre-gl";
 import type { CameraPosition, TileCoord } from "./types";
 import { lerp } from "../utils/math-utils";
 
 const TILE_SIZE = 256;
-
-const LngLatBounds = ml.LngLatBounds;
 
 function lngToTileX(lng: number, zoom: number): number {
   const z = Math.pow(2, zoom);

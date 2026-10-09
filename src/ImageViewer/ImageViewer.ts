@@ -1,4 +1,3 @@
-import MaplibreGL from "maplibre-gl";
 import {
   EaseToOptions,
   DoubleClickZoomHandler,
@@ -14,7 +13,6 @@ import {
   CooperativeGesturesHandler,
   LngLat,
   LngLatBounds,
-  MapDataEvent,
   PointLike,
 } from "..";
 import { Map } from "../Map";
@@ -22,11 +20,9 @@ import { ImageViewerEvent, setupGlobalMapEventForwarder } from "./events";
 import { FetchError } from "../utils/errors";
 import { config } from "..";
 import { overpanningUnderzoomingTransformConstrain } from "./monkeyPatchML";
-import { NavigationControl } from "../MLAdapters/NavigationControl";
+import { Evented, NavigationControl } from "maplibre-gl";
 import { ImageViewerFitImageToBoundsControl } from "../controls/ImageViewerFitImageToBoundsControl";
 import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey } from "./symbols";
-
-const { Evented } = MaplibreGL;
 
 //#region types
 
@@ -265,8 +261,8 @@ export default class ImageViewer extends Evented {
           void this.once("imageviewerready", (evt) => {
             resolve(evt);
           });
-          void this.once("imagevieweriniterror", (e: { error: Error }) => {
-            reject(e.error);
+          void this.once("imagevieweriniterror", (e) => {
+            reject((e as unknown as { error: Error }).error);
           });
         }),
         new Promise((_, reject) => {
@@ -676,10 +672,10 @@ export default class ImageViewer extends Evented {
    * Fly to a given center.
    *
    * @param {ImageViewerFlyToOptions} options - The options for the fly to.
-   * @param {MapDataEvent} eventData - The event data.
+   * @param eventData - Additional properties merged into the camera events fired by the map, as in MapLibre.
    * @returns {ImageViewer} The ImageViewer instance.
    */
-  public flyTo(options: ImageViewerFlyToOptions, eventData?: MapDataEvent) {
+  public flyTo(options: ImageViewerFlyToOptions, eventData?: Parameters<Map["flyTo"]>[1]) {
     const lngLat = this.pxToLngLat(options.center);
     this.sdk.flyTo({ ...options, pitch: 0, center: lngLat }, eventData);
     return this;
@@ -690,10 +686,10 @@ export default class ImageViewer extends Evented {
    * Jump to a given center.
    *
    * @param {ImageViewerJumpToOptions} options - The options for the jump to.
-   * @param {MapDataEvent} eventData - The event data.
+   * @param eventData - Additional properties merged into the camera events fired by the map, as in MapLibre.
    * @returns {ImageViewer} The ImageViewer instance.
    */
-  public jumpTo(options: ImageViewerJumpToOptions, eventData?: MapDataEvent) {
+  public jumpTo(options: ImageViewerJumpToOptions, eventData?: Parameters<Map["jumpTo"]>[1]) {
     const lngLat = this.pxToLngLat(options.center);
     this.sdk.jumpTo({ ...options, pitch: 0, center: lngLat }, eventData);
     return this;
@@ -856,7 +852,7 @@ export default class ImageViewer extends Evented {
     // _listeners is only defined if there are actual listeners
     if (this._listeners) {
       Object.entries(this._listeners).forEach(([event, listeners]) => {
-        listeners.forEach((listener) => {
+        listeners?.forEach((listener) => {
           this.off(event, listener);
         });
       });
@@ -866,7 +862,7 @@ export default class ImageViewer extends Evented {
     // _oneTimeListeners is only defined if there are actual listeners
     if (this._oneTimeListeners) {
       Object.entries(this._oneTimeListeners).forEach(([event, listeners]) => {
-        listeners.forEach((listener) => {
+        listeners?.forEach((listener) => {
           this.off(event, listener);
         });
       });

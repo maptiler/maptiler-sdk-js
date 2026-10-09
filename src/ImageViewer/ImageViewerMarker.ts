@@ -1,10 +1,8 @@
 import { Alignment, Subscription, Marker, MarkerOptions, PointLike, Popup } from "../index";
-import MapLibreGL from "maplibre-gl";
+import { Evented, Event as EventML } from "maplibre-gl";
 import ImageViewer from "./ImageViewer";
 import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey } from "./symbols";
 import { monkeyPatchMarkerInstanceToRemoveWrapping } from "./monkeyPatchML";
-
-const { Evented } = MapLibreGL;
 
 export type ImageViewerMarkerOptions = MarkerOptions & {};
 
@@ -34,7 +32,7 @@ export interface ImageViewerMarkerInterface {
   togglePopup(): void;
 }
 
-export class ImageViewerMarker extends Evented {
+export class ImageViewerMarker extends Evented<ImageViewerMarkerEventType> {
   private viewer!: ImageViewer;
   private readonly marker: Marker;
   private readonly position: [number, number] = [0, 0];
@@ -165,8 +163,14 @@ export class ImageViewerMarker extends Evented {
    * @param {Record<string, any>} data - The data to fire the event with.
    * @returns {ImageViewerMarker} The ImageViewerMarker instance.
    */
-  override fire(event: MarkerEventTypes | Event, data?: Record<string, any>) {
-    super.fire(event, data);
+  override fire(event: ImageViewerMarkerEvent): this;
+  override fire(event: MarkerEventTypes, data?: Record<string, any>): this;
+  override fire(event: MarkerEventTypes | ImageViewerMarkerEvent, data?: Record<string, any>) {
+    if (typeof event === "string") {
+      super.fire(event, data);
+    } else {
+      super.fire(event);
+    }
     return this;
   }
 
@@ -214,8 +218,8 @@ export class ImageViewerMarker extends Evented {
     // _listeners is only defined if there are actual listeners
     if (this.marker._listeners) {
       Object.entries(this.marker._listeners).forEach(([event, listeners]) => {
-        listeners.forEach((listener) => {
-          this.off(event as MarkerEventTypes, listener);
+        listeners?.forEach((listener) => {
+          this.off(event as MarkerEventTypes, listener as unknown as (e: ImageViewerMarkerEvent) => void);
         });
       });
     }
@@ -224,8 +228,8 @@ export class ImageViewerMarker extends Evented {
     // _oneTimeListeners is only defined if there are actual listeners
     if (this.marker._oneTimeListeners) {
       Object.entries(this.marker._oneTimeListeners).forEach(([event, listeners]) => {
-        listeners.forEach((listener) => {
-          this.off(event as MarkerEventTypes, listener);
+        listeners?.forEach((listener) => {
+          this.off(event as MarkerEventTypes, listener as unknown as (e: ImageViewerMarkerEvent) => void);
         });
       });
     }
@@ -380,19 +384,19 @@ const MARKER_EVENT_TYPES = ["dragstart", "drag", "dragend"] as const;
 
 type MarkerEventTypes = (typeof MARKER_EVENT_TYPES)[number];
 
+export type ImageViewerMarkerEventType = Record<MarkerEventTypes, ImageViewerMarkerEvent>;
+
 const FORBIDDEN_EVENT_VALUES = ["lngLat", "_defaultPrevented", "target"];
 
-export class ImageViewerMarkerEvent {
-  readonly type: string;
-  readonly target: ImageViewerMarker;
+// Since MapLibre v6, `Evented` only dispatches instances of its `Event` class
+export class ImageViewerMarkerEvent extends EventML<MarkerEventTypes> {
+  declare target: ImageViewerMarker;
 
   [key: string]: any;
 
   constructor(type: MarkerEventTypes, marker: ImageViewerMarker, data: Record<string, any>) {
-    this.type = type;
+    super(type, data);
     this.target = marker;
-
-    Object.assign(this, data);
   }
 }
 

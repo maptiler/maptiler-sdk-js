@@ -1,5 +1,30 @@
 # MapTiler SDK Changelog
 
+## next
+
+### ⚠️ Breaking changes
+- Upgrades MapLibre GL JS to v6, which is ESM-only. See the [MapLibre changelog](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md) for changes to the MapLibre API itself.
+- The MapLibre worker is now loaded from a separate file, which most bundlers do not emit on their own:
+  - The npm (ES) build loads the worker matching its version from the MapTiler CDN by default, unless a worker URL has already been set with `setWorkerUrl`. Sites with a Content Security Policy need `worker-src 'self' blob: https://cdn.maptiler.com`.
+  - The UMD build ships `maplibre-gl-worker.mjs` and `maplibre-gl-shared.mjs` next to `maptiler-sdk.umd.min.js`. When self-hosting the UMD bundle, these files must be served alongside it.
+- The `rtlTextPlugin` map option has been removed. MapLibre now shapes right-to-left text natively. `setRTLTextPlugin` is still re-exported for custom plugins, but is deprecated by MapLibre.
+- The deprecated internal MapLibre types previously re-exported from `ml-types` have been removed from the public API.
+- MapLibre classes (`Marker`, `Popup`, `GeolocateControl`, sources, controls, handlers, etc.) are now re-exported directly from MapLibre instead of through SDK wrapper classes. The SDK `Map` is accepted by them as is.
+- `MaptilerGeolocateControl` now fires a MapLibre `GeolocateEvent` instead of a DOM `Event` for `trackuserlocationend`.
+
+### ✨ Features and improvements
+- Adds bundler helper entry points that set the MapLibre worker URL from a locally bundled worker:
+  - `@maptiler/sdk/vite-worker` for Vite
+  - `@maptiler/sdk/webpack-worker` for webpack
+  - `@maptiler/sdk/next-worker` and `withMaptilerWorker` from `@maptiler/sdk/next` for Next.js
+- SDK custom events (e.g. `ready`, `loadWithTerrain`, `projection.change`) are now typed in `on`, `once`, `off` and `fire`. Adds the `MaptilerMapEventType` and `MapEventTypeSDK` types.
+- Events of `CubemapLayer` (`cubemaplayer:*`), `RadialGradientLayer` (`radialgradientlayer:*`) and `ImageViewerMarker` are now typed.
+
+### ⚙️ Others
+- Bumps `maplibre-gl` to 6.11.2 and `@maplibre/maplibre-gl-style-spec` to 26.
+- Switches internal `maplibre-gl` imports to named imports.
+- Documents worker setup per bundler, CSP requirements, self-hosted UMD worker files and TypeScript `moduleResolution` in the README.
+
 ## 4.2.0
 
 ### ✨ Features and improvements
