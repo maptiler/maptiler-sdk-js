@@ -6,11 +6,25 @@
   - Configure via the `transitions` constructor option or `setTransitionForProperty(property, [duration, easing?, delay?] | null)`; inspect with `getTransitions()`.
   - Fires `transitionstart` / `transitionend` events — same shape as MapLibre's marker events (`type`, `target`), plus `props`: the transitioning property keyed to its value at that point (the eased-from value on `transitionstart`, the reached value on `transitionend`).
   - Collision hide/show/minimize fade transitions are now parameterised per map via `setMarkerCollisionOptions({ transitionDuration, transitionEasing })`.
+- Adds built-in marker icons: the `icon` option now renders one of 20 built-in icons (type `MapTilerMarkerIcon`), drawn in the content colour at 16 / 12 / 8 px for `l` / `m` / `s`.
+  - The `maptiler` shape's default mark is the built-in `maptiler` icon, drawn the same way.
+- Markers now match the design at every size: each shape has its own geometry for `l`, `m` and `s` instead of one drawing scaled to all three.
+  - Text content is sized per size (14 / 12 / 8 px), at font weight 575, with −6 % letter-spacing and a whole-pixel baseline. A single letter or digit is drawn larger (15.5 / 13 / 10 px), positioned so its capitals look centred.
+  - Image content fills the whole inner area; on `bubble-square` it runs through the tail.
+- The default marker `shadow` now depends on the size: `strong` at `l`, `medium` at `m`, `soft` at `s` and `xs`. An unset shadow follows size changes; an explicit one is kept.
+- The `xs` dot is now 10 px with a 2 px ring and uses the marker shadow (`soft` by default).
+- The default `maptiler` marker is now blue outside, white inside, with a blue mark, as in the design. This applies when `outerColor`, `innerColor` and `contentColor` are unset (on dark map styles the light blue accent is the body and the mark, the dark grey is the inner fill); colours set explicitly are unchanged, and the other shapes keep the map style's colours. The `xs` dot keeps its white ring and blue centre.
+- Text content that is wider than the marker's inner fill (e.g. "MW" or "WW") now shrinks until it fits instead of being cut off at the sides, down to a minimum of 6 px. Labels that already fit keep their size.
 
 ### 🐛 Bug Fixes
+- The marker font's `@font-face` now declares the file's whole weight range (400–600), so marker text gets real font weights instead of synthesised ones.
  - Fixes a bug in halo where a mismatch between the layer added to the map and the layer added to the `.halo` field were different instances, causing a runtime error.
+- Fixes a thin line of the inner colour showing between image content and the marker ring.
+- Fixes the marker font not loading on pages served over `http://` (e.g. localhost): its URL in the `@font-face` is now `https://`.
+- Fixes marker content clip-path ids colliding when a page loads more than one copy of the SDK: the ids now carry a random prefix per copy.
 
 ### ⚙️ Others
+- The dev server passes `MAPTILER_API_KEY` (from the environment or `.env`) to the demos, so they no longer need `?key=`.
 
 
 ## 4.1.0

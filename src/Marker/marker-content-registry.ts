@@ -1,3 +1,5 @@
+import { BUILT_IN_MARKER_ICONS } from "./marker-icons";
+
 //#region Types
 
 /**
@@ -13,7 +15,22 @@ export type MarkerTemplateFactory = (params?: Record<string, number | string>) =
 
 //#region Registries
 
-// TODO(icons): built-in icon registry backing the marker `icon` option.
+const ICONS = new Map<string, string>(Object.entries(BUILT_IN_MARKER_ICONS));
+
+/**
+ * Registers (or overrides) an icon usable via the marker `icon` option.
+ * The built-in icons ({@link MapTilerMarkerIcon}) are registered up front.
+ * @param name - Identifier passed as `icon`.
+ * @param source - SVG markup, drawn in the content colour and scaled from its viewBox to each size's icon box.
+ */
+export function registerMarkerIcon(name: string, source: string): void {
+  ICONS.set(name, source);
+}
+
+/** Returns the SVG markup of an icon, or `undefined` when unknown. */
+export function getMarkerIcon(name: string): string | undefined {
+  return ICONS.get(name);
+}
 
 const TEMPLATES = new Map<string, MarkerTemplateFactory>();
 

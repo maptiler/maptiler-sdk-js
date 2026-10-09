@@ -2,12 +2,19 @@ import type { MarkerOptions } from "maplibre-gl";
 import type { EasingFunctionName } from "../MaptilerAnimation/types";
 import type { EnterAnimationPreset, ExitAnimationPreset, IdleAnimationPreset, MapTilerMarkerBaseOptions, MapTilerMarkerElementProps, MapTilerMarkerUIStateName } from "./types";
 import type { AdaptiveColorSet, AdaptiveStyleKey } from "./marker-adaptive-colors";
+import type { ContentMetrics, ShapeSize } from "./marker-svg-config";
 
 //#region Defaults
 
 export const DEFAULT_SHAPE: NonNullable<MapTilerMarkerBaseOptions["shape"]> = "maptiler";
 export const DEFAULT_SIZE: NonNullable<MapTilerMarkerBaseOptions["size"]> = "m";
-export const DEFAULT_SHADOW: NonNullable<MapTilerMarkerBaseOptions["shadow"]> = "medium";
+/** Shadow used when `shadow` isn't set — per size, as in the design (L strong, M medium, S and the xs dot soft). */
+export const DEFAULT_SHADOW_BY_SIZE: Record<NonNullable<MapTilerMarkerBaseOptions["size"]>, NonNullable<MapTilerMarkerBaseOptions["shadow"]>> = {
+  xs: "soft",
+  s: "soft",
+  m: "medium",
+  l: "strong",
+};
 export const DEFAULT_OUTLINE_WIDTH = 2;
 
 /** Anchor used when `MarkerOptions.anchor` is unset (matches MapLibre's own default). */
@@ -33,7 +40,8 @@ export const COLLISION_FADE_DURATION_MS = 150;
 //#region Lookup Tables
 
 export const SIZE_PX: Record<NonNullable<MapTilerMarkerBaseOptions["size"]>, number> = {
-  xs: 8,
+  // the dot: a 10px disc with a DOT_RING_PX ring
+  xs: 10,
   s: 24,
   m: 32,
   l: 40,
@@ -44,6 +52,13 @@ export const SHADOW_FILTER: Record<NonNullable<MapTilerMarkerBaseOptions["shadow
   soft: "drop-shadow(0px 1px 0px rgba(0, 0, 0, 0.2))",
   medium: "drop-shadow(0px 2px 2px rgba(29, 29, 29, 0.2))",
   strong: "drop-shadow(0px 2px 4px rgba(29, 29, 29, 0.2))",
+};
+
+/** Content sizing per marker size, shared by every shape (px). */
+export const CONTENT_METRICS: Record<ShapeSize, ContentMetrics> = {
+  l: { box: 20, icon: 16, font: 14, baseline: 5, singleChar: { font: 15.5, baseline: 5.5 } },
+  m: { box: 16, icon: 12, font: 12, baseline: 4, singleChar: { font: 13, baseline: 4.5 } },
+  s: { box: 12, icon: 8, font: 8, baseline: 3, singleChar: { font: 10, baseline: 3.5 } },
 };
 
 //#endregion
@@ -64,6 +79,12 @@ export const ADAPTIVE_COLORS: { base: AdaptiveColorSet } & Partial<Record<Adapti
   "dataviz-dark": { innerColor: "#4DACFF", outerColor: "#292929", contentColor: "#292929", outlineColor: "transparent" },
   topo: { innerColor: "#1A79FF", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
 };
+
+/**
+ * Shapes whose default colours are the map style's, swapped: a blue body with a white inner fill and
+ * a blue mark. Colours set explicitly aren't touched.
+ */
+export const INVERTED_COLOR_SHAPES: readonly string[] = ["maptiler"];
 
 // colour props that fall back to a per-map-style default when unset
 export const ADAPTIVE_COLOR_KEYS = ["outerColor", "innerColor", "contentColor", "outlineColor"] as const satisfies readonly (keyof AdaptiveColorSet)[];
@@ -164,8 +185,26 @@ export const IDLE_PRESET_DEFAULT_DURATION: Record<IdleAnimationPreset, number> =
 /** Design-space size (units) for SVG template glyphs. */
 export const GLYPH_VIEWBOX_SIZE = 24;
 
-/** Font size (viewBox units) of text content. */
-export const TEXT_CONTENT_FONT_SIZE = 14;
+/** Letter spacing of text content, in em. */
+export const TEXT_LETTER_SPACING_EM = -0.06;
+
+/** Font weight of text content — between Medium (500) and SemiBold (600); the marker font is variable (400–600). */
+export const TEXT_FONT_WEIGHT = 575;
+
+/** Font stack of marker text — keep in step with `.maptiler-sdk-marker-font` in `style_template.css`. */
+export const MARKER_FONT_FAMILY = `"Inter", "MapTiler Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+
+/** Cap height of the marker font, in em (Inter) — the height of the letters a label has to fit. */
+export const TEXT_CAP_HEIGHT_EM = 0.727;
+
+/** Space kept free between a label and the edge of the inner fill, in px, so antialiased glyph edges aren't clipped. */
+export const TEXT_FIT_MARGIN_PX = 1;
+
+/** Smallest font size a label is shrunk to when it doesn't fit (px); below this it's clipped rather than made illegible. */
+export const TEXT_MIN_FONT_PX = 6;
+
+/** Width of the outer-colour ring around the xs dot's inner fill (px). */
+export const DOT_RING_PX = 2;
 
 /**
  * Minimum margin in CSS px around the viewport within which markers still

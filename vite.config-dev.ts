@@ -1,5 +1,5 @@
 import { resolve } from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import packagejson from "./package.json";
 import { readdirSync } from 'fs';
 
@@ -50,6 +50,9 @@ const entrypoints = readdirSync(resolve(__dirname, 'demos/public')).filter((file
   }
 }, {})
 
+// MAPTILER_API_KEY from the shell or the (gitignored) .env, handed to the demos so they don't need `?key=`
+const demoApiKey = process.env.MAPTILER_API_KEY ?? loadEnv('development', process.cwd(), '').MAPTILER_API_KEY ?? ''
+
 export default defineConfig({
   mode: "development",
   root: "./demos",
@@ -63,6 +66,7 @@ export default defineConfig({
   define: {
     __MT_SDK_VERSION__: JSON.stringify(packagejson.version),
     __MT_NODE_ENV__: JSON.stringify(process.env.NODE_ENV),
+    __MT_DEMO_API_KEY__: JSON.stringify(demoApiKey),
   },
   plugins: [
     {
