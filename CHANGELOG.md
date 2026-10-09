@@ -13,11 +13,15 @@
   - Image content fills the whole inner area; on `bubble-square` it runs through the tail.
 - The default marker `shadow` now depends on the size: `strong` at `l`, `medium` at `m`, `soft` at `s` and `xs`. An unset shadow follows size changes; an explicit one is kept.
 - The `xs` dot is now 10 px with a 2 px ring and uses the marker shadow (`soft` by default).
+- The default `maptiler` marker is now blue outside, white inside, with a blue mark, as in the design. This applies when `outerColor`, `innerColor` and `contentColor` are unset (on dark map styles the light blue accent is the body and the mark, the dark grey is the inner fill); colours set explicitly are unchanged, and the other shapes keep the map style's colours. The `xs` dot keeps its white ring and blue centre.
+- Text content that is wider than the marker's inner fill (e.g. "MW" or "WW") now shrinks until it fits instead of being cut off at the sides, down to a minimum of 6 px. Labels that already fit keep their size.
 
 ### 🐛 Bug Fixes
 - The marker font's `@font-face` now declares the file's whole weight range (400–600), so marker text gets real font weights instead of synthesised ones.
  - Fixes a bug in halo where a mismatch between the layer added to the map and the layer added to the `.halo` field were different instances, causing a runtime error.
 - Fixes a thin line of the inner colour showing between image content and the marker ring.
+- Fixes the marker font not loading on pages served over `http://` (e.g. localhost): its URL in the `@font-face` is now `https://`.
+- Fixes marker content clip-path ids colliding when a page loads more than one copy of the SDK: the ids now carry a random prefix per copy.
 
 ### ⚙️ Others
 - The dev server passes `MAPTILER_API_KEY` (from the environment or `.env`) to the demos, so they no longer need `?key=`.

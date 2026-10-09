@@ -244,12 +244,23 @@ I reviewed the diff against the structure at `dd72211` and aligned it. Every ite
 
 ## Open points for Les
 
-1. **CHANGELOG.** Entries for this work are under `## NEXT`. The markers feature itself still has no entry there (only its transitions API) — add one before release?
-2. **`marker-qa-notes.md`** sits in the repo root as working notes. Keep it, move it to docs, or drop it before merge?
-3. **Inter version.** The SDK's font file is Inter 4.001; the Figma file appears to use 3.x. Placement matches, but some digit shapes differ ("1", "2"). The font notes in `marker-qa-notes.md` also list other font issues: the OFL licence fields were stripped, the protocol-relative URL is blocked on `http://` pages, and the font stack lets a page's own Inter win.
+Status per point is in `marker-qa-notes.md` (table at the top).
+
+1. **CHANGELOG.** Entries for this work are under `## NEXT`: design match, icons, shadows, the XS dot, the default `maptiler` colours, labels that shrink to fit, the font URL and the clip-path ids. The markers feature itself (the RD-2250 shapes, adaptive colours, the removed `color` option, the MapTiler Inter font) still has no entry; only its transitions API does. Add one before release?
+2. **`marker-qa-notes.md`** sits in the repo root as working notes: a status table, the decisions, the Figma change log and the font notes. Keep it, move it to docs, or drop it before merge?
+3. **Font on the CDN.** The OFL licence fields were stripped from `MapTilerInter.woff2` (copyright kept, licence text and URL gone). The plan is to publish `OFL.txt` next to the font in `sdk-assets/fonts/inter/`; someone with CDN access has to do it. *(A reading of the licence, not legal advice.)*
 4. **Icon registry visibility.** `registerMarkerIcon` and `MARKER_ICON_NAMES` are internal, like the template registry. Should custom icons become public API?
-5. **The default `maptiler` marker in Figma is inverted:** blue body, white inner, blue mark. The SDK draws it like every other marker. Which one is right?
-6. **Figma's "Semantic colours"** names CSS variables (`--marker-outer-color-light`, …) that the code doesn't have. The code uses `--marker-outer-color` etc., resolved per map style.
-7. **UI states (hover / focus / active) don't go through transitions;** they snap. Intended?
-8. **Wide two-character labels get clipped.** Text is clipped to the inner fill, so a wide label like "MW" or "WW" at 12 px on an M circle (20 px inner) loses its sides. Normal labels fit. Shrink text that doesn't fit, or accept it?
-9. **Clip-path IDs can collide.** They come from a module-level counter (`maptiler-marker-clip-1`, `-2`, …). Two copies of the SDK on one page (e.g. micro-frontends) produce the same IDs, and markers then clip to each other's shapes. This predates the QA. A per-instance prefix would fix it.
+5. **The default `maptiler` marker now looks different** (please review): blue body, white inner fill, blue mark, as in Figma, instead of the white body every other shape has. It applies when the colours are unset, so any marker that relies on the default changes. Details:
+   - dark styles mirror it (light blue `#80A4FF` body and mark, `#292929` inner); Figma has no dark version, the designer has been asked to confirm;
+   - `maptiler-full` and the other shapes keep the style's colours; colours set explicitly are never swapped;
+   - the XS dot keeps the white ring and blue centre;
+   - code: `INVERTED_COLOR_SHAPES`, `getAdaptiveColors(styleId, shape)`.
+
+### Resolved since the first version of this report
+
+- **Figma's "Semantic colours" names** now follow the SDK (`--marker-outer-color`, …, with "light" / "dark" for the map-style value).
+- **UI states** (hover / focus / active) snap on purpose, as the setters ease through `transitions`.
+- **Wide two-character labels** ("MW", "WW") are no longer cut off: a label wider than the inner fill shrinks until it fits (minimum 6 px). Labels that fit keep 14 / 12 / 8 px. Code: `marker-text-fit.ts`.
+- **Clip-path IDs** carry a random per-module prefix (`maptiler-marker-clip-<prefix>-<n>`), so two copies of the SDK no longer collide.
+- **Inter version:** the SDK's 4.001 is the reference; Figma moves to 4.x (noted for the designer in Figma).
+- **Font URL:** now `https://`, so it loads on `http://` pages. The font stack still starts with `"Inter"` on purpose: a page's own Inter wins when present.

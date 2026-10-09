@@ -3,6 +3,7 @@ import type { MapTilerMarkerBaseOptions, MapTilerMarkerIcon, MapTilerMarkerOptio
 import { SHAPES, getShapeGeometry, type ContentMetrics, type ShapeGeometry, type ShapePrimitive, type ShapeSize } from "./marker-svg-config";
 import { getMarkerIcon, getMarkerTemplate } from "./marker-content-registry";
 import { getAdaptiveColors, type AdaptiveColorSet } from "./marker-adaptive-colors";
+import { fitLabel, whenLabelFontReady } from "./marker-text-fit";
 import {
   ALTITUDE_HIDDEN_CLASSNAME,
   ALTITUDE_OCCLUDED_CLASSNAME,
@@ -19,6 +20,7 @@ import {
   DEFAULT_SHAPE,
   DEFAULT_SIZE,
   GLYPH_VIEWBOX_SIZE,
+  INVERTED_COLOR_SHAPES,
   MARKER_FONT_CLASSNAME,
   MINIMIZED_DOT_CLASSNAME,
   SHADOW_FILTER,
@@ -80,7 +82,7 @@ export function resolveMarkerWrapper(element: HTMLElement): HTMLElement {
 export function applyMarkerStyleVariables(element: HTMLElement | SVGElement, options: MapTilerMarkerOptions): void {
   // unset colours can only resolve to the `base` defaults here — the marker
   // has no map yet; MarkerManager re-resolves on registration
-  const defaults = getAdaptiveColors("");
+  const defaults = getAdaptiveColors("", options.shape ?? DEFAULT_SHAPE);
 
   element.style.setProperty("--marker-outer-color", options.outerColor ?? defaults.outerColor);
   element.style.setProperty("--marker-inner-color", options.innerColor ?? defaults.innerColor);
@@ -132,7 +134,7 @@ export function createMarkerElement(options: MapTilerMarkerOptions): HTMLDivElem
   if (options.opacity !== undefined) wrapper.style.opacity = String(options.opacity);
   if (options.name) wrapper.classList.add(options.name);
 
-  wrapper.appendChild(sizeKey === "xs" ? buildDotSvg() : buildShapeSvg(shapeKey, sizeKey, options));
+  wrapper.appendChild(sizeKey === "xs" ? buildDotSvg(shapeKey) : buildShapeSvg(shapeKey, sizeKey, options));
 
   if (options.debug) applyDebug(wrapper, true);
 
@@ -172,7 +174,11 @@ export function updateMarkerElement(element: HTMLElement, props: PendingMarkerUp
 
   // an undefined colour means "use the map-style default"
   let defaults: AdaptiveColorSet | undefined;
-  const getDefaults = () => (defaults ??= getAdaptiveColors(styleId ?? ""));
+  const getDefaults = () => {
+    // the shape that applies once this update is in: the colour defaults depend on it
+    const shape = ("shape" in props ? props.shape : undefined) ?? wrapper.dataset.markerShape ?? DEFAULT_SHAPE;
+    return (defaults ??= getAdaptiveColors(styleId ?? "", shape));
+  };
 
   if ("outerColor" in props) {
     wrapper.style.setProperty("--marker-outer-color", props.outerColor ?? getDefaults().outerColor);
@@ -335,7 +341,7 @@ function applySize(wrapper: HTMLElement, size: MapTilerMarkerSize): void {
     // hide (don't remove) the shape SVG so its content/outline survive the
     // round-trip back out of xs
     if (shapeSvg) shapeSvg.style.display = "none";
-    if (!dotSvg) wrapper.appendChild(buildDotSvg());
+    if (!dotSvg) wrapper.appendChild(buildDotSvg((wrapper.dataset.markerShape ?? DEFAULT_SHAPE) as NonNullable<MapTilerMarkerBaseOptions["shape"]>));
     return;
   }
 
@@ -461,6 +467,9 @@ function applyShape(wrapper: HTMLElement, shape: NonNullable<MapTilerMarkerBaseO
   wrapper.dataset.markerShape = shape;
   wrapper.style.transformOrigin = SHAPES[shape].anchor === "center" ? "center" : "center bottom";
 
+  const dotSvg = wrapper.querySelector<SVGSVGElement>("svg.marker-dot");
+  if (dotSvg) orientDotColors(dotSvg, shape);
+
   // the shape SVG exists even at xs size (hidden behind the dot); a marker
   // constructed at xs size has none, and gets its SVG built on the next size change
   const existingSvg = getShapeSvg(wrapper);
@@ -537,10 +546,26 @@ function migrateContent(oldSvg: SVGSVGElement, newSvg: SVGSVGElement, layout: Ma
 /** Built once and cloned per marker — never attached or mutated itself. */
 let dotSvgTemplate: SVGSVGElement | undefined;
 
-/** Builds the minimal dot SVG used for the `xs` size. */
-function buildDotSvg(): SVGSVGElement {
+/**
+ * Builds the minimal dot SVG used for the `xs` size.
+ * @param shape - Shape of the marker the dot stands for; omit for a dot with the ordinary colours.
+ */
+function buildDotSvg(shape?: string): SVGSVGElement {
   dotSvgTemplate ??= createDotSvgTemplate();
-  return dotSvgTemplate.cloneNode(true) as SVGSVGElement;
+  const dot = dotSvgTemplate.cloneNode(true) as SVGSVGElement;
+  orientDotColors(dot, shape);
+  return dot;
+}
+
+/**
+ * The dot keeps the design's ring and centre whatever the shape: a shape with swapped default colours
+ * (the ring is the marker's inner colour there) has its dot's two fills swapped back.
+ */
+function orientDotColors(dot: SVGSVGElement, shape: string | undefined): void {
+  const swapped = shape !== undefined && INVERTED_COLOR_SHAPES.includes(shape);
+  const [ring, centre] = Array.from(dot.children) as SVGElement[];
+  ring.style.fill = swapped ? "var(--marker-inner-color)" : "var(--marker-outer-color)";
+  centre.style.fill = swapped ? "var(--marker-outer-color)" : "var(--marker-inner-color)";
 }
 
 function createDotSvgTemplate(): SVGSVGElement {
@@ -785,6 +810,8 @@ function applyOutlineToPath(path: SVGGeometryElement, options: MapTilerMarkerOpt
 //#region appendContent
 
 let clipIdCounter = 0;
+// per-module prefix so clip ids stay unique when a page loads more than one copy of the SDK
+const clipIdPrefix = Math.random().toString(36).slice(2, 8);
 
 /**
  * Appends the content layer to a shape SVG.
@@ -971,7 +998,7 @@ function setInnerFillHidden(svg: SVGSVGElement, hidden: boolean): void {
  * `url(#…)` reference — used to keep content inside the inner fill.
  */
 function appendContentClip(svg: SVGSVGElement, layout: MarkerLayout): string {
-  const clipId = `maptiler-marker-clip-${String(++clipIdCounter)}`;
+  const clipId = `maptiler-marker-clip-${clipIdPrefix}-${String(++clipIdCounter)}`;
   const clip = svgEl("clipPath");
   clip.setAttribute("id", clipId);
 
@@ -1014,15 +1041,28 @@ function appendTextContent(svg: SVGSVGElement, title: string, layout: MarkerLayo
 
 /** Sets a label's text, with the font size and position that go with its length. */
 function setTextLabel(text: SVGTextElement, label: string, layout: MarkerLayout): void {
+  text.textContent = label;
+  placeTextLabel(text, label, layout);
+
+  // the fit is measured in the marker font: if it is still loading, fit again once it has arrived
+  const nominal = layout.metrics;
+  const fontReady = label.length > 1 ? whenLabelFontReady(label, nominal.font) : null;
+  void fontReady?.then(() => {
+    if (text.textContent === label) placeTextLabel(text, label, layout);
+  });
+}
+
+/** Sets the font size and position of a label: the size's, shrunk if a longer label wouldn't fit the fill. */
+function placeTextLabel(text: SVGTextElement, label: string, layout: MarkerLayout): void {
   const { cx, cy } = layout.geometry.content;
   // one letter or digit (a single UTF-16 unit)
-  const { font, baseline } = (label.length === 1 ? layout.metrics.singleChar : undefined) ?? layout.metrics;
+  const nominal = (label.length === 1 ? layout.metrics.singleChar : undefined) ?? layout.metrics;
+  const { font, baseline } = fitLabel(label, nominal, layout.geometry);
   // SVG adds letter-spacing after the last glyph too, which shifts middle-anchored
   // text by half a spacing; the design centres the glyphs themselves
   text.setAttribute("x", String(cx + (TEXT_LETTER_SPACING_EM * font) / 2));
   text.setAttribute("y", String(cy + baseline));
   text.setAttribute("font-size", String(font));
-  text.textContent = label;
 }
 
 //#endregion

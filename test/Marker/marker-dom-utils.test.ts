@@ -46,6 +46,19 @@ describe("createMarkerElement", () => {
     expect(outer.querySelector("svg.marker-shape")).toBeNull();
   });
 
+  it("keeps the dot's ring and centre as designed on the maptiler shape, whose colours are swapped", () => {
+    const fills = (outer: HTMLElement) => Array.from(outer.querySelector("svg.marker-dot")!.children).map((el) => (el as SVGElement).style.fill);
+    // ring = outer colour, centre = inner colour on an ordinary shape
+    expect(fills(createMarkerElement(baseOptions({ shape: "circle", size: "xs" })))).toEqual(["var(--marker-outer-color)", "var(--marker-inner-color)"]);
+    // the default maptiler marker's inner colour is the white one: ring takes it
+    expect(fills(createMarkerElement(baseOptions({ size: "xs" })))).toEqual(["var(--marker-inner-color)", "var(--marker-outer-color)"]);
+
+    // a shape change while at xs re-orients the dot
+    const outer = createMarkerElement(baseOptions({ shape: "circle", size: "xs" }));
+    updateMarkerElement(outer, { shape: "maptiler" });
+    expect(fills(outer)).toEqual(["var(--marker-inner-color)", "var(--marker-outer-color)"]);
+  });
+
   it("renders a shape svg at non-xs sizes", () => {
     const outer = createMarkerElement(baseOptions({ size: "m" }));
     expect(outer.querySelector("svg.marker-shape")).not.toBeNull();
@@ -176,7 +189,7 @@ describe("appendContent priority (icon > url > template > element > content)", (
 
 describe("xs dot", () => {
   it("is a 10px outer-colour disc with the inner-colour disc 2px inside it", () => {
-    const outer = createMarkerElement(baseOptions({ size: "xs" }));
+    const outer = createMarkerElement(baseOptions({ shape: "circle", size: "xs" }));
     const dot = outer.querySelector<SVGSVGElement>("svg.marker-dot")!;
     expect(dot.getAttribute("width")).toBe("10");
     expect(dot.getAttribute("viewBox")).toBe("0 0 10 10");
@@ -277,10 +290,18 @@ describe("icon content", () => {
 describe("applyMarkerStyleVariables", () => {
   it("sets default colors when none are provided", () => {
     const el = document.createElement("div");
-    applyMarkerStyleVariables(el, baseOptions());
+    applyMarkerStyleVariables(el, baseOptions({ shape: "circle" }));
     expect(el.style.getPropertyValue("--marker-outer-color")).toBe(ADAPTIVE_COLORS.base.outerColor);
     expect(el.style.getPropertyValue("--marker-inner-color")).toBe(ADAPTIVE_COLORS.base.innerColor);
     expect(el.style.getPropertyValue("--marker-content-color")).toBe(ADAPTIVE_COLORS.base.contentColor);
+  });
+
+  it("swaps the default colors on the default maptiler shape: blue body, white inner fill, blue mark", () => {
+    const el = document.createElement("div");
+    applyMarkerStyleVariables(el, baseOptions());
+    expect(el.style.getPropertyValue("--marker-outer-color")).toBe(ADAPTIVE_COLORS.base.innerColor);
+    expect(el.style.getPropertyValue("--marker-inner-color")).toBe(ADAPTIVE_COLORS.base.outerColor);
+    expect(el.style.getPropertyValue("--marker-content-color")).toBe(ADAPTIVE_COLORS.base.innerColor);
   });
 
   it("uses explicit outer/inner/content/outline colors when given", () => {
@@ -362,7 +383,7 @@ describe("updateMarkerElement", () => {
   });
 
   it("resolves undefined colours against the given styleId", () => {
-    const outer = createMarkerElement(baseOptions({ outerColor: "red", innerColor: "purple", contentColor: "green", outlineColor: "black" }));
+    const outer = createMarkerElement(baseOptions({ shape: "circle", outerColor: "red", innerColor: "purple", contentColor: "green", outlineColor: "black" }));
     updateMarkerElement(outer, { outerColor: undefined, innerColor: undefined, contentColor: undefined, outlineColor: undefined }, "streets-dark");
     const wrapper = resolveMarkerWrapper(outer);
     const expected = getAdaptiveColors("streets-dark");
@@ -370,6 +391,17 @@ describe("updateMarkerElement", () => {
     expect(wrapper.style.getPropertyValue("--marker-inner-color")).toBe(expected.innerColor);
     expect(wrapper.style.getPropertyValue("--marker-content-color")).toBe(expected.contentColor);
     expect(wrapper.style.getPropertyValue("--marker-outline-color")).toBe(expected.outlineColor);
+  });
+
+  it("resolves undefined colours against the shape too: the maptiler shape's are swapped, a shape set in the same update counts", () => {
+    const outer = createMarkerElement(baseOptions({ shape: "circle", outerColor: "red", innerColor: "purple", contentColor: "green" }));
+    const wrapper = resolveMarkerWrapper(outer);
+    updateMarkerElement(outer, { shape: "maptiler", outerColor: undefined, innerColor: undefined, contentColor: undefined }, "streets-dark");
+    const expected = getAdaptiveColors("streets-dark", "maptiler");
+    expect(wrapper.style.getPropertyValue("--marker-outer-color")).toBe(expected.outerColor);
+    expect(wrapper.style.getPropertyValue("--marker-inner-color")).toBe(expected.innerColor);
+    expect(wrapper.style.getPropertyValue("--marker-content-color")).toBe(expected.contentColor);
+    expect(expected.outerColor).toBe(ADAPTIVE_COLORS["streets-dark"]?.innerColor);
   });
 
   it("sets and removes the outline stroke-width", () => {

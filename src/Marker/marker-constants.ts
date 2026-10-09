@@ -80,6 +80,12 @@ export const ADAPTIVE_COLORS: { base: AdaptiveColorSet } & Partial<Record<Adapti
   topo: { innerColor: "#1A79FF", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
 };
 
+/**
+ * Shapes whose default colours are the map style's, swapped: a blue body with a white inner fill and
+ * a blue mark. Colours set explicitly aren't touched.
+ */
+export const INVERTED_COLOR_SHAPES: readonly string[] = ["maptiler"];
+
 // colour props that fall back to a per-map-style default when unset
 export const ADAPTIVE_COLOR_KEYS = ["outerColor", "innerColor", "contentColor", "outlineColor"] as const satisfies readonly (keyof AdaptiveColorSet)[];
 
@@ -184,6 +190,18 @@ export const TEXT_LETTER_SPACING_EM = -0.06;
 
 /** Font weight of text content — between Medium (500) and SemiBold (600); the marker font is variable (400–600). */
 export const TEXT_FONT_WEIGHT = 575;
+
+/** Font stack of marker text — keep in step with `.maptiler-sdk-marker-font` in `style_template.css`. */
+export const MARKER_FONT_FAMILY = `"Inter", "MapTiler Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+
+/** Cap height of the marker font, in em (Inter) — the height of the letters a label has to fit. */
+export const TEXT_CAP_HEIGHT_EM = 0.727;
+
+/** Space kept free between a label and the edge of the inner fill, in px, so antialiased glyph edges aren't clipped. */
+export const TEXT_FIT_MARGIN_PX = 1;
+
+/** Smallest font size a label is shrunk to when it doesn't fit (px); below this it's clipped rather than made illegible. */
+export const TEXT_MIN_FONT_PX = 6;
 
 /** Width of the outer-colour ring around the xs dot's inner fill (px). */
 export const DOT_RING_PX = 2;
