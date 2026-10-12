@@ -1,4 +1,4 @@
-import type { Event as EventML, MarkerEventType, MarkerOptions } from "maplibre-gl";
+import type { Event as EventML, LngLatLike, MarkerEventType, MarkerOptions } from "maplibre-gl";
 import type { EasingFunctionName } from "../MaptilerAnimation/types";
 import type { Marker } from "./Marker";
 
@@ -398,6 +398,8 @@ export type MapTilerMarkerUIStates = Partial<Record<MapTilerMarkerUIStateName, U
 // `color` is omitted from the MapLibre options because it styles the default
 // pin, which we replace entirely
 export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" | "opacityWhenCovered" | "color"> & {
+  /** Position of the marker. Can also be set later with `setLngLat()`. */
+  lngLat?: LngLatLike;
   /** Visual shape of the marker body. Defaults to `"maptiler"`. */
   shape?: MapTilerMarkerShape;
   /** Size of the marker. */
@@ -517,6 +519,16 @@ export type MapTilerMarkerOptions = MapTilerMarkerBaseOptions & MarkerContent;
  * property" — e.g. `{ shadow: undefined }` resets the shadow to its default.
  */
 export type PendingMarkerUpdates = Partial<MapTilerMarkerElementProps>;
+
+//#endregion
+
+//#region Removal
+
+/** Options for `map.removeMarker()` and `map.removeMarkers()`. */
+export type RemoveMarkerOptions = {
+  /** Removes the markers straight away, without playing their `exit` animation. Defaults to `false`. */
+  immediate?: boolean;
+};
 
 //#endregion
 

@@ -1408,36 +1408,166 @@ Many methods are available on color ramps, such as getting the `<canvas>` elemen
 
 ### Markers
 
-The SDK's `Marker` is an enhanced version of MapLibre's marker, designed for MapTiler maps. It adds built-in shapes and sizes, colours that follow the active MapTiler style, collision handling, interaction states, transitions and enter/idle/exit animations.
+The SDK's `Marker` is designed for MapTiler maps. It is built on the MapLibre marker and adds built-in shapes and sizes, colours that follow the active MapTiler style, collision handling, interaction states, transitions and animations.
 
-Add markers through the map, so they are registered for collisions and style-aware colours:
+#### Adding markers
+
+Create a marker, give it a position, and add it through the map. Markers added this way take part in collision handling and follow the style's colours:
 
 ```ts
 import { Map, Marker } from "@maptiler/sdk";
 
-// from options
-map.addMarker({ lngLat: [8.54, 47.37], shape: "bubble-circle", size: "m", content: "A1" });
-
-// or from an instance
-const marker = new Marker({
-  shape: "circle",
-  priority: 10,
-  states: { hover: { scale: [1.2, 1.2] } },
-  transitions: { position: [600, "QuadraticInOut"] },
-  animations: { enter: { preset: "drop" }, exit: { preset: "fade" } },
-}).setLngLat([8.55, 47.38]);
+const marker = new Marker({ lngLat: [8.54, 47.37], shape: "bubble-circle", size: "m", content: "A1" });
 map.addMarker(marker);
 
-map.setMarkerCollisionOptions({ behaviour: "hide-by-priority" });
+// or straight from options
+map.addMarker({ lngLat: [8.55, 47.38], shape: "circle" });
+map.addMarkers([
+  { lngLat: [8.53, 47.36], shape: "square" },
+  new Marker({ shape: "circle" }).setLngLat([8.56, 47.39]),
+]);
 
 map.getMarker(marker.id);
+map.getMarkers();
 map.removeMarker(marker.id);
+map.removeMarkers(); // all markers, or pass a list of ids
 ```
+
+Removing a marker plays its exit animation first, if it has one (see [Animations](#animations)). Pass `{ immediate: true }` to `removeMarker()` or `removeMarkers()` to remove markers straight away.
 
 > [!WARNING]
 > `marker.addTo(map)` is deprecated. It now delegates to `map.addMarker(marker)` and logs a one-time warning. Use `map.addMarker()` instead.
 
-Main differences from the MapLibre marker:
+#### Appearance
+
+```ts
+const marker = new Marker({
+  shape: "maptiler", // "circle" | "square" | "bubble-circle" | "bubble-square" | "maptiler" | "maptiler-full"
+  size: "l", // "xs" | "s" | "m" | "l"
+  shadow: "soft", // "none" | "soft" | "medium" | "strong"
+  content: "42", // text shown inside the marker
+  outline: true,
+  scale: [1.2, 1.2],
+  title: "Zurich", // native tooltip
+});
+```
+
+The appearance options have matching setters and getters, such as `setShape()`, `setSize()` or `getContent()`.
+
+Unless you set them, the marker's colours (`innerColor`, `outerColor`, `contentColor` and `outlineColor`) are picked for the current MapTiler style and update when the style changes. A colour you set explicitly stays fixed, and setting it back to `undefined` returns it to the style's colour:
+
+```ts
+marker.setInnerColor("#ff5a1f");
+marker.setInnerColor(undefined); // back to the style's colour
+```
+
+Instead of text, a marker can show an image, or any HTML or SVG element, for example one managed by React:
+
+```ts
+new Marker({ url: "https://example.com/icon.svg" });
+new Marker({ element: myElement });
+```
+
+With `element`, the shape and size options do not apply. The colour and shadow options are set on the element as CSS custom properties, so its own styles can use them.
+
+#### Collisions
+
+By default, markers are always shown even when they overlap. To declutter the map, choose what happens when markers collide. Where markers overlap, the one with the higher `priority` wins:
+
+```ts
+// default for every marker on the map
+map.setMarkerCollisionOptions({ behaviour: "hide-by-priority" });
+
+// or per marker
+new Marker({ priority: 10, collisionBehaviour: "minimize-by-priority" });
+```
+
+- `always-show`: never hidden (the default)
+- `hide-by-priority`: hidden behind a higher-priority marker
+- `minimize-by-priority`: shrinks to a small dot behind a higher-priority marker. `minimizedOptions` changes how the minimized marker looks.
+
+`setMarkerCollisionOptions()` also sets the `proximityPadding` used for `markerproximity` events and the duration and easing of the hide and show fade. `marker.getCollisionDisplayState()` returns `"visible"`, `"hidden"` or `"minimized"`.
+
+Markers fire `markeroverlap` and `markerproximity` when other markers start or stop colliding with them:
+
+```ts
+marker.on("markeroverlap", ({ entered, exited, current }) => {
+  console.log(`${current.length} markers overlap this one`);
+});
+```
+
+#### Interaction states
+
+Change a marker's look while it is hovered, focused, pressed or dragged. The marker returns to its own values when the state ends:
+
+```ts
+const marker = new Marker({
+  draggable: true,
+  states: {
+    hover: { scale: [1.2, 1.2] },
+    active: { shadow: "strong" },
+    dragging: { opacity: 0.6 },
+  },
+});
+
+marker.setUIState("focus", { outline: 3 });
+```
+
+#### Transitions
+
+Ease a property to its new value instead of jumping to it. `position`, `scale`, `rotation` and the four colours can be transitioned, each with `[duration, easing?, delay?]`:
+
+```ts
+const marker = new Marker({
+  transitions: {
+    position: [600, "QuadraticInOut"],
+    innerColor: [300],
+  },
+});
+
+marker.setLngLat([8.6, 47.4]); // glides to the new position
+marker.setTransitionForProperty("scale", [200, "CubicOut"]);
+```
+
+The `transitionstart` and `transitionend` events report the property being transitioned.
+
+#### Animations
+
+Play an animation when a marker is added, loop one while it is on the map, and play another when it is removed:
+
+```ts
+const marker = new Marker({
+  animations: {
+    enter: { preset: "drop" }, // "grow" | "drop" | "pop" | "bounce" | "fade"
+    idle: { preset: "pulsescale", iterations: 3 }, // "pulsescale" | "pulseopacity" | "ring" | "bounce"
+    exit: { preset: "fade", duration: 300 }, // "shrink" | "fade" | "pop" | "explode"
+  },
+});
+
+map.addMarker(marker); // plays "drop"
+map.removeMarker(marker.id); // plays "fade", then removes the marker
+map.removeMarker(marker.id, { immediate: true }); // removes it without the exit animation
+```
+
+Each animation also accepts `duration`, `delay`, `easing` and `magnitude`. Instead of a preset, `custom` takes a function called every frame with the animation's progress (`0` to `1`) and the marker. Animations fire events such as `enteranimationstart`, `idleanimationiteration` and `exitanimationend`.
+
+#### Altitude (experimental)
+
+Raise a marker above the ground. The marker is placed in 3D, so it stays in the right place as the camera moves, with terrain and under globe projection:
+
+```ts
+marker.setAltitude(500); // 500 m above the terrain under the marker
+marker.setAltitude(1200, { relativeTo: "sea" }); // 1200 m above sea level
+marker.setAltitude(false); // back on the map surface
+
+marker.setGroundLine(true); // dashed line from the marker down to the ground
+```
+
+Style the ground line with your own CSS on the `maptiler-marker-groundline` class, or add a class of your own with `setGroundLine(true, { className: "my-line" })`.
+
+#### The MapLibre marker
+
+Compared with the MapLibre marker:
 - The `color` option is removed. Use `innerColor`, `outerColor`, `contentColor` and `outlineColor`.
 - `scale` is a 2D vector, `[x, y]`.
 - `setRotation()` rotates the marker's shape rather than its container.
@@ -1450,7 +1580,7 @@ import { MarkerMLGL } from "@maptiler/sdk";
 new MarkerMLGL({ color: "#f00" }).setLngLat([8.54, 47.37]).addTo(map);
 ```
 
-See `demos/16-maptiler-markers.html` to `demos/19-maptiler-markers-lifecycle-animations.html` for examples.
+See `demos/16-maptiler-markers.html` to `demos/20-marker-altitude.html` for examples.
 
 ### Camera routes and animations
 

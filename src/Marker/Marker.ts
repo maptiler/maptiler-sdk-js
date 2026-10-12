@@ -229,9 +229,9 @@ export class Marker extends MLMarker {
    * custom properties for the element's own styles to consume.
    */
   constructor(options: MapTilerMarkerElementOptions);
-  /** Creates a marker styled via the built-in SVG system (`shape`, `size`, colour tokens, shadow). */
-  constructor(options: MapTilerMarkerSVGOptions);
-  constructor(options: MapTilerMarkerOptions) {
+  /** Creates a marker styled via the built-in SVG system (`shape`, `size`, colour tokens, shadow). With no options, uses the default appearance. */
+  constructor(options?: MapTilerMarkerSVGOptions);
+  constructor(options: MapTilerMarkerOptions = {}) {
     const sizeKey = options.size ?? DEFAULT_SIZE;
     const superOptions = {
       ...omit(options, MAPTILER_BASE_OPTIONS_KEYS),
@@ -290,6 +290,9 @@ export class Marker extends MLMarker {
     this.transitions = { ...options.transitions };
     this.animations = { ...options.animations };
     this.attachUIStateListeners();
+
+    // the base setter, so the initial position never transitions
+    if (options.lngLat) super.setLngLat(options.lngLat);
   }
 
   //#endregion

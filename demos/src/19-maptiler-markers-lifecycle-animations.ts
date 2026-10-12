@@ -150,10 +150,21 @@ async function main() {
     for (let i = 0; i < 10; i++) addOneMarker();
   });
 
-  el<HTMLButtonElement>("remove-all-markers").addEventListener("click", () => {
-    for (const marker of markers.splice(0)) marker.remove();
+  function removeAllMarkers(immediate: boolean) {
+    const ids = markers.splice(0).map((marker) => marker.id);
+    map.removeMarkers(ids, { immediate });
     nextSlot = 0;
     updateCount();
+  }
+
+  // plays each marker's exit animation before removing it
+  el<HTMLButtonElement>("remove-all-markers").addEventListener("click", () => {
+    removeAllMarkers(false);
+  });
+
+  // removes the markers straight away, skipping the exit animation
+  el<HTMLButtonElement>("remove-all-markers-immediate").addEventListener("click", () => {
+    removeAllMarkers(true);
   });
 }
 

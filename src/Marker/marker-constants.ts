@@ -80,6 +80,7 @@ export const MAPLIBRE_MARKER_CONSTRUCTOR_OVERRIDES: MarkerOptions = {
 export const CUSTOM_ELEMENT_MINIMIZED_KEYS = ["innerColor", "outerColor", "contentColor", "shadow", "opacity"] as const satisfies readonly (keyof MapTilerMarkerElementProps)[];
 
 export const MAPTILER_BASE_OPTIONS_KEYS = [
+  "lngLat",
   "shape",
   "size",
   "innerColor",

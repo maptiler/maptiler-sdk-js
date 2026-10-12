@@ -63,7 +63,7 @@ import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructor
 import { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 import { logSDKVersion } from "./utils/logSDKVersion";
 import { setDefaultWorkerUrl } from "./utils/defaultWorkerUrl";
-import { MapTilerMarkerOptions, MapTilerMarkerSVGOptions, Marker, MarkerCollisionOptions, setWorkerCount } from ".";
+import { MapTilerMarkerOptions, MapTilerMarkerSVGOptions, Marker, MarkerCollisionOptions, RemoveMarkerOptions, setWorkerCount } from ".";
 import { MarkerManager } from "./Marker/MarkerManager";
 import { EXPERIMENTAL_TILE_PRELOADING_VERSION } from "./tile-preloading/version";
 
@@ -1578,7 +1578,9 @@ export class Map extends MapMLGL {
   }
 
   /**
-   * TODO document this
+   * Adds a marker to the map, registering it for collision handling and style-aware colours.
+   * Plays the marker's `enter` animation, if it has one.
+   * @param markerOrMarkerConfig - A `Marker`, or the options to create one from.
    */
   addMarker(markerOrMarkerConfig: Marker | MapTilerMarkerOptions): this {
     const marker = markerOrMarkerConfig instanceof Marker ? markerOrMarkerConfig : new Marker(markerOrMarkerConfig as MapTilerMarkerSVGOptions);
@@ -1586,25 +1588,50 @@ export class Map extends MapMLGL {
     return this;
   }
 
-  removeMarker(id: string): this {
-    MarkerManager.deregisterById(this, id);
+  /**
+   * Removes a marker from the map, playing its `exit` animation first, if it has one.
+   * @param id - Id of the marker to remove.
+   * @param options.immediate - Removes the marker straight away, without its `exit` animation.
+   */
+  removeMarker(id: string, options: RemoveMarkerOptions = {}): this {
+    if (options.immediate) {
+      MarkerManager.deregisterById(this, id);
+    } else {
+      this.getMarker(id)?.remove();
+    }
     return this;
   }
 
+  /**
+   * Adds several markers to the map. See {@link Map.addMarker}.
+   * @param markers - `Marker`s, or the options to create them from.
+   */
   addMarkers(markers: (Marker | MapTilerMarkerOptions)[]): this {
     markers.forEach((m) => this.addMarker(m));
     return this;
   }
 
-  removeMarkers(markerIds?: string[]): this {
-    MarkerManager.deregisterAll(this, markerIds);
+  /**
+   * Removes several markers from the map, playing their `exit` animations first, if they have them.
+   * @param markerIds - Ids of the markers to remove. Removes every marker when omitted.
+   * @param options.immediate - Removes the markers straight away, without their `exit` animations.
+   */
+  removeMarkers(markerIds?: string[], options: RemoveMarkerOptions = {}): this {
+    if (options.immediate) {
+      MarkerManager.deregisterAll(this, markerIds);
+      return this;
+    }
+    const markers = markerIds ? markerIds.map((id) => this.getMarker(id)) : this.getMarkers();
+    for (const marker of markers) marker?.remove();
     return this;
   }
 
+  /** Returns every marker added to the map. */
   getMarkers(): Marker[] {
     return MarkerManager.getMarkers(this);
   }
 
+  /** Returns the marker with the given id, or `undefined` if it isn't on the map. */
   getMarker(id: string): Marker | undefined {
     return MarkerManager.getMarker(this, id);
   }
