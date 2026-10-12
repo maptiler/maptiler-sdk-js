@@ -1,4 +1,4 @@
-import type { MarkerOptions } from "maplibre-gl";
+import type { Event as EventML, MarkerEventType, MarkerOptions } from "maplibre-gl";
 import type { EasingFunctionName } from "../MaptilerAnimation/types";
 import type { Marker } from "./Marker";
 
@@ -517,5 +517,41 @@ export type MapTilerMarkerOptions = MapTilerMarkerBaseOptions & MarkerContent;
  * property" — e.g. `{ shadow: undefined }` resets the shadow to its default.
  */
 export type PendingMarkerUpdates = Partial<MapTilerMarkerElementProps>;
+
+//#endregion
+
+//#region Events
+
+/**
+ * Shape of an event fired by the SDK `Marker` on top of the MapLibre events,
+ * with the properties passed to `fire(type, properties)` merged in.
+ */
+type SDKMarkerEvent<TType extends string, TProps extends object = object> = EventML<TType> & { target: Marker } & TProps;
+
+type LifecycleAnimationEvent<TType extends MarkerLifecycleAnimationEventData["type"]> = SDKMarkerEvent<TType, Pick<MarkerLifecycleAnimationEventData, "preset">>;
+
+/**
+ * Events fired by the MapTiler SDK `Marker` in addition to the MapLibre ones.
+ */
+export type MaptilerMarkerEventType = {
+  markeroverlap: SDKMarkerEvent<"markeroverlap", MarkerCollisionEventData>;
+  markerproximity: SDKMarkerEvent<"markerproximity", MarkerCollisionEventData>;
+  transitionstart: SDKMarkerEvent<"transitionstart", Pick<MarkerTransitionEventData, "props">>;
+  transitionend: SDKMarkerEvent<"transitionend", Pick<MarkerTransitionEventData, "props">>;
+  enteranimationstart: LifecycleAnimationEvent<"enteranimationstart">;
+  enteranimationend: LifecycleAnimationEvent<"enteranimationend">;
+  exitanimationstart: LifecycleAnimationEvent<"exitanimationstart">;
+  exitanimationend: LifecycleAnimationEvent<"exitanimationend">;
+  idleanimationstart: LifecycleAnimationEvent<"idleanimationstart">;
+  idleanimationiteration: LifecycleAnimationEvent<"idleanimationiteration">;
+  idleanimationend: LifecycleAnimationEvent<"idleanimationend">;
+};
+
+/**
+ * All the events that can be listened to on a MapTiler SDK `Marker`: the MapLibre ones plus the SDK ones.
+ * MapLibre's `on`/`once`/`off` only accept the keys of `MarkerEventType`,
+ * so the SDK `Marker` overrides them to accept its own events as well.
+ */
+export type MarkerEventTypeSDK = MarkerEventType & MaptilerMarkerEventType;
 
 //#endregion

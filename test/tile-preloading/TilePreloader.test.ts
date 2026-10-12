@@ -18,7 +18,7 @@ function makeMockMap(sourceOverrides: Record<string, unknown> = {}): SDKMap {
       sources: Object.fromEntries(Object.keys(defaultSources).map((id) => [id, { type: "vector" }])),
     }),
     getSource: (id: string) => (defaultSources as Record<string, unknown>)[id] ?? null,
-    transform: { width: 1280, height: 720 },
+    _containerDimensions: () => [1280, 720],
   } as unknown as SDKMap;
 }
 

@@ -1,7 +1,8 @@
 import type { CustomLayerInterface, CustomRenderMethodInput } from "maplibre-gl";
 import { mat4 } from "gl-matrix";
 
-import type { Map as MapSDK } from "../../Map";
+import { config } from "../../config";
+import type { Map as MapSDK, MaptilerMapEventType } from "../../Map";
 import { createObject3D, type WebGLContext, type Object3D, parseColorStringToVec4, Vec4 } from "../../utils/webgl-utils";
 
 import { VERTICES, INDICES } from "./constants";
@@ -12,7 +13,9 @@ import { cubemapPresets, type CubemapDefinition, type CubemapFaces, type Cubemap
 import { lerp, lerpVec4 } from "../../utils/math-utils";
 import { orderObjectKeys } from "../../utils/object";
 
-const SPACE_IMAGES_BASE_URL = "https://api.maptiler.com/resources/space";
+function getSpaceImagesBaseUrl(): string {
+  return `${config.apiURL}resources/space`;
+}
 
 const ATTRIBUTES_KEYS = ["vertexPosition"] as const;
 const UNIFORMS_KEYS = ["projectionMatrix", "modelViewMatrix", "cubeSampler", "bgColor", "fadeOpacity"] as const;
@@ -433,7 +436,7 @@ class CubemapLayer implements CustomLayerInterface {
     });
   }
 
-  private fireEvent(event: string, layer: CubemapLayer) {
+  private fireEvent(event: Extract<keyof MaptilerMapEventType, `cubemaplayer:${string}`>, layer: CubemapLayer) {
     this.map.fire(event, layer);
   }
 
@@ -482,18 +485,20 @@ class CubemapLayer implements CustomLayerInterface {
     const canvas = gl.canvas as HTMLCanvasElement;
     const aspect = canvas.clientWidth / canvas.clientHeight;
 
-    const transform = this.map.transform;
-    const fov = transform.fov * (Math.PI / 180);
+    // `map.transform` was removed in MapLibre v6, so the camera state is read through the public API
+    const degToRad = Math.PI / 180;
+    const fov = this.map.getVerticalFieldOfView() * degToRad;
+    const center = this.map.getCenter();
 
     const projectionMatrix = mat4.create();
     mat4.perspective(projectionMatrix, fov, aspect, near, far);
 
-    mat4.rotateZ(projectionMatrix, projectionMatrix, transform.rollInRadians);
-    mat4.rotateX(projectionMatrix, projectionMatrix, -transform.pitchInRadians);
-    mat4.rotateZ(projectionMatrix, projectionMatrix, transform.bearingInRadians);
+    mat4.rotateZ(projectionMatrix, projectionMatrix, this.map.getRoll() * degToRad);
+    mat4.rotateX(projectionMatrix, projectionMatrix, -this.map.getPitch() * degToRad);
+    mat4.rotateZ(projectionMatrix, projectionMatrix, this.map.getBearing() * degToRad);
 
-    const latRad = (transform.center.lat * Math.PI) / 180.0;
-    const lngRad = (transform.center.lng * Math.PI) / 180.0;
+    const latRad = center.lat * degToRad;
+    const lngRad = center.lng * degToRad;
 
     mat4.rotateX(projectionMatrix, projectionMatrix, latRad);
     mat4.rotateY(projectionMatrix, projectionMatrix, -lngRad);
@@ -718,12 +723,12 @@ function getCubemapFaces(options: CubemapDefinition): CubemapFaces | null {
 
   if (options.preset) {
     return {
-      pX: `${SPACE_IMAGES_BASE_URL}/${options.preset}/px.webp`,
-      nX: `${SPACE_IMAGES_BASE_URL}/${options.preset}/nx.webp`,
-      pY: `${SPACE_IMAGES_BASE_URL}/${options.preset}/py.webp`,
-      nY: `${SPACE_IMAGES_BASE_URL}/${options.preset}/ny.webp`,
-      pZ: `${SPACE_IMAGES_BASE_URL}/${options.preset}/pz.webp`,
-      nZ: `${SPACE_IMAGES_BASE_URL}/${options.preset}/nz.webp`,
+      pX: `${getSpaceImagesBaseUrl()}/${options.preset}/px.webp`,
+      nX: `${getSpaceImagesBaseUrl()}/${options.preset}/nx.webp`,
+      pY: `${getSpaceImagesBaseUrl()}/${options.preset}/py.webp`,
+      nY: `${getSpaceImagesBaseUrl()}/${options.preset}/ny.webp`,
+      pZ: `${getSpaceImagesBaseUrl()}/${options.preset}/pz.webp`,
+      nZ: `${getSpaceImagesBaseUrl()}/${options.preset}/nz.webp`,
     };
   }
 

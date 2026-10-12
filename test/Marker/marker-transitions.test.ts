@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import maplibregl from "maplibre-gl";
+import { LngLat } from "maplibre-gl";
 import {
   colorTransitionCodec,
   lifecycleTransitionCodec,
@@ -51,11 +51,11 @@ describe("lifecycleTransitionCodec", () => {
 
 describe("positionTransitionCodec", () => {
   it("round-trips an LngLat", () => {
-    const lngLat = new maplibregl.LngLat(12.5, -3.25);
+    const lngLat = new LngLat(12.5, -3.25);
     const numeric = positionTransitionCodec.toNumeric(lngLat);
     expect(numeric).toEqual({ lng: 12.5, lat: -3.25 });
     const back = positionTransitionCodec.fromNumeric(numeric);
-    expect(back).toBeInstanceOf(maplibregl.LngLat);
+    expect(back).toBeInstanceOf(LngLat);
     expect(back.lng).toBe(12.5);
     expect(back.lat).toBe(-3.25);
   });

@@ -3,7 +3,7 @@ import type { mat4 } from "gl-matrix";
 import { Marker } from "../../src/Marker/Marker";
 import { MarkerManager } from "../../src/Marker/MarkerManager";
 import { CollisionBehaviour } from "../../src/Marker/types";
-import { createMockMap, type MockMap } from "./mock-map";
+import { createMockMap, mercatorProjectionData, type MockMap } from "./mock-map";
 
 /** A marker with a fixed, offset-free square footprint, positioned via lngLat (mock `project`: x = 400 + lng*10, y = 300 - lat*10). */
 function footprintMarker(lngLat: [number, number], radius = 20, extra: ConstructorParameters<typeof Marker>[0] = {}) {
@@ -375,22 +375,13 @@ describe("altitude render loop", () => {
     near.setAltitude(5);
     far.setAltitude(5);
 
-    // The mock's getMatrixForModel otherwise returns a constant zero matrix
-    // regardless of lngLat, so every marker would project to the same depth.
-    // Fake a per-marker camera-distance signal via worldZ (model[14]),
-    // scaled by longitude, so "far" (lng=1) sits behind "near" (lng=0).
-    (map.transform.getMatrixForModel as unknown as ReturnType<typeof vi.fn>).mockImplementation((lngLat: { lng: number }) => {
-      const model = new Array(16).fill(0);
-      model[14] = lngLat.lng * 5; // worldZ
-      return model;
-    });
-
     const layer = captureInstalledLayer(map);
-    // clipW = matrix[11] * worldZ + matrix[15] — a nonzero matrix[11] lets
-    // worldZ drive depth (clip-space W), with matrix[15] keeping it positive.
-    const matrix: mat4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 10] as unknown as mat4;
+    // clipW = matrix[3] * mercatorX + matrix[15] — a nonzero matrix[3] lets
+    // longitude drive depth (clip-space W), so "far" (lng=1) sits behind
+    // "near" (lng=0), with matrix[15] keeping it positive.
+    const matrix: mat4 = [1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 10] as unknown as mat4;
 
-    layer.render(null, { defaultProjectionData: { mainMatrix: matrix, projectionTransition: 0 } });
+    layer.render(null, { defaultProjectionData: mercatorProjectionData(matrix) });
     map.fire("render");
 
     const nearZIndex = Number(near.getElement().style.zIndex);

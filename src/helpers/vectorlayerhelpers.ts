@@ -541,7 +541,7 @@ export async function addPolyline(
   if (typeof data === "string") {
     // if options.data exists and is a uuid string, we consider that it points to a MapTiler Dataset
     if (isUUID(data)) {
-      data = `https://api.maptiler.com/data/${data}/features.json?key=${config.apiKey}`;
+      data = `${config.apiURL}data/${data}/features.json?key=${config.apiKey}`;
     } else {
       // options.data could be absolute or relative url
       if (/^(?:\w+:|\.|\/)/.test(data)) {
@@ -729,7 +729,7 @@ export function addPolygon(
 
     // If is a UUID, we extend it to be the URL to a MapTiler Cloud hosted dataset
     if (typeof data === "string" && isUUID(data)) {
-      data = `https://api.maptiler.com/data/${data}/features.json?key=${config.apiKey}`;
+      data = `${config.apiURL}data/${data}/features.json?key=${config.apiKey}`;
     }
 
     // Adding the source
@@ -944,7 +944,7 @@ export function addPoint(
 
     // If is a UUID, we extend it to be the URL to a MapTiler Cloud hosted dataset
     if (typeof data === "string" && isUUID(data)) {
-      data = `https://api.maptiler.com/data/${data}/features.json?key=${config.apiKey}`;
+      data = `${config.apiURL}data/${data}/features.json?key=${config.apiKey}`;
     }
 
     // Adding the source
@@ -1275,7 +1275,7 @@ export function addHeatmap(
 
     // If is a UUID, we extend it to be the URL to a MapTiler Cloud hosted dataset
     if (typeof data === "string" && isUUID(data)) {
-      data = `https://api.maptiler.com/data/${data}/features.json?key=${config.apiKey}`;
+      data = `${config.apiURL}data/${data}/features.json?key=${config.apiKey}`;
     }
 
     // Adding the source

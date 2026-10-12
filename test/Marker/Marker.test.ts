@@ -4,7 +4,7 @@ import { MarkerManager } from "../../src/Marker/MarkerManager";
 import { ApplyAltitudeFrameSymbol, ApplyCollisionDisplayStateSymbol, CollisionFootprintSymbol, MeasuredElementSizeSymbol } from "../../src/Marker/marker-symbols";
 import { ADAPTIVE_COLORS, SIZE_PX } from "../../src/Marker/marker-constants";
 import type { mat4 } from "gl-matrix";
-import { createMockMap, type MockMap } from "./mock-map";
+import { createMockMap, mercatorProjectionData, type MockMap } from "./mock-map";
 
 function registeredMarker(map: MockMap, options: ConstructorParameters<typeof Marker>[0] = {}) {
   const marker = new Marker(options);
@@ -594,7 +594,7 @@ describe("setGroundLine", () => {
     marker.setAltitude(10);
 
     const identity: mat4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] as unknown as mat4;
-    const depth = marker[ApplyAltitudeFrameSymbol](identity, map);
+    const depth = marker[ApplyAltitudeFrameSymbol](mercatorProjectionData(identity), map);
 
     expect(depth).not.toBeNull();
     expect(MarkerManager.getGroundLineContainer(map).children.length).toBe(1);
@@ -607,7 +607,7 @@ describe("setGroundLine", () => {
     marker.setAltitude(10);
 
     const negativeW: mat4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1] as unknown as mat4;
-    const depth = marker[ApplyAltitudeFrameSymbol](negativeW, map);
+    const depth = marker[ApplyAltitudeFrameSymbol](mercatorProjectionData(negativeW), map);
 
     expect(depth).toBeNull();
     expect(MarkerManager.getGroundLineContainer(map).children.length).toBe(0);

@@ -1,5 +1,5 @@
 // Pure math, no DOM/MapLibre side effects — called every frame per marker.
-import maplibregl from "maplibre-gl";
+import { MercatorCoordinate, type CustomLayerProjectionData, type LngLat, type Map as MLMap } from "maplibre-gl";
 import type { mat4 } from "gl-matrix";
 import type { AltitudeReference } from "./types";
 
@@ -17,16 +17,35 @@ export interface ScreenPoint {
 
 //#region projectLngLatAltitude
 
-/** Projects `lngLat`/`altitudeMeters` to a screen point via `matrix` (mainMatrix). Uses `getMatrixForModel` so it works under both mercator and globe. */
-export function projectLngLatAltitude(lngLat: maplibregl.LngLat, altitudeMeters: number, matrix: mat4, map: maplibregl.Map): ScreenPoint | null {
-  const model = map.transform.getMatrixForModel(lngLat, altitudeMeters);
-  const worldX = model[12];
-  const worldY = model[13];
-  const worldZ = model[14];
+/** Mean Earth radius in meters — the sphere MapLibre's globe is rendered on (`GLOBE_RADIUS` in its shaders). */
+const GLOBE_RADIUS = 6371008.8;
 
-  const clipX = matrix[0] * worldX + matrix[4] * worldY + matrix[8] * worldZ + matrix[12];
-  const clipY = matrix[1] * worldX + matrix[5] * worldY + matrix[9] * worldZ + matrix[13];
-  const clipW = matrix[3] * worldX + matrix[7] * worldY + matrix[11] * worldZ + matrix[15];
+/**
+ * Projects `lngLat`/`altitudeMeters` to a screen point using the projection data MapLibre hands to custom layers each frame.
+ * A JS port of MapLibre's `projectTileFor3D` shader function, so it works under mercator, globe, and mid-morph between the two.
+ */
+export function projectLngLatAltitude(lngLat: LngLat, altitudeMeters: number, projectionData: CustomLayerProjectionData, map: MLMap): ScreenPoint | null {
+  const { mainMatrix, fallbackMatrix, projectionTransition } = projectionData;
+  const mercator = MercatorCoordinate.fromLngLat(lngLat, altitudeMeters);
+
+  // Flat (mercator) position: custom layer matrices take mercator x/y in 0..1 and z in mercator units.
+  // Under plain mercator `fallbackMatrix` is the same as `mainMatrix`.
+  let [clipX, clipY, clipW] = transformPoint(fallbackMatrix, mercator.x, mercator.y, mercator.z);
+
+  if (projectionTransition > 0) {
+    // Globe position: `mainMatrix` takes points on the unit sphere, scaled out by the altitude.
+    const [sphereX, sphereY, sphereZ] = mercatorToUnitSphere(mercator.x, mercator.y);
+    const scale = 1 + altitudeMeters / GLOBE_RADIUS;
+    const globe = transformPoint(mainMatrix, sphereX * scale, sphereY * scale, sphereZ * scale);
+
+    if (projectionTransition > 0.999) {
+      [clipX, clipY, clipW] = globe;
+    } else {
+      clipX += (globe[0] - clipX) * projectionTransition;
+      clipY += (globe[1] - clipY) * projectionTransition;
+      clipW += (globe[2] - clipW) * projectionTransition;
+    }
+  }
 
   if (clipW <= 0) return null; // behind camera
 
@@ -52,6 +71,29 @@ export function projectLngLatAltitude(lngLat: maplibregl.LngLat, altitudeMeters:
 
 //#endregion
 
+//#region Projection Helpers
+
+/** `matrix * [x, y, z, 1]`, returning clip-space x, y and w (z is not needed). */
+function transformPoint(matrix: mat4, x: number, y: number, z: number): [number, number, number] {
+  return [
+    matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12],
+    matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13],
+    matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15],
+  ];
+}
+
+/** Mercator x/y (0..1) to a point on the unit sphere, matching MapLibre's `projectToSphere` shader function. */
+function mercatorToUnitSphere(x: number, y: number): [number, number, number] {
+  const sphericalX = x * Math.PI * 2 + Math.PI;
+  const t = Math.exp(Math.PI - y * Math.PI * 2);
+  const t2 = t * t;
+  const sinY = (t2 - 1) / (t2 + 1);
+  const cosY = (2 * t) / (t2 + 1);
+  return [Math.sin(sphericalX) * cosY, sinY, Math.cos(sphericalX) * cosY];
+}
+
+//#endregion
+
 //#region computeAltitudeProjection
 
 /**
@@ -60,17 +102,17 @@ export function projectLngLatAltitude(lngLat: maplibregl.LngLat, altitudeMeters:
  * `belowGround` — `elevated` under `groundBase`, for fading markers DOM can't depth-test against terrain.
  */
 export function computeAltitudeProjection(
-  lngLat: maplibregl.LngLat,
+  lngLat: LngLat,
   altitudeMeters: number,
-  matrix: mat4,
-  map: maplibregl.Map,
+  projectionData: CustomLayerProjectionData,
+  map: MLMap,
   relativeTo: AltitudeReference,
 ): { groundBase: ScreenPoint; elevated: ScreenPoint; belowGround: boolean } | null {
   const nativeElevation = map.getTerrain() ? (map.queryTerrainElevation(lngLat) ?? 0) : 0;
-  const groundBase = projectLngLatAltitude(lngLat, nativeElevation, matrix, map);
+  const groundBase = projectLngLatAltitude(lngLat, nativeElevation, projectionData, map);
 
   const targetElevation = relativeTo === "ground" ? nativeElevation + altitudeMeters : altitudeMeters;
-  const elevated = projectLngLatAltitude(lngLat, targetElevation, matrix, map);
+  const elevated = projectLngLatAltitude(lngLat, targetElevation, projectionData, map);
 
   if (!groundBase || !elevated) return null; // behind camera this frame
 

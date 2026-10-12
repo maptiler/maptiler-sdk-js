@@ -1,5 +1,6 @@
 import { vi } from "vitest";
-import maplibregl from "maplibre-gl";
+import { LngLat, Point, type CustomLayerProjectionData, type LngLatLike } from "maplibre-gl";
+import type { mat4 } from "gl-matrix";
 import type { Map as SDKMap } from "../../src/Map";
 
 /**
@@ -20,13 +21,15 @@ export function createMockMap() {
 
   const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
 
+  const transform = {
+    getCoveringTilesDetailsProvider: () => ({ allowWorldCopies: () => false }),
+    isLocationOccluded: () => false,
+  };
+
   const map = {
     _ownerWindow: undefined,
-    transform: {
-      getCoveringTilesDetailsProvider: () => ({ allowWorldCopies: () => false }),
-      isLocationOccluded: () => false,
-      getMatrixForModel: vi.fn(() => new Array(16).fill(0)),
-    },
+    // MapLibre v6 Marker reads the transform from `map._camera`
+    _camera: { transform },
     terrain: undefined as unknown,
     loaded: () => true,
     isMoving: () => false,
@@ -35,9 +38,9 @@ export function createMockMap() {
     getCanvasContainer: () => canvasContainer,
     getContainer: () => container,
     getCanvas: () => canvas,
-    project: (lngLat: maplibregl.LngLatLike) => {
-      const ll = maplibregl.LngLat.convert(lngLat);
-      return new maplibregl.Point(400 + ll.lng * 10, 300 - ll.lat * 10);
+    project: (lngLat: LngLatLike) => {
+      const ll = LngLat.convert(lngLat);
+      return new Point(400 + ll.lng * 10, 300 - ll.lat * 10);
     },
     getBearing: () => 0,
     getPitch: () => 0,
@@ -77,3 +80,19 @@ export function createMockMap() {
 }
 
 export type MockMap = ReturnType<typeof createMockMap>;
+
+/**
+ * Custom layer projection data for a plain mercator frame — `matrix` maps
+ * mercator x/y (0..1) and z (mercator units) to clip space.
+ */
+export function mercatorProjectionData(matrix: mat4): CustomLayerProjectionData {
+  const projectionMatrix = matrix as CustomLayerProjectionData["mainMatrix"];
+  return {
+    mainMatrix: projectionMatrix,
+    fallbackMatrix: projectionMatrix,
+    projectionTransition: 0,
+    tileMercatorCoords: [0, 0, 1, 1],
+    clippingPlane: [0, 0, 0, 0],
+    clipAntimeridian: false,
+  };
+}

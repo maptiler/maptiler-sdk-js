@@ -1,17 +1,47 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## next
+
+### ⚠️ Breaking changes
+- Upgrades MapLibre GL JS to v6, which is ESM-only. See the [MapLibre changelog](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md) for changes to the MapLibre API itself.
+- The MapLibre worker is now loaded from a separate file, which most bundlers do not emit on their own:
+  - The npm (ES) build loads the worker matching its version from the MapTiler CDN by default, unless a worker URL has already been set with `setWorkerUrl`. Sites with a Content Security Policy need `worker-src 'self' blob: https://cdn.maptiler.com`.
+  - The UMD build ships `maplibre-gl-worker.mjs` and `maplibre-gl-shared.mjs` next to `maptiler-sdk.umd.min.js`. When self-hosting the UMD bundle, these files must be served alongside it.
+- The `rtlTextPlugin` map option has been removed. MapLibre now shapes right-to-left text natively. `setRTLTextPlugin` is still re-exported for custom plugins, but is deprecated by MapLibre.
+- The deprecated internal MapLibre types previously re-exported from `ml-types` have been removed from the public API.
+- MapLibre classes (`Marker`, `Popup`, `GeolocateControl`, sources, controls, handlers, etc.) are now re-exported directly from MapLibre instead of through SDK wrapper classes. The SDK `Map` is accepted by them as is.
+- `MaptilerGeolocateControl` now fires a MapLibre `GeolocateEvent` instead of a DOM `Event` for `trackuserlocationend`.
+
 ### ✨ Features and improvements
 - Adds a marker `transitions` API: `position`, `scale`, `rotation`, and colour properties (`outerColor`, `innerColor`, `contentColor`, `outlineColor`) can now ease to a new value instead of snapping.
   - Configure via the `transitions` constructor option or `setTransitionForProperty(property, [duration, easing?, delay?] | null)`; inspect with `getTransitions()`.
   - Fires `transitionstart` / `transitionend` events — same shape as MapLibre's marker events (`type`, `target`), plus `props`: the transitioning property keyed to its value at that point (the eased-from value on `transitionstart`, the reached value on `transitionend`).
   - Collision hide/show/minimize fade transitions are now parameterised per map via `setMarkerCollisionOptions({ transitionDuration, transitionEasing })`.
-
-### 🐛 Bug Fixes
- - Fixes a bug in halo where a mismatch between the layer added to the map and the layer added to the `.halo` field were different instances, causing a runtime error.
+- Adds bundler helper entry points that set the MapLibre worker URL from a locally bundled worker:
+  - `@maptiler/sdk/vite-worker` for Vite
+  - `@maptiler/sdk/webpack-worker` for webpack
+  - `@maptiler/sdk/next-worker` and `withMaptilerWorker` from `@maptiler/sdk/next` for Next.js
+- SDK custom events (e.g. `ready`, `loadWithTerrain`, `projection.change`) are now typed in `on`, `once`, `off` and `fire`. Adds the `MaptilerMapEventType` and `MapEventTypeSDK` types.
+- Events of `CubemapLayer` (`cubemaplayer:*`), `RadialGradientLayer` (`radialgradientlayer:*`) and `ImageViewerMarker` are now typed.
 
 ### ⚙️ Others
+- Bumps `maplibre-gl` to 6.11.2 and `@maplibre/maplibre-gl-style-spec` to 26.
+- Switches internal `maplibre-gl` imports to named imports.
+- Documents worker setup per bundler, CSP requirements, self-hosted UMD worker files and TypeScript `moduleResolution` in the README.
 
+## 4.2.0
+
+### ✨ Features and improvements
+- Adds support for EU-based MapTiler Cloud server
+  - Adds `config.useEuEndpoints` to route all MapTiler Cloud requests through the EU-based `api.maptiler.eu` host instead of the default `api.maptiler.com`.
+  - Adds read-only `config.apiHost` and `config.apiURL`, exposing the host and base URL currently in use.
+  - Every MapTiler Cloud URL built by the SDK now follows the configured host, including the logo control, telemetry, the terrain source, space cubemap images, the image viewer, and the dataset URLs resolved from a UUID in the `addPolyline`, `addPolygon`, `addPoint` and `addHeatmap` helpers.
+
+### 🐛 Bug Fixes
+- Fixes a bug in halo where a mismatch between the layer added to the map and the layer added to the `.halo` field were different instances, causing a runtime error.
+
+### ⚙️ Others
+- Bumps `@maptiler/client` to 3.1.0
 
 ## 4.1.0
 

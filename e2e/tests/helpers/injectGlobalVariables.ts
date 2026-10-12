@@ -7,6 +7,7 @@ export async function injectGlobalVariables(page: Page) {
     ({ version, nodeEnv }) => {
       window.__MT_SDK_VERSION__ = version;
       window.__MT_NODE_ENV__ = nodeEnv;
+      window.__MT_BUILD_FORMAT__ = "dev";
     },
     { version: packagejson.version, nodeEnv: process.env.NODE_ENV },
   );
