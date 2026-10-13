@@ -527,9 +527,7 @@ describe("updateMarkerElement", () => {
     // body 9..33 plus the tail down to 36.5
     expect(image.getAttribute("y")).toBe("9");
     expect(image.getAttribute("height")).toBe("27.5");
-    const clipId = /url\(#(.+)\)/.exec(image.getAttribute("clip-path") ?? "")?.[1];
-    const clipPath = outer.querySelector(`clipPath[id="${String(clipId)}"] path`);
-    expect(clipPath?.getAttribute("d")).toContain("L20 36.5");
+    expect(image.style.clipPath).toContain("L20 36.5");
     // nothing is painted over the photo any more
     expect(image.nextElementSibling).toBeNull();
   });

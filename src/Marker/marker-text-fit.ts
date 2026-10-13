@@ -43,17 +43,23 @@ function measureLabel(label: string, px: number): number | null {
 }
 
 /**
- * Resolves once the marker font used at `px` can measure `label` correctly, or `null` when it
- * already can. Measuring before the font arrives uses a fallback font's widths.
+ * Calls `onLoad` once the marker font at `px` has loaded, so a label measured with a fallback
+ * font's widths can be fitted again. Does nothing when the font is already loaded.
  */
-export function whenLabelFontReady(label: string, px: number): Promise<void> | null {
-  if (typeof document === "undefined" || !("fonts" in document)) return null;
+export async function onLabelFontLoad(label: string, px: number, onLoad: () => void): Promise<void> {
+  if (typeof document === "undefined" || !("fonts" in document)) return;
+
   const font = fontShorthand(px);
-  if (document.fonts.check(font, label)) return null;
-  return document.fonts.load(font, label).then(
-    () => undefined,
-    () => undefined,
-  );
+  if (document.fonts.check(font, label)) return;
+
+  try {
+    await document.fonts.load(font, label);
+  } catch {
+    // the font failed to load: the label keeps its fallback-font fit
+    return;
+  }
+
+  onLoad();
 }
 
 //#endregion

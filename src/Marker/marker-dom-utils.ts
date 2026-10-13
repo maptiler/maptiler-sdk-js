@@ -4,7 +4,7 @@ import { SHAPES, circlePath, getShapeGeometry, type ContentMetrics, type ShapeGe
 import { getMarkerTemplate } from "./marker-content-registry";
 import { MARKER_ICON_VIEWBOX_SIZE, getMarkerIconPath } from "./marker-icons";
 import { getAdaptiveColors } from "./marker-adaptive-colors";
-import { fitLabel, whenLabelFontReady } from "./marker-text-fit";
+import { fitLabel, onLabelFontLoad } from "./marker-text-fit";
 import {
   ALTITUDE_HIDDEN_CLASSNAME,
   ALTITUDE_OCCLUDED_CLASSNAME,
@@ -786,10 +786,6 @@ function applyOutlineToPath(path: SVGGeometryElement, options: MapTilerMarkerOpt
 
 //#region appendContent
 
-let clipIdCounter = 0;
-// per-module prefix so clip ids stay unique when a page loads more than one copy of the SDK
-const clipIdPrefix = Math.random().toString(36).slice(2, 8);
-
 /**
  * Appends the content layer to a shape SVG.
  * Priority: `icon` → `url` → `template` → `element` → `content` text.
@@ -931,7 +927,7 @@ function appendImageContent(svg: SVGSVGElement, href: string, layout: MarkerLayo
   img.classList.add("marker-content");
   img.setAttribute("href", href);
   img.setAttribute("preserveAspectRatio", "xMidYMid slice");
-  img.setAttribute("clip-path", appendContentClip(svg, layout));
+  clipToInnerFill(img, layout);
   img.setAttribute("x", String(clip.x));
   img.setAttribute("y", String(clip.y));
   img.setAttribute("width", String(clip.w));
@@ -947,18 +943,12 @@ function setInnerFillHidden(svg: SVGSVGElement, hidden: boolean): void {
 }
 
 /**
- * Appends a `<clipPath>` for the shape's inner body and returns its
- * `url(#…)` reference — used to keep content inside the inner fill.
+ * Clips content to the shape's inner fill with a CSS `path()`, so no `<clipPath>` element
+ * or id is needed. `view-box` places the path in the marker SVG's coordinates rather than
+ * the element's own bounding box.
  */
-function appendContentClip(svg: SVGSVGElement, layout: MarkerLayout): string {
-  const clipId = `maptiler-marker-clip-${clipIdPrefix}-${String(++clipIdCounter)}`;
-  const clip = svgEl("clipPath");
-  clip.setAttribute("id", clipId);
-
-  clip.appendChild(buildPath(layout.geometry.clip.d));
-  svg.appendChild(clip);
-
-  return `url(#${clipId})`;
+function clipToInnerFill(el: SVGElement, layout: MarkerLayout): void {
+  el.style.clipPath = `path("${layout.geometry.clip.d}") view-box`;
 }
 
 /** Appends a foreignObject wrapping `element`, sized to the content box. */
@@ -972,7 +962,7 @@ function appendElementContent(svg: SVGSVGElement, element: HTMLElement | SVGElem
   fo.setAttribute("y", String(cy - box / 2));
   fo.setAttribute("width", String(box));
   fo.setAttribute("height", String(box));
-  fo.setAttribute("clip-path", appendContentClip(svg, layout));
+  clipToInnerFill(fo, layout);
   fo.appendChild(element);
   svg.appendChild(fo);
 }
@@ -981,7 +971,7 @@ function appendElementContent(svg: SVGSVGElement, element: HTMLElement | SVGElem
 function appendTextContent(svg: SVGSVGElement, title: string, layout: MarkerLayout, className = "marker-content"): SVGTextElement {
   const text = svgEl("text");
   text.classList.add(className, MARKER_FONT_CLASSNAME);
-  text.setAttribute("clip-path", appendContentClip(svg, layout));
+  clipToInnerFill(text, layout);
   text.setAttribute("text-anchor", "middle");
   text.setAttribute("font-weight", String(TEXT_FONT_WEIGHT));
   text.setAttribute("letter-spacing", `${String(TEXT_LETTER_SPACING_EM)}em`);
@@ -998,11 +988,11 @@ function setTextLabel(text: SVGTextElement, label: string, layout: MarkerLayout)
   placeTextLabel(text, label, layout);
 
   // the fit is measured in the marker font: if it is still loading, fit again once it has arrived
-  const nominal = layout.metrics;
-  const fontReady = label.length > 1 ? whenLabelFontReady(label, nominal.font) : null;
-  void fontReady?.then(() => {
-    if (text.textContent === label) placeTextLabel(text, label, layout);
-  });
+  if (label.length > 1) {
+    void onLabelFontLoad(label, layout.metrics.font, () => {
+      if (text.textContent === label) placeTextLabel(text, label, layout);
+    });
+  }
 }
 
 /** Sets the font size and position of a label: the size's, shrunk if a longer label wouldn't fit the fill. */
