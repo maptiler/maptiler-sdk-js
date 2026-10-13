@@ -43,8 +43,11 @@ jobs:
       - name: Fail job if makeRelease failed
         if: steps.makeRelease.outcome == 'failure'
         run: exit 1
-
         id: check-build-status
+
+      - name: Update NPM version
+        run: run: npm version ${{ github.event.release.tag_name }} --no-git-tag-version
+
       - name: Publish NPM package (regular)
         if: "!github.event.release.prerelease"
         run: |
