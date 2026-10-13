@@ -30,6 +30,16 @@ describe("getAdaptiveColors", () => {
     expect(getAdaptiveColors("STREETS-DARK")).toBe(ADAPTIVE_COLORS["streets-dark"]);
   });
 
+  it("swaps the colours for the maptiler shape: the accent on the body and the mark, the body colour inside", () => {
+    const { innerColor, outerColor, outlineColor } = ADAPTIVE_COLORS["streets-dark"]!;
+    expect(getAdaptiveColors("streets-dark", "maptiler")).toEqual({ outerColor: innerColor, innerColor: outerColor, contentColor: innerColor, outlineColor });
+  });
+
+  it("leaves other shapes' colours as the style's", () => {
+    expect(getAdaptiveColors("streets-dark", "circle")).toBe(ADAPTIVE_COLORS["streets-dark"]);
+    expect(getAdaptiveColors("streets-dark", "maptiler-full")).toBe(ADAPTIVE_COLORS["streets-dark"]);
+  });
+
   it("gives every dark style a #292929 outer and content colour", () => {
     for (const key of ["base-dark", "streets-dark", "dataviz-dark"] as const) {
       expect(ADAPTIVE_COLORS[key]).toMatchObject({ outerColor: "#292929", contentColor: "#292929" });

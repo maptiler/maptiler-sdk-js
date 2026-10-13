@@ -166,13 +166,29 @@ describe("setInnerColor / getInnerColor", () => {
   });
 
   it("setInnerColor(undefined) returns to the map-style default", () => {
-    const marker = new Marker({ innerColor: "purple" });
+    const marker = new Marker({ shape: "circle", innerColor: "purple" });
     marker.setInnerColor(undefined);
     expect(marker.getInnerColor()).toBe(ADAPTIVE_COLORS.base.innerColor);
   });
 
   it("getInnerColor returns the base default when innerColor is not set and the marker has no map", () => {
+    const marker = new Marker({ shape: "circle" });
+    expect(marker.getInnerColor()).toBe(ADAPTIVE_COLORS.base.innerColor);
+  });
+
+  it("the default maptiler marker is blue outside and on the mark, white inside", () => {
     const marker = new Marker({});
+    expect(marker.getOuterColor()).toBe(ADAPTIVE_COLORS.base.innerColor);
+    expect(marker.getInnerColor()).toBe(ADAPTIVE_COLORS.base.outerColor);
+    expect(marker.getContentColor()).toBe(ADAPTIVE_COLORS.base.innerColor);
+  });
+
+  it("unset colours follow the shape when it changes; explicit ones stay", () => {
+    const marker = new Marker({ shape: "circle", outerColor: "red" });
+    marker.setShape("maptiler");
+    expect(marker.getInnerColor()).toBe(ADAPTIVE_COLORS.base.outerColor);
+    expect(marker.getOuterColor()).toBe("red");
+    marker.setShape("square");
     expect(marker.getInnerColor()).toBe(ADAPTIVE_COLORS.base.innerColor);
   });
 });
