@@ -3,7 +3,7 @@ import type { MapTilerMarkerBaseOptions, MapTilerMarkerIcon, MapTilerMarkerOptio
 import { SHAPES, circlePath, getShapeGeometry, type ContentMetrics, type ShapeGeometry, type ShapeSize } from "./marker-svg-config";
 import { getMarkerTemplate } from "./marker-content-registry";
 import { MARKER_ICON_VIEWBOX_SIZE, getMarkerIconPath } from "./marker-icons";
-import { getAdaptiveColors, type AdaptiveColorSet } from "./marker-adaptive-colors";
+import { getAdaptiveColors } from "./marker-adaptive-colors";
 import { fitLabel, whenLabelFontReady } from "./marker-text-fit";
 import {
   ALTITUDE_HIDDEN_CLASSNAME,
@@ -173,30 +173,26 @@ export function updateMarkerElement(element: HTMLElement, props: PendingMarkerUp
   // or clobbered by MapLibre (transform).
   const wrapper = resolveMarkerWrapper(element);
 
-  // an undefined colour means "use the map-style default"
-  let defaults: AdaptiveColorSet | undefined;
-  const getDefaults = () => {
-    // the shape that applies once this update is in: the colour defaults depend on it
-    const shape = ("shape" in props ? props.shape : undefined) ?? wrapper.dataset.markerShape ?? DEFAULT_SHAPE;
-    return (defaults ??= getAdaptiveColors(styleId ?? "", shape));
-  };
+  // an undefined colour means "use the map-style default", which depends on the shape that applies once this update is in
+  const shape = props.shape ?? wrapper.dataset.markerShape ?? DEFAULT_SHAPE;
+  const defaults = getAdaptiveColors(styleId ?? "", shape);
 
   if ("outerColor" in props) {
-    wrapper.style.setProperty("--marker-outer-color", props.outerColor ?? getDefaults().outerColor);
+    wrapper.style.setProperty("--marker-outer-color", props.outerColor ?? defaults.outerColor);
   }
 
   if ("innerColor" in props) {
-    wrapper.style.setProperty("--marker-inner-color", props.innerColor ?? getDefaults().innerColor);
+    wrapper.style.setProperty("--marker-inner-color", props.innerColor ?? defaults.innerColor);
   }
 
   if ("contentColor" in props) {
-    wrapper.style.setProperty("--marker-content-color", props.contentColor ?? getDefaults().contentColor);
+    wrapper.style.setProperty("--marker-content-color", props.contentColor ?? defaults.contentColor);
     const contentEl = wrapper.querySelector(".marker-content");
     if (contentEl) contentEl.setAttribute("fill", "var(--marker-content-color)");
   }
 
   if ("outlineColor" in props) {
-    wrapper.style.setProperty("--marker-outline-color", props.outlineColor ?? getDefaults().outlineColor);
+    wrapper.style.setProperty("--marker-outline-color", props.outlineColor ?? defaults.outlineColor);
   }
 
   if ("outline" in props) {
