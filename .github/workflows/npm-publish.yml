@@ -46,7 +46,7 @@ jobs:
         id: check-build-status
 
       - name: Update NPM version
-        run: run: npm version ${{ github.event.release.tag_name }} --no-git-tag-version
+        run: npm version ${{ github.event.release.tag_name }} --no-git-tag-version
 
       # The CDN is published before npm: the npm package defaults to the MapLibre worker hosted on the CDN
       # for its version, so it must be available before anyone can install that version
