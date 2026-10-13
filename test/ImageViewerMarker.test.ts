@@ -302,8 +302,7 @@ describe("ImageViewerMarker", () => {
       const MockMarker = vi.mocked(Marker);
 
       // Temporarily give it a new, complex implementation for THIS TEST ONLY
-      // @ts-expect-error - MockMarker is not typed correctly
-      MockMarker.mockImplementation(() => {
+      MockMarker.mockImplementation(function () {
         const listeners = new Map<string, Function[]>();
         return {
           on: vi.fn((eventName, listener) => {
