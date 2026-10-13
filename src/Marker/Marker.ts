@@ -428,7 +428,7 @@ export class Marker extends MLMarker {
 
   /** A colour prop's value in effect — the explicit one, else the default for the map's style. */
   private getEffectiveColor(prop: keyof AdaptiveColorSet): string {
-    return this.props[prop] ?? getAdaptiveColors(this.getCurrentStyleId() ?? "")[prop];
+    return this.props[prop] ?? getAdaptiveColors(this.getCurrentStyleId() ?? "", this.props.shape ?? DEFAULT_SHAPE)[prop];
   }
 
   //#endregion
@@ -688,6 +688,8 @@ export class Marker extends MLMarker {
   setShape(shape: MapTilerMarkerOptions["shape"]) {
     this.setProp("shape", shape);
     this.applyShapeAnchorOffset();
+    // unset colours follow the shape's defaults
+    this[RefreshAdaptiveColorSymbol]();
   }
 
   /** Returns the current shape, or `undefined` if never set. */
