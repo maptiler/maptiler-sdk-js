@@ -1,4 +1,4 @@
-import type { MapTilerMarkerBaseOptions, MapTilerMarkerIcon, MapTilerMarkerSize } from "./types";
+import type { MapTilerMarkerIcon, MapTilerMarkerSize, MapTilerMarkerShape } from "./types";
 import { SIZE_PX } from "./marker-constants";
 
 //#region Types
@@ -108,7 +108,7 @@ function bubbleSquare(outer: string, inner: string[], union: string, box: [numbe
 // component sets l-3px-outline / m-3px-outline / s-2px-outline, in marker-box px:
 // the same coordinates as the Figma SVG export, with its circles and rounded rects as path data.
 
-export const SHAPES: Record<NonNullable<MapTilerMarkerBaseOptions["shape"]>, ShapeDescriptor> = {
+export const SHAPES: Record<MapTilerMarkerShape, ShapeDescriptor> = {
   circle: {
     anchor: "center",
     sizes: {
@@ -230,11 +230,7 @@ export const SHAPES: Record<NonNullable<MapTilerMarkerBaseOptions["shape"]>, Sha
  * dot); it resolves to `fallback` so callers holding a hidden shape SVG
  * still get valid numbers.
  */
-export function getShapeGeometry(
-  shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>,
-  sizeKey: NonNullable<MapTilerMarkerBaseOptions["size"]>,
-  fallback: ShapeSize = "m",
-): ShapeGeometry {
+export function getShapeGeometry(shapeKey: MapTilerMarkerShape, sizeKey: MapTilerMarkerSize, fallback: ShapeSize = "m"): ShapeGeometry {
   return SHAPES[shapeKey].sizes[sizeKey === "xs" ? fallback : sizeKey];
 }
 
@@ -250,7 +246,7 @@ export function getShapeGeometry(
  * @param shapeKey - Shape variant.
  * @param sizeKey - Size key; `xs` renders a centered dot, so no offset.
  */
-export function getShapeAnchorOffset(shapeKey: NonNullable<MapTilerMarkerBaseOptions["shape"]>, sizeKey: NonNullable<MapTilerMarkerBaseOptions["size"]>): [number, number] {
+export function getShapeAnchorOffset(shapeKey: MapTilerMarkerShape, sizeKey: MapTilerMarkerSize): [number, number] {
   if (sizeKey === "xs") return [0, 0];
 
   // center-anchored shapes sit on the lngLat as-is (MapLibre's default anchor)

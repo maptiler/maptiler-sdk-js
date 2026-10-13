@@ -1,15 +1,24 @@
 import type { MarkerOptions } from "maplibre-gl";
 import type { EasingFunctionName } from "../MaptilerAnimation/types";
-import type { EnterAnimationPreset, ExitAnimationPreset, IdleAnimationPreset, MapTilerMarkerBaseOptions, MapTilerMarkerElementProps, MapTilerMarkerUIStateName } from "./types";
+import type {
+  EnterAnimationPreset,
+  ExitAnimationPreset,
+  IdleAnimationPreset,
+  MapTilerMarkerElementProps,
+  MapTilerMarkerUIStateName,
+  MapTilerMarkerShape,
+  MapTilerMarkerSize,
+  MapTilerMarkerShadow,
+} from "./types";
 import type { AdaptiveColorSet, AdaptiveStyleKey } from "./marker-adaptive-colors";
 import type { ContentMetrics, ShapeSize } from "./marker-svg-config";
 
 //#region Defaults
 
-export const DEFAULT_SHAPE: NonNullable<MapTilerMarkerBaseOptions["shape"]> = "maptiler";
-export const DEFAULT_SIZE: NonNullable<MapTilerMarkerBaseOptions["size"]> = "m";
+export const DEFAULT_SHAPE: MapTilerMarkerShape = "maptiler";
+export const DEFAULT_SIZE: MapTilerMarkerSize = "m";
 /** Shadow used when `shadow` isn't set — per size, as in the design (L strong, M medium, S and the xs dot soft). */
-export const DEFAULT_SHADOW_BY_SIZE: Record<NonNullable<MapTilerMarkerBaseOptions["size"]>, NonNullable<MapTilerMarkerBaseOptions["shadow"]>> = {
+export const DEFAULT_SHADOW_BY_SIZE: Record<MapTilerMarkerSize, MapTilerMarkerShadow> = {
   xs: "soft",
   s: "soft",
   m: "medium",
@@ -21,7 +30,7 @@ export const DEFAULT_OUTLINE_WIDTH = 2;
 export const DEFAULT_ANCHOR: NonNullable<MarkerOptions["anchor"]> = "center";
 
 /** Size a minimized marker renders at when `minimizedOptions.size` is unset. */
-export const DEFAULT_MINIMIZED_SIZE: NonNullable<MapTilerMarkerBaseOptions["size"]> = "xs";
+export const DEFAULT_MINIMIZED_SIZE: MapTilerMarkerSize = "xs";
 
 /** Duration (ms) of transitions and animations when their `duration` is omitted. */
 export const DEFAULT_ANIMATION_DURATION_MS = 1000;
@@ -39,7 +48,7 @@ export const COLLISION_FADE_DURATION_MS = 150;
 
 //#region Lookup Tables
 
-export const SIZE_PX: Record<NonNullable<MapTilerMarkerBaseOptions["size"]>, number> = {
+export const SIZE_PX: Record<MapTilerMarkerSize, number> = {
   // the dot: a 10px disc with a DOT_RING_PX ring
   xs: 10,
   s: 24,
@@ -47,7 +56,7 @@ export const SIZE_PX: Record<NonNullable<MapTilerMarkerBaseOptions["size"]>, num
   l: 40,
 };
 
-export const SHADOW_FILTER: Record<NonNullable<MapTilerMarkerBaseOptions["shadow"]>, string> = {
+export const SHADOW_FILTER: Record<MapTilerMarkerShadow, string> = {
   none: "none",
   soft: "drop-shadow(0px 1px 0px rgba(0, 0, 0, 0.2))",
   medium: "drop-shadow(0px 2px 2px rgba(29, 29, 29, 0.2))",
