@@ -7,7 +7,7 @@ vi.mock("../src/Map", async () => {
   const actual = await vi.importActual("../src/Map");
   return {
     ...actual,
-    Map: vi.fn().mockImplementation((options: MapOptions) => {
+    Map: vi.fn().mockImplementation(function (options: MapOptions) {
       let center = new LngLat(0, 0);
       return {
         // Core map properties
