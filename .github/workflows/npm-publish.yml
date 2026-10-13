@@ -46,7 +46,7 @@ jobs:
         id: check-build-status
 
       - name: Update NPM version
-        run: run: npm version ${{ github.event.release.tag_name }} --no-git-tag-version
+        run: npm version ${{ github.event.release.tag_name }} --no-git-tag-version
 
       - name: Publish NPM package (regular)
         if: "!github.event.release.prerelease"
