@@ -66,6 +66,7 @@ const DELTA_CHANGE = 0.06;
  * @remarks You shouldn't have to use this class directly.
  * Instead, use the `Map.setHalo` method to create and add a halo layer to the map.
  */
+
 export class RadialGradientLayer implements CustomLayerInterface {
   public id: string = "Halo Layer";
   public type: CustomLayerInterface["type"] = "custom";
@@ -250,12 +251,15 @@ export class RadialGradientLayer implements CustomLayerInterface {
     }
 
     this.animationDelta = 0;
+
     return new Promise<void>((resolve) => {
       const animate = () => {
         if (this.animationDelta < 1) {
           this.scale = lerp(this.gradient.scale, 0, this.animationDelta);
           this.animationDelta += DELTA_CHANGE;
+
           this.map.triggerRepaint();
+
           requestAnimationFrame(animate);
           return;
         }

@@ -23,6 +23,7 @@ vi.mock("maplibre-gl", async () => {
         actual.Map.prototype._setupContainer.call(this);
       }
       _controls: IControl[] = [];
+      getContainer = actual.Map.prototype.getContainer;
       getCanvas = actual.Map.prototype.getCanvas;
       addControl = vi.fn(actual.Map.prototype.addControl);
       zoomIn = vi.fn();

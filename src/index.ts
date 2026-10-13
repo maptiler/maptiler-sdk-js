@@ -3,6 +3,8 @@ import "./polyfills";
 // Types from MapLibre are not re-exported one by one
 export type * from "maplibre-gl";
 
+export type { Marker as MLMarker } from "maplibre-gl";
+
 /**
  * Get the version of MapTiler SDK, this is declared in the vite config
  * to avoid importing the entire package.json
@@ -77,9 +79,12 @@ export {
   config as configMLGL,
 } from "maplibre-gl";
 
+// The SDK Marker extends the MapLibre Marker
+export * from "./Marker";
+export { Marker } from "./Marker";
+
 // The SDK `Map` extends the MapLibre `Map`, so the MapLibre classes accept it as is
 export {
-  Marker,
   Popup,
   Style,
   CanvasSource,

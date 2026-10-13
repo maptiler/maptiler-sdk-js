@@ -44,7 +44,7 @@ import { defaults } from "./constants/defaults";
 import { MaptilerLogoControl } from "./controls/MaptilerLogoControl";
 import { checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, replaceLanguage } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
-import { styleToStyle } from "./mapstyle";
+import { styleToStyle, styleToStyleId } from "./mapstyle";
 import { MaptilerTerrainControl } from "./controls/MaptilerTerrainControl";
 import { MaptilerNavigationControl } from "./controls/MaptilerNavigationControl";
 import { MapStyle, geolocation, getLanguageInfoFromFlag, toLanguageInfo } from "@maptiler/client";
@@ -63,7 +63,8 @@ import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructor
 import { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 import { logSDKVersion } from "./utils/logSDKVersion";
 import { setDefaultWorkerUrl } from "./utils/defaultWorkerUrl";
-import { setWorkerCount } from ".";
+import { MapTilerMarkerOptions, MapTilerMarkerSVGOptions, Marker, MarkerCollisionOptions, RemoveMarkerOptions, setWorkerCount } from ".";
+import { MarkerManager } from "./Marker/MarkerManager";
 import { EXPERIMENTAL_TILE_PRELOADING_VERSION } from "./tile-preloading/version";
 
 export type LoadWithTerrainEvent = {
@@ -122,6 +123,12 @@ export const GeolocationType: {
  * if falls back to the default Mercator
  */
 export type ProjectionTypes = "mercator" | "globe" | undefined;
+
+/**
+ * Default zoom at/above which a `"globe"` projection request switches to flat mercator — see
+ * {@link MapOptions.globeMercatorSwitchZoom}.
+ */
+export const DEFAULT_GLOBE_MERCATOR_SWITCH_ZOOM = 11;
 
 /**
  * The {@link AttributionControl} options object
@@ -275,6 +282,27 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo" | "attribut
    * If not provided, the style takes precedence. If provided, overwrite the style.
    */
   projection?: ProjectionTypes;
+
+  /**
+   * MapLibre's plain `type: "globe"` already resolves to
+   * `["interpolate", ["linear"], ["zoom"], 11, "vertical-perspective", 12, "mercator"]` —
+   * vertical-perspective below zoom 11, linearly blended into flat mercator between 11 and 12.
+   * That blend is a MapLibre bug for anything that places objects via its per-projection model
+   * matrix (marker altitude, `maptiler-3d-js`): the matrix isn't well-defined mid-blend, only
+   * once it's settled fully at one end, so objects placed while zooming through 11-12 jump
+   * around.
+   *
+   * Whenever a projection change resolves to `"globe"` (constructor option, `setProjection`, or
+   * the {@link MaptilerProjectionControl}), the SDK requests
+   * `{ type: ["step", ["zoom"], "vertical-perspective", globeMercatorSwitchZoom, "mercator"] }`
+   * instead of the literal string — spherical below this zoom, flat mercator at and above it,
+   * snapping instantly at the threshold instead of blending across that zoom band.
+   *
+   * Set to `false` to request MapLibre's own `"globe"` literally instead, blend bug and all.
+   *
+   * Default: `11`
+   */
+  globeMercatorSwitchZoom?: number | false;
 
   /**
    * Turn on/off spacebox.
@@ -660,6 +688,7 @@ export class Map extends MapMLGL {
   private terrainAnimationDuration = 1000;
   private monitoredStyleUrls!: Set<string>;
   private styleInProcess = false;
+  private currentStyleId?: string;
   private curentProjection: ProjectionTypes = undefined;
   private originalLabelStyle = new window.Map<string, ExpressionSpecification | string>();
   private isStyleLocalized = false;
@@ -729,6 +758,10 @@ export class Map extends MapMLGL {
     }
 
     super(superOptions);
+
+    // SDK hook for MapTiler-specific styling (e.g. stacking-context isolation
+    // in the SDK stylesheet) without touching MapLibre's own class
+    this.getContainer().classList.add("maptiler-map");
 
     this.options = options;
 
@@ -1352,6 +1385,10 @@ export class Map extends MapMLGL {
       );
     }
 
+    // remember the requested style id ("streets-v4-dark") — used by markers
+    // to resolve adaptive colours; not recoverable from the parsed stylesheet
+    this.currentStyleId = styleToStyleId(styleInfo.isFallback ? null : style);
+
     this.spaceboxLoadingState.styleLoadedCallbackFired = false;
     this.spaceboxLoadingState.styleLoadCallbackSet = false;
 
@@ -1463,6 +1500,16 @@ export class Map extends MapMLGL {
   };
 
   /**
+   * Returns the id of the current MapTiler style (e.g. `"streets-v4-dark"`),
+   * derived from the value passed to the constructor or `setStyle`.
+   * `undefined` when the style is a custom `StyleSpecification` or a URL that
+   * doesn't follow the MapTiler Cloud `/maps/<id>/style.json` shape.
+   */
+  getStyleId(): string | undefined {
+    return this.currentStyleId;
+  }
+
+  /**
    * Adds a [MapLibre style layer](https://maplibre.org/maplibre-style-spec/layers)
    * to the map's style.
    *
@@ -1528,6 +1575,85 @@ export class Map extends MapMLGL {
   removeLayer(id: string): this {
     this.minimap?.removeLayer(id);
     return super.removeLayer(id);
+  }
+
+  /**
+   * Adds a marker to the map, registering it for collision handling and style-aware colours.
+   * Plays the marker's `enter` animation, if it has one.
+   * @param markerOrMarkerConfig - A `Marker`, or the options to create one from.
+   */
+  addMarker(markerOrMarkerConfig: Marker | MapTilerMarkerOptions): this {
+    const marker = markerOrMarkerConfig instanceof Marker ? markerOrMarkerConfig : new Marker(markerOrMarkerConfig as MapTilerMarkerSVGOptions);
+    MarkerManager.register(marker, this);
+    return this;
+  }
+
+  /**
+   * Removes a marker from the map, playing its `exit` animation first, if it has one.
+   * @param id - Id of the marker to remove.
+   * @param options.immediate - Removes the marker straight away, without its `exit` animation.
+   */
+  removeMarker(id: string, options: RemoveMarkerOptions = {}): this {
+    if (options.immediate) {
+      MarkerManager.deregisterById(this, id);
+    } else {
+      this.getMarker(id)?.remove();
+    }
+    return this;
+  }
+
+  /**
+   * Adds several markers to the map. See {@link Map.addMarker}.
+   * @param markers - `Marker`s, or the options to create them from.
+   */
+  addMarkers(markers: (Marker | MapTilerMarkerOptions)[]): this {
+    markers.forEach((m) => this.addMarker(m));
+    return this;
+  }
+
+  /**
+   * Removes several markers from the map, playing their `exit` animations first, if they have them.
+   * @param markerIds - Ids of the markers to remove. Removes every marker when omitted.
+   * @param options.immediate - Removes the markers straight away, without their `exit` animations.
+   */
+  removeMarkers(markerIds?: string[], options: RemoveMarkerOptions = {}): this {
+    if (options.immediate) {
+      MarkerManager.deregisterAll(this, markerIds);
+      return this;
+    }
+    const markers = markerIds ? markerIds.map((id) => this.getMarker(id)) : this.getMarkers();
+    for (const marker of markers) marker?.remove();
+    return this;
+  }
+
+  /** Returns every marker added to the map. */
+  getMarkers(): Marker[] {
+    return MarkerManager.getMarkers(this);
+  }
+
+  /** Returns the marker with the given id, or `undefined` if it isn't on the map. */
+  getMarker(id: string): Marker | undefined {
+    return MarkerManager.getMarker(this, id);
+  }
+
+  /**
+   * Configures marker collision detection for this map.
+   * @param options.proximityPadding - Distance in CSS px within which two
+   *   markers count as "in proximity". Overlap always uses 0.
+   * @param options.accuracy - `high` (default) tests rotated markers with
+   *   their actual rotated box; `low` uses the upright box enclosing it,
+   *   which is cheaper per pair but over-reports collisions for rotated
+   *   markers (it never misses a real one).
+   * @param options.behaviour - Default collision behaviour applied to every
+   *   marker on this map (`always-show` | `hide-by-priority` |
+   *   `minimize-by-priority`). A marker's own `collisionBehaviour` option
+   *   overrides it. Defaults to `always-show`.
+   * @param options.transitionDuration - Duration in ms of the hide/show/minimize fade. Defaults to `150`.
+   * @param options.transitionEasing - CSS easing function for the fade. Defaults to `"ease"`.
+   */
+  setMarkerCollisionOptions(options: MarkerCollisionOptions): this {
+    MarkerManager.setCollisionOptions(this, options);
+    return this;
   }
 
   /**
@@ -2178,7 +2304,11 @@ export class Map extends MapMLGL {
   }
 
   /**
-   * Returns whether a globe projection is currently being used
+   * Returns whether a globe-family projection is currently configured — `"globe"`,
+   * `"vertical-perspective"`, or the `globeMercatorSwitchZoom` step expression this class
+   * requests for `"globe"` (see {@link MapOptions.globeMercatorSwitchZoom}). This reflects the
+   * configured projection, not the instantaneous rendered state — under the step expression it
+   * stays `true` even after zooming past the switch threshold into flat mercator rendering.
    */
   isGlobeProjection(): boolean {
     const projection = this.getProjection();
@@ -2188,7 +2318,7 @@ export class Map extends MapMLGL {
       return false;
     }
 
-    return projection.type === "globe";
+    return projection.type !== "mercator";
   }
 
   /**
@@ -2213,6 +2343,13 @@ export class Map extends MapMLGL {
 
     if ((projection.type === "mercator" || projection.type === "globe") && options?.persist) {
       this.curentProjection = projection.type;
+    }
+
+    // See MapOptions.globeMercatorSwitchZoom's doc comment for why a bare "globe" request gets
+    // rewritten into a zoom-stepped one instead of being passed through literally.
+    if (projection.type === "globe" && this.options.globeMercatorSwitchZoom !== false) {
+      const switchZoom = this.options.globeMercatorSwitchZoom ?? DEFAULT_GLOBE_MERCATOR_SWITCH_ZOOM;
+      projection = { type: ["step", ["zoom"], "vertical-perspective", switchZoom, "mercator"] as unknown as NonNullable<ProjectionTypes> };
     }
 
     this.fire("projection.change", { target: this, projection });
