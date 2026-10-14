@@ -58,6 +58,7 @@ const expectedExports = Array.from(
     "EdgeInsets",
     "DragRotateHandler",
     "DragPanHandler",
+    "CollisionBehaviour",
     "TwoFingersTouchZoomRotateHandler",
     "DoubleClickZoomHandler",
     "TwoFingersTouchZoomHandler",

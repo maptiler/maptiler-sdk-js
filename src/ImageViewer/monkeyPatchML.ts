@@ -1,4 +1,4 @@
-import { LngLat, Marker, Point, PositionAnchor, TransformConstrainFunction } from "../index";
+import { LngLat, MarkerMLGL as Marker, Point, PositionAnchor, TransformConstrainFunction } from "../index";
 import { Map } from "../Map";
 import { MercatorCoordinate } from "..";
 

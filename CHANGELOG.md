@@ -9,10 +9,21 @@
   - The UMD build ships `maplibre-gl-worker.mjs` and `maplibre-gl-shared.mjs` next to `maptiler-sdk.umd.min.js`. When self-hosting the UMD bundle, these files must be served alongside it.
 - The `rtlTextPlugin` map option has been removed. MapLibre now shapes right-to-left text natively. `setRTLTextPlugin` is still re-exported for custom plugins, but is deprecated by MapLibre.
 - The deprecated internal MapLibre types previously re-exported from `ml-types` have been removed from the public API.
-- MapLibre classes (`Marker`, `Popup`, `GeolocateControl`, sources, controls, handlers, etc.) are now re-exported directly from MapLibre instead of through SDK wrapper classes. The SDK `Map` is accepted by them as is.
+- MapLibre classes (`Popup`, `GeolocateControl`, sources, controls, handlers, etc.) are now re-exported directly from MapLibre instead of through SDK wrapper classes. The SDK `Map` is accepted by them as is.
+- `Marker` is now the new MapTiler marker (see below). The plain MapLibre marker is still available as `MarkerMLGL`. Coming from the MapLibre marker:
+  - The `color` option is replaced by `innerColor`, `outerColor`, `contentColor` and `outlineColor`.
+  - `scale` is a 2D vector, `[x, y]`.
+  - `marker.addTo(map)` is deprecated in favour of `map.addMarker(marker)`.
 - `MaptilerGeolocateControl` now fires a MapLibre `GeolocateEvent` instead of a DOM `Event` for `trackuserlocationend`.
 
 ### ✨ Features and improvements
+- Introduces MapTiler Markers: a new `Marker` designed for MapTiler maps, built on the MapLibre marker.
+  - Built-in shapes and sizes, with text, image or custom HTML content.
+  - Colours that adapt to the active MapTiler style and update when the style changes.
+  - Collision handling: overlapping markers can stay visible, hide, or shrink to a dot behind higher-priority markers.
+  - Hover, focus, press and drag states, smooth transitions when properties change, and enter, idle and exit animations.
+  - Experimental altitude: raise markers above the ground or sea level, with an optional line down to the ground.
+  - Markers are managed through the map with `map.addMarker()`, `map.getMarker()` and `map.removeMarker()`.
 - Adds bundler helper entry points that set the MapLibre worker URL from a locally bundled worker:
   - `@maptiler/sdk/vite-worker` for Vite
   - `@maptiler/sdk/webpack-worker` for webpack

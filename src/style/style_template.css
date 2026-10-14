@@ -1,3 +1,16 @@
+@font-face {
+  font-family: "MapTiler Inter";
+  font-style: normal;
+  /* the file is a variable font: declare its whole weight range so markers get real weights, not synthesised ones */
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("https://cdn.maptiler.com/sdk-assets/fonts/inter/MapTilerInter.woff2") format("woff2");
+  unicode-range: U+0020-007E, U+00A0-00FF, U+0100-017F, U+2026, U+2212; /* Basic Latin, Latin-1 Supplement, Latin Extended-A, Ellipsis, Em Dash / Minus Sign */
+}
+
+.maptiler-sdk-marker-font {
+  font-family: "Inter", "MapTiler Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
 
 .mapboxgl-ctrl-group:not(:empty), .maplibregl-ctrl-group:not(:empty) {
   box-shadow: 0 0 6px 2px rgb(0 0 0 / 8%);
@@ -158,6 +171,100 @@
   padding: 0 5px;
   text-align: right;
   line-height: 14px;
+}
+
+/* The map container must be its own stacking context: markers carry their
+   priority as z-index, and without isolation those values compete with the
+   host page's UI at the root level — a marker with priority 200 would paint
+   above a page overlay with z-index 100. `isolation` creates the context
+   without affecting layout or the map-internal stacking order.
+   (`.maptiler-map` is added by the SDK Map constructor.) */
+.maptiler-map {
+  isolation: isolate;
+}
+
+/* Same containment one level down: markers live in the canvas container, so
+   isolating it keeps their z-indexes from competing with MapLibre's controls
+   (z-index: 2) and popups within the map itself. */
+.maptiler-map .maplibregl-canvas-container {
+  isolation: isolate;
+}
+
+/* Fade for markers hidden/shown by the marker collision engine.
+   The fade class stays on the element; the hidden class toggles. Opacity
+   fades, visibility flips only once the fade completes, pointer events stop
+   immediately so a fading-out marker can't be clicked. */
+.maptiler-marker-collision-fade {
+  transition: opacity var(--maptiler-collision-transition-duration, 150ms) var(--maptiler-collision-transition-easing, ease),
+    visibility var(--maptiler-collision-transition-duration, 150ms) var(--maptiler-collision-transition-easing, ease);
+}
+
+.maptiler-marker-collision-hidden {
+  opacity: 0 !important;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Applied on top of the hidden class once the fade-out has completed:
+   removes the marker from rendering entirely, so hundreds of hidden markers
+   stop costing style, paint, and compositor layers (markers carry
+   `will-change: transform`). Removed — with a forced reflow — before the
+   fade-in starts. */
+.maptiler-marker-collision-culled {
+  display: none !important;
+}
+
+/* The marker also scales to zero around its anchor point while hiding. The
+   scale lives on the inner transform wrapper — the outer element's transform
+   belongs to MapLibre's positioning — so custom-element markers (no wrapper)
+   fall back to the plain opacity fade. `!important` overrides the wrapper's
+   inline `scale() rotate()` transform; the mismatched transform lists
+   interpolate via matrix decomposition. */
+.maptiler-marker-collision-fade .marker-transform-wrapper {
+  transition: transform var(--maptiler-collision-transition-duration, 150ms) var(--maptiler-collision-transition-easing, ease);
+}
+
+.maptiler-marker-collision-hidden .marker-transform-wrapper {
+  transform: scale(0) !important;
+}
+
+/* Marker altitude (setAltitude/setGroundLine). Fully hidden only when the
+   altitude projection is off-screen/behind the camera — no valid screen
+   position exists at all. Independent of, and composes with, the collision
+   engine's own hide above (both are plain "force hidden, else say nothing"
+   rules on the same element, so either one hiding it is enough; opacity on
+   this element also visually hides the ground-line child below, no extra
+   wiring needed for that). */
+.maptiler-marker-altitude-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Below ground (see `computeAltitudeProjection`'s `belowGround`) — the
+   marker has a perfectly good position and stays there, just faded, since
+   DOM markers aren't depth-tested against the terrain mesh and this is what
+   stands in for a hillside occluding it. Pointer events deliberately stay
+   on — it's still there, just visually behind something. */
+.maptiler-marker-altitude-occluded {
+  opacity: 0.35 !important;
+}
+
+/* Dashed line from a marker down (or up) to its ground point. Geometry
+   (left/top/width/rotation — left/top set once, from the marker's own
+   `anchor`, so the line pivots on the real anchor point rather than the
+   marker box's corner; width/rotation every frame) is written inline by the
+   marker; only the visual appearance belongs here. `:where()` keeps this at
+   zero specificity so a single-class override of your own always wins,
+   loaded before or after this stylesheet. */
+.maptiler-marker-groundline {
+  position: absolute;
+  height: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+:where(.maptiler-marker-groundline) {
+  border-top: 1.5px dashed rgba(20, 20, 20, 0.55);
 }
 
 .webgl-warning-div {

@@ -229,7 +229,7 @@ async function main() {
 
   hikerMarker.setLngLat(new LngLat(pathCoordinates[0][0], pathCoordinates[0][1]));
 
-  hikerMarker.addTo(map);
+  map.addMarker(hikerMarker);
 
   const poiMarkers = createPOIMarkers(map);
 
@@ -375,11 +375,11 @@ function createPOIMarkers(map: Map) {
     const marker = new Marker({
       element: createPOIMarkerElement(point.name, point.img),
       offset: [0, -50],
-      opacity: "0",
+      opacity: 0,
       subpixelPositioning: true,
     });
     marker.setLngLat(new LngLat(point.position[0], point.position[1]));
-    marker.addTo(map);
+    map.addMarker(marker);
     return marker;
   });
 }
