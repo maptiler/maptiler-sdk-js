@@ -1,3 +1,5 @@
+// Sets the MapLibre worker URL, as Vite users of the SDK do
+import "@maptiler/sdk/vite-worker";
 import { ColorRampCollection, Map, MapStyle, PointLayer, config, helpers } from "../../src/index";
 import type { PointLayerCirclesCollisionBehaviour, PointLayerCirclesStyling } from "../../src/index";
 import { el, setupMapTilerApiKey } from "./demo-utils";

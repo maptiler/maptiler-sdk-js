@@ -1,5 +1,6 @@
 import type { CustomLayerInterface, GeoJSONSource, GeoJSONSourceSpecification, LayerSpecification, Map as MapLibreMap, MapLayerMouseEvent, MapSourceDataEvent } from "maplibre-gl";
 import type { FeatureCollection, Feature, Geometry } from "geojson";
+import type { AllLayoutProperties, AllPaintProperties } from "@maplibre/maplibre-gl-style-spec";
 import { v4 as uuidv4 } from "uuid";
 import type { Map as SDKMap } from "../Map";
 import { config } from "../config";
@@ -334,10 +335,10 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
       const before = prev[i];
 
       forEachChangedKey(before.paint, spec.paint, (key, value) => {
-        map.setPaintProperty(spec.id, key, value);
+        map.setPaintProperty(spec.id, key as keyof AllPaintProperties, value as AllPaintProperties[keyof AllPaintProperties]);
       });
       forEachChangedKey(before.layout, spec.layout, (key, value) => {
-        map.setLayoutProperty(spec.id, key, value);
+        map.setLayoutProperty(spec.id, key as keyof AllLayoutProperties, value as AllLayoutProperties[keyof AllLayoutProperties]);
       });
       if (!isEqualValue(before.filter, spec.filter)) map.setFilter(spec.id, spec.filter ?? null);
     });

@@ -4,7 +4,7 @@ import { createMarkerElement } from "../../src/Marker/marker-dom-utils";
 import { drawMarkerCanvas } from "../../src/Marker/marker-canvas";
 import { SHAPES } from "../../src/Marker/marker-svg-config";
 import { getAdaptiveColors } from "../../src/Marker/marker-adaptive-colors";
-import { MARKER_FONT_FAMILY, SHADOW_PARAMS, SIZE_PX, TEXT_CONTENT_FONT_SIZE, TEXT_CONTENT_FONT_WEIGHT } from "../../src/Marker/marker-constants";
+import { CONTENT_METRICS, MARKER_FONT_FAMILY, SHADOW_PARAMS, SIZE_PX, TEXT_FONT_WEIGHT } from "../../src/Marker/marker-constants";
 import { el } from "./demo-utils";
 
 // Parity grid for the GL marker images: every shape × size × shadow drawn
@@ -45,7 +45,6 @@ function render() {
   const colorMode = controls.colors.value;
   const styleId = colorMode.startsWith("adaptive:") ? colorMode.slice("adaptive:".length) : "";
   const canvasColors = colorMode === "custom" ? customColors : {};
-  const domColors = colorMode === "custom" ? customColors : getAdaptiveColors(styleId);
 
   const baseStyle: MarkerStyle = {
     content: controls.content.value || undefined,
@@ -59,6 +58,9 @@ function render() {
     const heading = document.createElement("h2");
     heading.textContent = shape;
     grids.appendChild(heading);
+
+    // adaptive defaults depend on the shape (some swap their colours)
+    const domColors = colorMode === "custom" ? customColors : getAdaptiveColors(styleId, shape);
 
     const table = document.createElement("table");
     const headRow = table.insertRow();
@@ -126,7 +128,7 @@ async function main() {
   // swap in the web font later, the canvas wouldn't. A failed load still lets
   // both fall back to the same family, so the grid stays comparable.
   try {
-    await document.fonts.load(`${String(TEXT_CONTENT_FONT_WEIGHT)} ${String(TEXT_CONTENT_FONT_SIZE)}px ${MARKER_FONT_FAMILY}`);
+    await document.fonts.load(`${String(TEXT_FONT_WEIGHT)} ${String(CONTENT_METRICS.l.font)}px ${MARKER_FONT_FAMILY}`);
   } catch (error) {
     console.warn("Marker font failed to load, text falls back to the next family.", error);
   }

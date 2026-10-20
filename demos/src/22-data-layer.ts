@@ -1,3 +1,5 @@
+// Sets the MapLibre worker URL, as Vite users of the SDK do
+import "@maptiler/sdk/vite-worker";
 import type { FeatureCollection, Point } from "geojson";
 import { Map, MapStyle, config } from "../../src/index";
 import type { Map as SDKMap } from "../../src/Map";

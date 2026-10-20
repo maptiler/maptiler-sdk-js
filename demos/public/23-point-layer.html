@@ -25,7 +25,8 @@
       position: relative;
     }
 
-    .map {
+    /* two classes, so it outranks MapLibre's `.maplibregl-map { position: relative }` */
+    .map-wrap > .map {
       position: absolute;
       inset: 0;
     }
