@@ -4,7 +4,7 @@ import { MarkerManager } from "../../src/Marker/MarkerManager";
 import { ApplyAltitudeFrameSymbol, ApplyCollisionDisplayStateSymbol, CollisionFootprintSymbol, MeasuredElementSizeSymbol } from "../../src/Marker/marker-symbols";
 import { ADAPTIVE_COLORS, SIZE_PX } from "../../src/Marker/marker-constants";
 import type { mat4 } from "gl-matrix";
-import { createMockMap, type MockMap } from "./mock-map";
+import { createMockMap, mercatorProjectionData, type MockMap } from "./mock-map";
 
 function registeredMarker(map: MockMap, options: ConstructorParameters<typeof Marker>[0] = {}) {
   const marker = new Marker(options);
@@ -166,13 +166,29 @@ describe("setInnerColor / getInnerColor", () => {
   });
 
   it("setInnerColor(undefined) returns to the map-style default", () => {
-    const marker = new Marker({ innerColor: "purple" });
+    const marker = new Marker({ shape: "circle", innerColor: "purple" });
     marker.setInnerColor(undefined);
     expect(marker.getInnerColor()).toBe(ADAPTIVE_COLORS.base.innerColor);
   });
 
   it("getInnerColor returns the base default when innerColor is not set and the marker has no map", () => {
+    const marker = new Marker({ shape: "circle" });
+    expect(marker.getInnerColor()).toBe(ADAPTIVE_COLORS.base.innerColor);
+  });
+
+  it("the default maptiler marker is blue outside and on the mark, white inside", () => {
     const marker = new Marker({});
+    expect(marker.getOuterColor()).toBe(ADAPTIVE_COLORS.base.innerColor);
+    expect(marker.getInnerColor()).toBe(ADAPTIVE_COLORS.base.outerColor);
+    expect(marker.getContentColor()).toBe(ADAPTIVE_COLORS.base.innerColor);
+  });
+
+  it("unset colours follow the shape when it changes; explicit ones stay", () => {
+    const marker = new Marker({ shape: "circle", outerColor: "red" });
+    marker.setShape("maptiler");
+    expect(marker.getInnerColor()).toBe(ADAPTIVE_COLORS.base.outerColor);
+    expect(marker.getOuterColor()).toBe("red");
+    marker.setShape("square");
     expect(marker.getInnerColor()).toBe(ADAPTIVE_COLORS.base.innerColor);
   });
 });
@@ -594,7 +610,7 @@ describe("setGroundLine", () => {
     marker.setAltitude(10);
 
     const identity: mat4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] as unknown as mat4;
-    const depth = marker[ApplyAltitudeFrameSymbol](identity, map);
+    const depth = marker[ApplyAltitudeFrameSymbol](mercatorProjectionData(identity), map);
 
     expect(depth).not.toBeNull();
     expect(MarkerManager.getGroundLineContainer(map).children.length).toBe(1);
@@ -607,7 +623,7 @@ describe("setGroundLine", () => {
     marker.setAltitude(10);
 
     const negativeW: mat4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1] as unknown as mat4;
-    const depth = marker[ApplyAltitudeFrameSymbol](negativeW, map);
+    const depth = marker[ApplyAltitudeFrameSymbol](mercatorProjectionData(negativeW), map);
 
     expect(depth).toBeNull();
     expect(MarkerManager.getGroundLineContainer(map).children.length).toBe(0);

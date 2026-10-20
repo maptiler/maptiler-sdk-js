@@ -1,6 +1,7 @@
-import type { MarkerOptions } from "maplibre-gl";
+import type { Event as EventML, LngLatLike, MarkerEventType, MarkerOptions } from "maplibre-gl";
 import type { EasingFunctionName } from "../MaptilerAnimation/types";
 import type { Marker } from "./Marker";
+import type { MapTilerMarkerIcon } from "./marker-icons";
 
 //#region Primitives
 
@@ -12,6 +13,8 @@ export type MapTilerMarkerSize = "xs" | "s" | "m" | "l";
 
 /** Drop-shadow intensity applied beneath the marker. */
 export type MapTilerMarkerShadow = "none" | "soft" | "medium" | "strong";
+
+export type { MapTilerMarkerIcon } from "./marker-icons";
 
 /** Behaviour when this marker spatially overlaps another. */
 export const CollisionBehaviour = {
@@ -321,12 +324,12 @@ export type MarkerTransitionEventData = {
 //#region Content Variants
 
 /**
- * Marker content driven by a built-in icon identifier.
- * TODO: icons are not implemented yet — this is a placeholder and renders nothing.
+ * Marker content driven by a built-in icon, drawn in the content colour and
+ * sized to the marker (16 / 12 / 8 px for `l` / `m` / `s`; `xs` shows no content).
  */
 export type MarkerContentTypeIcon = {
-  /** Identifier for a built-in icon. */
-  icon: string;
+  /** Name of a built-in icon. */
+  icon: MapTilerMarkerIcon;
   url?: never;
   template?: never;
   templateParams?: never;
@@ -398,6 +401,8 @@ export type MapTilerMarkerUIStates = Partial<Record<MapTilerMarkerUIStateName, U
 // `color` is omitted from the MapLibre options because it styles the default
 // pin, which we replace entirely
 export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" | "opacityWhenCovered" | "color"> & {
+  /** Position of the marker. Can also be set later with `setLngLat()`. */
+  lngLat?: LngLatLike;
   /** Visual shape of the marker body. Defaults to `"maptiler"`. */
   shape?: MapTilerMarkerShape;
   /** Size of the marker. */
@@ -416,7 +421,7 @@ export type MapTilerMarkerBaseOptions = Omit<MarkerOptions, "scale" | "opacity" 
   outline?: true | number;
   /** Colour of the marker outline. Defaults to the current map style's colour, like `innerColor`. */
   outlineColor?: string;
-  /** Drop-shadow intensity. Defaults to `"medium"`; use `"none"` to disable. */
+  /** Drop-shadow intensity. Defaults per size: `"strong"` at `l`, `"medium"` at `m`, `"soft"` at `s` and `xs`; use `"none"` to disable. */
   shadow?: MapTilerMarkerShadow;
   opacity?: number;
   opacityWhenCovered?: number;
@@ -528,5 +533,51 @@ export type MarkerStyle = Pick<
  * property" — e.g. `{ shadow: undefined }` resets the shadow to its default.
  */
 export type PendingMarkerUpdates = Partial<MapTilerMarkerElementProps>;
+
+//#endregion
+
+//#region Removal
+
+/** Options for `map.removeMarker()` and `map.removeMarkers()`. */
+export type RemoveMarkerOptions = {
+  /** Removes the markers straight away, without playing their `exit` animation. Defaults to `false`. */
+  immediate?: boolean;
+};
+
+//#endregion
+
+//#region Events
+
+/**
+ * Shape of an event fired by the SDK `Marker` on top of the MapLibre events,
+ * with the properties passed to `fire(type, properties)` merged in.
+ */
+type SDKMarkerEvent<TType extends string, TProps extends object = object> = EventML<TType> & { target: Marker } & TProps;
+
+type LifecycleAnimationEvent<TType extends MarkerLifecycleAnimationEventData["type"]> = SDKMarkerEvent<TType, Pick<MarkerLifecycleAnimationEventData, "preset">>;
+
+/**
+ * Events fired by the MapTiler SDK `Marker` in addition to the MapLibre ones.
+ */
+export type MaptilerMarkerEventType = {
+  markeroverlap: SDKMarkerEvent<"markeroverlap", MarkerCollisionEventData>;
+  markerproximity: SDKMarkerEvent<"markerproximity", MarkerCollisionEventData>;
+  transitionstart: SDKMarkerEvent<"transitionstart", Pick<MarkerTransitionEventData, "props">>;
+  transitionend: SDKMarkerEvent<"transitionend", Pick<MarkerTransitionEventData, "props">>;
+  enteranimationstart: LifecycleAnimationEvent<"enteranimationstart">;
+  enteranimationend: LifecycleAnimationEvent<"enteranimationend">;
+  exitanimationstart: LifecycleAnimationEvent<"exitanimationstart">;
+  exitanimationend: LifecycleAnimationEvent<"exitanimationend">;
+  idleanimationstart: LifecycleAnimationEvent<"idleanimationstart">;
+  idleanimationiteration: LifecycleAnimationEvent<"idleanimationiteration">;
+  idleanimationend: LifecycleAnimationEvent<"idleanimationend">;
+};
+
+/**
+ * All the events that can be listened to on a MapTiler SDK `Marker`: the MapLibre ones plus the SDK ones.
+ * MapLibre's `on`/`once`/`off` only accept the keys of `MarkerEventType`,
+ * so the SDK `Marker` overrides them to accept its own events as well.
+ */
+export type MarkerEventTypeSDK = MarkerEventType & MaptilerMarkerEventType;
 
 //#endregion

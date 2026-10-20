@@ -2,9 +2,8 @@ import type { GetResourceResponse, RequestParameters, ResourceType } from "mapli
 
 import { config } from "./config";
 
-import maplibregl from "maplibre-gl";
+import { addProtocol } from "maplibre-gl";
 
-import { defaults } from "./constants/defaults";
 import { TileJSON } from "@maptiler/client";
 
 const LOCAL_CACHE_PROTOCOL_SOURCE = "localcache_source";
@@ -15,12 +14,10 @@ const CACHE_LIMIT_ITEMS = 1000;
 const CACHE_LIMIT_CHECK_INTERVAL = 100;
 export const CACHE_API_AVAILABLE = typeof caches !== "undefined";
 
-const { addProtocol } = maplibregl;
-
 //#region localCacheTransformRequest
 
 export function localCacheTransformRequest(reqUrl: URL, resourceType?: ResourceType): string {
-  if (CACHE_API_AVAILABLE && config.caching && config.session && reqUrl.host === defaults.maptilerApiHost) {
+  if (CACHE_API_AVAILABLE && config.caching && config.session && reqUrl.host === config.apiHost) {
     if (resourceType === "Source" && reqUrl.href.includes("tiles.json")) {
       return reqUrl.href.replace("https://", `${LOCAL_CACHE_PROTOCOL_SOURCE}://`);
     }

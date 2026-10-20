@@ -18,7 +18,7 @@ function makeMockMap(sourceOverrides: Record<string, unknown> = {}): SDKMap {
       sources: Object.fromEntries(Object.keys(defaultSources).map((id) => [id, { type: "vector" }])),
     }),
     getSource: (id: string) => (defaultSources as Record<string, unknown>)[id] ?? null,
-    transform: { width: 1280, height: 720 },
+    _containerDimensions: () => [1280, 720],
   } as unknown as SDKMap;
 }
 
@@ -212,13 +212,12 @@ describe("TilePreloader.abortAll", () => {
     const preloader = new TilePreloader(map);
     const abortSpy = vi.fn();
 
-    vi.spyOn(global, "AbortController").mockImplementation(
-      () =>
-        ({
-          signal: { aborted: false },
-          abort: abortSpy,
-        }) as unknown as AbortController,
-    );
+    vi.spyOn(global, "AbortController").mockImplementation(function () {
+      return {
+        signal: { aborted: false },
+        abort: abortSpy,
+      } as unknown as AbortController;
+    });
 
     // Start a preload but do not await it
     void preloader.preloadForBounds({

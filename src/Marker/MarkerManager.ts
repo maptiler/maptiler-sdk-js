@@ -1,6 +1,6 @@
 import type { Marker } from "./Marker";
 import type { Map as SDKMap } from "../Map";
-import type { mat4 } from "gl-matrix";
+import type { CustomLayerProjectionData } from "maplibre-gl";
 import { CollisionBehaviour } from "./types";
 import type { MarkerCollisionAccuracy, MarkerCollisionGroups, MarkerCollisionKind, MarkerCollisionOptions } from "./types";
 import {
@@ -57,18 +57,8 @@ type MapAltitudeState = {
   participants: Set<Marker>;
   /** Id of the no-op custom layer used purely to read the projection matrix out of MapLibre's render pass. */
   layerId: string;
-  /** The matrix captured by the layer's `render()` this frame; null until the first frame after installation. */
-  currentMatrix: mat4 | null;
-  /**
-   * `args.defaultProjectionData.projectionTransition` from that same frame —
-   * 0 (pure mercator) or 1 (pure globe) at rest, fractional mid-morph
-   * between projections. `getMatrixForModel`'s per-projection placement (see
-   * altitude-math.ts) has no defined meaning at fractional values, so the
-   * render loop freezes markers at their last good position rather than
-   * projecting through a blend it can't represent — same guard
-   * maptiler-3d-js's Layer3D uses for its 3D models.
-   */
-  currentProjectionTransition: number | null;
+  /** `args.defaultProjectionData` captured by the layer's `render()` this frame; null until the first frame after installation. */
+  currentProjectionData: CustomLayerProjectionData | null;
   installed: boolean;
   renderListener: (() => void) | null;
   styleLoadListener: (() => void) | null;
@@ -730,8 +720,7 @@ class MarkerManagerImpl {
     const state: MapAltitudeState = {
       participants: new Set(),
       layerId: `__maptiler-altitude-capture-${String(this.altitudeLayerSequence++)}__`,
-      currentMatrix: null,
-      currentProjectionTransition: null,
+      currentProjectionData: null,
       installed: false,
       renderListener: null,
       styleLoadListener: null,
@@ -792,20 +781,13 @@ class MarkerManagerImpl {
       // projection args MapLibre hands to every custom layer.
       renderingMode: "2d",
       render: (_gl, args) => {
-        // MapLibre v5+: render(gl, args: CustomRenderMethodInput).
-        // MapLibre v4 called this render(gl, matrix: mat4) — `args` was the
-        // matrix itself and `defaultProjectionData` didn't exist.
-        state.currentMatrix = args.defaultProjectionData.mainMatrix;
-        state.currentProjectionTransition = args.defaultProjectionData.projectionTransition;
+        state.currentProjectionData = args.defaultProjectionData;
       },
     });
 
     const onRender = () => {
-      if (!state.currentMatrix) return;
-      // Mid-morph between mercator and globe — freeze rather than project
-      // through a blend `getMatrixForModel` can't represent (see
-      // `currentProjectionTransition`'s doc comment).
-      if (state.currentProjectionTransition !== 0 && state.currentProjectionTransition !== 1) return;
+      const projectionData = state.currentProjectionData;
+      if (!projectionData) return;
 
       // Each marker projects itself and reports back its camera depth (or
       // null if off-screen/hidden this frame) — collected here rather than
@@ -813,7 +795,7 @@ class MarkerManagerImpl {
       // z-index gets written.
       const depths: { marker: Marker; depth: number }[] = [];
       for (const marker of state.participants) {
-        const depth = marker[ApplyAltitudeFrameSymbol](state.currentMatrix, map);
+        const depth = marker[ApplyAltitudeFrameSymbol](projectionData, map);
         if (depth !== null) depths.push({ marker, depth });
       }
 
@@ -833,7 +815,7 @@ class MarkerManagerImpl {
     // style switches.
     const onStyleLoad = () => {
       state.installed = false;
-      state.currentMatrix = null;
+      state.currentProjectionData = null;
       this.ensureAltitudeLayerInstalled(map, state);
     };
 
@@ -878,7 +860,7 @@ class MarkerManagerImpl {
     if (map.getLayer(state.layerId)) map.removeLayer(state.layerId);
     state.groundLineContainer.remove();
     state.installed = false;
-    state.currentMatrix = null;
+    state.currentProjectionData = null;
     state.renderListener = null;
     state.styleLoadListener = null;
     state.terrainListener = null;

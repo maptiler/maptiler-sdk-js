@@ -1,7 +1,10 @@
+// Sets the MapLibre worker URL, as Vite users of the SDK do
+import "@maptiler/sdk/vite-worker";
 import { Map, MapStyle, Marker, config } from "../../src/index";
 import { registerMarkerTemplate } from "../../src/Marker/marker-content-registry";
+import { MARKER_ICON_NAMES } from "../../src/Marker/marker-icons";
 import { el, setupMapTilerApiKey } from "./demo-utils";
-import type { MapTilerMarkerBaseOptions, MapTilerMarkerOptions, MapTilerMarkerSVGOptions } from "../../src/Marker";
+import type { MapTilerMarkerBaseOptions, MapTilerMarkerIcon, MapTilerMarkerOptions, MapTilerMarkerSVGOptions } from "../../src/Marker";
 
 // demo template: dark round badge with a label
 registerMarkerTemplate("badge", (params) => {
@@ -138,6 +141,7 @@ async function main() {
   // modes rebuilds the marker from markerOptions + the selected variant.
   type ContentMode = "text" | "icon" | "url" | "template" | "element" | "none";
   let contentMode: ContentMode = "none";
+  let icon: MapTilerMarkerIcon = "star";
 
   function createConfiguredMarker(): Marker {
     // widen away the SVG-options `never` variant keys and drop the maplibre
@@ -152,8 +156,7 @@ async function main() {
       case "none":
         return new Marker(base);
       case "icon":
-        // TODO(icons): renders nothing until icon content is implemented
-        return new Marker({ ...base, icon: "star" });
+        return new Marker({ ...base, icon });
       case "url":
         return new Marker({ ...base, url: "https://picsum.photos/128" });
       case "template":
@@ -186,17 +189,34 @@ async function main() {
     contentModeButtons.forEach((b) => b.classList.toggle("active", b.dataset.contentMode === active));
   }
 
+  function rebuildMarker() {
+    const lngLat = marker.getLngLat();
+    marker.remove();
+    marker = createConfiguredMarker();
+    mountMarker(marker, [lngLat.lng, lngLat.lat]);
+    marker.setDebug(el<HTMLInputElement>("debug-toggle").checked);
+    syncContentModeButtons(contentMode);
+    syncStatus();
+  }
+
   contentModeButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       contentMode = btn.dataset.contentMode as ContentMode;
-      const lngLat = marker.getLngLat();
-      marker.remove();
-      marker = createConfiguredMarker();
-      mountMarker(marker, [lngLat.lng, lngLat.lat]);
-      marker.setDebug(el<HTMLInputElement>("debug-toggle").checked);
-      syncContentModeButtons(contentMode);
-      syncStatus();
+      rebuildMarker();
     });
+  });
+
+  // Icon: picking one switches the marker to icon content
+  const iconSelect = el<HTMLSelectElement>("icon-select");
+
+  for (const name of MARKER_ICON_NAMES) {
+    iconSelect.add(new Option(name, name, name === icon, name === icon));
+  }
+
+  iconSelect.addEventListener("change", () => {
+    icon = iconSelect.value as MapTilerMarkerIcon;
+    contentMode = "icon";
+    rebuildMarker();
   });
 
   syncContentModeButtons(contentMode);

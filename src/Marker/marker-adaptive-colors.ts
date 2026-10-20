@@ -1,5 +1,5 @@
 import { defaultReferenceStyleMap } from "@maptiler/client";
-import { ADAPTIVE_COLORS } from "./marker-constants";
+import { ADAPTIVE_COLORS, INVERTED_COLOR_SHAPES } from "./marker-constants";
 
 //#region Types
 
@@ -46,18 +46,23 @@ function normalizeStyleKey(styleId: string): string {
 }
 
 /**
- * Resolves the default marker colours for a given map style.
+ * Resolves the default marker colours for a given map style and shape.
  *
  * Lookup order: exact style key (version stripped, variant kept) → reference
  * style without variant → `base`, so an unknown style id resolves to `base`.
+ * Shapes in {@link INVERTED_COLOR_SHAPES} get the style's colours swapped: the
+ * accent colour on the body and the mark, the body colour on the inner fill.
  * @param styleId - Style id, versioned (`"streets-v4-dark"`) or not (`"streets-dark"`).
+ * @param shape - Marker shape key; omit for the colours of an ordinary shape.
  */
-export function getAdaptiveColors(styleId: string): AdaptiveColorSet {
+export function getAdaptiveColors(styleId: string, shape?: string): AdaptiveColorSet {
   const colors: Record<string, AdaptiveColorSet | undefined> = ADAPTIVE_COLORS;
   const key = normalizeStyleKey(styleId);
   // this is dirty but it's the only way to implement it for now...
   const referenceKey = key.split("-")[0];
-  return colors[key] ?? colors[referenceKey] ?? ADAPTIVE_COLORS.base;
+  const set = colors[key] ?? colors[referenceKey] ?? ADAPTIVE_COLORS.base;
+  if (shape === undefined || !INVERTED_COLOR_SHAPES.includes(shape)) return set;
+  return { innerColor: set.outerColor, outerColor: set.innerColor, contentColor: set.innerColor, outlineColor: set.outlineColor };
 }
 
 //#endregion

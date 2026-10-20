@@ -1,3 +1,5 @@
+// Sets the MapLibre worker URL, as Vite users of the SDK do
+import "@maptiler/sdk/vite-worker";
 // This file is intended for quick testing or development. Please do not commit changes to this file.
 
 import { Map, MapStyle, config } from "../../src/index";

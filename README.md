@@ -47,7 +47,72 @@ In addition, the MapTiler SDK JS provides well-documented and easy-to-use wrappe
 npm install --save @maptiler/sdk
 ```
 
-⚠️ Please keep in mind that if you use any additional [MapTiler modules](https://docs.maptiler.com/sdk-js/modules/), you must update them to a version that supports MapTiler SDK JS v3.
+⚠️ Please keep in mind that if you use any additional [MapTiler modules](https://docs.maptiler.com/sdk-js/modules/), you must update them to a version that supports MapTiler SDK JS v5.
+
+### Setting up the map worker with a bundler
+
+Since MapLibre GL JS v6, the map runs its background worker from separate files that most bundlers don't pick up on their own.
+
+By default, the SDK installed from npm loads the worker from the MapTiler CDN (`https://cdn.maptiler.com/maptiler-sdk-js/v<VERSION>/`), which works with any bundler. If your site uses a Content Security Policy, it needs `worker-src 'self' blob: https://cdn.maptiler.com`.
+
+To bundle the worker with your app instead (e.g. for offline or intranet use, or a stricter CSP), import the helper for your bundler once, before creating a map:
+
+**Vite**
+
+```ts
+import "@maptiler/sdk/vite-worker";
+import { Map } from "@maptiler/sdk";
+```
+
+For the Vite dev server, also exclude the helper from dependency pre-bundling:
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+
+export default defineConfig({
+  optimizeDeps: { exclude: ["@maptiler/sdk/vite-worker"] },
+});
+```
+
+**webpack 5 / rspack**
+
+```ts
+import "@maptiler/sdk/webpack-worker";
+import { Map } from "@maptiler/sdk";
+```
+
+**Next.js** (Turbopack and webpack)
+
+```ts
+// next.config.mjs (or `require("@maptiler/sdk/next")` in next.config.js)
+import { withMaptilerWorker } from "@maptiler/sdk/next";
+
+export default withMaptilerWorker({
+  // your Next.js config
+});
+```
+
+```tsx
+// the client component creating the map
+"use client";
+import "@maptiler/sdk/next-worker";
+import { Map } from "@maptiler/sdk";
+```
+
+`withMaptilerWorker` copies the worker files into `public/_maptiler/` on every `next dev` and `next build`, you may want to add that folder to your `.gitignore`.
+
+**Other setups**
+
+Copy `node_modules/@maptiler/sdk/dist/bundler/maplibre-gl-worker.mjs` into your build output (it is self-contained, and works the same with npm, yarn or pnpm), and set the worker URL before creating a map:
+
+```ts
+import { setWorkerUrl } from "@maptiler/sdk";
+
+setWorkerUrl("/path/to/maplibre-gl-worker.mjs");
+```
+
+### From CDN
 
 From CDN and using the UMD bundle, in the `<head></head>` section of your HTML file:
 
@@ -107,37 +172,20 @@ import "@maptiler/sdk/dist/maptiler-sdk.css";
 
 #### TypeScript
 
-The SDK is fully typed, but it may happen that types defined in Maplibre GL JS are not visible in your project. This is a known issue that comes from Maplibre being a CommonJS bundle.
+The SDK is fully typed, including the types re-exported from MapLibre GL JS.
 
-There are mainly two ways to address this issue and access to the complete type definition.
-
-1. **With `esModuleInterop`**
-
-Set the following in your `tsconfig.json`:
+The SDK is an ES module whose entry points (such as `@maptiler/sdk/next`) are declared with `package.json` `exports`. TypeScript only reads `exports` with a modern module resolution, so set one of the following in your `tsconfig.json`:
 
 ```js
 {
   "compilerOptions": {
     // ...
-    "esModuleInterop": true,
+    "moduleResolution": "Bundler", // or "Node16" / "NodeNext"
   }
 }
 ```
 
-2. **With `moduleResolution`**
-
-Set the following in your `tsconfig.json`:
-
-```js
-{
-  "compilerOptions": {
-    // ...
-    "moduleResolution": "Bundler",
-  }
-}
-```
-
-Note that this second option is not always possible as some frameworks and other dependencies won't let you use the "Bundler" mode.
+With the legacy `"moduleResolution": "Node"` (or `"Node10"`), the main `@maptiler/sdk` types still resolve, but the entry points under `@maptiler/sdk/...` don't get types.
 
 ### With CDN
 
@@ -163,13 +211,13 @@ The SDK hosted on our CDN is bundled as _[Universal Module Definition](https://g
     </style>
 
     <!-- Load the SDK CSS -->
-    <link rel="stylesheet" href="dist/maptiler-sdk.css" />
+    <link rel="stylesheet" href="build/maptiler-sdk.css" />
   </head>
 
   <body>
     <div id="map-container"></div>
 
-    <script src="dist/maptiler-sdk.umd.min.js"></script>
+    <script src="build/maptiler-sdk.umd.min.js"></script>
 
     <script>
       // Add your MapTiler API key to the config
@@ -189,6 +237,30 @@ The SDK hosted on our CDN is bundled as _[Universal Module Definition](https://g
 ```
 
 Check out the minimalist code samples in the [demos](demos) directory.
+
+#### Map worker files and Content Security Policy (CSP)
+
+Since MapLibre GL JS v6, the map loads its background worker as two separate files, `maplibre-gl-worker.mjs` and `maplibre-gl-shared.mjs`. The UMD bundle looks for them in the same folder as `maptiler-sdk.umd.min.js`. Our CDN serves them there, so when using the CDN without a CSP, there is nothing to set up.
+
+If you **self-host the UMD bundle**, copy both `.mjs` files next to `maptiler-sdk.umd.min.js`. They must be served with a JavaScript content type (e.g. `text/javascript`).
+
+If your site uses a **Content Security Policy**, the worker needs to be allowed:
+
+- **SDK loaded from our CDN**: since the worker comes from another origin, it is started through a `blob:` URL that then loads the worker from the CDN, so both must be allowed. `blob:` alone is not enough:
+
+  ```
+  worker-src 'self' blob: https://cdn.maptiler.com;
+  ```
+
+- **CSP that cannot allow `blob:`**: host `maplibre-gl-worker.mjs` and `maplibre-gl-shared.mjs` on your own origin (in the same folder) and point the SDK to the worker before creating any map. Then `worker-src 'self'` is enough:
+
+  ```html
+  <script>
+    maptilersdk.setWorkerUrl("/path/to/maplibre-gl-worker.mjs");
+  </script>
+  ```
+
+`setWorkerUrl` is also needed if the UMD bundle is not loaded with a regular `<script src="...">` tag (e.g. concatenated into another file or loaded with AMD/RequireJS), since the worker location is then no longer known.
 
 <br>
 
@@ -1048,12 +1120,9 @@ Here is a sample of some compatible languages:
 
 #### Built-in support for right-to-left languages
 
-Languages that are written right-to-left such as Arabic and Hebrew are fully supported by default. No need to install any plugins!
+Languages that are written right-to-left such as Arabic and Hebrew, as well as complex scripts such as Devanagari, Khmer or Burmese, are fully supported by default. MapLibre shapes them natively, no need to install any plugins!
 
-If you wish to opt of applying the rtl plugin or wish to use a different compatible rtl text plugin, you can pass the `rtlTextPlugin`
-constructor option as either `false` (disable the rtl plugin) or a url to load a different plugin.
-
-**Note: Once the rtlTextPlugin has been installed once, it cannot be unset nor updated on the current instance. Calling `setRTLTextPlugin` without setting `rtlTextPlugin` to false in the constuctor will result in an error.**
+If you still need a custom RTL text plugin, `setRTLTextPlugin` is re-exported from MapLibre. Note that it is deprecated by MapLibre and a plugin *replaces* the built-in shaping.
 
 <p align="center">
   <img src="images/screenshots/lang-arabic.jpeg" width="48%"></img>
@@ -1339,36 +1408,166 @@ Many methods are available on color ramps, such as getting the `<canvas>` elemen
 
 ### Markers
 
-The SDK's `Marker` is an enhanced version of MapLibre's marker, designed for MapTiler maps. It adds built-in shapes and sizes, colours that follow the active MapTiler style, collision handling, interaction states, transitions and enter/idle/exit animations.
+The SDK's `Marker` is designed for MapTiler maps. It is built on the MapLibre marker and adds built-in shapes and sizes, colours that follow the active MapTiler style, collision handling, interaction states, transitions and animations.
 
-Add markers through the map, so they are registered for collisions and style-aware colours:
+#### Adding markers
+
+Create a marker, give it a position, and add it through the map. Markers added this way take part in collision handling and follow the style's colours:
 
 ```ts
 import { Map, Marker } from "@maptiler/sdk";
 
-// from options
-map.addMarker({ lngLat: [8.54, 47.37], shape: "bubble-circle", size: "m", content: "A1" });
-
-// or from an instance
-const marker = new Marker({
-  shape: "circle",
-  priority: 10,
-  states: { hover: { scale: [1.2, 1.2] } },
-  transitions: { position: [600, "QuadraticInOut"] },
-  animations: { enter: { preset: "drop" }, exit: { preset: "fade" } },
-}).setLngLat([8.55, 47.38]);
+const marker = new Marker({ lngLat: [8.54, 47.37], shape: "bubble-circle", size: "m", content: "A1" });
 map.addMarker(marker);
 
-map.setMarkerCollisionOptions({ behaviour: "hide-by-priority" });
+// or straight from options
+map.addMarker({ lngLat: [8.55, 47.38], shape: "circle" });
+map.addMarkers([
+  { lngLat: [8.53, 47.36], shape: "square" },
+  new Marker({ shape: "circle" }).setLngLat([8.56, 47.39]),
+]);
 
 map.getMarker(marker.id);
+map.getMarkers();
 map.removeMarker(marker.id);
+map.removeMarkers(); // all markers, or pass a list of ids
 ```
+
+Removing a marker plays its exit animation first, if it has one (see [Animations](#animations)). Pass `{ immediate: true }` to `removeMarker()` or `removeMarkers()` to remove markers straight away.
 
 > [!WARNING]
 > `marker.addTo(map)` is deprecated. It now delegates to `map.addMarker(marker)` and logs a one-time warning. Use `map.addMarker()` instead.
 
-Main differences from the MapLibre marker:
+#### Appearance
+
+```ts
+const marker = new Marker({
+  shape: "maptiler", // "circle" | "square" | "bubble-circle" | "bubble-square" | "maptiler" | "maptiler-full"
+  size: "l", // "xs" | "s" | "m" | "l"
+  shadow: "soft", // "none" | "soft" | "medium" | "strong"
+  content: "42", // text shown inside the marker
+  outline: true,
+  scale: [1.2, 1.2],
+  title: "Zurich", // native tooltip
+});
+```
+
+The appearance options have matching setters and getters, such as `setShape()`, `setSize()` or `getContent()`.
+
+Unless you set them, the marker's colours (`innerColor`, `outerColor`, `contentColor` and `outlineColor`) are picked for the current MapTiler style and update when the style changes. A colour you set explicitly stays fixed, and setting it back to `undefined` returns it to the style's colour:
+
+```ts
+marker.setInnerColor("#ff5a1f");
+marker.setInnerColor(undefined); // back to the style's colour
+```
+
+Instead of text, a marker can show an image, or any HTML or SVG element, for example one managed by React:
+
+```ts
+new Marker({ url: "https://example.com/icon.svg" });
+new Marker({ element: myElement });
+```
+
+With `element`, the shape and size options do not apply. The colour and shadow options are set on the element as CSS custom properties, so its own styles can use them.
+
+#### Collisions
+
+By default, markers are always shown even when they overlap. To declutter the map, choose what happens when markers collide. Where markers overlap, the one with the higher `priority` wins:
+
+```ts
+// default for every marker on the map
+map.setMarkerCollisionOptions({ behaviour: "hide-by-priority" });
+
+// or per marker
+new Marker({ priority: 10, collisionBehaviour: "minimize-by-priority" });
+```
+
+- `always-show`: never hidden (the default)
+- `hide-by-priority`: hidden behind a higher-priority marker
+- `minimize-by-priority`: shrinks to a small dot behind a higher-priority marker. `minimizedOptions` changes how the minimized marker looks.
+
+`setMarkerCollisionOptions()` also sets the `proximityPadding` used for `markerproximity` events and the duration and easing of the hide and show fade. `marker.getCollisionDisplayState()` returns `"visible"`, `"hidden"` or `"minimized"`.
+
+Markers fire `markeroverlap` and `markerproximity` when other markers start or stop colliding with them:
+
+```ts
+marker.on("markeroverlap", ({ entered, exited, current }) => {
+  console.log(`${current.length} markers overlap this one`);
+});
+```
+
+#### Interaction states
+
+Change a marker's look while it is hovered, focused, pressed or dragged. The marker returns to its own values when the state ends:
+
+```ts
+const marker = new Marker({
+  draggable: true,
+  states: {
+    hover: { scale: [1.2, 1.2] },
+    active: { shadow: "strong" },
+    dragging: { opacity: 0.6 },
+  },
+});
+
+marker.setUIState("focus", { outline: 3 });
+```
+
+#### Transitions
+
+Ease a property to its new value instead of jumping to it. `position`, `scale`, `rotation` and the four colours can be transitioned, each with `[duration, easing?, delay?]`:
+
+```ts
+const marker = new Marker({
+  transitions: {
+    position: [600, "QuadraticInOut"],
+    innerColor: [300],
+  },
+});
+
+marker.setLngLat([8.6, 47.4]); // glides to the new position
+marker.setTransitionForProperty("scale", [200, "CubicOut"]);
+```
+
+The `transitionstart` and `transitionend` events report the property being transitioned.
+
+#### Animations
+
+Play an animation when a marker is added, loop one while it is on the map, and play another when it is removed:
+
+```ts
+const marker = new Marker({
+  animations: {
+    enter: { preset: "drop" }, // "grow" | "drop" | "pop" | "bounce" | "fade"
+    idle: { preset: "pulsescale", iterations: 3 }, // "pulsescale" | "pulseopacity" | "ring" | "bounce"
+    exit: { preset: "fade", duration: 300 }, // "shrink" | "fade" | "pop" | "explode"
+  },
+});
+
+map.addMarker(marker); // plays "drop"
+map.removeMarker(marker.id); // plays "fade", then removes the marker
+map.removeMarker(marker.id, { immediate: true }); // removes it without the exit animation
+```
+
+Each animation also accepts `duration`, `delay`, `easing` and `magnitude`. Instead of a preset, `custom` takes a function called every frame with the animation's progress (`0` to `1`) and the marker. Animations fire events such as `enteranimationstart`, `idleanimationiteration` and `exitanimationend`.
+
+#### Altitude (experimental)
+
+Raise a marker above the ground. The marker is placed in 3D, so it stays in the right place as the camera moves, with terrain and under globe projection:
+
+```ts
+marker.setAltitude(500); // 500 m above the terrain under the marker
+marker.setAltitude(1200, { relativeTo: "sea" }); // 1200 m above sea level
+marker.setAltitude(false); // back on the map surface
+
+marker.setGroundLine(true); // dashed line from the marker down to the ground
+```
+
+Style the ground line with your own CSS on the `maptiler-marker-groundline` class, or add a class of your own with `setGroundLine(true, { className: "my-line" })`.
+
+#### The MapLibre marker
+
+Compared with the MapLibre marker:
 - The `color` option is removed. Use `innerColor`, `outerColor`, `contentColor` and `outlineColor`.
 - `scale` is a 2D vector, `[x, y]`.
 - `setRotation()` rotates the marker's shape rather than its container.
@@ -1381,7 +1580,7 @@ import { MarkerMLGL } from "@maptiler/sdk";
 new MarkerMLGL({ color: "#f00" }).setLngLat([8.54, 47.37]).addTo(map);
 ```
 
-See `demos/16-maptiler-markers.html` to `demos/19-maptiler-markers-lifecycle-animations.html` for examples.
+See `demos/16-maptiler-markers.html` to `demos/20-marker-altitude.html` for examples.
 
 ### Camera routes and animations
 

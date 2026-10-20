@@ -1,3 +1,5 @@
+// Sets the MapLibre worker URL, as Vite users of the SDK do
+import "@maptiler/sdk/vite-worker";
 import type { GeoJSONSource } from "maplibre-gl";
 import { Map, MapStyle, Marker, config } from "../../src/index";
 import type { AltitudeReference } from "../../src/Marker/types";

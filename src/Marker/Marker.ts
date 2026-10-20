@@ -1,6 +1,5 @@
-import maplibregl from "maplibre-gl";
-import type { LngLatLike, MarkerOptions, PointLike } from "maplibre-gl";
-import type { mat4 } from "gl-matrix";
+import { Marker as MLMarker, LngLat } from "maplibre-gl";
+import type { CustomLayerProjectionData, LngLatLike, MarkerOptions, PointLike, Subscription } from "maplibre-gl";
 import type { Map as SDKMap } from "../Map";
 import type {
   MapTilerMarkerElementProps,
@@ -19,6 +18,7 @@ import type {
   MarkerTransitionSpec,
   MarkerTransitionEventData,
   MapTilerMarkerAnimations,
+  MarkerEventTypeSDK,
   MarkerAnimationBase,
   MarkerAnimationOptions,
   MarkerCustomAnimationOptions,
@@ -115,7 +115,7 @@ function pointLikeToXY(point: PointLike): [number, number] {
 }
 
 /** MapLibre's `Marker` extended with 2-D scale, named shapes, colour tokens, and batched DOM updates. */
-export class Marker extends maplibregl.Marker {
+export class Marker extends MLMarker {
   /** Construction-time options snapshot — not updated by setters. */
   readonly options: MapTilerMarkerOptions;
   readonly _scale = 1; // MapLibre only scales in 1D; ours is 2D via `props.scale`, so this is unused.
@@ -230,9 +230,9 @@ export class Marker extends maplibregl.Marker {
    * custom properties for the element's own styles to consume.
    */
   constructor(options: MapTilerMarkerElementOptions);
-  /** Creates a marker styled via the built-in SVG system (`shape`, `size`, colour tokens, shadow). */
-  constructor(options: MapTilerMarkerSVGOptions);
-  constructor(options: MapTilerMarkerOptions) {
+  /** Creates a marker styled via the built-in SVG system (`shape`, `size`, colour tokens, shadow). With no options, uses the default appearance. */
+  constructor(options?: MapTilerMarkerSVGOptions);
+  constructor(options: MapTilerMarkerOptions = {}) {
     const sizeKey = options.size ?? DEFAULT_SIZE;
     const superOptions = {
       ...omit(options, MAPTILER_BASE_OPTIONS_KEYS),
@@ -291,6 +291,40 @@ export class Marker extends maplibregl.Marker {
     this.transitions = { ...options.transitions };
     this.animations = { ...options.animations };
     this.attachUIStateListeners();
+
+    // the base setter, so the initial position never transitions
+    if (options.lngLat) super.setLngLat(options.lngLat);
+  }
+
+  //#endregion
+
+  //#region Events
+
+  /**
+   * Adds a listener for events of a specified type.
+   * Accepts the MapLibre events as well as the SDK events (see {@link MaptilerMarkerEventType}).
+   */
+  override on<T extends keyof MarkerEventTypeSDK>(type: T, listener: (ev: MarkerEventTypeSDK[T]) => void): Subscription {
+    // The SDK event names are not part of MapLibre's `MarkerEventType`, but MapLibre's `Evented` handles any string at runtime
+    return (super.on as (...args: unknown[]) => Subscription).call(this, type, listener);
+  }
+
+  /**
+   * Adds a listener that will be called only once to a specified event type.
+   * Accepts the MapLibre events as well as the SDK events (see {@link MaptilerMarkerEventType}).
+   */
+  override once<T extends keyof MarkerEventTypeSDK>(type: T): Promise<MarkerEventTypeSDK[T]>;
+  override once<T extends keyof MarkerEventTypeSDK>(type: T, listener: (ev: MarkerEventTypeSDK[T]) => void): this;
+  override once<T extends keyof MarkerEventTypeSDK>(type: T, listener?: (ev: MarkerEventTypeSDK[T]) => void): this | Promise<MarkerEventTypeSDK[T]> {
+    return (super.once as (...args: unknown[]) => this | Promise<MarkerEventTypeSDK[T]>).call(this, type, listener);
+  }
+
+  /**
+   * Removes an event listener previously added with {@link Marker.on} or {@link Marker.once}.
+   * Accepts the MapLibre events as well as the SDK events (see {@link MaptilerMarkerEventType}).
+   */
+  override off<T extends keyof MarkerEventTypeSDK>(type: T, listener: (ev: MarkerEventTypeSDK[T]) => void): this {
+    return (super.off as (...args: unknown[]) => this).call(this, type, listener);
   }
 
   //#endregion
@@ -395,7 +429,7 @@ export class Marker extends maplibregl.Marker {
 
   /** A colour prop's value in effect — the explicit one, else the default for the map's style. */
   private getEffectiveColor(prop: keyof AdaptiveColorSet): string {
-    return this.props[prop] ?? getAdaptiveColors(this.getCurrentStyleId() ?? "")[prop];
+    return this.props[prop] ?? getAdaptiveColors(this.getCurrentStyleId() ?? "", this.props.shape ?? DEFAULT_SHAPE)[prop];
   }
 
   //#endregion
@@ -594,7 +628,7 @@ export class Marker extends maplibregl.Marker {
    * @param lnglat - The new position.
    */
   override setLngLat(lnglat: LngLatLike): this {
-    const target = maplibregl.LngLat.convert(lnglat);
+    const target = LngLat.convert(lnglat);
     this.applyTransitionable("position", this.getLngLat(), target, positionTransitionCodec, (v) => {
       super.setLngLat(v);
       const map = MarkerManager.getMap(this);
@@ -655,6 +689,8 @@ export class Marker extends maplibregl.Marker {
   setShape(shape: MapTilerMarkerOptions["shape"]) {
     this.setProp("shape", shape);
     this.applyShapeAnchorOffset();
+    // unset colours follow the shape's defaults
+    this[RefreshAdaptiveColorSymbol]();
   }
 
   /** Returns the current shape, or `undefined` if never set. */
@@ -1370,10 +1406,10 @@ export class Marker extends maplibregl.Marker {
   /**
    * Per-frame altitude hook, called by {@link MarkerManager} for every altitude-active marker. Returns the elevated point's camera depth (used to rank z-index among altitude-active markers), or `null` when off-screen/behind the camera.
    */
-  [ApplyAltitudeFrameSymbol](matrix: mat4, map: SDKMap): number | null {
+  [ApplyAltitudeFrameSymbol](projectionData: CustomLayerProjectionData, map: SDKMap): number | null {
     if (!this.altitudeEngaged) return null; // shouldn't be registered otherwise
 
-    const projected = computeAltitudeProjection(this.getLngLat(), this.altitudeMeters, matrix, map, this.altitudeReference);
+    const projected = computeAltitudeProjection(this.getLngLat(), this.altitudeMeters, projectionData, map, this.altitudeReference);
     if (!projected) {
       this.altitudeDelta = null;
       this.groundLineOrigin = null;

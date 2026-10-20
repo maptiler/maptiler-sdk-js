@@ -145,7 +145,8 @@ export class TilePreloader {
    * that viewpoint. More positions at higher zoom levels increase API usage significantly.
    */
   async preloadForCameraPositions({ positions, onProgress, onError }: PreloadTilesForCameraPositionsOptions): Promise<TileCoord[]> {
-    const { width, height } = this.map.transform;
+    // `map.transform` was removed in MapLibre v6; the transform is sized from the container dimensions
+    const [width, height] = this.map._containerDimensions();
 
     const allTiles: TileCoord[] = [];
 

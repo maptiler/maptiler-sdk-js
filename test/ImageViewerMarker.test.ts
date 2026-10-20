@@ -7,11 +7,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ImageViewerMarker, ImageViewerMarkerEvent } from "../src/ImageViewer/ImageViewerMarker";
 import ImageViewer from "../src/ImageViewer/ImageViewer";
 import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey } from "../src/ImageViewer/symbols";
-import { Popup, Alignment, LngLat, Point, Map as SDKMap } from "../src/index";
-import { Marker } from "../src/MLAdapters/Marker";
+import { Popup, Alignment, LngLat, MarkerMLGL as Marker, Point, Map as SDKMap } from "../src/index";
 
 vi.mock("../src/index");
-vi.mock("../src/MLAdapters/Marker");
 
 vi.mock("../src/ImageViewer/ImageViewer", async (importOriginal) => {
   const actual = (await importOriginal()) as typeof import("../src/ImageViewer/ImageViewer") as typeof import("../src/ImageViewer/ImageViewer");
@@ -317,8 +315,7 @@ describe("ImageViewerMarker", () => {
       const MockMarker = vi.mocked(Marker);
 
       // Temporarily give it a new, complex implementation for THIS TEST ONLY
-      // @ts-expect-error - MockMarker is not typed correctly
-      MockMarker.mockImplementation(() => {
+      MockMarker.mockImplementation(function () {
         const listeners = new Map<string, Function[]>();
         return {
           on: vi.fn((eventName, listener) => {
@@ -380,8 +377,7 @@ describe("ImageViewerMarker", () => {
       const MockMarker = vi.mocked(Marker);
 
       // Temporarily give it a new, complex implementation for THIS TEST ONLY
-      // @ts-expect-error - MockMarker is not typed correctly
-      MockMarker.mockImplementation(() => {
+      MockMarker.mockImplementation(function () {
         const listeners = new Map<string, Function[]>();
         return {
           on: vi.fn((eventName, listener) => {
@@ -473,9 +469,7 @@ describe("ImageViewerMarker", () => {
     it("remove should not throw when there are no registered listeners", () => {
       const { imageViewerMarker } = createNewMocks();
 
-      // @ts-expect-error - _listeners is an untyped internal of maplibre's Evented
       imageViewerMarker["marker"]._listeners = undefined;
-      // @ts-expect-error - _oneTimeListeners is an untyped internal of maplibre's Evented
       imageViewerMarker["marker"]._oneTimeListeners = undefined;
 
       expect(() => imageViewerMarker.remove()).not.toThrow();

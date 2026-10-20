@@ -1,3 +1,5 @@
+// Sets the MapLibre worker URL, as Vite users of the SDK do
+import "@maptiler/sdk/vite-worker";
 import "../../build/maptiler-sdk.css";
 import { Layer3D } from "@maptiler/3d";
 import { CustomLayerInterface, Map, MapStyle, config, Keyframe, MaptilerAnimation } from "../../src";

@@ -13,8 +13,6 @@ export type MarkerTemplateFactory = (params?: Record<string, number | string>) =
 
 //#region Registries
 
-// TODO(icons): built-in icon registry backing the marker `icon` option.
-
 const TEMPLATES = new Map<string, MarkerTemplateFactory>();
 
 /**
