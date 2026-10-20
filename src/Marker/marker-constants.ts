@@ -56,12 +56,20 @@ export const SIZE_PX: Record<MapTilerMarkerSize, number> = {
   l: 40,
 };
 
-export const SHADOW_FILTER: Record<MapTilerMarkerShadow, string> = {
-  none: "none",
-  soft: "drop-shadow(0px 1px 0px rgba(0, 0, 0, 0.2))",
-  medium: "drop-shadow(0px 2px 2px rgba(29, 29, 29, 0.2))",
-  strong: "drop-shadow(0px 2px 4px rgba(29, 29, 29, 0.2))",
+/** Drop-shadow geometry in CSS px. `blur` follows the CSS `drop-shadow()` / canvas `shadowBlur` convention (twice the Gaussian standard deviation). */
+export type MarkerShadowParams = { offsetX: number; offsetY: number; blur: number; color: string };
+
+/** Single source of truth for marker shadows — the DOM path's CSS filter and the canvas path's `shadow*` settings are both derived from it. */
+export const SHADOW_PARAMS: Record<MapTilerMarkerShadow, MarkerShadowParams | null> = {
+  none: null,
+  soft: { offsetX: 0, offsetY: 1, blur: 0, color: "rgba(0, 0, 0, 0.2)" },
+  medium: { offsetX: 0, offsetY: 2, blur: 2, color: "rgba(29, 29, 29, 0.2)" },
+  strong: { offsetX: 0, offsetY: 2, blur: 4, color: "rgba(29, 29, 29, 0.2)" },
 };
+
+export const SHADOW_FILTER = Object.fromEntries(
+  Object.entries(SHADOW_PARAMS).map(([key, p]) => [key, p ? `drop-shadow(${String(p.offsetX)}px ${String(p.offsetY)}px ${String(p.blur)}px ${p.color})` : "none"]),
+) as Record<MapTilerMarkerShadow, string>;
 
 /** Content sizing per marker size, shared by every shape (px). */
 export const CONTENT_METRICS: Record<ShapeSize, ContentMetrics> = {

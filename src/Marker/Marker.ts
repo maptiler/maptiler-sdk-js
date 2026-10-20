@@ -29,6 +29,7 @@ import type {
   GroundLineOptions,
   AltitudeReference,
   SetAltitudeOptions,
+  MarkerStyle,
 } from "./types";
 import { omit } from "../utils/object";
 import { v4 as uuid } from "uuid";
@@ -913,6 +914,30 @@ export class Marker extends MLMarker {
    */
   override getRotation(): number {
     return this.props.rotation ?? 0;
+  }
+
+  //#endregion
+
+  //#region Style
+
+  /**
+   * Returns the marker's visual style. Colours are only included when set
+   * explicitly — unlike {@link getOuterColor} and friends, map-style defaults
+   * are not resolved, so the result stays adaptive wherever it's reused.
+   */
+  getStyle(): MarkerStyle {
+    return {
+      shape: this.getShape(),
+      size: this.getSize(),
+      outerColor: this.props.outerColor,
+      innerColor: this.props.innerColor,
+      contentColor: this.props.contentColor,
+      outline: this.getOutline(),
+      outlineColor: this.props.outlineColor,
+      shadow: this.getShadow(),
+      opacity: this.props.opacity,
+      content: this.getContent(),
+    };
   }
 
   //#endregion

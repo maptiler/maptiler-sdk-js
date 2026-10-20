@@ -269,6 +269,70 @@ describe("setRotation / getRotation", () => {
 
 //#endregion
 
+//#region Style
+
+describe("getStyle", () => {
+  it("returns the marker's visual options", () => {
+    const marker = new Marker({
+      shape: "bubble-square",
+      size: "l",
+      outerColor: "red",
+      innerColor: "white",
+      contentColor: "black",
+      outline: 3,
+      outlineColor: "blue",
+      shadow: "strong",
+      opacity: 0.5,
+      content: "A",
+    });
+
+    expect(marker.getStyle()).toEqual({
+      shape: "bubble-square",
+      size: "l",
+      outerColor: "red",
+      innerColor: "white",
+      contentColor: "black",
+      outline: 3,
+      outlineColor: "blue",
+      shadow: "strong",
+      opacity: 0.5,
+      content: "A",
+    });
+  });
+
+  it("leaves unset colours out instead of resolving the map-style defaults", () => {
+    const marker = new Marker({ shape: "circle" });
+    const style = marker.getStyle();
+
+    expect(style.outerColor).toBeUndefined();
+    expect(style.innerColor).toBeUndefined();
+    expect(style.contentColor).toBeUndefined();
+    expect(style.outlineColor).toBeUndefined();
+    // the getters do resolve them
+    expect(marker.getInnerColor()).toBe(ADAPTIVE_COLORS.base.innerColor);
+  });
+
+  it("reports the effective shape and size of a marker created without them", () => {
+    const marker = new Marker({});
+    const style = marker.getStyle();
+
+    expect(style.shape).toBe(marker.getShape());
+    expect(style.size).toBe(marker.getSize());
+  });
+
+  it("follows later setter calls", () => {
+    const marker = new Marker({ shape: "circle" });
+    marker.setShape("square");
+    marker.setSize("s");
+    marker.setOuterColor("green");
+    marker.setContent("42");
+
+    expect(marker.getStyle()).toMatchObject({ shape: "square", size: "s", outerColor: "green", content: "42" });
+  });
+});
+
+//#endregion
+
 //#region Collision footprint
 
 describe("CollisionFootprintSymbol", () => {
