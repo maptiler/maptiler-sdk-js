@@ -45,6 +45,7 @@ import { MaptilerLogoControl } from "./controls/MaptilerLogoControl";
 import { checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, replaceLanguage } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
 import { styleToStyle, styleToStyleId } from "./mapstyle";
+import { getAdaptiveColorsForStyle, type AdaptiveColorSet } from "./adaptive-colors";
 import { MaptilerTerrainControl } from "./controls/MaptilerTerrainControl";
 import { MaptilerNavigationControl } from "./controls/MaptilerNavigationControl";
 import { MapStyle, geolocation, getLanguageInfoFromFlag, toLanguageInfo } from "@maptiler/client";
@@ -1507,6 +1508,16 @@ export class Map extends MapMLGL {
    */
   getStyleId(): string | undefined {
     return this.currentStyleId;
+  }
+
+  /**
+   * Returns the default (adaptive) colours for the current style — the colours
+   * markers fall back to when none are set. Resolved from {@link getStyleId},
+   * or the stylesheet's `id` when that's `undefined`; unknown styles resolve to
+   * the `base` colours.
+   */
+  getAdaptiveColorsForCurrentStyle(): AdaptiveColorSet {
+    return getAdaptiveColorsForStyle(MarkerManager.getMapStyleId(this) ?? "");
   }
 
   /**

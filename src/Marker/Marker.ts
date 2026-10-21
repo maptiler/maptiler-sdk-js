@@ -47,7 +47,8 @@ import {
   releaseCollisionFadeClass,
 } from "./marker-dom-utils";
 import { SHAPES, getShapeAnchorOffset } from "./marker-svg-config";
-import { getAdaptiveColors, type AdaptiveColorSet } from "./marker-adaptive-colors";
+import type { AdaptiveColorSet } from "../adaptive-colors";
+import { getAdaptiveColors } from "./marker-adaptive-colors";
 import { MarkerManager } from "./MarkerManager";
 import type { MarkerFootprint } from "./collision-helpers";
 import { flattenUIStates } from "./marker-state-helpers";

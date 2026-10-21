@@ -10,7 +10,7 @@ import type {
   MapTilerMarkerSize,
   MapTilerMarkerShadow,
 } from "./types";
-import type { AdaptiveColorSet, AdaptiveStyleKey } from "./marker-adaptive-colors";
+import type { AdaptiveColorSet } from "../adaptive-colors";
 import type { ContentMetrics, ShapeSize } from "./marker-svg-config";
 
 //#region Defaults
@@ -81,21 +81,6 @@ export const CONTENT_METRICS: Record<ShapeSize, ContentMetrics> = {
 //#endregion
 
 //#region Adaptive Colors
-
-/**
- * Default marker colours per map style. `base` doubles as the fallback for
- * styles without a dedicated entry.
- */
-export const ADAPTIVE_COLORS: { base: AdaptiveColorSet } & Partial<Record<AdaptiveStyleKey, AdaptiveColorSet>> = {
-  base: { innerColor: "#4D7FFF", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
-  "base-dark": { innerColor: "#80A4FF", outerColor: "#292929", contentColor: "#292929", outlineColor: "transparent" },
-  streets: { innerColor: "#0060E5", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
-  "streets-dark": { innerColor: "#4D97FF", outerColor: "#292929", contentColor: "#292929", outlineColor: "transparent" },
-  hybrid: { innerColor: "#0073E5", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
-  dataviz: { innerColor: "#1A94FF", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
-  "dataviz-dark": { innerColor: "#4DACFF", outerColor: "#292929", contentColor: "#292929", outlineColor: "transparent" },
-  topo: { innerColor: "#1A79FF", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
-};
 
 /**
  * Shapes whose default colours are the map style's, swapped: a blue body with a white inner fill and

@@ -1,6 +1,7 @@
 import type { MapTilerMarkerShape, MarkerStyle } from "./types";
 import { SHAPES, circlePath, getShapeGeometry, type ShapeGeometry, type ShapeSize } from "./marker-svg-config";
-import { getAdaptiveColors, type AdaptiveColorSet } from "./marker-adaptive-colors";
+import type { AdaptiveColorSet } from "../adaptive-colors";
+import { getAdaptiveColors } from "./marker-adaptive-colors";
 import { MARKER_ICON_VIEWBOX_SIZE, getMarkerIconPath } from "./marker-icons";
 import { fitLabel } from "./marker-text-fit";
 import {
