@@ -19,6 +19,7 @@ const expectedExports = Array.from(
     "Map",
     "GeolocationType",
     "Marker",
+    "getAdaptiveColorsForStyle",
     "Popup",
     "Style",
     "CanvasSource",
