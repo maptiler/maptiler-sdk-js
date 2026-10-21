@@ -67,6 +67,15 @@ function normalizeStyleKey(styleId: string): string {
  * Lookup order: exact style key (version stripped, variant kept) → reference
  * style without variant → `base`, so an unknown style id resolves to `base`.
  * @param styleId - Style id, versioned (`"streets-v4-dark"`) or not (`"streets-dark"`).
+ * @returns The style's colour set. The object is frozen and shared, so spread it to modify a copy.
+ * @example
+ * ```ts
+ * getAdaptiveColorsForStyle("streets-v4-dark").innerColor; // "#4D97FF"
+ * ```
+ * @example
+ * ```ts
+ * getAdaptiveColorsForStyle("my-custom-style"); // falls back to the `base` colours
+ * ```
  */
 export function getAdaptiveColorsForStyle(styleId: string): AdaptiveColorSet {
   const colors: Record<string, AdaptiveColorSet | undefined> = ADAPTIVE_COLORS;
