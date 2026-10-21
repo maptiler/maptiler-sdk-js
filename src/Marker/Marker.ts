@@ -942,8 +942,6 @@ export class Marker extends MLMarker {
 
   //#endregion
 
-  //#endregion
-
   //#region UI States
 
   private attachUIStateListeners(): void {
