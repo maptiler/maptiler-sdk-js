@@ -29,6 +29,7 @@ import type {
   GroundLineOptions,
   AltitudeReference,
   SetAltitudeOptions,
+  MarkerStyle,
 } from "./types";
 import { omit } from "../utils/object";
 import { v4 as uuid } from "uuid";
@@ -46,7 +47,8 @@ import {
   releaseCollisionFadeClass,
 } from "./marker-dom-utils";
 import { SHAPES, getShapeAnchorOffset } from "./marker-svg-config";
-import { getAdaptiveColors, type AdaptiveColorSet } from "./marker-adaptive-colors";
+import type { AdaptiveColorSet } from "../adaptive-colors";
+import { getAdaptiveColors } from "./marker-adaptive-colors";
 import { MarkerManager } from "./MarkerManager";
 import type { MarkerFootprint } from "./collision-helpers";
 import { flattenUIStates } from "./marker-state-helpers";
@@ -916,6 +918,28 @@ export class Marker extends MLMarker {
   }
 
   //#endregion
+
+  //#region Style
+
+  /**
+   * Returns the marker's visual style. Colours are only included when set
+   * explicitly — unlike {@link getOuterColor} and friends, map-style defaults
+   * are not resolved, so the result stays adaptive wherever it's reused.
+   */
+  getStyle(): MarkerStyle {
+    return {
+      shape: this.getShape(),
+      size: this.getSize(),
+      outerColor: this.props.outerColor,
+      innerColor: this.props.innerColor,
+      contentColor: this.props.contentColor,
+      outline: this.getOutline(),
+      outlineColor: this.props.outlineColor,
+      shadow: this.getShadow(),
+      opacity: this.props.opacity,
+      content: this.getContent(),
+    };
+  }
 
   //#endregion
 
