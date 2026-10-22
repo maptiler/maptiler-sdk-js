@@ -36,6 +36,7 @@
 - Switches internal `maplibre-gl` imports to named imports.
 - Documents worker setup per bundler, CSP requirements, self-hosted UMD worker files and TypeScript `moduleResolution` in the README.
 - Updates dependencies to resolve `npm audit` vulnerabilities, including dev dependency bumps to `vitest` 5, `@vitest/web-worker` 5, `vite-plugin-dts` 5 and `lint-staged` 17.
+- Telemetry now reports the SDK build format (`umd`, `es` or `dev`) as `buildFormat`.
 
 ## 4.2.0
 
