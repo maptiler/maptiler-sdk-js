@@ -92,8 +92,9 @@ export function resolveMarkerWrapper(element: HTMLElement): HTMLElement {
  */
 export function applyMarkerStyleVariables(element: HTMLElement | SVGElement, options: MapTilerMarkerOptions): void {
   // unset colours can only resolve to the `base` defaults here — the marker
-  // has no map yet; MarkerManager re-resolves on registration
-  const defaults = getAdaptiveColors("", options.shape ?? DEFAULT_SHAPE);
+  // has no map yet; MarkerManager re-resolves on registration. A custom
+  // element has no shape, so it gets the ordinary (non-inverted) colours
+  const defaults = getAdaptiveColors("", options.element ? undefined : (options.shape ?? DEFAULT_SHAPE));
 
   element.style.setProperty("--marker-outer-color", options.outerColor ?? defaults.outerColor);
   element.style.setProperty("--marker-inner-color", options.innerColor ?? defaults.innerColor);
@@ -183,8 +184,9 @@ export function updateMarkerElement(element: HTMLElement, props: PendingMarkerUp
   // or clobbered by MapLibre (transform).
   const wrapper = resolveMarkerWrapper(element);
 
-  // an undefined colour means "use the map-style default", which depends on the shape that applies once this update is in
-  const shape = props.shape ?? getWrapperShape(wrapper);
+  // an undefined colour means "use the map-style default", which depends on the shape that applies once this update is in.
+  // A custom element carries no recorded shape, so it gets the ordinary (non-inverted) colours
+  const shape = props.shape ?? wrapper.dataset.markerShape;
   const defaults = getAdaptiveColors(styleId ?? "", shape);
 
   if ("outerColor" in props) {

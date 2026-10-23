@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Marker Canvas Parity</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      font-family: system-ui, -apple-system, sans-serif;
+      color: rgba(0, 0, 0, 0.8);
+    }
+
+    body {
+      padding: 16px;
+    }
+
+    #panel {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: end;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .ctrl-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .ctrl-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.45);
+    }
+
+    #legend {
+      font-size: 11px;
+      color: rgba(0, 0, 0, 0.55);
+      max-width: 340px;
+    }
+
+    h2 {
+      font-size: 13px;
+      font-weight: 600;
+      margin: 20px 0 8px;
+    }
+
+    table {
+      border-collapse: collapse;
+    }
+
+    th {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.45);
+      padding: 4px 8px;
+      text-align: left;
+    }
+
+    td {
+      padding: 4px;
+    }
+
+    .pair {
+      display: flex;
+      gap: 4px;
+    }
+
+    /* each marker sits centred in a fixed box, so DOM and canvas line up */
+    .slot {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+    }
+
+    .slot > * {
+      position: absolute;
+    }
+
+    .slot-label {
+      position: absolute;
+      top: 2px;
+      left: 4px;
+      font-size: 9px;
+      opacity: 0.5;
+    }
+
+    body[data-bg="light"] .slot { background: #f2f2f2; }
+    body[data-bg="dark"] .slot { background: #2b2b2b; }
+    body[data-bg="dark"] .slot-label { color: #fff; }
+    body[data-bg="checker"] .slot {
+      background: repeating-conic-gradient(#ddd 0% 25%, #fff 0% 50%) 50% / 12px 12px;
+    }
+
+    /* overlay mode: canvas drawn over the DOM marker with a difference blend — matching pixels go black */
+    body[data-mode="overlay"] .slot { background: #000; isolation: isolate; }
+    body[data-mode="overlay"] .slot canvas { mix-blend-mode: difference; }
+    body[data-mode="overlay"] .slot-label { color: #fff; }
+  </style>
+
+  <link rel="stylesheet" href="../build/maptiler-sdk.css">
+</head>
+
+<body data-bg="light" data-mode="side-by-side">
+  <div id="panel">
+    <label class="ctrl-group">
+      <span class="ctrl-label">Mode</span>
+      <select id="mode">
+        <option value="side-by-side">Side by side</option>
+        <option value="overlay">Overlay (difference)</option>
+      </select>
+    </label>
+
+    <label class="ctrl-group">
+      <span class="ctrl-label">Pixel ratio</span>
+      <select id="pixel-ratio">
+        <option value="device">Device</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+      </select>
+    </label>
+
+    <label class="ctrl-group">
+      <span class="ctrl-label">Content</span>
+      <select id="content">
+        <option value="">Default</option>
+        <option value="7">7</option>
+        <option value="42">42</option>
+        <option value="A">A</option>
+      </select>
+    </label>
+
+    <label class="ctrl-group">
+      <span class="ctrl-label">Outline</span>
+      <select id="outline">
+        <option value="">None</option>
+        <option value="true">Default</option>
+        <option value="4">4px</option>
+      </select>
+    </label>
+
+    <label class="ctrl-group">
+      <span class="ctrl-label">Colours</span>
+      <select id="colors">
+        <option value="adaptive:">Adaptive – base</option>
+        <option value="adaptive:streets-v4-dark">Adaptive – streets dark</option>
+        <option value="adaptive:hybrid">Adaptive – hybrid</option>
+        <option value="custom">Custom</option>
+      </select>
+    </label>
+
+    <label class="ctrl-group">
+      <span class="ctrl-label">Background</span>
+      <select id="bg">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+        <option value="checker">Checker</option>
+      </select>
+    </label>
+
+    <p id="legend">
+      Each cell: DOM marker (SVG) left, canvas image right. Overlay draws the canvas over the DOM marker with a
+      difference blend, so any drift shows as non-black pixels.
+    </p>
+  </div>
+
+  <div id="grids"></div>
+
+  <script type="module" src="/src/21-marker-canvas-parity.ts"></script>
+</body>
+
+</html>

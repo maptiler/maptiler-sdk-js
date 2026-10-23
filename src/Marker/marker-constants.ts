@@ -10,7 +10,7 @@ import type {
   MapTilerMarkerSize,
   MapTilerMarkerShadow,
 } from "./types";
-import type { AdaptiveColorSet, AdaptiveStyleKey } from "./marker-adaptive-colors";
+import type { AdaptiveColorSet } from "../adaptive-colors";
 import type { ContentMetrics, ShapeSize } from "./marker-svg-config";
 
 //#region Defaults
@@ -56,12 +56,20 @@ export const SIZE_PX: Record<MapTilerMarkerSize, number> = {
   l: 40,
 };
 
-export const SHADOW_FILTER: Record<MapTilerMarkerShadow, string> = {
-  none: "none",
-  soft: "drop-shadow(0px 1px 0px rgba(0, 0, 0, 0.2))",
-  medium: "drop-shadow(0px 2px 2px rgba(29, 29, 29, 0.2))",
-  strong: "drop-shadow(0px 2px 4px rgba(29, 29, 29, 0.2))",
+/** Drop-shadow geometry in CSS px. `blur` follows the CSS `drop-shadow()` / canvas `shadowBlur` convention (twice the Gaussian standard deviation). */
+export type MarkerShadowParams = { offsetX: number; offsetY: number; blur: number; color: string };
+
+/** Single source of truth for marker shadows — the DOM path's CSS filter and the canvas path's `shadow*` settings are both derived from it. */
+export const SHADOW_PARAMS: Record<MapTilerMarkerShadow, MarkerShadowParams | null> = {
+  none: null,
+  soft: { offsetX: 0, offsetY: 1, blur: 0, color: "rgba(0, 0, 0, 0.2)" },
+  medium: { offsetX: 0, offsetY: 2, blur: 2, color: "rgba(29, 29, 29, 0.2)" },
+  strong: { offsetX: 0, offsetY: 2, blur: 4, color: "rgba(29, 29, 29, 0.2)" },
 };
+
+export const SHADOW_FILTER = Object.fromEntries(
+  Object.entries(SHADOW_PARAMS).map(([key, p]) => [key, p ? `drop-shadow(${String(p.offsetX)}px ${String(p.offsetY)}px ${String(p.blur)}px ${p.color})` : "none"]),
+) as Record<MapTilerMarkerShadow, string>;
 
 /** Content sizing per marker size, shared by every shape (px). */
 export const CONTENT_METRICS: Record<ShapeSize, ContentMetrics> = {
@@ -73,21 +81,6 @@ export const CONTENT_METRICS: Record<ShapeSize, ContentMetrics> = {
 //#endregion
 
 //#region Adaptive Colors
-
-/**
- * Default marker colours per map style. `base` doubles as the fallback for
- * styles without a dedicated entry.
- */
-export const ADAPTIVE_COLORS: { base: AdaptiveColorSet } & Partial<Record<AdaptiveStyleKey, AdaptiveColorSet>> = {
-  base: { innerColor: "#4D7FFF", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
-  "base-dark": { innerColor: "#80A4FF", outerColor: "#292929", contentColor: "#292929", outlineColor: "transparent" },
-  streets: { innerColor: "#0060E5", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
-  "streets-dark": { innerColor: "#4D97FF", outerColor: "#292929", contentColor: "#292929", outlineColor: "transparent" },
-  hybrid: { innerColor: "#0073E5", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
-  dataviz: { innerColor: "#1A94FF", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
-  "dataviz-dark": { innerColor: "#4DACFF", outerColor: "#292929", contentColor: "#292929", outlineColor: "transparent" },
-  topo: { innerColor: "#1A79FF", outerColor: "#FFFFFF", contentColor: "#FFFFFF", outlineColor: "transparent" },
-};
 
 /**
  * Shapes whose default colours are the map style's, swapped: a blue body with a white inner fill and
