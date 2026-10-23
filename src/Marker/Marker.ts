@@ -428,9 +428,10 @@ export class Marker extends MLMarker {
     });
   }
 
-  /** A colour prop's value in effect — the explicit one, else the default for the map's style. */
+  /** A colour prop's value in effect — the explicit one, else the default for the map's style (and shape — none for a custom element). */
   private getEffectiveColor(prop: keyof AdaptiveColorSet): string {
-    return this.props[prop] ?? getAdaptiveColors(this.getCurrentStyleId() ?? "", this.props.shape ?? DEFAULT_SHAPE)[prop];
+    const shape = this.options.element ? this.props.shape : (this.props.shape ?? DEFAULT_SHAPE);
+    return this.props[prop] ?? getAdaptiveColors(this.getCurrentStyleId() ?? "", shape)[prop];
   }
 
   //#endregion
