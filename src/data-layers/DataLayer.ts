@@ -101,6 +101,9 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
   private pending: PendingDataLayerUpdates<TStyling> = createPendingUpdates();
   private animationFrameID: number | null = null;
 
+  /** Between a `dataloading` and its `data` (or `error`), so each load fires one of each. */
+  private isLoadingData = false;
+
   private readonly listeners = new Map<DataLayerEventType, Set<DataLayerEventListener<DataLayerEventType, this>>>();
 
   /** Map-level listeners currently bound, kept so they can be detached — layer-delegated ones are rebound on every rebuild, as sublayer ids may change. */
@@ -381,26 +384,32 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
     }
     this.sublayerSpecs = [];
     if (map.getSource(this.getSourceId())) map.removeSource(this.getSourceId());
+    // a load in flight is abandoned with its source
+    this.isLoadingData = false;
   }
 
   /**
    * `setStyle()` wipes the source and sublayers. A diffed style keeps the
-   * controller (custom layers aren't part of the diff), so only the sublayers
-   * need rebuilding; a full rebuild drops the controller too, so it re-adds
-   * itself — and `onAdd` builds the rest.
+   * controller (custom layers aren't part of the diff), but wherever the diff
+   * left it — usually near the bottom, under the new style's fills — so it's
+   * moved back first, then only the sublayers need rebuilding. A full rebuild
+   * drops the controller too, so it re-adds itself — and `onAdd` builds the rest.
    */
   private readonly onStyleLoad = (): void => {
     const map = this.map;
     if (!map) return;
 
+    const beforeId = this.beforeId && map.getLayer(this.beforeId) ? this.beforeId : undefined;
+
     if (map.getLayer(this.id)) {
+      map.moveLayer(this.id, beforeId);
       this.build();
       return;
     }
 
     // detach first — onAdd rebinds everything
     this.unbindMapListeners();
-    map.addLayer(this, this.beforeId && map.getLayer(this.beforeId) ? this.beforeId : undefined);
+    map.addLayer(this, beforeId);
   };
 
   //#endregion
@@ -458,16 +467,23 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
     if (!map) return;
 
     const onDataLoading = (event: MapSourceDataEvent) => {
-      if (event.sourceId === this.getSourceId()) this.fire("dataloading", { type: "dataloading", target: this });
+      // tiles fire `sourcedataloading` too — only the source's own load counts
+      if (event.sourceId !== this.getSourceId() || event.tile || this.isLoadingData) return;
+      this.isLoadingData = true;
+      this.fire("dataloading", { type: "dataloading", target: this });
     };
 
     const onData = (event: MapSourceDataEvent) => {
-      // `sourcedata` fires for metadata and per tile too — only report once loaded
-      if (event.sourceId === this.getSourceId() && event.isSourceLoaded) this.fire("data", { type: "data", target: this });
+      // the metadata event reports loaded before the tiles have reloaded — wait for the content or the last tile
+      if (event.sourceId !== this.getSourceId() || !this.isLoadingData || !event.isSourceLoaded || event.sourceDataType === "metadata") return;
+      this.isLoadingData = false;
+      this.fire("data", { type: "data", target: this });
     };
 
     const onError = (event: { error: Error; sourceId?: string }) => {
-      if (event.sourceId === this.getSourceId()) this.fire("error", { type: "error", target: this, error: event.error });
+      if (event.sourceId !== this.getSourceId()) return;
+      this.isLoadingData = false;
+      this.fire("error", { type: "error", target: this, error: event.error });
     };
 
     // the map is going away — nothing to tear down, just stop touching it
