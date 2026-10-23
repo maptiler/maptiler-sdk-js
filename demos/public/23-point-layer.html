@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Point Layer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    #maps {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background: #000;
+    }
+
+    .map-wrap {
+      position: relative;
+    }
+
+    /* two classes, so it outranks MapLibre's `.maplibregl-map { position: relative }` */
+    .map-wrap > .map {
+      position: absolute;
+      inset: 0;
+    }
+
+    .map-title {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    #panel {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 100;
+      width: 230px;
+      max-height: calc(100vh - 24px);
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .ctrl-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11px;
+      color: rgba(0, 0, 0, 0.7);
+    }
+
+    .ctrl-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.45);
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .row input[type="range"] {
+      flex: 1;
+      accent-color: hsl(223, 100%, 65%);
+    }
+
+    #selection-editor {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    #selection-editor[hidden] {
+      display: none;
+    }
+
+    #selection .field {
+      width: 34px;
+      color: rgba(0, 0, 0, 0.45);
+    }
+
+    #selection input[type="number"], #selection input[type="text"] {
+      flex: 1;
+      min-width: 0;
+    }
+
+    #selection code {
+      font-size: 10px;
+      overflow-wrap: anywhere;
+    }
+
+    .hint {
+      font-size: 10px;
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    #note, #note-draw-order {
+      font-size: 10px;
+      color: rgba(0, 0, 0, 0.5);
+    }
+  </style>
+
+  <link rel="stylesheet" href="../build/maptiler-sdk.css">
+</head>
+
+<body>
+  <div id="maps">
+    <div class="map-wrap"><div id="map-helper" class="map"></div><div class="map-title">addPoint (helper)</div></div>
+    <div class="map-wrap"><div id="map-layer" class="map"></div><div class="map-title">PointLayer</div></div>
+  </div>
+
+  <div id="panel">
+    <label class="ctrl-group">
+      <span class="ctrl-label">Collision behaviour</span>
+      <select id="collision">
+        <option value="always-show">always-show</option>
+        <option value="cluster">cluster</option>
+      </select>
+    </label>
+
+    <label class="ctrl-group">
+      <span class="ctrl-label">Point colour</span>
+      <select id="color">
+        <option value="#e63946">#e63946</option>
+        <option value="#1d3557">#1d3557</option>
+        <option value="ramp">TURBO ramp (1–7)</option>
+      </select>
+    </label>
+
+    <label class="ctrl-group">
+      <span class="ctrl-label">Property</span>
+      <select id="property">
+        <option value="">none</option>
+        <option value="mag">mag</option>
+      </select>
+    </label>
+
+    <div class="ctrl-group">
+      <span class="ctrl-label">Point radius</span>
+      <div class="row">
+        <label><input id="radius-auto" type="checkbox" checked /> auto</label>
+        <input id="radius" type="range" min="2" max="40" step="1" value="10" />
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <span class="ctrl-label">Options</span>
+      <label class="row"><input id="outline" type="checkbox" /> outline</label>
+      <label class="row"><input id="zoom-compensation" type="checkbox" checked /> zoomCompensation</label>
+      <label class="row"><input id="align-viewport" type="checkbox" checked /> alignOnViewport</label>
+      <label class="row"><input id="show-label" type="checkbox" /> showLabel (unset when unticked)</label>
+    </div>
+
+    <div class="ctrl-group">
+      <span class="ctrl-label">Min zoom</span>
+      <div class="row">
+        <input id="minzoom" type="range" min="0" max="6" step="1" value="0" />
+        <span id="minzoom-val">0</span>
+      </div>
+    </div>
+
+    <label class="ctrl-group">
+      <span class="ctrl-label">Right map renderer</span>
+      <select id="renderer">
+        <option value="circles">PointLayer (circles)</option>
+        <option value="symbols">Dots (raw symbol layer)</option>
+        <option value="marker-square">PointLayer (markers, square)</option>
+      </select>
+    </label>
+
+    <label class="ctrl-group">
+      <span class="ctrl-label">symbol-z-order (dots only)</span>
+      <select id="z-order">
+        <option value="viewport-y">viewport-y</option>
+        <option value="source">source</option>
+      </select>
+    </label>
+
+    <div class="ctrl-group" id="selection">
+      <span class="ctrl-label">Selected marker (markers renderer)</span>
+      <div id="selection-empty" class="hint">Hover a marker to swap in a DOM marker; click one to select it.</div>
+      <div id="selection-editor" hidden>
+        <div class="row"><span class="field">id</span><code id="sel-id"></code></div>
+        <label class="row"><span class="field">mag</span><input id="sel-mag" type="number" step="0.1" min="0" max="10" /></label>
+        <label class="row"><span class="field">label</span><input id="sel-label" type="text" maxlength="4" placeholder="from mag" /></label>
+        <div class="row"><span class="field">image</span><code id="sel-image"></code></div>
+        <button id="sel-clear" type="button">Deselect</button>
+      </div>
+      <div class="hint">Marker images on the map: <span id="image-count">0</span></div>
+    </div>
+
+    <p id="note">
+      Left re-runs addPoint from scratch on every change. Right updates one PointLayer in place. Both should
+      look identical; the browser console logs which sublayers the PointLayer has after each change.
+    </p>
+
+    <p id="note-draw-order">
+      Draw order: switch the right map to dots or markers and pitch the map (right-drag or ctrl-drag). Nearer
+      points should draw over further ones, marker labels included. symbol-z-order switches the dots between
+      viewport-y and data order, for comparison. The styling controls above apply to the circles only.
+    </p>
+  </div>
+
+  <script type="module" src="/src/23-point-layer.ts"></script>
+</body>
+
+</html>

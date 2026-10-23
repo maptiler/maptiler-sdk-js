@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Data Layer Base</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    #map {
+      position: absolute;
+      inset: 0;
+    }
+
+    #panel, #log-panel {
+      position: fixed;
+      top: 12px;
+      z-index: 100;
+      max-height: calc(100vh - 24px);
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    #panel {
+      left: 12px;
+      width: 250px;
+    }
+
+    #log-panel {
+      right: 12px;
+      width: 320px;
+    }
+
+    .ctrl-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ctrl-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.45);
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    .row input[type="range"] {
+      flex: 1;
+      accent-color: hsl(223, 100%, 65%);
+    }
+
+    button {
+      font: inherit;
+      font-size: 11px;
+      padding: 4px 8px;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #f0f4ff;
+    }
+
+    pre {
+      font-size: 10px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: rgba(0, 0, 0, 0.7);
+    }
+
+    #log {
+      max-height: 40vh;
+      overflow-y: auto;
+    }
+  </style>
+
+  <link rel="stylesheet" href="../build/maptiler-sdk.css">
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <div id="panel">
+    <div class="ctrl-group">
+      <div class="ctrl-label">Lifecycle</div>
+      <div class="row">
+        <button id="add">Add</button>
+        <button id="add-below-labels">Add below labels</button>
+        <button id="remove">Remove</button>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Data</div>
+      <div class="row">
+        <button id="data-random">Random points</button>
+        <button id="data-url">Earthquakes URL</button>
+        <button id="data-bad-url">Bad URL</button>
+      </div>
+      <div class="row">
+        <button id="data-burst">100× setData in one tick</button>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Styling (paint path)</div>
+      <div class="row">
+        <input id="color" type="color" value="#e63946" />
+        <span>radius</span>
+        <input id="radius" type="range" min="2" max="20" step="1" value="6" />
+      </div>
+      <div class="row">
+        <button id="reset-styling">Reset to defaults</button>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Styling (rebuild path)</div>
+      <label class="row"><input id="halo" type="checkbox" /> Halo sublayer</label>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Display</div>
+      <label class="row"><input id="visible" type="checkbox" checked /> Visible</label>
+      <div class="row">
+        <span>min zoom</span>
+        <input id="minzoom" type="range" min="0" max="12" step="1" value="0" />
+        <span id="minzoom-val">0</span>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Style swap</div>
+      <div class="row">
+        <button id="style-url">URL (full rebuild)</button>
+        <button id="style-object">Object (diff)</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="log-panel">
+    <div class="ctrl-group">
+      <div class="ctrl-label">Layer state</div>
+      <pre id="state"></pre>
+    </div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Events</div>
+      <pre id="log"></pre>
+    </div>
+  </div>
+
+  <script type="module" src="/src/22-data-layer.ts"></script>
+</body>
+
+</html>
