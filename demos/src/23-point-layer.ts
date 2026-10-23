@@ -3,6 +3,7 @@ import "@maptiler/sdk/vite-worker";
 import { ColorRampCollection, Map, MapStyle, PointLayer, config, helpers } from "../../src/index";
 import type { PointLayerCirclesCollisionBehaviour, PointLayerCirclesStyling } from "../../src/index";
 import { el, setupMapTilerApiKey } from "./demo-utils";
+import { MarkerInteraction, loadQuakes, type QuakeFeature } from "./point-layer-interaction";
 
 setupMapTilerApiKey({ config });
 
@@ -162,21 +163,22 @@ function addDrawOrderExperiment(map: Map, circlesLayer: PointLayer) {
   const renderer = el<HTMLSelectElement>("renderer");
   const zOrder = el<HTMLSelectElement>("z-order");
 
-  // the real thing: a markers mode PointLayer, labels drawn into each marker image
+  // the real thing: a markers mode PointLayer, labels drawn into each marker image.
+  // Its data is loaded below, as an object, so single features can be edited.
   const markersLayer = new PointLayer({
     mode: "markers",
-    data: EARTHQUAKES_URL,
+    data: { type: "FeatureCollection", features: [] },
     styling: {
       marker: { shape: "square", size: "m", outline: true },
-      label: ["number-format", ["get", "mag"], { "max-fraction-digits": 1 }],
+      // a property per feature, computed from `mag` unless overridden — see point-layer-interaction.ts
+      label: "label",
     },
     visible: false,
   });
   map.addLayer(markersLayer);
 
-  markersLayer.on("click", (e) => {
-    console.log("markers PointLayer click", e.features?.[0]?.properties);
-  });
+  const interaction = setupMarkerInteraction(map, markersLayer);
+  interaction.setEnabled(renderer.value === "marker-square");
 
   // the raw experiment: plain dots sized by magnitude, so there's plenty of overlap to judge the order by
   map.addImage(DOT_IMAGE_ID, drawDotImage(), { pixelRatio: DOT_PIXEL_RATIO });
@@ -200,12 +202,73 @@ function addDrawOrderExperiment(map: Map, circlesLayer: PointLayer) {
   const apply = () => {
     circlesLayer.setVisible(renderer.value === "circles");
     markersLayer.setVisible(renderer.value === "marker-square");
+    interaction.setEnabled(renderer.value === "marker-square");
     map.setLayoutProperty(EXPERIMENT_ID, "visibility", renderer.value === "symbols" ? "visible" : "none");
     map.setLayoutProperty(EXPERIMENT_ID, "symbol-z-order", zOrder.value as "viewport-y" | "source");
   };
 
   renderer.addEventListener("input", apply);
   zOrder.addEventListener("input", apply);
+}
+
+//#endregion
+
+//#region Marker interaction
+
+/**
+ * Hover and selection for the markers layer, plus an editor for the selected
+ * feature's data — each edit is a `setData`, and a new label a new image.
+ */
+function setupMarkerInteraction(map: Map, layer: PointLayer<"markers">): MarkerInteraction {
+  const editor = el("selection-editor");
+  const empty = el("selection-empty");
+  const magInput = el<HTMLInputElement>("sel-mag");
+  const labelInput = el<HTMLInputElement>("sel-label");
+
+  const imagePrefix = `${layer.id}-marker-`;
+  const renderImageCount = () => {
+    el("image-count").textContent = String(map.listImages().filter((id) => id.startsWith(imagePrefix)).length);
+  };
+
+  const renderSelection = (feature: QuakeFeature | null) => {
+    editor.hidden = !feature;
+    empty.hidden = Boolean(feature);
+    if (!feature) return;
+    el("sel-id").textContent = feature.properties.id;
+    magInput.value = String(feature.properties.mag);
+    labelInput.value = feature.properties.labelOverride ?? "";
+    // the image id the layer requests for this feature: `["concat", prefix, label]`, evaluated
+    const [sublayerId] = layer.getSublayerIds();
+    const iconImage = sublayerId ? map.getLayoutProperty(sublayerId, "icon-image") : undefined;
+    const prefix = Array.isArray(iconImage) ? String(iconImage[1]) : "";
+    el("sel-image").textContent = `${prefix}${feature.properties.label}`;
+  };
+
+  const interaction = new MarkerInteraction({ map, layer, data: { type: "FeatureCollection", features: [] }, onSelect: renderSelection });
+
+  const editSelected = (changes: Parameters<MarkerInteraction["updateFeature"]>[1]) => {
+    const feature = interaction.getSelected();
+    if (!feature) return;
+    interaction.updateFeature(feature.properties.id, changes);
+    renderSelection(feature);
+  };
+
+  magInput.addEventListener("input", () => {
+    if (magInput.value !== "") editSelected({ mag: Number(magInput.value) });
+  });
+  labelInput.addEventListener("input", () => {
+    editSelected({ labelOverride: labelInput.value || undefined });
+  });
+  el("sel-clear").addEventListener("click", () => {
+    interaction.select(null);
+  });
+
+  map.on("idle", renderImageCount);
+  void loadQuakes(EARTHQUAKES_URL).then((data) => {
+    interaction.setData(data);
+  });
+
+  return interaction;
 }
 
 //#endregion

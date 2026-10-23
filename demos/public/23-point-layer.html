@@ -92,6 +92,36 @@
       accent-color: hsl(223, 100%, 65%);
     }
 
+    #selection-editor {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    #selection-editor[hidden] {
+      display: none;
+    }
+
+    #selection .field {
+      width: 34px;
+      color: rgba(0, 0, 0, 0.45);
+    }
+
+    #selection input[type="number"], #selection input[type="text"] {
+      flex: 1;
+      min-width: 0;
+    }
+
+    #selection code {
+      font-size: 10px;
+      overflow-wrap: anywhere;
+    }
+
+    .hint {
+      font-size: 10px;
+      color: rgba(0, 0, 0, 0.5);
+    }
+
     #note, #note-draw-order {
       font-size: 10px;
       color: rgba(0, 0, 0, 0.5);
@@ -173,6 +203,19 @@
         <option value="source">source</option>
       </select>
     </label>
+
+    <div class="ctrl-group" id="selection">
+      <span class="ctrl-label">Selected marker (markers renderer)</span>
+      <div id="selection-empty" class="hint">Hover a marker to swap in a DOM marker; click one to select it.</div>
+      <div id="selection-editor" hidden>
+        <div class="row"><span class="field">id</span><code id="sel-id"></code></div>
+        <label class="row"><span class="field">mag</span><input id="sel-mag" type="number" step="0.1" min="0" max="10" /></label>
+        <label class="row"><span class="field">label</span><input id="sel-label" type="text" maxlength="4" placeholder="from mag" /></label>
+        <div class="row"><span class="field">image</span><code id="sel-image"></code></div>
+        <button id="sel-clear" type="button">Deselect</button>
+      </div>
+      <div class="hint">Marker images on the map: <span id="image-count">0</span></div>
+    </div>
 
     <p id="note">
       Left re-runs addPoint from scratch on every change. Right updates one PointLayer in place. Both should
