@@ -10,6 +10,7 @@ export default defineConfig({
         animatedRouteLayer: 'public/animatedRouteLayer.html',
         haloSpace: 'public/haloSpace.html',
         pointLayer: 'public/pointLayer.html',
+        markerCanvas: 'public/markerCanvas.html',
       },
     },
   },

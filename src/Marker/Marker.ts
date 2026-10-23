@@ -47,7 +47,8 @@ import {
   releaseCollisionFadeClass,
 } from "./marker-dom-utils";
 import { SHAPES, getShapeAnchorOffset } from "./marker-svg-config";
-import { getAdaptiveColors, type AdaptiveColorSet } from "./marker-adaptive-colors";
+import type { AdaptiveColorSet } from "../adaptive-colors";
+import { getAdaptiveColors } from "./marker-adaptive-colors";
 import { MarkerManager } from "./MarkerManager";
 import type { MarkerFootprint } from "./collision-helpers";
 import { flattenUIStates } from "./marker-state-helpers";
@@ -427,9 +428,10 @@ export class Marker extends MLMarker {
     });
   }
 
-  /** A colour prop's value in effect — the explicit one, else the default for the map's style. */
+  /** A colour prop's value in effect — the explicit one, else the default for the map's style (and shape — none for a custom element). */
   private getEffectiveColor(prop: keyof AdaptiveColorSet): string {
-    return this.props[prop] ?? getAdaptiveColors(this.getCurrentStyleId() ?? "", this.props.shape ?? DEFAULT_SHAPE)[prop];
+    const shape = this.options.element ? this.props.shape : (this.props.shape ?? DEFAULT_SHAPE);
+    return this.props[prop] ?? getAdaptiveColors(this.getCurrentStyleId() ?? "", shape)[prop];
   }
 
   //#endregion
@@ -939,8 +941,6 @@ export class Marker extends MLMarker {
       content: this.getContent(),
     };
   }
-
-  //#endregion
 
   //#endregion
 

@@ -2,7 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { Marker } from "../../src/Marker/Marker";
 import { MarkerManager } from "../../src/Marker/MarkerManager";
 import { ApplyAltitudeFrameSymbol, ApplyCollisionDisplayStateSymbol, CollisionFootprintSymbol, MeasuredElementSizeSymbol } from "../../src/Marker/marker-symbols";
-import { ADAPTIVE_COLORS, SIZE_PX } from "../../src/Marker/marker-constants";
+import { SIZE_PX } from "../../src/Marker/marker-constants";
+import { ADAPTIVE_COLORS } from "../../src/adaptive-colors";
 import type { mat4 } from "gl-matrix";
 import { createMockMap, mercatorProjectionData, type MockMap } from "./mock-map";
 
@@ -264,6 +265,70 @@ describe("setRotation / getRotation", () => {
     const marker = new Marker({});
     marker.setRotation(45);
     expect(marker.getRotation()).toBe(45);
+  });
+});
+
+//#endregion
+
+//#region Style
+
+describe("getStyle", () => {
+  it("returns the marker's visual options", () => {
+    const marker = new Marker({
+      shape: "bubble-square",
+      size: "l",
+      outerColor: "red",
+      innerColor: "white",
+      contentColor: "black",
+      outline: 3,
+      outlineColor: "blue",
+      shadow: "strong",
+      opacity: 0.5,
+      content: "A",
+    });
+
+    expect(marker.getStyle()).toEqual({
+      shape: "bubble-square",
+      size: "l",
+      outerColor: "red",
+      innerColor: "white",
+      contentColor: "black",
+      outline: 3,
+      outlineColor: "blue",
+      shadow: "strong",
+      opacity: 0.5,
+      content: "A",
+    });
+  });
+
+  it("leaves unset colours out instead of resolving the map-style defaults", () => {
+    const marker = new Marker({ shape: "circle" });
+    const style = marker.getStyle();
+
+    expect(style.outerColor).toBeUndefined();
+    expect(style.innerColor).toBeUndefined();
+    expect(style.contentColor).toBeUndefined();
+    expect(style.outlineColor).toBeUndefined();
+    // the getters do resolve them
+    expect(marker.getInnerColor()).toBe(ADAPTIVE_COLORS.base.innerColor);
+  });
+
+  it("reports the effective shape and size of a marker created without them", () => {
+    const marker = new Marker({});
+    const style = marker.getStyle();
+
+    expect(style.shape).toBe(marker.getShape());
+    expect(style.size).toBe(marker.getSize());
+  });
+
+  it("follows later setter calls", () => {
+    const marker = new Marker({ shape: "circle" });
+    marker.setShape("square");
+    marker.setSize("s");
+    marker.setOuterColor("green");
+    marker.setContent("42");
+
+    expect(marker.getStyle()).toMatchObject({ shape: "square", size: "s", outerColor: "green", content: "42" });
   });
 });
 

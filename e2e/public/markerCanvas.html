@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MapTiler E2E Marker Canvas</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 8px;
+      background: #fff;
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(6, max-content);
+      gap: 8px;
+    }
+
+    .pair {
+      display: flex;
+      gap: 2px;
+    }
+
+    /* even-sized cells: every marker box and canvas is even-sized too, so both centre on whole pixels */
+    .cell {
+      width: 64px;
+      height: 64px;
+      display: grid;
+      place-items: center;
+      background: #fff;
+    }
+
+    .cell canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div id="grid"></div>
+  <script type="module" src="/src/markerCanvas.ts"></script>
+</body>
+</html>
