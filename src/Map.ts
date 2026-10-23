@@ -17,6 +17,7 @@ import type {
   FilterSpecification,
   StyleSetterOptions,
   ExpressionSpecification,
+  MissingStyleImageResolver,
   SymbolLayerSpecification,
   ProjectionSpecification,
   FlyToOptions,
@@ -1507,6 +1508,77 @@ export class Map extends MapMLGL {
    */
   getStyleId(): string | undefined {
     return this.currentStyleId;
+  }
+
+  /** Missing-image resolvers added with {@link addMissingStyleImageResolver}, tried in the order added. */
+  private readonly missingStyleImageResolvers: MissingStyleImageResolver[] = [];
+
+  /** The resolver set with {@link setMissingStyleImageResolver}, tried after the added ones. */
+  private userMissingStyleImageResolver: MissingStyleImageResolver | null = null;
+
+  /**
+   * Sets a callback that is invoked when an icon or pattern needed by the style is missing.
+   * MapLibre awaits it before the image is treated as missing, so it can load or draw the
+   * image and add it with {@link addImage}.
+   *
+   * The SDK's own layers resolve their images through {@link addMissingStyleImageResolver},
+   * which this does not replace: those are tried first, then this one.
+   * @param resolver - Callback that resolves missing images, or `null` to remove it.
+   */
+  override setMissingStyleImageResolver(resolver: MissingStyleImageResolver | null): this {
+    this.userMissingStyleImageResolver = resolver;
+    this.applyMissingStyleImageResolvers();
+    return this;
+  }
+
+  /**
+   * Adds a missing-image resolver alongside any others, rather than replacing them as
+   * {@link setMissingStyleImageResolver} does. Resolvers are tried in the order added, until
+   * one has added the image; each should ignore ids it doesn't own.
+   * @param resolver - Callback that resolves missing images.
+   */
+  addMissingStyleImageResolver(resolver: MissingStyleImageResolver): this {
+    if (!this.missingStyleImageResolvers.includes(resolver)) {
+      this.missingStyleImageResolvers.push(resolver);
+      this.applyMissingStyleImageResolvers();
+    }
+    return this;
+  }
+
+  /**
+   * Removes a resolver added with {@link addMissingStyleImageResolver}.
+   * @param resolver - The resolver to remove.
+   */
+  removeMissingStyleImageResolver(resolver: MissingStyleImageResolver): this {
+    const index = this.missingStyleImageResolvers.indexOf(resolver);
+    if (index !== -1) {
+      this.missingStyleImageResolvers.splice(index, 1);
+      this.applyMissingStyleImageResolvers();
+    }
+    return this;
+  }
+
+  /** Hands MapLibre a single resolver that tries every registered one in turn. */
+  private applyMissingStyleImageResolvers(): void {
+    const resolvers = [...this.missingStyleImageResolvers];
+    if (this.userMissingStyleImageResolver) resolvers.push(this.userMissingStyleImageResolver);
+
+    if (resolvers.length === 0) {
+      super.setMissingStyleImageResolver(null);
+      return;
+    }
+
+    super.setMissingStyleImageResolver(async (id) => {
+      for (const resolve of resolvers) {
+        // one resolver failing shouldn't stop the others from trying
+        try {
+          await resolve(id);
+        } catch (e) {
+          console.warn(`Missing image resolver failed for "${id}":`, e);
+        }
+        if (this.hasImage(id)) return;
+      }
+    });
   }
 
   /**

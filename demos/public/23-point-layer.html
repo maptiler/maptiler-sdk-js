@@ -92,7 +92,7 @@
       accent-color: hsl(223, 100%, 65%);
     }
 
-    #note {
+    #note, #note-draw-order {
       font-size: 10px;
       color: rgba(0, 0, 0, 0.5);
     }
@@ -157,9 +157,32 @@
       </div>
     </div>
 
+    <label class="ctrl-group">
+      <span class="ctrl-label">Right map renderer</span>
+      <select id="renderer">
+        <option value="circles">PointLayer (circles)</option>
+        <option value="symbols">Dots (raw symbol layer)</option>
+        <option value="marker-square">PointLayer (markers, square)</option>
+      </select>
+    </label>
+
+    <label class="ctrl-group">
+      <span class="ctrl-label">symbol-z-order (dots only)</span>
+      <select id="z-order">
+        <option value="viewport-y">viewport-y</option>
+        <option value="source">source</option>
+      </select>
+    </label>
+
     <p id="note">
       Left re-runs addPoint from scratch on every change. Right updates one PointLayer in place. Both should
       look identical; the browser console logs which sublayers the PointLayer has after each change.
+    </p>
+
+    <p id="note-draw-order">
+      Draw order: switch the right map to dots or markers and pitch the map (right-drag or ctrl-drag). Nearer
+      points should draw over further ones, marker labels included. symbol-z-order switches the dots between
+      viewport-y and data order, for comparison. The styling controls above apply to the circles only.
     </p>
   </div>
 

@@ -1,45 +1,82 @@
-import type { GeoJSONSourceSpecification } from "maplibre-gl";
+import type { GeoJSONSourceSpecification, Map as MapLibreMap } from "maplibre-gl";
 import type { Map as SDKMap } from "../../Map";
 import { getRandomColor } from "../../helpers/stylehelper";
 import { DataLayer, type SublayerSpecification } from "../DataLayer";
 import { buildCircleLayers, resolveCirclesStyling } from "./circles-renderer";
-import type { PointLayerCirclesCollisionBehaviour, PointLayerCirclesStyling, PointLayerConstructorOptions, PointLayerMode } from "./types";
+import { MarkerImages, buildMarkerLayers, resolveMarkersStyling } from "./markers-renderer";
+import type {
+  PointLayerCirclesCollisionBehaviour,
+  PointLayerCirclesStyling,
+  PointLayerCollisionBehaviour,
+  PointLayerConstructorOptions,
+  PointLayerMarkersCollisionBehaviour,
+  PointLayerMarkersStyling,
+  PointLayerMode,
+  PointLayerStyling,
+} from "./types";
 
 /**
- * A stateful layer of points, rendered as GL circles — the successor to the
- * `addPoint` helper. Add it with `map.addLayer(layer, beforeId)`; its data,
- * styling and display can then be changed at any time.
+ * A stateful layer of points — the successor to the `addPoint` helper. Add it
+ * with `map.addLayer(layer, beforeId)`; its data, styling and display can then
+ * be changed at any time.
+ *
+ * Points render as GL circles (`mode: "circles"`, the default) or as MapTiler
+ * marker images (`mode: "markers"`). The mode is fixed at construction.
  *
  * @example
  * ```ts
  * const layer = new PointLayer({ data: "https://example.com/points.geojson", styling: { pointColor: "#ff0000" } });
  * map.addLayer(layer);
  * layer.setStyling({ pointRadius: 12 }).setVisible(true);
+ *
+ * const markers = new PointLayer({ mode: "markers", data, styling: { marker: { shape: "square" }, label: "name" } });
+ * map.addLayer(markers);
  * ```
  */
-export class PointLayer extends DataLayer<PointLayerCirclesStyling, PointLayerMode> {
-  private collisionBehaviour: PointLayerCirclesCollisionBehaviour;
+export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLayer<PointLayerStyling<TMode>, TMode> {
+  private collisionBehaviour: PointLayerCollisionBehaviour<TMode>;
 
-  /** Colour used while `pointColor` is unset — picked once, so it's stable across rebuilds. */
+  /** Colour used while `pointColor` is unset in circles mode — picked once, so it's stable across rebuilds. */
   private readonly defaultColor = getRandomColor();
 
-  constructor(options: PointLayerConstructorOptions) {
-    super("maptiler-point-layer", options.mode ?? "circles", options);
-    this.collisionBehaviour = options.collisionBehaviour ?? "always-show";
+  /** Marker images in markers mode. */
+  private readonly markerImages = new MarkerImages(this.id);
+
+  constructor(options: PointLayerConstructorOptions<TMode>) {
+    super("maptiler-point-layer", options.mode ?? ("circles" as TMode), options);
+    this.collisionBehaviour = options.collisionBehaviour ?? ("always-show" as PointLayerCollisionBehaviour<TMode>);
   }
 
   //#region Collision Behaviour
 
   /** Sets what happens where points overlap. Switching clustering on or off rebuilds the source. */
-  setCollisionBehaviour(collisionBehaviour: PointLayerCirclesCollisionBehaviour): this {
+  setCollisionBehaviour(collisionBehaviour: PointLayerCollisionBehaviour<TMode>): this {
     if (collisionBehaviour === this.collisionBehaviour) return this;
     this.collisionBehaviour = collisionBehaviour;
     this.requestRebuild();
     return this;
   }
 
-  getCollisionBehaviour(): PointLayerCirclesCollisionBehaviour {
+  getCollisionBehaviour(): PointLayerCollisionBehaviour<TMode> {
     return this.collisionBehaviour;
+  }
+
+  //#endregion
+
+  //#region CustomLayerInterface
+
+  override onAdd(map: MapLibreMap): void {
+    // before the sublayers are added, so the first tiles find their images
+    if (this.isMarkers()) (map as SDKMap).addMissingStyleImageResolver(this.resolveImage);
+    super.onAdd(map);
+  }
+
+  override onRemove(): void {
+    if (this.map) {
+      this.map.removeMissingStyleImageResolver(this.resolveImage);
+      this.markerImages.removeAll(this.map);
+    }
+    super.onRemove();
   }
 
   //#endregion
@@ -58,13 +95,16 @@ export class PointLayer extends DataLayer<PointLayerCirclesStyling, PointLayerMo
     return this.syncSublayers(this.buildSublayers());
   }
 
-  // the default opacity fades in and out at the zoom range's edges
+  // the default circle opacity fades in and out at the zoom range's edges
   protected override onZoomRangeChange(): boolean {
     return this.syncSublayers(this.buildSublayers());
   }
 
-  protected resolveStyling(): PointLayerCirclesStyling {
-    return resolveCirclesStyling(this.styling, this.defaultColor, this.isClustered());
+  protected resolveStyling(): PointLayerStyling<TMode> {
+    if (this.isMarkers()) {
+      return resolveMarkersStyling(this.styling as PointLayerMarkersStyling, this.map?.getStyleId()) as PointLayerStyling<TMode>;
+    }
+    return resolveCirclesStyling(this.styling as PointLayerCirclesStyling, this.defaultColor, this.isClustered()) as PointLayerStyling<TMode>;
   }
 
   //#endregion
@@ -72,7 +112,17 @@ export class PointLayer extends DataLayer<PointLayerCirclesStyling, PointLayerMo
   //#region Internal
 
   private buildSublayers(): SublayerSpecification[] {
-    return buildCircleLayers(this.resolveStyling(), {
+    if (this.isMarkers()) {
+      const styling = resolveMarkersStyling(this.styling as PointLayerMarkersStyling, this.map?.getStyleId());
+      return buildMarkerLayers(styling, {
+        layerId: this.id,
+        sourceId: this.getSourceId(),
+        collisionBehaviour: this.collisionBehaviour as PointLayerMarkersCollisionBehaviour,
+        imagePrefix: this.markerImages.setStyle(this.map, styling.marker),
+      });
+    }
+
+    return buildCircleLayers(this.resolveStyling() as PointLayerCirclesStyling, {
       layerId: this.id,
       sourceId: this.getSourceId(),
       cluster: this.isClustered(),
@@ -81,8 +131,16 @@ export class PointLayer extends DataLayer<PointLayerCirclesStyling, PointLayerMo
     });
   }
 
+  private readonly resolveImage = (id: string): Promise<void> | undefined => {
+    return this.map ? this.markerImages.resolve(this.map, id) : undefined;
+  };
+
+  private isMarkers(): boolean {
+    return (this.mode as PointLayerMode) === "markers";
+  }
+
   private isClustered(): boolean {
-    return this.collisionBehaviour === "cluster";
+    return !this.isMarkers() && (this.collisionBehaviour as PointLayerCirclesCollisionBehaviour) === "cluster";
   }
 
   //#endregion

@@ -1,4 +1,4 @@
-import type { DataDrivenPropertyValueSpecification } from "maplibre-gl";
+import type { DataDrivenPropertyValueSpecification, ExpressionSpecification } from "maplibre-gl";
 import { ColorRampCollection, type ColorRamp } from "../../ColorRamp";
 import type { DataDrivenStyle } from "../../helpers/vectorlayerhelpers";
 import { colorDrivenByProperty, opacityDrivenByProperty, paintColorOptionsToPaintSpec, radiusDrivenByProperty, rampedOptionsToLayerPaintSpec } from "../../helpers/stylehelper";
@@ -7,7 +7,8 @@ import type { PointLayerCirclesStyling } from "./types";
 
 // Layer specs for `circles` mode. Ported from the `addPoint` helper's spec
 // logic — kept as a copy rather than shared, so `addPoint` stays frozen. The
-// resulting layers should match `addPoint`'s for the same options.
+// resulting layers should match `addPoint`'s for the same options, except that
+// labels too big for their circle are hidden rather than overflowing it.
 
 //#region Types
 
@@ -33,6 +34,9 @@ const LABEL_FONT = ["Noto Sans Regular"];
 
 /** Steps in the generated cluster / data-driven style. */
 const DATA_DRIVEN_STYLE_STEPS = 20;
+
+/** Room kept between a label and the edge of its circle, in px. */
+const LABEL_FIT_MARGIN_PX = 1;
 
 //#endregion
 
@@ -99,6 +103,8 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
   const outlinePaint = buildOutlinePaint(styling);
 
   const layers: SublayerSpecification[] = [];
+  /** Radius of the circles that carry labels — clusters when clustering, else the points. */
+  let labelledRadius: DataDrivenPropertyValueSpecification<number>;
 
   if (cluster) {
     // clusters are sized and coloured by their point count, never by zoom or a property
@@ -111,6 +117,13 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
       };
     });
 
+    labelledRadius =
+      typeof styling.pointRadius === "number"
+        ? styling.pointRadius
+        : Array.isArray(styling.pointRadius)
+          ? rampedOptionsToLayerPaintSpec(styling.pointRadius)
+          : radiusDrivenByProperty(clusterStyle, "point_count", false);
+
     layers.push({
       id: ids.cluster,
       type: "circle",
@@ -118,12 +131,7 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
       filter: ["has", "point_count"],
       paint: {
         "circle-color": typeof styling.pointColor === "string" ? styling.pointColor : colorDrivenByProperty(clusterStyle, "point_count"),
-        "circle-radius":
-          typeof styling.pointRadius === "number"
-            ? styling.pointRadius
-            : Array.isArray(styling.pointRadius)
-              ? rampedOptionsToLayerPaintSpec(styling.pointRadius)
-              : radiusDrivenByProperty(clusterStyle, "point_count", false),
+        "circle-radius": labelledRadius,
         "circle-pitch-alignment": alignOnViewport ? "viewport" : "map",
         "circle-pitch-scale": "map", // scale with camera distance regardless of viewport/map alignment
         "circle-opacity": pointOpacity,
@@ -195,6 +203,7 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
       pointColor = colorDrivenByProperty(dataDrivenStyle, styling.property);
       pointRadius = radiusDrivenByProperty(dataDrivenStyle, styling.property, zoomCompensation);
     }
+    labelledRadius = pointRadius;
 
     layers.push({
       id: ids.point,
@@ -219,6 +228,8 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
   const labelProperty = cluster ? "point_count" : styling.property;
   const showLabel = styling.showLabel ?? cluster;
   if (showLabel && labelProperty) {
+    const labelSize = styling.labelSize ?? DEFAULT_LABEL_SIZE;
+
     layers.push({
       id: ids.label,
       type: "symbol",
@@ -227,12 +238,13 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
       layout: {
         "text-field": cluster ? "{point_count_abbreviated}" : `{${labelProperty}}`,
         "text-font": LABEL_FONT,
-        "text-size": styling.labelSize ?? DEFAULT_LABEL_SIZE,
+        "text-size": labelSize,
         "text-pitch-alignment": alignOnViewport ? "viewport" : "map",
         "symbol-sort-key": ["/", 1, ["get", labelProperty]], // so that the largest value goes on top
       },
       paint: {
-        "text-color": styling.labelColor ?? DEFAULT_LABEL_COLOR,
+        // hidden where it wouldn't fit its circle — in the colour, as the opacity already carries the point opacity
+        "text-color": hideUnfittingLabels(styling.labelColor ?? DEFAULT_LABEL_COLOR, labelSize, labelledRadius),
         "text-opacity": pointOpacity,
       },
     });
@@ -240,6 +252,50 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
 
   return layers;
 }
+
+//#region Label Fitting
+
+/**
+ * Label colour that turns transparent where the circle is narrower than the
+ * label is tall — a naive check that ignores the label's length.
+ *
+ * `["zoom"]` may only be the input of a top-level step / interpolate, so a
+ * zoom-dependent radius is checked at its ramp's own stops, as a zoom `step`.
+ * The radius grows between stops while the step holds the lower stop's
+ * result, so a label may show up late, but never overflows.
+ * @param color - Colour of a label that fits.
+ * @param size - Label font size, in px.
+ * @param radius - Radius of the circle the label sits on, as given to `circle-radius`.
+ */
+function hideUnfittingLabels(color: string, size: number, radius: DataDrivenPropertyValueSpecification<number>): DataDrivenPropertyValueSpecification<string> {
+  const ramp = parseZoomRamp(radius);
+  if (!ramp) return fitColor(color, size, radius as number | ExpressionSpecification);
+
+  const [first, ...rest] = ramp;
+  return ["step", ["zoom"], fitColor(color, size, first.value), ...rest.flatMap((stop) => [stop.zoom, fitColor(color, size, stop.value)])] as ExpressionSpecification;
+}
+
+/** `color` where a circle of `radius` is at least `size` across, else transparent. */
+function fitColor(color: string, size: number, radius: number | ExpressionSpecification): ExpressionSpecification {
+  return ["case", [">=", ["-", ["*", 2, radius], 2 * LABEL_FIT_MARGIN_PX], size], color, "rgba(0, 0, 0, 0)"];
+}
+
+type ZoomRampStop = { zoom: number; value: number | ExpressionSpecification };
+
+/** Stops of a linear zoom interpolation (`rampedOptionsToLayerPaintSpec`, `radiusDrivenByProperty`), or `null` for a radius that doesn't depend on zoom. */
+function parseZoomRamp(value: DataDrivenPropertyValueSpecification<number>): ZoomRampStop[] | null {
+  if (!Array.isArray(value) || value[0] !== "interpolate") return null;
+  const [, , input, ...stops] = value as unknown[];
+  if (!Array.isArray(input) || input[0] !== "zoom") return null;
+
+  const ramp: ZoomRampStop[] = [];
+  for (let i = 0; i < stops.length; i += 2) {
+    ramp.push({ zoom: stops[i] as number, value: stops[i + 1] as number | ExpressionSpecification });
+  }
+  return ramp;
+}
+
+//#endregion
 
 /** `pointOpacity`, else ramp-driven opacity, else a fade in/out at the zoom range's edges. */
 function resolvePointOpacity(styling: PointLayerCirclesStyling, colorramp: ColorRamp, context: CirclesRenderContext): DataDrivenPropertyValueSpecification<number> {

@@ -120,7 +120,95 @@ async function main() {
       updateLayer();
     });
   }
+
+  addDrawOrderExperiment(layerMap, layer);
 }
+
+//#region Draw order experiment
+
+// Circles are drawn in source (or circle-sort-key) order, so with the camera
+// pitched far points can draw over near ones. Symbols with
+// `symbol-z-order: viewport-y` are sorted by screen y instead — lower on
+// screen means nearer the camera for points on the ground.
+
+const EXPERIMENT_ID = "draw-order-experiment";
+const DOT_IMAGE_ID = `${EXPERIMENT_ID}-dot`;
+const DOT_PIXEL_RATIO = 2;
+
+/** A filled dot with a thick white outline, so it's obvious which of two overlapping dots is in front. */
+function drawDotImage(): ImageData {
+  const radius = 24 * DOT_PIXEL_RATIO;
+  const outline = 3 * DOT_PIXEL_RATIO;
+  const size = 2 * (radius + outline);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("2d context unavailable");
+
+  ctx.beginPath();
+  ctx.arc(size / 2, size / 2, radius, 0, Math.PI * 2);
+  ctx.fillStyle = "#e63946";
+  ctx.fill();
+  ctx.lineWidth = outline;
+  ctx.strokeStyle = "#ffffff";
+  ctx.stroke();
+
+  return ctx.getImageData(0, 0, size, size);
+}
+
+function addDrawOrderExperiment(map: Map, circlesLayer: PointLayer) {
+  const renderer = el<HTMLSelectElement>("renderer");
+  const zOrder = el<HTMLSelectElement>("z-order");
+
+  // the real thing: a markers mode PointLayer, labels drawn into each marker image
+  const markersLayer = new PointLayer({
+    mode: "markers",
+    data: EARTHQUAKES_URL,
+    styling: {
+      marker: { shape: "square", size: "m", outline: true },
+      label: ["number-format", ["get", "mag"], { "max-fraction-digits": 1 }],
+    },
+    visible: false,
+  });
+  map.addLayer(markersLayer);
+
+  markersLayer.on("click", (e) => {
+    console.log("markers PointLayer click", e.features?.[0]?.properties);
+  });
+
+  // the raw experiment: plain dots sized by magnitude, so there's plenty of overlap to judge the order by
+  map.addImage(DOT_IMAGE_ID, drawDotImage(), { pixelRatio: DOT_PIXEL_RATIO });
+  map.addSource(EXPERIMENT_ID, { type: "geojson", data: EARTHQUAKES_URL });
+  map.addLayer({
+    id: EXPERIMENT_ID,
+    type: "symbol",
+    source: EXPERIMENT_ID,
+    layout: {
+      "icon-image": DOT_IMAGE_ID,
+      "icon-size": ["interpolate", ["linear"], ["get", "mag"], 1, 0.3, 7, 1.2],
+      "icon-pitch-alignment": "viewport",
+      // viewport-y only sorts when symbols are allowed to overlap
+      "icon-allow-overlap": true,
+      "icon-ignore-placement": true,
+      "symbol-z-order": zOrder.value as "viewport-y" | "source",
+      visibility: "none",
+    },
+  });
+
+  const apply = () => {
+    circlesLayer.setVisible(renderer.value === "circles");
+    markersLayer.setVisible(renderer.value === "marker-square");
+    map.setLayoutProperty(EXPERIMENT_ID, "visibility", renderer.value === "symbols" ? "visible" : "none");
+    map.setLayoutProperty(EXPERIMENT_ID, "symbol-z-order", zOrder.value as "viewport-y" | "source");
+  };
+
+  renderer.addEventListener("input", apply);
+  zOrder.addEventListener("input", apply);
+}
+
+//#endregion
 
 /** Mirrors camera moves between the two maps. */
 function syncCameras(a: Map, b: Map) {
