@@ -5,7 +5,6 @@ import { DataLayer, type SublayerSpecification } from "../DataLayer";
 import { buildCircleLayers, resolveCirclesStyling } from "./circles-renderer";
 import { MarkerImages, buildMarkerLayers, resolveMarkersStyling } from "./markers-renderer";
 import type {
-  PointLayerCirclesCollisionBehaviour,
   PointLayerCirclesStyling,
   PointLayerCollisionBehaviour,
   PointLayerConstructorOptions,
@@ -39,8 +38,12 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
   /** Colour used while `pointColor` is unset in circles mode — picked once, so it's stable across rebuilds. */
   private readonly defaultColor = getRandomColor();
 
-  /** Marker images in markers mode. */
-  private readonly markerImages = new MarkerImages(this.id);
+  /** Images in markers mode: the markers, the dots minimized markers leave, and the cluster markers. */
+  private readonly images = {
+    marker: new MarkerImages(this.id, "marker"),
+    dot: new MarkerImages(this.id, "dot"),
+    cluster: new MarkerImages(this.id, "cluster"),
+  };
 
   constructor(options: PointLayerConstructorOptions<TMode>) {
     super("maptiler-point-layer", options.mode ?? ("circles" as TMode), options);
@@ -74,7 +77,7 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
   override onRemove(): void {
     if (this.map) {
       this.map.removeMissingStyleImageResolver(this.resolveImage);
-      this.markerImages.removeAll(this.map);
+      for (const images of Object.values(this.images)) images.removeAll(this.map);
     }
     super.onRemove();
   }
@@ -118,7 +121,11 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
         layerId: this.id,
         sourceId: this.getSourceId(),
         collisionBehaviour: this.collisionBehaviour as PointLayerMarkersCollisionBehaviour,
-        imagePrefix: this.markerImages.setStyle(this.map, styling.marker),
+        imagePrefixes: {
+          marker: this.images.marker.setStyle(this.map, styling.marker),
+          dot: this.images.dot.setStyle(this.map, styling.minimized),
+          cluster: this.images.cluster.setStyle(this.map, styling.clusterMarker),
+        },
       });
     }
 
@@ -131,8 +138,11 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
     });
   }
 
-  private readonly resolveImage = (id: string): Promise<void> | undefined => {
-    return this.map ? this.markerImages.resolve(this.map, id) : undefined;
+  private readonly resolveImage = async (id: string): Promise<void> => {
+    const map = this.map;
+    if (!map) return;
+    // each set ignores ids that aren't its own
+    await Promise.all(Object.values(this.images).map((images) => images.resolve(map, id)));
   };
 
   private isMarkers(): boolean {
@@ -140,7 +150,7 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
   }
 
   private isClustered(): boolean {
-    return !this.isMarkers() && (this.collisionBehaviour as PointLayerCirclesCollisionBehaviour) === "cluster";
+    return this.collisionBehaviour === "cluster";
   }
 
   //#endregion

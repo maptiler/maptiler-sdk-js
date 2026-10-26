@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { MarkerImages, buildMarkerLayers, resolveMarkersStyling } from "../../src/data-layers/PointLayer/markers-renderer";
+import { MarkerImages, buildMarkerLayers, resolveMarkersStyling, type MarkersRenderContext } from "../../src/data-layers/PointLayer/markers-renderer";
 import { getAdaptiveColors } from "../../src/Marker/marker-adaptive-colors";
 import { drawMarkerCanvas } from "../../src/Marker/marker-canvas";
 import { onLabelFontLoad } from "../../src/Marker/marker-text-fit";
@@ -7,6 +7,7 @@ import { createMockStyleMap, type MockStyleMap } from "./mock-style-map";
 
 // canvas drawing has its own tests — here it only needs to hand back an image
 vi.mock("../../src/Marker/marker-canvas", () => ({
+  getMarkerCanvasPadding: vi.fn(() => 6),
   drawMarkerCanvas: vi.fn(() => ({
     canvas: { width: 2, height: 2, getContext: () => ({ getImageData: () => new ImageData(2, 2) }) },
     pixelRatio: 2,
@@ -35,6 +36,23 @@ describe("markers renderer", () => {
       expect(marker.outerColor).toBe("#123456");
       expect(marker.innerColor).toBe(getAdaptiveColors("dataviz-dark", "square").innerColor);
     });
+
+    test("minimizes to an xs dot in the marker's own colours, under any overrides, without content", () => {
+      const { marker, minimized } = resolveMarkersStyling({ marker: { shape: "square", content: "x" } }, "streets-v2");
+      expect(minimized).toMatchObject({ shape: "square", size: "xs", outerColor: marker.outerColor, innerColor: marker.innerColor });
+      expect(minimized.content).toBeUndefined();
+
+      const overridden = resolveMarkersStyling({ marker: { shape: "square" }, minimized: { size: "s", outerColor: "#ff0000" } }, "streets-v2").minimized;
+      expect(overridden).toMatchObject({ shape: "square", size: "s", outerColor: "#ff0000" });
+    });
+
+    test("styles clusters like the markers unless given their own style, resolved the same way", () => {
+      const plain = resolveMarkersStyling({ marker: { shape: "square" } }, "streets-v2");
+      expect(plain.clusterMarker).toEqual(plain.marker);
+
+      const own = resolveMarkersStyling({ marker: { shape: "square" }, clusterMarker: { shape: "circle", size: "l" } }, "streets-v2").clusterMarker;
+      expect(own).toMatchObject({ shape: "circle", size: "l", innerColor: getAdaptiveColors("streets-v2", "circle").innerColor });
+    });
   });
 
   //#endregion
@@ -42,7 +60,8 @@ describe("markers renderer", () => {
   //#region Layers
 
   describe("buildMarkerLayers", () => {
-    const context = { layerId: "pl", sourceId: "pl-source", collisionBehaviour: "always-show" as const, imagePrefix: "pl-marker-1:" };
+    const imagePrefixes = { marker: "pl-marker-1:", dot: "pl-dot-1:", cluster: "pl-cluster-1:" };
+    const context: MarkersRenderContext = { layerId: "pl", sourceId: "pl-source", collisionBehaviour: "always-show", imagePrefixes };
 
     function layout(label?: string | ["get", string]) {
       const [layer] = buildMarkerLayers(resolveMarkersStyling({ label }, undefined), context);
@@ -79,6 +98,64 @@ describe("markers renderer", () => {
       const [layer] = buildMarkerLayers(resolveMarkersStyling({ marker: { opacity: 0.5 } }, undefined), context);
       expect(layer.paint).toEqual({ "icon-opacity": 0.5 });
     });
+
+    //#region Collision
+
+    describe("collision behaviours", () => {
+      function build(collisionBehaviour: MarkersRenderContext["collisionBehaviour"], styling: Parameters<typeof resolveMarkersStyling>[0] = {}) {
+        return buildMarkerLayers(resolveMarkersStyling({ label: "name", ...styling }, undefined), { ...context, collisionBehaviour });
+      }
+      const layoutOf = (layer: { layout?: unknown }) => layer.layout as Record<string, unknown>;
+
+      test("always-show: one marker layer that never collides, with no sort key", () => {
+        const layers = build("always-show", { priority: ["get", "mag"] });
+
+        expect(layers.map((l) => l.id)).toEqual(["pl-marker"]);
+        expect(layoutOf(layers[0])["symbol-sort-key"]).toBeUndefined();
+      });
+
+      test("hide-by-priority: one marker layer that collides, placed highest priority first", () => {
+        const layers = build("hide-by-priority", { priority: ["get", "mag"] });
+
+        expect(layers.map((l) => l.id)).toEqual(["pl-marker"]);
+        expect(layoutOf(layers[0])).toMatchObject({ "icon-allow-overlap": false, "icon-ignore-placement": false, "symbol-sort-key": ["-", ["get", "mag"]] });
+        // viewport-y would make MapLibre place by screen y rather than by sort key
+        expect(layoutOf(layers[0])["symbol-z-order"]).toBe("auto");
+        // the collision box is trimmed of the image's shadow margin
+        expect(layoutOf(layers[0])["icon-padding"]).toEqual([-6]);
+        expect(layoutOf(build("always-show")[0])["icon-padding"]).toBeUndefined();
+      });
+
+      test("negates a constant priority, and leaves data order without one", () => {
+        expect(layoutOf(build("hide-by-priority", { priority: 3 })[0])["symbol-sort-key"]).toBe(-3);
+        expect(layoutOf(build("hide-by-priority")[0])["symbol-sort-key"]).toBeUndefined();
+      });
+
+      test("minimize-by-priority: an always-shown dot beneath every colliding marker", () => {
+        const [dot, marker] = build("minimize-by-priority", { marker: { shape: "maptiler", opacity: 0.8 } });
+
+        expect([dot.id, marker.id]).toEqual(["pl-dot", "pl-marker"]);
+        // the dot has no label, and sits centred on the point
+        expect(layoutOf(dot)).toMatchObject({ "icon-image": "pl-dot-1:", "icon-offset": [0, 0], "icon-allow-overlap": true, "icon-ignore-placement": true });
+        expect(dot.paint).toEqual({ "icon-opacity": 0.8 });
+        expect(layoutOf(marker)).toMatchObject({ "icon-allow-overlap": false, "icon-ignore-placement": false });
+      });
+
+      test("cluster: unclustered markers, then cluster markers with the count drawn into their image", () => {
+        const [marker, cluster] = build("cluster", { clusterMarker: { shape: "circle", size: "l" } });
+
+        expect([marker.id, cluster.id]).toEqual(["pl-marker", "pl-cluster"]);
+        expect(marker.filter).toEqual(["!", ["has", "point_count"]]);
+        expect(cluster.filter).toEqual(["has", "point_count"]);
+        expect(layoutOf(cluster)).toMatchObject({
+          "icon-image": ["concat", "pl-cluster-1:", ["to-string", ["get", "point_count_abbreviated"]]],
+          "icon-offset": [0, 0],
+          "icon-allow-overlap": true,
+        });
+      });
+    });
+
+    //#endregion
   });
 
   //#endregion
@@ -171,6 +248,17 @@ describe("markers renderer", () => {
 
       expect(onLabelFontLoad).not.toHaveBeenCalled();
       expect(mock.images.has(`${prefix}a`)).toBe(true);
+    });
+
+    test("keeps each role's images apart by id", async () => {
+      const dots = new MarkerImages("pl", "dot");
+      const markerPrefix = images.setStyle(mock.asSDKMap(), {});
+      const dotPrefix = dots.setStyle(mock.asSDKMap(), { size: "xs" });
+
+      expect(markerPrefix).toBe("pl-marker-1:");
+      expect(dotPrefix).toBe("pl-dot-1:");
+      await images.resolve(mock.asSDKMap(), dotPrefix);
+      expect(drawMarkerCanvas).not.toHaveBeenCalled();
     });
 
     test("removeAll removes only the images it added", async () => {

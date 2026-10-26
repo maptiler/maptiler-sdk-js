@@ -1,7 +1,7 @@
 // Sets the MapLibre worker URL, as Vite users of the SDK do
 import "@maptiler/sdk/vite-worker";
 import { ColorRampCollection, Map, MapStyle, PointLayer, config, helpers } from "../../src/index";
-import type { PointLayerCirclesCollisionBehaviour, PointLayerCirclesStyling } from "../../src/index";
+import type { GeoJSONSource, PointLayerCirclesCollisionBehaviour, PointLayerCirclesStyling, PointLayerMarkersCollisionBehaviour } from "../../src/index";
 import { el, setupMapTilerApiKey } from "./demo-utils";
 import { MarkerInteraction, loadQuakes, type QuakeFeature } from "./point-layer-interaction";
 
@@ -172,6 +172,10 @@ function addDrawOrderExperiment(map: Map, circlesLayer: PointLayer) {
       marker: { shape: "square", size: "m", outline: true },
       // a property per feature, computed from `mag` unless overridden — see point-layer-interaction.ts
       label: "label",
+      // bigger quakes win where markers collide
+      priority: ["get", "mag"],
+      // so a cluster's count can't be mistaken for a magnitude
+      clusterMarker: { shape: "circle", size: "l", outline: true },
     },
     visible: false,
   });
@@ -179,6 +183,26 @@ function addDrawOrderExperiment(map: Map, circlesLayer: PointLayer) {
 
   const interaction = setupMarkerInteraction(map, markersLayer);
   interaction.setEnabled(renderer.value === "marker-square");
+
+  const markersCollision = el<HTMLSelectElement>("markers-collision");
+  markersCollision.addEventListener("input", () => {
+    // the sublayers are rebuilt, dropping the interaction's hidden-marker override with them
+    interaction.select(null);
+    markersLayer.setCollisionBehaviour(markersCollision.value as PointLayerMarkersCollisionBehaviour);
+  });
+
+  // clicking a cluster zooms in until it splits
+  markersLayer.on("click", (e) => {
+    const clusterId = e.features?.[0]?.properties.cluster_id as number | undefined;
+    if (clusterId === undefined) return;
+    const feature = e.features?.[0];
+    void map
+      .getSource<GeoJSONSource>(markersLayer.getSourceId())
+      ?.getClusterExpansionZoom(clusterId)
+      .then((zoom) => {
+        if (feature?.geometry.type === "Point") map.easeTo({ center: feature.geometry.coordinates as [number, number], zoom });
+      });
+  });
 
   // the raw experiment: plain dots sized by magnitude, so there's plenty of overlap to judge the order by
   map.addImage(DOT_IMAGE_ID, drawDotImage(), { pixelRatio: DOT_PIXEL_RATIO });

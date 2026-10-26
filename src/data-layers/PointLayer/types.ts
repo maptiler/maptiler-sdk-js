@@ -1,6 +1,6 @@
 import type { ExpressionSpecification } from "maplibre-gl";
 import type { PointLayerOptions } from "../../helpers/vectorlayerhelpers";
-import type { CollisionBehaviour, MarkerStyle } from "../../Marker/types";
+import type { CollisionBehaviour, MarkerMinimizedOptions, MarkerStyle } from "../../Marker/types";
 import type { DataLayerConstructorOptions } from "../DataLayer";
 
 /** How a {@link PointLayer} renders its points. Fixed at construction. */
@@ -62,10 +62,31 @@ export type PointLayerMarkersStyling = {
    * Each distinct label becomes its own image, so keep the number of distinct values modest.
    */
   label?: string | ExpressionSpecification;
+  /**
+   * Which marker wins where markers overlap, under `hide-by-priority` and
+   * `minimize-by-priority` — higher wins, as for DOM markers. A number, or an
+   * expression evaluated per feature (e.g. `["get", "mag"]`). Unset, markers
+   * are placed in data order.
+   */
+  priority?: number | ExpressionSpecification;
+  /** Look of markers minimized by `minimize-by-priority`, over the marker's own style. Defaults to an `xs` dot in the marker's colours. */
+  minimized?: MarkerMinimizedOptions;
+  /** Look of cluster markers under `cluster`, which show their point count. Defaults to the marker's style. */
+  clusterMarker?: MarkerStyle;
 };
 
-/** What happens where markers overlap. Only `always-show` for now: every marker shows, nearer ones drawn over further ones. */
-export type PointLayerMarkersCollisionBehaviour = Extract<CollisionBehaviour, "always-show">;
+/**
+ * What happens where markers overlap:
+ * - `always-show` (the default): every marker shows, nearer ones drawn over further ones.
+ * - `hide-by-priority`: a marker overlapping a higher-priority one is hidden.
+ * - `minimize-by-priority`: a marker overlapping a higher-priority one shrinks to a dot.
+ * - `cluster`: nearby markers group into cluster markers showing their count.
+ *
+ * Collision is MapLibre's symbol collision, so markers also collide with the
+ * style's labels and icons placed before them, and priority holds within a
+ * tile rather than across the whole map.
+ */
+export type PointLayerMarkersCollisionBehaviour = CollisionBehaviour | "cluster";
 
 export type PointLayerMarkersOptions = DataLayerConstructorOptions<PointLayerMarkersStyling> & {
   /** Renders points as MapTiler marker images. */

@@ -8,6 +8,7 @@ import { getAdaptiveColors } from "../../src/Marker/marker-adaptive-colors";
 import { createMockStyleMap, type MockStyleMap } from "./mock-style-map";
 
 vi.mock("../../src/Marker/marker-canvas", () => ({
+  getMarkerCanvasPadding: vi.fn(() => 6),
   drawMarkerCanvas: vi.fn(() => ({
     canvas: { width: 2, height: 2, getContext: () => ({ getImageData: () => new ImageData(2, 2) }) },
     pixelRatio: 2,
@@ -185,7 +186,8 @@ describe("PointLayer", () => {
       return layer;
     }
 
-    const iconImage = (layer: PointLayer<"markers">) => (mock.map.getLayer(`${layer.id}-marker`) as Sublayer).layout?.["icon-image"] as unknown[];
+    const iconImageOf = (layer: PointLayer<"markers">, sublayer: string) => (mock.map.getLayer(`${layer.id}-${sublayer}`) as Sublayer).layout?.["icon-image"] as unknown[];
+    const iconImage = (layer: PointLayer<"markers">) => iconImageOf(layer, "marker");
     const prefixOf = (layer: PointLayer<"markers">) => iconImage(layer)[1] as string;
 
     test("renders one symbol sublayer and registers its image resolver before it", () => {
@@ -270,9 +272,48 @@ describe("PointLayer", () => {
       expect(iconImage(addMarkers({ styling: { label: ["get", "mag"] } }))[2]).toEqual(["to-string", ["get", "mag"]]);
     });
 
-    test("never clusters", () => {
+    test("clusters the source only under the cluster behaviour", () => {
+      expect(mock.sources.get(addMarkers().getSourceId())?.spec).toMatchObject({ cluster: false });
+      expect(mock.sources.get(addMarkers({ collisionBehaviour: "cluster" }).getSourceId())?.spec).toMatchObject({ cluster: true });
+    });
+
+    test("rebuilds its sublayers for each collision behaviour", () => {
       const layer = addMarkers();
+      const sublayers = (behaviour: Parameters<typeof layer.setCollisionBehaviour>[0]) => {
+        layer.setCollisionBehaviour(behaviour);
+        flushFrames();
+        return layer.getSublayerIds().map((id) => id.slice(layer.id.length + 1));
+      };
+
+      expect(sublayers("minimize-by-priority")).toEqual(["dot", "marker"]);
+      expect(sublayers("cluster")).toEqual(["marker", "cluster"]);
+      expect(sublayers("hide-by-priority")).toEqual(["marker"]);
       expect(mock.sources.get(layer.getSourceId())?.spec).toMatchObject({ cluster: false });
+    });
+
+    test("resolves its dot and cluster images too", async () => {
+      const layer = addMarkers({ collisionBehaviour: "minimize-by-priority" });
+      const dotId = (mock.map.getLayer(`${layer.id}-dot`) as Sublayer).layout?.["icon-image"] as string;
+
+      await mock.resolvers[0](dotId);
+      layer.setCollisionBehaviour("cluster");
+      flushFrames();
+      const clusterId = `${iconImageOf(layer, "cluster")[1] as string}12`;
+      await mock.resolvers[0](clusterId);
+
+      expect(mock.images.has(dotId)).toBe(true);
+      expect(mock.images.has(clusterId)).toBe(true);
+    });
+
+    test("updates the sort key in place when the priority changes", () => {
+      const layer = addMarkers({ collisionBehaviour: "hide-by-priority" });
+      mock.map.addSource.mockClear();
+
+      layer.setStyling({ priority: ["get", "mag"] });
+      flushFrames();
+
+      expect(mock.map.setLayoutProperty).toHaveBeenCalledWith(`${layer.id}-marker`, "symbol-sort-key", ["-", ["get", "mag"]]);
+      expect(mock.map.addSource).not.toHaveBeenCalled();
     });
   });
 
