@@ -31,6 +31,12 @@
 - SDK custom events (e.g. `ready`, `loadWithTerrain`, `projection.change`) are now typed in `on`, `once`, `off` and `fire`. Adds the `MaptilerMapEventType` and `MapEventTypeSDK` types.
 - Events of `CubemapLayer` (`cubemaplayer:*`), `RadialGradientLayer` (`radialgradientlayer:*`) and `ImageViewerMarker` are now typed.
 
+### 🐛 Bug Fixes
+- Fixes `ImageViewer` event types under MapLibre 6, where listeners typed with `ImageViewerEvent` were rejected by `on`, `once` and `off`.
+  - `ImageViewer` is now typed over an event map, `ImageViewerEventType`, and `ImageViewerEvent` extends MapLibre's `Event`.
+  - `imagevieweriniterror` is typed separately as `ImageViewerInitErrorEvent`, carrying `{ error: Error }`.
+  - `imageviewerready`, `beforeremove` and `error` listeners now receive the `ImageViewerEvent` instance itself, rather than a plain copy.
+
 ### ⚙️ Others
 - Bumps `maplibre-gl` to 6.11.2 and `@maplibre/maplibre-gl-style-spec` to 26.
 - Switches internal `maplibre-gl` imports to named imports.

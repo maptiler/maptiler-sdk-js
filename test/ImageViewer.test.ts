@@ -374,6 +374,40 @@ describe("ImageViewer", () => {
 
       await expect(viewer.onReadyAsync()).rejects.toThrow("[ImageViewer]: Failed to fetch image metadata at test-url: 404: Not Found");
     });
+
+    it("fires imageviewerready as an ImageViewerEvent targeting the viewer", async () => {
+      const viewer = new ImageViewer({ container, imageUUID: "test-uuid", apiKey: "test-key", debug: false });
+
+      const event = await viewer.once("imageviewerready");
+
+      expect(event).toBeInstanceOf(ImageViewerEvent);
+      expect(event.type).toBe("imageviewerready");
+      expect(event.target).toBe(viewer);
+    });
+
+    it("fires imagevieweriniterror with the error that stopped it", async () => {
+      mockFetch.mockRejectedValueOnce(new Error("Network error"));
+      const viewer = new ImageViewer({ container, imageUUID: "test-uuid", apiKey: "test-key", debug: false });
+
+      // typed as `{ error: Error }` — no cast needed
+      const event = await viewer.once("imagevieweriniterror");
+
+      expect(event.type).toBe("imagevieweriniterror");
+      expect(event.error).toBeInstanceOf(Error);
+      expect(event.error.message).toBe("Network error");
+    });
+
+    it("fires beforeremove as an ImageViewerEvent", async () => {
+      const viewer = new ImageViewer({ container, imageUUID: "test-uuid", apiKey: "test-key", debug: false });
+      await viewer.onReadyAsync();
+      const listener = vi.fn();
+      viewer.on("beforeremove", listener);
+
+      viewer.remove();
+
+      expect(listener).toHaveBeenCalledWith(expect.any(ImageViewerEvent));
+      expect((listener.mock.calls[0] as [ImageViewerEvent])[0].target).toBe(viewer);
+    });
   });
 
   describe("Coordinate Transformations", () => {
