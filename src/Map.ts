@@ -110,6 +110,23 @@ export type MaptilerMapEventType = {
  */
 export type MapEventTypeSDK = MapEventType & MaptilerMapEventType;
 
+/**
+ * An event as an SDK `Map` listener receives it. MapLibre types its events' target as its
+ * own `Map`, which lacks the SDK members, but the target is always the SDK `Map` that fired it.
+ *
+ * The target is intersected in, rather than remapped over every event, so the SDK `Map`'s
+ * `on`/`once`/`off` stay assignable to MapLibre's — the SDK `Map` is passed to MapLibre controls and layers.
+ * @example
+ * ```ts
+ * const onClick = (e: MapEventSDK<"click">) => console.log(e.lngLat, e.target.getSpace());
+ * map.on("click", onClick);
+ * ```
+ */
+export type MapEventSDK<T extends keyof MapEventTypeSDK> = MapEventTypeSDK[T] & object & { target: Map };
+
+/** A layer event as an SDK `Map` listener receives it — see {@link MapEventSDK}. */
+export type MapLayerEventSDK<T extends keyof MapLayerEventType> = MapLayerEventType[T] & object & { target: Map };
+
 export const GeolocationType: {
   POINT: "POINT";
   COUNTRY: "COUNTRY";
@@ -355,8 +372,8 @@ export class Map extends MapMLGL {
    * Adds a listener for events of a specified type, optionally limited to features in one or more layers.
    * Accepts the MapLibre events as well as the SDK events (see {@link MaptilerMapEventType}).
    */
-  override on<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[], listener: (ev: MapLayerEventType[T] & object) => void): Subscription;
-  override on<T extends keyof MapEventTypeSDK>(type: T, listener: (ev: MapEventTypeSDK[T] & object) => void): Subscription;
+  override on<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[], listener: (ev: MapLayerEventSDK<T>) => void): Subscription;
+  override on<T extends keyof MapEventTypeSDK>(type: T, listener: (ev: MapEventSDK<T>) => void): Subscription;
   override on(type: keyof MapEventTypeSDK, listener: Listener): Subscription;
   override on(type: keyof MapEventTypeSDK, layerIdsOrListener: string | string[] | Listener, listener?: Listener): Subscription {
     // The SDK event names are not part of MapLibre's `MapEventType`, but MapLibre's `Evented` handles any string at runtime
@@ -367,10 +384,10 @@ export class Map extends MapMLGL {
    * Adds a listener that will be called only once to a specified event type, optionally limited to features in one or more layers.
    * Accepts the MapLibre events as well as the SDK events (see {@link MaptilerMapEventType}).
    */
-  override once<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[], listener: (ev: MapLayerEventType[T] & object) => void): this;
-  override once<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[]): Promise<MapLayerEventType[T] & object>;
-  override once<T extends keyof MapEventTypeSDK>(type: T, listener: (ev: MapEventTypeSDK[T] & object) => void): this;
-  override once<T extends keyof MapEventTypeSDK>(type: T): Promise<MapEventTypeSDK[T] & object>;
+  override once<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[], listener: (ev: MapLayerEventSDK<T>) => void): this;
+  override once<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[]): Promise<MapLayerEventSDK<T>>;
+  override once<T extends keyof MapEventTypeSDK>(type: T, listener: (ev: MapEventSDK<T>) => void): this;
+  override once<T extends keyof MapEventTypeSDK>(type: T): Promise<MapEventSDK<T>>;
   override once(type: keyof MapEventTypeSDK, listener?: Listener): this | Promise<any>;
   override once(type: keyof MapEventTypeSDK, layerIdsOrListener?: string | string[] | Listener, listener?: Listener): this | Promise<any> {
     return (super.once as (...args: unknown[]) => this | Promise<any>).call(this, type, layerIdsOrListener, listener);
@@ -380,8 +397,8 @@ export class Map extends MapMLGL {
    * Removes an event listener previously added with {@link Map.on} or {@link Map.once}.
    * Accepts the MapLibre events as well as the SDK events (see {@link MaptilerMapEventType}).
    */
-  override off<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[], listener: (ev: MapLayerEventType[T] & object) => void): this;
-  override off<T extends keyof MapEventTypeSDK>(type: T, listener: (ev: MapEventTypeSDK[T] & object) => void): this;
+  override off<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[], listener: (ev: MapLayerEventSDK<T>) => void): this;
+  override off<T extends keyof MapEventTypeSDK>(type: T, listener: (ev: MapEventSDK<T>) => void): this;
   override off(type: keyof MapEventTypeSDK, listener: Listener): this;
   override off(type: keyof MapEventTypeSDK, layerIdsOrListener: string | string[] | Listener, listener?: Listener): this {
     return (super.off as (...args: unknown[]) => this).call(this, type, layerIdsOrListener, listener);
