@@ -66,13 +66,9 @@ export function drawMarkerCanvas(style: MarkerStyle, options: MarkerCanvasOption
   const sizeKey = style.size ?? DEFAULT_SIZE;
   const colors = resolveColors(style, options.styleId ?? "", shapeKey);
   const sizePx = SIZE_PX[sizeKey];
-  // the xs dot has no outline
-  const outlineWidth = sizeKey !== "xs" && style.outline ? (style.outline === true ? DEFAULT_OUTLINE_WIDTH : style.outline) : 0;
-  const shadow = SHADOW_PARAMS[style.shadow ?? DEFAULT_SHADOW_BY_SIZE[sizeKey]];
-
-  // half the outline sits outside the path; ~3σ (1.5 × blur) covers the visible shadow
-  const shadowExtent = shadow ? Math.max(Math.abs(shadow.offsetX), Math.abs(shadow.offsetY)) + shadow.blur * 1.5 : 0;
-  const padding = Math.ceil(Math.max(outlineWidth / 2, shadowExtent)) + 1;
+  const outlineWidth = getOutlineWidth(style);
+  const shadow = getShadow(style);
+  const padding = getMarkerCanvasPadding(style);
 
   const body = createCanvas(sizePx + padding * 2, pixelRatio);
   const ctx = getContext(body);
@@ -99,6 +95,29 @@ export function drawMarkerCanvas(style: MarkerStyle, options: MarkerCanvasOption
   shadowCtx.drawImage(body, 0, 0);
 
   return { canvas, pixelRatio, padding };
+}
+
+/**
+ * Transparent margin, in CSS px, that {@link drawMarkerCanvas} leaves on every
+ * side of the marker box for `style` — the outline and shadow. Lets a GL layer
+ * trim its collision box back to the marker itself before any image is drawn.
+ * @param style - Visual style of the marker.
+ */
+export function getMarkerCanvasPadding(style: MarkerStyle): number {
+  const shadow = getShadow(style);
+  // half the outline sits outside the path; ~3σ (1.5 × blur) covers the visible shadow
+  const shadowExtent = shadow ? Math.max(Math.abs(shadow.offsetX), Math.abs(shadow.offsetY)) + shadow.blur * 1.5 : 0;
+  return Math.ceil(Math.max(getOutlineWidth(style) / 2, shadowExtent)) + 1;
+}
+
+function getOutlineWidth(style: MarkerStyle): number {
+  // the xs dot has no outline
+  if ((style.size ?? DEFAULT_SIZE) === "xs" || !style.outline) return 0;
+  return style.outline === true ? DEFAULT_OUTLINE_WIDTH : style.outline;
+}
+
+function getShadow(style: MarkerStyle) {
+  return SHADOW_PARAMS[style.shadow ?? DEFAULT_SHADOW_BY_SIZE[style.size ?? DEFAULT_SIZE]];
 }
 
 //#endregion
