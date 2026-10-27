@@ -21,6 +21,7 @@ exports[`Module Exports > should match the snapshot of module exports 1`] = `
   "CubemapLayer",
   "DOMcreate",
   "DOMremove",
+  "DataLayer",
   "DoubleClickZoomHandler",
   "DragPanHandler",
   "DragRotateHandler",
