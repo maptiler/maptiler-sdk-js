@@ -191,7 +191,8 @@ describe("PointLayer", () => {
     const prefixOf = (layer: PointLayer<"markers">) => iconImage(layer)[1] as string;
 
     test("renders one symbol sublayer and registers its image resolver before it", () => {
-      const layer = addMarkers();
+      // the default, minimize-by-priority, adds a dot layer beneath
+      const layer = addMarkers({ collisionBehaviour: "always-show" });
 
       expect(layer.getSublayerIds()).toEqual([`${layer.id}-marker`]);
       expect(mock.resolvers).toHaveLength(1);

@@ -47,7 +47,9 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
 
   constructor(options: PointLayerConstructorOptions<TMode>) {
     super("maptiler-point-layer", options.mode ?? ("circles" as TMode), options);
-    this.collisionBehaviour = options.collisionBehaviour ?? ("always-show" as PointLayerCollisionBehaviour<TMode>);
+    // circles can't collide, so only markers default to colliding
+    const defaultBehaviour = this.mode === "markers" ? "minimize-by-priority" : "always-show";
+    this.collisionBehaviour = options.collisionBehaviour ?? (defaultBehaviour as PointLayerCollisionBehaviour<TMode>);
   }
 
   //#region Collision Behaviour

@@ -91,7 +91,7 @@ export type PointLayerMarkersCollisionBehaviour = CollisionBehaviour | "cluster"
 export type PointLayerMarkersOptions = DataLayerConstructorOptions<PointLayerMarkersStyling> & {
   /** Renders points as MapTiler marker images. */
   mode: "markers";
-  /** Defaults to `always-show`. */
+  /** Defaults to `minimize-by-priority`. */
   collisionBehaviour?: PointLayerMarkersCollisionBehaviour;
 };
 
@@ -112,7 +112,7 @@ export type PointLayerCollisionBehaviour<TMode extends PointLayerMode> = TMode e
 export type PointLayerConstructorOptions<TMode extends PointLayerMode = "circles"> = DataLayerConstructorOptions<PointLayerStyling<TMode>> & {
   /** How points are rendered. Defaults to `circles`. */
   mode?: TMode;
-  /** What happens where points overlap. Defaults to `always-show`. */
+  /** What happens where points overlap. Defaults to `minimize-by-priority` for markers, `always-show` for circles. */
   collisionBehaviour?: PointLayerCollisionBehaviour<TMode>;
 };
 

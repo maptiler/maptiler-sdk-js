@@ -102,7 +102,7 @@
       display: none;
     }
 
-    #selection .field {
+    #selection .field, .row .field {
       width: 34px;
       color: rgba(0, 0, 0, 0.45);
     }
@@ -139,10 +139,14 @@
 
   <div id="panel">
     <label class="ctrl-group">
-      <span class="ctrl-label">Collision behaviour</span>
-      <select id="collision">
-        <option value="always-show">always-show</option>
-        <option value="cluster">cluster</option>
+      <span class="ctrl-label">Map style (both maps)</span>
+      <select id="map-style">
+        <option value="dataviz-light">dataviz light</option>
+        <option value="dataviz-dark">dataviz dark</option>
+        <option value="streets">streets</option>
+        <option value="base">base</option>
+        <option value="topo">topo</option>
+        <option value="hybrid">hybrid (satellite)</option>
       </select>
     </label>
 
@@ -192,7 +196,7 @@
       <select id="renderer">
         <option value="circles">PointLayer (circles)</option>
         <option value="symbols">Dots (raw symbol layer)</option>
-        <option value="marker-square">PointLayer (markers, square)</option>
+        <option value="marker-square">PointLayer (markers)</option>
       </select>
     </label>
 
@@ -205,11 +209,37 @@
     </label>
 
     <label class="ctrl-group">
+      <span class="ctrl-label">Marker shape</span>
+      <select id="marker-shape">
+        <option value="square">square</option>
+        <option value="circle">circle</option>
+        <option value="bubble-square">bubble-square</option>
+        <option value="bubble-circle">bubble-circle</option>
+        <option value="maptiler">maptiler</option>
+        <option value="maptiler-full">maptiler-full</option>
+      </select>
+    </label>
+
+    <div class="ctrl-group">
+      <span class="ctrl-label">Marker colours</span>
+      <div class="row">
+        <span class="field">outer</span>
+        <label><input id="marker-outer-auto" type="checkbox" checked /> auto</label>
+        <input id="marker-outer" type="color" value="#e63946" />
+      </div>
+      <div class="row">
+        <span class="field">inner</span>
+        <label><input id="marker-inner-auto" type="checkbox" checked /> auto</label>
+        <input id="marker-inner" type="color" value="#ffffff" />
+      </div>
+    </div>
+
+    <label class="ctrl-group">
       <span class="ctrl-label">Markers collision (priority: mag)</span>
       <select id="markers-collision">
         <option value="always-show">always-show</option>
         <option value="hide-by-priority">hide-by-priority</option>
-        <option value="minimize-by-priority">minimize-by-priority</option>
+        <option value="minimize-by-priority" selected>minimize-by-priority</option>
         <option value="cluster">cluster (click one to zoom in)</option>
       </select>
     </label>

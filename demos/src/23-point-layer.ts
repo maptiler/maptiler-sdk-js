@@ -1,7 +1,7 @@
 // Sets the MapLibre worker URL, as Vite users of the SDK do
 import "@maptiler/sdk/vite-worker";
 import { ColorRampCollection, Map, MapStyle, PointLayer, config, helpers } from "../../src/index";
-import type { GeoJSONSource, PointLayerCirclesCollisionBehaviour, PointLayerCirclesStyling, PointLayerMarkersCollisionBehaviour } from "../../src/index";
+import type { GeoJSONSource, MapStyleVariant, MapTilerMarkerShape, MarkerStyle, PointLayerCirclesStyling, PointLayerMarkersCollisionBehaviour } from "../../src/index";
 import { el, setupMapTilerApiKey } from "./demo-utils";
 import { MarkerInteraction, loadQuakes, type QuakeFeature } from "./point-layer-interaction";
 
@@ -20,7 +20,6 @@ const MAXZOOM = 23;
 const magnitudeRamp = ColorRampCollection.TURBO.scale(1, 7);
 
 const controls = {
-  collision: el<HTMLSelectElement>("collision"),
   color: el<HTMLSelectElement>("color"),
   property: el<HTMLSelectElement>("property"),
   radiusAuto: el<HTMLInputElement>("radius-auto"),
@@ -45,12 +44,9 @@ function readStyling(): PointLayerCirclesStyling {
   };
 }
 
-function readCollisionBehaviour(): PointLayerCirclesCollisionBehaviour {
-  return controls.collision.value as PointLayerCirclesCollisionBehaviour;
-}
-
 async function main() {
-  const mapOptions = { style: MapStyle.DATAVIZ.LIGHT, center: [-120, 40] as [number, number], zoom: 2.5 };
+  // every control is read at startup too, as the browser restores their values on reload
+  const mapOptions = { style: MAP_STYLES[el<HTMLSelectElement>("map-style").value], center: [-120, 40] as [number, number], zoom: 2.5 };
   const helperMap = new Map({ ...mapOptions, container: el("map-helper") });
   const layerMap = new Map({ ...mapOptions, container: el("map-layer") });
 
@@ -69,14 +65,14 @@ async function main() {
       for (const id of [helperIds.labelLayerId, helperIds.pointLayerId, helperIds.clusterLayerId]) {
         if (id && helperMap.getLayer(id)) helperMap.removeLayer(id);
       }
-      helperMap.removeSource(helperIds.pointSourceId);
+      // gone already when a new style wiped it
+      if (helperMap.getSource(helperIds.pointSourceId)) helperMap.removeSource(helperIds.pointSourceId);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     helperIds = helpers.addPoint(helperMap, {
       data: EARTHQUAKES_URL,
       ...readStyling(),
-      cluster: readCollisionBehaviour() === "cluster",
       minzoom: Number(controls.minzoom.value),
       maxzoom: MAXZOOM,
     });
@@ -89,7 +85,6 @@ async function main() {
   const layer = new PointLayer({
     data: EARTHQUAKES_URL,
     styling: readStyling(),
-    collisionBehaviour: readCollisionBehaviour(),
     minzoom: Number(controls.minzoom.value),
     maxzoom: MAXZOOM,
   });
@@ -99,7 +94,7 @@ async function main() {
   });
 
   function updateLayer() {
-    layer.setStyling(readStyling()).setCollisionBehaviour(readCollisionBehaviour()).setZoomRange(Number(controls.minzoom.value), MAXZOOM);
+    layer.setStyling(readStyling()).setZoomRange(Number(controls.minzoom.value), MAXZOOM);
 
     // the layer flushes on the next frame — log after it
     requestAnimationFrame(() => {
@@ -111,6 +106,7 @@ async function main() {
 
   //#endregion
 
+  el("minzoom-val").textContent = controls.minzoom.value;
   rebuildHelper();
   layerMap.addLayer(layer);
 
@@ -123,6 +119,29 @@ async function main() {
   }
 
   addDrawOrderExperiment(layerMap, layer);
+  addStyleSwitcher(helperMap, layerMap, rebuildHelper);
+}
+
+/** By the map style select's values. */
+const MAP_STYLES: Record<string, MapStyleVariant> = {
+  "dataviz-light": MapStyle.DATAVIZ.LIGHT,
+  "dataviz-dark": MapStyle.DATAVIZ.DARK,
+  streets: MapStyle.STREETS.DEFAULT,
+  base: MapStyle.BASE.DEFAULT,
+  topo: MapStyle.TOPO.DEFAULT,
+  hybrid: MapStyle.HYBRID.DEFAULT,
+};
+
+/** Switches both maps' style. PointLayers rebuild themselves; the helper's layers are re-added on `style.load`. */
+function addStyleSwitcher(helperMap: Map, layerMap: Map, rebuildHelper: () => void) {
+  const select = el<HTMLSelectElement>("map-style");
+  helperMap.on("style.load", rebuildHelper);
+
+  select.addEventListener("input", () => {
+    const style = MAP_STYLES[select.value];
+    helperMap.setStyle(style);
+    layerMap.setStyle(style);
+  });
 }
 
 //#region Draw order experiment
@@ -162,6 +181,23 @@ function drawDotImage(): ImageData {
 function addDrawOrderExperiment(map: Map, circlesLayer: PointLayer) {
   const renderer = el<HTMLSelectElement>("renderer");
   const zOrder = el<HTMLSelectElement>("z-order");
+  const markersCollision = el<HTMLSelectElement>("markers-collision");
+  const markerControls = {
+    shape: el<HTMLSelectElement>("marker-shape"),
+    outerAuto: el<HTMLInputElement>("marker-outer-auto"),
+    outer: el<HTMLInputElement>("marker-outer"),
+    innerAuto: el<HTMLInputElement>("marker-inner-auto"),
+    inner: el<HTMLInputElement>("marker-inner"),
+  };
+
+  const readMarkerStyle = (): MarkerStyle => ({
+    shape: markerControls.shape.value as MapTilerMarkerShape,
+    size: "m",
+    outline: true,
+    // unset colours fall back to the style's adaptive defaults
+    outerColor: markerControls.outerAuto.checked ? undefined : markerControls.outer.value,
+    innerColor: markerControls.innerAuto.checked ? undefined : markerControls.inner.value,
+  });
 
   // the real thing: a markers mode PointLayer, labels drawn into each marker image.
   // Its data is loaded below, as an object, so single features can be edited.
@@ -169,7 +205,7 @@ function addDrawOrderExperiment(map: Map, circlesLayer: PointLayer) {
     mode: "markers",
     data: { type: "FeatureCollection", features: [] },
     styling: {
-      marker: { shape: "square", size: "m", outline: true },
+      marker: readMarkerStyle(),
       // a property per feature, computed from `mag` unless overridden — see point-layer-interaction.ts
       label: "label",
       // bigger quakes win where markers collide
@@ -177,14 +213,22 @@ function addDrawOrderExperiment(map: Map, circlesLayer: PointLayer) {
       // so a cluster's count can't be mistaken for a magnitude
       clusterMarker: { shape: "circle", size: "l", outline: true },
     },
-    visible: false,
+    collisionBehaviour: markersCollision.value as PointLayerMarkersCollisionBehaviour,
+    visible: renderer.value === "marker-square",
   });
   map.addLayer(markersLayer);
 
   const interaction = setupMarkerInteraction(map, markersLayer);
   interaction.setEnabled(renderer.value === "marker-square");
 
-  const markersCollision = el<HTMLSelectElement>("markers-collision");
+  for (const control of Object.values(markerControls)) {
+    control.addEventListener("input", () => {
+      // the DOM stand-ins were built from the old style
+      interaction.select(null);
+      markersLayer.setStyling({ marker: readMarkerStyle() });
+    });
+  }
+
   markersCollision.addEventListener("input", () => {
     // the sublayers are rebuilt, dropping the interaction's hidden-marker override with them
     interaction.select(null);
@@ -205,23 +249,27 @@ function addDrawOrderExperiment(map: Map, circlesLayer: PointLayer) {
   });
 
   // the raw experiment: plain dots sized by magnitude, so there's plenty of overlap to judge the order by
-  map.addImage(DOT_IMAGE_ID, drawDotImage(), { pixelRatio: DOT_PIXEL_RATIO });
-  map.addSource(EXPERIMENT_ID, { type: "geojson", data: EARTHQUAKES_URL });
-  map.addLayer({
-    id: EXPERIMENT_ID,
-    type: "symbol",
-    source: EXPERIMENT_ID,
-    layout: {
-      "icon-image": DOT_IMAGE_ID,
-      "icon-size": ["interpolate", ["linear"], ["get", "mag"], 1, 0.3, 7, 1.2],
-      "icon-pitch-alignment": "viewport",
-      // viewport-y only sorts when symbols are allowed to overlap
-      "icon-allow-overlap": true,
-      "icon-ignore-placement": true,
-      "symbol-z-order": zOrder.value as "viewport-y" | "source",
-      visibility: "none",
-    },
-  });
+  const addExperiment = () => {
+    if (!map.hasImage(DOT_IMAGE_ID)) map.addImage(DOT_IMAGE_ID, drawDotImage(), { pixelRatio: DOT_PIXEL_RATIO });
+    if (!map.getSource(EXPERIMENT_ID)) map.addSource(EXPERIMENT_ID, { type: "geojson", data: EARTHQUAKES_URL });
+    if (map.getLayer(EXPERIMENT_ID)) return;
+    map.addLayer({
+      id: EXPERIMENT_ID,
+      type: "symbol",
+      source: EXPERIMENT_ID,
+      layout: {
+        "icon-image": DOT_IMAGE_ID,
+        "icon-size": ["interpolate", ["linear"], ["get", "mag"], 1, 0.3, 7, 1.2],
+        "icon-pitch-alignment": "viewport",
+        // viewport-y only sorts when symbols are allowed to overlap
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+        "symbol-z-order": zOrder.value as "viewport-y" | "source",
+        visibility: "none",
+      },
+    });
+  };
+  addExperiment();
 
   const apply = () => {
     circlesLayer.setVisible(renderer.value === "circles");
@@ -231,8 +279,16 @@ function addDrawOrderExperiment(map: Map, circlesLayer: PointLayer) {
     map.setLayoutProperty(EXPERIMENT_ID, "symbol-z-order", zOrder.value as "viewport-y" | "source");
   };
 
+  apply();
   renderer.addEventListener("input", apply);
   zOrder.addEventListener("input", apply);
+  // a new style wipes the experiment — the PointLayers rebuild themselves
+  map.on("style.load", () => {
+    // the marker sublayers are rebuilt too, dropping the interaction's hidden-marker override
+    interaction.select(null);
+    addExperiment();
+    apply();
+  });
 }
 
 //#endregion
@@ -249,9 +305,12 @@ function setupMarkerInteraction(map: Map, layer: PointLayer<"markers">): MarkerI
   const magInput = el<HTMLInputElement>("sel-mag");
   const labelInput = el<HTMLInputElement>("sel-label");
 
-  const imagePrefix = `${layer.id}-marker-`;
+  // per role, so dot and cluster images show up too
   const renderImageCount = () => {
-    el("image-count").textContent = String(map.listImages().filter((id) => id.startsWith(imagePrefix)).length);
+    const images = map.listImages();
+    el("image-count").textContent = (["marker", "dot", "cluster"] as const)
+      .map((role) => `${role} ${String(images.filter((id) => id.startsWith(`${layer.id}-${role}-`)).length)}`)
+      .join(", ");
   };
 
   const renderSelection = (feature: QuakeFeature | null) => {
