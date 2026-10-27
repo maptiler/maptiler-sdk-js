@@ -112,7 +112,17 @@ export {
 } from "maplibre-gl";
 
 // SDK specific
-export { Map, GeolocationType, type AttributionControlOptions, type MapOptions, type LoadWithTerrainEvent, type MaptilerMapEventType, type MapEventTypeSDK } from "./Map";
+export {
+  Map,
+  GeolocationType,
+  type AttributionControlOptions,
+  type MapOptions,
+  type LoadWithTerrainEvent,
+  type MaptilerMapEventType,
+  type MapEventTypeSDK,
+  type MapEventSDK,
+  type MapLayerEventSDK,
+} from "./Map";
 export type {
   CameraPosition,
   TilePreloadOptions,
