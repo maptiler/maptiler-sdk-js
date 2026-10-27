@@ -24,6 +24,13 @@
   - Hover, focus, press and drag states, smooth transitions when properties change, and enter, idle and exit animations.
   - Experimental altitude: raise markers above the ground or sea level, with an optional line down to the ground.
   - Markers are managed through the map with `map.addMarker()`, `map.getMarker()` and `map.removeMarker()`.
+- Introduces `PointLayer`, a stateful layer of points and the successor to `helpers.addPoint`. It's added with `map.addLayer()`, and its data, styling, visibility and zoom range can be changed after it's added, applied together once per frame. It survives `setStyle()`.
+  - `circles` mode draws GL circles, with the styling options and defaults of `addPoint`. Labels too big for their circle are hidden.
+  - `markers` mode draws each point as a MapTiler marker image, with an optional label drawn into the marker, so markers and labels overlap correctly.
+  - Collision behaviours: `always-show`, `cluster`, and in markers mode `hide-by-priority` and `minimize-by-priority` (the markers default), ranked by a `priority` number or expression.
+  - Fires `dataloading`, `data` and `error` once per load, and forwards `click`, `mouseenter`, `mouseleave` and `mousemove` on its points.
+  - Built on `DataLayer`, a base class for upcoming data layers.
+- Adds `map.addMissingStyleImageResolver()` and `map.removeMissingStyleImageResolver()`, so several missing-image resolvers can run side by side. A resolver set with `setMissingStyleImageResolver()` is tried after them, rather than replacing them.
 - Adds bundler helper entry points that set the MapLibre worker URL from a locally bundled worker:
   - `@maptiler/sdk/vite-worker` for Vite
   - `@maptiler/sdk/webpack-worker` for webpack
@@ -32,6 +39,7 @@
 - Events of `CubemapLayer` (`cubemaplayer:*`), `RadialGradientLayer` (`radialgradientlayer:*`) and `ImageViewerMarker` are now typed.
 
 ### ⚙️ Others
+- Deprecates `helpers.addPoint` in favour of `PointLayer`.
 - Bumps `maplibre-gl` to 6.11.2 and `@maplibre/maplibre-gl-style-spec` to 26.
 - Switches internal `maplibre-gl` imports to named imports.
 - Documents worker setup per bundler, CSP requirements, self-hosted UMD worker files and TypeScript `moduleResolution` in the README.
