@@ -100,7 +100,7 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
     return this.syncSublayers(this.buildSublayers());
   }
 
-  // the default circle opacity fades in and out at the zoom range's edges
+  /** The default circle opacity fades in and out at the zoom range's edges, so a new range restyles the sublayers. */
   protected override onZoomRangeChange(): boolean {
     return this.syncSublayers(this.buildSublayers());
   }

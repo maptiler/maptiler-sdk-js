@@ -95,11 +95,11 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
 
   const minPointRadius = styling.minPointRadius ?? DEFAULT_MIN_POINT_RADIUS;
   const maxPointRadius = styling.maxPointRadius ?? DEFAULT_MAX_POINT_RADIUS;
-  const colorramp = Array.isArray(styling.pointColor) ? styling.pointColor : defaultColorRamp(cluster);
-  const colorRampBounds = colorramp.getBounds();
+  const colorRamp = Array.isArray(styling.pointColor) ? styling.pointColor : defaultColorRamp(cluster);
+  const colorRampBounds = colorRamp.getBounds();
   const alignOnViewport = styling.alignOnViewport ?? true;
   const zoomCompensation = styling.zoomCompensation ?? true;
-  const pointOpacity = resolvePointOpacity(styling, colorramp, context);
+  const pointOpacity = resolvePointOpacity(styling, colorRamp, context);
   const outlinePaint = buildOutlinePaint(styling);
 
   const layers: SublayerSpecification[] = [];
@@ -113,7 +113,7 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
       return {
         value,
         pointRadius: minPointRadius + (maxPointRadius - minPointRadius) * (i / (DATA_DRIVEN_STYLE_STEPS - 1)) ** 0.5,
-        color: colorramp.getColorHex(value),
+        color: colorRamp.getColorHex(value),
       };
     });
 
@@ -148,7 +148,7 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
       paint: {
         "circle-pitch-alignment": alignOnViewport ? "viewport" : "map",
         "circle-pitch-scale": "map",
-        "circle-color": typeof styling.pointColor === "string" ? styling.pointColor : colorramp.getColorHex(colorramp.getBounds().min),
+        "circle-color": typeof styling.pointColor === "string" ? styling.pointColor : colorRamp.getColorHex(colorRampBounds.min),
         "circle-radius":
           typeof styling.pointRadius === "number"
             ? styling.pointRadius
@@ -164,7 +164,7 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
       typeof styling.pointColor === "string"
         ? styling.pointColor
         : // a colour ramp without a property uses its first colour
-          colorramp.getColorHex(colorramp.getBounds().min);
+          colorRamp.getColorHex(colorRampBounds.min);
 
     let pointRadius: DataDrivenPropertyValueSpecification<number> =
       typeof styling.pointRadius === "number"
@@ -197,7 +197,7 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
           value,
           pointRadius:
             typeof styling.pointRadius === "number" ? styling.pointRadius : minPointRadius + (maxPointRadius - minPointRadius) * (i / (DATA_DRIVEN_STYLE_STEPS - 1)) ** 0.5,
-          color: colorramp.getColorHex(value),
+          color: colorRamp.getColorHex(value),
         };
       });
       pointColor = colorDrivenByProperty(dataDrivenStyle, styling.property);
@@ -253,6 +253,39 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
   return layers;
 }
 
+/** `pointOpacity`, else ramp-driven opacity, else a fade in/out at the zoom range's edges. */
+function resolvePointOpacity(styling: PointLayerCirclesStyling, colorRamp: ColorRamp, context: CirclesRenderContext): DataDrivenPropertyValueSpecification<number> {
+  const { cluster, minzoom, maxzoom } = context;
+
+  if (typeof styling.pointOpacity === "number") return styling.pointOpacity;
+  if (Array.isArray(styling.pointOpacity)) return rampedOptionsToLayerPaintSpec(styling.pointOpacity);
+  if (cluster) return opacityDrivenByProperty(colorRamp, "point_count");
+  if (styling.property) return opacityDrivenByProperty(colorRamp, styling.property);
+
+  return rampedOptionsToLayerPaintSpec([
+    { zoom: minzoom, value: 0 },
+    { zoom: minzoom + 0.25, value: 1 },
+    { zoom: maxzoom - 0.25, value: 1 },
+    { zoom: maxzoom, value: 0 },
+  ]);
+}
+
+function buildOutlinePaint(styling: PointLayerCirclesStyling) {
+  if (!styling.outline) return {};
+
+  const outlineOpacity = styling.outlineOpacity ?? 1;
+  const outlineWidth = styling.outlineWidth ?? 1;
+  const outlineColor = styling.outlineColor ?? DEFAULT_OUTLINE_COLOR;
+
+  return {
+    "circle-stroke-opacity": typeof outlineOpacity === "number" ? outlineOpacity : rampedOptionsToLayerPaintSpec(outlineOpacity),
+    "circle-stroke-width": typeof outlineWidth === "number" ? outlineWidth : rampedOptionsToLayerPaintSpec(outlineWidth),
+    "circle-stroke-color": typeof outlineColor === "string" ? outlineColor : paintColorOptionsToPaintSpec(outlineColor),
+  };
+}
+
+//#endregion
+
 //#region Label Fitting
 
 /**
@@ -293,39 +326,6 @@ function parseZoomRamp(value: DataDrivenPropertyValueSpecification<number>): Zoo
     ramp.push({ zoom: stops[i] as number, value: stops[i + 1] as number | ExpressionSpecification });
   }
   return ramp;
-}
-
-//#endregion
-
-/** `pointOpacity`, else ramp-driven opacity, else a fade in/out at the zoom range's edges. */
-function resolvePointOpacity(styling: PointLayerCirclesStyling, colorramp: ColorRamp, context: CirclesRenderContext): DataDrivenPropertyValueSpecification<number> {
-  const { cluster, minzoom, maxzoom } = context;
-
-  if (typeof styling.pointOpacity === "number") return styling.pointOpacity;
-  if (Array.isArray(styling.pointOpacity)) return rampedOptionsToLayerPaintSpec(styling.pointOpacity);
-  if (cluster) return opacityDrivenByProperty(colorramp, "point_count");
-  if (styling.property) return opacityDrivenByProperty(colorramp, styling.property);
-
-  return rampedOptionsToLayerPaintSpec([
-    { zoom: minzoom, value: 0 },
-    { zoom: minzoom + 0.25, value: 1 },
-    { zoom: maxzoom - 0.25, value: 1 },
-    { zoom: maxzoom, value: 0 },
-  ]);
-}
-
-function buildOutlinePaint(styling: PointLayerCirclesStyling) {
-  if (!styling.outline) return {};
-
-  const outlineOpacity = styling.outlineOpacity ?? 1;
-  const outlineWidth = styling.outlineWidth ?? 1;
-  const outlineColor = styling.outlineColor ?? DEFAULT_OUTLINE_COLOR;
-
-  return {
-    "circle-stroke-opacity": typeof outlineOpacity === "number" ? outlineOpacity : rampedOptionsToLayerPaintSpec(outlineOpacity),
-    "circle-stroke-width": typeof outlineWidth === "number" ? outlineWidth : rampedOptionsToLayerPaintSpec(outlineWidth),
-    "circle-stroke-color": typeof outlineColor === "string" ? outlineColor : paintColorOptionsToPaintSpec(outlineColor),
-  };
 }
 
 //#endregion

@@ -274,12 +274,12 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
   //#region Events
 
   on<T extends DataLayerEventType>(type: T, listener: DataLayerEventListener<T, this>): this {
-    let set = this.listeners.get(type);
-    if (!set) {
-      set = new Set();
-      this.listeners.set(type, set);
+    let typeListeners = this.listeners.get(type);
+    if (!typeListeners) {
+      typeListeners = new Set();
+      this.listeners.set(type, typeListeners);
     }
-    set.add(listener as DataLayerEventListener<DataLayerEventType, this>);
+    typeListeners.add(listener as DataLayerEventListener<DataLayerEventType, this>);
     return this;
   }
 
@@ -289,9 +289,9 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
   }
 
   protected fire<T extends DataLayerEventType>(type: T, event: DataLayerEventMap<this>[T]): void {
-    const set = this.listeners.get(type);
-    if (!set) return;
-    for (const listener of [...set]) listener(event);
+    const typeListeners = this.listeners.get(type);
+    if (!typeListeners) return;
+    for (const listener of [...typeListeners]) listener(event);
   }
 
   //#endregion
@@ -332,18 +332,18 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
     if (!map) return true;
 
     const prev = this.sublayerSpecs;
-    if (prev.length !== next.length || prev.some((spec, i) => spec.id !== next[i].id || spec.type !== next[i].type)) return false;
+    if (prev.length !== next.length || prev.some((prevSpec, i) => prevSpec.id !== next[i].id || prevSpec.type !== next[i].type)) return false;
 
-    next.forEach((spec, i) => {
-      const before = prev[i];
+    next.forEach((nextSpec, i) => {
+      const prevSpec = prev[i];
 
-      forEachChangedKey(before.paint, spec.paint, (key, value) => {
-        map.setPaintProperty(spec.id, key as keyof AllPaintProperties, value as AllPaintProperties[keyof AllPaintProperties]);
+      forEachChangedKey(prevSpec.paint, nextSpec.paint, (key, value) => {
+        map.setPaintProperty(nextSpec.id, key as keyof AllPaintProperties, value as AllPaintProperties[keyof AllPaintProperties]);
       });
-      forEachChangedKey(before.layout, spec.layout, (key, value) => {
-        map.setLayoutProperty(spec.id, key as keyof AllLayoutProperties, value as AllLayoutProperties[keyof AllLayoutProperties]);
+      forEachChangedKey(prevSpec.layout, nextSpec.layout, (key, value) => {
+        map.setLayoutProperty(nextSpec.id, key as keyof AllLayoutProperties, value as AllLayoutProperties[keyof AllLayoutProperties]);
       });
-      if (!isEqualValue(before.filter, spec.filter)) map.setFilter(spec.id, spec.filter ?? null);
+      if (!isEqualValue(prevSpec.filter, nextSpec.filter)) map.setFilter(nextSpec.id, nextSpec.filter ?? null);
     });
 
     this.sublayerSpecs = next;
@@ -447,7 +447,7 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
     }
 
     if (pending.data) {
-      map.getSource<GeoJSONSource>(this.getSourceId())?.setData(this.resolveSourceData());
+      void map.getSource<GeoJSONSource>(this.getSourceId())?.setData(this.resolveSourceData());
     }
 
     for (const layerId of this.getSublayerIds()) {

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MissingStyleImageResolver } from "maplibre-gl";
 import { Map } from "../src/Map";
 
@@ -40,7 +40,7 @@ describe("Map missing-image resolvers", () => {
     map = createResolverMap(images);
   });
 
-  test("tries added resolvers in order until one adds the image", async () => {
+  it("tries added resolvers in order until one adds the image", async () => {
     const a = owning("a:");
     const b = owning("b:");
     map.addMissingStyleImageResolver(a).addMissingStyleImageResolver(b);
@@ -54,7 +54,7 @@ describe("Map missing-image resolvers", () => {
     expect(b).toHaveBeenCalledTimes(1);
   });
 
-  test("tries the user's resolver after the added ones, and keeps both when either changes", async () => {
+  it("tries the user's resolver after the added ones, and keeps both when either changes", async () => {
     const sdk = owning("sdk:");
     const user = owning("user:");
 
@@ -67,7 +67,7 @@ describe("Map missing-image resolvers", () => {
     expect(sdk.mock.invocationCallOrder[0]).toBeLessThan(user.mock.invocationCallOrder[0]);
   });
 
-  test("setMissingStyleImageResolver(null) removes only the user's resolver", async () => {
+  it("setMissingStyleImageResolver(null) removes only the user's resolver", async () => {
     const sdk = owning("sdk:");
     const user = owning("user:");
     map.addMissingStyleImageResolver(sdk).setMissingStyleImageResolver(user);
@@ -80,7 +80,7 @@ describe("Map missing-image resolvers", () => {
     expect(images).toEqual(new Set(["sdk:1"]));
   });
 
-  test("moves on to the next resolver when one throws, with a warning", async () => {
+  it("moves on to the next resolver when one throws, with a warning", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     map.addMissingStyleImageResolver(() => {
       throw new Error("boom");
@@ -94,7 +94,7 @@ describe("Map missing-image resolvers", () => {
     warn.mockRestore();
   });
 
-  test("ignores adding the same resolver twice, and removing one never added", async () => {
+  it("ignores adding the same resolver twice, and removing one never added", async () => {
     const a = owning("a:");
     map.addMissingStyleImageResolver(a).addMissingStyleImageResolver(a);
     map.removeMissingStyleImageResolver(owning("b:"));
@@ -104,7 +104,7 @@ describe("Map missing-image resolvers", () => {
     expect(a).toHaveBeenCalledTimes(1);
   });
 
-  test("hands MapLibre no resolver once the last one is removed", () => {
+  it("hands MapLibre no resolver once the last one is removed", () => {
     const a = owning("a:");
     map.addMissingStyleImageResolver(a);
     expect(map._missingStyleImageResolver).not.toBeNull();

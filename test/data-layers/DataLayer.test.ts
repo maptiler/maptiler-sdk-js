@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FeatureCollection } from "geojson";
 import type { Map as SDKMap } from "../../src/Map";
 import { DataLayer, type DataLayerConstructorOptions } from "../../src/data-layers/DataLayer";
@@ -84,7 +84,7 @@ describe("DataLayer", () => {
   //#region Adding
 
   describe("adding", () => {
-    test("adds its source and sublayers directly beneath the controller", () => {
+    it("adds its source and sublayers directly beneath the controller", () => {
       const layer = addLayer({}, "labels");
 
       expect(mock.sources.has(layer.getSourceId())).toBe(true);
@@ -92,7 +92,7 @@ describe("DataLayer", () => {
       expect(layer.getSublayerIds()).toEqual([`${layer.id}-circle`]);
     });
 
-    test("applies the visibility and zoom range given at construction to its sublayers", () => {
+    it("applies the visibility and zoom range given at construction to its sublayers", () => {
       const layer = addLayer({ visible: false, minzoom: 3, maxzoom: 12 });
       const sublayer = mock.map.getLayer(`${layer.id}-circle`) as { layout: { visibility: string }; minzoom: number; maxzoom: number };
 
@@ -100,7 +100,7 @@ describe("DataLayer", () => {
       expect([sublayer.minzoom, sublayer.maxzoom]).toEqual([3, 12]);
     });
 
-    test("builds from changes made before it was added, without touching a map", () => {
+    it("builds from changes made before it was added, without touching a map", () => {
       const layer = new TestLayer({ data: emptyData() });
       layer.setStyling({ color: "#00ff00" }).setVisible(false);
       expect(frames.size).toBe(0);
@@ -112,7 +112,7 @@ describe("DataLayer", () => {
       expect(sublayer.layout.visibility).toBe("none");
     });
 
-    test("uses the given id", () => {
+    it("uses the given id", () => {
       const layer = addLayer({ id: "my-layer" });
       expect(layer.id).toBe("my-layer");
       expect(mock.map.getLayer("my-layer")).toBe(layer);
@@ -124,7 +124,7 @@ describe("DataLayer", () => {
   //#region Updates
 
   describe("updates", () => {
-    test("batches changes into one flush per frame, applying the last data", () => {
+    it("batches changes into one flush per frame, applying the last data", () => {
       const layer = addLayer();
       const source = mock.sources.get(layer.getSourceId());
       const last = emptyData();
@@ -139,7 +139,7 @@ describe("DataLayer", () => {
       expect(layer.getData()).toBe(last);
     });
 
-    test("applies paint-path styling in place, without rebuilding", () => {
+    it("applies paint-path styling in place, without rebuilding", () => {
       const layer = addLayer();
       mock.map.addSource.mockClear();
 
@@ -151,7 +151,7 @@ describe("DataLayer", () => {
       expect(layer.getStyling().color).toBe("#0000ff");
     });
 
-    test("rebuilds for structural styling, keeping sublayers beneath the controller", () => {
+    it("rebuilds for structural styling, keeping sublayers beneath the controller", () => {
       const layer = addLayer({}, "labels");
 
       layer.setStyling({ halo: true });
@@ -161,7 +161,7 @@ describe("DataLayer", () => {
       expect(layer.getSublayerIds()).toEqual([`${layer.id}-halo`, `${layer.id}-circle`]);
     });
 
-    test("resets a styling key set to undefined to its default", () => {
+    it("resets a styling key set to undefined to its default", () => {
       const layer = addLayer({ styling: { color: "#00ff00" } });
 
       layer.setStyling({ color: undefined });
@@ -171,7 +171,7 @@ describe("DataLayer", () => {
       expect(mock.map.setPaintProperty).toHaveBeenLastCalledWith(`${layer.id}-circle`, "circle-color", "#ff0000");
     });
 
-    test("sets visibility and zoom range on every sublayer", () => {
+    it("sets visibility and zoom range on every sublayer", () => {
       const layer = addLayer({ styling: { halo: true } });
 
       layer.setVisible(false).setZoomRange(2, 10);
@@ -185,7 +185,7 @@ describe("DataLayer", () => {
       expect(layer.getZoomRange()).toEqual([2, 10]);
     });
 
-    test("hides sublayers added by a rebuild while the layer is hidden", () => {
+    it("hides sublayers added by a rebuild while the layer is hidden", () => {
       const layer = addLayer();
 
       layer.setVisible(false);
@@ -220,7 +220,7 @@ describe("DataLayer", () => {
       for (let i = 0; i < tiles; i++) mock.fire("sourcedata", { sourceId, tile: {}, isSourceLoaded: i === tiles - 1 });
     }
 
-    test("fires one dataloading and one data per load, ignoring tile loads and the early metadata event", () => {
+    it("fires one dataloading and one data per load, ignoring tile loads and the early metadata event", () => {
       const layer = addLayer();
       const events = collectDataEvents(layer);
 
@@ -229,7 +229,7 @@ describe("DataLayer", () => {
       expect(events).toEqual(["dataloading", "data"]);
     });
 
-    test("fires data on the content event when there are no tiles to reload", () => {
+    it("fires data on the content event when there are no tiles to reload", () => {
       const layer = addLayer();
       const events = collectDataEvents(layer);
 
@@ -240,7 +240,7 @@ describe("DataLayer", () => {
       expect(events).toEqual(["dataloading", "data"]);
     });
 
-    test("fires a single dataloading for a load that restarts before it finishes", () => {
+    it("fires a single dataloading for a load that restarts before it finishes", () => {
       const layer = addLayer();
       const events = collectDataEvents(layer);
 
@@ -251,7 +251,7 @@ describe("DataLayer", () => {
       expect(events).toEqual(["dataloading", "data"]);
     });
 
-    test("fires nothing for tile loads outside a data load, such as after panning", () => {
+    it("fires nothing for tile loads outside a data load, such as after panning", () => {
       const layer = addLayer();
       fireLoad(layer.getSourceId());
       const events = collectDataEvents(layer);
@@ -263,7 +263,7 @@ describe("DataLayer", () => {
       expect(events).toEqual([]);
     });
 
-    test("ends a load with error, after which the next load reports normally", () => {
+    it("ends a load with error, after which the next load reports normally", () => {
       const layer = addLayer();
       const events = collectDataEvents(layer);
 
@@ -274,7 +274,7 @@ describe("DataLayer", () => {
       expect(events).toEqual(["dataloading", "error:failed", "dataloading", "data"]);
     });
 
-    test("ignores other sources' events", () => {
+    it("ignores other sources' events", () => {
       const layer = addLayer();
       const events = collectDataEvents(layer);
 
@@ -284,7 +284,7 @@ describe("DataLayer", () => {
       expect(events).toEqual([]);
     });
 
-    test("stops reporting once removed, and off() detaches a listener", () => {
+    it("stops reporting once removed, and off() detaches a listener", () => {
       const layer = addLayer();
       const events = collectDataEvents(layer);
       const listener = vi.fn();
@@ -303,7 +303,7 @@ describe("DataLayer", () => {
   //#region Pointer Events
 
   describe("pointer events", () => {
-    test("forwards pointer events from its sublayers", () => {
+    it("forwards pointer events from its sublayers", () => {
       const layer = addLayer();
       const onClick = vi.fn();
       layer.on("click", onClick);
@@ -313,7 +313,7 @@ describe("DataLayer", () => {
       expect(onClick).toHaveBeenCalledWith(expect.objectContaining({ type: "click", features: [{ id: 1 }] }));
     });
 
-    test("rebinds pointer events to the new sublayers after a rebuild", () => {
+    it("rebinds pointer events to the new sublayers after a rebuild", () => {
       const layer = addLayer();
       const onClick = vi.fn();
       layer.on("click", onClick);
@@ -333,7 +333,7 @@ describe("DataLayer", () => {
   //#region Style Changes
 
   describe("style changes", () => {
-    test("moves the controller back beneath its layer after a diffed setStyle, and rebuilds beneath it", () => {
+    it("moves the controller back beneath its layer after a diffed setStyle, and rebuilds beneath it", () => {
       const layer = addLayer({ styling: { color: "#00ff00" } }, "labels");
 
       mock.setStyle(["base", "water", "labels", "top"], { diff: true });
@@ -344,7 +344,7 @@ describe("DataLayer", () => {
       expect(sublayer.paint["circle-color"]).toBe("#00ff00");
     });
 
-    test("moves the controller to the top after a diffed setStyle without its layer", () => {
+    it("moves the controller to the top after a diffed setStyle without its layer", () => {
       const layer = addLayer({}, "labels");
 
       mock.setStyle(["base", "water"], { diff: true });
@@ -352,7 +352,7 @@ describe("DataLayer", () => {
       expect(mock.map.getLayersOrder()).toEqual(["base", "water", `${layer.id}-circle`, layer.id]);
     });
 
-    test("re-adds itself beneath its layer after a full setStyle", () => {
+    it("re-adds itself beneath its layer after a full setStyle", () => {
       const layer = addLayer({ visible: false }, "labels");
 
       mock.setStyle(["base", "labels"], { diff: false });
@@ -362,7 +362,7 @@ describe("DataLayer", () => {
       expect(sublayer.layout.visibility).toBe("none");
     });
 
-    test("keeps a single set of map listeners across style changes", () => {
+    it("keeps a single set of map listeners across style changes", () => {
       addLayer();
 
       mock.setStyle(["base"], { diff: false });
@@ -379,7 +379,7 @@ describe("DataLayer", () => {
   //#region Removing
 
   describe("removing", () => {
-    test("removes its source and sublayers and unbinds from the map", () => {
+    it("removes its source and sublayers and unbinds from the map", () => {
       const layer = addLayer({ styling: { halo: true } });
 
       mock.map.removeLayer(layer.id);
@@ -391,7 +391,7 @@ describe("DataLayer", () => {
       expect(layer.getSublayerIds()).toEqual([]);
     });
 
-    test("drops a pending flush when removed", () => {
+    it("drops a pending flush when removed", () => {
       const layer = addLayer();
       const source = mock.sources.get(layer.getSourceId());
 
@@ -402,7 +402,7 @@ describe("DataLayer", () => {
       expect(source?.setData).not.toHaveBeenCalled();
     });
 
-    test("stops touching the map once the map is removed", () => {
+    it("stops touching the map once the map is removed", () => {
       const layer = addLayer();
 
       mock.fire("remove");
@@ -411,7 +411,7 @@ describe("DataLayer", () => {
       expect(frames.size).toBe(0);
     });
 
-    test("can be added again after removal", () => {
+    it("can be added again after removal", () => {
       const layer = addLayer();
 
       mock.map.removeLayer(layer.id);

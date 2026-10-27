@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MarkerImages, buildMarkerLayers, resolveMarkersStyling, type MarkersRenderContext } from "../../src/data-layers/PointLayer/markers-renderer";
 import { getAdaptiveColors } from "../../src/Marker/marker-adaptive-colors";
 import { drawMarkerCanvas } from "../../src/Marker/marker-canvas";
@@ -23,21 +23,21 @@ describe("markers renderer", () => {
   //#region Styling
 
   describe("resolveMarkersStyling", () => {
-    test("fills in the default shape, size and the style's adaptive colours", () => {
+    it("fills in the default shape, size and the style's adaptive colours", () => {
       const { marker } = resolveMarkersStyling({}, "streets-v2");
       const defaults = getAdaptiveColors("streets-v2", "maptiler");
 
       expect(marker).toMatchObject({ shape: "maptiler", size: "m", outerColor: defaults.outerColor, innerColor: defaults.innerColor });
     });
 
-    test("keeps explicit colours, and resolves the rest per shape", () => {
+    it("keeps explicit colours, and resolves the rest per shape", () => {
       const { marker } = resolveMarkersStyling({ marker: { shape: "square", outerColor: "#123456" } }, "dataviz-dark");
 
       expect(marker.outerColor).toBe("#123456");
       expect(marker.innerColor).toBe(getAdaptiveColors("dataviz-dark", "square").innerColor);
     });
 
-    test("minimizes to an xs dot in the marker's own colours, under any overrides, without content", () => {
+    it("minimizes to an xs dot in the marker's own colours, under any overrides, without content", () => {
       const { marker, minimized } = resolveMarkersStyling({ marker: { shape: "square", content: "x" } }, "streets-v2");
       expect(minimized).toMatchObject({ shape: "square", size: "xs", outerColor: marker.outerColor, innerColor: marker.innerColor });
       expect(minimized.content).toBeUndefined();
@@ -46,7 +46,7 @@ describe("markers renderer", () => {
       expect(overridden).toMatchObject({ shape: "square", size: "s", outerColor: "#ff0000" });
     });
 
-    test("styles clusters like the markers unless given their own style, resolved the same way", () => {
+    it("styles clusters like the markers unless given their own style, resolved the same way", () => {
       const plain = resolveMarkersStyling({ marker: { shape: "square" } }, "streets-v2");
       expect(plain.clusterMarker).toEqual(plain.marker);
 
@@ -68,23 +68,23 @@ describe("markers renderer", () => {
       return layer.layout as Record<string, unknown>;
     }
 
-    test("requests the bare prefix when there's no label", () => {
+    it("requests the bare prefix when there's no label", () => {
       expect(layout()["icon-image"]).toBe("pl-marker-1:");
     });
 
-    test("appends a property label to the image id", () => {
+    it("appends a property label to the image id", () => {
       expect(layout("name")["icon-image"]).toEqual(["concat", "pl-marker-1:", ["to-string", ["get", "name"]]]);
     });
 
-    test("appends an expression label to the image id", () => {
+    it("appends an expression label to the image id", () => {
       expect(layout(["get", "mag"])["icon-image"]).toEqual(["concat", "pl-marker-1:", ["to-string", ["get", "mag"]]]);
     });
 
-    test("depth-sorts overlapping markers by screen y", () => {
+    it("depth-sorts overlapping markers by screen y", () => {
       expect(layout()).toMatchObject({ "icon-allow-overlap": true, "icon-ignore-placement": true, "symbol-z-order": "viewport-y" });
     });
 
-    test("offsets bottom-anchored shapes so the tip sits on the point, and centres the rest", () => {
+    it("offsets bottom-anchored shapes so the tip sits on the point, and centres the rest", () => {
       const offset = (shape: "maptiler" | "square") => {
         const [layer] = buildMarkerLayers(resolveMarkersStyling({ marker: { shape, size: "l" } }, undefined), context);
         return (layer.layout as Record<string, unknown>)["icon-offset"];
@@ -94,7 +94,7 @@ describe("markers renderer", () => {
       expect(offset("square")).toEqual([0, 0]);
     });
 
-    test("applies opacity through the layer, not the image", () => {
+    it("applies opacity through the layer, not the image", () => {
       const [layer] = buildMarkerLayers(resolveMarkersStyling({ marker: { opacity: 0.5 } }, undefined), context);
       expect(layer.paint).toEqual({ "icon-opacity": 0.5 });
     });
@@ -107,14 +107,14 @@ describe("markers renderer", () => {
       }
       const layoutOf = (layer: { layout?: unknown }) => layer.layout as Record<string, unknown>;
 
-      test("always-show: one marker layer that never collides, with no sort key", () => {
+      it("always-show: one marker layer that never collides, with no sort key", () => {
         const layers = build("always-show", { priority: ["get", "mag"] });
 
         expect(layers.map((l) => l.id)).toEqual(["pl-marker"]);
         expect(layoutOf(layers[0])["symbol-sort-key"]).toBeUndefined();
       });
 
-      test("hide-by-priority: one marker layer that collides, placed highest priority first", () => {
+      it("hide-by-priority: one marker layer that collides, placed highest priority first", () => {
         const layers = build("hide-by-priority", { priority: ["get", "mag"] });
 
         expect(layers.map((l) => l.id)).toEqual(["pl-marker"]);
@@ -126,12 +126,12 @@ describe("markers renderer", () => {
         expect(layoutOf(build("always-show")[0])["icon-padding"]).toBeUndefined();
       });
 
-      test("negates a constant priority, and leaves data order without one", () => {
+      it("negates a constant priority, and leaves data order without one", () => {
         expect(layoutOf(build("hide-by-priority", { priority: 3 })[0])["symbol-sort-key"]).toBe(-3);
         expect(layoutOf(build("hide-by-priority")[0])["symbol-sort-key"]).toBeUndefined();
       });
 
-      test("minimize-by-priority: an always-shown dot beneath every colliding marker", () => {
+      it("minimize-by-priority: an always-shown dot beneath every colliding marker", () => {
         const [dot, marker] = build("minimize-by-priority", { marker: { shape: "maptiler", opacity: 0.8 } });
 
         expect([dot.id, marker.id]).toEqual(["pl-dot", "pl-marker"]);
@@ -141,7 +141,7 @@ describe("markers renderer", () => {
         expect(layoutOf(marker)).toMatchObject({ "icon-allow-overlap": false, "icon-ignore-placement": false });
       });
 
-      test("cluster: unclustered markers, then cluster markers with the count drawn into their image", () => {
+      it("cluster: unclustered markers, then cluster markers with the count drawn into their image", () => {
         const [marker, cluster] = build("cluster", { clusterMarker: { shape: "circle", size: "l" } });
 
         expect([marker.id, cluster.id]).toEqual(["pl-marker", "pl-cluster"]);
@@ -173,7 +173,7 @@ describe("markers renderer", () => {
       images = new MarkerImages("pl");
     });
 
-    test("draws and adds the image for one of its ids, with the label as content", async () => {
+    it("draws and adds the image for one of its ids, with the label as content", async () => {
       const prefix = images.setStyle(mock.asSDKMap(), { shape: "square", size: "m" });
 
       await images.resolve(mock.asSDKMap(), `${prefix}4.5`);
@@ -183,7 +183,7 @@ describe("markers renderer", () => {
       expect(mock.map.addImage).toHaveBeenCalledWith(`${prefix}4.5`, expect.anything(), { pixelRatio: 2 });
     });
 
-    test("draws the bare marker for the unlabelled id", async () => {
+    it("draws the bare marker for the unlabelled id", async () => {
       const prefix = images.setStyle(mock.asSDKMap(), { shape: "square" });
 
       await images.resolve(mock.asSDKMap(), prefix);
@@ -192,7 +192,7 @@ describe("markers renderer", () => {
       expect(onLabelFontLoad).not.toHaveBeenCalled();
     });
 
-    test("ignores ids that aren't its own", async () => {
+    it("ignores ids that aren't its own", async () => {
       images.setStyle(mock.asSDKMap(), {});
 
       await images.resolve(mock.asSDKMap(), "some-other-image");
@@ -201,7 +201,7 @@ describe("markers renderer", () => {
       expect(drawMarkerCanvas).not.toHaveBeenCalled();
     });
 
-    test("draws once for concurrent requests of the same image", async () => {
+    it("draws once for concurrent requests of the same image", async () => {
       const prefix = images.setStyle(mock.asSDKMap(), {});
 
       await Promise.all([images.resolve(mock.asSDKMap(), `${prefix}a`), images.resolve(mock.asSDKMap(), `${prefix}a`)]);
@@ -210,14 +210,14 @@ describe("markers renderer", () => {
       expect(drawMarkerCanvas).toHaveBeenCalledTimes(1);
     });
 
-    test("keeps the prefix for an unchanged style, and for an opacity-only change", () => {
+    it("keeps the prefix for an unchanged style, and for an opacity-only change", () => {
       const first = images.setStyle(mock.asSDKMap(), { shape: "square", opacity: 1 });
 
       expect(images.setStyle(mock.asSDKMap(), { shape: "square", opacity: 1 })).toBe(first);
       expect(images.setStyle(mock.asSDKMap(), { shape: "square", opacity: 0.2 })).toBe(first);
     });
 
-    test("changes the prefix and removes the old images when the style changes", async () => {
+    it("changes the prefix and removes the old images when the style changes", async () => {
       const first = images.setStyle(mock.asSDKMap(), { shape: "square" });
       await images.resolve(mock.asSDKMap(), `${first}a`);
 
@@ -227,7 +227,7 @@ describe("markers renderer", () => {
       expect(mock.images.has(`${first}a`)).toBe(false);
     });
 
-    test("drops a draw whose style changed while the font loaded", async () => {
+    it("drops a draw whose style changed while the font loaded", async () => {
       let fontLoaded: () => void = () => undefined;
       vi.mocked(onLabelFontLoad).mockImplementationOnce(() => new Promise<void>((resolve) => (fontLoaded = resolve)));
       const first = images.setStyle(mock.asSDKMap(), { shape: "square" });
@@ -241,7 +241,7 @@ describe("markers renderer", () => {
       expect(drawMarkerCanvas).not.toHaveBeenCalled();
     });
 
-    test("doesn't wait for the label font for xs dots, which have no label", async () => {
+    it("doesn't wait for the label font for xs dots, which have no label", async () => {
       const prefix = images.setStyle(mock.asSDKMap(), { size: "xs" });
 
       await images.resolve(mock.asSDKMap(), `${prefix}a`);
@@ -250,7 +250,7 @@ describe("markers renderer", () => {
       expect(mock.images.has(`${prefix}a`)).toBe(true);
     });
 
-    test("keeps each role's images apart by id", async () => {
+    it("keeps each role's images apart by id", async () => {
       const dots = new MarkerImages("pl", "dot");
       const markerPrefix = images.setStyle(mock.asSDKMap(), {});
       const dotPrefix = dots.setStyle(mock.asSDKMap(), { size: "xs" });
@@ -261,7 +261,7 @@ describe("markers renderer", () => {
       expect(drawMarkerCanvas).not.toHaveBeenCalled();
     });
 
-    test("removeAll removes only the images it added", async () => {
+    it("removeAll removes only the images it added", async () => {
       const prefix = images.setStyle(mock.asSDKMap(), {});
       mock.map.addImage("unrelated", {});
       await images.resolve(mock.asSDKMap(), `${prefix}a`);

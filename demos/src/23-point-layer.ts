@@ -214,12 +214,12 @@ function addDrawOrderExperiment(map: Map, circlesLayer: PointLayer) {
       clusterMarker: { shape: "circle", size: "l", outline: true },
     },
     collisionBehaviour: markersCollision.value as PointLayerMarkersCollisionBehaviour,
-    visible: renderer.value === "marker-square",
+    visible: renderer.value === "markers",
   });
   map.addLayer(markersLayer);
 
   const interaction = setupMarkerInteraction(map, markersLayer);
-  interaction.setEnabled(renderer.value === "marker-square");
+  interaction.setEnabled(renderer.value === "markers");
 
   for (const control of Object.values(markerControls)) {
     control.addEventListener("input", () => {
@@ -273,8 +273,8 @@ function addDrawOrderExperiment(map: Map, circlesLayer: PointLayer) {
 
   const apply = () => {
     circlesLayer.setVisible(renderer.value === "circles");
-    markersLayer.setVisible(renderer.value === "marker-square");
-    interaction.setEnabled(renderer.value === "marker-square");
+    markersLayer.setVisible(renderer.value === "markers");
+    interaction.setEnabled(renderer.value === "markers");
     map.setLayoutProperty(EXPERIMENT_ID, "visibility", renderer.value === "symbols" ? "visible" : "none");
     map.setLayoutProperty(EXPERIMENT_ID, "symbol-z-order", zOrder.value as "viewport-y" | "source");
   };

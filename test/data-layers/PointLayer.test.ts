@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FeatureCollection } from "geojson";
 import { PointLayer } from "../../src/data-layers/PointLayer";
 import type { PointLayerCirclesStyling } from "../../src/data-layers/PointLayer";
@@ -53,7 +53,7 @@ describe("PointLayer", () => {
   //#region Circles
 
   describe("circles mode", () => {
-    test("is the default mode", () => {
+    it("is the default mode", () => {
       const layer = new PointLayer({ data: data() });
       mock.map.addLayer(layer);
 
@@ -62,7 +62,7 @@ describe("PointLayer", () => {
       expect(mock.sources.get(layer.getSourceId())?.spec).toMatchObject({ type: "geojson", cluster: false });
     });
 
-    test("clusters through collisionBehaviour, with cluster, point and count label sublayers", () => {
+    it("clusters through collisionBehaviour, with cluster, point and count label sublayers", () => {
       const layer = new PointLayer({ data: data(), collisionBehaviour: "cluster" });
       mock.map.addLayer(layer);
 
@@ -70,7 +70,7 @@ describe("PointLayer", () => {
       expect(layer.getSublayerIds()).toEqual([`${layer.id}-cluster`, `${layer.id}-point`, `${layer.id}-label`]);
     });
 
-    test("rebuilds the source when clustering is switched, and not for the same value", () => {
+    it("rebuilds the source when clustering is switched, and not for the same value", () => {
       const layer = new PointLayer({ data: data() });
       mock.map.addLayer(layer);
 
@@ -85,7 +85,7 @@ describe("PointLayer", () => {
       expect(layer.getSublayerIds()).toContain(`${layer.id}-cluster`);
     });
 
-    test("keeps a stable default colour across rebuilds", () => {
+    it("keeps a stable default colour across rebuilds", () => {
       const layer = new PointLayer({ data: data() });
       mock.map.addLayer(layer);
       const color = () => JSON.stringify((mock.map.getLayer(`${layer.id}-point`) as Sublayer).paint?.["circle-color"]);
@@ -98,14 +98,14 @@ describe("PointLayer", () => {
 
     const textColorOf = (layer: PointLayer) => (mock.map.getLayer(`${layer.id}-label`) as Sublayer).paint?.["text-color"] as unknown[];
 
-    test("hides labels where the circle is too small to hold them", () => {
+    it("hides labels where the circle is too small to hold them", () => {
       const layer = new PointLayer({ data: data(), styling: { property: "mag", showLabel: true, pointRadius: 6, labelSize: 12, zoomCompensation: false } });
       mock.map.addLayer(layer);
 
       expect(textColorOf(layer)).toEqual(["case", [">=", ["-", ["*", 2, 6], 2], 12], "#fff", "rgba(0, 0, 0, 0)"]);
     });
 
-    test("checks a zoom-dependent radius at each stop of its zoom ramp", () => {
+    it("checks a zoom-dependent radius at each stop of its zoom ramp", () => {
       const layer = new PointLayer({ data: data(), styling: { property: "mag", showLabel: true, pointRadius: 6, labelSize: 12 } });
       mock.map.addLayer(layer);
 
@@ -120,7 +120,7 @@ describe("PointLayer", () => {
       expect(textColor.slice(3).filter((_, i) => i % 2 === 0)).toEqual(stops.filter((_, i) => i % 2 === 0).slice(1));
     });
 
-    test("checks a data-driven cluster radius per feature", () => {
+    it("checks a data-driven cluster radius per feature", () => {
       const layer = new PointLayer({ data: data(), collisionBehaviour: "cluster" });
       mock.map.addLayer(layer);
 
@@ -154,7 +154,7 @@ describe("PointLayer", () => {
         });
       }
 
-      test.each(cases)("with %s", (_, styling, cluster) => {
+      it.each(cases)("with %s", (_, styling, cluster) => {
         const helperMock = createMockStyleMap();
         // the deprecated helper is the reference here
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -190,7 +190,7 @@ describe("PointLayer", () => {
     const iconImage = (layer: PointLayer<"markers">) => iconImageOf(layer, "marker");
     const prefixOf = (layer: PointLayer<"markers">) => iconImage(layer)[1] as string;
 
-    test("renders one symbol sublayer and registers its image resolver before it", () => {
+    it("renders one symbol sublayer and registers its image resolver before it", () => {
       // the default, minimize-by-priority, adds a dot layer beneath
       const layer = addMarkers({ collisionBehaviour: "always-show" });
 
@@ -201,7 +201,7 @@ describe("PointLayer", () => {
       expect(resolverOrder).toBeLessThan(sublayerOrder);
     });
 
-    test("resolves its own images through the map's resolver", async () => {
+    it("resolves its own images through the map's resolver", async () => {
       const layer = addMarkers();
       const id = `${prefixOf(layer)}a`;
 
@@ -210,7 +210,7 @@ describe("PointLayer", () => {
       expect(mock.images.has(id)).toBe(true);
     });
 
-    test("unregisters its resolver and removes its images when removed", async () => {
+    it("unregisters its resolver and removes its images when removed", async () => {
       const layer = addMarkers();
       const id = `${prefixOf(layer)}a`;
       await mock.resolvers[0](id);
@@ -221,7 +221,7 @@ describe("PointLayer", () => {
       expect(mock.images.has(id)).toBe(false);
     });
 
-    test("swaps the image prefix in place when the marker style changes", () => {
+    it("swaps the image prefix in place when the marker style changes", () => {
       const layer = addMarkers();
       const before = prefixOf(layer);
       mock.map.addSource.mockClear();
@@ -233,7 +233,7 @@ describe("PointLayer", () => {
       expect(mock.map.addSource).not.toHaveBeenCalled();
     });
 
-    test("changes only the layer's opacity, keeping its images, for an opacity change", () => {
+    it("changes only the layer's opacity, keeping its images, for an opacity change", () => {
       const layer = addMarkers();
       const before = prefixOf(layer);
 
@@ -244,7 +244,7 @@ describe("PointLayer", () => {
       expect(mock.map.setPaintProperty).toHaveBeenCalledWith(`${layer.id}-marker`, "icon-opacity", 0.4);
     });
 
-    test("redraws for the new style's adaptive colours after setStyle", () => {
+    it("redraws for the new style's adaptive colours after setStyle", () => {
       const layer = addMarkers();
       const before = prefixOf(layer);
 
@@ -255,7 +255,7 @@ describe("PointLayer", () => {
       expect(layer.getStyling().marker?.innerColor).toBe(getAdaptiveColors("dataviz-dark", "square").innerColor);
     });
 
-    test("shares the map's resolver slot with other marker layers", async () => {
+    it("shares the map's resolver slot with other marker layers", async () => {
       const a = addMarkers();
       const b = addMarkers();
 
@@ -268,17 +268,17 @@ describe("PointLayer", () => {
       expect(mock.images.has(id)).toBe(true);
     });
 
-    test("labels markers from a property or an expression", () => {
+    it("labels markers from a property or an expression", () => {
       expect(iconImage(addMarkers({ styling: { label: "name" } }))[2]).toEqual(["to-string", ["get", "name"]]);
       expect(iconImage(addMarkers({ styling: { label: ["get", "mag"] } }))[2]).toEqual(["to-string", ["get", "mag"]]);
     });
 
-    test("clusters the source only under the cluster behaviour", () => {
+    it("clusters the source only under the cluster behaviour", () => {
       expect(mock.sources.get(addMarkers().getSourceId())?.spec).toMatchObject({ cluster: false });
       expect(mock.sources.get(addMarkers({ collisionBehaviour: "cluster" }).getSourceId())?.spec).toMatchObject({ cluster: true });
     });
 
-    test("rebuilds its sublayers for each collision behaviour", () => {
+    it("rebuilds its sublayers for each collision behaviour", () => {
       const layer = addMarkers();
       const sublayers = (behaviour: Parameters<typeof layer.setCollisionBehaviour>[0]) => {
         layer.setCollisionBehaviour(behaviour);
@@ -292,7 +292,7 @@ describe("PointLayer", () => {
       expect(mock.sources.get(layer.getSourceId())?.spec).toMatchObject({ cluster: false });
     });
 
-    test("resolves its dot and cluster images too", async () => {
+    it("resolves its dot and cluster images too", async () => {
       const layer = addMarkers({ collisionBehaviour: "minimize-by-priority" });
       const dotId = (mock.map.getLayer(`${layer.id}-dot`) as Sublayer).layout?.["icon-image"] as string;
 
@@ -306,7 +306,7 @@ describe("PointLayer", () => {
       expect(mock.images.has(clusterId)).toBe(true);
     });
 
-    test("updates the sort key in place when the priority changes", () => {
+    it("updates the sort key in place when the priority changes", () => {
       const layer = addMarkers({ collisionBehaviour: "hide-by-priority" });
       mock.map.addSource.mockClear();
 

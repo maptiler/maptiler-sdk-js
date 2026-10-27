@@ -77,9 +77,9 @@ export type PointLayerMarkersStyling = {
 
 /**
  * What happens where markers overlap:
- * - `always-show` (the default): every marker shows, nearer ones drawn over further ones.
+ * - `always-show`: every marker shows, nearer ones drawn over further ones.
  * - `hide-by-priority`: a marker overlapping a higher-priority one is hidden.
- * - `minimize-by-priority`: a marker overlapping a higher-priority one shrinks to a dot.
+ * - `minimize-by-priority` (the default): a marker overlapping a higher-priority one shrinks to a dot.
  * - `cluster`: nearby markers group into cluster markers showing their count.
  *
  * Collision is MapLibre's symbol collision, so markers also collide with the
