@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { drawMarkerCanvas } from "../../src/Marker/marker-canvas";
+import { drawMarkerCanvas, getMarkerCanvasPadding } from "../../src/Marker/marker-canvas";
 import { circlePath, getShapeGeometry } from "../../src/Marker/marker-svg-config";
 import { getAdaptiveColors } from "../../src/Marker/marker-adaptive-colors";
 import { MARKER_ICON_VIEWBOX_SIZE, getMarkerIconPath } from "../../src/Marker/marker-icons";
@@ -169,6 +169,16 @@ describe("drawMarkerCanvas sizing", () => {
     const { canvas, padding } = drawMarkerCanvas({ shape: "circle", size: "l", shadow: "none" }, { pixelRatio: 2 });
 
     expect(callsOf(bodyContext(canvas), "setTransform")[0].args).toEqual([2, 0, 0, 2, 2 * padding, 2 * padding]);
+  });
+
+  it.each([
+    [{ size: "l" }],
+    [{ size: "m", shadow: "none" }],
+    [{ size: "m", shadow: "none", outline: 6 }],
+    [{ size: "l", shadow: "strong", outline: true }],
+    [{ size: "xs", outline: true }],
+  ] as const)("getMarkerCanvasPadding matches the padding drawn for %o", (style) => {
+    expect(getMarkerCanvasPadding({ shape: "circle", ...style })).toBe(drawMarkerCanvas({ shape: "circle", ...style }, { pixelRatio: 1 }).padding);
   });
 });
 
