@@ -1,14 +1,17 @@
-import { Map, StyleSpecificationWithMetaData, type MapOptions } from "../src";
+import { Map, StyleSpecificationWithMetaData, type ImageViewer, type ImageViewerConstructorOptions, type MapOptions } from "../src";
 
 declare global {
   interface Window {
     __map: Map;
+    __imageViewer: ImageViewer;
     __pageObjects: Record<string, any>;
     __pageLoadTimeout: number;
     notifyScreenshotStateReady: (data: TTestTransferData) => Promise<void>;
     notifyTest: (data: TTestTransferData) => Promise<void>;
     setFixtureWithConfig: (config: { id: string; options: MapOptions; requiresScreenShot?: boolean }) => Promise<void>;
     setFixtureMapStyle: (style: string | StyleSpecificationWithMetaData) => Promise<void>;
+    createImageViewer: (options?: Partial<ImageViewerConstructorOptions>) => Promise<void>;
+    waitForImageViewerIdle: () => Promise<void>;
     __MT_SDK_VERSION__: string;
     __MT_NODE_ENV__: string | undefined;
     __MT_BUILD_FORMAT__: "es" | "umd" | "dev";
