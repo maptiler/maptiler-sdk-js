@@ -212,3 +212,4 @@ export * from "./utils";
 
 export * from "./MaptilerAnimation";
 export * from "./custom-layers/AnimatedRouteLayer";
+export * from "./data-layers";
