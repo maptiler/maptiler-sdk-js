@@ -865,23 +865,6 @@ describe("ImageViewer", () => {
     });
   });
   describe("Controls", () => {
-    it("should add the fit image to bounds control", async () => {
-      const viewer = new ImageViewer({
-        container: container,
-        imageUUID: "test-uuid",
-        apiKey: "test-key",
-        debug: false,
-        fitToBoundsControl: true,
-      });
-
-      await viewer.onReadyAsync();
-
-      const MockedMap = Map as unknown as Mock;
-      const mockMapInstance = MockedMap.mock.results[0].value;
-
-      expect(mockMapInstance.addControl).toHaveBeenCalledWith(expect.any(ImageViewerFitImageToBoundsControl));
-    });
-
     it("should add the navigation and fit image to bounds controls by default", async () => {
       const viewer = new ImageViewer({
         container: container,

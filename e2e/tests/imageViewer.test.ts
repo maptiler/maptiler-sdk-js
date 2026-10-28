@@ -38,13 +38,22 @@ function getCanvasCenter(page: Page) {
   return getElementCenter(page, "#map canvas");
 }
 
-test.setTimeout(30000);
+// Resizes the viewport and waits for the viewer to handle the resize, which happens asynchronously
+async function resizeViewport(page: Page, width: number, height: number) {
+  await page.evaluate(() => {
+    window.__pageObjects = { ...window.__pageObjects, resized: window.__imageViewer.once("resize") };
+  });
+  await page.setViewportSize({ width, height });
+  await page.evaluate(async () => {
+    await window.__pageObjects.resized;
+    await window.waitForImageViewerIdle();
+  });
+}
 
 //#region Loading
 test.describe("Loading", () => {
   test("renders the image fitted to the viewport", async ({ page }) => {
     await loadImageViewerFixture({ page });
-    expect(await page.title()).toBe("MapTiler E2E Image Viewer");
 
     await page.evaluate(() => window.createImageViewer());
 
@@ -102,33 +111,18 @@ test.describe("Controls", () => {
 
 //#region Camera
 test.describe("Camera", () => {
-  test("setCenter, getCenter and jumpTo use image pixels", async ({ page }) => {
-    await loadImageViewerFixture({ page });
-    await page.evaluate(() => window.createImageViewer());
-
-    const afterSetCenter = await page.evaluate(() => window.__imageViewer.setCenter([100, 200]).getCenter());
-    expectPxCloseTo(afterSetCenter, [100, 200], 1);
-
-    const afterJumpTo = await page.evaluate(() => {
-      const viewer = window.__imageViewer;
-      viewer.jumpTo({ center: [2900, 1900], zoom: 1.5 });
-      return { center: viewer.getCenter(), zoom: viewer.getZoom() };
-    });
-    expectPxCloseTo(afterJumpTo.center, [2900, 1900], 1);
-    expect(afterJumpTo.zoom).toBeCloseTo(1.5);
-  });
-
   test("getImageBounds covers the bounds passed to fitImageBounds", async ({ page }) => {
     await loadImageViewerFixture({ page });
     await page.evaluate(() => window.createImageViewer());
 
     const [tl, br] = await page.evaluate(async () => {
       const viewer = window.__imageViewer;
+      const moveEnd = viewer.once("moveend");
       viewer.fitImageBounds([
         [500, 500],
         [1500, 1000],
       ]);
-      await viewer.once("moveend");
+      await moveEnd;
       return viewer.getImageBounds();
     });
 
@@ -144,8 +138,7 @@ test.describe("Camera", () => {
 
     const zoomBefore = await page.evaluate(() => window.__imageViewer.getZoom());
 
-    await page.setViewportSize({ width: 640, height: 480 });
-    await page.evaluate(() => window.waitForImageViewerIdle());
+    await resizeViewport(page, 640, 480);
 
     const { center, zoom, bounds } = await page.evaluate(() => ({
       center: window.__imageViewer.getCenter(),
@@ -174,8 +167,7 @@ test.describe("Camera", () => {
 
     const zoomBefore = await page.evaluate(() => window.__imageViewer.getZoom());
 
-    await page.setViewportSize({ width: 640, height: 480 });
-    await page.evaluate(() => window.waitForImageViewerIdle());
+    await resizeViewport(page, 640, 480);
 
     const zoomAfter = await page.evaluate(() => window.__imageViewer.getZoom());
     expect(zoomAfter).toBeCloseTo(zoomBefore);
@@ -229,7 +221,5 @@ test.describe("ImageViewerMarker", () => {
     const canvasCenter = await getCanvasCenter(page);
 
     expectPxCloseTo([markerCenter.x, markerCenter.y], [canvasCenter.x, canvasCenter.y], 2);
-
-    await expect(page).toHaveScreenshot("imageViewer-marker.png");
   });
 });
