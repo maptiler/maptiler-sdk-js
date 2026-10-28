@@ -1,7 +1,7 @@
 // Sets the MapLibre worker URL, as Vite users of the SDK do
 import "@maptiler/sdk/vite-worker";
 import { ColorRampCollection, Map, MapStyle, PointLayer, config, helpers } from "../../src/index";
-import type { GeoJSONSource, MapStyleVariant, MapTilerMarkerShape, MarkerStyle, PointLayerCirclesStyling, PointLayerMarkersCollisionBehaviour } from "../../src/index";
+import type { ColorRamp, GeoJSONSource, MapStyleVariant, MapTilerMarkerShape, MarkerStyle, PointLayerCirclesStyling, PointLayerMarkersCollisionBehaviour } from "../../src/index";
 import { el, setupMapTilerApiKey } from "./demo-utils";
 import { MarkerInteraction, loadQuakes, type QuakeFeature } from "./point-layer-interaction";
 
@@ -34,14 +34,19 @@ const controls = {
 /** Every styling key is always present — `undefined` resets it to the default on the PointLayer side. */
 function readStyling(): PointLayerCirclesStyling {
   return {
-    pointColor: controls.color.value === "ramp" ? magnitudeRamp : controls.color.value,
+    color: controls.color.value === "ramp" ? magnitudeRamp : controls.color.value,
     property: controls.property.value || undefined,
-    pointRadius: controls.radiusAuto.checked ? undefined : Number(controls.radius.value),
+    radius: controls.radiusAuto.checked ? undefined : Number(controls.radius.value),
     outline: controls.outline.checked,
     zoomCompensation: controls.zoomCompensation.checked,
     alignOnViewport: controls.alignViewport.checked,
     showLabel: controls.showLabel.checked ? true : undefined,
   };
+}
+
+/** The `addPoint` options for circles styling, which uses the data layers' shared names. Only the keys the controls set. */
+function toAddPointOptions({ color, radius, ...rest }: PointLayerCirclesStyling) {
+  return { ...rest, pointColor: color as string | ColorRamp, pointRadius: radius as number | undefined };
 }
 
 async function main() {
@@ -72,7 +77,8 @@ async function main() {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     helperIds = helpers.addPoint(helperMap, {
       data: EARTHQUAKES_URL,
-      ...readStyling(),
+      // the helper's names for the same options
+      ...toAddPointOptions(readStyling()),
       minzoom: Number(controls.minzoom.value),
       maxzoom: MAXZOOM,
     });
