@@ -109,7 +109,7 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
     return this.syncSublayers(this.buildSublayers());
   }
 
-  /** The default circle opacity fades in and out at the zoom range's edges, so a new range restyles the sublayers. */
+  /** The opacity fades in and out at the zoom range's edges, so a new range or fade restyles the sublayers. */
   protected override onZoomRangeChange(): boolean {
     return this.syncSublayers(this.buildSublayers());
   }
@@ -137,6 +137,7 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
           dot: this.images.dot.setStyle(this.map, styling.minimized),
           cluster: this.images.cluster.setStyle(this.map, styling.clusterMarker),
         },
+        fadeOpacity: this.fadeOpacity,
       });
     }
 
@@ -144,8 +145,7 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
       layerId: this.id,
       sourceId: this.getSourceId(),
       cluster: this.isClustered(),
-      minzoom: this.minzoom,
-      maxzoom: this.maxzoom,
+      fadeOpacity: this.fadeOpacity,
     });
   }
 

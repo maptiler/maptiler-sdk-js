@@ -15,6 +15,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { Map as SDKMap } from "../Map";
 import { config } from "../config";
 import { isUUID } from "../tools";
+import { fadeAtZoomEdges, usesZoom } from "./styling";
 
 //#region Types
 
@@ -35,6 +36,14 @@ export type DataLayerConstructorOptions<TStyling extends object> = {
   minzoom?: number;
   /** Zoom level from which the layer no longer shows. Defaults to `24`. */
   maxzoom?: number;
+  /**
+   * Zoom span over which the layer fades in after `minzoom` and out before
+   * `maxzoom` — not at zoom `0` or `24`, the map's own limits. Defaults to
+   * `0.25`, and `0` turns it off. Two layers whose zoom
+   * ranges overlap by the fade cross-fade. An opacity zoom ramp or a
+   * zoom-dependent opacity expression of the layer's own replaces the fade.
+   */
+  fade?: number;
 };
 
 /** Pointer events forwarded from the layer's sublayers. */
@@ -71,6 +80,8 @@ type BoundMapListener = { type: string; layerIds?: string[]; listener: (event: n
 
 const MOUSE_EVENT_TYPES: readonly DataLayerMouseEventType[] = ["click", "mouseenter", "mouseleave", "mousemove"];
 
+const DEFAULT_FADE = 0.25;
+
 //#endregion
 
 /**
@@ -104,6 +115,11 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
   protected visible: boolean;
   protected minzoom: number;
   protected maxzoom: number;
+  protected fade: number;
+
+  /** Whether the user set the fade, so is told when an opacity of their own replaces it. */
+  private isFadeSet: boolean;
+  private hasWarnedFadeReplaced = false;
 
   /** Layer the controller sat beneath when last added, used to restore its position after a full style rebuild. */
   private beforeId: string | undefined;
@@ -154,6 +170,8 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
     this.visible = options.visible ?? true;
     this.minzoom = options.minzoom ?? 0;
     this.maxzoom = options.maxzoom ?? 24;
+    this.fade = options.fade ?? DEFAULT_FADE;
+    this.isFadeSet = options.fade !== undefined;
   }
 
   //#endregion
@@ -298,9 +316,17 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
     return this.visible;
   }
 
-  setZoomRange(minzoom: number, maxzoom: number): this {
+  /**
+   * Sets the zoom range the layer shows in.
+   * @param fade - Zoom span to fade in and out over at the range's edges — see {@link DataLayerConstructorOptions.fade}. Unchanged when omitted.
+   */
+  setZoomRange(minzoom: number, maxzoom: number, fade?: number): this {
     this.minzoom = minzoom;
     this.maxzoom = maxzoom;
+    if (fade !== undefined) {
+      this.fade = fade;
+      this.isFadeSet = true;
+    }
     this.pending.zoomRange = true;
     this.scheduleFlush();
     return this;
@@ -308,6 +334,11 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
 
   getZoomRange(): [number, number] {
     return [this.minzoom, this.maxzoom];
+  }
+
+  /** Zoom span the layer fades in and out over at the edges of its zoom range. */
+  getFade(): number {
+    return this.fade;
   }
 
   //#endregion
@@ -391,6 +422,22 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
     this.sublayerSpecs = next;
     return true;
   }
+
+  /**
+   * `opacity` with the layer's fade at the edges of its zoom range. An opacity
+   * that already reads the zoom can't be nested in it, so is kept as is,
+   * replacing the fade.
+   */
+  // an arrow, so renderers can be handed it
+  protected readonly fadeOpacity = (opacity: number | ExpressionSpecification): number | ExpressionSpecification => {
+    if (!usesZoom(opacity)) return fadeAtZoomEdges(opacity, this.minzoom, this.maxzoom, this.fade);
+
+    if (this.isFadeSet && this.fade > 0 && !this.hasWarnedFadeReplaced) {
+      this.hasWarnedFadeReplaced = true;
+      console.warn(`${this.id}: the opacity depends on the zoom, so it replaces the layer's fade.`);
+    }
+    return opacity;
+  };
 
   /** A sublayer's `filter` combined with the {@link geometryFilter} — as an object to spread, so an unfiltered sublayer of an unfiltered layer gets no `filter` key. */
   private withGeometryFilter(filter: FilterSpecification | undefined): { filter?: FilterSpecification } {

@@ -151,6 +151,76 @@ describe("PointLayer", () => {
       expect((mock.map.getLayer(`${layer.id}-point`) as Sublayer).paint?.["circle-radius"]).toEqual(radius);
     });
 
+    describe("fade", () => {
+      const opacityOf = (layer: PointLayer) => (mock.map.getLayer(`${layer.id}-point`) as Sublayer).paint?.["circle-opacity"];
+
+      it("fades a set opacity at the edges of the zoom range", () => {
+        const layer = new PointLayer({ data: data(), styling: { ...styling, opacity: 0.6 }, minzoom: 3, maxzoom: 9, fade: 1 });
+        mock.map.addLayer(layer);
+
+        expect(opacityOf(layer)).toEqual(["interpolate", ["linear"], ["zoom"], 3, 0, 4, 0.6, 8, 0.6, 9, 0]);
+        expect(layer.getFade()).toBe(1);
+      });
+
+      it("fades the outline with the circles", () => {
+        const layer = new PointLayer({ data: data(), styling: { ...styling, outline: true, outlineOpacity: 0.8 }, minzoom: 3, maxzoom: 9, fade: 1 });
+        mock.map.addLayer(layer);
+
+        const paint = (mock.map.getLayer(`${layer.id}-point`) as Sublayer).paint;
+        expect(paint?.["circle-stroke-opacity"]).toEqual(["interpolate", ["linear"], ["zoom"], 3, 0, 4, 0.8, 8, 0.8, 9, 0]);
+      });
+
+      it("refades in place for a new zoom range and fade", () => {
+        const layer = new PointLayer({ data: data(), styling, minzoom: 3, maxzoom: 9 });
+        mock.map.addLayer(layer);
+        mock.map.addSource.mockClear();
+
+        layer.setZoomRange(4, 10, 2);
+        flushFrames();
+
+        expect(opacityOf(layer)).toEqual(["interpolate", ["linear"], ["zoom"], 4, 0, 6, 1, 8, 1, 10, 0]);
+        expect(mock.map.addSource).not.toHaveBeenCalled();
+      });
+
+      it("keeps the fade when only the zoom range changes", () => {
+        const layer = new PointLayer({ data: data(), styling, minzoom: 3, maxzoom: 9, fade: 1 });
+        mock.map.addLayer(layer);
+
+        layer.setZoomRange(4, 10);
+        flushFrames();
+
+        expect(layer.getFade()).toBe(1);
+        expect(opacityOf(layer)).toEqual(["interpolate", ["linear"], ["zoom"], 4, 0, 5, 1, 9, 1, 10, 0]);
+      });
+
+      it("lets a zoom-dependent opacity replace the fade, warning once if the fade was set", () => {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+        const opacity = [
+          { zoom: 3, value: 0.2 },
+          { zoom: 9, value: 1 },
+        ];
+
+        const quiet = new PointLayer({ data: data(), styling: { ...styling, opacity }, minzoom: 3, maxzoom: 9 });
+        mock.map.addLayer(quiet);
+        expect(opacityOf(quiet)).toEqual(["interpolate", ["linear"], ["zoom"], 3, 0.2, 9, 1]);
+        expect(warn).not.toHaveBeenCalled();
+
+        const told = new PointLayer({ data: data(), styling: { ...styling, opacity }, minzoom: 3, maxzoom: 9, fade: 1 });
+        mock.map.addLayer(told);
+        told.setStyling({ outline: true });
+        flushFrames();
+        expect(warn).toHaveBeenCalledTimes(1);
+        warn.mockRestore();
+      });
+
+      it("fades markers too", () => {
+        const layer = new PointLayer({ mode: "markers", data: data(), styling: { marker: { opacity: 0.5 } }, collisionBehaviour: "always-show", minzoom: 3, fade: 1 });
+        mock.map.addLayer(layer);
+
+        expect((mock.map.getLayer(`${layer.id}-marker`) as Sublayer).paint?.["icon-opacity"]).toEqual(["interpolate", ["linear"], ["zoom"], 3, 0, 4, 0.5]);
+      });
+    });
+
     const textColorOf = (layer: PointLayer) => (mock.map.getLayer(`${layer.id}-label`) as Sublayer).paint?.["text-color"] as unknown[];
 
     it("hides labels where the circle is too small to hold them", () => {
@@ -206,8 +276,11 @@ describe("PointLayer", () => {
         ["clusters with a ramp and outline", { color: ramp, outline: true }, true],
       ];
 
-      /** The helper's and the layer's sublayers by role, without ids, sources, visibility, the label colour (which only PointLayer fits to the circle), and the geometry filter (which only PointLayer has). */
-      function comparable(layers: Sublayer[]) {
+      /**
+       * The helper's and the layer's sublayers by role, without ids, sources, visibility, the label colour (which only PointLayer fits to the circle), and the geometry filter (which only PointLayer has).
+       * @param fades - Whether the layers fade, leaving out the outline opacity, which only PointLayer fades.
+       */
+      function comparable(layers: Sublayer[], fades: boolean) {
         return layers.map((layer) => {
           const copy: Partial<Sublayer> = { ...layer, layout: { ...layer.layout }, paint: { ...layer.paint } };
           delete copy.id;
@@ -215,6 +288,7 @@ describe("PointLayer", () => {
           copy.filter = withoutGeometryFilter(copy.filter);
           delete copy.layout?.visibility;
           delete copy.paint?.["text-color"];
+          if (fades) delete copy.paint?.["circle-stroke-opacity"];
           return copy;
         });
       }
@@ -228,18 +302,24 @@ describe("PointLayer", () => {
 
       it.each(cases)("with %s", (_, styling, cluster) => {
         const helperMock = createMockStyleMap();
-        // the deprecated helper is the reference here
+        // the deprecated helper is the reference here, away from the map's zoom limits, where the layer doesn't fade
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const ids = addPoint(helperMock.asSDKMap(), { data: data(), ...toAddPointOptions(styling), cluster, minzoom: 0, maxzoom: 23 });
+        const ids = addPoint(helperMock.asSDKMap(), { data: data(), ...toAddPointOptions(styling), cluster, minzoom: 2, maxzoom: 20 });
         const helperLayers = [ids.clusterLayerId, ids.pointLayerId, ids.labelLayerId].filter(Boolean).map((id) => helperMock.map.getLayer(id) as Sublayer);
         const helperSource = helperMock.sources.get(ids.pointSourceId)?.spec;
 
-        const layer = new PointLayer({ data: data(), styling, collisionBehaviour: cluster ? "cluster" : "always-show", minzoom: 0, maxzoom: 23 });
+        // addPoint only fades an unset, opaque opacity at the zoom range's edges, while the layer fades any opacity
+        const helperFades = styling.opacity === undefined && !styling.property && !cluster;
+        const layer = new PointLayer({ data: data(), styling, collisionBehaviour: cluster ? "cluster" : "always-show", minzoom: 2, maxzoom: 20, fade: helperFades ? 0.25 : 0 });
         mock.map.addLayer(layer);
         const layerLayers = layer.getSublayerIds().map((id) => mock.map.getLayer(id) as Sublayer);
         const layerSource = mock.sources.get(layer.getSourceId())?.spec;
 
-        expect(comparable(layerLayers)).toEqual(comparable(helperLayers));
+        // the layer fades its outline with its circles
+        if (styling.outline && helperFades) {
+          for (const sublayer of layerLayers) expect(sublayer.paint?.["circle-stroke-opacity"]).toEqual(sublayer.paint?.["circle-opacity"]);
+        }
+        expect(comparable(layerLayers, helperFades)).toEqual(comparable(helperLayers, helperFades));
         expect(layerSource).toMatchObject({ cluster: (helperSource as { cluster?: boolean }).cluster ?? false });
       });
     });

@@ -30,6 +30,8 @@ export type MarkersRenderContext = {
   collisionBehaviour: PointLayerMarkersCollisionBehaviour;
   /** Image id prefix per role, for the current styles — see {@link MarkerImages.setStyle}. */
   imagePrefixes: Record<MarkerImageRole, string>;
+  /** Adds the layer's fade at the edges of its zoom range — see `DataLayer.fadeOpacity`. Unset, opacity is used as is. */
+  fadeOpacity?: (opacity: number) => number | ExpressionSpecification;
 };
 
 /** Markers styling with every marker style's shape, size and colours filled in. */
@@ -108,7 +110,7 @@ export function buildMarkerLayers(styling: ResolvedMarkersStyling, context: Mark
 
   // every point gets a dot, always shown: a marker that wins its place covers its own dot, one that loses leaves it showing
   if (behaviour === "minimize-by-priority") {
-    layers.push(symbolLayer(ids.dot, context.sourceId, styling.minimized, context.imagePrefixes.dot, { overlap: true }));
+    layers.push(symbolLayer(ids.dot, context.sourceId, styling.minimized, context.imagePrefixes.dot, { overlap: true, fadeOpacity: context.fadeOpacity }));
   }
 
   layers.push(
@@ -117,13 +119,14 @@ export function buildMarkerLayers(styling: ResolvedMarkersStyling, context: Mark
       // placement goes by ascending sort key, so the highest priority is placed first
       sortKey: collides && styling.priority !== undefined ? negate(styling.priority) : undefined,
       filter: behaviour === "cluster" ? ["!", ["has", "point_count"]] : undefined,
+      fadeOpacity: context.fadeOpacity,
     }),
   );
 
   if (behaviour === "cluster") {
     // the count is drawn into the image like a label, so clusters depth-sort with markers and use the marker font
     const count: ExpressionSpecification = ["concat", context.imagePrefixes.cluster, ["to-string", ["get", "point_count_abbreviated"]]];
-    layers.push(symbolLayer(ids.cluster, context.sourceId, styling.clusterMarker, count, { overlap: true, filter: ["has", "point_count"] }));
+    layers.push(symbolLayer(ids.cluster, context.sourceId, styling.clusterMarker, count, { overlap: true, filter: ["has", "point_count"], fadeOpacity: context.fadeOpacity }));
   }
 
   return layers;
@@ -134,6 +137,7 @@ type SymbolLayerOptions = {
   overlap: boolean;
   sortKey?: number | ExpressionSpecification;
   filter?: ExpressionSpecification;
+  fadeOpacity?: (opacity: number) => number | ExpressionSpecification;
 };
 
 function symbolLayer(id: string, source: string, style: MarkerStyle, iconImage: string | ExpressionSpecification, options: SymbolLayerOptions): SublayerSpecification {
@@ -160,7 +164,7 @@ function symbolLayer(id: string, source: string, style: MarkerStyle, iconImage: 
       "symbol-z-order": options.overlap ? "viewport-y" : "auto",
     },
     paint: {
-      "icon-opacity": opacity,
+      "icon-opacity": options.fadeOpacity ? options.fadeOpacity(opacity) : opacity,
     },
   };
 }

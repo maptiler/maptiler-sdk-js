@@ -18,8 +18,8 @@ export type CirclesRenderContext = {
   layerId: string;
   sourceId: string;
   cluster: boolean;
-  minzoom: number;
-  maxzoom: number;
+  /** Adds the layer's fade at the edges of its zoom range — see `DataLayer.fadeOpacity`. */
+  fadeOpacity: (opacity: number | ExpressionSpecification) => number | ExpressionSpecification;
 };
 
 //#endregion
@@ -104,7 +104,7 @@ export function getCircleLayerIds(layerId: string) {
  * Builds the circle sublayers, bottom first: clusters (when clustering),
  * points, then labels (when shown).
  * @param styling - Resolved styling (see {@link resolveCirclesStyling}).
- * @param context - Ids, clustering and zoom range.
+ * @param context - Ids, clustering and the zoom range fade.
  */
 export function buildCircleLayers(styling: PointLayerCirclesStyling, context: CirclesRenderContext): SublayerSpecification[] {
   const { sourceId, cluster } = context;
@@ -119,7 +119,7 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
   const alignOnViewport = styling.alignOnViewport ?? true;
   const zoomCompensation = styling.zoomCompensation ?? true;
   const opacity = resolveOpacity(styling, colorRamp, context);
-  const outlinePaint = buildOutlinePaint(styling);
+  const outlinePaint = buildOutlinePaint(styling, context.fadeOpacity);
 
   const layers: SublayerSpecification[] = [];
   /** Radius of the circles that carry labels — clusters when clustering, else the points. */
@@ -257,24 +257,20 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
   return layers;
 }
 
-/** `opacity`, else ramp-driven opacity, else a fade in/out at the zoom range's edges. */
+/** `opacity`, else ramp-driven opacity, else opaque — faded at the zoom range's edges unless it depends on the zoom itself. */
 function resolveOpacity(styling: PointLayerCirclesStyling, colorRamp: ColorRamp, context: CirclesRenderContext): DataDrivenPropertyValueSpecification<number> {
-  const { cluster, minzoom, maxzoom } = context;
+  const { cluster, fadeOpacity } = context;
 
-  if (typeof styling.opacity === "number" || isExpression(styling.opacity)) return styling.opacity;
-  if (Array.isArray(styling.opacity)) return rampedOptionsToLayerPaintSpec(styling.opacity);
-  if (cluster) return opacityDrivenByProperty(colorRamp, "point_count");
-  if (styling.property) return opacityDrivenByProperty(colorRamp, styling.property);
+  if (typeof styling.opacity === "number" || isExpression(styling.opacity)) return fadeOpacity(styling.opacity);
+  if (Array.isArray(styling.opacity)) return fadeOpacity(rampedOptionsToLayerPaintSpec(styling.opacity) as ExpressionSpecification);
+  if (cluster) return fadeOpacity(opacityDrivenByProperty(colorRamp, "point_count") as number | ExpressionSpecification);
+  if (styling.property) return fadeOpacity(opacityDrivenByProperty(colorRamp, styling.property) as number | ExpressionSpecification);
 
-  return rampedOptionsToLayerPaintSpec([
-    { zoom: minzoom, value: 0 },
-    { zoom: minzoom + 0.25, value: 1 },
-    { zoom: maxzoom - 0.25, value: 1 },
-    { zoom: maxzoom, value: 0 },
-  ]);
+  return fadeOpacity(1);
 }
 
-function buildOutlinePaint(styling: PointLayerCirclesStyling) {
+/** The outline, its opacity faded with the circles' at the zoom range's edges. */
+function buildOutlinePaint(styling: PointLayerCirclesStyling, fadeOpacity: CirclesRenderContext["fadeOpacity"]) {
   if (!styling.outline) return {};
 
   const outlineOpacity = styling.outlineOpacity ?? 1;
@@ -282,7 +278,7 @@ function buildOutlinePaint(styling: PointLayerCirclesStyling) {
   const outlineColor = styling.outlineColor ?? DEFAULT_OUTLINE_COLOR;
 
   return {
-    "circle-stroke-opacity": typeof outlineOpacity === "number" ? outlineOpacity : rampedOptionsToLayerPaintSpec(outlineOpacity),
+    "circle-stroke-opacity": fadeOpacity(typeof outlineOpacity === "number" ? outlineOpacity : (rampedOptionsToLayerPaintSpec(outlineOpacity) as ExpressionSpecification)),
     "circle-stroke-width": typeof outlineWidth === "number" ? outlineWidth : rampedOptionsToLayerPaintSpec(outlineWidth),
     "circle-stroke-color": typeof outlineColor === "string" ? outlineColor : paintColorOptionsToPaintSpec(outlineColor),
   };
