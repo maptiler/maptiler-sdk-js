@@ -22,12 +22,30 @@ import { fadeAtZoomEdges, usesZoom } from "./styling";
 /** GeoJSON data, a URL to GeoJSON, or the UUID of a MapTiler Cloud dataset. */
 export type DataLayerData = FeatureCollection | Feature | Geometry | string;
 
+/** Any data layer, whatever its styling and mode. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- the class is invariant in both, and only the source is shared
+export type AnyDataLayer = DataLayer<any, any>;
+
+/** Data shared by layers drawing the same source — see {@link DataLayerConstructorOptions.data}. */
+type SharedData = {
+  sourceId: string;
+  data: DataLayerData;
+  /** Every layer drawing the source, on a map or not. */
+  layers: Set<AnyDataLayer>;
+};
+
 /** Options shared by every data layer's constructor. */
 export type DataLayerConstructorOptions<TStyling extends object> = {
   /** Layer id. Auto-generated when omitted. */
   id?: string;
-  /** GeoJSON data, a URL to GeoJSON, or the UUID of a MapTiler Cloud dataset. */
-  data: DataLayerData;
+  /**
+   * GeoJSON data, a URL to GeoJSON, or the UUID of a MapTiler Cloud dataset —
+   * or another data layer, to draw its data from the same source. Layers
+   * sharing a source share their data: `setData()` on either updates both,
+   * and both fire the data events. The source stays on the map while any of
+   * them does. A clustered layer can't share its source.
+   */
+  data: DataLayerData | AnyDataLayer;
   /** Initial styling. Unset fields use the layer's defaults. */
   styling?: TStyling;
   /** Initial visibility. Defaults to `true`. */
@@ -106,8 +124,8 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
 
   protected map: SDKMap | null = null;
 
-  /** Data as passed by the user — {@link getData} returns it unchanged. */
-  protected data: DataLayerData;
+  /** Data as passed by the user — {@link getData} returns it unchanged — shared with the layers drawing the same source. */
+  private readonly shared: SharedData;
 
   /** Styling as set by the user, without defaults — see {@link getStyling} for the resolved values. */
   protected styling: TStyling;
@@ -136,7 +154,8 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
   /** Data events held back until the `addLayer` call that raised them has returned — `null` when not holding. */
   private heldDataEvents: (() => void)[] | null = null;
 
-  private readonly listeners = new Map<DataLayerEventType, Set<DataLayerEventListener<DataLayerEventType, this>>>();
+  /** Listeners by event type — typed loosely, as one typed by `this` would tie the base class to each subclass, and layers sharing a source must be one type. */
+  private readonly listeners = new Map<DataLayerEventType, Set<(event: never) => void>>();
 
   /** Map-level listeners currently bound, kept so they can be detached — layer-delegated ones are rebound on every rebuild, as sublayer ids may change. */
   private readonly boundMapListeners: BoundMapListener[] = [];
@@ -164,7 +183,13 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
   protected constructor(idPrefix: string, mode: TMode, options: DataLayerConstructorOptions<TStyling>) {
     this.id = options.id ?? `${idPrefix}-${uuidv4()}`;
     this.mode = mode;
-    this.data = options.data;
+    if (options.data instanceof DataLayer) {
+      if (!options.data.canShareSource()) throw new Error(`${this.id}: "${options.data.id}" can't share its source, as it clusters.`);
+      this.shared = options.data.shared;
+    } else {
+      this.shared = { sourceId: `${this.id}-source`, data: options.data, layers: new Set() };
+    }
+    this.shared.layers.add(this);
     this.styling = {} as TStyling;
     if (options.styling) this.setStyling(options.styling);
     this.visible = options.visible ?? true;
@@ -204,6 +229,16 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
    * Unset, every key can be reset. Called from the constructor, so it can't rely on the subclass's fields.
    */
   protected isRequiredStylingKey?(key: keyof TStyling): boolean;
+
+  /** Whether other layers can draw this layer's source — not when its source is set up for this layer alone, such as clustered. */
+  protected canShareSource(): boolean {
+    return true;
+  }
+
+  /** Whether other layers draw this layer's source too, so it can't change to suit this one. */
+  protected isSharingSource(): boolean {
+    return this.shared.layers.size > 1;
+  }
 
   /** Source specification. Override to add clustering etc. — changing what this returns needs a {@link requestRebuild}. */
   protected getSourceSpecification(): GeoJSONSourceSpecification {
@@ -247,22 +282,26 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
 
   //#region Data
 
-  /** Replaces the layer's data. */
+  /** Replaces the layer's data — and that of the layers sharing its source. */
   setData(data: DataLayerData): this {
-    this.data = data;
-    this.pending.data = true;
-    this.scheduleFlush();
+    this.shared.data = data;
+    // one update reaches every layer drawing the source, so it goes through one that's on a map
+    const updater = this.map ? this : [...this.shared.layers].find((layer) => layer.map);
+    if (updater) {
+      updater.pending.data = true;
+      updater.scheduleFlush();
+    }
     return this;
   }
 
-  /** Returns the data as it was passed in — a URL or UUID is not resolved. */
+  /** Returns the data as it was passed in — a URL or UUID is not resolved. Layers sharing a source return the same data. */
   getData(): DataLayerData {
-    return this.data;
+    return this.shared.data;
   }
 
-  /** Id of the GeoJSON source backing the layer. */
+  /** Id of the GeoJSON source backing the layer — the first layer's, for layers sharing a source. */
   getSourceId(): string {
-    return `${this.id}-source`;
+    return this.shared.sourceId;
   }
 
   /** Ids of the style layers currently managed by this layer, bottom first. Empty until added to a map. */
@@ -351,19 +390,19 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
       typeListeners = new Set();
       this.listeners.set(type, typeListeners);
     }
-    typeListeners.add(listener as DataLayerEventListener<DataLayerEventType, this>);
+    typeListeners.add(listener);
     return this;
   }
 
   off<T extends DataLayerEventType>(type: T, listener: DataLayerEventListener<T, this>): this {
-    this.listeners.get(type)?.delete(listener as DataLayerEventListener<DataLayerEventType, this>);
+    this.listeners.get(type)?.delete(listener);
     return this;
   }
 
   protected fire<T extends DataLayerEventType>(type: T, event: DataLayerEventMap<this>[T]): void {
     const typeListeners = this.listeners.get(type);
     if (!typeListeners) return;
-    for (const listener of [...typeListeners]) listener(event);
+    for (const listener of [...typeListeners]) (listener as DataLayerEventListener<T, this>)(event);
   }
 
   //#endregion
@@ -439,6 +478,11 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
     return opacity;
   };
 
+  /** Whether another layer sharing the source is on `map`, so still draws it. */
+  private isSourceDrawnByOthers(map: SDKMap): boolean {
+    return [...this.shared.layers].some((layer) => layer !== this && layer.map === map && map.getLayer(layer.id) !== undefined);
+  }
+
   /** A sublayer's `filter` combined with the {@link geometryFilter} — as an object to spread, so an unfiltered sublayer of an unfiltered layer gets no `filter` key. */
   private withGeometryFilter(filter: FilterSpecification | undefined): { filter?: FilterSpecification } {
     const geometryFilter = this.geometryFilter;
@@ -448,10 +492,11 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
 
   /** The data to hand to the source — a UUID becomes its MapTiler Cloud dataset URL. */
   protected resolveSourceData(): GeoJSONSourceSpecification["data"] {
-    if (typeof this.data === "string" && isUUID(this.data)) {
-      return `${config.apiURL}data/${this.data}/features.json?key=${config.apiKey}`;
+    const { data } = this.shared;
+    if (typeof data === "string" && isUUID(data)) {
+      return `${config.apiURL}data/${data}/features.json?key=${config.apiKey}`;
     }
-    return this.data as GeoJSONSourceSpecification["data"];
+    return data as GeoJSONSourceSpecification["data"];
   }
 
   /** (Re)creates the source and sublayers from the current state. Idempotent — leftovers from a previous build are removed first. */
@@ -462,7 +507,8 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
     this.unbindLayerListeners();
     this.teardown();
 
-    map.addSource(this.getSourceId(), this.getSourceSpecification());
+    // a layer sharing the source may have added it already
+    if (!map.getSource(this.getSourceId())) map.addSource(this.getSourceId(), this.getSourceSpecification());
     this.addSublayers(map);
     this.bindLayerListeners();
 
@@ -479,7 +525,7 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
       if (map.getLayer(layerId)) map.removeLayer(layerId);
     }
     this.sublayerSpecs = [];
-    if (map.getSource(this.getSourceId())) map.removeSource(this.getSourceId());
+    if (map.getSource(this.getSourceId()) && !this.isSourceDrawnByOthers(map)) map.removeSource(this.getSourceId());
     // a load in flight is abandoned with its source
     this.isLoadingData = false;
   }

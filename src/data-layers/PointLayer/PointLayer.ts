@@ -54,13 +54,15 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
     // circles can't collide, so only markers default to colliding
     const defaultBehaviour = this.mode === "markers" ? "minimize-by-priority" : "always-show";
     this.collisionBehaviour = options.collisionBehaviour ?? (defaultBehaviour as PointLayerCollisionBehaviour<TMode>);
+    if (this.isClustered() && this.isSharingSource()) throw new Error(`${this.id}: a layer sharing its source can't cluster, as clustering changes the source.`);
   }
 
   //#region Collision Behaviour
 
-  /** Sets what happens where points overlap. Switching clustering on or off rebuilds the source. */
+  /** Sets what happens where points overlap. Switching clustering on or off rebuilds the source, so a layer sharing its source can't cluster. */
   setCollisionBehaviour(collisionBehaviour: PointLayerCollisionBehaviour<TMode>): this {
     if (collisionBehaviour === this.collisionBehaviour) return this;
+    if (collisionBehaviour === "cluster" && this.isSharingSource()) throw new Error(`${this.id}: a layer sharing its source can't cluster, as clustering changes the source.`);
     this.collisionBehaviour = collisionBehaviour;
     this.requestRebuild();
     return this;
@@ -91,6 +93,10 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
   //#endregion
 
   //#region DataLayer
+
+  protected override canShareSource(): boolean {
+    return !this.isClustered();
+  }
 
   protected override getSourceSpecification(): GeoJSONSourceSpecification {
     return { ...super.getSourceSpecification(), cluster: this.isClustered() };

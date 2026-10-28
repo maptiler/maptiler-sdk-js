@@ -502,6 +502,109 @@ describe("DataLayer", () => {
 
   //#endregion
 
+  //#region Shared Source
+
+  describe("shared source", () => {
+    it("draws another layer's source, added once", () => {
+      const first = addLayer();
+      const second = addLayer({ data: first });
+
+      expect(second.getSourceId()).toBe(first.getSourceId());
+      expect(mock.map.addSource).toHaveBeenCalledTimes(1);
+      expect((mock.map.getLayer(`${second.id}-circle`) as { source: string }).source).toBe(first.getSourceId());
+    });
+
+    it("adds the source for whichever layer is added first", () => {
+      const first = new TestLayer({ data: emptyData() });
+      const second = new TestLayer({ data: first });
+
+      mock.map.addLayer(second);
+      expect(mock.sources.has(first.getSourceId())).toBe(true);
+      mock.map.addLayer(first);
+      expect(mock.map.addSource).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps the source while any layer drawing it is on the map, in either order", () => {
+      for (const removeFirstLayerFirst of [true, false]) {
+        const first = addLayer();
+        const second = addLayer({ data: first });
+        const [removed, kept] = removeFirstLayerFirst ? [first, second] : [second, first];
+
+        mock.map.removeLayer(removed.id);
+        expect(mock.sources.has(first.getSourceId())).toBe(true);
+        expect(kept.getSublayerIds()).toHaveLength(1);
+
+        mock.map.removeLayer(kept.id);
+        expect(mock.sources.has(first.getSourceId())).toBe(false);
+      }
+    });
+
+    it("shares the data, updating the source once from either layer", () => {
+      const first = addLayer();
+      const second = addLayer({ data: first });
+      const source = mock.sources.get(first.getSourceId());
+      const next = emptyData();
+
+      second.setData(next);
+      flushFrames();
+
+      expect(source?.setData).toHaveBeenCalledTimes(1);
+      expect(source?.setData).toHaveBeenCalledWith(next);
+      expect(first.getData()).toBe(next);
+      expect(second.getData()).toBe(next);
+    });
+
+    it("updates the source through a layer on the map when the one set isn't", () => {
+      const first = new TestLayer({ data: emptyData() });
+      const second = addLayer({ data: first });
+      const next = emptyData();
+
+      first.setData(next);
+      flushFrames();
+
+      expect(mock.sources.get(first.getSourceId())?.setData).toHaveBeenCalledWith(next);
+      expect(second.getData()).toBe(next);
+    });
+
+    it("fires the data events on every layer sharing the source", () => {
+      const first = addLayer();
+      const second = addLayer({ data: first });
+      const events: string[] = [];
+      first.on("data", () => events.push("first"));
+      second.on("data", () => events.push("second"));
+
+      mock.fire("sourcedataloading", { sourceId: first.getSourceId() });
+      mock.fire("sourcedata", { sourceId: first.getSourceId(), sourceDataType: "content", isSourceLoaded: true });
+
+      expect(events).toEqual(["first", "second"]);
+    });
+
+    it("rebuilds both layers on one source after a style change", () => {
+      const first = addLayer({}, "labels");
+      const second = addLayer({ data: first }, "labels");
+
+      mock.setStyle(["base", "labels"], { diff: false });
+      mock.setStyle(["base", "labels"], { diff: true });
+
+      expect(mock.sources.has(first.getSourceId())).toBe(true);
+      expect(mock.map.getLayersOrder()).toEqual(["base", `${first.id}-circle`, first.id, `${second.id}-circle`, second.id, "labels"]);
+    });
+
+    it("rebuilds one layer without touching the other's source", () => {
+      const first = addLayer();
+      const second = addLayer({ data: first });
+      mock.map.removeSource.mockClear();
+
+      second.setStyling({ halo: true });
+      flushFrames();
+
+      expect(mock.map.removeSource).not.toHaveBeenCalled();
+      expect(first.getSublayerIds()).toHaveLength(1);
+    });
+  });
+
+  //#endregion
+
   //#region Data Events
 
   describe("data events", () => {

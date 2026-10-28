@@ -151,6 +151,18 @@ describe("PointLayer", () => {
       expect((mock.map.getLayer(`${layer.id}-point`) as Sublayer).paint?.["circle-radius"]).toEqual(radius);
     });
 
+    it("can't cluster on a shared source", () => {
+      const clustered = new PointLayer({ data: data(), styling, collisionBehaviour: "cluster" });
+      expect(() => new PointLayer({ data: clustered, styling })).toThrow("can't share its source");
+
+      const plain = new PointLayer({ data: data(), styling });
+      expect(() => new PointLayer({ data: plain, styling, collisionBehaviour: "cluster" })).toThrow("can't cluster");
+
+      const sharing = new PointLayer({ data: plain, styling });
+      expect(() => sharing.setCollisionBehaviour("cluster")).toThrow("can't cluster");
+      expect(() => plain.setCollisionBehaviour("cluster")).toThrow("can't cluster");
+    });
+
     describe("fade", () => {
       const opacityOf = (layer: PointLayer) => (mock.map.getLayer(`${layer.id}-point`) as Sublayer).paint?.["circle-opacity"];
 
