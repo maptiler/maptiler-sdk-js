@@ -1747,25 +1747,27 @@ const layer = new PointLayer({
   data: "public-schools.geojson", // GeoJSON, a URL to GeoJSON, or the UUID of a MapTiler dataset
   styling: {
     property: "students",
-    pointColor: ColorRampCollection.PORTLAND.scale(200, 2000),
+    color: ColorRampCollection.PORTLAND.scale(200, 2000), // required in circles mode
   },
 });
 map.addLayer(layer); // or map.addLayer(layer, beforeId)
 
 // later
-layer.setStyling({ pointOpacity: 0.8 }).setZoomRange(4, 22).setVisible(true);
+layer.setStyling({ opacity: 0.8 }).setZoomRange(4, 22).setVisible(true);
 layer.setData(otherSchools);
 
 map.removeLayer(layer.id);
 ```
 
-Changes made in the same frame are applied together, through the cheapest update available. `setStyling()` merges into the current styling, and a key set to `undefined` goes back to its default. `getStyling()` returns the styling in effect, defaults included.
+Changes made in the same frame are applied together, through the cheapest update available. `setStyling()` merges into the current styling, and a key set to `undefined` goes back to its default — except a required one like `color`, which keeps its value. `getStyling()` returns the styling in effect, defaults included.
+
+Only Point and MultiPoint features are drawn. Lines and polygons in the data are skipped.
 
 #### Circles and markers
 
 Points are drawn in one of two modes, fixed when the layer is created:
 
-- `circles` (the default) draws GL circles. Its styling options are the visual options of `addPoint`, with the same meaning and defaults.
+- `circles` (the default) draws GL circles. Its styling options are the visual options of `addPoint`, with the same meaning and defaults, under the names all data layers share: `color`, `radius`, `minRadius`, `maxRadius` and `opacity` for `addPoint`'s `pointColor`, `pointRadius`, `minPointRadius`, `maxPointRadius` and `pointOpacity`. `color` is required for now, as there's no default colour yet. `color`, `radius` and `opacity` also take a MapLibre expression, used as is.
 - `markers` draws each point as a MapTiler marker image (see [Markers](#markers)), drawn by the map rather than as DOM elements, so it suits larger datasets than `Marker`. A `label` is drawn into each marker, so markers and their labels overlap correctly.
 
 ```ts
@@ -1983,7 +1985,7 @@ All the other options are documented on [our reference page](https://docs.maptil
 #### Point Layer Helper
 
 > [!WARNING]
-> `helpers.addPoint` is deprecated. Use [`PointLayer`](#point-layer) instead: it takes the same styling options, and can be updated after it's added.
+> `helpers.addPoint` is deprecated. Use [`PointLayer`](#point-layer) instead: it takes the same styling options under shorter names (`color` for `pointColor`, …), and can be updated after it's added.
 
 A point visualization may appear like the simplest of all, but we noticed this is where people get the most creative: cluster, data-driven variable radius, but also scaled with zoom, with or without labels, data-driven colors, etc. Our helper supports all of these and will fill-in with built-in default for what's missing.
 

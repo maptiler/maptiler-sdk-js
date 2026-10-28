@@ -25,7 +25,8 @@
   - Experimental altitude: raise markers above the ground or sea level, with an optional line down to the ground.
   - Markers are managed through the map with `map.addMarker()`, `map.getMarker()` and `map.removeMarker()`.
 - Introduces `PointLayer`, a stateful layer of points and the successor to `helpers.addPoint`. It's added with `map.addLayer()`, and its data, styling, visibility and zoom range can be changed after it's added, applied together once per frame. It survives `setStyle()`.
-  - `circles` mode draws GL circles, with the styling options and defaults of `addPoint`. Labels too big for their circle are hidden.
+  - `circles` mode draws GL circles, with the styling options and defaults of `addPoint` under the data layers' shared names (`color`, `radius`, `minRadius`, `maxRadius`, `opacity`). `color` is required, and `color`, `radius` and `opacity` also take MapLibre expressions. Labels too big for their circle are hidden.
+  - Draws Point and MultiPoint features only.
   - `markers` mode draws each point as a MapTiler marker image, with an optional label drawn into the marker, so markers and labels overlap correctly.
   - Collision behaviours: `always-show`, `cluster`, and in markers mode `hide-by-priority` and `minimize-by-priority` (the markers default), ranked by a `priority` number or expression.
   - Fires `dataloading`, `data` and `error` once per load, and forwards `click`, `mouseenter`, `mouseleave` and `mousemove` on its points.
