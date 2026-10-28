@@ -31,6 +31,10 @@
   - Collision behaviours: `always-show`, `cluster`, and in markers mode `hide-by-priority` and `minimize-by-priority` (the markers default), ranked by a `priority` number or expression.
   - Fires `dataloading`, `data` and `error` once per load, and forwards `click`, `mouseenter`, `mouseleave` and `mousemove` on its points.
   - Built on `DataLayer`, a base class for upcoming data layers.
+- Introduces `HeatmapLayer`, a stateful heatmap of points and the successor to `helpers.addHeatmap`, with its styling options and defaults under the data layers' shared names (`color` for `colorRamp`).
+  - `property` on its own weights each point by its value. `weight`, `radius`, `intensity` and `opacity` also take MapLibre expressions.
+- Data layers fade in and out at the edges of their zoom range, over a `fade` span set in the constructor or with `setZoomRange()`, so a heatmap can cross-fade into a `PointLayer` drawn from its source.
+- Data layers can share another data layer's source, given as their `data`, loading the data once.
 - Adds `map.addMissingStyleImageResolver()` and `map.removeMissingStyleImageResolver()`, so several missing-image resolvers can run side by side. A resolver set with `setMissingStyleImageResolver()` is tried after them, rather than replacing them.
 - Adds bundler helper entry points that set the MapLibre worker URL from a locally bundled worker:
   - `@maptiler/sdk/vite-worker` for Vite
@@ -40,7 +44,7 @@
 - Events of `CubemapLayer` (`cubemaplayer:*`), `RadialGradientLayer` (`radialgradientlayer:*`) and `ImageViewerMarker` are now typed.
 
 ### ⚙️ Others
-- Deprecates `helpers.addPoint` in favour of `PointLayer`.
+- Deprecates `helpers.addPoint` in favour of `PointLayer`, and `helpers.addHeatmap` in favour of `HeatmapLayer`.
 - Bumps `maplibre-gl` to 6.11.2 and `@maplibre/maplibre-gl-style-spec` to 26.
 - Switches internal `maplibre-gl` imports to named imports.
 - Documents worker setup per bundler, CSP requirements, self-hosted UMD worker files and TypeScript `moduleResolution` in the README.

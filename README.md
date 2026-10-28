@@ -1804,6 +1804,73 @@ layer.on("data", () => hideSpinner()); // once per load
 layer.on("error", (e) => console.error(e.error));
 ```
 
+#### Zoom range fade
+
+A data layer fades in after its `minzoom` and out before its `maxzoom`, over `fade` zooms (`0.25` by default, `0` turns it off), except at zoom `0` and `24`, the map's own limits. The fade applies to a fixed or data-driven opacity. An opacity zoom ramp, or an opacity expression that reads the zoom, replaces it.
+
+```ts
+const layer = new PointLayer({ data, styling: { color: "#e63946" }, minzoom: 8, fade: 1 });
+layer.setZoomRange(6, 22, 2); // the fade can change with the range
+```
+
+#### Sharing data between layers
+
+A data layer can draw another data layer's source, by being given that layer as its `data`. The data is then loaded and parsed once, and `setData()` on either layer updates both. The source stays on the map while any layer drawing it does. A clustered layer can't share its source, as clustering changes the source.
+
+```ts
+const quakes = new PointLayer({ data: "earthquakes.geojson", styling: { color: "#e63946" } });
+const labels = new PointLayer({ mode: "markers", data: quakes, styling: { label: "mag" }, minzoom: 10 });
+```
+
+### Heatmap Layer
+
+`HeatmapLayer` draws a heatmap of points, like the `addHeatmap` helper (see [Heatmap Layer Helper](#heatmap-layer-helper)), but as a layer that keeps its state, as `PointLayer` does. Its styling options are those of `addHeatmap`, with the same meaning and defaults, and `colorRamp` named `color`, as for all data layers. `color` is required for now, as there's no default ramp yet.
+
+```ts
+import { Map, HeatmapLayer, ColorRampCollection } from "@maptiler/sdk";
+
+const heatmap = new HeatmapLayer({
+  data: "earthquakes.geojson",
+  styling: {
+    color: ColorRampCollection.MAGMA, // read along the density, scaled to [0, 1] with a transparent start
+    property: "mag", // each quake weighs its magnitude
+  },
+});
+
+// heatmaps usually sit beneath the style's labels
+const firstSymbolLayerId = map.getStyle().layers.find((layer) => layer.type === "symbol")?.id;
+map.addLayer(heatmap, firstSymbolLayerId);
+
+heatmap.setStyling({ radius: 25, intensity: 1.5 });
+```
+
+`property` on its own weights each point by its value, missing and negative values counting as `0`. A `weight` of `PropertyValues` maps the property's values to weights instead, as in `addHeatmap`. `weight`, `radius`, `intensity` and `opacity` also take MapLibre expressions. Only Point and MultiPoint features are drawn.
+
+Pointer events report every point whose radius covers the pointer, including the heatmap's faint edges.
+
+#### Handing over to points
+
+Zoomed in, a heatmap is usually replaced by its points. Draw them with a `PointLayer` on the heatmap's source, and split the zoom range between the two, fading across the split:
+
+```ts
+const heatmap = new HeatmapLayer({
+  data: "earthquakes.geojson",
+  styling: { color: ColorRampCollection.MAGMA, property: "mag" },
+  maxzoom: 9.5,
+  fade: 1,
+});
+const points = new PointLayer({
+  data: heatmap, // the heatmap's source
+  styling: { color: ColorRampCollection.MAGMA.scale(0, 8), property: "mag" },
+  minzoom: 8.5,
+  fade: 1,
+});
+map.addLayer(heatmap, firstSymbolLayerId);
+map.addLayer(points, firstSymbolLayerId); // above the heatmap, beneath the style's labels
+```
+
+The heatmap fades out over its last zoom, as the points fade in over their first, so the two cross-fade between zooms 8.5 and 9.5. They're separate layers, styled, hidden and removed on their own.
+
 ### Vector Layer Helpers
 
 **Let's make vector layers easy!** Originally, you'd have to add a source and then proceed to the styling of your layer, which can be tricky because there are a lot of `paint` and `layout` options and they vary a lot from one type of layer to another. **But we have helpers for this!** 🖋️
@@ -2034,6 +2101,9 @@ Here, the`PORTLAND` color ramp is going to be used so that schools with `200` st
 All the other options are documented on [our reference page](https://docs.maptiler.com/sdk-js/api/helpers/#point) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/?q=point+helper).
 
 #### Heatmap Layer Helper
+
+> [!WARNING]
+> `helpers.addHeatmap` is deprecated. Use [`HeatmapLayer`](#heatmap-layer) instead: it takes the same styling options (`color` for `colorRamp`), and can be updated after it's added.
 
 The heatmap layer is a great alternative for visualizing a collection of sparse data, but it can be challenging to use, especially when one has to come up with their own color ramp from scratch. **The helper makes this much easier!**
 
