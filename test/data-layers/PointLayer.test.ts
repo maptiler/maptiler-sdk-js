@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FeatureCollection } from "geojson";
 import { PointLayer } from "../../src/data-layers/PointLayer";
 import type { PointLayerCirclesStyling } from "../../src/data-layers/PointLayer";
-import { addPoint } from "../../src/helpers/vectorlayerhelpers";
+import { addPoint, type PointLayerOptions } from "../../src/helpers/vectorlayerhelpers";
 import { ColorRampCollection } from "../../src/ColorRamp";
 import { getAdaptiveColors } from "../../src/Marker/marker-adaptive-colors";
 import { createMockStyleMap, type MockStyleMap } from "./mock-style-map";
@@ -34,7 +34,21 @@ function flushFrames() {
 }
 
 /** A style layer as the mock map stores it. */
-type Sublayer = { id: string; type: string; source?: unknown; paint?: Record<string, unknown>; layout?: Record<string, unknown> };
+type Sublayer = { id: string; type: string; source?: unknown; filter?: unknown; paint?: Record<string, unknown>; layout?: Record<string, unknown> };
+
+const POINTS_ONLY = ["==", ["geometry-type"], "Point"];
+
+/** The `addPoint` options matching circles styling, which uses the data layers' shared names. */
+function toAddPointOptions({ color, radius, minRadius, maxRadius, opacity, ...rest }: PointLayerCirclesStyling): Partial<PointLayerOptions> {
+  return {
+    ...rest,
+    pointColor: color as PointLayerOptions["pointColor"],
+    ...(radius !== undefined ? { pointRadius: radius as PointLayerOptions["pointRadius"] } : {}),
+    ...(minRadius !== undefined ? { minPointRadius: minRadius } : {}),
+    ...(maxRadius !== undefined ? { maxPointRadius: maxRadius } : {}),
+    ...(opacity !== undefined ? { pointOpacity: opacity as PointLayerOptions["pointOpacity"] } : {}),
+  };
+}
 
 describe("PointLayer", () => {
   let mock: MockStyleMap;
@@ -53,8 +67,10 @@ describe("PointLayer", () => {
   //#region Circles
 
   describe("circles mode", () => {
+    const styling = { color: "#e63946" };
+
     it("is the default mode", () => {
-      const layer = new PointLayer({ data: data() });
+      const layer = new PointLayer({ data: data(), styling });
       mock.map.addLayer(layer);
 
       expect(layer.mode).toBe("circles");
@@ -63,7 +79,7 @@ describe("PointLayer", () => {
     });
 
     it("clusters through collisionBehaviour, with cluster, point and count label sublayers", () => {
-      const layer = new PointLayer({ data: data(), collisionBehaviour: "cluster" });
+      const layer = new PointLayer({ data: data(), styling, collisionBehaviour: "cluster" });
       mock.map.addLayer(layer);
 
       expect(mock.sources.get(layer.getSourceId())?.spec).toMatchObject({ cluster: true });
@@ -71,7 +87,7 @@ describe("PointLayer", () => {
     });
 
     it("rebuilds the source when clustering is switched, and not for the same value", () => {
-      const layer = new PointLayer({ data: data() });
+      const layer = new PointLayer({ data: data(), styling });
       mock.map.addLayer(layer);
 
       layer.setCollisionBehaviour("always-show");
@@ -85,28 +101,67 @@ describe("PointLayer", () => {
       expect(layer.getSublayerIds()).toContain(`${layer.id}-cluster`);
     });
 
-    it("keeps a stable default colour across rebuilds", () => {
-      const layer = new PointLayer({ data: data() });
+    it("requires a colour", () => {
+      expect(() => new PointLayer({ data: data(), styling: {} as PointLayerCirclesStyling })).toThrow("`styling.color` is required");
+    });
+
+    it("keeps its colour when reset, with a warning", () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+      const layer = new PointLayer({ data: data(), styling });
       mock.map.addLayer(layer);
-      const color = () => JSON.stringify((mock.map.getLayer(`${layer.id}-point`) as Sublayer).paint?.["circle-color"]);
-      const before = color();
 
-      mock.setStyle(["base"], { diff: false });
+      layer.setStyling({ color: undefined });
+      flushFrames();
 
-      expect(color()).toBe(before);
+      expect(layer.getStyling().color).toBe("#e63946");
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('"color" is required'));
+      warn.mockRestore();
+    });
+
+    it("draws points only, on every sublayer", () => {
+      const layer = new PointLayer({ data: data(), styling, collisionBehaviour: "cluster" });
+      mock.map.addLayer(layer);
+
+      const filters = layer.getSublayerIds().map((id) => (mock.map.getLayer(id) as Sublayer).filter);
+      expect(filters).toEqual([
+        ["all", POINTS_ONLY, ["has", "point_count"]],
+        ["all", POINTS_ONLY, ["!", ["has", "point_count"]]],
+        ["all", POINTS_ONLY, ["has", "point_count"]],
+      ]);
+    });
+
+    it("passes colour, radius and opacity expressions through as they are", () => {
+      const color = ["match", ["get", "name"], "a", "#ff0000", "#0000ff"];
+      const radius = ["*", 2, ["get", "mag"]];
+      const opacity = ["interpolate", ["linear"], ["zoom"], 0, 0.2, 10, 1];
+      const layer = new PointLayer({ data: data(), styling: { color, radius, opacity, property: "mag" } as PointLayerCirclesStyling });
+      mock.map.addLayer(layer);
+
+      const paint = (mock.map.getLayer(`${layer.id}-point`) as Sublayer).paint;
+      expect(paint?.["circle-color"]).toEqual(color);
+      expect(paint?.["circle-radius"]).toEqual(radius);
+      expect(paint?.["circle-opacity"]).toEqual(opacity);
+    });
+
+    it("keeps a radius expression over the ramp-driven radius", () => {
+      const radius = ["*", 2, ["get", "mag"]];
+      const layer = new PointLayer({ data: data(), styling: { color: ColorRampCollection.TURBO.scale(1, 7), property: "mag", radius } as PointLayerCirclesStyling });
+      mock.map.addLayer(layer);
+
+      expect((mock.map.getLayer(`${layer.id}-point`) as Sublayer).paint?.["circle-radius"]).toEqual(radius);
     });
 
     const textColorOf = (layer: PointLayer) => (mock.map.getLayer(`${layer.id}-label`) as Sublayer).paint?.["text-color"] as unknown[];
 
     it("hides labels where the circle is too small to hold them", () => {
-      const layer = new PointLayer({ data: data(), styling: { property: "mag", showLabel: true, pointRadius: 6, labelSize: 12, zoomCompensation: false } });
+      const layer = new PointLayer({ data: data(), styling: { ...styling, property: "mag", showLabel: true, radius: 6, labelSize: 12, zoomCompensation: false } });
       mock.map.addLayer(layer);
 
       expect(textColorOf(layer)).toEqual(["case", [">=", ["-", ["*", 2, 6], 2], 12], "#fff", "rgba(0, 0, 0, 0)"]);
     });
 
     it("checks a zoom-dependent radius at each stop of its zoom ramp", () => {
-      const layer = new PointLayer({ data: data(), styling: { property: "mag", showLabel: true, pointRadius: 6, labelSize: 12 } });
+      const layer = new PointLayer({ data: data(), styling: { ...styling, property: "mag", showLabel: true, radius: 6, labelSize: 12 } });
       mock.map.addLayer(layer);
 
       const radius = (mock.map.getLayer(`${layer.id}-point`) as Sublayer).paint?.["circle-radius"] as unknown[];
@@ -120,8 +175,16 @@ describe("PointLayer", () => {
       expect(textColor.slice(3).filter((_, i) => i % 2 === 0)).toEqual(stops.filter((_, i) => i % 2 === 0).slice(1));
     });
 
+    it("leaves labels unchecked on a zoom-dependent radius expression, which can't be nested", () => {
+      const radius = ["step", ["zoom"], 4, 10, 12];
+      const layer = new PointLayer({ data: data(), styling: { ...styling, property: "mag", showLabel: true, radius } as PointLayerCirclesStyling });
+      mock.map.addLayer(layer);
+
+      expect(textColorOf(layer)).toBe("#fff");
+    });
+
     it("checks a data-driven cluster radius per feature", () => {
-      const layer = new PointLayer({ data: data(), collisionBehaviour: "cluster" });
+      const layer = new PointLayer({ data: data(), styling, collisionBehaviour: "cluster" });
       mock.map.addLayer(layer);
 
       const radius = (mock.map.getLayer(`${layer.id}-cluster`) as Sublayer).paint?.["circle-radius"];
@@ -134,31 +197,40 @@ describe("PointLayer", () => {
     describe("matches addPoint", () => {
       const ramp = ColorRampCollection.TURBO.scale(1, 7);
       const cases: [string, PointLayerCirclesStyling, boolean][] = [
-        ["a plain colour", { pointColor: "#e63946" }, false],
-        ["a colour ramp driven by a property", { pointColor: ramp, property: "mag" }, false],
-        ["a fixed radius with an outline", { pointColor: "#1d3557", pointRadius: 14, outline: true }, false],
-        ["no zoom compensation, map-aligned", { pointColor: "#e63946", zoomCompensation: false, alignOnViewport: false }, false],
-        ["clusters", { pointColor: "#e63946" }, true],
-        ["clusters with a ramp and outline", { pointColor: ramp, outline: true }, true],
+        ["a plain colour", { color: "#e63946" }, false],
+        ["a colour ramp driven by a property", { color: ramp, property: "mag" }, false],
+        ["a fixed radius with an outline", { color: "#1d3557", radius: 14, outline: true }, false],
+        ["no zoom compensation, map-aligned", { color: "#e63946", zoomCompensation: false, alignOnViewport: false }, false],
+        ["a radius range and opacity", { color: ramp, property: "mag", minRadius: 4, maxRadius: 20, opacity: 0.6 }, false],
+        ["clusters", { color: "#e63946" }, true],
+        ["clusters with a ramp and outline", { color: ramp, outline: true }, true],
       ];
 
-      /** The helper's and the layer's sublayers by role, without ids, sources, visibility, and the label colour (which only PointLayer fits to the circle). */
+      /** The helper's and the layer's sublayers by role, without ids, sources, visibility, the label colour (which only PointLayer fits to the circle), and the geometry filter (which only PointLayer has). */
       function comparable(layers: Sublayer[]) {
         return layers.map((layer) => {
           const copy: Partial<Sublayer> = { ...layer, layout: { ...layer.layout }, paint: { ...layer.paint } };
           delete copy.id;
           delete copy.source;
+          copy.filter = withoutGeometryFilter(copy.filter);
           delete copy.layout?.visibility;
           delete copy.paint?.["text-color"];
           return copy;
         });
       }
 
+      function withoutGeometryFilter(filter: unknown): unknown {
+        if (JSON.stringify(filter) === JSON.stringify(POINTS_ONLY)) return undefined;
+        const parts = Array.isArray(filter) ? (filter as unknown[]) : [];
+        if (parts[0] === "all" && JSON.stringify(parts[1]) === JSON.stringify(POINTS_ONLY)) return parts[2];
+        return filter;
+      }
+
       it.each(cases)("with %s", (_, styling, cluster) => {
         const helperMock = createMockStyleMap();
         // the deprecated helper is the reference here
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const ids = addPoint(helperMock.asSDKMap(), { data: data(), ...styling, cluster, minzoom: 0, maxzoom: 23 });
+        const ids = addPoint(helperMock.asSDKMap(), { data: data(), ...toAddPointOptions(styling), cluster, minzoom: 0, maxzoom: 23 });
         const helperLayers = [ids.clusterLayerId, ids.pointLayerId, ids.labelLayerId].filter(Boolean).map((id) => helperMock.map.getLayer(id) as Sublayer);
         const helperSource = helperMock.sources.get(ids.pointSourceId)?.spec;
 

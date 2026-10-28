@@ -1,7 +1,7 @@
 import type { GeoJSONSourceSpecification, Map as MapLibreMap } from "maplibre-gl";
 import type { Map as SDKMap } from "../../Map";
-import { getRandomColor } from "../../helpers/stylehelper";
 import { DataLayer, type SublayerSpecification } from "../DataLayer";
+import { POINT_GEOMETRY_FILTER } from "../styling";
 import { buildCircleLayers, resolveCirclesStyling } from "./circles-renderer";
 import { MarkerImages, buildMarkerLayers, resolveMarkersStyling } from "./markers-renderer";
 import type {
@@ -21,12 +21,13 @@ import type {
  *
  * Points render as GL circles (`mode: "circles"`, the default) or as MapTiler
  * marker images (`mode: "markers"`). The mode is fixed at construction.
+ * Only Point and MultiPoint features are drawn — other geometries are skipped.
  *
  * @example
  * ```ts
- * const layer = new PointLayer({ data: "https://example.com/points.geojson", styling: { pointColor: "#ff0000" } });
+ * const layer = new PointLayer({ data: "https://example.com/points.geojson", styling: { color: "#ff0000" } });
  * map.addLayer(layer);
- * layer.setStyling({ pointRadius: 12 }).setVisible(true);
+ * layer.setStyling({ radius: 12 }).setVisible(true);
  *
  * const markers = new PointLayer({ mode: "markers", data, styling: { marker: { shape: "square" }, label: "name" } });
  * map.addLayer(markers);
@@ -35,8 +36,7 @@ import type {
 export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLayer<PointLayerStyling<TMode>, TMode> {
   private collisionBehaviour: PointLayerCollisionBehaviour<TMode>;
 
-  /** Colour used while `pointColor` is unset in circles mode — picked once, so it's stable across rebuilds. */
-  private readonly defaultColor = getRandomColor();
+  protected override readonly geometryFilter = POINT_GEOMETRY_FILTER;
 
   /** Images in markers mode: the markers, the dots minimized markers leave, and the cluster markers. */
   private readonly images = {
@@ -47,6 +47,10 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
 
   constructor(options: PointLayerConstructorOptions<TMode>) {
     super("maptiler-point-layer", options.mode ?? ("circles" as TMode), options);
+    // for JavaScript callers — the types already require it
+    if (!this.isMarkers() && !("color" in this.styling)) {
+      throw new Error("PointLayer: `styling.color` is required in circles mode.");
+    }
     // circles can't collide, so only markers default to colliding
     const defaultBehaviour = this.mode === "markers" ? "minimize-by-priority" : "always-show";
     this.collisionBehaviour = options.collisionBehaviour ?? (defaultBehaviour as PointLayerCollisionBehaviour<TMode>);
@@ -96,6 +100,11 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
     for (const layer of this.buildSublayers()) this.addSublayer(map, layer);
   }
 
+  /** Circles have no default colour yet, so `color` can't be reset. */
+  protected override isRequiredStylingKey(key: keyof PointLayerStyling<TMode>): boolean {
+    return !this.isMarkers() && key === "color";
+  }
+
   protected applyStyling(): boolean {
     return this.syncSublayers(this.buildSublayers());
   }
@@ -109,7 +118,7 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
     if (this.isMarkers()) {
       return resolveMarkersStyling(this.styling as PointLayerMarkersStyling, this.map?.getStyleId()) as PointLayerStyling<TMode>;
     }
-    return resolveCirclesStyling(this.styling as PointLayerCirclesStyling, this.defaultColor, this.isClustered()) as PointLayerStyling<TMode>;
+    return resolveCirclesStyling(this.styling as PointLayerCirclesStyling, this.isClustered()) as PointLayerStyling<TMode>;
   }
 
   //#endregion

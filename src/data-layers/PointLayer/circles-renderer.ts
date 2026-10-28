@@ -3,6 +3,7 @@ import { ColorRampCollection, type ColorRamp } from "../../ColorRamp";
 import type { DataDrivenStyle } from "../../helpers/vectorlayerhelpers";
 import { colorDrivenByProperty, opacityDrivenByProperty, paintColorOptionsToPaintSpec, radiusDrivenByProperty, rampedOptionsToLayerPaintSpec } from "../../helpers/stylehelper";
 import type { SublayerSpecification } from "../DataLayer";
+import { isExpression, usesZoom } from "../styling";
 import type { PointLayerCirclesStyling } from "./types";
 
 // Layer specs for `circles` mode. Ported from the `addPoint` helper's spec
@@ -43,17 +44,15 @@ const LABEL_FIT_MARGIN_PX = 1;
 //#region Styling
 
 /**
- * Fills in `addPoint`'s defaults.
+ * Fills in `addPoint`'s defaults — all but the colour, which is required.
  * @param styling - Styling as set by the user.
- * @param defaultColor - Colour used when `pointColor` is unset and not clustering — picked once per layer, as `addPoint` picks one per call.
  * @param cluster - Whether the layer clusters, which changes several defaults.
  */
-export function resolveCirclesStyling(styling: PointLayerCirclesStyling, defaultColor: string, cluster: boolean): PointLayerCirclesStyling {
+export function resolveCirclesStyling(styling: PointLayerCirclesStyling, cluster: boolean): PointLayerCirclesStyling {
   return {
     ...styling,
-    pointColor: styling.pointColor ?? (cluster ? defaultColorRamp(cluster) : defaultColor),
-    minPointRadius: styling.minPointRadius ?? DEFAULT_MIN_POINT_RADIUS,
-    maxPointRadius: styling.maxPointRadius ?? DEFAULT_MAX_POINT_RADIUS,
+    minRadius: styling.minRadius ?? DEFAULT_MIN_POINT_RADIUS,
+    maxRadius: styling.maxRadius ?? DEFAULT_MAX_POINT_RADIUS,
     alignOnViewport: styling.alignOnViewport ?? true,
     showLabel: styling.showLabel ?? cluster,
     labelColor: styling.labelColor ?? DEFAULT_LABEL_COLOR,
@@ -66,8 +65,26 @@ export function resolveCirclesStyling(styling: PointLayerCirclesStyling, default
   };
 }
 
+/** The ramp sizing clusters, and data-driven points, when `color` isn't a `ColorRamp` — `addPoint`'s default ramp. */
 function defaultColorRamp(cluster: boolean): ColorRamp {
   return ColorRampCollection.TURBO.scale(10, cluster ? 10000 : 1000).resample("ease-out-square");
+}
+
+/** `color` when it's a `ColorRamp` — not a CSS colour or an expression. */
+function colorRampOf(styling: PointLayerCirclesStyling): ColorRamp | undefined {
+  return Array.isArray(styling.color) && !isExpression(styling.color) ? (styling.color as ColorRamp) : undefined;
+}
+
+/** `color` when it's used as is — a CSS colour or an expression. */
+function fixedColorOf(styling: PointLayerCirclesStyling): string | ExpressionSpecification | undefined {
+  return typeof styling.color === "string" || isExpression(styling.color) ? styling.color : undefined;
+}
+
+/** `radius` when it's set: a number as is, a zoom ramp as an interpolation, an expression as is. */
+function setRadiusOf(styling: PointLayerCirclesStyling): DataDrivenPropertyValueSpecification<number> | undefined {
+  const { radius } = styling;
+  if (radius === undefined || typeof radius === "number" || isExpression(radius)) return radius;
+  return rampedOptionsToLayerPaintSpec(radius);
 }
 
 //#endregion
@@ -93,13 +110,15 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
   const { sourceId, cluster } = context;
   const ids = getCircleLayerIds(context.layerId);
 
-  const minPointRadius = styling.minPointRadius ?? DEFAULT_MIN_POINT_RADIUS;
-  const maxPointRadius = styling.maxPointRadius ?? DEFAULT_MAX_POINT_RADIUS;
-  const colorRamp = Array.isArray(styling.pointColor) ? styling.pointColor : defaultColorRamp(cluster);
+  const minRadius = styling.minRadius ?? DEFAULT_MIN_POINT_RADIUS;
+  const maxRadius = styling.maxRadius ?? DEFAULT_MAX_POINT_RADIUS;
+  const fixedColor = fixedColorOf(styling);
+  const setRadius = setRadiusOf(styling);
+  const colorRamp = colorRampOf(styling) ?? defaultColorRamp(cluster);
   const colorRampBounds = colorRamp.getBounds();
   const alignOnViewport = styling.alignOnViewport ?? true;
   const zoomCompensation = styling.zoomCompensation ?? true;
-  const pointOpacity = resolvePointOpacity(styling, colorRamp, context);
+  const opacity = resolveOpacity(styling, colorRamp, context);
   const outlinePaint = buildOutlinePaint(styling);
 
   const layers: SublayerSpecification[] = [];
@@ -112,17 +131,12 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
       const value = colorRampBounds.min + (i * (colorRampBounds.max - colorRampBounds.min)) / (DATA_DRIVEN_STYLE_STEPS - 1);
       return {
         value,
-        pointRadius: minPointRadius + (maxPointRadius - minPointRadius) * (i / (DATA_DRIVEN_STYLE_STEPS - 1)) ** 0.5,
+        pointRadius: minRadius + (maxRadius - minRadius) * (i / (DATA_DRIVEN_STYLE_STEPS - 1)) ** 0.5,
         color: colorRamp.getColorHex(value),
       };
     });
 
-    labelledRadius =
-      typeof styling.pointRadius === "number"
-        ? styling.pointRadius
-        : Array.isArray(styling.pointRadius)
-          ? rampedOptionsToLayerPaintSpec(styling.pointRadius)
-          : radiusDrivenByProperty(clusterStyle, "point_count", false);
+    labelledRadius = setRadius ?? radiusDrivenByProperty(clusterStyle, "point_count", false);
 
     layers.push({
       id: ids.cluster,
@@ -130,11 +144,11 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
       source: sourceId,
       filter: ["has", "point_count"],
       paint: {
-        "circle-color": typeof styling.pointColor === "string" ? styling.pointColor : colorDrivenByProperty(clusterStyle, "point_count"),
+        "circle-color": fixedColor ?? colorDrivenByProperty(clusterStyle, "point_count"),
         "circle-radius": labelledRadius,
         "circle-pitch-alignment": alignOnViewport ? "viewport" : "map",
         "circle-pitch-scale": "map", // scale with camera distance regardless of viewport/map alignment
-        "circle-opacity": pointOpacity,
+        "circle-opacity": opacity,
         ...outlinePaint,
       },
     });
@@ -148,60 +162,50 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
       paint: {
         "circle-pitch-alignment": alignOnViewport ? "viewport" : "map",
         "circle-pitch-scale": "map",
-        "circle-color": typeof styling.pointColor === "string" ? styling.pointColor : colorRamp.getColorHex(colorRampBounds.min),
-        "circle-radius":
-          typeof styling.pointRadius === "number"
-            ? styling.pointRadius
-            : Array.isArray(styling.pointRadius)
-              ? rampedOptionsToLayerPaintSpec(styling.pointRadius)
-              : clusterStyle[0].pointRadius * 0.75,
-        "circle-opacity": pointOpacity,
+        "circle-color": fixedColor ?? colorRamp.getColorHex(colorRampBounds.min),
+        "circle-radius": setRadius ?? clusterStyle[0].pointRadius * 0.75,
+        "circle-opacity": opacity,
         ...outlinePaint,
       },
     });
   } else {
-    let pointColor: DataDrivenPropertyValueSpecification<string> =
-      typeof styling.pointColor === "string"
-        ? styling.pointColor
-        : // a colour ramp without a property uses its first colour
-          colorRamp.getColorHex(colorRampBounds.min);
+    // a colour ramp without a property uses its first colour
+    let pointColor: DataDrivenPropertyValueSpecification<string> = fixedColor ?? colorRamp.getColorHex(colorRampBounds.min);
 
     let pointRadius: DataDrivenPropertyValueSpecification<number> =
-      typeof styling.pointRadius === "number"
+      typeof styling.radius === "number"
         ? zoomCompensation
           ? rampedOptionsToLayerPaintSpec([
-              { zoom: 0, value: styling.pointRadius * 0.025 },
-              { zoom: 2, value: styling.pointRadius * 0.05 },
-              { zoom: 4, value: styling.pointRadius * 0.1 },
-              { zoom: 8, value: styling.pointRadius * 0.25 },
-              { zoom: 16, value: styling.pointRadius * 1 },
+              { zoom: 0, value: styling.radius * 0.025 },
+              { zoom: 2, value: styling.radius * 0.05 },
+              { zoom: 4, value: styling.radius * 0.1 },
+              { zoom: 8, value: styling.radius * 0.25 },
+              { zoom: 16, value: styling.radius * 1 },
             ])
-          : styling.pointRadius
-        : Array.isArray(styling.pointRadius)
-          ? rampedOptionsToLayerPaintSpec(styling.pointRadius)
-          : zoomCompensation
+          : styling.radius
+        : (setRadius ??
+          (zoomCompensation
             ? rampedOptionsToLayerPaintSpec([
-                { zoom: 0, value: minPointRadius * 0.05 },
-                { zoom: 2, value: minPointRadius * 0.1 },
-                { zoom: 4, value: minPointRadius * 0.2 },
-                { zoom: 8, value: minPointRadius * 0.5 },
-                { zoom: 16, value: minPointRadius * 1 },
+                { zoom: 0, value: minRadius * 0.05 },
+                { zoom: 2, value: minRadius * 0.1 },
+                { zoom: 4, value: minRadius * 0.2 },
+                { zoom: 8, value: minRadius * 0.5 },
+                { zoom: 16, value: minRadius * 1 },
               ])
-            : minPointRadius;
+            : minRadius));
 
-    // colour and radius driven by a property need a colour ramp to read from
-    if (styling.property && Array.isArray(styling.pointColor)) {
+    // colour and radius driven by a property need a colour ramp to read from — a radius expression still wins
+    if (styling.property && colorRampOf(styling)) {
       const dataDrivenStyle: DataDrivenStyle = Array.from({ length: DATA_DRIVEN_STYLE_STEPS }, (_, i) => {
         const value = colorRampBounds.min + (i * (colorRampBounds.max - colorRampBounds.min)) / (DATA_DRIVEN_STYLE_STEPS - 1);
         return {
           value,
-          pointRadius:
-            typeof styling.pointRadius === "number" ? styling.pointRadius : minPointRadius + (maxPointRadius - minPointRadius) * (i / (DATA_DRIVEN_STYLE_STEPS - 1)) ** 0.5,
+          pointRadius: typeof styling.radius === "number" ? styling.radius : minRadius + (maxRadius - minRadius) * (i / (DATA_DRIVEN_STYLE_STEPS - 1)) ** 0.5,
           color: colorRamp.getColorHex(value),
         };
       });
       pointColor = colorDrivenByProperty(dataDrivenStyle, styling.property);
-      pointRadius = radiusDrivenByProperty(dataDrivenStyle, styling.property, zoomCompensation);
+      if (!isExpression(styling.radius)) pointRadius = radiusDrivenByProperty(dataDrivenStyle, styling.property, zoomCompensation);
     }
     labelledRadius = pointRadius;
 
@@ -217,7 +221,7 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
         "circle-pitch-alignment": alignOnViewport ? "viewport" : "map",
         "circle-pitch-scale": "map",
         "circle-color": pointColor,
-        "circle-opacity": pointOpacity,
+        "circle-opacity": opacity,
         "circle-radius": pointRadius,
         ...outlinePaint,
       },
@@ -245,7 +249,7 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
       paint: {
         // hidden where it wouldn't fit its circle — in the colour, as the opacity already carries the point opacity
         "text-color": hideUnfittingLabels(styling.labelColor ?? DEFAULT_LABEL_COLOR, labelSize, labelledRadius),
-        "text-opacity": pointOpacity,
+        "text-opacity": opacity,
       },
     });
   }
@@ -253,12 +257,12 @@ export function buildCircleLayers(styling: PointLayerCirclesStyling, context: Ci
   return layers;
 }
 
-/** `pointOpacity`, else ramp-driven opacity, else a fade in/out at the zoom range's edges. */
-function resolvePointOpacity(styling: PointLayerCirclesStyling, colorRamp: ColorRamp, context: CirclesRenderContext): DataDrivenPropertyValueSpecification<number> {
+/** `opacity`, else ramp-driven opacity, else a fade in/out at the zoom range's edges. */
+function resolveOpacity(styling: PointLayerCirclesStyling, colorRamp: ColorRamp, context: CirclesRenderContext): DataDrivenPropertyValueSpecification<number> {
   const { cluster, minzoom, maxzoom } = context;
 
-  if (typeof styling.pointOpacity === "number") return styling.pointOpacity;
-  if (Array.isArray(styling.pointOpacity)) return rampedOptionsToLayerPaintSpec(styling.pointOpacity);
+  if (typeof styling.opacity === "number" || isExpression(styling.opacity)) return styling.opacity;
+  if (Array.isArray(styling.opacity)) return rampedOptionsToLayerPaintSpec(styling.opacity);
   if (cluster) return opacityDrivenByProperty(colorRamp, "point_count");
   if (styling.property) return opacityDrivenByProperty(colorRamp, styling.property);
 
@@ -302,6 +306,8 @@ function buildOutlinePaint(styling: PointLayerCirclesStyling) {
  */
 function hideUnfittingLabels(color: string, size: number, radius: DataDrivenPropertyValueSpecification<number>): DataDrivenPropertyValueSpecification<string> {
   const ramp = parseZoomRamp(radius);
+  // a zoom-dependent radius expression of the user's own can't be nested, so its labels go unchecked
+  if (!ramp && usesZoom(radius)) return color;
   if (!ramp) return fitColor(color, size, radius as number | ExpressionSpecification);
 
   const [first, ...rest] = ramp;

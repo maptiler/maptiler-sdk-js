@@ -862,7 +862,7 @@ export function addPolygon(
 
 /**
  * Add a point layer from a GeoJSON source (or an existing sourceId) with many styling options
- * @deprecated Use {@link PointLayer} instead — it takes the same styling options, and can be updated after it's added.
+ * @deprecated Use {@link PointLayer} instead — it takes the same styling options under the data layers' shared names (`color` for `pointColor`, …), and can be updated after it's added.
  */
 export function addPoint(
   /**

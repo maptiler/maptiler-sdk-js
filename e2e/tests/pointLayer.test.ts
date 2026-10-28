@@ -31,7 +31,7 @@ test.describe("PointLayer", () => {
         properties: { i },
         geometry: { type: "Point" as const, coordinates: [(i % 5) * 6 - 12, Math.floor(i / 5) * 6 - 12] },
       }));
-      const layer = new (window.__pageObjects.PointLayer as typeof PointLayerClass)({ data: { type: "FeatureCollection", features }, styling: { pointColor: "#e63946" } });
+      const layer = new (window.__pageObjects.PointLayer as typeof PointLayerClass)({ data: { type: "FeatureCollection", features }, styling: { color: "#e63946" } });
       map.addLayer(layer);
       await new Promise((resolve) => map.once("idle", resolve));
 
@@ -94,7 +94,7 @@ test.describe("PointLayer", () => {
         })),
       });
 
-      const layer = new (window.__pageObjects.PointLayer as typeof PointLayerClass)({ data: randomPoints(200) });
+      const layer = new (window.__pageObjects.PointLayer as typeof PointLayerClass)({ data: randomPoints(200), styling: { color: "#e63946" } });
       const log: string[] = [];
       layer.on("dataloading", () => log.push("dataloading"));
       layer.on("data", () => log.push("data"));
@@ -138,7 +138,7 @@ test.describe("PointLayer", () => {
       map.setStyle(style(["bottom", "labels", "top"]), { diff: false });
       await settle();
 
-      const layer = new (window.__pageObjects.PointLayer as typeof PointLayerClass)({ data: { type: "FeatureCollection", features: [] } });
+      const layer = new (window.__pageObjects.PointLayer as typeof PointLayerClass)({ data: { type: "FeatureCollection", features: [] }, styling: { color: "#e63946" } });
       map.addLayer(layer, "labels");
       await settle();
       const before = describeOrder(layer.id);

@@ -1,5 +1,6 @@
 import type { ExpressionSpecification } from "maplibre-gl";
-import type { PointLayerOptions } from "../../helpers/vectorlayerhelpers";
+import type { ColorRamp } from "../../ColorRamp";
+import type { ZoomNumberValues, ZoomStringValues } from "../../helpers/vectorlayerhelpers";
 import type { CollisionBehaviour, MarkerMinimizedOptions, MarkerStyle } from "../../Marker/types";
 import type { DataLayerConstructorOptions } from "../DataLayer";
 
@@ -10,27 +11,58 @@ export type PointLayerMode = "circles" | "markers";
 
 /**
  * Styling of a `circles` mode {@link PointLayer} — the visual options of the
- * `addPoint` helper, with the same meaning and defaults. Clustering is set
- * through `collisionBehaviour` instead.
+ * `addPoint` helper under the data layers' shared names (`color` for
+ * `pointColor`, `radius` for `pointRadius`, …), with the same meaning and
+ * defaults. Clustering is set through `collisionBehaviour` instead.
+ *
+ * Numeric values and `color` also take a MapLibre expression, passed through as is.
  */
-export type PointLayerCirclesStyling = Pick<
-  PointLayerOptions,
-  | "pointColor"
-  | "pointRadius"
-  | "minPointRadius"
-  | "maxPointRadius"
-  | "property"
-  | "pointOpacity"
-  | "alignOnViewport"
-  | "showLabel"
-  | "labelColor"
-  | "labelSize"
-  | "zoomCompensation"
-  | "outline"
-  | "outlineColor"
-  | "outlineWidth"
-  | "outlineOpacity"
->;
+export type PointLayerCirclesStyling = {
+  /**
+   * Colour of the points: a CSS colour, a `ColorRamp`, or an expression.
+   * A `ColorRamp` is read at each point's `property` value, or at each
+   * cluster's point count when clustering — without either, its lowest colour is used.
+   *
+   * Required for now: it will default to colours suiting the map style.
+   */
+  color: string | ColorRamp | ExpressionSpecification;
+  /**
+   * Radius of the points: a fixed size, a zoom ramp, or an expression. Unset,
+   * it follows each cluster's point count when clustering, or each point's
+   * `property` value when `color` is a `ColorRamp`, between `minRadius` and `maxRadius`.
+   */
+  radius?: number | ZoomNumberValues | ExpressionSpecification;
+  /** Smallest radius of a data-driven or cluster radius. Defaults to `10`. */
+  minRadius?: number;
+  /** Largest radius of a data-driven or cluster radius. Defaults to `50`. */
+  maxRadius?: number;
+  /** Property driving the colour, radius and label of each point. Ignored when clustering, which uses the point count. */
+  property?: string;
+  /**
+   * Opacity of the points: a fixed value in [0, 1], a zoom ramp, or an
+   * expression. Unset, it follows the alpha of a `ColorRamp` `color`, or
+   * fades in and out at the edges of the layer's zoom range.
+   */
+  opacity?: number | ZoomNumberValues | ExpressionSpecification;
+  /** Whether points stay circles facing the viewer when the map is pitched, rather than lying flat on it. Defaults to `true`. */
+  alignOnViewport?: boolean;
+  /** Shows each point's `property` value, or each cluster's count, as a label. Defaults to `true` when clustering. */
+  showLabel?: boolean;
+  /** Colour of the labels. Defaults to `#fff`. */
+  labelColor?: string;
+  /** Font size of the labels, in px. Defaults to `12`. */
+  labelSize?: number;
+  /** Whether a fixed or data-driven radius scales with the zoom. Defaults to `true`. */
+  zoomCompensation?: boolean;
+  /** Draws an outline around each point. Defaults to `false`. */
+  outline?: boolean;
+  /** Colour of the outline: a fixed colour or a zoom ramp. Defaults to `#FFFFFF`. */
+  outlineColor?: string | ZoomStringValues;
+  /** Width of the outline, in px: a fixed width or a zoom ramp. Defaults to `1`. */
+  outlineWidth?: number | ZoomNumberValues;
+  /** Opacity of the outline: a fixed value or a zoom ramp. Defaults to `1`. */
+  outlineOpacity?: number | ZoomNumberValues;
+};
 
 /**
  * What happens where points overlap. Circles never collide, so only
@@ -41,6 +73,8 @@ export type PointLayerCirclesCollisionBehaviour = Extract<CollisionBehaviour, "a
 export type PointLayerCirclesOptions = DataLayerConstructorOptions<PointLayerCirclesStyling> & {
   /** Renders points as GL circles. The default mode. */
   mode?: "circles";
+  /** Required, as `color` is. */
+  styling: PointLayerCirclesStyling;
   /** `cluster` groups nearby points into sized, counted clusters. Defaults to `always-show`. */
   collisionBehaviour?: PointLayerCirclesCollisionBehaviour;
 };
@@ -114,6 +148,6 @@ export type PointLayerConstructorOptions<TMode extends PointLayerMode = "circles
   mode?: TMode;
   /** What happens where points overlap. Defaults to `minimize-by-priority` for markers, `always-show` for circles. */
   collisionBehaviour?: PointLayerCollisionBehaviour<TMode>;
-};
+} & (TMode extends "markers" ? unknown : { styling: PointLayerCirclesStyling });
 
 //#endregion
