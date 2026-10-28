@@ -1,4 +1,14 @@
-import type { CustomLayerInterface, GeoJSONSource, GeoJSONSourceSpecification, LayerSpecification, Map as MapLibreMap, MapLayerMouseEvent, MapSourceDataEvent } from "maplibre-gl";
+import type {
+  CustomLayerInterface,
+  ExpressionSpecification,
+  FilterSpecification,
+  GeoJSONSource,
+  GeoJSONSourceSpecification,
+  LayerSpecification,
+  Map as MapLibreMap,
+  MapLayerMouseEvent,
+  MapSourceDataEvent,
+} from "maplibre-gl";
 import type { FeatureCollection, Feature, Geometry } from "geojson";
 import type { AllLayoutProperties, AllPaintProperties } from "@maplibre/maplibre-gl-style-spec";
 import { v4 as uuidv4 } from "uuid";
@@ -115,8 +125,16 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
   /** Map-level listeners currently bound, kept so they can be detached — layer-delegated ones are rebound on every rebuild, as sublayer ids may change. */
   private readonly boundMapListeners: BoundMapListener[] = [];
 
-  /** Specs of the sublayers added by the last build (or last {@link syncSublayers}), bottom first. */
+  /** Specs of the sublayers added by the last build (or last {@link syncSublayers}), bottom first, without the {@link geometryFilter}. */
   private sublayerSpecs: SublayerSpecification[] = [];
+
+  /**
+   * Filter combined with every sublayer's own, to keep only the geometry
+   * types the layer draws — circle and heatmap layers otherwise draw every
+   * vertex of a line or polygon. Unset, every feature reaches the sublayers.
+   * Sublayer filters combined with it must use expression syntax, not the legacy filter syntax.
+   */
+  protected readonly geometryFilter?: ExpressionSpecification;
 
   //#endregion
 
@@ -324,6 +342,7 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
     map.addLayer(
       {
         ...layer,
+        ...this.withGeometryFilter(layer.filter),
         minzoom: this.minzoom,
         maxzoom: this.maxzoom,
         layout: { ...layer.layout, visibility: this.visible ? "visible" : "none" },
@@ -355,11 +374,18 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
       forEachChangedKey(prevSpec.layout, nextSpec.layout, (key, value) => {
         map.setLayoutProperty(nextSpec.id, key as keyof AllLayoutProperties, value as AllLayoutProperties[keyof AllLayoutProperties]);
       });
-      if (!isEqualValue(prevSpec.filter, nextSpec.filter)) map.setFilter(nextSpec.id, nextSpec.filter ?? null);
+      if (!isEqualValue(prevSpec.filter, nextSpec.filter)) map.setFilter(nextSpec.id, this.withGeometryFilter(nextSpec.filter).filter ?? null);
     });
 
     this.sublayerSpecs = next;
     return true;
+  }
+
+  /** A sublayer's `filter` combined with the {@link geometryFilter} — as an object to spread, so an unfiltered sublayer of an unfiltered layer gets no `filter` key. */
+  private withGeometryFilter(filter: FilterSpecification | undefined): { filter?: FilterSpecification } {
+    const geometryFilter = this.geometryFilter;
+    if (!geometryFilter) return filter ? { filter } : {};
+    return { filter: filter ? ["all", geometryFilter, filter as ExpressionSpecification] : geometryFilter };
   }
 
   /** The data to hand to the source — a UUID becomes its MapTiler Cloud dataset URL. */

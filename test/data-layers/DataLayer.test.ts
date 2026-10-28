@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { ExpressionSpecification, FilterSpecification } from "maplibre-gl";
 import type { FeatureCollection } from "geojson";
 import type { SourceSpecification } from "maplibre-gl";
 import type { Map as SDKMap } from "../../src/Map";
@@ -88,6 +89,23 @@ class SyncTestLayer extends DataLayer<SyncStyling, "circles"> {
 
   protected resolveStyling(): SyncStyling {
     return { color: "#ff0000", sortKey: 0, ...this.styling };
+  }
+}
+
+const POINTS_ONLY: ExpressionSpecification = ["==", ["geometry-type"], "Point"];
+
+/** A test layer drawing points only, with its circle sublayer filtered to features that have `mag` while `halo` is on. */
+class PointsOnlyTestLayer extends TestLayer {
+  protected override readonly geometryFilter = POINTS_ONLY;
+
+  protected override addSublayers(map: SDKMap): void {
+    const filter: FilterSpecification | undefined = this.resolveStyling().halo ? ["has", "mag"] : undefined;
+    this.addSublayer(map, { id: `${this.id}-circle`, type: "circle", source: this.getSourceId(), ...(filter ? { filter } : {}) });
+  }
+
+  protected override applyStyling(): boolean {
+    const filter: FilterSpecification | undefined = this.resolveStyling().halo ? ["has", "mag"] : undefined;
+    return this.syncSublayers([{ id: `${this.id}-circle`, type: "circle", source: this.getSourceId(), ...(filter ? { filter } : {}) }]);
   }
 }
 
@@ -420,6 +438,44 @@ describe("DataLayer", () => {
       flushFrames();
 
       expect(mock.sources.get(layer.getSourceId())?.setData).toHaveBeenCalledWith(`https://api.maptiler.com/data/${DATASET_ID}/features.json?key=test-key`);
+    });
+  });
+
+  //#endregion
+
+  //#region Geometry Filter
+
+  describe("geometry filter", () => {
+    it("leaves sublayers unfiltered without one", () => {
+      const layer = addLayer();
+      expect(mock.map.getLayer(`${layer.id}-circle`)).not.toHaveProperty("filter");
+    });
+
+    it("applies the geometry filter to an unfiltered sublayer", () => {
+      const layer = new PointsOnlyTestLayer({ data: emptyData() });
+      mock.map.addLayer(layer);
+
+      expect((mock.map.getLayer(`${layer.id}-circle`) as { filter: unknown }).filter).toEqual(POINTS_ONLY);
+    });
+
+    it("combines the geometry filter with a sublayer's own filter", () => {
+      const layer = new PointsOnlyTestLayer({ data: emptyData(), styling: { halo: true } });
+      mock.map.addLayer(layer);
+
+      expect((mock.map.getLayer(`${layer.id}-circle`) as { filter: unknown }).filter).toEqual(["all", POINTS_ONLY, ["has", "mag"]]);
+    });
+
+    it("keeps the geometry filter when a sublayer's own filter changes in place", () => {
+      const layer = new PointsOnlyTestLayer({ data: emptyData() });
+      mock.map.addLayer(layer);
+
+      layer.setStyling({ halo: true });
+      flushFrames();
+      expect(mock.map.setFilter).toHaveBeenLastCalledWith(`${layer.id}-circle`, ["all", POINTS_ONLY, ["has", "mag"]]);
+
+      layer.setStyling({ halo: false });
+      flushFrames();
+      expect(mock.map.setFilter).toHaveBeenLastCalledWith(`${layer.id}-circle`, POINTS_ONLY);
     });
   });
 
