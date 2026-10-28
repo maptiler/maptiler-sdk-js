@@ -109,6 +109,13 @@ class PointsOnlyTestLayer extends TestLayer {
   }
 }
 
+/** A test layer whose `color` is required, so has no default to reset to. */
+class RequiredColorTestLayer extends TestLayer {
+  protected override isRequiredStylingKey(key: keyof TestStyling): boolean {
+    return key === "color";
+  }
+}
+
 const emptyData = (): FeatureCollection => ({ type: "FeatureCollection", features: [] });
 
 const DATASET_ID = "0b1c6a2e-4f3d-4c8b-9a7e-2d5f8e1c3b4a";
@@ -243,6 +250,20 @@ describe("DataLayer", () => {
 
       expect(layer.getStyling().color).toBe("#ff0000");
       expect(mock.map.setPaintProperty).toHaveBeenLastCalledWith(`${layer.id}-circle`, "circle-color", "#ff0000");
+    });
+
+    it("keeps a required styling key set to undefined, with a warning", () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+      const layer = new RequiredColorTestLayer({ data: emptyData(), styling: { color: "#00ff00" } });
+      mock.map.addLayer(layer);
+
+      layer.setStyling({ color: undefined, halo: true });
+      flushFrames();
+
+      expect(layer.getStyling().color).toBe("#00ff00");
+      expect(layer.getStyling().halo).toBe(true);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('"color" is required'));
+      warn.mockRestore();
     });
 
     it("sets visibility and zoom range on every sublayer", () => {

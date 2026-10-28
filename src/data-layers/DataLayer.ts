@@ -181,6 +181,12 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
     return true;
   }
 
+  /**
+   * Whether a styling key has no default, so {@link setStyling} won't reset it.
+   * Unset, every key can be reset. Called from the constructor, so it can't rely on the subclass's fields.
+   */
+  protected isRequiredStylingKey?(key: keyof TStyling): boolean;
+
   /** Source specification. Override to add clustering etc. — changing what this returns needs a {@link requestRebuild}. */
   protected getSourceSpecification(): GeoJSONSourceSpecification {
     return { type: "geojson", data: this.resolveSourceData() };
@@ -252,11 +258,16 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
 
   /**
    * Shallow-merges `styling` into the current styling. A key set to
-   * `undefined` resets that property to its default.
+   * `undefined` resets that property to its default — except a required
+   * one, which has no default, so it keeps its value.
    */
   setStyling(styling: Partial<TStyling>): this {
     for (const key of Object.keys(styling) as (keyof TStyling)[]) {
       if (styling[key] === undefined) {
+        if (this.isRequiredStylingKey?.(key)) {
+          console.warn(`"${String(key)}" is required and can't be reset, so it keeps its value.`);
+          continue;
+        }
         Reflect.deleteProperty(this.styling, key);
       } else {
         this.styling[key] = styling[key] as TStyling[keyof TStyling];
