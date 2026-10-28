@@ -52,6 +52,7 @@ vi.mock("../src/Map", async () => {
         // Style methods
         addSource: vi.fn(),
         addLayer: vi.fn(),
+        removeLayer: vi.fn(),
         getStyle: vi.fn(() => ({ version: 8, sources: {}, layers: [] })),
         isStyleLoaded: vi.fn(() => true),
 
@@ -118,7 +119,9 @@ import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vite
 import fs from "fs";
 import path from "path";
 import ImageViewer from "../src/ImageViewer/ImageViewer";
-import { ImageViewerEvent, setupGlobalMapEventForwarder } from "../src/ImageViewer/events";
+import { ImageViewerEvent, setupGlobalMapEventForwarder, type ImageViewerCutlineChangeEvent } from "../src/ImageViewer/events";
+import type { ImageViewerConstructorOptions } from "../src/ImageViewer/ImageViewer";
+import { OutsideCutlineLayer, OUTSIDE_CUTLINE_LAYER_ID, type OutsideCutlineLayerData } from "../src/ImageViewer/OutsideCutlineLayer";
 import { FetchError } from "../src/utils/errors";
 import { Map } from "../src/Map";
 import type { MapOptions, DragPanHandler, DoubleClickZoomHandler, TwoFingersTouchZoomRotateHandler } from "maplibre-gl";
@@ -864,6 +867,307 @@ describe("ImageViewer", () => {
       expect(viewer.off).toHaveBeenCalledTimes(3);
     });
   });
+  describe("Cutline", () => {
+    const triangle: [number, number][] = [
+      [0, 0],
+      [100, 0],
+      [100, 50],
+    ];
+
+    function createViewer(options: Partial<ImageViewerConstructorOptions> = {}) {
+      return new ImageViewer({
+        container: container,
+        imageUUID: "test-uuid",
+        apiKey: "test-key",
+        debug: false,
+        ...options,
+      });
+    }
+
+    it("should have no cutline by default", () => {
+      expect(createViewer().getCutline()).toBeNull();
+    });
+
+    it("should take the cutline from the constructor options", () => {
+      expect(createViewer({ cutline: triangle }).getCutline()).toEqual(triangle);
+    });
+
+    it("should not pass the cutline to the map", () => {
+      createViewer({ cutline: triangle });
+
+      const MockedMap = Map as unknown as Mock;
+      expect(MockedMap.mock.calls[0][0]).not.toHaveProperty("cutline");
+    });
+
+    it("should throw in the constructor for an invalid cutline", () => {
+      expect(() => createViewer({ cutline: triangle.slice(0, 2) })).toThrow("[ImageViewer]: `cutline` must have at least 3 points, got 2");
+    });
+
+    it("should return a copy of the cutline", () => {
+      const viewer = createViewer({ cutline: triangle });
+
+      const cutline = viewer.getCutline();
+      cutline?.[0].splice(0, 2, 999, 999);
+      cutline?.pop();
+
+      expect(viewer.getCutline()).toEqual(triangle);
+    });
+
+    it("should not be affected by changes to the array it was given", () => {
+      const cutline = triangle.map(([x, y]) => [x, y] as [number, number]);
+      const viewer = createViewer().setCutline(cutline);
+
+      cutline[0][0] = 999;
+
+      expect(viewer.getCutline()).toEqual(triangle);
+    });
+
+    it("should set the cutline and fire cutlinechange with a copy of it", () => {
+      const viewer = createViewer();
+      const listener = vi.fn();
+      viewer.on("cutlinechange", listener);
+
+      expect(viewer.setCutline(triangle)).toBe(viewer);
+      expect(viewer.getCutline()).toEqual(triangle);
+
+      expect(listener).toHaveBeenCalledTimes(1);
+      const event = (listener.mock.calls[0] as [ImageViewerCutlineChangeEvent])[0];
+      expect(event).toBeInstanceOf(ImageViewerEvent);
+      expect(event.type).toBe("cutlinechange");
+      expect(event.target).toBe(viewer);
+      expect(event.cutline).toEqual(triangle);
+      expect(event.cutline).not.toBe(triangle);
+    });
+
+    it("should remove the cutline with null and fire cutlinechange", () => {
+      const viewer = createViewer({ cutline: triangle });
+      const listener = vi.fn();
+      viewer.on("cutlinechange", listener);
+
+      viewer.setCutline(null);
+
+      expect(viewer.getCutline()).toBeNull();
+      expect((listener.mock.calls[0] as [ImageViewerCutlineChangeEvent])[0].cutline).toBeNull();
+    });
+
+    it("should not fire cutlinechange for the constructor option", () => {
+      const listener = vi.fn();
+      const viewer = createViewer({ cutline: triangle });
+      viewer.on("cutlinechange", listener);
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it("should keep the current cutline and not fire when setting an invalid one", () => {
+      const viewer = createViewer({ cutline: triangle });
+      const listener = vi.fn();
+      viewer.on("cutlinechange", listener);
+
+      expect(() => viewer.setCutline([[0, 0]])).toThrow("got 1");
+
+      expect(viewer.getCutline()).toEqual(triangle);
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it("should work before the viewer is ready", () => {
+      const viewer = createViewer();
+
+      viewer.setCutline(triangle);
+
+      expect(viewer.getCutline()).toEqual(triangle);
+    });
+  });
+
+  describe("Outside cutline layer", () => {
+    // the fixture image is 5120 x 5120 px, its tiles cover 8192 px
+    const PADDED_SIZE = 8192;
+    const square: [number, number][] = [
+      [512, 512],
+      [4608, 512],
+      [4608, 4608],
+      [512, 4608],
+    ];
+
+    function getMockMap() {
+      const MockedMap = Map as unknown as Mock;
+      return MockedMap.mock.results[0].value as { addLayer: Mock; removeLayer: Mock; triggerRepaint: Mock };
+    }
+
+    function getAddedOutsideCutlineLayers() {
+      return getMockMap()
+        .addLayer.mock.calls.map(([layer]) => layer as unknown)
+        .filter((layer): layer is OutsideCutlineLayer => layer instanceof OutsideCutlineLayer);
+    }
+
+    function getLayerData(layer: OutsideCutlineLayer) {
+      return (layer as unknown as { data: OutsideCutlineLayerData }).data;
+    }
+
+    function createViewer(options: Partial<ImageViewerConstructorOptions> = {}) {
+      return new ImageViewer({
+        container: container,
+        imageUUID: "test-uuid",
+        apiKey: "test-key",
+        debug: false,
+        ...options,
+      });
+    }
+
+    async function createReadyViewer(options: Partial<ImageViewerConstructorOptions> = {}) {
+      const viewer = createViewer(options);
+      await viewer.onReadyAsync();
+      return viewer;
+    }
+
+    it("should not add the layer without a cutline", async () => {
+      await createReadyViewer();
+
+      expect(getAddedOutsideCutlineLayers()).toHaveLength(0);
+    });
+
+    it("should add the layer above the image for the cutline option, in mercator coordinates", async () => {
+      await createReadyViewer({ cutline: square });
+
+      const addLayer = getMockMap().addLayer;
+      const layers = getAddedOutsideCutlineLayers();
+      expect(layers).toHaveLength(1);
+      expect(layers[0].id).toBe(OUTSIDE_CUTLINE_LAYER_ID);
+      // added after the image layer, so it is drawn on top of it
+      expect(addLayer.mock.calls.map(([layer]) => (layer as { id: string }).id)).toEqual(["image", OUTSIDE_CUTLINE_LAYER_ID]);
+
+      const data = getLayerData(layers[0]);
+      expect(data.imageRect).toEqual([0, 0, 5120 / PADDED_SIZE, 5120 / PADDED_SIZE]);
+      // the 4 corners around the image, padded by its size, then the cutline
+      expect(data.vertices.slice(0, 2)).toEqual([-5120 / PADDED_SIZE, -5120 / PADDED_SIZE]);
+      expect(data.vertices.slice(8, 10)).toEqual([512 / PADDED_SIZE, 512 / PADDED_SIZE]);
+      expect(data.indices.length).toBeGreaterThan(0);
+      // hidden by default
+      expect(data.color).toEqual([0, 0, 0, 0]);
+    });
+
+    it("should add the layer once ready when the cutline is set before", async () => {
+      const viewer = createViewer();
+      viewer.setCutline(square);
+
+      expect(getAddedOutsideCutlineLayers()).toHaveLength(0);
+
+      await viewer.onReadyAsync();
+
+      expect(getAddedOutsideCutlineLayers()).toHaveLength(1);
+    });
+
+    it("should add the layer when a cutline is set after the viewer is ready", async () => {
+      const viewer = await createReadyViewer();
+
+      viewer.setCutline(square);
+
+      expect(getAddedOutsideCutlineLayers()).toHaveLength(1);
+    });
+
+    it("should update the existing layer when the cutline changes", async () => {
+      const viewer = await createReadyViewer({ cutline: square });
+      const [layer] = getAddedOutsideCutlineLayers();
+      const repaints = getMockMap().triggerRepaint.mock.calls.length;
+
+      viewer.setCutline([
+        [0, 0],
+        [100, 0],
+        [100, 100],
+      ]);
+
+      expect(getAddedOutsideCutlineLayers()).toHaveLength(1);
+      expect(getLayerData(layer).vertices.slice(8)).toEqual([0, 0, 100 / PADDED_SIZE, 0, 100 / PADDED_SIZE, 100 / PADDED_SIZE]);
+      expect(getMockMap().triggerRepaint.mock.calls.length).toBe(repaints + 1);
+    });
+
+    it("should remove the layer when the cutline is removed, and add a new one for the next cutline", async () => {
+      const viewer = await createReadyViewer({ cutline: square });
+
+      viewer.setCutline(null);
+
+      expect(getMockMap().removeLayer).toHaveBeenCalledWith(OUTSIDE_CUTLINE_LAYER_ID);
+
+      viewer.setCutline(square);
+
+      expect(getAddedOutsideCutlineLayers()).toHaveLength(2);
+    });
+
+    it("should leave the layer as is when the cutline is invalid", async () => {
+      const viewer = await createReadyViewer({ cutline: square });
+      const [layer] = getAddedOutsideCutlineLayers();
+      const data = getLayerData(layer);
+
+      expect(() => viewer.setCutline([[0, 0]])).toThrow("got 1");
+
+      expect(getLayerData(layer)).toBe(data);
+      expect(getMockMap().removeLayer).not.toHaveBeenCalled();
+    });
+
+    describe("outsideCutlineStyle", () => {
+      it("should be hidden by default", () => {
+        expect(createViewer().getOutsideCutlineStyle()).toEqual({ type: "hidden" });
+      });
+
+      it("should take the style from the constructor options, and draw its color premultiplied", async () => {
+        const viewer = await createReadyViewer({ cutline: square, outsideCutlineStyle: { type: "overlay", color: "rgba(255, 0, 0, 0.5)" } });
+
+        expect(viewer.getOutsideCutlineStyle()).toEqual({ type: "overlay", color: "rgba(255, 0, 0, 0.5)" });
+        expect(getLayerData(getAddedOutsideCutlineLayers()[0]).color).toEqual([0.5, 0, 0, 0.5]);
+      });
+
+      it("should not pass the style to the map", () => {
+        createViewer({ outsideCutlineStyle: { type: "overlay", color: "red" } });
+
+        const MockedMap = Map as unknown as Mock;
+        expect(MockedMap.mock.calls[0][0]).not.toHaveProperty("outsideCutlineStyle");
+      });
+
+      it("should throw in the constructor for an invalid style", () => {
+        expect(() => createViewer({ outsideCutlineStyle: { type: "overlay", color: "not-a-color" } })).toThrow(
+          "[ImageViewer]: `outsideCutlineStyle.color` must be a valid CSS color",
+        );
+      });
+
+      it("should update the layer color, and return the viewer", async () => {
+        const viewer = await createReadyViewer({ cutline: square });
+        const [layer] = getAddedOutsideCutlineLayers();
+
+        expect(viewer.setOutsideCutlineStyle({ type: "overlay", color: "black" })).toBe(viewer);
+        expect(getLayerData(layer).color).toEqual([0, 0, 0, 1]);
+
+        viewer.setOutsideCutlineStyle({ type: "hidden" });
+        expect(getLayerData(layer).color).toEqual([0, 0, 0, 0]);
+      });
+
+      it("should be kept without a cutline, and used for the next one", async () => {
+        const viewer = await createReadyViewer();
+
+        viewer.setOutsideCutlineStyle({ type: "overlay", color: "black" });
+        expect(getAddedOutsideCutlineLayers()).toHaveLength(0);
+
+        viewer.setCutline(square);
+        expect(getLayerData(getAddedOutsideCutlineLayers()[0]).color).toEqual([0, 0, 0, 1]);
+      });
+
+      it("should keep the current style when the new one is invalid", () => {
+        const viewer = createViewer({ outsideCutlineStyle: { type: "overlay", color: "red" } });
+
+        // @ts-expect-error - testing an invalid type
+        expect(() => viewer.setOutsideCutlineStyle({ type: "blur" })).toThrow('`outsideCutlineStyle.type` must be "hidden" or "overlay"');
+
+        expect(viewer.getOutsideCutlineStyle()).toEqual({ type: "overlay", color: "red" });
+      });
+
+      it("should return a copy of the style", () => {
+        const viewer = createViewer({ outsideCutlineStyle: { type: "overlay", color: "red" } });
+
+        (viewer.getOutsideCutlineStyle() as { color: string }).color = "blue";
+
+        expect(viewer.getOutsideCutlineStyle()).toEqual({ type: "overlay", color: "red" });
+      });
+    });
+  });
+
   describe("Controls", () => {
     it("should add the navigation and fit image to bounds controls by default", async () => {
       const viewer = new ImageViewer({
