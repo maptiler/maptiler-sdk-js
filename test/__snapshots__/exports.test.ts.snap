@@ -35,6 +35,7 @@ exports[`Module Exports > should match the snapshot of module exports 1`] = `
   "GeolocateControlMLGL",
   "GeolocationType",
   "Hash",
+  "HeatmapLayer",
   "ImageSource",
   "ImageSourceMLGL",
   "ImageViewer",

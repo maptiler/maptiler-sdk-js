@@ -1152,6 +1152,7 @@ export function addPoint(
 
 /**
  * Add a polyline witgh optional outline from a GeoJSON object
+ * @deprecated Use {@link HeatmapLayer} instead — it takes the same styling options under the data layers' shared names (`color` for `colorRamp`), and can be updated after it's added.
  */
 export function addHeatmap(
   /**
