@@ -1,7 +1,14 @@
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
 import { Event as EventML, LngLat } from "maplibre-gl";
 import ImageViewer from "../src/ImageViewer/ImageViewer";
-import { ImageViewerEvent, setupGlobalMapEventForwarder, type ImageViewerEventType, type ImageViewerInitErrorEvent } from "../src/ImageViewer/events";
+import {
+  ImageViewerEvent,
+  setupGlobalMapEventForwarder,
+  type ImageViewerCutlineChangeEvent,
+  type ImageViewerEventType,
+  type ImageViewerInitErrorEvent,
+} from "../src/ImageViewer/events";
+import type { ImageViewerCutline } from "../src/ImageViewer/cutline";
 import type { ImageViewerEventTypes } from "../src/ImageViewer";
 import type { Map } from "../src/Map";
 import type * as sdk from "../src/index";
@@ -32,6 +39,7 @@ describe("ImageViewer event types", () => {
 
     expectTypeOf<sdk.ImageViewerEventType["click"]>().toEqualTypeOf<sdk.ImageViewerEvent>();
     expectTypeOf<sdk.ImageViewerEventType["imagevieweriniterror"]>().toEqualTypeOf<sdk.ImageViewerInitErrorEvent>();
+    expectTypeOf<sdk.ImageViewerEventType["cutlinechange"]>().toEqualTypeOf<sdk.ImageViewerCutlineChangeEvent>();
   });
 
   it("accepts listeners typed with ImageViewerEvent for forwarded and viewer events", () => {
@@ -58,6 +66,11 @@ describe("ImageViewer event types", () => {
     viewer.on("imagevieweriniterror", (e) => {
       expectTypeOf(e).toEqualTypeOf<ImageViewerInitErrorEvent>();
       expectTypeOf(e.error).toEqualTypeOf<Error>();
+    });
+    viewer.on("cutlinechange", (e) => {
+      expectTypeOf(e).toEqualTypeOf<ImageViewerCutlineChangeEvent>();
+      expectTypeOf(e.cutline).toEqualTypeOf<ImageViewerCutline | null>();
+      expectTypeOf(e.target).toEqualTypeOf<ImageViewer>();
     });
   });
 

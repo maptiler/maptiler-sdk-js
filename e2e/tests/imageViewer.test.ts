@@ -234,6 +234,90 @@ test.describe("Events", () => {
   });
 });
 
+//#region Cutline
+test.describe("Cutline", () => {
+  // a slightly smaller square inside the image, 256 px from its edges
+  const SMALLER_SQUARE: [number, number][] = [
+    [256, 256],
+    [3840, 256],
+    [3840, 1792],
+    [256, 1792],
+  ];
+
+  const L_SHAPE: [number, number][] = [
+    [256, 256],
+    [2048, 256],
+    [2048, 1024],
+    [3840, 1024],
+    [3840, 1792],
+    [256, 1792],
+  ];
+
+  test("hides the image outside of the cutline", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate(() => window.createImageViewer());
+
+    await page.evaluate(async (cutline) => {
+      window.__imageViewer.setCutline(cutline);
+      await window.waitForImageViewerIdle();
+    }, SMALLER_SQUARE);
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-hidden.png");
+  });
+
+  test("takes the cutline from the constructor options", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate((cutline) => window.createImageViewer({ cutline }), SMALLER_SQUARE);
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-hidden.png");
+  });
+
+  test("draws an overlay color over the image outside of the cutline", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate((cutline) => window.createImageViewer({ cutline, outsideCutlineStyle: { type: "overlay", color: "rgba(0, 0, 0, 0.5)" } }), SMALLER_SQUARE);
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-overlay.png");
+  });
+
+  test("switches between the overlay and hidden styles", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate((cutline) => window.createImageViewer({ cutline, outsideCutlineStyle: { type: "overlay", color: "rgba(0, 0, 0, 0.5)" } }), SMALLER_SQUARE);
+
+    await page.evaluate(async () => {
+      window.__imageViewer.setOutsideCutlineStyle({ type: "hidden" });
+      await window.waitForImageViewerIdle();
+    });
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-hidden.png");
+  });
+
+  test("crops a concave cutline", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate((cutline) => window.createImageViewer({ cutline }), L_SHAPE);
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-concave.png");
+  });
+
+  test("keeps the crop on the image when the camera moves", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate((cutline) => window.createImageViewer({ cutline, center: [3840, 1792], zoom: 2, bearing: 30 }), SMALLER_SQUARE);
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-camera.png");
+  });
+
+  test("shows the whole image again when the cutline is removed", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate((cutline) => window.createImageViewer({ cutline }), SMALLER_SQUARE);
+
+    await page.evaluate(async () => {
+      window.__imageViewer.setCutline(null);
+      await window.waitForImageViewerIdle();
+    });
+
+    await expect(page).toHaveScreenshot("imageViewer-fitted.png");
+  });
+});
+
 //#region Markers
 test.describe("ImageViewerMarker", () => {
   test("is placed at its position in image pixels", async ({ page }) => {
