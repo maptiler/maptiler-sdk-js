@@ -39,6 +39,7 @@
 - Fixes the target of MapLibre events (`load`, `click`, `move`, …) on the SDK `Map` being typed as MapLibre's `Map`, which rejected listeners using SDK members such as `telemetry` or `getSpace()`.
   - `on`, `once` and `off` now type every event's target as the SDK `Map`, layer events included.
   - Adds the `MapEventSDK` and `MapLayerEventSDK` types, for typing listeners by event name.
+- Moves `eslint-plugin-compat` from `dependencies` to `devDependencies`. It's only used to lint the SDK, but installing the SDK pulled ESLint and its dependencies into consumers' production dependency trees, where `npm audit --omit=dev` reported their advisories ([#392](https://github.com/maptiler/maptiler-sdk-js/issues/392)).
 
 ### ⚙️ Others
 - Bumps `maplibre-gl` to 6.11.2 and `@maplibre/maplibre-gl-style-spec` to 26.
