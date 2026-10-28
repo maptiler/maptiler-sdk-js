@@ -8,12 +8,39 @@ import type { ImageViewerMarker as ImageViewerMarkerClass } from "../../src";
 const IMAGE_SIZE: [number, number] = [4096, 2048];
 const IMAGE_CENTER: [number, number] = [2048, 1024];
 
-// One screen pixel covers a few image pixels when the image is fitted to the viewport
-const PX_TOLERANCE = 10;
-
-function expectPxCloseTo(actual: number[], expected: number[], tolerance = PX_TOLERANCE) {
+function expectPxCloseTo(actual: number[], expected: number[], tolerance: number) {
   expect(Math.abs(actual[0] - expected[0])).toBeLessThan(tolerance);
   expect(Math.abs(actual[1] - expected[1])).toBeLessThan(tolerance);
+}
+
+// The image is fitted to the viewport with this padding, see ImageViewer.fitImageToViewport
+const FIT_PADDING = 50;
+
+// Image pixels per screen pixel when the image is fitted.
+// The viewports used here are narrower than the image's 2:1 aspect ratio, so it's fitted to the width
+function getFittedScale(viewport: { width: number }) {
+  return IMAGE_SIZE[0] / (viewport.width - 2 * FIT_PADDING);
+}
+
+// The visible bounds when the image is fitted: the image and the padding horizontally, the viewport height vertically
+function getFittedImageBounds(viewport: { width: number; height: number }) {
+  const scale = getFittedScale(viewport);
+  const halfHeight = (viewport.height / 2) * scale;
+  return [
+    [-FIT_PADDING * scale, IMAGE_CENTER[1] - halfHeight],
+    [IMAGE_SIZE[0] + FIT_PADDING * scale, IMAGE_CENTER[1] + halfHeight],
+  ];
+}
+
+function expectBoundsCloseTo(actual: number[][], expected: number[][], tolerance: number) {
+  expectPxCloseTo(actual[0], expected[0], tolerance);
+  expectPxCloseTo(actual[1], expected[1], tolerance);
+}
+
+function getViewportSize(page: Page) {
+  const viewport = page.viewportSize();
+  if (!viewport) throw new Error("the viewport size is not set");
+  return viewport;
 }
 
 // Registers the listener in the page before the test triggers the event, and returns a function awaiting it
@@ -57,8 +84,12 @@ test.describe("Loading", () => {
 
     await page.evaluate(() => window.createImageViewer());
 
-    const center = await page.evaluate(() => window.__imageViewer.getCenter());
+    const { center, bounds } = await page.evaluate(() => ({
+      center: window.__imageViewer.getCenter(),
+      bounds: window.__imageViewer.getImageBounds(),
+    }));
     expectPxCloseTo(center, IMAGE_CENTER, 1);
+    expectBoundsCloseTo(bounds, getFittedImageBounds(getViewportSize(page)), 1);
 
     await expect(page).toHaveScreenshot("imageViewer-fitted.png");
   });
@@ -115,7 +146,7 @@ test.describe("Camera", () => {
     await loadImageViewerFixture({ page });
     await page.evaluate(() => window.createImageViewer());
 
-    const [tl, br] = await page.evaluate(async () => {
+    const bounds = await page.evaluate(async () => {
       const viewer = window.__imageViewer;
       const moveEnd = viewer.once("moveend");
       viewer.fitImageBounds([
@@ -126,36 +157,31 @@ test.describe("Camera", () => {
       return viewer.getImageBounds();
     });
 
-    // the bounds are wider than the viewport, so they fit horizontally
-    expectPxCloseTo([tl[0], br[0]], [500, 1500], 1);
-    expect(tl[1]).toBeLessThan(500);
-    expect(br[1]).toBeGreaterThan(1000);
+    // the bounds are wider than the viewport, so they're fitted to its width, without padding,
+    // and the viewport height shows more around their vertical center
+    const viewport = getViewportSize(page);
+    const halfHeight = (viewport.height / 2) * (1000 / viewport.width);
+    expectBoundsCloseTo(
+      bounds,
+      [
+        [500, 750 - halfHeight],
+        [1500, 750 + halfHeight],
+      ],
+      1,
+    );
   });
 
   test("keeps the image fitted when the viewport is resized", async ({ page }) => {
     await loadImageViewerFixture({ page });
     await page.evaluate(() => window.createImageViewer());
 
-    const zoomBefore = await page.evaluate(() => window.__imageViewer.getZoom());
-
     await resizeViewport(page, 640, 480);
 
-    const { center, zoom, bounds } = await page.evaluate(() => ({
-      center: window.__imageViewer.getCenter(),
-      zoom: window.__imageViewer.getZoom(),
-      bounds: window.__imageViewer.getImageBounds(),
-    }));
-
-    expect(zoom).toBeLessThan(zoomBefore);
-    expectPxCloseTo(center, IMAGE_CENTER, 1);
-    // the whole image is still visible
-    expect(bounds[0][0]).toBeLessThanOrEqual(0);
-    expect(bounds[0][1]).toBeLessThanOrEqual(0);
-    expect(bounds[1][0]).toBeGreaterThanOrEqual(IMAGE_SIZE[0]);
-    expect(bounds[1][1]).toBeGreaterThanOrEqual(IMAGE_SIZE[1]);
+    const bounds = await page.evaluate(() => window.__imageViewer.getImageBounds());
+    expectBoundsCloseTo(bounds, getFittedImageBounds({ width: 640, height: 480 }), 1);
   });
 
-  test("stops fitting the image on resize once the user has dragged it", async ({ page }) => {
+  test("keeps the zoom and the centered point on resize once the user has dragged the image", async ({ page }) => {
     await loadImageViewerFixture({ page });
     await page.evaluate(() => window.createImageViewer());
 
@@ -164,13 +190,20 @@ test.describe("Camera", () => {
     await page.mouse.down();
     await page.mouse.move(x + 100, y + 50, { steps: 5 });
     await page.mouse.up();
+    await page.evaluate(() => window.waitForImageViewerIdle());
 
-    const zoomBefore = await page.evaluate(() => window.__imageViewer.getZoom());
+    const getCamera = () => page.evaluate(() => ({ center: window.__imageViewer.getCenter(), zoom: window.__imageViewer.getZoom() }));
+    const before = await getCamera();
+
+    // the image follows the mouse, the drag inertia adds a screen pixel or two
+    const scale = getFittedScale(getViewportSize(page));
+    expectPxCloseTo(before.center, [IMAGE_CENTER[0] - 100 * scale, IMAGE_CENTER[1] - 50 * scale], 20);
 
     await resizeViewport(page, 640, 480);
 
-    const zoomAfter = await page.evaluate(() => window.__imageViewer.getZoom());
-    expect(zoomAfter).toBeCloseTo(zoomBefore);
+    const after = await getCamera();
+    expectPxCloseTo(after.center, before.center, 1);
+    expect(after.zoom).toBeCloseTo(before.zoom);
   });
 });
 
@@ -181,20 +214,22 @@ test.describe("Events", () => {
     await page.evaluate(() => window.createImageViewer());
 
     const { x, y } = await getCanvasCenter(page);
+    // within a screen pixel
+    const scale = getFittedScale(getViewportSize(page));
 
     const insideClick = await waitForViewerEvent(page, "click");
     await page.mouse.click(x, y);
     const inside = await insideClick();
 
-    expectPxCloseTo([inside.imageX, inside.imageY], IMAGE_CENTER);
+    expectPxCloseTo([inside.imageX, inside.imageY], IMAGE_CENTER, scale);
     expect(inside.isOutOfBounds).toBe(false);
 
-    // the image is fitted with a padding, so the edge of the viewport is outside of it
+    // the image is fitted with a padding, so the edge of the viewport is left of it
     const outsideClick = await waitForViewerEvent(page, "click");
     await page.mouse.click(10, y);
     const outside = await outsideClick();
 
-    expect(outside.imageX).toBeLessThan(0);
+    expectPxCloseTo([outside.imageX, outside.imageY], [(10 - FIT_PADDING) * scale, IMAGE_CENTER[1]], scale);
     expect(outside.isOutOfBounds).toBe(true);
   });
 });
