@@ -120,6 +120,7 @@
   "dependencies": {
     "@maplibre/maplibre-gl-style-spec": "^26.4.4",
     "@maptiler/client": "^3.1.0",
+    "earcut": "^3.2.4",
     "eslint-plugin-compat": "^6.1.0",
     "events": "^3.3.0",
     "gl-matrix": "^3.4.4",

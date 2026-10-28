@@ -53,6 +53,71 @@ bottomRight:
     .on("dragend", (e) => {
       console.log("e.target.isWithinImageBounds()", e.target.isWithinImageBounds());
     });
+
+  setupCutlineControls(imageViewer);
+}
+
+// Buttons to crop the image with a cutline, and to switch how the image outside of it is drawn
+function setupCutlineControls(imageViewer: ImageViewer) {
+  const panel = document.createElement("div");
+  panel.style.position = "absolute";
+  panel.style.top = "40px";
+  panel.style.left = "10px";
+  panel.style.zIndex = "1000";
+  panel.style.display = "flex";
+  panel.style.flexDirection = "column";
+  panel.style.gap = "4px";
+  document.body.appendChild(panel);
+
+  const addButton = (text: string, onClick: () => void) => {
+    const button = document.createElement("button");
+    button.innerText = text;
+    button.addEventListener("click", onClick);
+    panel.appendChild(button);
+  };
+
+  imageViewer.on("cutlinechange", (e) => {
+    console.log("cutlinechange", e.cutline);
+  });
+
+  // cutlines 10% from the edges of the image
+  const cutlines: Record<string, (width: number, height: number) => [number, number][] | null> = {
+    "no cutline": () => null,
+    "smaller square": (width, height) => [
+      [width * 0.1, height * 0.1],
+      [width * 0.9, height * 0.1],
+      [width * 0.9, height * 0.9],
+      [width * 0.1, height * 0.9],
+    ],
+    triangle: (width, height) => [
+      [width * 0.5, height * 0.1],
+      [width * 0.9, height * 0.9],
+      [width * 0.1, height * 0.9],
+    ],
+  };
+
+  const select = document.createElement("select");
+  for (const name of Object.keys(cutlines)) {
+    const option = document.createElement("option");
+    option.value = name;
+    option.innerText = `cutline: ${name}`;
+    select.appendChild(option);
+  }
+  select.addEventListener("change", () => {
+    const metadata = imageViewer.getImageMetadata();
+    if (!metadata) return;
+
+    imageViewer.setCutline(cutlines[select.value](metadata.width, metadata.height));
+  });
+  panel.appendChild(select);
+
+  addButton("outside: hidden", () => {
+    imageViewer.setOutsideCutlineStyle({ type: "hidden" });
+  });
+
+  addButton("outside: overlay", () => {
+    imageViewer.setOutsideCutlineStyle({ type: "overlay", color: "rgba(0, 0, 0, 0.6)" });
+  });
 }
 
 void main();
