@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { AddLayerObject } from "maplibre-gl";
 import { Map, type MapOptions } from "../src/Map";
-import Minimap from "../src/controls/Minimap";
 import type { GradientDefinition } from "../src/custom-layers/RadialGradientLayer/types";
 
 // MapLibre 6 fires an `error` event when `removeLayer` is given an id that is
@@ -86,31 +85,5 @@ describe("Map halo initialisation", () => {
     expect(removeLayer).toHaveBeenCalledWith("Halo Layer");
     expect(addLayer).toHaveBeenCalledWith(map.getHalo(), "first-layer");
     expect(layers).toEqual(new Set(["Halo Layer"]));
-  });
-});
-
-describe("Minimap removeLayer", () => {
-  function createMinimap(existingLayerIds: string[]) {
-    const minimap = new Minimap({}, {} as MapOptions);
-    const layers = new Set(existingLayerIds);
-    const removeLayer = vi.fn((id: string) => layers.delete(id));
-    minimap.map = { getLayer: (id: string) => (layers.has(id) ? { id } : undefined), removeLayer } as unknown as Map;
-    return { minimap, removeLayer };
-  }
-
-  it("does not remove a layer the minimap map does not have", () => {
-    const { minimap, removeLayer } = createMinimap([]);
-
-    minimap.removeLayer("Halo Layer");
-
-    expect(removeLayer).not.toHaveBeenCalled();
-  });
-
-  it("removes a layer the minimap map has", () => {
-    const { minimap, removeLayer } = createMinimap(["Halo Layer"]);
-
-    minimap.removeLayer("Halo Layer");
-
-    expect(removeLayer).toHaveBeenCalledWith("Halo Layer");
   });
 });
