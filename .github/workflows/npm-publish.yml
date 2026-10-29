@@ -36,6 +36,10 @@ jobs:
       - name: Install dependencies and build
         run: npm ci
 
+      # The version must be set before building, as it is baked into the bundles uploaded to the CDN
+      - name: Update NPM version
+        run: npm version ${{ github.event.release.tag_name }} --no-git-tag-version
+
       - name: Make release
         run: npm run make
         id: makeRelease
@@ -44,9 +48,6 @@ jobs:
         if: steps.makeRelease.outcome == 'failure'
         run: exit 1
         id: check-build-status
-
-      - name: Update NPM version
-        run: npm version ${{ github.event.release.tag_name }} --no-git-tag-version
 
       # The CDN is published before npm: the npm package defaults to the MapLibre worker hosted on the CDN
       # for its version, so it must be available before anyone can install that version
