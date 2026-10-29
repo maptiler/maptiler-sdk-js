@@ -136,7 +136,7 @@ export default class Minimap implements IControl {
   }
 
   removeLayer(id: string): this {
-    if (!this.#differentStyle) this.map.removeLayer(id);
+    if (!this.#differentStyle && this.map.getLayer(id)) this.map.removeLayer(id);
     this.#setParentBounds();
     return this;
   }
