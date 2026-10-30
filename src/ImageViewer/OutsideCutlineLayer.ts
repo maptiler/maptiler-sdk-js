@@ -1,5 +1,6 @@
 import type { CustomLayerInterface, CustomRenderMethodInput, Map as MapLibreMap } from "maplibre-gl";
 import { createObject3D, type Object3D } from "../utils/webgl-utils";
+import { triangulateOutsideCutline, type ImageViewerCutline } from "./cutline";
 
 import vertexShaderSource from "./outsideCutline.vert.glsl?raw";
 import fragmentShaderSource from "./outsideCutline.frag.glsl?raw";
@@ -13,17 +14,17 @@ const WORLD_SIZE_AT_ZOOM_0 = 512;
 export const OUTSIDE_CUTLINE_LAYER_ID = "image-outside-cutline";
 
 /**
- * What the layer draws. Coordinates are mercator coordinates, between 0 and 1, as the image source uses.
+ * What the layer draws.
  *
  * @internal
  */
 export type OutsideCutlineLayerData = {
-  /** Flat `[x, y, ...]` vertices of the area outside of the cutline. */
-  vertices: number[];
-  /** The indices of the triangles of the area outside of the cutline. */
-  indices: number[];
-  /** minX, minY, maxX, maxY of the image. */
-  imageRect: [number, number, number, number];
+  /** A valid cutline, in image pixels. */
+  cutline: ImageViewerCutline;
+  /** The width and height of the image, in image pixels. */
+  imageSize: [number, number];
+  /** The size the image is padded to, in image pixels. Dividing by it gives the mercator coordinates the image source uses. */
+  paddedSize: number;
   /** The premultiplied color to draw with. Fully transparent erases the image, as blending is then disabled. */
   color: [number, number, number, number];
 };
@@ -43,40 +44,45 @@ export class OutsideCutlineLayer implements CustomLayerInterface {
 
   private map?: MapLibreMap;
 
-  private gl?: WebGLRenderingContext | WebGL2RenderingContext;
-
   private mesh?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
+
+  /**
+   * Whether the cutline or the image changed since the triangles were last uploaded.
+   * They are rebuilt on the next render rather than on every change, so a cutline changed
+   * several times within a frame, e.g. while it is dragged, is only triangulated once.
+   */
+  private geometryNeedsUpdate = true;
 
   constructor(data: OutsideCutlineLayerData) {
     this.data = data;
   }
 
   /**
-   * Updates what the layer draws. The map has to be repainted afterwards.
+   * Updates what the layer draws. The map has to be repainted afterwards, the triangles are rebuilt then.
    *
    * @param {Partial<OutsideCutlineLayerData>} data - The data to update.
    */
   public setData(data: Partial<OutsideCutlineLayerData>) {
-    const geometryChanged = data.vertices !== undefined || data.indices !== undefined;
     this.data = { ...this.data, ...data };
 
-    if (geometryChanged && this.gl && this.mesh) {
-      this.uploadGeometry(this.gl, this.mesh);
+    if (data.cutline !== undefined || data.imageSize !== undefined || data.paddedSize !== undefined) {
+      this.geometryNeedsUpdate = true;
     }
   }
 
   public onAdd(map: MapLibreMap, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
     this.map = map;
-    this.gl = gl;
     this.mesh = createObject3D({
       gl,
       vertexShaderSource,
       fragmentShaderSource,
       attributesKeys: ATTRIBUTES_KEYS,
       uniformsKeys: UNIFORMS_KEYS,
-      vertices: this.data.vertices,
-      indices: this.data.indices,
+      // filled on the first render
+      vertices: [],
+      indices: [],
     });
+    this.geometryNeedsUpdate = true;
   }
 
   public onRemove(_map: unknown, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
@@ -90,24 +96,31 @@ export class OutsideCutlineLayer implements CustomLayerInterface {
 
     this.mesh = undefined;
     this.map = undefined;
-    this.gl = undefined;
   }
 
   public render(gl: WebGLRenderingContext | WebGL2RenderingContext, options: CustomRenderMethodInput): void {
-    if (!this.map || !this.mesh?.indexBuffer || !this.mesh.indexBufferLength) {
+    if (!this.map || !this.mesh?.indexBuffer) {
       return;
     }
 
+    if (this.geometryNeedsUpdate) {
+      this.uploadGeometry(gl, this.mesh);
+      this.geometryNeedsUpdate = false;
+    }
+
     const { shaderProgram, programInfo, positionBuffer, indexBuffer, indexBufferLength } = this.mesh;
-    const { color } = this.data;
+    if (!indexBufferLength) {
+      return;
+    }
+
+    const { color, imageSize, paddedSize } = this.data;
     const isHidden = color[3] === 0;
 
     // The tiles end on the edge of the image, and are not rasterized exactly like this layer,
     // which can leave some of their pixels on that edge. Hiding the image reaches one CSS pixel
     // further to cover them, there is nothing beyond to hide. An overlay stops at the edge.
     const margin = isHidden ? 1 / (WORLD_SIZE_AT_ZOOM_0 * 2 ** this.map.getZoom()) : 0;
-    const [minX, minY, maxX, maxY] = this.data.imageRect;
-    const imageRect = [minX - margin, minY - margin, maxX + margin, maxY + margin];
+    const imageRect = [-margin, -margin, imageSize[0] / paddedSize + margin, imageSize[1] / paddedSize + margin];
 
     gl.useProgram(shaderProgram);
 
@@ -135,14 +148,26 @@ export class OutsideCutlineLayer implements CustomLayerInterface {
     gl.drawElements(gl.TRIANGLES, indexBufferLength, gl.UNSIGNED_SHORT, 0);
   }
 
+  /**
+   * Triangulates the outside of the cutline and uploads the triangles.
+   */
   private uploadGeometry(gl: WebGLRenderingContext | WebGL2RenderingContext, mesh: NonNullable<typeof this.mesh>) {
+    const { cutline, imageSize, paddedSize } = this.data;
+    const { vertices, indices } = triangulateOutsideCutline(cutline, imageSize);
+
+    // image pixels to the mercator coordinates of the image source, as `ImageViewer.pxToLngLat` does
+    const positions = new Float32Array(vertices.length);
+    for (let i = 0; i < vertices.length; i++) {
+      positions[i] = vertices[i] / paddedSize;
+    }
+
     gl.bindBuffer(gl.ARRAY_BUFFER, mesh.positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.data.vertices), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.DYNAMIC_DRAW);
 
     if (mesh.indexBuffer) {
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.data.indices), gl.STATIC_DRAW);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.DYNAMIC_DRAW);
     }
-    mesh.indexBufferLength = this.data.indices.length;
+    mesh.indexBufferLength = indices.length;
   }
 }

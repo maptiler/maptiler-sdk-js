@@ -23,14 +23,7 @@ import { overpanningUnderzoomingTransformConstrain } from "./monkeyPatchML";
 import { Evented, NavigationControl } from "maplibre-gl";
 import { ImageViewerFitImageToBoundsControl } from "../controls/ImageViewerFitImageToBoundsControl";
 import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey } from "./symbols";
-import {
-  getOutsideCutlineColor,
-  triangulateOutsideCutline,
-  validateCutline,
-  validateOutsideCutlineStyle,
-  type ImageViewerCutline,
-  type ImageViewerOutsideCutlineStyle,
-} from "./cutline";
+import { getOutsideCutlineColor, validateCutline, validateOutsideCutlineStyle, type ImageViewerCutline, type ImageViewerOutsideCutlineStyle } from "./cutline";
 import { OutsideCutlineLayer, type OutsideCutlineLayerData } from "./OutsideCutlineLayer";
 
 //#region types
@@ -925,15 +918,11 @@ export default class ImageViewer extends Evented<ImageViewerEventType> {
       return;
     }
 
-    const { width, height } = this.imageMetadata;
-    const { vertices, indices } = triangulateOutsideCutline(this.cutline, [width, height]);
-
-    // image pixels to the mercator coordinates of the image source, as `pxToLngLat` does
-    const scale = this.paddedSizeMax;
+    // the layer triangulates the cutline when it is drawn, at most once per frame
     const data: OutsideCutlineLayerData = {
-      vertices: vertices.map((value) => value / scale),
-      indices,
-      imageRect: [0, 0, width / scale, height / scale],
+      cutline: this.cutline,
+      imageSize: [this.imageMetadata.width, this.imageMetadata.height],
+      paddedSize: this.paddedSizeMax,
       color: getOutsideCutlineColor(this.outsideCutlineStyle),
     };
 

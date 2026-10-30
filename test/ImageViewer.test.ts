@@ -105,6 +105,15 @@ vi.mock("../src", async () => {
   };
 });
 
+// Spy on the triangulation, which the outside cutline layer does when it is drawn
+vi.mock("../src/ImageViewer/cutline", async () => {
+  const actual = await vi.importActual<typeof import("../src/ImageViewer/cutline")>("../src/ImageViewer/cutline");
+  return {
+    ...actual,
+    triangulateOutsideCutline: vi.fn(actual.triangulateOutsideCutline),
+  };
+});
+
 // Mock event forwarding
 vi.mock("../src/ImageViewer/events", async () => {
   const actual = await vi.importActual("../src/ImageViewer/events");
@@ -122,6 +131,7 @@ import ImageViewer from "../src/ImageViewer/ImageViewer";
 import { ImageViewerEvent, setupGlobalMapEventForwarder, type ImageViewerCutlineChangeEvent } from "../src/ImageViewer/events";
 import type { ImageViewerConstructorOptions } from "../src/ImageViewer/ImageViewer";
 import { OutsideCutlineLayer, OUTSIDE_CUTLINE_LAYER_ID, type OutsideCutlineLayerData } from "../src/ImageViewer/OutsideCutlineLayer";
+import { triangulateOutsideCutline } from "../src/ImageViewer/cutline";
 import { FetchError } from "../src/utils/errors";
 import { Map } from "../src/Map";
 import type { MapOptions, DragPanHandler, DoubleClickZoomHandler, TwoFingersTouchZoomRotateHandler } from "maplibre-gl";
@@ -1025,7 +1035,7 @@ describe("ImageViewer", () => {
       expect(getAddedOutsideCutlineLayers()).toHaveLength(0);
     });
 
-    it("should add the layer above the image for the cutline option, in mercator coordinates", async () => {
+    it("should add the layer above the image for the cutline option", async () => {
       await createReadyViewer({ cutline: square });
 
       const addLayer = getMockMap().addLayer;
@@ -1035,14 +1045,22 @@ describe("ImageViewer", () => {
       // added after the image layer, so it is drawn on top of it
       expect(addLayer.mock.calls.map(([layer]) => (layer as { id: string }).id)).toEqual(["image", OUTSIDE_CUTLINE_LAYER_ID]);
 
-      const data = getLayerData(layers[0]);
-      expect(data.imageRect).toEqual([0, 0, 5120 / PADDED_SIZE, 5120 / PADDED_SIZE]);
-      // the 4 corners around the image, padded by its size, then the cutline
-      expect(data.vertices.slice(0, 2)).toEqual([-5120 / PADDED_SIZE, -5120 / PADDED_SIZE]);
-      expect(data.vertices.slice(8, 10)).toEqual([512 / PADDED_SIZE, 512 / PADDED_SIZE]);
-      expect(data.indices.length).toBeGreaterThan(0);
-      // hidden by default
-      expect(data.color).toEqual([0, 0, 0, 0]);
+      expect(getLayerData(layers[0])).toEqual({
+        cutline: square,
+        imageSize: [5120, 5120],
+        paddedSize: PADDED_SIZE,
+        // hidden by default
+        color: [0, 0, 0, 0],
+      });
+    });
+
+    it("should leave the triangulation to the layer, which does it when drawn", async () => {
+      const viewer = await createReadyViewer({ cutline: square });
+
+      viewer.setCutline(square.slice(0, 3));
+      viewer.setCutline(square);
+
+      expect(triangulateOutsideCutline).not.toHaveBeenCalled();
     });
 
     it("should add the layer once ready when the cutline is set before", async () => {
@@ -1076,7 +1094,11 @@ describe("ImageViewer", () => {
       ]);
 
       expect(getAddedOutsideCutlineLayers()).toHaveLength(1);
-      expect(getLayerData(layer).vertices.slice(8)).toEqual([0, 0, 100 / PADDED_SIZE, 0, 100 / PADDED_SIZE, 100 / PADDED_SIZE]);
+      expect(getLayerData(layer).cutline).toEqual([
+        [0, 0],
+        [100, 0],
+        [100, 100],
+      ]);
       expect(getMockMap().triggerRepaint.mock.calls.length).toBe(repaints + 1);
     });
 
