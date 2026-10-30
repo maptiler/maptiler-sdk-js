@@ -63,11 +63,17 @@ export class OutsideCutlineLayer implements CustomLayerInterface {
    * @param {Partial<OutsideCutlineLayerData>} data - The data to update.
    */
   public setData(data: Partial<OutsideCutlineLayerData>) {
-    this.data = { ...this.data, ...data };
-
-    if (data.cutline !== undefined || data.imageSize !== undefined || data.paddedSize !== undefined) {
+    // the viewer passes all the data on every change, so the geometry is compared to only rebuild it when it changed
+    const { cutline, imageSize, paddedSize } = this.data;
+    if (
+      (data.cutline !== undefined && data.cutline !== cutline) ||
+      (data.imageSize !== undefined && (data.imageSize[0] !== imageSize[0] || data.imageSize[1] !== imageSize[1])) ||
+      (data.paddedSize !== undefined && data.paddedSize !== paddedSize)
+    ) {
       this.geometryNeedsUpdate = true;
     }
+
+    this.data = { ...this.data, ...data };
   }
 
   public onAdd(map: MapLibreMap, gl: WebGLRenderingContext | WebGL2RenderingContext): void {

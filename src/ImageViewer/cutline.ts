@@ -14,8 +14,9 @@ export type ImageViewerCutline = [number, number][];
  */
 export type ImageViewerOutsideCutlineStyle = { type: "hidden" } | { type: "overlay"; color: string };
 
-// the area outside of the cutline is drawn with 16-bit indices, and has 4 more vertices: the corners around the cutline
-const MAX_CUTLINE_POINTS = 2 ** 16 - 4;
+// the area outside of the cutline is drawn with 16-bit indices, and has 4 more vertices: the corners around the cutline,
+// without the largest index, 65535, which WebGL 2 always reserves to restart primitives
+const MAX_CUTLINE_POINTS = 2 ** 16 - 5;
 
 //#region validateCutline
 /**
@@ -25,7 +26,7 @@ const MAX_CUTLINE_POINTS = 2 ** 16 - 4;
  * @internal
  * @param {unknown} cutline - The cutline to validate.
  * @returns {ImageViewerCutline} A copy of the cutline.
- * @throws {Error} If the cutline is not an array of `[x, y]` points with finite coordinates, or has fewer than 3 or more than 65532 points.
+ * @throws {Error} If the cutline is not an array of `[x, y]` points with finite coordinates, or has fewer than 3 or more than 65531 points.
  */
 export function validateCutline(cutline: unknown): ImageViewerCutline {
   if (!Array.isArray(cutline)) {
