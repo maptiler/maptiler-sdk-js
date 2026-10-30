@@ -1,10 +1,8 @@
 import { resolve } from 'path';
 import { build, defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
-import packagejson from "./package.json";
+import { defineBuildConstants, isProduction } from "./vite.shared";
 import { copyFileSync, mkdirSync, readdirSync } from 'fs';
-
-const isProduction = process.env.NODE_ENV === "production";
 
 function copyLinterConfig() {
   return {
@@ -103,10 +101,6 @@ export default defineConfig({
       },
     },
   },
-  define: {
-    __MT_SDK_VERSION__: JSON.stringify(packagejson.version),
-    __MT_BUILD_FORMAT__: JSON.stringify("es"),
-    __MT_NODE_ENV__: JSON.stringify(process.env.NODE_ENV),
-  },
+  define: defineBuildConstants("es"),
   plugins,
 })
