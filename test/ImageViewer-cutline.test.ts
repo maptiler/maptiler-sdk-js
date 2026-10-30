@@ -69,11 +69,11 @@ describe("validateCutline", () => {
     ).toThrow("got 2");
   });
 
-  it("accepts up to 65532 points, the most 16-bit indices can draw", () => {
+  it("accepts up to 65531 points, the most 16-bit indices can draw without the primitive restart index", () => {
     const circle = (count: number) => Array.from({ length: count }, (_, i): [number, number] => [Math.cos(i), Math.sin(i)]);
 
-    expect(() => validateCutline(circle(65532))).not.toThrow();
-    expect(() => validateCutline(circle(65533))).toThrow("[ImageViewer]: `cutline` must have at most 65532 points, got 65533");
+    expect(() => validateCutline(circle(65531))).not.toThrow();
+    expect(() => validateCutline(circle(65532))).toThrow("[ImageViewer]: `cutline` must have at most 65531 points, got 65532");
   });
 
   it("throws when the cutline is not an array", () => {

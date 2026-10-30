@@ -150,6 +150,16 @@ describe("OutsideCutlineLayer", () => {
     expect(gl.uniform4fv).toHaveBeenCalledWith({ name: "color" }, [0, 0, 0, 0.5]);
   });
 
+  it("does not triangulate again when given the same cutline and image, as the viewer does on a style change", () => {
+    addLayer();
+    render();
+
+    layer.setData({ ...data, imageSize: [4096, 2048], color: [0, 0, 0, 0.5] });
+    render();
+
+    expect(triangulateOutsideCutline).toHaveBeenCalledTimes(1);
+  });
+
   it("triangulates again when the image changes", () => {
     addLayer();
     render();

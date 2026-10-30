@@ -1063,6 +1063,16 @@ describe("ImageViewer", () => {
       expect(triangulateOutsideCutline).not.toHaveBeenCalled();
     });
 
+    it("should pass the layer the same cutline on a style change, so it keeps its triangles", async () => {
+      const viewer = await createReadyViewer({ cutline: square });
+      const [layer] = getAddedOutsideCutlineLayers();
+      const { cutline } = getLayerData(layer);
+
+      viewer.setOutsideCutlineStyle({ type: "overlay", color: "black" });
+
+      expect(getLayerData(layer).cutline).toBe(cutline);
+    });
+
     it("should add the layer once ready when the cutline is set before", async () => {
       const viewer = createViewer();
       viewer.setCutline(square);
