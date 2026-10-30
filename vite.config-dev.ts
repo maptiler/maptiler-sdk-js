@@ -1,6 +1,6 @@
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
-import packagejson from "./package.json";
+import { defineBuildConstants } from "./vite.shared";
 import { readdirSync } from 'fs';
 
 function green(text: string) {
@@ -68,11 +68,7 @@ export default defineConfig({
       input: entrypoints,
     },
   },
-  define: {
-    __MT_SDK_VERSION__: JSON.stringify(packagejson.version),
-    __MT_BUILD_FORMAT__: JSON.stringify("dev"),
-    __MT_NODE_ENV__: JSON.stringify(process.env.NODE_ENV),
-  },
+  define: defineBuildConstants("dev"),
   plugins: [
     {
       name: 'url-override',
