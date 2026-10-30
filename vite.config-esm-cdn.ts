@@ -1,11 +1,11 @@
 import { resolve } from 'path';
 import { defineConfig, transformWithEsbuild } from 'vite';
 import packagejson from "./package.json";
+import { copyMaplibreWorker } from "./vite.shared";
 
 // Self-contained ES build for the CDN: unlike the npm ES build, all dependencies (MapLibre included) are bundled,
 // so it can be imported straight from a browser. As with the UMD build, MapLibre resolves its worker relative
-// to this file, so `maplibre-gl-worker.mjs` and `maplibre-gl-shared.mjs` must be served next to it.
-// Those are copied to `build/` by the UMD build, which must therefore run first.
+// to this file, so `maplibre-gl-worker.mjs` and `maplibre-gl-shared.mjs` are copied next to it.
 const isProduction = process.env.NODE_ENV === "production";
 
 // In library mode, Vite leaves whitespace and comments in ES output to keep it tree-shakable by the consumer's bundler.
@@ -40,5 +40,5 @@ export default defineConfig({
     __MT_BUILD_FORMAT__: JSON.stringify("esm-cdn"),
     __MT_NODE_ENV__: JSON.stringify(process.env.NODE_ENV),
   },
-  plugins: [minifyEsBundle()],
+  plugins: [minifyEsBundle(), copyMaplibreWorker()],
 });
