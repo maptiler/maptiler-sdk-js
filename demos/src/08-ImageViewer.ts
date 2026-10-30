@@ -94,6 +94,14 @@ function setupCutlineControls(imageViewer: ImageViewer) {
       [width * 0.9, height * 0.9],
       [width * 0.1, height * 0.9],
     ],
+    // a cutline with many points, e.g. to try out performance
+    "circle (10k points)": (width, height) => {
+      const radius = Math.min(width, height) * 0.4;
+      return Array.from({ length: 10_000 }, (_, i): [number, number] => {
+        const angle = (i / 10_000) * Math.PI * 2;
+        return [width / 2 + radius * Math.cos(angle), height / 2 + radius * Math.sin(angle)];
+      });
+    },
   };
 
   const select = document.createElement("select");
