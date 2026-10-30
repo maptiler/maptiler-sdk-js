@@ -640,21 +640,21 @@ export class Map extends MapMLGL {
     const haloOptionsFromStyleSpec = spec;
     if (options.halo && options.halo !== true) {
       this.halo = new RadialGradientLayer(options.halo);
-      this.removeLayer(this.halo.id);
+      if (this.getLayer(this.halo.id)) this.removeLayer(this.halo.id);
       this.addLayer(this.halo, before);
       return;
     }
 
     if (haloOptionsFromStyleSpec) {
       this.halo = new RadialGradientLayer(haloOptionsFromStyleSpec);
-      this.removeLayer(this.halo.id);
+      if (this.getLayer(this.halo.id)) this.removeLayer(this.halo.id);
       this.addLayer(this.halo, before);
       return;
     }
 
     if (this.options.halo === true) {
       this.halo = new RadialGradientLayer(true);
-      this.removeLayer(this.halo.id);
+      if (this.getLayer(this.halo.id)) this.removeLayer(this.halo.id);
       this.addLayer(this.halo, before);
       return;
     }
