@@ -121,6 +121,15 @@ From CDN and using the UMD bundle, in the `<head></head>` section of your HTML f
 <link href="https://cdn.maptiler.com/maptiler-sdk-js/<VERSION>/maptiler-sdk.css" rel="stylesheet" />
 ```
 
+Or from CDN and using the ES module bundle, importing the SDK from a module script:
+
+```html
+<link href="https://cdn.maptiler.com/maptiler-sdk-js/<VERSION>/maptiler-sdk.css" rel="stylesheet" />
+<script type="module">
+  import { config, Map } from "https://cdn.maptiler.com/maptiler-sdk-js/<VERSION>/maptiler-sdk.min.mjs";
+</script>
+```
+
 <br>
 
 ## 🚀 Basic Usage
@@ -189,7 +198,7 @@ With the legacy `"moduleResolution": "Node"` (or `"Node10"`), the main `@maptile
 
 ### With CDN
 
-The SDK hosted on our CDN is bundled as _[Universal Module Definition](https://github.com/umdjs/umd)_ (UMD) to make it standalone and contain all its dependencies. The CDN also serves the style sheet (CSS).
+The SDK hosted on our CDN is bundled both as _[Universal Module Definition](https://github.com/umdjs/umd)_ (UMD), `maptiler-sdk.umd.min.js`, and as an ES module, `maptiler-sdk.min.mjs`. Both are standalone and contain all their dependencies. The CDN also serves the style sheet (CSS).
 
 **Recommended for:** simple map integration example and demos
 
@@ -236,13 +245,29 @@ The SDK hosted on our CDN is bundled as _[Universal Module Definition](https://g
 </html>
 ```
 
+With the ES module bundle, the SDK is imported from a module script instead of being exposed as the `maptilersdk` global:
+
+```html
+<script type="module">
+  import { config, Map, MapStyle } from "https://cdn.maptiler.com/maptiler-sdk-js/<VERSION>/maptiler-sdk.min.mjs";
+
+  config.apiKey = "YOUR_API_KEY";
+
+  const map = new Map({
+    container: "map-container",
+    style: MapStyle.STREETS_DARK,
+    hash: true,
+  });
+</script>
+```
+
 Check out the minimalist code samples in the [demos](demos) directory.
 
 #### Map worker files and Content Security Policy (CSP)
 
-Since MapLibre GL JS v6, the map loads its background worker as two separate files, `maplibre-gl-worker.mjs` and `maplibre-gl-shared.mjs`. The UMD bundle looks for them in the same folder as `maptiler-sdk.umd.min.js`. Our CDN serves them there, so when using the CDN without a CSP, there is nothing to set up.
+Since MapLibre GL JS v6, the map loads its background worker as two separate files, `maplibre-gl-worker.mjs` and `maplibre-gl-shared.mjs`. The UMD and ES module bundles look for them in the same folder as `maptiler-sdk.umd.min.js` and `maptiler-sdk.min.mjs`. Our CDN serves them there, so when using the CDN without a CSP, there is nothing to set up.
 
-If you **self-host the UMD bundle**, copy both `.mjs` files next to `maptiler-sdk.umd.min.js`. They must be served with a JavaScript content type (e.g. `text/javascript`).
+If you **self-host the UMD or ES module bundle**, copy both `.mjs` files next to `maptiler-sdk.umd.min.js` or `maptiler-sdk.min.mjs`. They must be served with a JavaScript content type (e.g. `text/javascript`).
 
 If your site uses a **Content Security Policy**, the worker needs to be allowed:
 
@@ -259,6 +284,8 @@ If your site uses a **Content Security Policy**, the worker needs to be allowed:
     maptilersdk.setWorkerUrl("/path/to/maplibre-gl-worker.mjs");
   </script>
   ```
+
+  With the ES module bundle, import `setWorkerUrl` from it and call it the same way.
 
 `setWorkerUrl` is also needed if the UMD bundle is not loaded with a regular `<script src="...">` tag (e.g. concatenated into another file or loaded with AMD/RequireJS), since the worker location is then no longer known.
 

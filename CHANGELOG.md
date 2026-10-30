@@ -31,6 +31,7 @@
 - Adds a self-contained ES module build on the MapTiler CDN, `maptiler-sdk.min.mjs`, to import the SDK straight from a browser without a bundler:
   - `import { Map, config } from "https://cdn.maptiler.com/maptiler-sdk-js/v<version>/maptiler-sdk.min.mjs";`
   - All dependencies, MapLibre included, are bundled, and the MapLibre worker is loaded from the same folder. When self-hosting it, `maplibre-gl-worker.mjs` and `maplibre-gl-shared.mjs` must be served alongside it, as for the UMD build.
+  - As with the UMD bundle, sites with a Content Security Policy need `worker-src 'self' blob: https://cdn.maptiler.com`.
 - SDK custom events (e.g. `ready`, `loadWithTerrain`, `projection.change`) are now typed in `on`, `once`, `off` and `fire`. Adds the `MaptilerMapEventType` and `MapEventTypeSDK` types.
 - Events of `CubemapLayer` (`cubemaplayer:*`), `RadialGradientLayer` (`radialgradientlayer:*`) and `ImageViewerMarker` are now typed.
 
