@@ -57,7 +57,7 @@ bottomRight:
   setupCutlineControls(imageViewer);
 }
 
-// Buttons to crop the image with a cutline, and to switch how the image outside of it is drawn
+// Selects to crop the image with a cutline, and to switch how the image outside of it is drawn
 function setupCutlineControls(imageViewer: ImageViewer) {
   const panel = document.createElement("div");
   panel.style.position = "absolute";
@@ -69,11 +69,19 @@ function setupCutlineControls(imageViewer: ImageViewer) {
   panel.style.gap = "4px";
   document.body.appendChild(panel);
 
-  const addButton = (text: string, onClick: () => void) => {
-    const button = document.createElement("button");
-    button.innerText = text;
-    button.addEventListener("click", onClick);
-    panel.appendChild(button);
+  // a select calling the function of the chosen option
+  const addSelect = (label: string, options: Record<string, () => void>) => {
+    const select = document.createElement("select");
+    for (const name of Object.keys(options)) {
+      const option = document.createElement("option");
+      option.value = name;
+      option.innerText = `${label}: ${name}`;
+      select.appendChild(option);
+    }
+    select.addEventListener("change", () => {
+      options[select.value]();
+    });
+    panel.appendChild(select);
   };
 
   imageViewer.on("cutlinechange", (e) => {
@@ -83,7 +91,7 @@ function setupCutlineControls(imageViewer: ImageViewer) {
   // cutlines 10% from the edges of the image
   const cutlines: Record<string, (width: number, height: number) => [number, number][] | null> = {
     "no cutline": () => null,
-    "smaller square": (width, height) => [
+    rectangle: (width, height) => [
       [width * 0.1, height * 0.1],
       [width * 0.9, height * 0.1],
       [width * 0.9, height * 0.9],
@@ -104,27 +112,24 @@ function setupCutlineControls(imageViewer: ImageViewer) {
     },
   };
 
-  const select = document.createElement("select");
-  for (const name of Object.keys(cutlines)) {
-    const option = document.createElement("option");
-    option.value = name;
-    option.innerText = `cutline: ${name}`;
-    select.appendChild(option);
-  }
-  select.addEventListener("change", () => {
-    const metadata = imageViewer.getImageMetadata();
-    if (!metadata) return;
+  addSelect(
+    "cutline",
+    Object.fromEntries(
+      Object.entries(cutlines).map(([name, getCutline]) => [
+        name,
+        () => {
+          const metadata = imageViewer.getImageMetadata();
+          if (!metadata) return;
 
-    imageViewer.setCutline(cutlines[select.value](metadata.width, metadata.height));
-  });
-  panel.appendChild(select);
+          imageViewer.setCutline(getCutline(metadata.width, metadata.height));
+        },
+      ]),
+    ),
+  );
 
-  addButton("outside: hidden", () => {
-    imageViewer.setOutsideCutlineStyle({ type: "hidden" });
-  });
-
-  addButton("outside: overlay", () => {
-    imageViewer.setOutsideCutlineStyle({ type: "overlay", color: "rgba(0, 0, 0, 0.6)" });
+  addSelect("outside cutline", {
+    hidden: () => imageViewer.setOutsideCutlineStyle({ type: "hidden" }),
+    overlay: () => imageViewer.setOutsideCutlineStyle({ type: "overlay", color: "rgba(0, 0, 0, 0.6)" }),
   });
 }
 
