@@ -1,5 +1,5 @@
 import { resolve } from 'path';
-import { defineConfig, transformWithEsbuild } from 'vite';
+import { defineConfig, transformWithEsbuild, type Plugin } from 'vite';
 import packagejson from "./package.json";
 import { copyMaplibreWorker } from "./vite.shared";
 
@@ -10,13 +10,18 @@ const isProduction = process.env.NODE_ENV === "production";
 
 // In library mode, Vite leaves whitespace and comments in ES output to keep it tree-shakable by the consumer's bundler.
 // This file is served as is, so it is fully minified instead, after Vite's own (partial) minification.
-function minifyEsBundle() {
+// The same browser target as Vite's build is used, so the minifier doesn't introduce newer syntax.
+function minifyEsBundle(): Plugin {
+  let target: string | string[] | undefined;
   return {
     name: 'minify-es-bundle',
+    configResolved(config) {
+      target = config.build.target || undefined;
+    },
     renderChunk: {
-      order: 'post' as const,
-      handler(code: string, chunk: { fileName: string }) {
-        return transformWithEsbuild(code, chunk.fileName, { minify: true, format: 'esm', sourcemap: true });
+      order: 'post',
+      handler(code, chunk) {
+        return transformWithEsbuild(code, chunk.fileName, { minify: true, format: 'esm', sourcemap: true, target });
       },
     },
   }
