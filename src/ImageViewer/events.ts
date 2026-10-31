@@ -1,6 +1,7 @@
 import { Map } from "../Map";
 import ImageViewer from "./ImageViewer";
 import { Event as EventML, type LngLat, type MapEventType } from "maplibre-gl";
+import type { ImageViewerCutline } from "./cutline";
 
 type ImageViewerOriginalEvent = MouseEvent | TouchEvent | WheelEvent | WebGLContextEvent | null;
 
@@ -28,9 +29,13 @@ export class ImageViewerEvent extends EventML<ImageViewerEventTypes> {
 /** Fired when the viewer fails to load its image. */
 export type ImageViewerInitErrorEvent = EventML<"imagevieweriniterror"> & { error: Error };
 
+/** Fired when the cutline is set or removed with `setCutline`, carrying a copy of the new cutline (`null` when removed). */
+export type ImageViewerCutlineChangeEvent = ImageViewerEvent & { cutline: ImageViewerCutline | null };
+
 /** Event payloads keyed by event type — every event is an {@link ImageViewerEvent}, apart from the init error. */
-export type ImageViewerEventType = Record<Exclude<ImageViewerEventTypes, "imagevieweriniterror">, ImageViewerEvent> & {
+export type ImageViewerEventType = Record<Exclude<ImageViewerEventTypes, "imagevieweriniterror" | "cutlinechange">, ImageViewerEvent> & {
   imagevieweriniterror: ImageViewerInitErrorEvent;
+  cutlinechange: ImageViewerCutlineChangeEvent;
 };
 
 const BASE_MAP_EVENT_TYPES = [
@@ -120,7 +125,8 @@ export type ImageViewerEventTypes =
   | CooperativeGestureEventKeys
   | "imageviewerready"
   | "imagevieweriniterror"
-  | "beforeremove";
+  | "beforeremove"
+  | "cutlinechange";
 
 // Properties to exclude when forwarding events
 const FORBIDDEN_EVENT_VALUES = ["lngLat", "_defaultPrevented"];
@@ -148,9 +154,9 @@ type ImageViewerEventData<T extends keyof MapEventType> = {
  * @returns {void}
  */
 export function setupGlobalMapEventForwarder({ map, viewer, lngLatToPx }: SetupGlobalMapEventForwarderOptions): void {
-  IMAGE_VIEWER_EVENT_TYPES.forEach((eventType: Exclude<ImageViewerEventTypes, "imageviewerready" | "imagevieweriniterror" | "beforeremove">) => {
+  IMAGE_VIEWER_EVENT_TYPES.forEach((eventType: Exclude<ImageViewerEventTypes, "imageviewerready" | "imagevieweriniterror" | "beforeremove" | "cutlinechange">) => {
     try {
-      map.on(eventType, (e: MapEventType[Exclude<ImageViewerEventTypes, "imageviewerready" | "imagevieweriniterror" | "beforeremove">]) => {
+      map.on(eventType, (e: MapEventType[Exclude<ImageViewerEventTypes, "imageviewerready" | "imagevieweriniterror" | "beforeremove" | "cutlinechange">]) => {
         // Handle UI Events (mouse/touch interactions with coordinate transformation)
         const uiEventName = eventType as UiEventKeys;
         if (UI_EVENTS.includes(uiEventName)) {

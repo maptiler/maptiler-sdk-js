@@ -1072,6 +1072,36 @@ In a similar manner, a subset of map events are fired by the image viewer. All U
 
 A full list of supported events can be found in the exported type declaration `ImageViewerEventTypes`
 
+#### Cutline
+
+A cutline is a polygon on the image, in _image pixels_, that crops it: for example the outline of the map on a scanned sheet. By default the image outside of the cutline is hidden, showing whatever is behind the viewer. It can instead stay visible under a color overlay, for example while the cutline is being edited.
+
+```ts
+const imageViewer = new ImageViewer({
+  // ...
+  cutline: [
+    [100, 100],
+    [900, 100],
+    [900, 700],
+    [100, 700],
+  ], // at least 3 points, the ring can be open or closed
+  outsideCutlineStyle: { type: "overlay", color: "rgba(0, 0, 0, 0.6)" }, // defaults to { type: "hidden" }
+});
+
+imageViewer.on("cutlinechange", (e) => {
+  console.log("new cutline", e.cutline); // `null` when removed
+});
+
+imageViewer.setCutline([
+  [0, 0],
+  [500, 0],
+  [500, 500],
+]);
+imageViewer.getCutline(); // a copy of the cutline, or `null`
+imageViewer.setOutsideCutlineStyle({ type: "hidden" }); // hides the image outside of the cutline
+imageViewer.setCutline(null); // removes the cutline, the whole image is shown again
+```
+
 #### Markers with `ImageViewerMarker`
 
 An `ImageViewerMarker` can also be added and used like the usual `Marker`class, the main difference being it operates in _image pixels_, not LngLat coordinates.
