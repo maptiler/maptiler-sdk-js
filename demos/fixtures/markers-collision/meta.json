@@ -1,0 +1,12 @@
+{
+  "title": "Markers: collisions",
+  "description": "Tests marker collision behaviours at scale, with a performance readout.",
+  "type": "fixture",
+  "topics": [
+    "markers"
+  ],
+  "createdWith": "5.0.0-beta.m-r.1",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null,
+  "internal": true
+}

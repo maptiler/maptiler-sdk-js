@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maptiler SDK Demos</title>
+
+  <link rel="icon" href="/favicon.ico" sizes="16x16" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any" />
+  <link rel="stylesheet" href="/demo-styles.css" />
+
+  <style>
+    body {
+      height: auto;
+      min-height: 100%;
+      background: #ffaa07;
+      padding: 40px 0;
+      box-sizing: border-box;
+    }
+
+    header {
+      display: flex;
+      justify-content: center;
+      padding: 0 24px 40px;
+    }
+
+    header img {
+      display: block;
+      width: 400px;
+      max-width: 100%;
+    }
+
+    .title,
+    .column {
+      background: white;
+      border: black 3px solid;
+      filter: drop-shadow(12px 12px 0px rgba(0, 0, 0, 0.33));
+    }
+
+    .title {
+      padding: 20px 32px;
+    }
+
+    /* One card per type of demo, side by side. The row scrolls sideways when the window is too narrow */
+    .columns {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(300px, 380px);
+      justify-content: safe center;
+      align-items: start;
+      gap: 40px;
+      overflow-x: auto;
+      /* room for the cards' offset shadow, which would otherwise be clipped by the scroll container */
+      padding: 0 36px 24px 24px;
+    }
+
+    .column {
+      padding: 20px 32px 32px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      text-transform: capitalize;
+    }
+
+    h3 {
+      margin: 12px 0 0;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.8);
+    }
+
+    a {
+      text-decoration: none;
+      color: rgba(0, 0, 0, 0.5);
+      transition: all 0.3s;
+      text-transform: uppercase;
+      font-weight: 400;
+    }
+
+    a:hover {
+      color: #000;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="title">
+      <img src="/maptiler-sdk-logo.svg" alt="MapTiler SDK" />
+    </div>
+  </header>
+
+  <!-- demos-list -->
+</body>
+
+</html>

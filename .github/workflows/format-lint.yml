@@ -31,3 +31,6 @@ jobs:
 
       - name: TypeScript Type Check
         run: npx tsc --noEmit
+
+      - name: Demos index is up to date
+        run: npm run demos:index:check

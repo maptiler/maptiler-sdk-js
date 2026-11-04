@@ -1,0 +1,12 @@
+{
+  "title": "Markers: all options",
+  "description": "UI to change every marker option and permutation.",
+  "type": "fixture",
+  "topics": [
+    "markers"
+  ],
+  "createdWith": "5.0.0-beta.m-r.1",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null,
+  "internal": true
+}

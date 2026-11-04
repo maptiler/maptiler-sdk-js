@@ -1,0 +1,13 @@
+{
+  "title": "Map / language selector",
+  "description": "Switches between map styles and languages, with a performance readout.",
+  "type": "fixture",
+  "topics": [
+    "styles",
+    "language"
+  ],
+  "createdWith": "3.2.4",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null,
+  "internal": true
+}

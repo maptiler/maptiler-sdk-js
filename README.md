@@ -301,6 +301,97 @@ Check out more than 200 [examples and tutorials](https://docs.maptiler.com/sdk-j
 
 <br>
 
+## 🗂️ In-repo demos
+
+Run `npm run dev` and open the printed URL for a list of every demo. Add `?key=YOUR_KEY` once to store your MapTiler API key in the browser. Demos live in `demos/`, in three kinds:
+
+- **Examples** (`demos/examples/<topic>/<name>/`): short, single-use code with minimal dependencies, e.g. "put a marker on the page and style it".
+- **Showcases** (`demos/showcases/<name>/`): more involved, with more comments and inline docs, closer to a guide. May use external dependencies, e.g. a UI library.
+- **Development fixtures** (`demos/fixtures/<name>/`): for comparing feature versions, testing or developing features, and recording code "gotchas". May use external dependencies and lots of UI code. Not intended for public use, so not listed below.
+
+Each demo is a folder with an `index.html`, a `main.ts` and a `meta.json`:
+
+```json
+{
+  "title": "Styled marker",
+  "description": "Puts a marker on the map and sets its shape and colors.",
+  "type": "example",
+  "topics": ["markers"],
+  "createdWith": "5.0.0-rc.4",
+  "lastCheckedWith": "5.0.0-rc.4",
+  "lastCheckedOn": "2026-10-30"
+}
+```
+
+- `type` is `example`, `showcase` or `fixture`, matching the folder. An example's first topic matches its `<topic>` folder.
+- `createdWith` is the SDK version the demo was created with.
+- `lastCheckedWith` and `lastCheckedOn` record the last time someone ran the demo and saw it working. They stay `null` until then.
+- `internal: true` keeps a demo out of the index below, and is required on development fixtures.
+
+Values likely to change go in variables right after the imports of `main.ts`, with the same names in every demo, so they can be updated with grep or a script: `MAPTILER_API_KEY` and `MAP_STYLE`.
+
+Run `npm run demos:index` after adding or changing a demo. It validates the metadata and regenerates the index below. CI fails if the index is out of date.
+
+### Topics
+
+Use only these labels in `topics`. Add a label here before using it.
+
+<!-- demo-topics:start -->
+- `3d`
+- `animation`
+- `color-ramps`
+- `controls`
+- `errors`
+- `events`
+- `getting-started`
+- `halo`
+- `image-viewer`
+- `language`
+- `markers`
+- `performance`
+- `requests`
+- `routes`
+- `sky`
+- `space`
+- `styles`
+<!-- demo-topics:end -->
+
+### Index
+
+<!-- demos-index:start -->
+#### Examples
+
+| Demo | Description | Topics | Created with | Last checked |
+| --- | --- | --- | --- | --- |
+| [Available color ramps](./demos/examples/color-ramps/available-ramps) | Displays every built-in color ramp, plus rescaled and resampled variants. | `color-ramps` | 3.2.4 | Not yet |
+| [Custom controls: declarative](./demos/examples/controls/declarative) | Builds custom map controls from HTML attributes. | `controls` | 3.5.1-rc1 | Not yet |
+| [Custom controls: programmatic](./demos/examples/controls/programmatic) | Builds custom map controls from code. | `controls` | 3.8.0-rc.9 | Not yet |
+| [Handling WebGL errors](./demos/examples/errors/handling-webgl-errors) | Reacts to a lost WebGL context and shows a warning. | `errors` | 3.2.4 | Not yet |
+| [Ready event](./demos/examples/events/ready-event) | Uses the `ready` event to know when the map can be changed safely. | `events` | 3.2.4 | Not yet |
+| [Simple map](./demos/examples/getting-started/simple) | A map with the Streets v2 style. | `getting-started` | 5.0.0-rc.4 | Not yet |
+| [Image viewer](./demos/examples/image-viewer/image-viewer) | Displays a tiled, non-georeferenced image with markers. | `image-viewer` `markers` | 3.8.0-rc.9 | Not yet |
+| [Language changes](./demos/examples/language/language-changes) | Switches the map language at runtime. | `language` | 3.5.1-rc1 | Not yet |
+| [Marker altitude](./demos/examples/markers/altitude) | Raises two draggable markers to 1,300 m above sea level over the terrain, with ground lines (experimental). | `markers` | 5.0.0-beta.m-r.1 | Not yet |
+| [Styled marker](./demos/examples/markers/styled-marker) | Puts a marker on the map and sets its shape and colors. | `markers` | 5.0.0-rc.4 | Not yet |
+| [Marker UI states](./demos/examples/markers/ui-states) | Markers that change their look on hover, focus, press and drag. | `markers` | 5.0.0-beta.m-r.1 | Not yet |
+| [Tile preloading: bounds](./demos/examples/performance/tile-preloading-bounds) | Preloads the tiles of a region with `experimental_preloadTilesForBounds`, then jumps there. Toggle preloading off to compare. | `performance` | 4.1.0 | Not yet |
+| [Tile preloading: flyTo](./demos/examples/performance/tile-preloading-flyto) | Preloads the tiles along a `flyTo` path with `experimental_preload` before the flight starts. Toggle preloading off to compare. | `performance` | 4.1.0 | Not yet |
+| [Transform request](./demos/examples/requests/transform-request) | Changes outgoing map requests with `transformRequest`. | `requests` | 3.2.4 | Not yet |
+| [Sky: day](./demos/examples/sky/day) | Configures the sky on a daytime outdoor style. | `sky` | 3.2.4 | Not yet |
+| [Sky: night](./demos/examples/sky/night) | Configures the sky on a dark outdoor style. | `sky` | 3.2.4 | Not yet |
+| [Space & halo simple](./demos/examples/space/orbiting-globe) | A globe turning against a starry space background, with the default halo. | `space` `halo` | 5.0.0-rc.4 | Not yet |
+
+#### Showcases
+
+| Demo | Description | Topics | Created with | Last checked |
+| --- | --- | --- | --- | --- |
+| [Animated route around Madeira](./demos/showcases/animated-routes) | Animates the camera along a Madeira route with `AnimatedRouteLayer`, with stops and photos. | `animation` `routes` | 3.11.0 | Not yet |
+| [Marker animation in the Sahara](./demos/showcases/marker-animation) | Drives two rally car markers around the Erg Chebbi dunes with a single `MaptilerAnimation`, with playback controls. | `animation` `markers` | 5.0.0-rc.4 | Not yet |
+| [Space & halo: transitions](./demos/showcases/spacebox-and-halo) | Switches between every space preset, custom cubemap images, space colors and halo gradients on a globe. | `space` `halo` | 3.5.1-rc1 | Not yet |
+<!-- demos-index:end -->
+
+<br>
+
 ## 📘 API Reference
 
 In addition to the details and examples provided in this readme, check out the [complete API documentation](https://docs.maptiler.com/sdk-js/api/)
@@ -1025,7 +1116,7 @@ map.on("load", () => {
 
 Note: if `space.color` or `space.<faces | path | preset>` are not explicitly set in the call to `setSpace`, then the previous value will remain for this field.
 
-Further code examples can be found in `~/demos/`
+See [`demos/examples/space/orbiting-globe`](./demos/examples/space/orbiting-globe) for a simple example, and [`demos/showcases/spacebox-and-halo`](./demos/showcases/spacebox-and-halo) for every preset and option.
 
 ### `ImageViewer`
 
@@ -1592,6 +1683,8 @@ marker.setGroundLine(true); // dashed line from the marker down to the ground
 
 Style the ground line with your own CSS on the `maptiler-marker-groundline` class, or add a class of your own with `setGroundLine(true, { className: "my-line" })`.
 
+See [`demos/examples/markers/altitude`](./demos/examples/markers/altitude) for an example.
+
 #### The MapLibre marker
 
 Compared with the MapLibre marker:
@@ -1607,14 +1700,13 @@ import { MarkerMLGL } from "@maptiler/sdk";
 new MarkerMLGL({ color: "#f00" }).setLngLat([8.54, 47.37]).addTo(map);
 ```
 
-See `demos/16-maptiler-markers.html` to `demos/20-marker-altitude.html` for examples.
+See [`demos/examples/markers/styled-marker`](./demos/examples/markers/styled-marker) for an example, and `demos/fixtures/markers*` for every option.
 
 ### Camera routes and animations
 
 The SDK comes with several classes to help with animations, particularly route animations.
 
-See `demos/11-animated-routes.html` for examples.
-See `demos/12-maptiler-animation.html` for examples.
+See [`demos/showcases/animated-routes`](./demos/showcases/animated-routes) and [`demos/showcases/marker-animation`](./demos/showcases/marker-animation) for examples.
 
 #### 🧩 `MaptilerAnimation`
 
@@ -1761,7 +1853,7 @@ animatedRoute.play();
 animatedRoute.pause();
 ```
 
-For a full example of how to use this, look at [the example](./demos/11-animated-routes.html)
+For a full example of how to use this, look at [the showcase](./demos/showcases/animated-routes)
 
 ### Vector Layer Helpers
 
