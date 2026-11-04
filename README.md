@@ -330,7 +330,7 @@ Each demo is a folder with an `index.html`, a `main.ts` and a `meta.json`:
 - `lastCheckedWith` and `lastCheckedOn` record the last time someone ran the demo and saw it working. They stay `null` until then.
 - `internal: true` keeps a demo out of the index below, and is required on development fixtures.
 
-Values likely to change go in variables right after the imports of `main.ts`, with the same names in every demo, so they can be updated with grep or a script: `MAPTILER_API_KEY` and `MAP_STYLE`.
+Values likely to change go in variables right after the imports of `main.ts`, with the same names in every demo, so they can be updated with grep or a script, e.g. `MAP_STYLE`.
 
 Run `npm run demos:index` after adding or changing a demo. It validates the metadata and regenerates the index below. CI fails if the index is out of date.
 

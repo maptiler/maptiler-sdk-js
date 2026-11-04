@@ -7,11 +7,10 @@ import { createGui } from "../../../shared/gui";
 import { Language } from "@maptiler/sdk";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
-const MAPTILER_API_KEY = "API_KEY";
 const MAP_STYLE = "outdoor";
 
 addPerformanceStats();
-setupMapTilerApiKey({ config, apiKey: MAPTILER_API_KEY });
+setupMapTilerApiKey({ config });
 
 const container = document.getElementById("map")!;
 

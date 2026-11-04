@@ -5,11 +5,10 @@ import { addPerformanceStats, setupMapTilerApiKey } from "../../../shared/demo-u
 import { createGui } from "../../../shared/gui";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
-const MAPTILER_API_KEY = "API_KEY";
 const MAP_STYLE = MapStyle.OUTDOOR.DARK;
 
 addPerformanceStats();
-setupMapTilerApiKey({ config, apiKey: MAPTILER_API_KEY });
+setupMapTilerApiKey({ config });
 
 const container = document.getElementById("map-container")!;
 const map = new Map({

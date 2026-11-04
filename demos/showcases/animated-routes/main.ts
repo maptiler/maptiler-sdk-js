@@ -18,7 +18,6 @@ import {
 } from "@maptiler/sdk";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
-const MAPTILER_API_KEY = "API_KEY";
 const MAP_STYLE = MapStyle.HYBRID;
 
 const BORDER_COLOR = "#333333";
@@ -27,7 +26,7 @@ const INACTIVE_LINE_COLOR = [100, 116, 139, 1.0]; // Rocky Slate Blue
 const ACTIVE_LINE_COLOR = [255, 87, 34, 1.0]; // Vibrant Safety Orange
 
 addPerformanceStats();
-setupMapTilerApiKey({ config, apiKey: MAPTILER_API_KEY });
+setupMapTilerApiKey({ config });
 
 async function createMap() {
   const element = document.createElement("div");

@@ -6,10 +6,9 @@ import { createGui } from "../../shared/gui";
 import type { CollisionBehaviour, MapTilerMarkerOptions } from "@maptiler/sdk";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
-const MAPTILER_API_KEY = "API_KEY";
 const MAP_STYLE = MapStyle.STREETS.DEFAULT;
 
-setupMapTilerApiKey({ config, apiKey: MAPTILER_API_KEY });
+setupMapTilerApiKey({ config });
 addPerformanceStats();
 
 // bounds the markers are scattered within (around Prague)

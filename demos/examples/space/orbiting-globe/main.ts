@@ -4,10 +4,9 @@ import { Map, MapStyle, config } from "@maptiler/sdk";
 import { setupMapTilerApiKey } from "../../../shared/demo-utils";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
-const MAPTILER_API_KEY = "API_KEY";
 const MAP_STYLE = MapStyle.HYBRID.DEFAULT;
 
-setupMapTilerApiKey({ config, apiKey: MAPTILER_API_KEY });
+setupMapTilerApiKey({ config });
 
 // How fast the globe turns, in degrees of longitude per second
 const DEGREES_PER_SECOND = 6;

@@ -5,10 +5,9 @@ import type { MapTilerMarkerSVGOptions } from "@maptiler/sdk";
 import { addCaption, setupMapTilerApiKey } from "../../../shared/demo-utils";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
-const MAPTILER_API_KEY = "API_KEY";
 const MAP_STYLE = MapStyle.STREETS.DEFAULT;
 
-setupMapTilerApiKey({ config, apiKey: MAPTILER_API_KEY });
+setupMapTilerApiKey({ config });
 
 const CENTER: [number, number] = [14.42, 50.08];
 const SPACING = 0.0022;
