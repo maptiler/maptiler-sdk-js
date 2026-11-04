@@ -2,6 +2,7 @@
 import "@maptiler/sdk/vite-worker";
 import { Language, Map, MapStyle, StyleSpecification, config } from "@maptiler/sdk";
 import { addPerformanceStats, setupMapTilerApiKey } from "../../shared/demo-utils";
+import { createGui } from "../../shared/gui";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
 const MAPTILER_API_KEY = "API_KEY";
@@ -11,6 +12,7 @@ addPerformanceStats();
 setupMapTilerApiKey({ config, apiKey: MAPTILER_API_KEY });
 
 const container = document.getElementById("map")!;
+const RANDOM_JSON = "json";
 
 async function main() {
   const map = new Map({
@@ -27,51 +29,39 @@ async function main() {
     zoom: 14,
   });
 
-  const styleDropDown = document.getElementById("mapstyles-picker") as HTMLOptionElement;
-  const languageDropdown = document.getElementById("languages-picker") as HTMLOptionElement;
+  await map.onReadyAsync();
 
-  styleDropDown.onchange = () => {
-    if (styleDropDown.value === "json") {
+  // label → style id or other value given to `setStyle`
+  const styles: Record<string, string> = {};
+  Object.keys(MapStyle).forEach((s) => {
+    MapStyle[s as keyof typeof MapStyle].getVariants().forEach((variant) => {
+      styles[`${s} ${variant.getFullName()}`] = variant.getId();
+    });
+  });
+  styles["Random JSON"] = RANDOM_JSON;
+  styles["Custom Style 1"] = "d87d6c74-d29c-4cdd-87d8-b69ae7340dd6";
+
+  // label → key of `Language`
+  const languages: Record<string, string> = {};
+  Object.entries(Language).forEach(([key, language]) => {
+    languages[language.name in languages ? `${language.name} (${key})` : language.name] = key;
+  });
+
+  const params = { style: MAP_STYLE.getId(), language: "AUTO" };
+  const gui = createGui("Map");
+
+  gui.add(params, "style", styles).onChange(() => {
+    if (params.style === RANDOM_JSON) {
       map.setStyle(getRandomJSON() as StyleSpecification);
       return;
     }
-    map.setStyle(styleDropDown.value);
-  };
-
-  languageDropdown.onchange = () => {
-    const key = languageDropdown.value as keyof typeof Language;
-    const newLanguage = Language[key];
-    console.log(newLanguage, key);
-    map.setLanguage(newLanguage);
-  };
-
-  await map.onReadyAsync();
-
-  Object.keys(MapStyle).forEach((s) => {
-    const variants = MapStyle[s as keyof typeof MapStyle].getVariants();
-    variants.forEach((variant) => {
-      const styleOption = document.createElement("option");
-      // @ts-expect-error we know that `id` is private.
-      styleOption.value = variant.id;
-      styleOption.innerHTML = `${s} ${variant.getFullName()}`;
-      styleDropDown.appendChild(styleOption);
-    });
+    map.setStyle(params.style);
   });
 
-  const styleOption = document.createElement("option");
-  styleOption.value = "json";
-  styleOption.innerHTML = "Random JSON";
-  styleDropDown.appendChild(styleOption);
-  const anotherStyleOption = document.createElement("option");
-  anotherStyleOption.value = "d87d6c74-d29c-4cdd-87d8-b69ae7340dd6";
-  anotherStyleOption.innerHTML = "Custom Style 1";
-  styleDropDown.appendChild(anotherStyleOption);
-
-  Object.entries(Language).forEach(([key, l]) => {
-    const languageOption = document.createElement("option");
-    languageOption.value = key;
-    languageOption.innerHTML = l.name;
-    languageDropdown.appendChild(languageOption);
+  gui.add(params, "language", languages).onChange(() => {
+    const newLanguage = Language[params.language as keyof typeof Language];
+    console.log(newLanguage, params.language);
+    map.setLanguage(newLanguage);
   });
 }
 
@@ -83,8 +73,8 @@ function getRandomJSON() {
     id: "satellite",
     name: "Satellite",
     sources: {
-      maptiler_planet: { url: "https://api.maptiler.com/tiles/v3/tiles.json?key=NrHbzRcISmjG1VwSD6jh", type: "vector" },
-      satellite: { url: "https://api.maptiler.com/tiles/satellite-v2/tiles.json?key=NrHbzRcISmjG1VwSD6jh", type: "raster" },
+      maptiler_planet: { url: `https://api.maptiler.com/tiles/v3/tiles.json?key=${config.apiKey}`, type: "vector" },
+      satellite: { url: `https://api.maptiler.com/tiles/satellite-v2/tiles.json?key=${config.apiKey}`, type: "raster" },
     },
     layers: [{ id: "Satellite", type: "raster", source: "satellite", minzoom: 0, layout: { visibility: "visible" }, paint: { "raster-opacity": 1 }, filter: ["all"] }],
     metadata: {
@@ -125,7 +115,7 @@ function getRandomJSON() {
         },
       },
     },
-    glyphs: "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key=NrHbzRcISmjG1VwSD6jh",
+    glyphs: `https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key=${config.apiKey}`,
     sprite: "https://api.maptiler.com/maps/satellite/sprite",
     bearing: 0,
     pitch: 0,

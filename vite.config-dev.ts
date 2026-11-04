@@ -74,6 +74,16 @@ export default defineConfig({
   define: defineBuildConstants("dev"),
   plugins: [
     {
+      name: 'demos-favicon',
+      /**
+       * Adds the MapTiler favicon to every page, so it isn't one more thing to copy into each demo's `index.html`.
+       */
+      transformIndexHtml: () => [
+        { tag: 'link', attrs: { rel: 'icon', href: '/favicon.ico', sizes: '16x16' }, injectTo: 'head' },
+        { tag: 'link', attrs: { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml', sizes: 'any' }, injectTo: 'head' },
+      ],
+    },
+    {
       name: 'demos-list',
       /**
        * Fills the home page from the metadata, so there's no second list of demos to maintain.

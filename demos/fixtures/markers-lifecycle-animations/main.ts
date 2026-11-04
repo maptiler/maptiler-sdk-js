@@ -2,6 +2,7 @@
 import "@maptiler/sdk/vite-worker";
 import { Map, MapStyle, Marker, config } from "@maptiler/sdk";
 import { el, setupMapTilerApiKey } from "../../shared/demo-utils";
+import { createGui } from "../../shared/gui";
 import type {
   EnterAnimationPreset,
   ExitAnimationPreset,
@@ -58,17 +59,6 @@ function customIdle(alpha: number, marker: Marker) {
   marker.setRotation(Math.sin(alpha * Math.PI * 2) * 15);
 }
 
-function populateSelect(selectId: string, options: string[]) {
-  const select = el<HTMLSelectElement>(selectId);
-  for (const value of [NONE, ...options, CUSTOM]) {
-    const option = document.createElement("option");
-    option.value = value;
-    option.textContent = value;
-    select.appendChild(option);
-  }
-  return select;
-}
-
 async function main() {
   const map = new Map({
     container: el("map"),
@@ -81,15 +71,40 @@ async function main() {
 
   const base: MapTilerMarkerSVGOptions = { shape: "circle", size: "l", content: "M" };
 
-  const enterSelect = populateSelect("enter-preset", ENTER_PRESETS);
-  const idleSelect = populateSelect("idle-preset", IDLE_PRESETS);
-  const exitSelect = populateSelect("exit-preset", EXIT_PRESETS);
+  // Picking a preset (or "custom") only affects markers added after the change, as each marker
+  // is built from the values at the moment it's added. Magnitude is ignored by "custom" and "none".
+  const params = {
+    enter: NONE as string,
+    idle: NONE as string,
+    exit: NONE as string,
+    magnitude: 1,
+    addOne: () => {
+      addMarkers(1);
+    },
+    addTen: () => {
+      addMarkers(10);
+    },
+    removeAll: () => {
+      removeAllMarkers(false);
+    },
+    removeAllImmediate: () => {
+      removeAllMarkers(true);
+    },
+    count: 0,
+  };
 
-  const magnitudeInput = el<HTMLInputElement>("magnitude");
-  const magnitudeValueEl = el("magnitude-value");
-  magnitudeInput.addEventListener("input", () => {
-    magnitudeValueEl.textContent = Number(magnitudeInput.value).toFixed(1);
-  });
+  const gui = createGui("Lifecycle animations");
+  gui.add(params, "enter", [NONE, ...ENTER_PRESETS, CUSTOM]);
+  gui.add(params, "idle", [NONE, ...IDLE_PRESETS, CUSTOM]);
+  gui.add(params, "exit", [NONE, ...EXIT_PRESETS, CUSTOM]);
+  gui.add(params, "magnitude", 0, 2, 0.1);
+  gui.add(params, "addOne").name("add one");
+  gui.add(params, "addTen").name("add 10");
+  // plays each marker's exit animation before removing it
+  gui.add(params, "removeAll").name("remove all");
+  // removes the markers straight away, skipping the exit animation
+  gui.add(params, "removeAllImmediate").name("remove all (immediate)");
+  gui.add(params, "count").name("markers").disable().listen();
 
   const eventLogEl = el("lifecycle-log");
   function logEvent(type: string) {
@@ -102,31 +117,27 @@ async function main() {
 
   const markers: Marker[] = [];
   let nextSlot = 0;
-  const countEl = el("marker-count");
-  const updateCount = () => {
-    countEl.textContent = String(markers.length);
-  };
 
   function addOneMarker() {
-    const magnitude = Number(magnitudeInput.value);
+    const { magnitude } = params;
     const animations: MapTilerMarkerAnimations = {};
 
-    if (enterSelect.value === CUSTOM) {
+    if (params.enter === CUSTOM) {
       animations.enter = { custom: customEnter, duration: 900 };
-    } else if (enterSelect.value !== NONE) {
-      animations.enter = { preset: enterSelect.value as EnterAnimationPreset, duration: 900, magnitude };
+    } else if (params.enter !== NONE) {
+      animations.enter = { preset: params.enter as EnterAnimationPreset, duration: 900, magnitude };
     }
 
-    if (idleSelect.value === CUSTOM) {
+    if (params.idle === CUSTOM) {
       animations.idle = { custom: customIdle, duration: 1500, iterations: Infinity };
-    } else if (idleSelect.value !== NONE) {
-      animations.idle = { preset: idleSelect.value as IdleAnimationPreset, iterations: Infinity, magnitude };
+    } else if (params.idle !== NONE) {
+      animations.idle = { preset: params.idle as IdleAnimationPreset, iterations: Infinity, magnitude };
     }
 
-    if (exitSelect.value === CUSTOM) {
+    if (params.exit === CUSTOM) {
       animations.exit = { custom: customExit, duration: 900 };
-    } else if (exitSelect.value !== NONE) {
-      animations.exit = { preset: exitSelect.value as ExitAnimationPreset, duration: 900, magnitude };
+    } else if (params.exit !== NONE) {
+      animations.exit = { preset: params.exit as ExitAnimationPreset, duration: 900, magnitude };
     }
 
     const marker = new Marker({ ...base, animations });
@@ -143,33 +154,19 @@ async function main() {
 
     map.addMarker(marker);
     markers.push(marker);
-    updateCount();
   }
 
-  el<HTMLButtonElement>("add-marker").addEventListener("click", () => {
-    addOneMarker();
-  });
-
-  el<HTMLButtonElement>("add-5-markers").addEventListener("click", () => {
-    for (let i = 0; i < 10; i++) addOneMarker();
-  });
+  function addMarkers(count: number) {
+    for (let i = 0; i < count; i++) addOneMarker();
+    params.count = markers.length;
+  }
 
   function removeAllMarkers(immediate: boolean) {
     const ids = markers.splice(0).map((marker) => marker.id);
     map.removeMarkers(ids, { immediate });
     nextSlot = 0;
-    updateCount();
+    params.count = 0;
   }
-
-  // plays each marker's exit animation before removing it
-  el<HTMLButtonElement>("remove-all-markers").addEventListener("click", () => {
-    removeAllMarkers(false);
-  });
-
-  // removes the markers straight away, skipping the exit animation
-  el<HTMLButtonElement>("remove-all-markers-immediate").addEventListener("click", () => {
-    removeAllMarkers(true);
-  });
 }
 
 void main();

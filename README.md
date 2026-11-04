@@ -307,7 +307,7 @@ Run `npm run dev` and open the printed URL for a list of every demo. Add `?key=Y
 
 - **Examples** (`demos/examples/<topic>/<name>/`): short, single-use code with minimal dependencies, e.g. "put a marker on the page and style it".
 - **Showcases** (`demos/showcases/<name>/`): more involved, with more comments and inline docs, closer to a guide. May use external dependencies, e.g. a UI library.
-- **Development fixtures** (`demos/fixtures/<name>/`): for comparing feature versions, testing or developing features, and recording code "gotchas". May use external dependencies and lots of UI code. Not intended for public use, so not listed below.
+- **Development fixtures** (`demos/fixtures/<name>/`): for comparing feature versions, testing or developing features, and recording code "gotchas". May use external dependencies and lots of UI code. Build their controls with [lil-gui](https://lil-gui.georgealways.com), using `createGui()` from `demos/shared/gui.ts`. Not intended for public use, so not listed below.
 
 Each demo is a folder with an `index.html`, a `main.ts` and a `meta.json`:
 

@@ -4,11 +4,17 @@ import { Map, MapStyle, Marker, config } from "@maptiler/sdk";
 import { registerMarkerTemplate } from "../../../src/Marker/marker-content-registry";
 import { MARKER_ICON_NAMES } from "../../../src/Marker/marker-icons";
 import { el, setupMapTilerApiKey } from "../../shared/demo-utils";
+import { createGui } from "../../shared/gui";
 import type { MapTilerMarkerBaseOptions, MapTilerMarkerIcon, MapTilerMarkerOptions, MapTilerMarkerSVGOptions } from "@maptiler/sdk";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
 const MAPTILER_API_KEY = "API_KEY";
 const MAP_STYLE = MapStyle.STREETS.DEFAULT;
+
+const SHAPES = ["circle", "square", "bubble-circle", "bubble-square", "maptiler", "maptiler-full"] as const;
+const SIZES = ["xs", "s", "m", "l"] as const;
+const SHADOWS = ["none", "soft", "medium", "strong"] as const;
+const CONTENT_MODES = ["text", "icon", "url", "template", "element", "none"] as const;
 
 // demo template: dark round badge with a label
 registerMarkerTemplate("badge", (params) => {
@@ -115,13 +121,6 @@ async function main() {
     map.setZoom(zoom + Math.sin(i / 50) * 2);
   }
 
-  const animToggle = el<HTMLButtonElement>("anim-toggle");
-
-  animToggle.addEventListener("click", () => {
-    animating = !animating;
-    animToggle.textContent = animating ? "Pause" : "Resume";
-    if (animating) loop();
-  });
   // Single source of truth for the marker configuration.
   // Control handlers write here as well as calling the setter.
   // The first marker starts as the default marker: default shape, size and shadow, no content.
@@ -143,7 +142,7 @@ async function main() {
 
   // Content mode — content variants are constructor-only, so switching
   // modes rebuilds the marker from markerOptions + the selected variant.
-  type ContentMode = "text" | "icon" | "url" | "template" | "element" | "none";
+  type ContentMode = (typeof CONTENT_MODES)[number];
   let contentMode: ContentMode = "none";
   let icon: MapTilerMarkerIcon = "star";
 
@@ -187,43 +186,14 @@ async function main() {
   let marker = createConfiguredMarker();
   mountMarker(marker, [10, 50]);
 
-  const contentModeButtons = document.querySelectorAll<HTMLButtonElement>("[data-content-mode]");
-
-  function syncContentModeButtons(active: string) {
-    contentModeButtons.forEach((b) => b.classList.toggle("active", b.dataset.contentMode === active));
-  }
-
   function rebuildMarker() {
     const lngLat = marker.getLngLat();
     marker.remove();
     marker = createConfiguredMarker();
     mountMarker(marker, [lngLat.lng, lngLat.lat]);
-    marker.setDebug(el<HTMLInputElement>("debug-toggle").checked);
-    syncContentModeButtons(contentMode);
+    marker.setDebug(markerOptions.debug ?? false);
     syncStatus();
   }
-
-  contentModeButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      contentMode = btn.dataset.contentMode as ContentMode;
-      rebuildMarker();
-    });
-  });
-
-  // Icon: picking one switches the marker to icon content
-  const iconSelect = el<HTMLSelectElement>("icon-select");
-
-  for (const name of MARKER_ICON_NAMES) {
-    iconSelect.add(new Option(name, name, name === icon, name === icon));
-  }
-
-  iconSelect.addEventListener("change", () => {
-    icon = iconSelect.value as MapTilerMarkerIcon;
-    contentMode = "icon";
-    rebuildMarker();
-  });
-
-  syncContentModeButtons(contentMode);
 
   for (let i = 0; i < 4; i++) {
     const otherMarker = new Marker({ ...otherMarkerOptions, content: String(i + 2), title: `Marker ${String(i + 2)}`, priority: 1 + i });
@@ -233,25 +203,6 @@ async function main() {
     otherMarker.setLngLat([10 + offsetLon, 50 + offsetLat]);
     map.addMarker(otherMarker);
   }
-
-  // Shape
-  const shapeButtons = document.querySelectorAll<HTMLButtonElement>("[data-shape]");
-
-  function syncShapeButtons(active: string) {
-    shapeButtons.forEach((b) => b.classList.toggle("active", b.dataset.shape === active));
-  }
-
-  shapeButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const shape = btn.dataset.shape as MapTilerMarkerOptions["shape"];
-      markerOptions.shape = shape;
-      marker.setShape(shape);
-      syncShapeButtons(btn.dataset.shape ?? "");
-      syncStatus();
-    });
-  });
-
-  syncShapeButtons(marker.getShape() ?? "maptiler");
 
   // Map style — exercises adaptive colour re-resolution on style change
   const mapStyles = {
@@ -265,61 +216,6 @@ async function main() {
     topo: MapStyle.TOPO.DEFAULT,
   } as const;
 
-  const styleButtons = document.querySelectorAll<HTMLButtonElement>("[data-map-style]");
-
-  function syncStyleButtons(active: string) {
-    styleButtons.forEach((b) => b.classList.toggle("active", b.dataset.mapStyle === active));
-  }
-
-  styleButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const key = btn.dataset.mapStyle as keyof typeof mapStyles;
-      map.setStyle(mapStyles[key]);
-      syncStyleButtons(key);
-    });
-  });
-
-  syncStyleButtons("streets");
-
-  // Size
-  const sizeButtons = document.querySelectorAll<HTMLButtonElement>("[data-size]");
-
-  function syncSizeButtons(active: string) {
-    sizeButtons.forEach((b) => b.classList.toggle("active", b.dataset.size === active));
-  }
-
-  sizeButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const size = btn.dataset.size as MapTilerMarkerOptions["size"];
-      markerOptions.size = size;
-      marker.setSize(size);
-      syncSizeButtons(btn.dataset.size ?? "m");
-      syncStatus();
-    });
-  });
-
-  syncSizeButtons(markerOptions.size ?? "m");
-
-  // Shadow
-  const shadowButtons = document.querySelectorAll<HTMLButtonElement>("[data-shadow]");
-
-  function syncShadowButtons(active: string) {
-    shadowButtons.forEach((b) => b.classList.toggle("active", b.dataset.shadow === active));
-  }
-
-  shadowButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const shadow = btn.dataset.shadow as MapTilerMarkerOptions["shadow"];
-      markerOptions.shadow = shadow;
-      marker.setShadow(shadow);
-      syncShadowButtons(btn.dataset.shadow ?? "");
-      syncStatus();
-    });
-  });
-
-  syncShadowButtons(markerOptions.shadow ?? "none");
-
-  // Colors
   function colorToHex(color: string): string {
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = 1;
@@ -329,28 +225,99 @@ async function main() {
     return ctx.fillStyle;
   }
 
-  const outerColorInput = el<HTMLInputElement>("outer-color");
-  const innerColorInput = el<HTMLInputElement>("inner-color");
-  const contentColorInput = el<HTMLInputElement>("content-color");
-  const outlineColorInput = el<HTMLInputElement>("outline-color");
+  // Values shown by the panel. Its handlers write to `markerOptions` as well as calling the setter.
+  const params = {
+    mapStyle: "streets" as keyof typeof mapStyles,
+    shape: (marker.getShape() ?? "maptiler") as NonNullable<MapTilerMarkerOptions["shape"]>,
+    size: markerOptions.size ?? "m",
+    shadow: markerOptions.shadow ?? "none",
+    outerColor: colorToHex(marker.getOuterColor()),
+    innerColor: colorToHex(marker.getInnerColor()),
+    contentColor: colorToHex(marker.getContentColor()),
+    outlineColor: colorToHex(markerOptions.outlineColor ?? "#ffffff"),
+    resetColors,
+    outline: 0,
+    contentMode: contentMode as ContentMode,
+    content: "",
+    icon,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    animate: animating,
+    debug: marker.getDebug(),
+  };
 
-  outerColorInput.value = colorToHex(marker.getOuterColor());
-  innerColorInput.value = colorToHex(marker.getInnerColor());
-  contentColorInput.value = colorToHex(marker.getContentColor());
-  outlineColorInput.value = colorToHex(markerOptions.outlineColor ?? "#ffffff");
+  const getters = { shape: "", size: "", scale: "", innerColor: "" };
 
-  outerColorInput.addEventListener("input", () => {
-    markerOptions.outerColor = outerColorInput.value;
-    marker.setOuterColor(outerColorInput.value);
+  const gui = createGui("Marker 1");
+
+  gui
+    .add(params, "mapStyle", Object.keys(mapStyles))
+    .name("map style")
+    .onChange(() => map.setStyle(mapStyles[params.mapStyle]));
+
+  const look = gui.addFolder("Shape");
+  look.add(params, "shape", SHAPES).onChange(() => {
+    markerOptions.shape = params.shape;
+    marker.setShape(params.shape);
     syncStatus();
   });
-  innerColorInput.addEventListener("input", () => {
-    // explicit innerColor pins the colour and pauses adaptation to the map style
-    markerOptions.innerColor = innerColorInput.value;
-    marker.setInnerColor(innerColorInput.value);
+  look.add(params, "size", SIZES).onChange(() => {
+    markerOptions.size = params.size;
+    marker.setSize(params.size);
     syncStatus();
   });
-  el("colors-reset").addEventListener("click", () => {
+  look.add(params, "shadow", SHADOWS).onChange(() => {
+    markerOptions.shadow = params.shadow;
+    marker.setShadow(params.shadow);
+    syncStatus();
+  });
+
+  const colors = gui.addFolder("Colors");
+  colors
+    .addColor(params, "outerColor")
+    .name("outer")
+    .onChange(() => {
+      markerOptions.outerColor = params.outerColor;
+      marker.setOuterColor(params.outerColor);
+      syncStatus();
+    });
+  colors
+    .addColor(params, "innerColor")
+    .name("inner")
+    .onChange(() => {
+      // explicit innerColor pins the colour and pauses adaptation to the map style
+      markerOptions.innerColor = params.innerColor;
+      marker.setInnerColor(params.innerColor);
+      syncStatus();
+    });
+  colors
+    .addColor(params, "contentColor")
+    .name("content")
+    .onChange(() => {
+      markerOptions.contentColor = params.contentColor;
+      marker.setContentColor(params.contentColor);
+      syncStatus();
+    });
+  colors
+    .addColor(params, "outlineColor")
+    .name("outline")
+    .onChange(() => {
+      markerOptions.outlineColor = params.outlineColor;
+      marker.setOutlineColor(params.outlineColor);
+      syncStatus();
+    });
+  colors.add(params, "resetColors").name("reset to map style default");
+  colors
+    .add(params, "outline", 0, 8, 0.5)
+    .name("outline width (0 = off)")
+    .onChange(() => {
+      markerOptions.outline = params.outline === 0 ? undefined : params.outline;
+      marker.setOutline(markerOptions.outline);
+      syncStatus();
+    });
+
+  function resetColors() {
     markerOptions.outerColor = undefined;
     markerOptions.innerColor = undefined;
     markerOptions.contentColor = undefined;
@@ -359,103 +326,87 @@ async function main() {
     marker.setInnerColor(undefined);
     marker.setContentColor(undefined);
     marker.setOutlineColor(undefined);
-    outerColorInput.value = colorToHex(marker.getOuterColor());
-    innerColorInput.value = colorToHex(marker.getInnerColor());
-    contentColorInput.value = colorToHex(marker.getContentColor());
+    params.outerColor = colorToHex(marker.getOuterColor());
+    params.innerColor = colorToHex(marker.getInnerColor());
+    params.contentColor = colorToHex(marker.getContentColor());
+    gui.controllersRecursive().forEach((controller) => controller.updateDisplay());
     syncStatus();
-  });
-  contentColorInput.addEventListener("input", () => {
-    markerOptions.contentColor = contentColorInput.value;
-    marker.setContentColor(contentColorInput.value);
-    syncStatus();
-  });
-  outlineColorInput.addEventListener("input", () => {
-    markerOptions.outlineColor = outlineColorInput.value;
-    marker.setOutlineColor(outlineColorInput.value);
-    syncStatus();
-  });
-
-  // Outline width
-  const outlineWidthInput = el<HTMLInputElement>("outline-width");
-  const outlineWidthVal = el("outline-width-val");
-
-  outlineWidthInput.addEventListener("input", () => {
-    const w = parseFloat(outlineWidthInput.value);
-    markerOptions.outline = w === 0 ? undefined : w;
-    marker.setOutline(markerOptions.outline);
-    outlineWidthVal.textContent = w === 0 ? "off" : `${String(w)}px`;
-    syncStatus();
-  });
-
-  // Content
-  const contentInput = el<HTMLInputElement>("content-input");
-
-  contentInput.addEventListener("input", () => {
-    markerOptions.content = contentInput.value;
-    marker.setContent(contentInput.value);
-    syncStatus();
-  });
-
-  // Rotation
-  const rotationInput = el<HTMLInputElement>("rotation");
-  const rotationVal = el("rotation-val");
-
-  rotationInput.addEventListener("input", () => {
-    const deg = parseInt(rotationInput.value, 10);
-    markerOptions.rotation = deg;
-    marker.setRotation(deg);
-    rotationVal.textContent = `${String(deg)}°`;
-    syncStatus();
-  });
-
-  // Scale
-  const scaleXInput = el<HTMLInputElement>("scale-x");
-  const scaleYInput = el<HTMLInputElement>("scale-y");
-  const scaleXVal = el("scale-x-val");
-  const scaleYVal = el("scale-y-val");
-
-  function getScale(): [number, number] {
-    return markerOptions.scale ?? [1, 1];
   }
 
-  scaleXInput.addEventListener("input", () => {
-    const x = parseFloat(scaleXInput.value);
-    markerOptions.scale = [x, getScale()[1]];
-    marker.setScale(markerOptions.scale);
-    scaleXVal.textContent = x.toFixed(2);
+  const content = gui.addFolder("Content");
+  content
+    .add(params, "contentMode", CONTENT_MODES)
+    .name("mode")
+    .onChange(() => {
+      contentMode = params.contentMode;
+      rebuildMarker();
+    });
+  content.add(params, "content").onChange(() => {
+    markerOptions.content = params.content;
+    marker.setContent(params.content);
     syncStatus();
   });
+  // picking an icon switches the marker to icon content
+  content.add(params, "icon", MARKER_ICON_NAMES).onChange(() => {
+    icon = params.icon;
+    contentMode = params.contentMode = "icon";
+    gui.controllersRecursive().forEach((controller) => controller.updateDisplay());
+    rebuildMarker();
+  });
 
-  scaleYInput.addEventListener("input", () => {
-    const y = parseFloat(scaleYInput.value);
-    markerOptions.scale = [getScale()[0], y];
-    marker.setScale(markerOptions.scale);
-    scaleYVal.textContent = y.toFixed(2);
+  const transform = gui.addFolder("Transform");
+  transform.add(params, "rotation", -180, 180, 1).onChange(() => {
+    markerOptions.rotation = params.rotation;
+    marker.setRotation(params.rotation);
     syncStatus();
   });
+  transform
+    .add(params, "scaleX", 0.25, 3, 0.05)
+    .name("scale x")
+    .onChange(() => {
+      markerOptions.scale = [params.scaleX, params.scaleY];
+      marker.setScale(markerOptions.scale);
+      syncStatus();
+    });
+  transform
+    .add(params, "scaleY", 0.25, 3, 0.05)
+    .name("scale y")
+    .onChange(() => {
+      markerOptions.scale = [params.scaleX, params.scaleY];
+      marker.setScale(markerOptions.scale);
+      syncStatus();
+    });
 
-  // Debug overlay
-  const debugToggle = el<HTMLInputElement>("debug-toggle");
-  debugToggle.checked = marker.getDebug();
+  gui
+    .add(params, "animate")
+    .name("animate camera")
+    .onChange(() => {
+      animating = params.animate;
+      if (animating) loop();
+    });
+  gui
+    .add(params, "debug")
+    .name("debug: bounding box + center")
+    .onChange(() => {
+      markerOptions.debug = params.debug;
+      marker.setDebug(params.debug);
+    });
 
-  debugToggle.addEventListener("change", () => {
-    markerOptions.debug = debugToggle.checked;
-    marker.setDebug(debugToggle.checked);
-  });
-
-  const statusEl = el("status");
+  const gettersFolder = gui.addFolder("Getters");
+  gettersFolder.add(getters, "shape").name("getShape()").disable().listen();
+  gettersFolder.add(getters, "size").name("getSize()").disable().listen();
+  gettersFolder.add(getters, "scale").name("getScale()").disable().listen();
+  gettersFolder.add(getters, "innerColor").name("getInnerColor()").disable().listen();
 
   function syncStatus() {
-    const shape = marker.getShape() ?? "maptiler";
-    const size = markerOptions.size ?? "m";
-    const [sx, sy] = getScale();
-    const innerColor = marker.getInnerColor();
-    statusEl.textContent = `getShape() → "${shape}"  |  getSize() → "${size}"  |  getScale() → [${sx.toFixed(2)}, ${sy.toFixed(2)}]` + `  |  getInnerColor() → ${innerColor}`;
+    const [sx, sy] = markerOptions.scale ?? [1, 1];
+    getters.shape = marker.getShape() ?? "maptiler";
+    getters.size = markerOptions.size ?? "m";
+    getters.scale = `[${sx.toFixed(2)}, ${sy.toFixed(2)}]`;
+    getters.innerColor = marker.getInnerColor();
   }
 
   syncStatus();
-
-  loop();
 }
 
 void main();
