@@ -56,6 +56,7 @@
 - Restructures the in-repo demos into short examples grouped by topic, showcases and development fixtures, each with metadata (type, topics, SDK version it was created with and last checked against). The README lists the public examples and showcases in an index generated from the metadata, checked in CI.
 - Removes the `@maptiler/3d` dev dependency, previously used by a demo only.
 - Adds `lil-gui` as a dev dependency for the controls of the in-repo demos, replacing their hand-written panels.
+- Adds a console panel to the in-repo demos that shows their console output on the page, in a column at the top left shared with the lil-gui panel and the performance stats.
 - The in-repo demos read the MapTiler API key from `VITE_MAPTILER_API_KEY` in a git-ignored `.env.local` file, and store it in the browser if no key is stored yet. The dev server warns at startup when it isn't set.
 
 ## 4.2.0

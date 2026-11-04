@@ -2,6 +2,7 @@ import "../../dist/maptiler-sdk.css";
 import { Marker } from "@maptiler/sdk";
 import type { Map, SdkConfig } from "@maptiler/sdk";
 import Stats from "stats.js";
+import { getDockSlot } from "./dock";
 
 /** Looks up an element by id, throwing if it isn't found. */
 export function el<T extends HTMLElement = HTMLElement>(id: string): T {
@@ -28,13 +29,13 @@ export function addCaption(map: Map, lngLat: [number, number], text: string) {
   map.addMarker(caption);
 }
 /**
- * Adds performance statistics to the page.
+ * Adds performance statistics to the dock at the top left of the page.
  */
 export function addPerformanceStats() {
   const stats = new Stats();
-  stats.dom.style.top = "unset";
-  stats.dom.style.bottom = "0";
-  document.body.appendChild(stats.dom);
+  // stats.js pins itself to the top left corner, the dock places it instead
+  stats.dom.style.position = "static";
+  getDockSlot("stats").appendChild(stats.dom);
 
   requestAnimationFrame(function loop() {
     stats.update();

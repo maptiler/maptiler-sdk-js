@@ -3,12 +3,14 @@ import "@maptiler/sdk/vite-worker";
 import { Language, Map, MapStyle, StyleSpecification, config } from "@maptiler/sdk";
 import { addPerformanceStats, setupMapTilerApiKey } from "../../shared/demo-utils";
 import { createGui } from "../../shared/gui";
+import { createLogPanelUI } from "../../shared/log-panel";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
 const MAPTILER_API_KEY = "API_KEY";
 const MAP_STYLE = MapStyle.STREETS.DEFAULT;
 
 addPerformanceStats();
+createLogPanelUI();
 setupMapTilerApiKey({ config, apiKey: MAPTILER_API_KEY });
 
 const container = document.getElementById("map")!;

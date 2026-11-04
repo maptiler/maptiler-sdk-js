@@ -3,6 +3,7 @@ import "@maptiler/sdk/vite-worker";
 import { Map, MapStyle, Marker, config } from "@maptiler/sdk";
 import { el, setupMapTilerApiKey } from "../../shared/demo-utils";
 import { createGui } from "../../shared/gui";
+import { createLogPanelUI } from "../../shared/log-panel";
 import type {
   EnterAnimationPreset,
   ExitAnimationPreset,
@@ -17,6 +18,7 @@ const MAPTILER_API_KEY = "API_KEY";
 const MAP_STYLE = MapStyle.STREETS.DEFAULT;
 
 setupMapTilerApiKey({ config, apiKey: MAPTILER_API_KEY });
+createLogPanelUI({ title: "Lifecycle events" });
 
 const CENTER: [number, number] = [14.42, 50.08];
 const SPACING = 0.0026;
@@ -31,8 +33,6 @@ const LIFECYCLE_EVENTS = [
   "idleanimationiteration",
   "idleanimationend",
 ] as const;
-
-const TIME_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = { hour12: false, minute: "2-digit", second: "2-digit", fractionalSecondDigits: 3 };
 
 const NONE = "none";
 const CUSTOM = "custom";
@@ -106,15 +106,6 @@ async function main() {
   gui.add(params, "removeAllImmediate").name("remove all (immediate)");
   gui.add(params, "count").name("markers").disable().listen();
 
-  const eventLogEl = el("lifecycle-log");
-  function logEvent(type: string) {
-    const time = new Date().toLocaleTimeString(undefined, TIME_FORMAT_OPTIONS);
-    const line = document.createElement("div");
-    line.textContent = `${time} · ${type}`;
-    eventLogEl.prepend(line);
-    while (eventLogEl.childNodes.length > 8) eventLogEl.lastChild?.remove();
-  }
-
   const markers: Marker[] = [];
   let nextSlot = 0;
 
@@ -148,7 +139,7 @@ async function main() {
 
     for (const type of LIFECYCLE_EVENTS) {
       marker.on(type, (e: MarkerLifecycleAnimationEventData) => {
-        logEvent(`${e.type} (${e.preset})`);
+        console.log(`${e.type} (${e.preset})`);
       });
     }
 

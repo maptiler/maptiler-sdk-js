@@ -5,6 +5,7 @@ import { registerMarkerTemplate } from "../../../src/Marker/marker-content-regis
 import { MARKER_ICON_NAMES } from "../../../src/Marker/marker-icons";
 import { el, setupMapTilerApiKey } from "../../shared/demo-utils";
 import { createGui } from "../../shared/gui";
+import { createLogPanelUI } from "../../shared/log-panel";
 import type { MapTilerMarkerBaseOptions, MapTilerMarkerIcon, MapTilerMarkerOptions, MapTilerMarkerSVGOptions } from "@maptiler/sdk";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
@@ -33,6 +34,7 @@ registerMarkerTemplate("badge", (params) => {
 });
 
 setupMapTilerApiKey({ config, apiKey: MAPTILER_API_KEY });
+createLogPanelUI();
 
 const zoom = 12;
 

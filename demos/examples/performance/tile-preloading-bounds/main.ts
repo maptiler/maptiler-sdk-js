@@ -81,10 +81,6 @@ async function main() {
     };
     return gui.add(actions, "go").name(d.label);
   });
-
-  map.on("click", (e) => {
-    console.log("Clicked", e.lngLat.lng, e.lngLat.lat, map.getZoom());
-  });
 }
 
 void main();

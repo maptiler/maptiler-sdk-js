@@ -91,10 +91,6 @@ async function main() {
 
   const img = await map.loadImage("/routes/mt.png");
 
-  map.on("click", (e) => {
-    console.log(e.lngLat.toArray());
-  });
-
   map.addImage("maptiler", img.data);
 
   await new Promise((resolve) => {

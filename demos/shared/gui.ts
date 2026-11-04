@@ -1,13 +1,10 @@
 import GUI from "lil-gui";
+import { getDockSlot } from "./dock";
 
 /**
- * Creates a lil-gui panel for a development fixture (https://lil-gui.georgealways.com).
- * It is moved to the top left, as its default top right corner is where the map controls are.
+ * Creates a lil-gui panel for a demo (https://lil-gui.georgealways.com), in the dock at the top left of the page,
+ * as lil-gui's default top right corner is where the map controls are.
  */
 export function createGui(title: string) {
-  const gui = new GUI({ title });
-  gui.domElement.style.top = "12px";
-  gui.domElement.style.left = "12px";
-  gui.domElement.style.right = "auto";
-  return gui;
+  return new GUI({ title, container: getDockSlot("gui"), width: 300 });
 }
