@@ -2,6 +2,7 @@
 import "@maptiler/sdk/vite-worker";
 import { CubemapDefinition, Map, MapStyle, config } from "@maptiler/sdk";
 import { addPerformanceStats, setupMapTilerApiKey } from "../../shared/demo-utils";
+import { createGui } from "../../shared/gui";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
 const MAPTILER_API_KEY = "API_KEY";
@@ -31,18 +32,6 @@ function main() {
   // you can also disable animations by calling the following methods
   // map.disableHaloAnimations();
   // map.disableSpaceAnimations();
-
-  const randomBgBtn = document.getElementById("bg-color") as HTMLButtonElement;
-  randomBgBtn.addEventListener("input", (e: Event) => {
-    const input = e.target as HTMLInputElement;
-    const color = input.value;
-    console.log("Setting background color to:", color);
-    map.setSpace({
-      ...map.getSpace()?.getConfig(),
-      color, // or any other color
-    });
-    console.log("Config: ", map.getSpace()?.getConfig());
-  });
 
   const stopsSelection: { stops: [number, string][]; scale: number }[] = [
     {
@@ -95,16 +84,6 @@ function main() {
     },
   ];
 
-  const randomHaloBtn = document.getElementById("random-halo") as HTMLButtonElement;
-  randomHaloBtn.addEventListener("click", () => {
-    currentHaloIndex = (currentHaloIndex + 1) % stopsSelection.length;
-    const { scale, stops } = stopsSelection[currentHaloIndex];
-    map.setHalo({
-      scale, // Random scale between 1 and 6
-      stops,
-    });
-  });
-
   const configs: (CubemapDefinition & { name: string })[] = [
     { preset: "stars", name: "Using Preset: `stars`" },
     { preset: "space", name: "Using Preset: `space`" },
@@ -125,30 +104,48 @@ function main() {
     },
   ];
 
-  const presetSelect = document.getElementById("preset-select") as HTMLSelectElement;
-  configs.forEach((preset) => {
-    const option = document.createElement("option");
-    option.value = preset.name;
-    option.textContent = preset.name;
-    presetSelect.appendChild(option);
+  const params = {
+    color: "#ffffff",
+    space: configs[0].name,
+    nextHalo() {
+      currentHaloIndex = (currentHaloIndex + 1) % stopsSelection.length;
+      const { scale, stops } = stopsSelection[currentHaloIndex];
+      map.setHalo({ scale, stops });
+    },
+  };
+
+  const gui = createGui("Space & halo");
+
+  gui.addColor(params, "color").onChange((color: string) => {
+    console.log("Setting background color to:", color);
+    map.setSpace({
+      ...map.getSpace()?.getConfig(),
+      color, // or any other color
+    });
+    console.log("Config: ", map.getSpace()?.getConfig());
   });
 
-  presetSelect.addEventListener("change", (e: Event) => {
-    const select = e.target as HTMLSelectElement;
-    const { value } = select;
-    const config = configs.find((c) => c.name === value);
-    if (config) {
-      // to avoid validation errors, `name` is not a valid space spec prop
-      delete (config as any).name;
-      console.log("Setting spacebox config:", config);
+  gui
+    .add(
+      params,
+      "space",
+      configs.map(({ name }) => name),
+    )
+    .onChange((value: string) => {
+      const selected = configs.find((c) => c.name === value);
+      if (!selected) return;
+      // to avoid validation errors, as `name` is not a valid space spec prop
+      const { name, ...config } = selected;
+      console.log(`Setting spacebox config ${name}:`, config);
       const currentConfig = map.getSpace()?.getConfig();
       map.setSpace({
         ...config,
         color: currentConfig?.color,
       } as CubemapDefinition);
-    }
-    console.log("Current config:", map.getSpace()?.getConfig());
-  });
+      console.log("Current config:", map.getSpace()?.getConfig());
+    });
+
+  gui.add(params, "nextHalo").name("next halo");
 
   map.on("cubemaplayer:animateindone", () => {
     console.log("Cubemap layer animation complete");

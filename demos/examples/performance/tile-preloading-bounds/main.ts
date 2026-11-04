@@ -1,19 +1,15 @@
 // Sets the MapLibre worker URL, as Vite users of the SDK do
 import "@maptiler/sdk/vite-worker";
-/* eslint-disable @typescript-eslint/no-misused-promises */
 
 import { LngLatBoundsLike, Map, MapStyle, config } from "@maptiler/sdk";
 import { setupMapTilerApiKey } from "../../../shared/demo-utils";
+import { createGui } from "../../../shared/gui";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
 const MAPTILER_API_KEY = "API_KEY";
 const MAP_STYLE = MapStyle.STREETS.DEFAULT;
 
 setupMapTilerApiKey({ config, apiKey: MAPTILER_API_KEY });
-
-const progressBar = document.getElementById("progress-bar") as HTMLDivElement;
-const statusEl = document.getElementById("status") as HTMLDivElement;
-const preloadToggle = document.getElementById("preload-toggle") as HTMLInputElement;
 
 type DataOption = {
   label: string;
@@ -37,17 +33,6 @@ const data: DataOption[] = [
   },
 ];
 
-function setProgress(done: number, total: number) {
-  const pct = total > 0 ? (done / total) * 100 : 0;
-  progressBar.style.width = `${pct}%`;
-  statusEl.textContent = `Preloading tiles… ${done} / ${total}`;
-}
-
-function setStatus(text: string) {
-  progressBar.style.width = "0%";
-  statusEl.textContent = text;
-}
-
 async function main() {
   const map = new Map({
     container: document.getElementById("map")!,
@@ -60,32 +45,42 @@ async function main() {
 
   await map.onReadyAsync();
 
-  for (const d of data) {
-    const btn = document.createElement("button");
-    btn.classList.add("option-btn");
-    btn.textContent = d.label;
-    btn.addEventListener("click", async () => {
-      btn.disabled = true;
+  // Preload tiles for a region, then jump there. Untick "preload" to compare with uncached navigation.
+  const params = { preload: true, status: "Ready, select a region", progress: 0 };
+  const gui = createGui("Tile preloading (experimental)");
+  gui.add(params, "preload").name("use experimental preloading");
+  gui.add(params, "status").disable().listen();
+  gui.add(params, "progress", 0, 100, 1).name("progress %").disable().listen();
 
-      if (preloadToggle.checked) {
-        setStatus(`Preloading ${d.label} (z${d.minZoom}–${d.maxZoom})…`);
-        await map.experimental_preloadTilesForBounds({
-          bounds: d.bounds,
-          minZoom: d.minZoom,
-          maxZoom: d.maxZoom,
-          onProgress: (done, total) => setProgress(done, total),
-          onError: (err) => console.warn("Tile preload error:", err),
-        });
-        setStatus(`Preloaded ${d.label}. Fitting bounds…`);
-      } else {
-        setStatus(`Fitting bounds for ${d.label} (no preload)…`);
-      }
+  const regionButtons = data.map((d) => {
+    const actions = {
+      async go() {
+        regionButtons.forEach((button) => button.disable());
+        params.progress = 0;
 
-      map.fitBounds(d.bounds, { duration: 0 });
-      btn.disabled = false;
-    });
-    document.getElementById("panel")!.appendChild(btn);
-  }
+        if (params.preload) {
+          params.status = `Preloading ${d.label} (z${d.minZoom}–${d.maxZoom})`;
+          await map.experimental_preloadTilesForBounds({
+            bounds: d.bounds,
+            minZoom: d.minZoom,
+            maxZoom: d.maxZoom,
+            onProgress: (done, total) => {
+              params.progress = total > 0 ? Math.round((done / total) * 100) : 0;
+              params.status = `Preloading tiles, ${done} / ${total}`;
+            },
+            onError: (err) => console.warn("Tile preload error:", err),
+          });
+          params.status = `Preloaded ${d.label}, fitting bounds`;
+        } else {
+          params.status = `Fitting bounds for ${d.label} (no preload)`;
+        }
+
+        map.fitBounds(d.bounds, { duration: 0 });
+        regionButtons.forEach((button) => button.enable());
+      },
+    };
+    return gui.add(actions, "go").name(d.label);
+  });
 
   map.on("click", (e) => {
     console.log("Clicked", e.lngLat.lng, e.lngLat.lat, map.getZoom());

@@ -54,6 +54,8 @@ const entrypoints = Object.fromEntries([
 export default defineConfig({
   mode: "development",
   root: "./demos",
+  // `.env.local` (e.g. `VITE_MAPTILER_API_KEY`) is read from the root of the repo, not from `demos`
+  envDir: __dirname,
   // A link to a demo that doesn't exist (anymore) gets a 404, instead of silently serving the home page
   appType: "mpa",
   resolve: {
@@ -134,6 +136,12 @@ export default defineConfig({
         console.log('┗' + '━'.repeat(lineLength) + '┛')
 
         console.log('\n')
+
+        // `server.config.env` holds the `VITE_` variables loaded from `envDir`
+        if (!server.config.env.VITE_MAPTILER_API_KEY) {
+          console.warn(yellow('⚠ No MapTiler API key set. The demos will need one: add `VITE_MAPTILER_API_KEY=<key>` to `.env.local` at the root of the repo (then restart the dev server), or open a demo with `?key=<key>` once to store it in the browser.'))
+          console.log('\n')
+        }
       }
     }
   ],

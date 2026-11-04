@@ -15,8 +15,6 @@
       height: 100%;
       margin: 0;
       display: grid;
-      /* grid-template: 1fr 1fr / 1fr 1fr; */
-      /* gap: 16px; */
       box-sizing: border-box;
     }
 
@@ -25,55 +23,9 @@
       justify-content: center;
       align-items: center;
     }
-
-    .controls-container {
-      position: absolute;
-      top: 16px;
-      left: 16px;
-      gap: 8px;
-      z-index: 1;
-    }
-
-    .controls {
-      display: flex;
-    }
-
-    .padded, button {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 8px;
-      background-color: white;
-      padding: 8px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-      margin-right: 4px;
-    }
-
-    button {
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
-  <div class="controls-container">
-    <div class="controls">
-      <button id="play">
-        Play
-      </button>
-      <button id="pause">
-        Pause
-      </button>
-      <button id="faster">
-        Faster
-      </button>
-      <button id="slower">
-        Slower
-      </button>
-      <div id="playbackRate" class="padded">1.0x</div>
-    </div>
-    <div id="keyframeName" class="padded" style="display: none">
-    </div>
-  </div>
   <script type="module" src="./main.ts"></script>
 </body>
 </html>

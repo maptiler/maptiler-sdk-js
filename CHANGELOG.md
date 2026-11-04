@@ -55,7 +55,8 @@
 - Telemetry now reports the SDK build format (`umd`, `esm-cdn`, `es` or `dev`) as `buildFormat`.
 - Restructures the in-repo demos into short examples grouped by topic, showcases and development fixtures, each with metadata (type, topics, SDK version it was created with and last checked against). The README lists the public examples and showcases in an index generated from the metadata, checked in CI.
 - Removes the `@maptiler/3d` dev dependency, previously used by a demo only.
-- Adds `lil-gui` as a dev dependency for the controls of the development fixtures, replacing their hand-written panels.
+- Adds `lil-gui` as a dev dependency for the controls of the in-repo demos, replacing their hand-written panels.
+- The in-repo demos read the MapTiler API key from `VITE_MAPTILER_API_KEY` in a git-ignored `.env.local` file, and store it in the browser if no key is stored yet. The dev server warns at startup when it isn't set.
 
 ## 4.2.0
 

@@ -2,6 +2,7 @@
 import "@maptiler/sdk/vite-worker";
 import { Map, MapStyle, config } from "@maptiler/sdk";
 import { addPerformanceStats, setupMapTilerApiKey } from "../../../shared/demo-utils";
+import { createGui } from "../../../shared/gui";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
 const MAPTILER_API_KEY = "API_KEY";
@@ -27,63 +28,28 @@ const map = new Map({
   projectionControl: true,
 });
 
-document.getElementById("sky-color")?.addEventListener("input", (e: Event) => {
-  if (!e.target) return;
-  map.setSky({
-    "sky-color": (e.target as HTMLInputElement).value,
-  });
-});
+const sky = {
+  "sky-color": "#027bdb",
+  "horizon-color": "#ffffff",
+  "fog-color": "#ffffff",
+  "fog-ground-blend": 0.1,
+  "horizon-fog-blend": 0.5,
+  "sky-horizon-blend": 0.75,
+  "atmosphere-blend": 0.5,
+};
 
-document.getElementById("horizon-color")?.addEventListener("input", (e: Event) => {
-  if (!e.target) return;
-  map.setSky({
-    "horizon-color": (e.target as HTMLInputElement).value,
-  });
-});
-
-document.getElementById("fog-color")?.addEventListener("input", (e: Event) => {
-  if (!e.target) return;
-  map.setSky({
-    "fog-color": (e.target as HTMLInputElement).value,
-  });
-});
-
-document.getElementById("fog-ground-blend")?.addEventListener("input", (e: Event) => {
-  if (!e.target) return;
-  map.setSky({
-    "fog-ground-blend": parseFloat((e.target as HTMLInputElement).value),
-  });
-});
-
-document.getElementById("horizon-fog-blend")?.addEventListener("input", (e: Event) => {
-  if (!e.target) return;
-  map.setSky({
-    "horizon-fog-blend": parseFloat((e.target as HTMLInputElement).value),
-  });
-});
-
-document.getElementById("sky-horizon-blend")?.addEventListener("input", (e: Event) => {
-  if (!e.target) return;
-  map.setSky({
-    "sky-horizon-blend": parseFloat((e.target as HTMLInputElement).value),
-  });
-});
-
-document.getElementById("atmosphere-blend")?.addEventListener("input", (e: Event) => {
-  if (!e.target) return;
-  map.setSky({
-    "atmosphere-blend": parseFloat((e.target as HTMLInputElement).value),
-  });
+const gui = createGui("Sky");
+gui.addColor(sky, "sky-color");
+gui.addColor(sky, "horizon-color");
+gui.addColor(sky, "fog-color");
+gui.add(sky, "fog-ground-blend", 0, 1, 0.01);
+gui.add(sky, "horizon-fog-blend", 0, 1, 0.01);
+gui.add(sky, "sky-horizon-blend", 0, 1, 0.01);
+gui.add(sky, "atmosphere-blend", 0, 1, 0.01);
+gui.onChange(({ property, value }: { property: string; value: string | number }) => {
+  map.setSky({ [property]: value });
 });
 
 map.on("ready", () => {
-  map.setSky({
-    "sky-color": "#027bdb",
-    "horizon-color": "#ffffff",
-    "fog-color": "#ffffff",
-    "fog-ground-blend": 0.1,
-    "horizon-fog-blend": 0.5,
-    "sky-horizon-blend": 0.75,
-    "atmosphere-blend": 0.5,
-  });
+  map.setSky(sky);
 });

@@ -3,6 +3,7 @@ import "@maptiler/sdk/vite-worker";
 
 import { Map, config } from "@maptiler/sdk";
 import { addPerformanceStats, setupMapTilerApiKey } from "../../../shared/demo-utils";
+import { createGui } from "../../../shared/gui";
 import { Language } from "@maptiler/sdk";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
@@ -13,6 +14,18 @@ addPerformanceStats();
 setupMapTilerApiKey({ config, apiKey: MAPTILER_API_KEY });
 
 const container = document.getElementById("map")!;
+
+// `Language.STYLE_LOCK` isn't listed: it only applies when passed to the Map constructor
+const LANGUAGES: Record<string, keyof typeof Language> = {
+  Auto: "AUTO",
+  Local: "LOCAL",
+  Visitor: "VISITOR",
+  "Visitor English": "VISITOR_ENGLISH",
+  Latin: "LATIN",
+  "Non-Latin": "NON_LATIN",
+  German: "GERMAN",
+  Russian: "RUSSIAN",
+};
 
 async function main() {
   const map = new Map({
@@ -33,12 +46,12 @@ async function main() {
 
   await map.onReadyAsync();
 
-  document.getElementById("buttons")?.addEventListener("click", function (event) {
-    const language = (event.target as HTMLElement).id as keyof typeof Language;
-    if (!language || language === "STYLE_LOCK") return;
-
-    map.setLanguage(Language[language]);
-  });
+  const params = { language: "AUTO" as keyof typeof Language };
+  createGui("Language")
+    .add(params, "language", LANGUAGES)
+    .onChange((language: keyof typeof Language) => {
+      map.setLanguage(Language[language]);
+    });
 }
 
 void main();

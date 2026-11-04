@@ -2,6 +2,7 @@
 import "@maptiler/sdk/vite-worker";
 import { Map, MapStyle, config } from "@maptiler/sdk";
 import { addPerformanceStats, setupMapTilerApiKey } from "../../../shared/demo-utils";
+import { createGui } from "../../../shared/gui";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
 const MAPTILER_API_KEY = "API_KEY";
@@ -26,19 +27,15 @@ const map = new Map({
   },
 });
 
-const styleDropDown = document.getElementById("mapstyles-picker") as HTMLSelectElement;
-
-styleDropDown.addEventListener("change", () => {
-  map.setStyle(styleDropDown.value);
-});
-
-Object.keys(MapStyle).forEach((s) => {
-  const styleOption = document.createElement("option");
-  // @ts-expect-error we know that `id` is private.
-  styleOption.value = MapStyle[s as keyof typeof MapStyle].DEFAULT.id;
-  styleOption.innerHTML = s.replace("_", " ").toLowerCase();
-  styleDropDown.appendChild(styleOption);
-});
+// Style name → style id, e.g. "outdoor" → "outdoor-v2", starting with the initial style
+const styleIds = {
+  [MAP_STYLE.getId()]: MAP_STYLE.getId(),
+  ...Object.fromEntries(Object.entries(MapStyle).map(([name, style]) => [name.replace("_", " ").toLowerCase(), style.DEFAULT.getId()])),
+};
+const params = { style: MAP_STYLE.getId() };
+createGui("Transform request")
+  .add(params, "style", styleIds)
+  .onChange((style: string) => map.setStyle(style));
 
 // This will end up being used instead of the one defined in the constructor
 map.setTransformRequest((url: string) => {

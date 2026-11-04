@@ -2,6 +2,7 @@
 import "@maptiler/sdk/vite-worker";
 
 import { addPerformanceStats, setupMapTilerApiKey } from "../../shared/demo-utils";
+import { createGui } from "../../shared/gui";
 import {
   AnimatedRouteLayer,
   Keyframe,
@@ -27,10 +28,6 @@ const ACTIVE_LINE_COLOR = [255, 87, 34, 1.0]; // Vibrant Safety Orange
 
 addPerformanceStats();
 setupMapTilerApiKey({ config, apiKey: MAPTILER_API_KEY });
-
-function getElementsByIds(ids: string[]) {
-  return ids.map((id) => document.getElementById(id));
-}
 
 async function createMap() {
   const element = document.createElement("div");
@@ -126,14 +123,6 @@ async function main() {
   });
 
   map.addLayer(animatedRouteLayer);
-
-  animatedRouteLayer.addEventListener("playbackratechange", (e) => {
-    const playbackRateElement = document.getElementById("playbackRate");
-    if (!playbackRateElement) return;
-    playbackRateElement.innerText = e.playbackRate.toFixed(1) + "x";
-  });
-
-  const [playButton, pauseButton, fasterButton, slowerButton] = getElementsByIds(["play", "pause", "faster", "slower", "time"]);
 
   const prologueAnimation = new MaptilerAnimation({
     keyframes: getPrologueKeyframes(),
@@ -252,28 +241,43 @@ async function main() {
     });
   });
 
-  playButton?.addEventListener("click", () => {
-    activeAnimation.play();
-  });
-
-  pauseButton?.addEventListener("click", () => {
-    markerMovementAnimation.pause();
-    activeAnimation.pause();
-  });
-
-  fasterButton?.addEventListener("click", () => {
+  // The route and the hiker move at the same speed, so their playback rates are changed together
+  function changePlaybackRate(by: number) {
     if (!animatedRouteLayer.animationInstance) return;
     const currentSpeed = animatedRouteLayer.animationInstance.getPlaybackRate();
-    animatedRouteLayer.animationInstance.setPlaybackRate(currentSpeed + 0.2);
-    markerMovementAnimation.setPlaybackRate(currentSpeed + 0.2);
+    animatedRouteLayer.animationInstance.setPlaybackRate(currentSpeed + by);
+    markerMovementAnimation.setPlaybackRate(currentSpeed + by);
+  }
+
+  const playback = {
+    play() {
+      activeAnimation.play();
+      // the hiker only moves along with the route
+      if (activeAnimation === animatedRouteLayer.animationInstance) markerMovementAnimation.play();
+    },
+    pause() {
+      markerMovementAnimation.pause();
+      activeAnimation.pause();
+    },
+    faster() {
+      changePlaybackRate(0.2);
+    },
+    slower() {
+      changePlaybackRate(-0.2);
+    },
+    playbackRate: "1.0x",
+  };
+
+  animatedRouteLayer.addEventListener("playbackratechange", (e) => {
+    playback.playbackRate = e.playbackRate.toFixed(1) + "x";
   });
 
-  slowerButton?.addEventListener("click", () => {
-    if (!animatedRouteLayer.animationInstance) return;
-    const currentSpeed = animatedRouteLayer.animationInstance.getPlaybackRate();
-    animatedRouteLayer.animationInstance.setPlaybackRate(currentSpeed - 0.2);
-    markerMovementAnimation.setPlaybackRate(currentSpeed - 0.2);
-  });
+  const gui = createGui("Playback");
+  gui.add(playback, "play");
+  gui.add(playback, "pause");
+  gui.add(playback, "faster");
+  gui.add(playback, "slower");
+  gui.add(playback, "playbackRate").name("playback rate").disable().listen();
 }
 
 void main();

@@ -3,6 +3,7 @@ import "@maptiler/sdk/vite-worker";
 import { Map, MapStyle, Marker, MaptilerAnimation, config } from "@maptiler/sdk";
 import type { Keyframe, LngLatLike } from "@maptiler/sdk";
 import { addPerformanceStats, setupMapTilerApiKey } from "../../shared/demo-utils";
+import { createGui } from "../../shared/gui";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
 const MAPTILER_API_KEY = "API_KEY";
@@ -60,10 +61,6 @@ function createCar(color: string, title: string, lngLat: LngLatLike) {
   });
 }
 
-function getElementsByIds(ids: string[]) {
-  return ids.map((id) => document.getElementById(id));
-}
-
 async function main() {
   const map = new Map({
     container: "map",
@@ -91,43 +88,35 @@ async function main() {
     blueCar.setLngLat([props.blueLng, props.blueLat]);
   });
 
+  const playback = {
+    play: () => animation.play(),
+    pause: () => animation.pause(),
+    faster: () => animation.setPlaybackRate(animation.getPlaybackRate() + 0.2),
+    slower: () => animation.setPlaybackRate(animation.getPlaybackRate() - 0.2),
+    frameAdvance: () => animation.setCurrentDelta(animation.getCurrentDelta() + 0.01),
+    playbackRate: "1.0x",
+    lastWaypoints: "",
+  };
+
   // `keyframe` fires when a keyframe is reached
-  const [keyframeNameElement, playbackRateElement] = getElementsByIds(["keyframeName", "playbackRate"]);
   animation.addEventListener("keyframe", ({ keyframe }) => {
-    if (!keyframeNameElement || !keyframe?.userData) return;
-    keyframeNameElement.style.display = "inline-flex";
+    if (!keyframe?.userData) return;
     const { red, blue } = keyframe.userData as { red: string; blue: string };
-    keyframeNameElement.innerText = `Red at ${red}, blue at ${blue}`;
+    playback.lastWaypoints = `Red at ${red}, blue at ${blue}`;
   });
 
   animation.addEventListener("playbackratechange", (e) => {
-    if (!playbackRateElement) return;
-    playbackRateElement.innerText = e.playbackRate.toFixed(1) + "x";
+    playback.playbackRate = e.playbackRate.toFixed(1) + "x";
   });
 
-  const [playButton, pauseButton, fasterButton, slowerButton, frameAdvanceButton] = getElementsByIds(["play", "pause", "faster", "slower", "frame-advance"]);
-
-  playButton?.addEventListener("click", () => {
-    animation.play();
-  });
-
-  pauseButton?.addEventListener("click", () => {
-    animation.pause();
-  });
-
-  fasterButton?.addEventListener("click", () => {
-    const currentSpeed = animation.getPlaybackRate();
-    animation.setPlaybackRate(currentSpeed + 0.2);
-  });
-
-  slowerButton?.addEventListener("click", () => {
-    const currentSpeed = animation.getPlaybackRate();
-    animation.setPlaybackRate(currentSpeed - 0.2);
-  });
-
-  frameAdvanceButton?.addEventListener("click", () => {
-    animation.setCurrentDelta(animation.getCurrentDelta() + 0.01);
-  });
+  const gui = createGui("Playback");
+  gui.add(playback, "play");
+  gui.add(playback, "pause");
+  gui.add(playback, "faster");
+  gui.add(playback, "slower");
+  gui.add(playback, "frameAdvance").name("frame advance");
+  gui.add(playback, "playbackRate").name("playback rate").disable().listen();
+  gui.add(playback, "lastWaypoints").name("last waypoints").disable().listen();
 
   animation.play();
 }
