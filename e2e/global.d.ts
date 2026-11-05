@@ -22,6 +22,19 @@ declare global {
       reset: () => void;
       swapStyle: () => void;
     };
+    __dataLayer: {
+      datasetId: string;
+      circleColor: [number, number, number];
+      point: [number, number];
+      layerId: string;
+      sourceId: string;
+      events: string[];
+      loads: number;
+      idleLoads: number;
+      reset: () => void;
+      swapStyle: (kind: "url" | "object") => void;
+      getSublayerIds: () => string[];
+    };
     __testUtils?: {
       getHaloConfig: () => any;
       getSpaceConfig: () => any;

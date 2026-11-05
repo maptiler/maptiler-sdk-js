@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FeatureCollection } from "geojson";
+import type { SourceSpecification } from "maplibre-gl";
 import type { Map as SDKMap } from "../../src/Map";
-import { DataLayer, type DataLayerConstructorOptions } from "../../src/data-layers/DataLayer";
+import { config } from "../../src/config";
+import { DataLayer, type DataLayerConstructorOptions, type SublayerSpecification } from "../../src/data-layers/DataLayer";
 import { createMockStyleMap, type MockStyleMap } from "./mock-style-map";
 
 //#region Test Layer
@@ -37,7 +39,61 @@ class TestLayer extends DataLayer<TestStyling, "circles"> {
   }
 }
 
+type SyncStyling = {
+  color?: string;
+  radius?: number;
+  sortKey?: number;
+  onlyLarge?: boolean;
+  outline?: boolean;
+  heatmap?: boolean;
+};
+
+/** Styles through `syncSublayers`, as real layers do: the specs are rebuilt from the styling, and synced onto the live sublayers. */
+class SyncTestLayer extends DataLayer<SyncStyling, "circles"> {
+  constructor(options: DataLayerConstructorOptions<SyncStyling>) {
+    super("sync-test-layer", "circles", options);
+  }
+
+  /** The sublayer specs for the current styling, bottom first. `outline` adds a sublayer, `heatmap` retypes the main one. */
+  private buildSpecs(): SublayerSpecification[] {
+    const styling = this.resolveStyling();
+    const source = this.getSourceId();
+    const specs: SublayerSpecification[] = [];
+
+    if (styling.outline) specs.push({ id: `${this.id}-outline`, type: "circle", source, paint: { "circle-color": "#000000" } });
+
+    if (styling.heatmap) {
+      specs.push({ id: `${this.id}-main`, type: "heatmap", source });
+    } else {
+      specs.push({
+        id: `${this.id}-main`,
+        type: "circle",
+        source,
+        paint: { "circle-color": styling.color, ...(styling.radius !== undefined && { "circle-radius": styling.radius }) },
+        layout: { "circle-sort-key": styling.sortKey },
+        ...(styling.onlyLarge && { filter: [">", ["get", "size"], 10] }),
+      });
+    }
+
+    return specs;
+  }
+
+  protected addSublayers(map: SDKMap): void {
+    for (const spec of this.buildSpecs()) this.addSublayer(map, spec);
+  }
+
+  protected applyStyling(): boolean {
+    return this.syncSublayers(this.buildSpecs());
+  }
+
+  protected resolveStyling(): SyncStyling {
+    return { color: "#ff0000", sortKey: 0, ...this.styling };
+  }
+}
+
 const emptyData = (): FeatureCollection => ({ type: "FeatureCollection", features: [] });
+
+const DATASET_ID = "0b1c6a2e-4f3d-4c8b-9a7e-2d5f8e1c3b4a";
 
 //#endregion
 
@@ -200,6 +256,175 @@ describe("DataLayer", () => {
 
   //#endregion
 
+  //#region Syncing Sublayers
+
+  describe("syncing sublayers", () => {
+    function addSyncLayer(styling: SyncStyling = {}) {
+      const layer = new SyncTestLayer({ data: emptyData(), styling });
+      mock.map.addLayer(layer, "labels");
+      mock.map.addSource.mockClear();
+      mock.map.setPaintProperty.mockClear();
+      mock.map.setLayoutProperty.mockClear();
+      mock.map.setFilter.mockClear();
+      return layer;
+    }
+
+    it("applies a changed paint property in place, leaving the rest alone", () => {
+      const layer = addSyncLayer({ radius: 4 });
+
+      layer.setStyling({ color: "#00ff00" });
+      flushFrames();
+
+      expect(mock.map.setPaintProperty.mock.calls).toEqual([[`${layer.id}-main`, "circle-color", "#00ff00"]]);
+      expect(mock.map.setLayoutProperty).not.toHaveBeenCalled();
+      expect(mock.map.addSource).not.toHaveBeenCalled();
+    });
+
+    it("resets a paint property that is no longer set", () => {
+      const layer = addSyncLayer({ radius: 4 });
+
+      layer.setStyling({ radius: undefined });
+      flushFrames();
+
+      expect(mock.map.setPaintProperty.mock.calls).toEqual([[`${layer.id}-main`, "circle-radius", undefined]]);
+    });
+
+    it("applies a changed layout property in place, without touching visibility", () => {
+      const layer = addSyncLayer();
+      layer.setVisible(false);
+      flushFrames();
+      mock.map.setLayoutProperty.mockClear();
+
+      layer.setStyling({ sortKey: 2 });
+      flushFrames();
+
+      expect(mock.map.setLayoutProperty.mock.calls).toEqual([[`${layer.id}-main`, "circle-sort-key", 2]]);
+      expect((mock.map.getLayer(`${layer.id}-main`) as { layout: { visibility: string } }).layout.visibility).toBe("none");
+    });
+
+    it("sets a filter, and clears it with null", () => {
+      const layer = addSyncLayer();
+
+      layer.setStyling({ onlyLarge: true });
+      flushFrames();
+      layer.setStyling({ onlyLarge: undefined });
+      flushFrames();
+
+      expect(mock.map.setFilter.mock.calls).toEqual([
+        [`${layer.id}-main`, [">", ["get", "size"], 10]],
+        [`${layer.id}-main`, null],
+      ]);
+    });
+
+    it("makes no calls when the specs haven't changed", () => {
+      const layer = addSyncLayer({ color: "#00ff00" });
+
+      layer.setStyling({ color: "#00ff00" });
+      flushFrames();
+
+      expect(mock.map.setPaintProperty).not.toHaveBeenCalled();
+      expect(mock.map.setLayoutProperty).not.toHaveBeenCalled();
+      expect(mock.map.setFilter).not.toHaveBeenCalled();
+    });
+
+    it("rebuilds when a sublayer is added or removed, keeping the order beneath the controller", () => {
+      const layer = addSyncLayer();
+
+      layer.setStyling({ outline: true });
+      flushFrames();
+
+      expect(mock.map.addSource).toHaveBeenCalledTimes(1);
+      expect(mock.map.getLayersOrder()).toEqual(["base", `${layer.id}-outline`, `${layer.id}-main`, layer.id, "labels"]);
+
+      layer.setStyling({ outline: undefined });
+      flushFrames();
+
+      expect(mock.map.addSource).toHaveBeenCalledTimes(2);
+      expect(mock.map.getLayersOrder()).toEqual(["base", `${layer.id}-main`, layer.id, "labels"]);
+    });
+
+    it("rebuilds when a sublayer changes type", () => {
+      const layer = addSyncLayer();
+
+      layer.setStyling({ heatmap: true });
+      flushFrames();
+
+      expect(mock.map.addSource).toHaveBeenCalledTimes(1);
+      expect((mock.map.getLayer(`${layer.id}-main`) as { type: string }).type).toBe("heatmap");
+    });
+
+    it("syncs against the specs of the last rebuild", () => {
+      const layer = addSyncLayer();
+      layer.setStyling({ outline: true });
+      flushFrames();
+      mock.map.setPaintProperty.mockClear();
+
+      layer.setStyling({ color: "#0000ff" });
+      flushFrames();
+
+      expect(mock.map.addSource).toHaveBeenCalledTimes(1);
+      expect(mock.map.setPaintProperty.mock.calls).toEqual([[`${layer.id}-main`, "circle-color", "#0000ff"]]);
+    });
+  });
+
+  //#endregion
+
+  //#region Source Data
+
+  describe("source data", () => {
+    let apiKey: string;
+
+    beforeEach(() => {
+      apiKey = config.apiKey;
+      config.apiKey = "test-key";
+    });
+
+    afterEach(() => {
+      config.apiKey = apiKey;
+      config.useEuEndpoints = false;
+    });
+
+    const sourceData = (layer: TestLayer) => (mock.sources.get(layer.getSourceId())?.spec as (SourceSpecification & { data?: unknown }) | undefined)?.data;
+
+    it("hands GeoJSON to the source unchanged", () => {
+      const data = emptyData();
+      const layer = addLayer({ data });
+
+      expect(sourceData(layer)).toBe(data);
+    });
+
+    it("hands a URL to the source unchanged", () => {
+      const layer = addLayer({ data: "https://example.com/points.geojson" });
+
+      expect(sourceData(layer)).toBe("https://example.com/points.geojson");
+    });
+
+    it("turns a dataset UUID into its MapTiler Cloud URL, keeping the UUID as the layer's data", () => {
+      const layer = addLayer({ data: DATASET_ID });
+
+      expect(sourceData(layer)).toBe(`https://api.maptiler.com/data/${DATASET_ID}/features.json?key=test-key`);
+      expect(layer.getData()).toBe(DATASET_ID);
+    });
+
+    it("uses the EU host for a dataset UUID when EU endpoints are on", () => {
+      config.useEuEndpoints = true;
+      const layer = addLayer({ data: DATASET_ID });
+
+      expect(sourceData(layer)).toBe(`https://api.maptiler.eu/data/${DATASET_ID}/features.json?key=test-key`);
+    });
+
+    it("resolves a dataset UUID passed to setData", () => {
+      const layer = addLayer();
+
+      layer.setData(DATASET_ID);
+      flushFrames();
+
+      expect(mock.sources.get(layer.getSourceId())?.setData).toHaveBeenCalledWith(`https://api.maptiler.com/data/${DATASET_ID}/features.json?key=test-key`);
+    });
+  });
+
+  //#endregion
+
   //#region Data Events
 
   describe("data events", () => {
@@ -295,6 +520,64 @@ describe("DataLayer", () => {
 
       expect(events).toEqual([]);
       expect(listener).not.toHaveBeenCalled();
+    });
+
+    describe("raised inside addLayer", () => {
+      /** Makes addSource start a load right away, as MapLibre's GeoJSON source does. */
+      beforeEach(() => {
+        const addSource = mock.map.addSource.getMockImplementation();
+        if (!addSource) throw new Error("addSource has no implementation");
+        mock.map.addSource.mockImplementation((id: string, spec: SourceSpecification) => {
+          const result: unknown = addSource(id, spec);
+          mock.fire("sourcedataloading", { sourceId: id });
+          return result;
+        });
+      });
+
+      it("reaches a listener attached right after addLayer, once addLayer has returned", async () => {
+        const layer = addLayer();
+        const events = collectDataEvents(layer);
+        expect(events).toEqual([]);
+
+        await Promise.resolve();
+        expect(events).toEqual(["dataloading"]);
+
+        mock.fire("sourcedata", { sourceId: layer.getSourceId(), sourceDataType: "content", isSourceLoaded: true });
+        expect(events).toEqual(["dataloading", "data"]);
+      });
+
+      it("keeps events that follow before then in order behind it", async () => {
+        const layer = addLayer();
+        const events = collectDataEvents(layer);
+
+        mock.fire("sourcedata", { sourceId: layer.getSourceId(), sourceDataType: "content", isSourceLoaded: true });
+        expect(events).toEqual([]);
+
+        await Promise.resolve();
+        expect(events).toEqual(["dataloading", "data"]);
+      });
+
+      it("drops them if the layer is removed before then", async () => {
+        const layer = addLayer();
+        const events = collectDataEvents(layer);
+
+        mock.map.removeLayer(layer.id);
+        await Promise.resolve();
+
+        expect(events).toEqual([]);
+      });
+
+      it("reports the reload after a full setStyle the same way", async () => {
+        const layer = addLayer();
+        await Promise.resolve();
+        const events = collectDataEvents(layer);
+
+        mock.setStyle(["base"], { diff: false });
+        expect(events).toEqual([]);
+
+        await Promise.resolve();
+        expect(events).toEqual(["dataloading"]);
+      });
     });
   });
 

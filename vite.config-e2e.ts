@@ -11,6 +11,7 @@ export default defineConfig({
         haloSpace: 'public/haloSpace.html',
         markerCanvas: 'public/markerCanvas.html',
         missingImageResolvers: 'public/missingImageResolvers.html',
+        dataLayer: 'public/dataLayer.html',
       },
     },
   },
