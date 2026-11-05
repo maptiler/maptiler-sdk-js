@@ -90,7 +90,12 @@ test("loads a dataset UUID on a real map, reporting it to listeners attached aft
   const { datasetRequests } = await loadFixture(page);
 
   const datasetId = await page.evaluate(() => window.__dataLayer.datasetId);
-  expect(datasetRequests).toEqual([`https://api.maptiler.com/data/${datasetId}/features.json?key=DOESNT_MATTER`]);
+  expect(datasetRequests).toHaveLength(1);
+
+  // the SDK tags API requests with extra params, such as the session id (mtsid), so only the parts the layer sets are checked
+  const url = new URL(datasetRequests[0]);
+  expect(`${url.origin}${url.pathname}`).toBe(`https://api.maptiler.com/data/${datasetId}/features.json`);
+  expect(url.searchParams.get("key")).toBe("DOESNT_MATTER");
 
   await expectLayerLoaded(page);
 });
