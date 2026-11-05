@@ -104,6 +104,12 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
   /** Between a `dataloading` and its `data` (or `error`), so each load fires one of each. */
   private isLoadingData = false;
 
+  /** True while {@link onAdd} runs — data events raised then are held back, see {@link emitDataEvent}. */
+  private isAdding = false;
+
+  /** Data events held back until the `addLayer` call that raised them has returned — `null` when not holding. */
+  private heldDataEvents: (() => void)[] | null = null;
+
   private readonly listeners = new Map<DataLayerEventType, Set<DataLayerEventListener<DataLayerEventType, this>>>();
 
   /** Map-level listeners currently bound, kept so they can be detached — layer-delegated ones are rebound on every rebuild, as sublayer ids may change. */
@@ -173,13 +179,19 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
     const order = this.map.getLayersOrder();
     this.beforeId = order[order.indexOf(this.id) + 1];
 
-    this.bindMapListeners();
-    this.build();
+    this.isAdding = true;
+    try {
+      this.bindMapListeners();
+      this.build();
+    } finally {
+      this.isAdding = false;
+    }
   }
 
   /** Only called when the user removes the layer — `setStyle()` never removes custom layers by diffing, and a full rebuild drops them without calling this. */
   onRemove(): void {
     this.cancelFlush();
+    this.heldDataEvents = null;
     this.teardown();
     this.unbindMapListeners();
     this.map = null;
@@ -470,25 +482,32 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
       // tiles fire `sourcedataloading` too — only the source's own load counts
       if (event.sourceId !== this.getSourceId() || event.tile || this.isLoadingData) return;
       this.isLoadingData = true;
-      this.fire("dataloading", { type: "dataloading", target: this });
+      this.emitDataEvent(() => {
+        this.fire("dataloading", { type: "dataloading", target: this });
+      });
     };
 
     const onData = (event: MapSourceDataEvent) => {
       // the metadata event reports loaded before the tiles have reloaded — wait for the content or the last tile
       if (event.sourceId !== this.getSourceId() || !this.isLoadingData || !event.isSourceLoaded || event.sourceDataType === "metadata") return;
       this.isLoadingData = false;
-      this.fire("data", { type: "data", target: this });
+      this.emitDataEvent(() => {
+        this.fire("data", { type: "data", target: this });
+      });
     };
 
     const onError = (event: { error: Error; sourceId?: string }) => {
       if (event.sourceId !== this.getSourceId()) return;
       this.isLoadingData = false;
-      this.fire("error", { type: "error", target: this, error: event.error });
+      this.emitDataEvent(() => {
+        this.fire("error", { type: "error", target: this, error: event.error });
+      });
     };
 
     // the map is going away — nothing to tear down, just stop touching it
     const onMapRemove = () => {
       this.cancelFlush();
+      this.heldDataEvents = null;
       this.boundMapListeners.length = 0;
       this.sublayerSpecs = [];
       this.map = null;
@@ -499,6 +518,31 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
     this.bindMapListener("sourcedataloading", onDataLoading);
     this.bindMapListener("sourcedata", onData);
     this.bindMapListener("error", onError);
+  }
+
+  /**
+   * Fires a data event, unless it's raised inside `addLayer`: MapLibre starts
+   * the source's first load synchronously, before a listener attached straight
+   * after `addLayer` exists. That event, and any that follow it, are then held
+   * until the next microtask, keeping their order.
+   */
+  private emitDataEvent(fire: () => void): void {
+    if (this.isAdding && !this.heldDataEvents) {
+      const held: (() => void)[] = [];
+      this.heldDataEvents = held;
+      queueMicrotask(() => {
+        // dropped if the layer or map was removed in the meantime
+        if (this.heldDataEvents !== held) return;
+        this.heldDataEvents = null;
+        for (const fireHeld of held) fireHeld();
+      });
+    }
+
+    if (this.heldDataEvents) {
+      this.heldDataEvents.push(fire);
+    } else {
+      fire();
+    }
   }
 
   /** Forwards pointer events on the current sublayers. */
