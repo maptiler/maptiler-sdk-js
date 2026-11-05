@@ -24,6 +24,8 @@ test.describe("PointLayer", () => {
 
     const rendered = await page.evaluate(async () => {
       const map = window.__map;
+      // on the mock style's globe, a whole-viewport queryRenderedFeatures finds no circles, though they render
+      map.setProjection({ type: "mercator" });
       const features = Array.from({ length: 25 }, (_, i) => ({
         type: "Feature" as const,
         properties: { i },
