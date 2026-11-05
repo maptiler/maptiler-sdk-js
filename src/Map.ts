@@ -1569,13 +1569,19 @@ export class Map extends MapMLGL {
       return;
     }
 
+    // MapLibre retries unresolved ids on every tile that needs them, so only warn once per id
+    const warnedIds = new Set<string>();
+
     super.setMissingStyleImageResolver(async (id) => {
       for (const resolve of resolvers) {
         // one resolver failing shouldn't stop the others from trying
         try {
           await resolve(id);
         } catch (e) {
-          console.warn(`Missing image resolver failed for "${id}":`, e);
+          if (!warnedIds.has(id)) {
+            warnedIds.add(id);
+            console.warn(`Missing image resolver failed for "${id}":`, e);
+          }
         }
         if (this.hasImage(id)) return;
       }
