@@ -353,7 +353,7 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
   /** The data to hand to the source — a UUID becomes its MapTiler Cloud dataset URL. */
   protected resolveSourceData(): GeoJSONSourceSpecification["data"] {
     if (typeof this.data === "string" && isUUID(this.data)) {
-      return `https://api.maptiler.com/data/${this.data}/features.json?key=${config.apiKey}`;
+      return `${config.apiURL}data/${this.data}/features.json?key=${config.apiKey}`;
     }
     return this.data as GeoJSONSourceSpecification["data"];
   }
