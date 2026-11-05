@@ -4,11 +4,11 @@ import type { PointLayer as PointLayerClass } from "../../src/index";
 
 test.setTimeout(60000);
 
-/** Loads the fixture and collects MapLibre's missing-image warnings. */
+/** Loads the fixture and collects missing-image warnings, MapLibre's and the SDK's for a resolver that threw. */
 async function setupPage(page: Page) {
   const missingImageWarnings: string[] = [];
   page.on("console", (msg) => {
-    if (msg.type() === "warning" && /could not be loaded|Image .* missing/i.test(msg.text())) missingImageWarnings.push(msg.text());
+    if (msg.type() === "warning" && /could not be loaded|Image .* missing|Missing image resolver failed/i.test(msg.text())) missingImageWarnings.push(msg.text());
   });
 
   const { mapHandle } = await loadFixtureAndGetMapHandle({ fixture: "pointLayer", page });
