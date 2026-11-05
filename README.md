@@ -1736,6 +1736,72 @@ animatedRoute.pause();
 
 For a full example of how to use this, look at [the example](./demos/11-animated-routes.html)
 
+### Point Layer
+
+`PointLayer` displays a dataset of points, like the `addPoint` helper (see [Point Layer Helper](#point-layer-helper)), but as a layer that keeps its state: its data, styling and display can be changed at any time after it's added, and it survives style changes. It's added and removed like any other layer:
+
+```ts
+import { Map, PointLayer, ColorRampCollection } from "@maptiler/sdk";
+
+const layer = new PointLayer({
+  data: "public-schools.geojson", // GeoJSON, a URL to GeoJSON, or the UUID of a MapTiler dataset
+  styling: {
+    property: "students",
+    pointColor: ColorRampCollection.PORTLAND.scale(200, 2000),
+  },
+});
+map.addLayer(layer); // or map.addLayer(layer, beforeId)
+
+// later
+layer.setStyling({ pointOpacity: 0.8 }).setZoomRange(4, 22).setVisible(true);
+layer.setData(otherSchools);
+
+map.removeLayer(layer.id);
+```
+
+Changes made in the same frame are applied together, through the cheapest update available. `setStyling()` merges into the current styling, and a key set to `undefined` goes back to its default. `getStyling()` returns the styling in effect, defaults included.
+
+#### Circles and markers
+
+Points are drawn in one of two modes, fixed when the layer is created:
+
+- `circles` (the default) draws GL circles. Its styling options are the visual options of `addPoint`, with the same meaning and defaults.
+- `markers` draws each point as a MapTiler marker image (see [Markers](#markers)), drawn by the map rather than as DOM elements, so it suits larger datasets than `Marker`. A `label` is drawn into each marker, so markers and their labels overlap correctly.
+
+```ts
+const quakes = new PointLayer({
+  mode: "markers",
+  data: "earthquakes.geojson",
+  styling: {
+    marker: { shape: "bubble-circle", size: "m" }, // unset colours follow the map style
+    label: ["number-format", ["get", "mag"], { "max-fraction-digits": 1 }], // a property name, or an expression
+    priority: ["get", "mag"], // bigger quakes win where markers collide
+  },
+});
+```
+
+Each distinct label is drawn as its own image, so labels should have a modest number of distinct values. Marker interaction states, transitions and animations are not available in markers mode.
+
+#### Collisions
+
+`collisionBehaviour` sets what happens where points overlap, and can be changed with `setCollisionBehaviour()`:
+
+- `always-show`: every point shows. Nearer markers are drawn over further ones.
+- `hide-by-priority` (markers only): a marker overlapping a higher-`priority` one is hidden.
+- `minimize-by-priority` (markers only, and their default): a marker overlapping a higher-`priority` one shrinks to a dot. `styling.minimized` changes how the dot looks.
+- `cluster`: nearby points are grouped into clusters showing their count. In markers mode, `styling.clusterMarker` sets the cluster markers' look.
+
+Circles default to `always-show`. Marker collisions use the map's own symbol placement, so markers also collide with the style's labels and icons placed before them, and priority applies within a tile rather than across the whole map.
+
+#### Events
+
+```ts
+layer.on("click", (e) => console.log(e.features?.[0]?.properties)); // also mouseenter, mouseleave and mousemove
+layer.on("dataloading", () => showSpinner());
+layer.on("data", () => hideSpinner()); // once per load
+layer.on("error", (e) => console.error(e.error));
+```
+
 ### Vector Layer Helpers
 
 **Let's make vector layers easy!** Originally, you'd have to add a source and then proceed to the styling of your layer, which can be tricky because there are a lot of `paint` and `layout` options and they vary a lot from one type of layer to another. **But we have helpers for this!** 🖋️
@@ -1915,6 +1981,9 @@ helpers.addPolygon(map, {
 All the other options are documented on [our reference page](https://docs.maptiler.com/sdk-js/api/helpers/#polygon) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/?q=polygon+helper).
 
 #### Point Layer Helper
+
+> [!WARNING]
+> `helpers.addPoint` is deprecated. Use [`PointLayer`](#point-layer) instead: it takes the same styling options, and can be updated after it's added.
 
 A point visualization may appear like the simplest of all, but we noticed this is where people get the most creative: cluster, data-driven variable radius, but also scaled with zoom, with or without labels, data-driven colors, etc. Our helper supports all of these and will fill-in with built-in default for what's missing.
 
