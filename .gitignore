@@ -24,6 +24,7 @@ coverage
 # dotenv environment variables files
 .env
 .env.test
+.env.local
 
 # Build output
 dist

@@ -161,6 +161,9 @@ const expectedExports = Array.from(
     "getAverageDistance",
     "stretchNumericalArray",
     "simplifyPath",
+
+    // Data layers
+    "DataLayer",
   ]),
 );
 

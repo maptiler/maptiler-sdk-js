@@ -12,6 +12,29 @@ declare global {
     __MT_SDK_VERSION__: string;
     __MT_NODE_ENV__: string | undefined;
     __MT_BUILD_FORMAT__: "es" | "umd" | "dev";
+    __missingImageResolvers: {
+      points: Record<string, [number, number]>;
+      colors: Record<string, [number, number, number]>;
+      calls: { sdk: string[]; user: string[] };
+      missing: string[];
+      styleLoads: number;
+      idleStyleLoads: number;
+      reset: () => void;
+      swapStyle: () => void;
+    };
+    __dataLayer: {
+      datasetId: string;
+      circleColor: [number, number, number];
+      point: [number, number];
+      layerId: string;
+      sourceId: string;
+      events: string[];
+      loads: number;
+      idleLoads: number;
+      reset: () => void;
+      swapStyle: (kind: "url" | "object") => void;
+      getSublayerIds: () => string[];
+    };
     __testUtils?: {
       getHaloConfig: () => any;
       getSpaceConfig: () => any;
