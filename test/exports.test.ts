@@ -164,6 +164,7 @@ const expectedExports = Array.from(
 
     // Data layers
     "DataLayer",
+    "PointLayer",
   ]),
 );
 
