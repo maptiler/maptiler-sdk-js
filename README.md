@@ -319,7 +319,7 @@ Instead of `.env.local`, you can add `?key=YOUR_KEY` to a demo URL once, and the
 - **Showcases** (`demos/showcases/<name>/`): more involved, with more comments and inline docs, closer to a guide. May use external dependencies, e.g. a UI library.
 - **Development fixtures** (`demos/fixtures/<name>/`): for comparing feature versions, testing or developing features, and recording code "gotchas". May use external dependencies and lots of UI code. Internal: listed on the `npm run dev` page, but not in the list below.
 
-Build any controls a demo needs (buttons, dropdowns, sliders, readouts) with [lil-gui](https://lil-gui.georgealways.com), using `createGui()` from `demos/shared/gui.ts`, rather than hand-written HTML. The exception is UI that is the subject of the demo, such as the custom map controls of the controls examples.
+### Add or change a demo
 
 Each demo is a folder with an `index.html`, a `main.ts` and a `meta.json`:
 
