@@ -1,10 +1,9 @@
 {
   "title": "Scratch pad",
   "description": "Quick local testing. Do not commit changes to this demo.",
-  "type": "fixture",
+  "type": "playground",
   "topics": [],
   "createdWith": "3.5.1-rc1",
   "lastCheckedWith": null,
-  "lastCheckedOn": null,
-  "internal": true
+  "lastCheckedOn": null
 }

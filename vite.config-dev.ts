@@ -32,13 +32,13 @@ function centerText(text: string, lineLength: number) {
 }
 
 const demosDir = resolve(__dirname, 'demos');
-const demoTypes = ['example', 'showcase', 'fixture'];
-const demoTypeHeadings: Record<string, string> = { example: 'examples', showcase: 'showcases', fixture: 'development fixtures' };
+const demoTypes = ['example', 'showcase', 'playground'];
+const demoTypeHeadings: Record<string, string> = { example: 'examples', showcase: 'showcases', playground: 'playgrounds' };
 
 // Every demo is a folder holding an `index.html` and a `meta.json`, see the "In-repo demos" section of the README
 function findDemos() {
   return readdirSync(demosDir, { recursive: true, encoding: 'utf8' })
-    .filter((file) => /^(examples|showcases|fixtures)\/.*meta\.json$/.test(file.replaceAll('\\', '/')))
+    .filter((file) => /^(examples|showcases|playgrounds)\/.*meta\.json$/.test(file.replaceAll('\\', '/')))
     .map((file) => {
       const { title, type } = JSON.parse(readFileSync(resolve(demosDir, file), 'utf8')) as { title: string; type: string };
       return { title, type, path: dirname(file).replaceAll('\\', '/') };

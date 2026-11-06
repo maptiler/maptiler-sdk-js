@@ -317,7 +317,7 @@ Instead of `.env.local`, you can add `?key=YOUR_KEY` to a demo URL once, and the
 
 - **Examples** (`demos/examples/<topic>/<name>/`): short, single-use code with minimal dependencies, e.g. "put a marker on the page and style it".
 - **Showcases** (`demos/showcases/<name>/`): more involved, with more comments and inline docs, closer to a guide. May use external dependencies, e.g. a UI library.
-- **Development fixtures** (`demos/fixtures/<name>/`): for comparing feature versions, testing or developing features, and recording code "gotchas". May use external dependencies and lots of UI code. Internal: listed on the `npm run dev` page, but not in the list below.
+- **Playgrounds** (`demos/playgrounds/<name>/`): for comparing feature versions, testing or developing features, and recording code "gotchas". May use external dependencies and lots of UI code. Internal: listed on the `npm run dev` page, but not in the list below.
 
 ### Add or change a demo
 
@@ -335,10 +335,9 @@ Each demo is a folder with an `index.html`, a `main.ts` and a `meta.json`:
 }
 ```
 
-- `type` is `example`, `showcase` or `fixture`, matching the folder. An example's first topic matches its `<topic>` folder.
+- `type` is `example`, `showcase` or `playground`, matching the folder. An example's first topic matches its `<topic>` folder. Playgrounds stay out of the index below, and their `topics` can be empty.
 - `createdWith` is the SDK version the demo was created with.
 - `lastCheckedWith` and `lastCheckedOn` record the last time someone ran the demo and saw it working. They stay `null` until then.
-- `internal: true` keeps a demo out of the index below, and is required on development fixtures.
 
 Values likely to change go in variables right after the imports of `main.ts`, with the same names in every demo, so they can be updated with grep or a script, e.g. `MAP_STYLE`.
 
@@ -393,7 +392,7 @@ Use only these labels in `topics`. Add a label here before using it.
 | [Transform request](./demos/examples/requests/transform-request) | Changes outgoing map requests with `transformRequest`. | `requests` | 3.2.4 | Not yet |
 | [Sky: day](./demos/examples/sky/day) | Configures the sky on a daytime outdoor style. | `sky` | 3.2.4 | Not yet |
 | [Sky: night](./demos/examples/sky/night) | Configures the sky on a dark outdoor style. | `sky` | 3.2.4 | Not yet |
-| [Space & halo simple](./demos/examples/space/orbiting-globe) | A globe turning against a starry space background, with the default halo. | `space` `halo` | 5.0.0-rc.4 | Not yet |
+| [Space & halo: simple](./demos/examples/space/orbiting-globe) | A globe turning against a starry space background, with the default halo. | `space` `halo` | 5.0.0-rc.4 | Not yet |
 
 #### Showcases
 
@@ -1714,7 +1713,7 @@ import { MarkerMLGL } from "@maptiler/sdk";
 new MarkerMLGL({ color: "#f00" }).setLngLat([8.54, 47.37]).addTo(map);
 ```
 
-See [`demos/examples/markers/styled-marker`](./demos/examples/markers/styled-marker) for an example, and `demos/fixtures/markers*` for every option.
+See [`demos/examples/markers/styled-marker`](./demos/examples/markers/styled-marker) for an example, and `demos/playgrounds/markers*` for every option.
 
 ### Camera routes and animations
 

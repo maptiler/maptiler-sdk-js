@@ -53,7 +53,7 @@
 - Documents worker setup per bundler, CSP requirements, self-hosted UMD worker files and TypeScript `moduleResolution` in the README.
 - Updates dependencies to resolve `npm audit` vulnerabilities, including dev dependency bumps to `vitest` 5, `@vitest/web-worker` 5, `vite-plugin-dts` 5 and `lint-staged` 17.
 - Telemetry now reports the SDK build format (`umd`, `esm-cdn`, `es` or `dev`) as `buildFormat`.
-- Restructures the in-repo demos into short examples grouped by topic, showcases and development fixtures, each with metadata (type, topics, SDK version it was created with and last checked against), listed in a README index generated from the metadata and checked in CI. Their controls use `lil-gui` (new dev dependency), and a console panel shows their console output on the page, both in a column at the top left with the performance stats. They read the MapTiler API key from `VITE_MAPTILER_API_KEY` in a git-ignored `.env.local` file, which the dev server warns about at startup when missing. The `@maptiler/3d` dev dependency, used by a demo only, is removed.
+- Restructures the in-repo demos into short examples grouped by topic, showcases and playgrounds, each with metadata (type, topics, SDK version it was created with and last checked against), listed in a README index generated from the metadata and checked in CI. Their controls use `lil-gui` (new dev dependency), and a console panel shows their console output on the page, both in a column at the top left with the performance stats. They read the MapTiler API key from `VITE_MAPTILER_API_KEY` in a git-ignored `.env.local` file, which the dev server warns about at startup when missing. The `@maptiler/3d` dev dependency, used by a demo only, is removed.
 
 ## 4.2.0
 

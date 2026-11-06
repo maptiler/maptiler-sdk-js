@@ -11,7 +11,9 @@ const DEMOS_DIR = join(ROOT, "demos");
 const README_PATH = join(ROOT, "README.md");
 
 // Top folders of `demos/` that hold demos, with the `type` of the demos they hold
-const TYPE_BY_FOLDER = { examples: "example", showcases: "showcase", fixtures: "fixture" };
+const TYPE_BY_FOLDER = { examples: "example", showcases: "showcase", playgrounds: "playground" };
+// Types of the demos listed in the README index; playgrounds are only listed on the `npm run dev` page
+const PUBLIC_TYPES = ["example", "showcase"];
 const INDEX_START = "<!-- demos-index:start -->";
 const INDEX_END = "<!-- demos-index:end -->";
 const VERSION_PATTERN = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
@@ -48,7 +50,7 @@ function validate(path, meta, topics) {
   if (!Array.isArray(meta.topics)) {
     report("`topics` must be an array");
   } else {
-    if (meta.topics.length === 0 && !meta.internal) report("`topics` must not be empty");
+    if (meta.topics.length === 0 && type !== "playground") report("`topics` must not be empty");
     for (const topic of meta.topics) {
       if (!topics.has(topic)) report(`unknown topic "${topic}", see the list of topics in the README`);
     }
@@ -59,9 +61,6 @@ function validate(path, meta, topics) {
   if ((meta.lastCheckedWith === null) !== (meta.lastCheckedOn === null)) report("`lastCheckedWith` and `lastCheckedOn` must be set together");
   if (meta.lastCheckedWith !== null && !VERSION_PATTERN.test(meta.lastCheckedWith)) report("`lastCheckedWith` must be an SDK version or null");
   if (meta.lastCheckedOn !== null && !DATE_PATTERN.test(meta.lastCheckedOn)) report("`lastCheckedOn` must be a YYYY-MM-DD date or null");
-
-  if (type === "fixture" && meta.internal !== true) report("development fixtures must have `internal: true`");
-  if (type !== "fixture" && meta.internal !== undefined) report("only development fixtures can be `internal`");
 }
 
 function readDemos() {
@@ -96,7 +95,7 @@ function renderTable(demos) {
 }
 
 function renderIndex(demos) {
-  const publicDemos = demos.filter((demo) => !demo.internal);
+  const publicDemos = demos.filter((demo) => PUBLIC_TYPES.includes(demo.type));
   const sections = [
     ["Examples", publicDemos.filter((demo) => demo.type === "example")],
     ["Showcases", publicDemos.filter((demo) => demo.type === "showcase")],
@@ -123,5 +122,5 @@ if (process.argv.includes("--check")) {
   console.log("The demos index is up to date.");
 } else {
   writeFileSync(README_PATH, updated);
-  console.log(`Wrote ${demos.filter((demo) => !demo.internal).length} public demos to the README (${demos.length} in total).`);
+  console.log(`Wrote ${demos.filter((demo) => PUBLIC_TYPES.includes(demo.type)).length} public demos to the README (${demos.length} in total).`);
 }
