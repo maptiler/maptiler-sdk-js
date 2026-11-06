@@ -342,6 +342,8 @@ Each demo is a folder with an `index.html`, a `main.ts` and a `meta.json`:
 
 Values likely to change go in variables right after the imports of `main.ts`, with the same names in every demo, so they can be updated with grep or a script, e.g. `MAP_STYLE`.
 
+Build any controls a demo needs (buttons, dropdowns, sliders, readouts) with [lil-gui](https://lil-gui.georgealways.com), using `createGui()` from `demos/shared/gui.ts`, rather than hand-written HTML. The exception is UI that is the subject of the demo, such as the custom map controls of the controls examples.
+
 Run `npm run demos:index` after adding or changing a demo. It validates the metadata and regenerates the index below. CI fails if the index is out of date.
 
 ### Topics
