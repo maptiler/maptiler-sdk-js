@@ -1,5 +1,14 @@
 # MapTiler SDK Changelog
 
+## 4.2.1
+
+### 🐛 Bug Fixes
+- BACKPORT: Fixes attributions not being fully sanitized, which let a style or TileJSON from an untrusted source run scripts or alter the page through its attribution. The attribution sanitizing is ported from MapLibre GL JS v6.16.0.
+  - Removing a dangerous attribute no longer skips the attribute that follows it, which let every second attribute, such as an `onerror` handler or a `javascript:` link, through (fixed in MapLibre GL JS v6.4.1).
+  - Attributions are now sanitized with an allow list of elements, attributes and URL protocols (fixed in MapLibre GL JS v6.11.1).
+  - Each attribution is sanitized on its own, so markup left open in one no longer wraps the others (fixed in MapLibre GL JS v6.12.0).
+  - Applies to the attribution control the map adds by default, as well as to `AttributionControl` and `AttributionControlMLGL`.
+
 ## 4.2.0
 
 ### ✨ Features and improvements
