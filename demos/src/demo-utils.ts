@@ -54,7 +54,13 @@ export function addPerformanceStats() {
  * If you don't want to use the URL parameter, you can set the key directly in the code.
  */
 export function setupMapTilerApiKey({ config }: { config: SdkConfig }) {
-  config.apiKey = localStorage.getItem("MT_DEMO_API_KEY") ?? "API_KEY";
+  // Not typed through `vite/client`, as its global declarations would change how `src` type-checks
+  const envApiKey = (import.meta as ImportMeta & { env: { VITE_MAPTILER_API_KEY?: string } }).env.VITE_MAPTILER_API_KEY;
+  if (envApiKey && !localStorage.getItem("MT_DEMO_API_KEY")) {
+    localStorage.setItem("MT_DEMO_API_KEY", envApiKey);
+  }
+
+  config.apiKey = envApiKey ?? localStorage.getItem("MT_DEMO_API_KEY") ?? "API_KEY";
 
   if (config.apiKey === "API_KEY") {
     const urlParams = new URLSearchParams(window.location.search);

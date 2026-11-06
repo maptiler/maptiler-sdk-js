@@ -53,6 +53,8 @@ const entrypoints = readdirSync(resolve(__dirname, 'demos/public')).filter((file
 export default defineConfig({
   mode: "development",
   root: "./demos",
+  // `.env.local` (e.g. `VITE_MAPTILER_API_KEY`) is read from the root of the repo, not from `demos`
+  envDir: __dirname,
   resolve: {
     alias: [
       // The demos use the shipped Vite helper like customers do, but against the SDK source (no build needed):
