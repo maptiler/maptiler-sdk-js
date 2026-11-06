@@ -303,11 +303,21 @@ Check out more than 200 [examples and tutorials](https://docs.maptiler.com/sdk-j
 
 ## 🗂️ In-repo demos
 
-Run `npm run dev` and open the printed URL for a list of every demo. Set your MapTiler API key in a `.env.local` file at the root of the repo (ignored by git), as `VITE_MAPTILER_API_KEY=YOUR_KEY`, or add `?key=YOUR_KEY` to a demo URL once to store it in the browser. Demos live in `demos/`, in three kinds:
+Runnable demos of the SDK features, kept in `demos/`. They're separate from the docs examples linked above.
+
+### Run the demos
+
+1. Create a `.env.local` file at the root of the repo (git ignores it) with your MapTiler API key: `VITE_MAPTILER_API_KEY=YOUR_KEY`.
+2. Run `npm run dev`.
+3. Open the printed URL. It lists every demo.
+
+Instead of `.env.local`, you can add `?key=YOUR_KEY` to a demo URL once, and the browser stores the key for all demos. If several keys are set, the demos use the first of: the key in `.env.local`, the key stored in the browser, the `key` URL parameter.
+
+### Kinds of demos
 
 - **Examples** (`demos/examples/<topic>/<name>/`): short, single-use code with minimal dependencies, e.g. "put a marker on the page and style it".
 - **Showcases** (`demos/showcases/<name>/`): more involved, with more comments and inline docs, closer to a guide. May use external dependencies, e.g. a UI library.
-- **Development fixtures** (`demos/fixtures/<name>/`): for comparing feature versions, testing or developing features, and recording code "gotchas". May use external dependencies and lots of UI code. Not intended for public use, so not listed below.
+- **Development fixtures** (`demos/fixtures/<name>/`): for comparing feature versions, testing or developing features, and recording code "gotchas". May use external dependencies and lots of UI code. Internal: listed on the `npm run dev` page, but not in the list below.
 
 Build any controls a demo needs (buttons, dropdowns, sliders, readouts) with [lil-gui](https://lil-gui.georgealways.com), using `createGui()` from `demos/shared/gui.ts`, rather than hand-written HTML. The exception is UI that is the subject of the demo, such as the custom map controls of the controls examples.
 
