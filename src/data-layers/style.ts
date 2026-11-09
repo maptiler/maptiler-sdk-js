@@ -1,12 +1,12 @@
 import type { ExpressionSpecification } from "maplibre-gl";
 
-// Styling helpers shared by the data layers. Internal — not exported from the package.
+// Style helpers shared by the data layers. Internal — not exported from the package.
 
 /** Keeps Point and MultiPoint features — `geometry-type` reports both as `"Point"`. */
 export const POINT_GEOMETRY_FILTER: ExpressionSpecification = ["==", ["geometry-type"], "Point"];
 
 /**
- * Whether a styling value is a MapLibre expression, passed through as is.
+ * Whether a style value is a MapLibre expression, passed through as is.
  * Expressions start with their operator, while zoom ramps, property ramps and
  * `ColorRamp`s are arrays of objects.
  */

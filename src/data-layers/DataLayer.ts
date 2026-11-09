@@ -15,14 +15,14 @@ import { v4 as uuidv4 } from "uuid";
 import type { Map as SDKMap } from "../Map";
 import { config } from "../config";
 import { isUUID } from "../tools";
-import { fadeAtZoomEdges, usesZoom } from "./styling";
+import { fadeAtZoomEdges, usesZoom } from "./style";
 
 //#region Types
 
 /** GeoJSON data, a URL to GeoJSON, or the UUID of a MapTiler Cloud dataset. */
 export type DataLayerData = FeatureCollection | Feature | Geometry | string;
 
-/** Any data layer, whatever its styling and mode. */
+/** Any data layer, whatever its style and mode. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the class is invariant in both, and only the source is shared
 export type AnyDataLayer = DataLayer<any, any>;
 
@@ -35,7 +35,7 @@ type SharedData = {
 };
 
 /** Options shared by every data layer's constructor. */
-export type DataLayerConstructorOptions<TStyling extends object> = {
+export type DataLayerConstructorOptions<TStyle extends object> = {
   /** Layer id. Auto-generated when omitted. */
   id?: string;
   /**
@@ -46,8 +46,8 @@ export type DataLayerConstructorOptions<TStyling extends object> = {
    * them does. A clustered layer can't share its source.
    */
   data: DataLayerData | AnyDataLayer;
-  /** Initial styling. Unset fields use the layer's defaults. */
-  styling?: TStyling;
+  /** Initial style. Unset fields use the layer's defaults. */
+  style?: TStyle;
   /** Initial visibility. Defaults to `true`. */
   visible?: boolean;
   /** Zoom level from which the layer shows. Defaults to `0`. */
@@ -82,11 +82,11 @@ export type DataLayerEventType = keyof DataLayerEventMap<unknown>;
 export type DataLayerEventListener<T extends DataLayerEventType, TTarget> = (event: DataLayerEventMap<TTarget>[T]) => void;
 
 /** What changed since the last flush — see {@link DataLayer.flushUpdates}. */
-type PendingDataLayerUpdates<TStyling> = {
+type PendingDataLayerUpdates<TStyle> = {
   data: boolean;
   visibility: boolean;
   zoomRange: boolean;
-  styling: Set<keyof TStyling>;
+  style: Set<keyof TStyle>;
   rebuild: boolean;
 };
 
@@ -112,10 +112,10 @@ const DEFAULT_FADE = 0.25;
  * once per animation frame, through the cheapest path available (source data,
  * paint/layout properties, or a full sublayer rebuild).
  *
- * The layer survives `setStyle()`: it rebuilds its source and sublayers on
+ * The layer survives `map.setStyle()`: it rebuilds its source and sublayers on
  * `style.load`, from its own state.
  */
-export abstract class DataLayer<TStyling extends object, TMode extends string> implements CustomLayerInterface {
+export abstract class DataLayer<TStyle extends object, TMode extends string> implements CustomLayerInterface {
   readonly id: string;
   readonly type = "custom";
   readonly mode: TMode;
@@ -127,8 +127,8 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
   /** Data as passed by the user — {@link getData} returns it unchanged — shared with the layers drawing the same source. */
   private readonly shared: SharedData;
 
-  /** Styling as set by the user, without defaults — see {@link getStyling} for the resolved values. */
-  protected styling: TStyling;
+  /** Style as set by the user, without defaults — see {@link getStyle} for the resolved values. */
+  protected style: TStyle;
 
   protected visible: boolean;
   protected minzoom: number;
@@ -139,10 +139,10 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
   private isFadeSet: boolean;
   private hasWarnedFadeReplaced = false;
 
-  /** Layer the controller sat beneath when last added, used to restore its position after a full style rebuild. */
+  /** Layer the controller sat beneath when last added, used to restore its position after a full rebuild of the map's style. */
   private beforeId: string | undefined;
 
-  private pending: PendingDataLayerUpdates<TStyling> = createPendingUpdates();
+  private pending: PendingDataLayerUpdates<TStyle> = createPendingUpdates();
   private animationFrameID: number | null = null;
 
   /** Between a `dataloading` and its `data` (or `error`), so each load fires one of each. */
@@ -178,9 +178,9 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
   /**
    * @param idPrefix - Prefix for the auto-generated id, e.g. `"maptiler-point-layer"`.
    * @param mode - Rendering mode, fixed for the layer's lifetime.
-   * @param options - Data, styling and display options.
+   * @param options - Data, style and display options.
    */
-  protected constructor(idPrefix: string, mode: TMode, options: DataLayerConstructorOptions<TStyling>) {
+  protected constructor(idPrefix: string, mode: TMode, options: DataLayerConstructorOptions<TStyle>) {
     this.id = options.id ?? `${idPrefix}-${uuidv4()}`;
     this.mode = mode;
     if (options.data instanceof DataLayer) {
@@ -190,8 +190,8 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
       this.shared = { sourceId: `${this.id}-source`, data: options.data, layers: new Set() };
     }
     this.shared.layers.add(this);
-    this.styling = {} as TStyling;
-    if (options.styling) this.setStyling(options.styling);
+    this.style = {} as TStyle;
+    if (options.style) this.setStyle(options.style);
     this.visible = options.visible ?? true;
     this.minzoom = options.minzoom ?? 0;
     this.maxzoom = options.maxzoom ?? 24;
@@ -207,13 +207,13 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
   protected abstract addSublayers(map: SDKMap): void;
 
   /**
-   * Applies changed styling keys to the live sublayers.
+   * Applies changed style keys to the live sublayers.
    * @returns `false` when the change needs a full rebuild (e.g. a sublayer added or removed), `true` when applied in place.
    */
-  protected abstract applyStyling(changed: Set<keyof TStyling>): boolean;
+  protected abstract applyStyle(changed: Set<keyof TStyle>): boolean;
 
-  /** The styling with every default filled in. */
-  protected abstract resolveStyling(): TStyling;
+  /** The style with every default filled in. */
+  protected abstract resolveStyle(): TStyle;
 
   /**
    * Re-applies anything that depends on the zoom range beyond the sublayers'
@@ -225,10 +225,10 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
   }
 
   /**
-   * Whether a styling key has no default, so {@link setStyling} won't reset it.
+   * Whether a style key has no default, so {@link setStyle} won't reset it.
    * Unset, every key can be reset. Called from the constructor, so it can't rely on the subclass's fields.
    */
-  protected isRequiredStylingKey?(key: keyof TStyling): boolean;
+  protected isRequiredStyleKey?(key: keyof TStyle): boolean;
 
   /** Whether other layers can draw this layer's source — not when its source is set up for this layer alone, such as clustered. */
   protected canShareSource(): boolean {
@@ -265,7 +265,7 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
     }
   }
 
-  /** Only called when the user removes the layer — `setStyle()` never removes custom layers by diffing, and a full rebuild drops them without calling this. */
+  /** Only called when the user removes the layer — `map.setStyle()` never removes custom layers by diffing, and a full rebuild drops them without calling this. */
   onRemove(): void {
     this.cancelFlush();
     this.heldDataEvents = null;
@@ -311,33 +311,33 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
 
   //#endregion
 
-  //#region Styling
+  //#region Style
 
   /**
-   * Shallow-merges `styling` into the current styling. A key set to
+   * Shallow-merges `style` into the current style. A key set to
    * `undefined` resets that property to its default — except a required
    * one, which has no default, so it keeps its value.
    */
-  setStyling(styling: Partial<TStyling>): this {
-    for (const key of Object.keys(styling) as (keyof TStyling)[]) {
-      if (styling[key] === undefined) {
-        if (this.isRequiredStylingKey?.(key)) {
+  setStyle(style: Partial<TStyle>): this {
+    for (const key of Object.keys(style) as (keyof TStyle)[]) {
+      if (style[key] === undefined) {
+        if (this.isRequiredStyleKey?.(key)) {
           console.warn(`"${String(key)}" is required and can't be reset, so it keeps its value.`);
           continue;
         }
-        Reflect.deleteProperty(this.styling, key);
+        Reflect.deleteProperty(this.style, key);
       } else {
-        this.styling[key] = styling[key] as TStyling[keyof TStyling];
+        this.style[key] = style[key] as TStyle[keyof TStyle];
       }
-      this.pending.styling.add(key);
+      this.pending.style.add(key);
     }
     this.scheduleFlush();
     return this;
   }
 
-  /** Returns the styling in effect, with defaults filled in. */
-  getStyling(): TStyling {
-    return this.resolveStyling();
+  /** Returns the style in effect, with defaults filled in. */
+  getStyle(): TStyle {
+    return this.resolveStyle();
   }
 
   //#endregion
@@ -435,7 +435,7 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
 
   /**
    * Brings the live sublayers in line with `next` through paint, layout and
-   * filter updates only — the cheap path for styling changes.
+   * filter updates only — the cheap path for style changes.
    * @param next - The sublayer specs as {@link addSublayers} would build them now.
    * @returns `false` when the sublayers themselves differ (added, removed or retyped), which needs a rebuild.
    */
@@ -531,7 +531,7 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
   }
 
   /**
-   * `setStyle()` wipes the source and sublayers. A diffed style keeps the
+   * `map.setStyle()` wipes the source and sublayers. A diffed style keeps the
    * controller (custom layers aren't part of the diff), but wherever the diff
    * left it — usually near the bottom, under the new style's fills — so it's
    * moved back first, then only the sublayers need rebuilding. A full rebuild
@@ -581,7 +581,7 @@ export abstract class DataLayer<TStyling extends object, TMode extends string> i
     const pending = this.pending;
     this.pending = createPendingUpdates();
 
-    const needsRebuild = pending.rebuild || (pending.styling.size > 0 && !this.applyStyling(pending.styling)) || (pending.zoomRange && !this.onZoomRangeChange());
+    const needsRebuild = pending.rebuild || (pending.style.size > 0 && !this.applyStyle(pending.style)) || (pending.zoomRange && !this.onZoomRangeChange());
 
     if (needsRebuild) {
       this.build();
@@ -740,6 +740,6 @@ function isEqualValue(a: unknown, b: unknown): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
-function createPendingUpdates<TStyling>(): PendingDataLayerUpdates<TStyling> {
-  return { data: false, visibility: false, zoomRange: false, styling: new Set(), rebuild: false };
+function createPendingUpdates<TStyle>(): PendingDataLayerUpdates<TStyle> {
+  return { data: false, visibility: false, zoomRange: false, style: new Set(), rebuild: false };
 }

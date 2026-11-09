@@ -862,7 +862,7 @@ export function addPolygon(
 
 /**
  * Add a point layer from a GeoJSON source (or an existing sourceId) with many styling options
- * @deprecated Use {@link PointLayer} instead — it takes the same styling options under the data layers' shared names (`color` for `pointColor`, …), and can be updated after it's added.
+ * @deprecated Use {@link PointLayer} instead — it takes the same style options under the data layers' shared names (`color` for `pointColor`, …), and can be updated after it's added.
  */
 export function addPoint(
   /**
@@ -1152,7 +1152,7 @@ export function addPoint(
 
 /**
  * Add a polyline witgh optional outline from a GeoJSON object
- * @deprecated Use {@link HeatmapLayer} instead — it takes the same styling options under the data layers' shared names (`color` for `colorRamp`), and can be updated after it's added.
+ * @deprecated Use {@link HeatmapLayer} instead — it takes the same style options under the data layers' shared names (`color` for `colorRamp`), and can be updated after it's added.
  */
 export function addHeatmap(
   /**

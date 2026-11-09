@@ -10,14 +10,14 @@ export type PointLayerMode = "circles" | "markers";
 //#region Circles
 
 /**
- * Styling of a `circles` mode {@link PointLayer} — the visual options of the
+ * Style of a `circles` mode {@link PointLayer} — the visual options of the
  * `addPoint` helper under the data layers' shared names (`color` for
  * `pointColor`, `radius` for `pointRadius`, …), with the same meaning and
  * defaults. Clustering is set through `collisionBehaviour` instead.
  *
  * Numeric values and `color` also take a MapLibre expression, passed through as is.
  */
-export type PointLayerCirclesStyling = {
+export type PointLayerCirclesStyle = {
   /**
    * Colour of the points: a CSS colour, a `ColorRamp`, or an expression.
    * A `ColorRamp` is read at each point's `property` value, or at each
@@ -70,11 +70,11 @@ export type PointLayerCirclesStyling = {
  */
 export type PointLayerCirclesCollisionBehaviour = Extract<CollisionBehaviour, "always-show"> | "cluster";
 
-export type PointLayerCirclesOptions = DataLayerConstructorOptions<PointLayerCirclesStyling> & {
+export type PointLayerCirclesOptions = DataLayerConstructorOptions<PointLayerCirclesStyle> & {
   /** Renders points as GL circles. The default mode. */
   mode?: "circles";
   /** Required, as `color` is. */
-  styling: PointLayerCirclesStyling;
+  style: PointLayerCirclesStyle;
   /** `cluster` groups nearby points into sized, counted clusters. Defaults to `always-show`. */
   collisionBehaviour?: PointLayerCirclesCollisionBehaviour;
 };
@@ -84,10 +84,10 @@ export type PointLayerCirclesOptions = DataLayerConstructorOptions<PointLayerCir
 //#region Markers
 
 /**
- * Styling of a `markers` mode {@link PointLayer}. Every point is drawn as a
+ * Style of a `markers` mode {@link PointLayer}. Every point is drawn as a
  * MapTiler marker image, so markers and their labels are depth-sorted together.
  */
-export type PointLayerMarkersStyling = {
+export type PointLayerMarkersStyle = {
   /** Look of every marker. Unset colours adapt to the map style, as on DOM markers. `content` is replaced by `label` when set. */
   marker?: MarkerStyle;
   /**
@@ -122,7 +122,7 @@ export type PointLayerMarkersStyling = {
  */
 export type PointLayerMarkersCollisionBehaviour = CollisionBehaviour | "cluster";
 
-export type PointLayerMarkersOptions = DataLayerConstructorOptions<PointLayerMarkersStyling> & {
+export type PointLayerMarkersOptions = DataLayerConstructorOptions<PointLayerMarkersStyle> & {
   /** Renders points as MapTiler marker images. */
   mode: "markers";
   /** Defaults to `minimize-by-priority`. */
@@ -133,21 +133,21 @@ export type PointLayerMarkersOptions = DataLayerConstructorOptions<PointLayerMar
 
 //#region By Mode
 
-/** Styling for each mode. */
-export type PointLayerStyling<TMode extends PointLayerMode> = TMode extends "markers" ? PointLayerMarkersStyling : PointLayerCirclesStyling;
+/** Style for each mode. */
+export type PointLayerStyle<TMode extends PointLayerMode> = TMode extends "markers" ? PointLayerMarkersStyle : PointLayerCirclesStyle;
 
 /** Collision behaviours for each mode. */
 export type PointLayerCollisionBehaviour<TMode extends PointLayerMode> = TMode extends "markers" ? PointLayerMarkersCollisionBehaviour : PointLayerCirclesCollisionBehaviour;
 
 /**
- * Options for {@link PointLayer}. `mode` picks the styling and collision
+ * Options for {@link PointLayer}. `mode` picks the style and collision
  * behaviours that apply — see {@link PointLayerCirclesOptions} and {@link PointLayerMarkersOptions}.
  */
-export type PointLayerConstructorOptions<TMode extends PointLayerMode = "circles"> = DataLayerConstructorOptions<PointLayerStyling<TMode>> & {
+export type PointLayerConstructorOptions<TMode extends PointLayerMode = "circles"> = DataLayerConstructorOptions<PointLayerStyle<TMode>> & {
   /** How points are rendered. Defaults to `circles`. */
   mode?: TMode;
   /** What happens where points overlap. Defaults to `minimize-by-priority` for markers, `always-show` for circles. */
   collisionBehaviour?: PointLayerCollisionBehaviour<TMode>;
-} & (TMode extends "markers" ? unknown : { styling: PointLayerCirclesStyling });
+} & (TMode extends "markers" ? unknown : { style: PointLayerCirclesStyle });
 
 //#endregion

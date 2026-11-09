@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { ColorRampCollection } from "../../src/ColorRamp";
-import { fadeAtZoomEdges, isExpression, usesZoom } from "../../src/data-layers/styling";
+import { fadeAtZoomEdges, isExpression, usesZoom } from "../../src/data-layers/style";
 
-describe("data layer styling", () => {
+describe("data layer style", () => {
   describe("isExpression", () => {
     it("tells expressions from ramps", () => {
       expect(isExpression(["get", "mag"])).toBe(true);

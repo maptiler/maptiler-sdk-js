@@ -185,7 +185,7 @@ export class MarkerInteraction {
     if (!feature) return null;
 
     // the layer's resolved style, colours included, so the stand-in matches the GL marker exactly
-    const style = this.layer.getStyling().marker ?? {};
+    const style = this.layer.getStyle().marker ?? {};
     const isSelected = id === this.selectedId;
     const marker = new Marker({
       ...style,
@@ -205,7 +205,7 @@ export class MarkerInteraction {
 
   /** Hides the GL markers that have a DOM stand-in. Paint only — no re-layout. */
   private hideGLMarkers(ids: string[]): void {
-    const opacity = this.layer.getStyling().marker?.opacity ?? 1;
+    const opacity = this.layer.getStyle().marker?.opacity ?? 1;
     const value: number | ExpressionSpecification = ids.length === 0 ? opacity : ["case", ["in", ["get", "id"], ["literal", ids]], 0, opacity];
     for (const layerId of this.layer.getSublayerIds()) {
       if (this.map.getLayer(layerId)) this.map.setPaintProperty(layerId, "icon-opacity", value);

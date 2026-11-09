@@ -1,12 +1,12 @@
 import type { Map as SDKMap } from "../../Map";
 import { DataLayer, type SublayerSpecification } from "../DataLayer";
-import { POINT_GEOMETRY_FILTER } from "../styling";
-import { buildHeatmapLayers, resolveHeatmapStyling } from "./heatmap-renderer";
-import type { HeatmapLayerConstructorOptions, HeatmapLayerMode, HeatmapLayerStyling } from "./types";
+import { POINT_GEOMETRY_FILTER } from "../style";
+import { buildHeatmapLayers, resolveHeatmapStyle } from "./heatmap-renderer";
+import type { HeatmapLayerConstructorOptions, HeatmapLayerMode, HeatmapLayerStyle } from "./types";
 
 /**
  * A stateful heatmap of points — the successor to the `addHeatmap` helper.
- * Add it with `map.addLayer(layer, beforeId)`; its data, styling and display
+ * Add it with `map.addLayer(layer, beforeId)`; its data, style and display
  * can then be changed at any time. Only Point and MultiPoint features are
  * drawn — other geometries are skipped.
  *
@@ -15,24 +15,24 @@ import type { HeatmapLayerConstructorOptions, HeatmapLayerMode, HeatmapLayerStyl
  *
  * @example
  * ```ts
- * const heatmap = new HeatmapLayer({ data: "https://example.com/quakes.geojson", styling: { color: ColorRampCollection.MAGMA, property: "mag" } });
+ * const heatmap = new HeatmapLayer({ data: "https://example.com/quakes.geojson", style: { color: ColorRampCollection.MAGMA, property: "mag" } });
  * map.addLayer(heatmap);
- * heatmap.setStyling({ opacity: 0.8 }).setZoomRange(0, 10, 1);
+ * heatmap.setStyle({ opacity: 0.8 }).setZoomRange(0, 10, 1);
  * ```
  */
-export class HeatmapLayer extends DataLayer<HeatmapLayerStyling, HeatmapLayerMode> {
+export class HeatmapLayer extends DataLayer<HeatmapLayerStyle, HeatmapLayerMode> {
   protected override readonly geometryFilter = POINT_GEOMETRY_FILTER;
 
   constructor(options: HeatmapLayerConstructorOptions) {
     super("maptiler-heatmap-layer", "heatmap", options);
     // for JavaScript callers — the types already require it
-    if (!("color" in this.styling)) throw new Error("HeatmapLayer: `styling.color` is required.");
+    if (!("color" in this.style)) throw new Error("HeatmapLayer: `style.color` is required.");
   }
 
   //#region DataLayer
 
   /** The heatmap has no default colour yet, so `color` can't be reset. */
-  protected override isRequiredStylingKey(key: keyof HeatmapLayerStyling): boolean {
+  protected override isRequiredStyleKey(key: keyof HeatmapLayerStyle): boolean {
     return key === "color";
   }
 
@@ -40,7 +40,7 @@ export class HeatmapLayer extends DataLayer<HeatmapLayerStyling, HeatmapLayerMod
     for (const layer of this.buildSublayers()) this.addSublayer(map, layer);
   }
 
-  protected applyStyling(): boolean {
+  protected applyStyle(): boolean {
     return this.syncSublayers(this.buildSublayers());
   }
 
@@ -49,8 +49,8 @@ export class HeatmapLayer extends DataLayer<HeatmapLayerStyling, HeatmapLayerMod
     return this.syncSublayers(this.buildSublayers());
   }
 
-  protected resolveStyling(): HeatmapLayerStyling {
-    return resolveHeatmapStyling(this.styling);
+  protected resolveStyle(): HeatmapLayerStyle {
+    return resolveHeatmapStyle(this.style);
   }
 
   //#endregion
@@ -58,7 +58,7 @@ export class HeatmapLayer extends DataLayer<HeatmapLayerStyling, HeatmapLayerMod
   //#region Internal
 
   private buildSublayers(): SublayerSpecification[] {
-    return buildHeatmapLayers(this.resolveStyling(), { layerId: this.id, sourceId: this.getSourceId(), fadeOpacity: this.fadeOpacity });
+    return buildHeatmapLayers(this.resolveStyle(), { layerId: this.id, sourceId: this.getSourceId(), fadeOpacity: this.fadeOpacity });
   }
 
   //#endregion

@@ -1,7 +1,7 @@
 // Sets the MapLibre worker URL, as Vite users of the SDK do
 import "@maptiler/sdk/vite-worker";
 import { ColorRampCollection, HeatmapLayer, Map, MapStyle, PointLayer, config } from "../../src/index";
-import type { HeatmapLayerStyling, MapStyleVariant, PointLayerMode } from "../../src/index";
+import type { HeatmapLayerStyle, MapStyleVariant, PointLayerMode } from "../../src/index";
 import { el, setupMapTilerApiKey } from "./demo-utils";
 
 setupMapTilerApiKey({ config });
@@ -9,7 +9,7 @@ setupMapTilerApiKey({ config });
 // A HeatmapLayer of earthquakes, optionally handing over to a PointLayer when
 // zoomed in. The two are separate layers: the points draw from the heatmap's
 // source (`data: heatmap`), and cross-fade with it through their zoom ranges
-// and fades. Styling and zoom changes are applied in place.
+// and fades. Style and zoom changes are applied in place.
 
 const EARTHQUAKES_URL = "https://maplibre.org/maplibre-gl-js/docs/assets/earthquakes.geojson";
 
@@ -55,8 +55,8 @@ function readRamp() {
   return RAMPS[controls.color.value as keyof typeof RAMPS];
 }
 
-/** Every styling key is always present — `undefined` resets it to the default. */
-function readStyling(): HeatmapLayerStyling {
+/** Every style key is always present — `undefined` resets it to the default. */
+function readStyle(): HeatmapLayerStyle {
   const weight = controls.weight.value;
   return {
     color: readRamp(),
@@ -92,7 +92,7 @@ async function main() {
   const map = new Map({ container: el("map"), style: MAP_STYLES[controls.mapStyle.value], center: [-120, 40], zoom: 3 });
   await map.onReadyAsync();
 
-  const heatmap = new HeatmapLayer({ data: EARTHQUAKES_URL, styling: readStyling(), visible: controls.visible.checked });
+  const heatmap = new HeatmapLayer({ data: EARTHQUAKES_URL, style: readStyle(), visible: controls.visible.checked });
   heatmap.on("click", (e) => {
     showClick("heatmap", e.features?.length ?? 0, e.features?.[0]?.properties);
   });
@@ -107,8 +107,8 @@ async function main() {
     const common = { id: "quake-points", data: heatmap, visible: controls.visible.checked };
     const created: PointLayer<PointLayerMode> =
       mode === "markers"
-        ? new PointLayer({ ...common, mode: "markers", styling: { marker: { shape: "circle", size: "xs" } }, collisionBehaviour: "always-show" })
-        : new PointLayer({ ...common, styling: { color: readRamp(), property: "mag", outline: true, ...readCircleRadii() } });
+        ? new PointLayer({ ...common, mode: "markers", style: { marker: { shape: "circle", size: "xs" } }, collisionBehaviour: "always-show" })
+        : new PointLayer({ ...common, style: { color: readRamp(), property: "mag", outline: true, ...readCircleRadii() } });
     created.on("click", (e) => {
       showClick("point", e.features?.length ?? 0, e.features?.[0]?.properties);
     });
@@ -151,15 +151,15 @@ async function main() {
   for (const control of [controls.color, controls.weight, controls.radiusAuto, controls.radius, controls.intensityAuto, controls.intensity, controls.opacity]) {
     control.addEventListener("input", () => {
       showValues();
-      heatmap.setStyling(readStyling());
+      heatmap.setStyle(readStyle());
       // the circles follow the heatmap's ramp — by hand, as they're a layer of their own
-      if (points?.mode === "circles") (points as PointLayer).setStyling({ color: readRamp() });
+      if (points?.mode === "circles") (points as PointLayer).setStyle({ color: readRamp() });
     });
   }
 
   controls.circleSize.addEventListener("input", () => {
     showValues();
-    if (points?.mode === "circles") (points as PointLayer).setStyling(readCircleRadii());
+    if (points?.mode === "circles") (points as PointLayer).setStyle(readCircleRadii());
   });
 
   for (const control of [controls.transitionZoom, controls.transitionSpan]) {

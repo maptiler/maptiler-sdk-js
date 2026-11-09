@@ -7,13 +7,13 @@ import type { DataLayerConstructorOptions } from "../DataLayer";
 export type HeatmapLayerMode = "heatmap";
 
 /**
- * Styling of a {@link HeatmapLayer} — the visual options of the `addHeatmap`
+ * Style of a {@link HeatmapLayer} — the visual options of the `addHeatmap`
  * helper under the data layers' shared names (`color` for `colorRamp`), with
  * the same meaning and defaults.
  *
  * Numeric values also take a MapLibre expression, passed through as is.
  */
-export type HeatmapLayerStyling = {
+export type HeatmapLayerStyle = {
   /**
    * Colour ramp along the heatmap's density, from none (`0`) to the densest
    * (`1`). A ramp over another range is scaled to `[0, 1]`, and one without a
@@ -48,7 +48,7 @@ export type HeatmapLayerStyling = {
 };
 
 /** Options for {@link HeatmapLayer}. */
-export type HeatmapLayerConstructorOptions = DataLayerConstructorOptions<HeatmapLayerStyling> & {
+export type HeatmapLayerConstructorOptions = DataLayerConstructorOptions<HeatmapLayerStyle> & {
   /** Required, as `color` is. */
-  styling: HeatmapLayerStyling;
+  style: HeatmapLayerStyle;
 };

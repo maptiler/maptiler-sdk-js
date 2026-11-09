@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FeatureCollection } from "geojson";
-import { HeatmapLayer, type HeatmapLayerStyling } from "../../src/data-layers/HeatmapLayer";
+import { HeatmapLayer, type HeatmapLayerStyle } from "../../src/data-layers/HeatmapLayer";
 import { PointLayer } from "../../src/data-layers/PointLayer";
 import { addHeatmap, type HeatmapLayerOptions } from "../../src/helpers/vectorlayerhelpers";
 import { ColorRampCollection } from "../../src/ColorRamp";
@@ -24,14 +24,14 @@ type Sublayer = { id: string; type: string; source?: unknown; filter?: unknown; 
 
 const POINTS_ONLY = ["==", ["geometry-type"], "Point"];
 
-/** The `addHeatmap` options matching heatmap styling, which uses the data layers' shared names. */
-function toAddHeatmapOptions({ color, ...rest }: HeatmapLayerStyling): Partial<HeatmapLayerOptions> {
+/** The `addHeatmap` options matching heatmap style, which uses the data layers' shared names. */
+function toAddHeatmapOptions({ color, ...rest }: HeatmapLayerStyle): Partial<HeatmapLayerOptions> {
   return { ...rest, colorRamp: color } as Partial<HeatmapLayerOptions>;
 }
 
 describe("HeatmapLayer", () => {
   let mock: MockStyleMap;
-  const styling = { color: ColorRampCollection.MAGMA };
+  const style = { color: ColorRampCollection.MAGMA };
 
   beforeEach(() => {
     frames = [];
@@ -44,8 +44,8 @@ describe("HeatmapLayer", () => {
     vi.unstubAllGlobals();
   });
 
-  function addHeatmapLayer(layerStyling: HeatmapLayerStyling = styling, options: Partial<ConstructorParameters<typeof HeatmapLayer>[0]> = {}) {
-    const layer = new HeatmapLayer({ data: data(), styling: layerStyling, ...options });
+  function addHeatmapLayer(layerStyle: HeatmapLayerStyle = style, options: Partial<ConstructorParameters<typeof HeatmapLayer>[0]> = {}) {
+    const layer = new HeatmapLayer({ data: data(), style: layerStyle, ...options });
     mock.map.addLayer(layer);
     return layer;
   }
@@ -61,12 +61,12 @@ describe("HeatmapLayer", () => {
   });
 
   it("requires a colour, and keeps it when reset", () => {
-    expect(() => new HeatmapLayer({ data: data(), styling: {} as HeatmapLayerStyling })).toThrow("`styling.color` is required");
+    expect(() => new HeatmapLayer({ data: data(), style: {} as HeatmapLayerStyle })).toThrow("`style.color` is required");
 
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const layer = addHeatmapLayer();
-    layer.setStyling({ color: undefined });
-    expect(layer.getStyling().color).toBe(ColorRampCollection.MAGMA);
+    layer.setStyle({ color: undefined });
+    expect(layer.getStyle().color).toBe(ColorRampCollection.MAGMA);
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('"color" is required'));
     warn.mockRestore();
   });
@@ -83,7 +83,7 @@ describe("HeatmapLayer", () => {
   });
 
   it("weights points by the property's value when no weight is set", () => {
-    const layer = addHeatmapLayer({ ...styling, property: "mag" });
+    const layer = addHeatmapLayer({ ...style, property: "mag" });
     expect(paintOf(layer)["heatmap-weight"]).toEqual(["max", 0, ["to-number", ["get", "mag"], 0]]);
   });
 
@@ -92,7 +92,7 @@ describe("HeatmapLayer", () => {
     const radius = ["*", 3, ["get", "w"]];
     const intensity = ["interpolate", ["linear"], ["zoom"], 0, 0.5, 10, 2];
     const opacity = ["interpolate", ["linear"], ["zoom"], 0, 0.2, 10, 1];
-    const layer = addHeatmapLayer({ ...styling, weight, radius, intensity, opacity } as HeatmapLayerStyling);
+    const layer = addHeatmapLayer({ ...style, weight, radius, intensity, opacity } as HeatmapLayerStyle);
 
     expect(paintOf(layer)).toMatchObject({ "heatmap-weight": weight, "heatmap-radius": radius, "heatmap-intensity": intensity, "heatmap-opacity": opacity });
   });
@@ -101,7 +101,7 @@ describe("HeatmapLayer", () => {
     const layer = addHeatmapLayer();
     mock.map.addSource.mockClear();
 
-    layer.setStyling({ radius: 20, intensity: 2 });
+    layer.setStyle({ radius: 20, intensity: 2 });
     flushFrames();
 
     expect(mock.map.setPaintProperty).toHaveBeenCalledWith(`${layer.id}-heatmap`, "heatmap-radius", 20);
@@ -110,7 +110,7 @@ describe("HeatmapLayer", () => {
   });
 
   it("refades for a new zoom range", () => {
-    const layer = addHeatmapLayer(styling, { maxzoom: 10, fade: 1 });
+    const layer = addHeatmapLayer(style, { maxzoom: 10, fade: 1 });
     expect(paintOf(layer)["heatmap-opacity"]).toEqual(["interpolate", ["linear"], ["zoom"], 9, 1, 10, 0]);
 
     layer.setZoomRange(0, 12);
@@ -121,7 +121,7 @@ describe("HeatmapLayer", () => {
 
   it("shares its source with a point layer", () => {
     const heatmap = addHeatmapLayer();
-    const points = new PointLayer({ data: heatmap, styling: { color: "#ff0000" } });
+    const points = new PointLayer({ data: heatmap, style: { color: "#ff0000" } });
     mock.map.addLayer(points);
 
     expect(points.getSourceId()).toBe(heatmap.getSourceId());
@@ -131,7 +131,7 @@ describe("HeatmapLayer", () => {
   //#region addHeatmap Parity
 
   describe("matches addHeatmap", () => {
-    const cases: [string, HeatmapLayerStyling][] = [
+    const cases: [string, HeatmapLayerStyle][] = [
       ["a colour ramp", { color: ColorRampCollection.TURBO }],
       ["a ramp to scale", { color: ColorRampCollection.MAGMA.scale(0, 100) }],
       [
@@ -191,15 +191,15 @@ describe("HeatmapLayer", () => {
       ["a fixed intensity and opacity", { color: ColorRampCollection.TURBO, intensity: 0.5, opacity: 0.7 }],
     ];
 
-    it.each(cases)("with %s", (_, layerStyling) => {
+    it.each(cases)("with %s", (_, layerStyle) => {
       const helperMock = createMockStyleMap();
       // the deprecated helper is the reference here, away from the map's zoom limits, where the layer doesn't fade
       // eslint-disable-next-line @typescript-eslint/no-deprecated
-      const ids = addHeatmap(helperMock.asSDKMap(), { data: data(), ...toAddHeatmapOptions(layerStyling), minzoom: 2, maxzoom: 20 });
+      const ids = addHeatmap(helperMock.asSDKMap(), { data: data(), ...toAddHeatmapOptions(layerStyle), minzoom: 2, maxzoom: 20 });
       const helperPaint = (helperMock.map.getLayer(ids.heatmapLayerId) as Sublayer).paint;
 
       // addHeatmap only fades an unset opacity at the zoom range's edges, while the layer fades any opacity
-      const layer = addHeatmapLayer(layerStyling, { minzoom: 2, maxzoom: 20, fade: layerStyling.opacity === undefined ? 0.25 : 0 });
+      const layer = addHeatmapLayer(layerStyle, { minzoom: 2, maxzoom: 20, fade: layerStyle.opacity === undefined ? 0.25 : 0 });
 
       expect(paintOf(layer)).toEqual(helperPaint);
     });

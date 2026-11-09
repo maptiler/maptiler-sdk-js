@@ -9,32 +9,32 @@ import { el, setupMapTilerApiKey } from "./demo-utils";
 setupMapTilerApiKey({ config });
 
 // Exercises the DataLayer base through a throwaway subclass: two paint-path
-// styling props (`color`, `radius`) and one structural prop (`halo`, which
+// style props (`color`, `radius`) and one structural prop (`halo`, which
 // adds a sublayer and so forces a rebuild). Everything else — data, display,
 // events, style swaps — is the base class's own behaviour.
 
 //#region DemoCircleLayer
 
-type DemoStyling = {
+type DemoStyle = {
   color?: string;
   radius?: number;
   halo?: boolean;
 };
 
-class DemoCircleLayer extends DataLayer<DemoStyling, "circles"> {
-  constructor(options: DataLayerConstructorOptions<DemoStyling>) {
+class DemoCircleLayer extends DataLayer<DemoStyle, "circles"> {
+  constructor(options: DataLayerConstructorOptions<DemoStyle>) {
     super("demo-circle-layer", "circles", options);
   }
 
   protected addSublayers(map: SDKMap): void {
-    const styling = this.resolveStyling();
+    const style = this.resolveStyle();
 
-    if (styling.halo) {
+    if (style.halo) {
       this.addSublayer(map, {
         id: `${this.id}-halo`,
         type: "circle",
         source: this.getSourceId(),
-        paint: { "circle-color": styling.color, "circle-radius": (styling.radius ?? 0) * 2.5, "circle-opacity": 0.25 },
+        paint: { "circle-color": style.color, "circle-radius": (style.radius ?? 0) * 2.5, "circle-opacity": 0.25 },
       });
     }
 
@@ -42,28 +42,28 @@ class DemoCircleLayer extends DataLayer<DemoStyling, "circles"> {
       id: `${this.id}-circle`,
       type: "circle",
       source: this.getSourceId(),
-      paint: { "circle-color": styling.color, "circle-radius": styling.radius, "circle-stroke-color": "#fff", "circle-stroke-width": 1 },
+      paint: { "circle-color": style.color, "circle-radius": style.radius, "circle-stroke-color": "#fff", "circle-stroke-width": 1 },
     });
   }
 
-  protected applyStyling(changed: Set<keyof DemoStyling>): boolean {
+  protected applyStyle(changed: Set<keyof DemoStyle>): boolean {
     // adding/removing the halo sublayer is structural
     if (changed.has("halo")) return false;
 
     const map = this.map;
     if (!map) return true;
 
-    const styling = this.resolveStyling();
+    const style = this.resolveStyle();
     for (const layerId of this.getSublayerIds()) {
       const isHalo = layerId.endsWith("-halo");
-      map.setPaintProperty(layerId, "circle-color", styling.color);
-      map.setPaintProperty(layerId, "circle-radius", (styling.radius ?? 0) * (isHalo ? 2.5 : 1));
+      map.setPaintProperty(layerId, "circle-color", style.color);
+      map.setPaintProperty(layerId, "circle-radius", (style.radius ?? 0) * (isHalo ? 2.5 : 1));
     }
     return true;
   }
 
-  protected resolveStyling(): DemoStyling {
-    return { color: "#e63946", radius: 6, halo: false, ...this.styling };
+  protected resolveStyle(): DemoStyle {
+    return { color: "#e63946", radius: 6, halo: false, ...this.style };
   }
 }
 
@@ -108,7 +108,7 @@ async function main() {
 
   await map.onReadyAsync();
 
-  const layer = new DemoCircleLayer({ data: randomPoints(200), styling: { color: el<HTMLInputElement>("color").value } });
+  const layer = new DemoCircleLayer({ data: randomPoints(200), style: { color: el<HTMLInputElement>("color").value } });
 
   //#region Events
 
@@ -152,7 +152,7 @@ async function main() {
         `source: ${String(Boolean(map.getSource(layer.getSourceId())))}`,
         `visible: ${String(layer.isVisible())}  zoom range: ${JSON.stringify(layer.getZoomRange())}`,
         `data: ${typeof data === "string" ? data : `${data.type} (object)`}`,
-        `styling: ${JSON.stringify(layer.getStyling())}`,
+        `style: ${JSON.stringify(layer.getStyle())}`,
         `layer order (of ${String(order.length)}):`,
         ...positions,
       ].join("\n");
@@ -215,22 +215,22 @@ async function main() {
   });
 
   el<HTMLInputElement>("color").addEventListener("input", (e) => {
-    layer.setStyling({ color: (e.target as HTMLInputElement).value });
+    layer.setStyle({ color: (e.target as HTMLInputElement).value });
   });
 
   el<HTMLInputElement>("radius").addEventListener("input", (e) => {
-    layer.setStyling({ radius: Number((e.target as HTMLInputElement).value) });
+    layer.setStyle({ radius: Number((e.target as HTMLInputElement).value) });
   });
 
-  el("reset-styling").addEventListener("click", () => {
-    layer.setStyling({ color: undefined, radius: undefined });
-    log("setStyling({ color: undefined, radius: undefined })");
+  el("reset-style").addEventListener("click", () => {
+    layer.setStyle({ color: undefined, radius: undefined });
+    log("setStyle({ color: undefined, radius: undefined })");
   });
 
   el<HTMLInputElement>("halo").addEventListener("change", (e) => {
     const halo = (e.target as HTMLInputElement).checked;
-    layer.setStyling({ halo });
-    log(`setStyling({ halo: ${String(halo)} }) — rebuild`);
+    layer.setStyle({ halo });
+    log(`setStyle({ halo: ${String(halo)} }) — rebuild`);
   });
 
   el<HTMLInputElement>("visible").addEventListener("change", (e) => {

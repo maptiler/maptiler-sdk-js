@@ -3,8 +3,8 @@ import type { ColorRamp } from "../../ColorRamp";
 import type { PropertyValues, ZoomNumberValues } from "../../helpers/vectorlayerhelpers";
 import { heatmapIntensityFromColorRamp, radiusDrivenByPropertyHeatmap, rampedOptionsToLayerPaintSpec, rampedPropertyValueWeight } from "../../helpers/stylehelper";
 import type { SublayerSpecification } from "../DataLayer";
-import { isExpression } from "../styling";
-import type { HeatmapLayerStyling } from "./types";
+import { isExpression } from "../style";
+import type { HeatmapLayerStyle } from "./types";
 
 // Layer spec for the heatmap. Ported from the `addHeatmap` helper's spec
 // logic — kept as a copy rather than shared, so `addHeatmap` stays frozen. The
@@ -13,7 +13,7 @@ import type { HeatmapLayerStyling } from "./types";
 
 //#region Types
 
-/** Everything besides styling that the heatmap layer depends on. */
+/** Everything besides style that the heatmap layer depends on. */
 export type HeatmapRenderContext = {
   layerId: string;
   sourceId: string;
@@ -44,18 +44,18 @@ const DEFAULT_FIXED_RADIUS = 10;
 
 //#endregion
 
-//#region Styling
+//#region Style
 
 /**
  * Fills in `addHeatmap`'s defaults — all but the colour, which is required.
- * @param styling - Styling as set by the user.
+ * @param style - Style as set by the user.
  */
-export function resolveHeatmapStyling(styling: HeatmapLayerStyling): HeatmapLayerStyling {
-  const zoomCompensation = styling.zoomCompensation ?? true;
+export function resolveHeatmapStyle(style: HeatmapLayerStyle): HeatmapLayerStyle {
+  const zoomCompensation = style.zoomCompensation ?? true;
   return {
-    ...styling,
-    radius: styling.radius ?? (zoomCompensation ? DEFAULT_RADIUS : DEFAULT_FIXED_RADIUS),
-    intensity: styling.intensity ?? DEFAULT_INTENSITY,
+    ...style,
+    radius: style.radius ?? (zoomCompensation ? DEFAULT_RADIUS : DEFAULT_FIXED_RADIUS),
+    intensity: style.intensity ?? DEFAULT_INTENSITY,
     zoomCompensation,
   };
 }
@@ -78,29 +78,29 @@ export function getHeatmapLayerId(layerId: string): string {
 
 /**
  * Builds the heatmap sublayer.
- * @param styling - Resolved styling (see {@link resolveHeatmapStyling}).
+ * @param style - Resolved style (see {@link resolveHeatmapStyle}).
  * @param context - Ids and the zoom range fade.
  */
-export function buildHeatmapLayers(styling: HeatmapLayerStyling, context: HeatmapRenderContext): SublayerSpecification[] {
+export function buildHeatmapLayers(style: HeatmapLayerStyle, context: HeatmapRenderContext): SublayerSpecification[] {
   return [
     {
       id: getHeatmapLayerId(context.layerId),
       type: "heatmap",
       source: context.sourceId,
       paint: {
-        "heatmap-weight": resolveWeight(styling),
-        "heatmap-intensity": resolveIntensity(styling),
-        "heatmap-color": heatmapIntensityFromColorRamp(normalizeHeatmapRamp(styling.color)),
-        "heatmap-radius": resolveRadius(styling),
-        "heatmap-opacity": resolveOpacity(styling, context),
+        "heatmap-weight": resolveWeight(style),
+        "heatmap-intensity": resolveIntensity(style),
+        "heatmap-color": heatmapIntensityFromColorRamp(normalizeHeatmapRamp(style.color)),
+        "heatmap-radius": resolveRadius(style),
+        "heatmap-opacity": resolveOpacity(style, context),
       },
     },
   ];
 }
 
 /** `weight` as set, else `property`'s value, else `1`. */
-function resolveWeight(styling: HeatmapLayerStyling): DataDrivenPropertyValueSpecification<number> {
-  const { weight, property } = styling;
+function resolveWeight(style: HeatmapLayerStyle): DataDrivenPropertyValueSpecification<number> {
+  const { weight, property } = style;
 
   if (typeof weight === "number" || isExpression(weight)) return weight;
   if (weight !== undefined) {
@@ -113,9 +113,9 @@ function resolveWeight(styling: HeatmapLayerStyling): DataDrivenPropertyValueSpe
 }
 
 /** `radius` as set — `PropertyValues` read at `property` — else the zoom-driven default. */
-function resolveRadius(styling: HeatmapLayerStyling): DataDrivenPropertyValueSpecification<number> {
-  const { radius, property } = styling;
-  const zoomCompensation = styling.zoomCompensation ?? true;
+function resolveRadius(style: HeatmapLayerStyle): DataDrivenPropertyValueSpecification<number> {
+  const { radius, property } = style;
+  const zoomCompensation = style.zoomCompensation ?? true;
 
   if (radius === undefined) return zoomCompensation ? rampedOptionsToLayerPaintSpec(DEFAULT_RADIUS) : DEFAULT_FIXED_RADIUS;
   if (typeof radius === "number" || isExpression(radius)) return radius;
@@ -126,15 +126,15 @@ function resolveRadius(styling: HeatmapLayerStyling): DataDrivenPropertyValueSpe
   return rampedOptionsToLayerPaintSpec(DEFAULT_RADIUS);
 }
 
-function resolveIntensity(styling: HeatmapLayerStyling): PropertyValueSpecification<number> {
-  const intensity = styling.intensity ?? DEFAULT_INTENSITY;
+function resolveIntensity(style: HeatmapLayerStyle): PropertyValueSpecification<number> {
+  const intensity = style.intensity ?? DEFAULT_INTENSITY;
   if (typeof intensity === "number" || isExpression(intensity)) return intensity;
   return rampedOptionsToLayerPaintSpec(intensity) as PropertyValueSpecification<number>;
 }
 
 /** `opacity`, else opaque — faded at the zoom range's edges unless it depends on the zoom itself. */
-function resolveOpacity(styling: HeatmapLayerStyling, context: HeatmapRenderContext): PropertyValueSpecification<number> {
-  const { opacity = 1 } = styling;
+function resolveOpacity(style: HeatmapLayerStyle, context: HeatmapRenderContext): PropertyValueSpecification<number> {
+  const { opacity = 1 } = style;
   if (typeof opacity === "number" || isExpression(opacity)) return context.fadeOpacity(opacity) as PropertyValueSpecification<number>;
   return context.fadeOpacity(rampedOptionsToLayerPaintSpec(opacity) as ExpressionSpecification) as PropertyValueSpecification<number>;
 }
