@@ -1738,14 +1738,14 @@ For a full example of how to use this, look at [the example](./demos/11-animated
 
 ### Point Layer
 
-`PointLayer` displays a dataset of points, like the `addPoint` helper (see [Point Layer Helper](#point-layer-helper)), but as a layer that keeps its state: its data, styling and display can be changed at any time after it's added, and it survives style changes. It's added and removed like any other layer:
+`PointLayer` displays a dataset of points, like the `addPoint` helper (see [Point Layer Helper](#point-layer-helper)), but as a layer that keeps its state: its data, style and display can be changed at any time after it's added, and it survives map style changes. It's added and removed like any other layer:
 
 ```ts
 import { Map, PointLayer, ColorRampCollection } from "@maptiler/sdk";
 
 const layer = new PointLayer({
   data: "public-schools.geojson", // GeoJSON, a URL to GeoJSON, or the UUID of a MapTiler dataset
-  styling: {
+  style: {
     property: "students",
     color: ColorRampCollection.PORTLAND.scale(200, 2000), // required in circles mode
   },
@@ -1753,13 +1753,13 @@ const layer = new PointLayer({
 map.addLayer(layer); // or map.addLayer(layer, beforeId)
 
 // later
-layer.setStyling({ opacity: 0.8 }).setZoomRange(4, 22).setVisible(true);
+layer.setStyle({ opacity: 0.8 }).setZoomRange(4, 22).setVisible(true);
 layer.setData(otherSchools);
 
 map.removeLayer(layer.id);
 ```
 
-Changes made in the same frame are applied together, through the cheapest update available. `setStyling()` merges into the current styling, and a key set to `undefined` goes back to its default — except a required one like `color`, which keeps its value. `getStyling()` returns the styling in effect, defaults included.
+Changes made in the same frame are applied together, through the cheapest update available. `setStyle()` merges into the current style, and a key set to `undefined` goes back to its default — except a required one like `color`, which keeps its value. `getStyle()` returns the style in effect, defaults included.
 
 Only Point and MultiPoint features are drawn. Lines and polygons in the data are skipped.
 
@@ -1767,14 +1767,14 @@ Only Point and MultiPoint features are drawn. Lines and polygons in the data are
 
 Points are drawn in one of two modes, fixed when the layer is created:
 
-- `circles` (the default) draws GL circles. Its styling options are the visual options of `addPoint`, with the same meaning and defaults, under the names all data layers share: `color`, `radius`, `minRadius`, `maxRadius` and `opacity` for `addPoint`'s `pointColor`, `pointRadius`, `minPointRadius`, `maxPointRadius` and `pointOpacity`. `color` is required for now, as there's no default colour yet. `color`, `radius` and `opacity` also take a MapLibre expression, used as is.
+- `circles` (the default) draws GL circles. Its style options are the visual options of `addPoint`, with the same meaning and defaults, under the names all data layers share: `color`, `radius`, `minRadius`, `maxRadius` and `opacity` for `addPoint`'s `pointColor`, `pointRadius`, `minPointRadius`, `maxPointRadius` and `pointOpacity`. `color` is required for now, as there's no default colour yet. `color`, `radius` and `opacity` also take a MapLibre expression, used as is.
 - `markers` draws each point as a MapTiler marker image (see [Markers](#markers)), drawn by the map rather than as DOM elements, so it suits larger datasets than `Marker`. A `label` is drawn into each marker, so markers and their labels overlap correctly.
 
 ```ts
 const quakes = new PointLayer({
   mode: "markers",
   data: "earthquakes.geojson",
-  styling: {
+  style: {
     marker: { shape: "bubble-circle", size: "m" }, // unset colours follow the map style
     label: ["number-format", ["get", "mag"], { "max-fraction-digits": 1 }], // a property name, or an expression
     priority: ["get", "mag"], // bigger quakes win where markers collide
@@ -1790,8 +1790,8 @@ Each distinct label is drawn as its own image, so labels should have a modest nu
 
 - `always-show`: every point shows. Nearer markers are drawn over further ones.
 - `hide-by-priority` (markers only): a marker overlapping a higher-`priority` one is hidden.
-- `minimize-by-priority` (markers only, and their default): a marker overlapping a higher-`priority` one shrinks to a dot. `styling.minimized` changes how the dot looks.
-- `cluster`: nearby points are grouped into clusters showing their count. In markers mode, `styling.clusterMarker` sets the cluster markers' look.
+- `minimize-by-priority` (markers only, and their default): a marker overlapping a higher-`priority` one shrinks to a dot. `style.minimized` changes how the dot looks.
+- `cluster`: nearby points are grouped into clusters showing their count. In markers mode, `style.clusterMarker` sets the cluster markers' look.
 
 Circles default to `always-show`. Marker collisions use the map's own symbol placement, so markers also collide with the style's labels and icons placed before them, and priority applies within a tile rather than across the whole map.
 
@@ -1802,6 +1802,24 @@ layer.on("click", (e) => console.log(e.features?.[0]?.properties)); // also mous
 layer.on("dataloading", () => showSpinner());
 layer.on("data", () => hideSpinner()); // once per load
 layer.on("error", (e) => console.error(e.error));
+
+layer.on("stylechange", (e) => console.log(e.keys, e.style)); // keys set since the last stylechange, and the style in effect
+layer.on("zoomrangechange", (e) => console.log(e.minzoom, e.maxzoom, e.fade));
+layer.on("visibilitychange", (e) => console.log(e.visible));
+layer.on("move", (e) => console.log(e.beforeId)); // after map.moveLayer(layer.id, beforeId)
+layer.on("add", (e) => console.log(e.map));
+layer.on("remove", (e) => console.log(e.map)); // also when the map itself is removed
+```
+
+`stylechange`, `zoomrangechange` and `visibilitychange` fire once the change shows on the map, at the next frame, with one event for all the changes made in that frame. `zoomrangechange` and `visibilitychange` only fire when the value differs from the last one reported. Changes made before the layer is added fire nothing, as `add` covers them. Putting itself back after `map.setStyle()` fires none of `add`, `remove` or `move`.
+
+#### Moving data layers
+
+A data layer draws through style layers placed directly beneath it. `map.moveLayer(layer.id, beforeId)` moves them together, and passing a data layer's id as the `beforeId` of `map.addLayer()` or `map.moveLayer()` places the other layer beneath everything the data layer draws.
+
+```ts
+map.moveLayer(heatmap.id, firstSymbolLayerId); // beneath the labels
+map.moveLayer(points.id, heatmap.id); // the points go beneath the heatmap
 ```
 
 #### Zoom range fade
@@ -1809,7 +1827,7 @@ layer.on("error", (e) => console.error(e.error));
 A data layer fades in after its `minzoom` and out before its `maxzoom`, over `fade` zooms (`0.25` by default, `0` turns it off), except at zoom `0` and `24`, the map's own limits. The fade applies to a fixed or data-driven opacity. An opacity zoom ramp, or an opacity expression that reads the zoom, replaces it.
 
 ```ts
-const layer = new PointLayer({ data, styling: { color: "#e63946" }, minzoom: 8, fade: 1 });
+const layer = new PointLayer({ data, style: { color: "#e63946" }, minzoom: 8, fade: 1 });
 layer.setZoomRange(6, 22, 2); // the fade can change with the range
 ```
 
@@ -1818,20 +1836,20 @@ layer.setZoomRange(6, 22, 2); // the fade can change with the range
 A data layer can draw another data layer's source, by being given that layer as its `data`. The data is then loaded and parsed once, and `setData()` on either layer updates both. The source stays on the map while any layer drawing it does. A clustered layer can't share its source, as clustering changes the source.
 
 ```ts
-const quakes = new PointLayer({ data: "earthquakes.geojson", styling: { color: "#e63946" } });
-const labels = new PointLayer({ mode: "markers", data: quakes, styling: { label: "mag" }, minzoom: 10 });
+const quakes = new PointLayer({ data: "earthquakes.geojson", style: { color: "#e63946" } });
+const labels = new PointLayer({ mode: "markers", data: quakes, style: { label: "mag" }, minzoom: 10 });
 ```
 
 ### Heatmap Layer
 
-`HeatmapLayer` draws a heatmap of points, like the `addHeatmap` helper (see [Heatmap Layer Helper](#heatmap-layer-helper)), but as a layer that keeps its state, as `PointLayer` does. Its styling options are those of `addHeatmap`, with the same meaning and defaults, and `colorRamp` named `color`, as for all data layers. `color` is required for now, as there's no default ramp yet.
+`HeatmapLayer` draws a heatmap of points, like the `addHeatmap` helper (see [Heatmap Layer Helper](#heatmap-layer-helper)), but as a layer that keeps its state, as `PointLayer` does. Its style options are those of `addHeatmap`, with the same meaning and defaults, and `colorRamp` named `color`, as for all data layers. `color` is required for now, as there's no default ramp yet.
 
 ```ts
 import { Map, HeatmapLayer, ColorRampCollection } from "@maptiler/sdk";
 
 const heatmap = new HeatmapLayer({
   data: "earthquakes.geojson",
-  styling: {
+  style: {
     color: ColorRampCollection.MAGMA, // read along the density, scaled to [0, 1] with a transparent start
     property: "mag", // each quake weighs its magnitude
   },
@@ -1841,7 +1859,7 @@ const heatmap = new HeatmapLayer({
 const firstSymbolLayerId = map.getStyle().layers.find((layer) => layer.type === "symbol")?.id;
 map.addLayer(heatmap, firstSymbolLayerId);
 
-heatmap.setStyling({ radius: 25, intensity: 1.5 });
+heatmap.setStyle({ radius: 25, intensity: 1.5 });
 ```
 
 `property` on its own weights each point by its value, missing and negative values counting as `0`. A `weight` of `PropertyValues` maps the property's values to weights instead, as in `addHeatmap`. `weight`, `radius`, `intensity` and `opacity` also take MapLibre expressions. Only Point and MultiPoint features are drawn.
@@ -1855,13 +1873,13 @@ Zoomed in, a heatmap is usually replaced by its points. Draw them with a `PointL
 ```ts
 const heatmap = new HeatmapLayer({
   data: "earthquakes.geojson",
-  styling: { color: ColorRampCollection.MAGMA, property: "mag" },
+  style: { color: ColorRampCollection.MAGMA, property: "mag" },
   maxzoom: 9.5,
   fade: 1,
 });
 const points = new PointLayer({
   data: heatmap, // the heatmap's source
-  styling: { color: ColorRampCollection.MAGMA.scale(0, 8), property: "mag" },
+  style: { color: ColorRampCollection.MAGMA.scale(0, 8), property: "mag" },
   minzoom: 8.5,
   fade: 1,
 });
@@ -2052,7 +2070,7 @@ All the other options are documented on [our reference page](https://docs.maptil
 #### Point Layer Helper
 
 > [!WARNING]
-> `helpers.addPoint` is deprecated. Use [`PointLayer`](#point-layer) instead: it takes the same styling options under shorter names (`color` for `pointColor`, …), and can be updated after it's added.
+> `helpers.addPoint` is deprecated. Use [`PointLayer`](#point-layer) instead: it takes the same style options under shorter names (`color` for `pointColor`, …), and can be updated after it's added.
 
 A point visualization may appear like the simplest of all, but we noticed this is where people get the most creative: cluster, data-driven variable radius, but also scaled with zoom, with or without labels, data-driven colors, etc. Our helper supports all of these and will fill-in with built-in default for what's missing.
 
@@ -2103,7 +2121,7 @@ All the other options are documented on [our reference page](https://docs.maptil
 #### Heatmap Layer Helper
 
 > [!WARNING]
-> `helpers.addHeatmap` is deprecated. Use [`HeatmapLayer`](#heatmap-layer) instead: it takes the same styling options (`color` for `colorRamp`), and can be updated after it's added.
+> `helpers.addHeatmap` is deprecated. Use [`HeatmapLayer`](#heatmap-layer) instead: it takes the same style options (`color` for `colorRamp`), and can be updated after it's added.
 
 The heatmap layer is a great alternative for visualizing a collection of sparse data, but it can be challenging to use, especially when one has to come up with their own color ramp from scratch. **The helper makes this much easier!**
 

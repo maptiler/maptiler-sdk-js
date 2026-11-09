@@ -24,17 +24,19 @@
   - Hover, focus, press and drag states, smooth transitions when properties change, and enter, idle and exit animations.
   - Experimental altitude: raise markers above the ground or sea level, with an optional line down to the ground.
   - Markers are managed through the map with `map.addMarker()`, `map.getMarker()` and `map.removeMarker()`.
-- Introduces `PointLayer`, a stateful layer of points and the successor to `helpers.addPoint`. It's added with `map.addLayer()`, and its data, styling, visibility and zoom range can be changed after it's added, applied together once per frame. It survives `setStyle()`.
-  - `circles` mode draws GL circles, with the styling options and defaults of `addPoint` under the data layers' shared names (`color`, `radius`, `minRadius`, `maxRadius`, `opacity`). `color` is required, and `color`, `radius` and `opacity` also take MapLibre expressions. Labels too big for their circle are hidden.
+- Introduces `PointLayer`, a stateful layer of points and the successor to `helpers.addPoint`. It's added with `map.addLayer()`, and its data, style, visibility and zoom range can be changed after it's added, applied together once per frame. It survives `map.setStyle()`.
+  - `circles` mode draws GL circles, with the style options and defaults of `addPoint` under the data layers' shared names (`color`, `radius`, `minRadius`, `maxRadius`, `opacity`). `color` is required, and `color`, `radius` and `opacity` also take MapLibre expressions. Labels too big for their circle are hidden.
   - Draws Point and MultiPoint features only.
   - `markers` mode draws each point as a MapTiler marker image, with an optional label drawn into the marker, so markers and labels overlap correctly.
   - Collision behaviours: `always-show`, `cluster`, and in markers mode `hide-by-priority` and `minimize-by-priority` (the markers default), ranked by a `priority` number or expression.
   - Fires `dataloading`, `data` and `error` once per load, and forwards `click`, `mouseenter`, `mouseleave` and `mousemove` on its points.
   - Built on `DataLayer`, a base class for upcoming data layers.
-- Introduces `HeatmapLayer`, a stateful heatmap of points and the successor to `helpers.addHeatmap`, with its styling options and defaults under the data layers' shared names (`color` for `colorRamp`).
+- Introduces `HeatmapLayer`, a stateful heatmap of points and the successor to `helpers.addHeatmap`, with its style options and defaults under the data layers' shared names (`color` for `colorRamp`).
   - `property` on its own weights each point by its value. `weight`, `radius`, `intensity` and `opacity` also take MapLibre expressions.
 - Data layers fade in and out at the edges of their zoom range, over a `fade` span set in the constructor or with `setZoomRange()`, so a heatmap can cross-fade into a `PointLayer` drawn from its source.
 - Data layers can share another data layer's source, given as their `data`, loading the data once.
+- Data layers fire `stylechange`, `zoomrangechange` and `visibilitychange` once a change shows on the map, `add` and `remove` when added to or removed from a map, and `move` when moved.
+- `map.moveLayer()` moves a data layer together with the style layers it draws through, and a layer added or moved before a data layer goes beneath all of them.
 - Adds `map.addMissingStyleImageResolver()` and `map.removeMissingStyleImageResolver()`, so several missing-image resolvers can run side by side. A resolver set with `setMissingStyleImageResolver()` is tried after them, rather than replacing them.
 - Adds bundler helper entry points that set the MapLibre worker URL from a locally bundled worker:
   - `@maptiler/sdk/vite-worker` for Vite
