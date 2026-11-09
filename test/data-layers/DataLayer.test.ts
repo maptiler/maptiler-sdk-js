@@ -5,6 +5,7 @@ import type { SourceSpecification } from "maplibre-gl";
 import type { Map as SDKMap } from "../../src/Map";
 import { config } from "../../src/config";
 import { DataLayer, type DataLayerConstructorOptions, type SublayerSpecification } from "../../src/data-layers/DataLayer";
+import { moveLayerWithSublayers, resolveBeforeId } from "../../src/data-layers/registry";
 import { createMockStyleMap, type MockStyleMap } from "./mock-style-map";
 
 //#region Test Layer
@@ -155,6 +156,17 @@ describe("DataLayer", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
+
+  /** Routes the mock's `addLayer` and `moveLayer` through the data layer registry, as the SDK map's do. */
+  function routeThroughRegistry() {
+    const add = mock.map.addLayer.getMockImplementation() as (layer: { id: string }, beforeId?: string) => unknown;
+    const move = mock.map.moveLayer.getMockImplementation() as (id: string, beforeId?: string) => unknown;
+    mock.map.addLayer.mockImplementation((layer: { id: string }, beforeId?: string) => add(layer, resolveBeforeId(mock.map, beforeId, layer.id)));
+    mock.map.moveLayer.mockImplementation((id: string, beforeId?: string) => {
+      moveLayerWithSublayers(mock.map, id, beforeId, move);
+      return mock.map;
+    });
+  }
 
   function addLayer(options: Partial<DataLayerConstructorOptions<TestStyle>> = {}, beforeId?: string) {
     const layer = new TestLayer({ data: emptyData(), ...options });
@@ -834,6 +846,191 @@ describe("DataLayer", () => {
 
       expect(mock.listenerCount("style.load")).toBe(1);
       expect(mock.listenerCount("sourcedata")).toBe(1);
+    });
+  });
+
+  //#endregion
+
+  //#region Change Events
+
+  describe("change events", () => {
+    it("fires stylechange once per flush, after the map shows it, with every key set", () => {
+      const layer = addLayer();
+      const listener = vi.fn();
+      layer.on("stylechange", listener);
+
+      layer.setStyle({ color: "#0000ff" }).setStyle({ halo: true });
+      expect(listener).not.toHaveBeenCalled();
+
+      flushFrames();
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(listener).toHaveBeenCalledWith({ type: "stylechange", target: layer, keys: ["color", "halo"], style: { color: "#0000ff", halo: true } });
+      expect(mock.map.getLayer(`${layer.id}-halo`)).toBeDefined();
+    });
+
+    it("fires zoomrangechange and visibilitychange with the new values", () => {
+      const layer = addLayer();
+      const onZoomRange = vi.fn();
+      const onVisibility = vi.fn();
+      layer.on("zoomrangechange", onZoomRange).on("visibilitychange", onVisibility);
+
+      layer.setZoomRange(2, 10, 1).setVisible(false);
+      flushFrames();
+
+      expect(onZoomRange).toHaveBeenCalledWith({ type: "zoomrangechange", target: layer, minzoom: 2, maxzoom: 10, fade: 1 });
+      expect(onVisibility).toHaveBeenCalledWith({ type: "visibilitychange", target: layer, visible: false });
+    });
+
+    it("doesn't fire for display state set back to what it was", () => {
+      const layer = addLayer({ minzoom: 2, maxzoom: 10 });
+      const onZoomRange = vi.fn();
+      const onVisibility = vi.fn();
+      layer.on("zoomrangechange", onZoomRange).on("visibilitychange", onVisibility);
+
+      layer.setVisible(false).setVisible(true).setZoomRange(2, 10);
+      flushFrames();
+
+      expect(onZoomRange).not.toHaveBeenCalled();
+      expect(onVisibility).not.toHaveBeenCalled();
+    });
+
+    it("doesn't fire for changes made before the layer was added", () => {
+      const layer = new TestLayer({ data: emptyData() });
+      const listener = vi.fn();
+      layer.on("stylechange", listener).on("visibilitychange", listener).on("zoomrangechange", listener);
+
+      layer.setStyle({ color: "#00ff00" }).setVisible(false).setZoomRange(1, 5);
+      mock.map.addLayer(layer);
+      flushFrames();
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it("drops the events of a flush cancelled by removal", () => {
+      const layer = addLayer();
+      const listener = vi.fn();
+      layer.on("visibilitychange", listener);
+
+      layer.setVisible(false);
+      mock.map.removeLayer(layer.id);
+      flushFrames();
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+  });
+
+  //#endregion
+
+  //#region Add & Remove Events
+
+  describe("add and remove events", () => {
+    it("fires add and remove with the map", () => {
+      const layer = new TestLayer({ data: emptyData() });
+      const onAdd = vi.fn();
+      const onRemove = vi.fn();
+      layer.on("add", onAdd).on("remove", onRemove);
+
+      mock.map.addLayer(layer);
+      expect(onAdd).toHaveBeenCalledWith({ type: "add", target: layer, map: mock.map });
+      // sublayers are in place by the time it fires
+      expect(mock.map.getLayer(`${layer.id}-circle`)).toBeDefined();
+
+      mock.map.removeLayer(layer.id);
+      expect(onRemove).toHaveBeenCalledWith({ type: "remove", target: layer, map: mock.map });
+    });
+
+    it("fires remove when the map is removed", () => {
+      const layer = addLayer();
+      const onRemove = vi.fn();
+      layer.on("remove", onRemove);
+
+      mock.fire("remove");
+
+      expect(onRemove).toHaveBeenCalledTimes(1);
+    });
+
+    it("doesn't fire add, remove or move when it puts itself back after setStyle", () => {
+      const layer = addLayer({}, "labels");
+      const listener = vi.fn();
+      layer.on("add", listener).on("remove", listener).on("move", listener);
+      routeThroughRegistry();
+
+      mock.setStyle(["base", "labels"], { diff: false });
+      mock.setStyle(["base", "labels"], { diff: true });
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+  });
+
+  //#endregion
+
+  //#region Moving
+
+  describe("moving", () => {
+    beforeEach(routeThroughRegistry);
+
+    const moveLayer = (id: string, beforeId?: string) => {
+      mock.map.moveLayer(id, beforeId);
+    };
+
+    it("moves a data layer together with its sublayers, and fires move", () => {
+      const layer = addLayer({ style: { halo: true } });
+      const onMove = vi.fn();
+      layer.on("move", onMove);
+
+      moveLayer(layer.id, "labels");
+
+      expect(mock.map.getLayersOrder()).toEqual(["base", `${layer.id}-halo`, `${layer.id}-circle`, layer.id, "labels"]);
+      expect(onMove).toHaveBeenCalledWith({ type: "move", target: layer, beforeId: "labels" });
+    });
+
+    it("moves a data layer to the top without a beforeId", () => {
+      const layer = addLayer({}, "base");
+
+      moveLayer(layer.id);
+
+      expect(mock.map.getLayersOrder()).toEqual(["base", "labels", `${layer.id}-circle`, layer.id]);
+    });
+
+    it("places a layer moved or added before a data layer beneath its sublayers", () => {
+      const below = addLayer();
+      const layer = addLayer({ style: { halo: true } });
+
+      moveLayer(below.id, layer.id);
+      mock.map.addLayer({ id: "plain", type: "background" }, layer.id);
+
+      expect(mock.map.getLayersOrder()).toEqual(["base", "labels", `${below.id}-circle`, below.id, "plain", `${layer.id}-halo`, `${layer.id}-circle`, layer.id]);
+    });
+
+    it("leaves other layers' moves as they were", () => {
+      const layer = addLayer();
+      const onMove = vi.fn();
+      layer.on("move", onMove);
+
+      moveLayer("base");
+
+      expect(mock.map.getLayersOrder()).toEqual(["labels", `${layer.id}-circle`, layer.id, "base"]);
+      expect(onMove).not.toHaveBeenCalled();
+    });
+
+    it("keeps its new position across a full setStyle", () => {
+      const layer = addLayer();
+
+      moveLayer(layer.id, "labels");
+      mock.setStyle(["base", "labels"], { diff: false });
+
+      expect(mock.map.getLayersOrder()).toEqual(["base", `${layer.id}-circle`, layer.id, "labels"]);
+    });
+
+    it("remembers a data layer above it by its id, not its sublayer, across a full setStyle", () => {
+      const above = addLayer();
+      const layer = addLayer();
+
+      moveLayer(layer.id, above.id);
+      mock.setStyle(["base", "labels"], { diff: false });
+
+      // both rebuild — whichever goes first, this one ends up beneath the other's sublayers
+      expect(mock.map.getLayersOrder()).toEqual(["base", "labels", `${layer.id}-circle`, layer.id, `${above.id}-circle`, above.id]);
     });
   });
 
