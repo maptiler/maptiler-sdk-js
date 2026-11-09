@@ -15,6 +15,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { Map as SDKMap } from "../Map";
 import { config } from "../config";
 import { isUUID } from "../tools";
+import { findSublayerOwner, registerDataLayer, unregisterDataLayer } from "./registry";
 import { fadeAtZoomEdges, usesZoom } from "./style";
 
 //#region Types
@@ -67,7 +68,17 @@ export type DataLayerConstructorOptions<TStyle extends object> = {
 /** Pointer events forwarded from the layer's sublayers. */
 export type DataLayerMouseEventType = "click" | "mouseenter" | "mouseleave" | "mousemove";
 
-/** Event payloads keyed by event type. `TTarget` is the layer firing them. */
+/** The style type of a data layer. */
+type StyleOf<TTarget> = TTarget extends { getStyle(): infer TStyle } ? TStyle : Record<string, unknown>;
+
+/**
+ * Event payloads keyed by event type. `TTarget` is the layer firing them.
+ *
+ * The change events (`stylechange`, `zoomrangechange`, `visibilitychange`)
+ * fire once the change shows on the map — at the next animation frame, once
+ * for all the changes made since — and not for changes made while the layer
+ * isn't on a map.
+ */
 export type DataLayerEventMap<TTarget> = Record<DataLayerMouseEventType, MapLayerMouseEvent> & {
   /** The source started loading data. */
   dataloading: { type: "dataloading"; target: TTarget };
@@ -75,6 +86,18 @@ export type DataLayerEventMap<TTarget> = Record<DataLayerMouseEventType, MapLaye
   data: { type: "data"; target: TTarget };
   /** The source failed to load data. */
   error: { type: "error"; target: TTarget; error: Error };
+  /** The style was applied. `keys` are the keys set since the last `stylechange`, `style` the style now in effect. */
+  stylechange: { type: "stylechange"; target: TTarget; keys: (keyof StyleOf<TTarget>)[]; style: StyleOf<TTarget> };
+  /** A different zoom range or fade was applied. */
+  zoomrangechange: { type: "zoomrangechange"; target: TTarget; minzoom: number; maxzoom: number; fade: number };
+  /** The layer was shown or hidden. */
+  visibilitychange: { type: "visibilitychange"; target: TTarget; visible: boolean };
+  /** The layer was moved in the map's layer order with `map.moveLayer`, which moves its sublayers too. `beforeId` is as passed to it. */
+  move: { type: "move"; target: TTarget; beforeId: string | undefined };
+  /** The layer was added to a map — not when it re-adds itself after `map.setStyle()`. */
+  add: { type: "add"; target: TTarget; map: SDKMap };
+  /** The layer was removed from its map, or the map was removed. */
+  remove: { type: "remove"; target: TTarget; map: SDKMap };
 };
 
 export type DataLayerEventType = keyof DataLayerEventMap<unknown>;
@@ -139,8 +162,14 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
   private isFadeSet: boolean;
   private hasWarnedFadeReplaced = false;
 
-  /** Layer the controller sat beneath when last added, used to restore its position after a full rebuild of the map's style. */
+  /** Layer the controller sat beneath when last added or moved, used to restore its position after a full rebuild of the map's style. */
   private beforeId: string | undefined;
+
+  /** Display state as the last change events reported it, so applying an unchanged value fires nothing. */
+  private notified = { visible: true, minzoom: 0, maxzoom: 24, fade: DEFAULT_FADE };
+
+  /** True while the layer puts itself back after `map.setStyle()` — no `add` or `move` then, as nothing changed for the user. */
+  private isRestoring = false;
 
   private pending: PendingDataLayerUpdates<TStyle> = createPendingUpdates();
   private animationFrameID: number | null = null;
@@ -250,11 +279,15 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
   //#region CustomLayerInterface
 
   onAdd(map: MapLibreMap): void {
-    this.map = map as SDKMap;
-
-    // remember our position so a full style rebuild can restore it
-    const order = this.map.getLayersOrder();
-    this.beforeId = order[order.indexOf(this.id) + 1];
+    const sdkMap = map as SDKMap;
+    this.map = sdkMap;
+    this.rememberPosition();
+    registerDataLayer(sdkMap, this.id, {
+      getSublayerIds: () => this.getSublayerIds(),
+      onMove: (beforeId) => {
+        this.onMove(beforeId);
+      },
+    });
 
     this.isAdding = true;
     try {
@@ -263,15 +296,24 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     } finally {
       this.isAdding = false;
     }
+
+    // changes made before now are part of the add, not changes of their own
+    this.notified = { visible: this.visible, minzoom: this.minzoom, maxzoom: this.maxzoom, fade: this.fade };
+    if (!this.isRestoring) this.fire("add", { type: "add", target: this, map: sdkMap });
   }
 
   /** Only called when the user removes the layer — `map.setStyle()` never removes custom layers by diffing, and a full rebuild drops them without calling this. */
   onRemove(): void {
+    const map = this.map;
     this.cancelFlush();
     this.heldDataEvents = null;
     this.teardown();
     this.unbindMapListeners();
     this.map = null;
+    if (map) {
+      unregisterDataLayer(map, this.id);
+      this.fire("remove", { type: "remove", target: this, map });
+    }
   }
 
   render(): void {
@@ -420,17 +462,23 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
    * visibility and zoom range applied.
    */
   protected addSublayer(map: SDKMap, layer: SublayerSpecification): void {
-    map.addLayer(
-      {
-        ...layer,
-        ...this.withGeometryFilter(layer.filter),
-        minzoom: this.minzoom,
-        maxzoom: this.maxzoom,
-        layout: { ...layer.layout, visibility: this.visible ? "visible" : "none" },
-      } as LayerSpecification,
-      this.id,
-    );
+    // listed first, so the map knows it for ours and places it straight beneath the controller
     this.sublayerSpecs.push(layer);
+    try {
+      map.addLayer(
+        {
+          ...layer,
+          ...this.withGeometryFilter(layer.filter),
+          minzoom: this.minzoom,
+          maxzoom: this.maxzoom,
+          layout: { ...layer.layout, visibility: this.visible ? "visible" : "none" },
+        } as LayerSpecification,
+        this.id,
+      );
+    } catch (error) {
+      this.sublayerSpecs.pop();
+      throw error;
+    }
   }
 
   /**
@@ -543,16 +591,38 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
 
     const beforeId = this.beforeId && map.getLayer(this.beforeId) ? this.beforeId : undefined;
 
-    if (map.getLayer(this.id)) {
-      map.moveLayer(this.id, beforeId);
-      this.build();
-      return;
-    }
+    this.isRestoring = true;
+    try {
+      if (map.getLayer(this.id)) {
+        map.moveLayer(this.id, beforeId);
+        this.build();
+        return;
+      }
 
-    // detach first — onAdd rebinds everything
-    this.unbindMapListeners();
-    map.addLayer(this, beforeId);
+      // detach first — onAdd rebinds everything
+      this.unbindMapListeners();
+      map.addLayer(this, beforeId);
+    } finally {
+      this.isRestoring = false;
+    }
   };
+
+  /** Notes the layer the controller now sits beneath — a data layer's id rather than one of its sublayers, which a map style change rebuilds. */
+  private rememberPosition(): void {
+    const map = this.map;
+    if (!map) return;
+    const order = map.getLayersOrder();
+    const above = order.at(order.indexOf(this.id) + 1);
+    this.beforeId = above === undefined ? undefined : (findSublayerOwner(map, above) ?? above);
+  }
+
+  /** Called by the map once `map.moveLayer` has moved the controller and its sublayers. */
+  private onMove(beforeId: string | undefined): void {
+    // putting itself back after map.setStyle isn't a move — and the remembered position must survive it
+    if (this.isRestoring) return;
+    this.rememberPosition();
+    this.fire("move", { type: "move", target: this, beforeId });
+  }
 
   //#endregion
 
@@ -585,17 +655,43 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
 
     if (needsRebuild) {
       this.build();
-      return;
+    } else {
+      if (pending.data) {
+        void map.getSource<GeoJSONSource>(this.getSourceId())?.setData(this.resolveSourceData());
+      }
+
+      for (const layerId of this.getSublayerIds()) {
+        if (!map.getLayer(layerId)) continue;
+        if (pending.visibility) map.setLayoutProperty(layerId, "visibility", this.visible ? "visible" : "none");
+        if (pending.zoomRange) map.setLayerZoomRange(layerId, this.minzoom, this.maxzoom);
+      }
     }
 
-    if (pending.data) {
-      void map.getSource<GeoJSONSource>(this.getSourceId())?.setData(this.resolveSourceData());
+    this.fireChangeEvents(pending);
+  }
+
+  /** Reports what a flush applied — style whenever keys were set, display state only when it differs from what was last reported. */
+  private fireChangeEvents(pending: PendingDataLayerUpdates<TStyle>): void {
+    if (pending.style.size > 0) {
+      this.fire("stylechange", {
+        type: "stylechange",
+        target: this,
+        keys: [...pending.style],
+        style: this.getStyle(),
+      } as unknown as DataLayerEventMap<this>["stylechange"]);
     }
 
-    for (const layerId of this.getSublayerIds()) {
-      if (!map.getLayer(layerId)) continue;
-      if (pending.visibility) map.setLayoutProperty(layerId, "visibility", this.visible ? "visible" : "none");
-      if (pending.zoomRange) map.setLayerZoomRange(layerId, this.minzoom, this.maxzoom);
+    const { minzoom, maxzoom, fade, visible } = this;
+    const notified = this.notified;
+
+    if (minzoom !== notified.minzoom || maxzoom !== notified.maxzoom || fade !== notified.fade) {
+      this.notified = { ...this.notified, minzoom, maxzoom, fade };
+      this.fire("zoomrangechange", { type: "zoomrangechange", target: this, minzoom, maxzoom, fade });
+    }
+
+    if (visible !== notified.visible) {
+      this.notified = { ...this.notified, visible };
+      this.fire("visibilitychange", { type: "visibilitychange", target: this, visible });
     }
   }
 
@@ -641,6 +737,8 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
       this.boundMapListeners.length = 0;
       this.sublayerSpecs = [];
       this.map = null;
+      unregisterDataLayer(map, this.id);
+      this.fire("remove", { type: "remove", target: this, map });
     };
 
     this.bindMapListener("style.load", this.onStyleLoad);
