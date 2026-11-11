@@ -1,0 +1,11 @@
+{
+  "title": "Markers: canvas parity",
+  "description": "Compares DOM markers with their canvas-drawn equivalents, shape by shape.",
+  "type": "playground",
+  "topics": [
+    "markers"
+  ],
+  "createdWith": "5.0.0-rc.4",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

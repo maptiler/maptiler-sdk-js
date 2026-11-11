@@ -1,0 +1,11 @@
+{
+  "title": "Available color ramps",
+  "description": "Displays every built-in color ramp, plus rescaled and resampled variants.",
+  "type": "example",
+  "topics": [
+    "color-ramps"
+  ],
+  "createdWith": "3.2.4",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

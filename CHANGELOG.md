@@ -35,8 +35,24 @@
   - `@maptiler/sdk/vite-worker` for Vite
   - `@maptiler/sdk/webpack-worker` for webpack
   - `@maptiler/sdk/next-worker` and `withMaptilerWorker` from `@maptiler/sdk/next` for Next.js
+- Adds a self-contained ES module build on the MapTiler CDN, `maptiler-sdk.min.mjs`, to import the SDK straight from a browser without a bundler:
+  - `import { Map, config } from "https://cdn.maptiler.com/maptiler-sdk-js/v<version>/maptiler-sdk.min.mjs";`
+  - All dependencies, MapLibre included, are bundled, and the MapLibre worker is loaded from the same folder. When self-hosting it, `maplibre-gl-worker.mjs` and `maplibre-gl-shared.mjs` must be served alongside it, as for the UMD build.
+  - As with the UMD bundle, sites with a Content Security Policy need `worker-src 'self' blob: https://cdn.maptiler.com`.
 - SDK custom events (e.g. `ready`, `loadWithTerrain`, `projection.change`) are now typed in `on`, `once`, `off` and `fire`. Adds the `MaptilerMapEventType` and `MapEventTypeSDK` types.
 - Events of `CubemapLayer` (`cubemaplayer:*`), `RadialGradientLayer` (`radialgradientlayer:*`) and `ImageViewerMarker` are now typed.
+
+### 🐛 Bug Fixes
+- Fixes `ImageViewer` event types under MapLibre 6, where listeners typed with `ImageViewerEvent` were rejected by `on`, `once` and `off`.
+  - `ImageViewer` is now typed over an event map, `ImageViewerEventType`, and `ImageViewerEvent` extends MapLibre's `Event`.
+  - `imagevieweriniterror` is typed separately as `ImageViewerInitErrorEvent`, carrying `{ error: Error }`.
+  - `imageviewerready`, `beforeremove` and `error` listeners now receive the `ImageViewerEvent` instance itself, rather than a plain copy.
+- Fixes the target of MapLibre events (`load`, `click`, `move`, …) on the SDK `Map` being typed as MapLibre's `Map`, which rejected listeners using SDK members such as `telemetry` or `getSpace()`.
+  - `on`, `once` and `off` now type every event's target as the SDK `Map`, layer events included.
+  - Adds the `MapEventSDK` and `MapLayerEventSDK` types, for typing listeners by event name.
+- Moves `eslint-plugin-compat` from `dependencies` to `devDependencies`. It's only used to lint the SDK, but installing the SDK pulled ESLint and its dependencies into consumers' production dependency trees, where `npm audit --omit=dev` reported their advisories ([#392](https://github.com/maptiler/maptiler-sdk-js/issues/392)).
+- Fixes an `error` event, `Cannot remove non-existing layer "Halo Layer"`, fired on map load when a halo is enabled through the `halo` map option or the style metadata.
+  - The `Minimap` no longer inherits the parent map's `space` and `halo` options.
 
 ### ⚙️ Others
 - Deprecates `helpers.addPoint` in favour of `PointLayer`.
@@ -44,6 +60,8 @@
 - Switches internal `maplibre-gl` imports to named imports.
 - Documents worker setup per bundler, CSP requirements, self-hosted UMD worker files and TypeScript `moduleResolution` in the README.
 - Updates dependencies to resolve `npm audit` vulnerabilities, including dev dependency bumps to `vitest` 5, `@vitest/web-worker` 5, `vite-plugin-dts` 5 and `lint-staged` 17.
+- Telemetry now reports the SDK build format (`umd`, `esm-cdn`, `es` or `dev`) as `buildFormat`.
+- Restructures the in-repo demos into short examples grouped by topic, showcases and playgrounds, each with metadata (type, topics, SDK version it was created with and last checked against), listed in a README index generated from the metadata and checked in CI. Their controls use `lil-gui` (new dev dependency), and a console panel shows their console output on the page, both in a column at the top left with the performance stats. They read the MapTiler API key from `VITE_MAPTILER_API_KEY` in a git-ignored `.env.local` file, which the dev server warns about at startup when missing. The `@maptiler/3d` dev dependency, used by a demo only, is removed.
 
 ## 4.2.0
 

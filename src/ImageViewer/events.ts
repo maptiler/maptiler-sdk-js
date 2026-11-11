@@ -1,26 +1,37 @@
 import { Map } from "../Map";
 import ImageViewer from "./ImageViewer";
-import type { LngLat, MapEventType } from "maplibre-gl";
+import { Event as EventML, type LngLat, type MapEventType } from "maplibre-gl";
 
-export class ImageViewerEvent {
-  readonly type: string;
-  readonly target: ImageViewer;
-  readonly originalEvent: MouseEvent | TouchEvent | WheelEvent | WebGLContextEvent | null;
+type ImageViewerOriginalEvent = MouseEvent | TouchEvent | WheelEvent | WebGLContextEvent | null;
+
+// Since MapLibre v6, `Evented` is generic over an event map whose events extend
+// its `Event` class — as ImageViewerMarkerEvent does
+export class ImageViewerEvent extends EventML<ImageViewerEventTypes> {
+  declare target: ImageViewer;
+  declare originalEvent: ImageViewerOriginalEvent;
 
   [key: string]: any;
 
-  imageX!: number;
-  imageY!: number;
-  isOutOfBounds!: boolean;
+  // `declare`d rather than initialised: `super()` copies `data` in first, and initialised class fields would then reset it
+  declare imageX: number;
+  declare imageY: number;
+  declare isOutOfBounds: boolean;
 
-  constructor(type: string, viewer: ImageViewer, originalEvent?: MouseEvent | TouchEvent | WheelEvent | WebGLContextEvent | null, data: Record<string, any> = {}) {
-    this.type = type;
+  constructor(type: ImageViewerEventTypes, viewer: ImageViewer, originalEvent?: ImageViewerOriginalEvent, data: Record<string, any> = {}) {
+    super(type, data);
+    // the viewer, even when `data` is a forwarded map event carrying the map as its target
     this.target = viewer;
-    this.originalEvent = originalEvent ?? null;
-
-    Object.assign(this, data);
+    this.originalEvent = originalEvent ?? (data.originalEvent as ImageViewerOriginalEvent | undefined) ?? null;
   }
 }
+
+/** Fired when the viewer fails to load its image. */
+export type ImageViewerInitErrorEvent = EventML<"imagevieweriniterror"> & { error: Error };
+
+/** Event payloads keyed by event type — every event is an {@link ImageViewerEvent}, apart from the init error. */
+export type ImageViewerEventType = Record<Exclude<ImageViewerEventTypes, "imagevieweriniterror">, ImageViewerEvent> & {
+  imagevieweriniterror: ImageViewerInitErrorEvent;
+};
 
 const BASE_MAP_EVENT_TYPES = [
   // pass nothing other than target (map / viewer) and type
