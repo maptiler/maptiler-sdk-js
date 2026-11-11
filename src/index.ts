@@ -148,6 +148,7 @@ export { type ExtraRoutingOptions, type RoutingOptions, routing } from "./routin
 
 export * from "./controls";
 export {
+  type ApiErrorCode,
   type AutomaticStaticMapOptions,
   type BoundedStaticMapOptions,
   type BufferToPixelDataFunction,
@@ -186,7 +187,6 @@ export {
   type RoutingDistanceUnit,
   type RoutingGetLocation,
   type RoutingGetRequest,
-  type RoutingGetTruckOptions,
   type RoutingInstructionsLanguage,
   type RoutingLocation,
   type RoutingManeuverType,
@@ -202,6 +202,7 @@ export {
   type RoutingRouteManeuver,
   type RoutingRouteStep,
   type RoutingSummary,
+  type RoutingTime,
   type RoutingTruckOptions,
   ServiceError,
   type StaticMapBaseOptions,
