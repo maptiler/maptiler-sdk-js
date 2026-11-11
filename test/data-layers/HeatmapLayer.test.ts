@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import type { FeatureCollection } from "geojson";
 import { HeatmapLayer, type HeatmapLayerStyle } from "../../src/data-layers/HeatmapLayer";
 import { PointLayer } from "../../src/data-layers/PointLayer";
@@ -126,6 +126,96 @@ describe("HeatmapLayer", () => {
 
     expect(points.getSourceId()).toBe(heatmap.getSourceId());
     expect(mock.sources.size).toBe(1);
+  });
+
+  describe("missing colour", () => {
+    it.each([
+      ["an empty style", { data: data(), style: {} }],
+      ["an undefined colour", { data: data(), style: { color: undefined } }],
+      ["a null colour", { data: data(), style: { color: null } }],
+      ["no style", { data: data() }],
+      ["no options", undefined],
+    ])("throws for %s, naming the option", (_, options) => {
+      expect(() => new HeatmapLayer(options as unknown as ConstructorParameters<typeof HeatmapLayer>[0])).toThrow("`style.color` is required");
+    });
+
+    it("throws before the base constructor, so there's no warning about resetting a colour it never had", () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+      expect(() => new HeatmapLayer({ data: data(), style: { color: undefined } as unknown as HeatmapLayerStyle })).toThrow();
+      expect(warn).not.toHaveBeenCalled();
+
+      warn.mockRestore();
+    });
+  });
+
+  describe("fallbacks", () => {
+    let warn: MockInstance<typeof console.warn>;
+
+    beforeEach(() => {
+      warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+      warn.mockRestore();
+    });
+
+    const propertyValues = [
+      { propertyValue: 0, value: 5 },
+      { propertyValue: 8, value: 40 },
+    ];
+
+    /** The default radius, over the zoom. */
+    const DEFAULT_RADIUS = ["interpolate", ["linear"], ["zoom"], 0, 1.25, 2, 2.5, 4, 5, 8, 12.5, 16, 50];
+
+    it("weighs every point 1, with a warning, for a PropertyValues weight without a property", () => {
+      const layer = addHeatmapLayer({ ...style, weight: propertyValues });
+
+      expect(paintOf(layer)["heatmap-weight"]).toBe(1);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining("`PropertyValues` `weight` needs `property`"));
+    });
+
+    it("uses the default radius, with a warning, for a PropertyValues radius without a property", () => {
+      const layer = addHeatmapLayer({ ...style, radius: propertyValues });
+
+      expect(paintOf(layer)["heatmap-radius"]).toEqual(DEFAULT_RADIUS);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining("`PropertyValues` `radius` needs `property`"));
+    });
+
+    it("uses the zoom-driven default radius for that fallback even without zoom compensation, as addHeatmap does", () => {
+      const layer = addHeatmapLayer({ ...style, radius: propertyValues, zoomCompensation: false });
+
+      expect(paintOf(layer)["heatmap-radius"]).toEqual(DEFAULT_RADIUS);
+    });
+
+    it("weighs every point 1 without a weight or a property, and doesn't warn", () => {
+      const layer = addHeatmapLayer();
+
+      expect(paintOf(layer)["heatmap-weight"]).toBe(1);
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it("warns again when a restyle falls back", () => {
+      const layer = addHeatmapLayer({ ...style, property: "mag", weight: propertyValues });
+      expect(warn).not.toHaveBeenCalled();
+
+      layer.setStyle({ property: undefined });
+      flushFrames();
+
+      expect(mock.map.setPaintProperty).toHaveBeenCalledWith(`${layer.id}-heatmap`, "heatmap-weight", 1);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining("`PropertyValues` `weight` needs `property`"));
+    });
+
+    it("ramps the opacity over the zoom as given, without the zoom range's fade", () => {
+      const opacity = [
+        { zoom: 2, value: 0.2 },
+        { zoom: 8, value: 1 },
+      ];
+      const layer = addHeatmapLayer({ ...style, opacity }, { minzoom: 1, maxzoom: 10, fade: 1 });
+
+      // an opacity reading the zoom can't be nested in the fade, which also reads it
+      expect(paintOf(layer)["heatmap-opacity"]).toEqual(["interpolate", ["linear"], ["zoom"], 2, 0.2, 8, 1]);
+    });
   });
 
   //#region addHeatmap Parity
