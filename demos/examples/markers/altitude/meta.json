@@ -1,0 +1,11 @@
+{
+  "title": "Marker altitude",
+  "description": "Raises two draggable markers to 1,300 m above sea level over the terrain, with ground lines (experimental).",
+  "type": "example",
+  "topics": [
+    "markers"
+  ],
+  "createdWith": "5.0.0-beta.m-r.1",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

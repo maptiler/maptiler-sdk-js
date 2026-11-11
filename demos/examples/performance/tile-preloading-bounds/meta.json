@@ -1,0 +1,11 @@
+{
+  "title": "Tile preloading: bounds",
+  "description": "Preloads the tiles of a region with `experimental_preloadTilesForBounds`, then jumps there. Toggle preloading off to compare.",
+  "type": "example",
+  "topics": [
+    "performance"
+  ],
+  "createdWith": "4.1.0",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

@@ -1,0 +1,11 @@
+{
+  "title": "Transform request",
+  "description": "Changes outgoing map requests with `transformRequest`.",
+  "type": "example",
+  "topics": [
+    "requests"
+  ],
+  "createdWith": "3.2.4",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

@@ -181,7 +181,8 @@ export default class Minimap implements IControl {
     }
     this.#options.container = this.#container;
     this.#options.zoom = parentMap.getZoom() + this.#options.zoomAdjust;
-    this.map = new SDKMap(this.#options);
+    // `...mapOptions` can carry the parent's space and halo; the minimap does not set up its own
+    this.map = new SDKMap({ ...this.#options, space: false, halo: false });
 
     // NOTE: For some reason the DOM doesn't properly update it's size in time
     // for the minimap to convey it's size to the canvas.

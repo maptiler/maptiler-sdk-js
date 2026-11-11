@@ -2,9 +2,8 @@
   "compilerOptions": {
     "baseUrl": "src",
     "paths": {
-      // Types for the demos' import of the shipped Vite helper — Node resolution ignores package
-      // `exports`, and at runtime vite.config-dev.ts aliases it to bundler-helpers/vite-worker.mjs
-      "@maptiler/sdk/vite-worker": ["../bundler-helpers/side-effect.d.ts"]
+      "@maptiler/sdk": ["index.ts"],
+      "@maptiler/sdk/vite-worker": ["../bundler-helpers/vite-worker.mjs"]
     },
     "moduleResolution": "Node",
     "target": "es2021",

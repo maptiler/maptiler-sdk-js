@@ -12,7 +12,7 @@ export function getCdnWorkerUrl(): string {
  * so in the ES build (npm) the SDK falls back to the worker hosted on the MapTiler CDN.
  * A URL set beforehand, with `setWorkerUrl` or one of the bundler helpers
  * (e.g. `@maptiler/sdk/vite-worker`), always takes precedence.
- * The UMD build keeps MapLibre's default, which finds the worker next to the UMD bundle.
+ * The CDN builds (UMD and self-contained ES) keep MapLibre's default, which finds the worker next to the bundle.
  */
 export function setDefaultWorkerUrl() {
   if (__MT_BUILD_FORMAT__ !== "es") return;

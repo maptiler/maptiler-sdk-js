@@ -1,0 +1,11 @@
+{
+  "title": "Tile preloading: flyTo",
+  "description": "Preloads the tiles along a `flyTo` path with `experimental_preload` before the flight starts. Toggle preloading off to compare.",
+  "type": "example",
+  "topics": [
+    "performance"
+  ],
+  "createdWith": "4.1.0",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

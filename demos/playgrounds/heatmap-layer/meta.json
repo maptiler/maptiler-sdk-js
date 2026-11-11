@@ -1,0 +1,9 @@
+{
+  "title": "Heatmap layer",
+  "description": "Earthquakes as a HeatmapLayer, alone or composed with a PointLayer, with styling options.",
+  "type": "playground",
+  "topics": [],
+  "createdWith": "5.0.0-rc.4",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

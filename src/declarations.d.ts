@@ -10,5 +10,5 @@ declare module "*?worker&url" {
 
 declare const __MT_SDK_VERSION__: string;
 declare const __MT_NODE_ENV__: string;
-/** Which build the code is part of: "es" (npm), "umd" (CDN), or "dev" (demos, e2e, tests) */
-declare const __MT_BUILD_FORMAT__: "es" | "umd" | "dev";
+/** Which build the code is part of: "es" (npm), "umd" (CDN), "esm-cdn" (CDN, self-contained ES module), or "dev" (demos, e2e, tests) */
+declare const __MT_BUILD_FORMAT__: "es" | "umd" | "esm-cdn" | "dev";

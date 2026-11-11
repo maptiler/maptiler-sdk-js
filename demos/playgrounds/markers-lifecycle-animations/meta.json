@@ -1,0 +1,11 @@
+{
+  "title": "Markers: lifecycle animations",
+  "description": "Tests marker enter, idle and exit animations.",
+  "type": "playground",
+  "topics": [
+    "markers"
+  ],
+  "createdWith": "5.0.0-beta.m-r.1",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}
