@@ -1,0 +1,11 @@
+{
+  "title": "Language / text-field expressions",
+  "description": "Compares each label layer's original text-field with what setLanguage turns it into, on styles whose labels use expressions (elevations, airport codes).",
+  "type": "playground",
+  "topics": [
+    "language"
+  ],
+  "createdWith": "5.0.0-rc.5",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}
