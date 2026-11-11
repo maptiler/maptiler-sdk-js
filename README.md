@@ -1833,7 +1833,7 @@ layer.setZoomRange(6, 22, 2); // the fade can change with the range
 
 #### Sharing data between layers
 
-A data layer can draw another data layer's source, by being given that layer as its `data`. The data is then loaded and parsed once, and `setData()` on either layer updates both. The source stays on the map while any layer drawing it does. A clustered layer can't share its source, as clustering changes the source.
+A data layer can draw another data layer's source, by being given that layer as its `data`. The data is then loaded and parsed once per map, and `setData()` on either layer updates both, on whichever maps they're on. The source stays on the map while any layer drawing it does. On one map, a clustered layer can't draw a source with other layers, as clustering changes the source: a layer can't be made from one that clusters, a layer can't start clustering while another layer draws its source on its map, and `map.addLayer()` throws for a layer that would break this. A removed layer no longer counts, so the layer it shared with can cluster again.
 
 ```ts
 const quakes = new PointLayer({ data: "earthquakes.geojson", style: { color: "#e63946" } });

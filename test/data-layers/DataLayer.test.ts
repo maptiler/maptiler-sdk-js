@@ -906,6 +906,24 @@ describe("DataLayer", () => {
       expect(listener).not.toHaveBeenCalled();
     });
 
+    it.each([
+      ["a diffed", true],
+      ["a full", false],
+    ])("still fires for changes made just before %s map.setStyle()", (_, diff) => {
+      const layer = addLayer();
+      const listener = vi.fn();
+      layer.on("stylechange", listener).on("visibilitychange", listener).on("zoomrangechange", listener);
+
+      layer.setStyle({ color: "#0000ff" }).setVisible(false).setZoomRange(2, 10);
+      mock.setStyle(["base"], { diff });
+      flushFrames();
+
+      expect(listener).toHaveBeenCalledTimes(3);
+      expect(listener).toHaveBeenCalledWith(expect.objectContaining({ type: "stylechange", keys: ["color"] }));
+      expect(listener).toHaveBeenCalledWith(expect.objectContaining({ type: "visibilitychange", visible: false }));
+      expect(listener).toHaveBeenCalledWith(expect.objectContaining({ type: "zoomrangechange", minzoom: 2, maxzoom: 10 }));
+    });
+
     it("drops the events of a flush cancelled by removal", () => {
       const layer = addLayer();
       const listener = vi.fn();

@@ -67,7 +67,8 @@ import { logSDKVersion } from "./utils/logSDKVersion";
 import { setDefaultWorkerUrl } from "./utils/defaultWorkerUrl";
 import { MapTilerMarkerOptions, MapTilerMarkerSVGOptions, Marker, MarkerCollisionOptions, RemoveMarkerOptions, setWorkerCount } from ".";
 import { MarkerManager } from "./Marker/MarkerManager";
-import { moveLayerWithSublayers, resolveBeforeId } from "./data-layers/registry";
+import { moveLayerWithSublayers, prepareDataLayersForStyleChange, resolveBeforeId } from "./data-layers/registry";
+import { DataLayer } from "./data-layers/DataLayer";
 import { EXPERIMENTAL_TILE_PRELOADING_VERSION } from "./tile-preloading/version";
 
 export type LoadWithTerrainEvent = {
@@ -1401,10 +1402,14 @@ export class Map extends MapMLGL {
     const oldStyle = this.getStyle() as StyleSpecificationWithMetaData;
     const newStyle = styleInfo.style as StyleSpecificationWithMetaData;
 
+    // data layers put themselves back on the new style — this keeps their order among themselves, which their own hints can't
+    const cancelDataLayerRestore = prepareDataLayersForStyleChange(this);
+
     try {
       super.setStyle(styleInfo.style, { ...options, diff: typeof styleInfo.style !== "string" });
       this.styleInProcess = true;
     } catch (e) {
+      cancelDataLayerRestore();
       this.styleInProcess = false;
       console.error("[Map.setStyle]: Error while setting style:", e);
     }
@@ -1623,6 +1628,7 @@ export class Map extends MapMLGL {
    * A data layer's id (`PointLayer`, `HeatmapLayer`, …) places the new layer beneath everything the data layer draws.
    *
    * @returns `this`
+   * @throws When `layer` is a data layer that would draw a source on this map with another data layer while either clusters.
    */
   addLayer(
     layer:
@@ -1632,6 +1638,8 @@ export class Map extends MapMLGL {
       | CustomLayerInterface,
     beforeId?: string,
   ): this {
+    // refused before anything is added — throwing from the layer's onAdd would leave it half added
+    if (layer instanceof DataLayer) layer.assertCanBeAddedTo(this);
     this.minimap?.addLayer(layer, beforeId);
     return super.addLayer(layer, resolveBeforeId(this, beforeId, layer.id));
   }

@@ -31,7 +31,11 @@ export type AnyDataLayer = DataLayer<any, any>;
 type SharedData = {
   sourceId: string;
   data: DataLayerData;
-  /** Every layer drawing the source, on a map or not. */
+  /**
+   * The layers drawing the source on a map — joined when added, left when
+   * removed (or their map is). A layer off its map keeps the shared data, and
+   * draws it again once added back.
+   */
   layers: Set<AnyDataLayer>;
 };
 
@@ -43,8 +47,14 @@ export type DataLayerConstructorOptions<TStyle extends object> = {
    * GeoJSON data, a URL to GeoJSON, or the UUID of a MapTiler Cloud dataset —
    * or another data layer, to draw its data from the same source. Layers
    * sharing a source share their data: `setData()` on either updates both,
-   * and both fire the data events. The source stays on the map while any of
-   * them does. A clustered layer can't share its source.
+   * on whichever maps they're on (each map loads its own copy), and both fire
+   * the data events. The source stays on the map while any of
+   * them does.
+   *
+   * On one map, a clustered layer can't draw a source with other layers, as
+   * clustering changes the source: a layer can't be made from one that
+   * clusters, nor cluster while another layer draws its source on its map,
+   * and `map.addLayer` throws for a layer that would break this.
    */
   data: DataLayerData | AnyDataLayer;
   /** Initial style. Unset fields use the layer's defaults. */
@@ -136,7 +146,14 @@ const DEFAULT_FADE = 0.25;
  * paint/layout properties, or a full sublayer rebuild).
  *
  * The layer survives `map.setStyle()`: it rebuilds its source and sublayers on
- * `style.load`, from its own state.
+ * `style.load`, from its own state. A new style may share none of the old
+ * one's layer ids, so where it goes is decided in two steps (see
+ * `prepareDataLayersForStyleChange` in `registry.ts`):
+ * - it goes back beneath the layer it sat beneath if the new style has a layer
+ *   with that id — a best-effort hint, as between variants of one style — else
+ *   on top;
+ * - then the map's data layers are put back in their previous order among
+ *   themselves, which wins over the hint.
  */
 export abstract class DataLayer<TStyle extends object, TMode extends string> implements CustomLayerInterface {
   readonly id: string;
@@ -162,11 +179,25 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
   private isFadeSet: boolean;
   private hasWarnedFadeReplaced = false;
 
-  /** Layer the controller sat beneath when last added or moved, used to restore its position after a full rebuild of the map's style. */
+  /**
+   * Layer the controller sat beneath when last added or moved by the user, or
+   * just before the last `map.setStyle()`. Only a hint for where to put itself
+   * back on the new style — used if a layer with this id is in it. Putting
+   * itself back doesn't update it, so a hint missing from one style still
+   * applies to a later style that has it.
+   */
   private beforeId: string | undefined;
 
   /** Display state as the last change events reported it, so applying an unchanged value fires nothing. */
   private notified = { visible: true, minzoom: 0, maxzoom: 24, fade: DEFAULT_FADE };
+
+  /**
+   * Style keys set while on a map and not yet reported by a `stylechange`.
+   * Kept apart from `pending.style`, which only says what's left to apply —
+   * a rebuild, such as the one after `map.setStyle()`, applies and clears it
+   * before the flush that reports it.
+   */
+  private readonly unreportedStyleKeys = new Set<keyof TStyle>();
 
   /** True while the layer puts itself back after `map.setStyle()` — no `add` or `move` then, as nothing changed for the user. */
   private isRestoring = false;
@@ -218,7 +249,6 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     } else {
       this.shared = { sourceId: `${this.id}-source`, data: options.data, layers: new Set() };
     }
-    this.shared.layers.add(this);
     this.style = {} as TStyle;
     if (options.style) this.setStyle(options.style);
     this.visible = options.visible ?? true;
@@ -264,9 +294,10 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     return true;
   }
 
-  /** Whether other layers draw this layer's source too, so it can't change to suit this one. */
+  /** Whether other layers draw this layer's source on its map, so the source can't change to suit this one. `false` while the layer is off its map — {@link assertCanBeAddedTo} checks again when it's added. */
   protected isSharingSource(): boolean {
-    return this.shared.layers.size > 1;
+    const map = this.map;
+    return map !== null && this.isSourceDrawnByOthers(map);
   }
 
   /** Source specification. Override to add clustering etc. — changing what this returns needs a {@link requestRebuild}. */
@@ -278,14 +309,41 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
 
   //#region CustomLayerInterface
 
+  /**
+   * Called by `map.addLayer` before adding the layer, so a layer that can't
+   * go on `map` is refused before MapLibre adds anything: on one map, a
+   * clustered layer can't draw a source with other layers.
+   * @internal
+   */
+  assertCanBeAddedTo(map: object): void {
+    const others = [...this.shared.layers].filter((layer) => layer !== this && layer.map === map);
+    if (others.length === 0) return;
+
+    if (!this.canShareSource()) {
+      throw new Error(`${this.id}: can't be added while "${others[0].id}" draws its source on this map, as it clusters.`);
+    }
+    const clustered = others.find((layer) => !layer.canShareSource());
+    if (clustered) {
+      throw new Error(`${this.id}: can't be added while "${clustered.id}" clusters its source on this map.`);
+    }
+  }
+
   onAdd(map: MapLibreMap): void {
     const sdkMap = map as SDKMap;
     this.map = sdkMap;
-    this.rememberPosition();
+    this.shared.layers.add(this);
+    // putting itself back after map.setStyle keeps the hint it had — wherever it lands now is no position of the user's
+    if (!this.isRestoring) this.rememberPosition();
     registerDataLayer(sdkMap, this.id, {
       getSublayerIds: () => this.getSublayerIds(),
       onMove: (beforeId) => {
         this.onMove(beforeId);
+      },
+      rememberPosition: () => {
+        this.rememberPosition();
+      },
+      restoreBeneath: (beforeId) => {
+        this.restoreBeneath(beforeId);
       },
     });
 
@@ -297,9 +355,13 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
       this.isAdding = false;
     }
 
-    // changes made before now are part of the add, not changes of their own
-    this.notified = { visible: this.visible, minzoom: this.minzoom, maxzoom: this.maxzoom, fade: this.fade };
-    if (!this.isRestoring) this.fire("add", { type: "add", target: this, map: sdkMap });
+    // changes made before now are part of the add, not changes of their own — but putting itself back after
+    // map.setStyle isn't an add, so changes made since the last flush are still reported by the next one
+    if (!this.isRestoring) {
+      this.notified = { visible: this.visible, minzoom: this.minzoom, maxzoom: this.maxzoom, fade: this.fade };
+      this.unreportedStyleKeys.clear();
+      this.fire("add", { type: "add", target: this, map: sdkMap });
+    }
   }
 
   /** Only called when the user removes the layer — `map.setStyle()` never removes custom layers by diffing, and a full rebuild drops them without calling this. */
@@ -307,9 +369,11 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     const map = this.map;
     this.cancelFlush();
     this.heldDataEvents = null;
+    this.unreportedStyleKeys.clear();
     this.teardown();
     this.unbindMapListeners();
     this.map = null;
+    this.shared.layers.delete(this);
     if (map) {
       unregisterDataLayer(map, this.id);
       this.fire("remove", { type: "remove", target: this, map });
@@ -327,11 +391,12 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
   /** Replaces the layer's data — and that of the layers sharing its source. */
   setData(data: DataLayerData): this {
     this.shared.data = data;
-    // one update reaches every layer drawing the source, so it goes through one that's on a map
-    const updater = this.map ? this : [...this.shared.layers].find((layer) => layer.map);
-    if (updater) {
-      updater.pending.data = true;
-      updater.scheduleFlush();
+    // every layer on a map is told — so the data still arrives if one is removed before its frame, and on each map
+    // the layers sharing the source are on. The first to flush on each map applies it for the rest there (see markDataApplied).
+    for (const layer of this.shared.layers) {
+      if (!layer.map) continue;
+      layer.pending.data = true;
+      layer.scheduleFlush();
     }
     return this;
   }
@@ -372,6 +437,8 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
         this.style[key] = style[key] as TStyle[keyof TStyle];
       }
       this.pending.style.add(key);
+      // changes made before the layer is added are part of the add, so fire nothing
+      if (this.map) this.unreportedStyleKeys.add(key);
     }
     this.scheduleFlush();
     return this;
@@ -547,21 +614,42 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     return data as GeoJSONSourceSpecification["data"];
   }
 
-  /** (Re)creates the source and sublayers from the current state. Idempotent — leftovers from a previous build are removed first. */
-  private build(): void {
+  /**
+   * (Re)creates the source and sublayers from the current state. Idempotent — leftovers from a previous build are removed first.
+   * @returns Whether the source was added with the current data — `false` when a layer sharing it kept it on the map, with whatever data it held.
+   */
+  private build(): boolean {
     const map = this.map;
-    if (!map) return;
+    if (!map) return false;
 
     this.unbindLayerListeners();
     this.teardown();
 
-    // a layer sharing the source may have added it already
-    if (!map.getSource(this.getSourceId())) map.addSource(this.getSourceId(), this.getSourceSpecification());
+    // a layer sharing the source may have added it already, or kept it through teardown
+    const addSource = !map.getSource(this.getSourceId());
+    if (addSource) map.addSource(this.getSourceId(), this.getSourceSpecification());
     this.addSublayers(map);
     this.bindLayerListeners();
 
-    // everything pending is reflected in a fresh build
+    // everything pending is reflected in a fresh build — but for the data of a source kept for the layers sharing it, see flushUpdates
     this.pending = createPendingUpdates();
+    return addSource;
+  }
+
+  /** Hands the current data to the live source — one `setData` updates every layer drawing it on `map`. */
+  private updateSourceData(map: SDKMap): void {
+    void map.getSource<GeoJSONSource>(this.getSourceId())?.setData(this.resolveSourceData());
+  }
+
+  /**
+   * The source on `map` now holds the current data, so the other layers
+   * drawing it there have none left to apply — see {@link setData}. Layers
+   * sharing the source on other maps still apply it to theirs.
+   */
+  private markDataApplied(map: SDKMap): void {
+    for (const layer of this.shared.layers) {
+      if (layer !== this && layer.map === map) layer.pending.data = false;
+    }
   }
 
   /** Removes the sublayers and source, whichever of them exist. */
@@ -583,7 +671,13 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
    * controller (custom layers aren't part of the diff), but wherever the diff
    * left it — usually near the bottom, under the new style's fills — so it's
    * moved back first, then only the sublayers need rebuilding. A full rebuild
-   * drops the controller too, so it re-adds itself — and `onAdd` builds the rest.
+   * (what the SDK does for any style given by URL or `MapStyle`) drops the
+   * controller too, so it re-adds itself — and `onAdd` builds the rest.
+   *
+   * Either way it goes beneath its {@link beforeId} hint if the new style has a
+   * layer with that id, else on top. The map then puts its data layers back in
+   * their previous order among themselves, once they've all put themselves
+   * back — see `prepareDataLayersForStyleChange` in `registry.ts`.
    */
   private readonly onStyleLoad = (): void => {
     const map = this.map;
@@ -591,8 +685,7 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
 
     const beforeId = this.beforeId && map.getLayer(this.beforeId) ? this.beforeId : undefined;
 
-    this.isRestoring = true;
-    try {
+    this.restore(() => {
       if (map.getLayer(this.id)) {
         map.moveLayer(this.id, beforeId);
         this.build();
@@ -602,10 +695,25 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
       // detach first — onAdd rebinds everything
       this.unbindMapListeners();
       map.addLayer(this, beforeId);
+    });
+  };
+
+  /** Called by the map to put its data layers back in order after `map.setStyle()` — moves the layer and its sublayers beneath `beforeId`, without a `move` event. */
+  private restoreBeneath(beforeId: string): void {
+    const map = this.map;
+    if (!map) return;
+    this.restore(() => map.moveLayer(this.id, beforeId));
+  }
+
+  /** Runs `restore` as part of putting the layer back after `map.setStyle()`, which fires no `add` or `move` and keeps the {@link beforeId} hint. */
+  private restore(restore: () => void): void {
+    this.isRestoring = true;
+    try {
+      restore();
     } finally {
       this.isRestoring = false;
     }
-  };
+  }
 
   /** Notes the layer the controller now sits beneath — a data layer's id rather than one of its sublayers, which a map style change rebuilds. */
   private rememberPosition(): void {
@@ -654,10 +762,14 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     const needsRebuild = pending.rebuild || (pending.style.size > 0 && !this.applyStyle(pending.style)) || (pending.zoomRange && !this.onZoomRangeChange());
 
     if (needsRebuild) {
-      this.build();
+      const sourceAdded = this.build();
+      // a source kept on the map for the layers sharing it still holds the old data — a re-added one already has the new
+      if (pending.data && !sourceAdded) this.updateSourceData(map);
+      if (pending.data || sourceAdded) this.markDataApplied(map);
     } else {
       if (pending.data) {
-        void map.getSource<GeoJSONSource>(this.getSourceId())?.setData(this.resolveSourceData());
+        this.updateSourceData(map);
+        this.markDataApplied(map);
       }
 
       for (const layerId of this.getSublayerIds()) {
@@ -667,16 +779,24 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
       }
     }
 
-    this.fireChangeEvents(pending);
+    this.fireChangeEvents();
   }
 
-  /** Reports what a flush applied — style whenever keys were set, display state only when it differs from what was last reported. */
-  private fireChangeEvents(pending: PendingDataLayerUpdates<TStyle>): void {
-    if (pending.style.size > 0) {
+  /**
+   * Reports what's been applied since the last report — style whenever keys
+   * were set, display state only when it differs from what was last reported.
+   * Reads its own bookkeeping rather than the flush's pending updates, so
+   * changes applied by a rebuild in between (after `map.setStyle()`) are
+   * still reported.
+   */
+  private fireChangeEvents(): void {
+    if (this.unreportedStyleKeys.size > 0) {
+      const keys = [...this.unreportedStyleKeys];
+      this.unreportedStyleKeys.clear();
       this.fire("stylechange", {
         type: "stylechange",
         target: this,
-        keys: [...pending.style],
+        keys,
         style: this.getStyle(),
       } as unknown as DataLayerEventMap<this>["stylechange"]);
     }
@@ -734,9 +854,11 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     const onMapRemove = () => {
       this.cancelFlush();
       this.heldDataEvents = null;
+      this.unreportedStyleKeys.clear();
       this.boundMapListeners.length = 0;
       this.sublayerSpecs = [];
       this.map = null;
+      this.shared.layers.delete(this);
       unregisterDataLayer(map, this.id);
       this.fire("remove", { type: "remove", target: this, map });
     };

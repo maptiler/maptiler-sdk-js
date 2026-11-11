@@ -34,7 +34,7 @@
 - Introduces `HeatmapLayer`, a stateful heatmap of points and the successor to `helpers.addHeatmap`, with its style options and defaults under the data layers' shared names (`color` for `colorRamp`).
   - `property` on its own weights each point by its value. `weight`, `radius`, `intensity` and `opacity` also take MapLibre expressions.
 - Data layers fade in and out at the edges of their zoom range, over a `fade` span set in the constructor or with `setZoomRange()`, so a heatmap can cross-fade into a `PointLayer` drawn from its source.
-- Data layers can share another data layer's source, given as their `data`, loading the data once.
+- Data layers can share another data layer's source, given as their `data`, loading the data once per map.
 - Data layers fire `stylechange`, `zoomrangechange` and `visibilitychange` once a change shows on the map, `add` and `remove` when added to or removed from a map, and `move` when moved.
 - `map.moveLayer()` moves a data layer together with the style layers it draws through, and a layer added or moved before a data layer goes beneath all of them.
 - Adds `map.addMissingStyleImageResolver()` and `map.removeMissingStyleImageResolver()`, so several missing-image resolvers can run side by side. A resolver set with `setMissingStyleImageResolver()` is tried after them, rather than replacing them.

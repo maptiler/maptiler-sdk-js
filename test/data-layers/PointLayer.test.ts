@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FeatureCollection } from "geojson";
+import { DataLayer } from "../../src/data-layers/DataLayer";
 import { PointLayer } from "../../src/data-layers/PointLayer";
 import type { PointLayerCirclesStyle } from "../../src/data-layers/PointLayer";
 import { addPoint, type PointLayerOptions } from "../../src/helpers/vectorlayerhelpers";
@@ -151,16 +152,72 @@ describe("PointLayer", () => {
       expect((mock.map.getLayer(`${layer.id}-point`) as Sublayer).paint?.["circle-radius"]).toEqual(radius);
     });
 
-    it("can't cluster on a shared source", () => {
-      const clustered = new PointLayer({ data: data(), style, collisionBehaviour: "cluster" });
-      expect(() => new PointLayer({ data: clustered, style })).toThrow("can't share its source");
+    describe("clustering on a shared source", () => {
+      /** Refuses data layers in the mock's `addLayer`, as the SDK map's does. */
+      function checkBeforeAdding() {
+        const add = mock.map.addLayer.getMockImplementation() as (layer: unknown, beforeId?: string) => unknown;
+        mock.map.addLayer.mockImplementation((layer: unknown, beforeId?: string) => {
+          if (layer instanceof DataLayer) layer.assertCanBeAddedTo(mock.map);
+          return add(layer, beforeId);
+        });
+      }
 
-      const plain = new PointLayer({ data: data(), style });
-      expect(() => new PointLayer({ data: plain, style, collisionBehaviour: "cluster" })).toThrow("can't cluster");
+      it("can't be made from a clustered layer, nor cluster when made from another layer", () => {
+        const clustered = new PointLayer({ data: data(), style, collisionBehaviour: "cluster" });
+        expect(() => new PointLayer({ data: clustered, style })).toThrow("can't share its source");
 
-      const sharing = new PointLayer({ data: plain, style });
-      expect(() => sharing.setCollisionBehaviour("cluster")).toThrow("can't cluster");
-      expect(() => plain.setCollisionBehaviour("cluster")).toThrow("can't cluster");
+        const plain = new PointLayer({ data: data(), style });
+        expect(() => new PointLayer({ data: plain, style, collisionBehaviour: "cluster" })).toThrow("can't cluster");
+      });
+
+      it("can't cluster while another layer draws its source on the map", () => {
+        const plain = new PointLayer({ data: data(), style });
+        const sharing = new PointLayer({ data: plain, style });
+        mock.map.addLayer(plain);
+        mock.map.addLayer(sharing);
+
+        expect(() => sharing.setCollisionBehaviour("cluster")).toThrow("can't cluster");
+        expect(() => plain.setCollisionBehaviour("cluster")).toThrow("can't cluster");
+      });
+
+      it("can cluster once the other layers drawing its source are removed", () => {
+        const plain = new PointLayer({ data: data(), style });
+        const sharing = new PointLayer({ data: plain, style });
+        mock.map.addLayer(plain);
+        mock.map.addLayer(sharing);
+        mock.map.removeLayer(sharing.id);
+
+        plain.setCollisionBehaviour("cluster");
+        flushFrames();
+
+        expect(mock.sources.get(plain.getSourceId())?.spec).toMatchObject({ cluster: true });
+      });
+
+      it("is refused by addLayer where it would cluster a source another layer draws", () => {
+        checkBeforeAdding();
+        const plain = new PointLayer({ data: data(), style });
+        const sharing = new PointLayer({ data: plain, style });
+        mock.map.addLayer(plain);
+
+        // allowed off the map — the check comes on adding
+        sharing.setCollisionBehaviour("cluster");
+
+        expect(() => mock.map.addLayer(sharing)).toThrow("clusters");
+        expect(mock.map.getLayer(sharing.id)).toBeUndefined();
+      });
+
+      it("is refused by addLayer where it would draw a source another layer clusters", () => {
+        checkBeforeAdding();
+        const plain = new PointLayer({ data: data(), style });
+        const sharing = new PointLayer({ data: plain, style });
+        mock.map.addLayer(sharing);
+
+        // allowed off the map — the check comes on adding
+        plain.setCollisionBehaviour("cluster");
+
+        expect(() => mock.map.addLayer(plain)).toThrow("clusters");
+        expect(mock.map.getLayer(plain.id)).toBeUndefined();
+      });
     });
 
     describe("fade", () => {
