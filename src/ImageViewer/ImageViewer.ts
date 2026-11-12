@@ -23,6 +23,8 @@ import { overpanningUnderzoomingTransformConstrain } from "./monkeyPatchML";
 import { Evented, NavigationControl } from "maplibre-gl";
 import { ImageViewerFitImageToBoundsControl } from "../controls/ImageViewerFitImageToBoundsControl";
 import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey } from "./symbols";
+import { getOutsideCutlineColor, validateCutline, validateOutsideCutlineStyle, type ImageViewerCutline, type ImageViewerOutsideCutlineStyle } from "./cutline";
+import { OutsideCutlineLayer, type OutsideCutlineLayerData } from "./OutsideCutlineLayer";
 
 //#region types
 
@@ -63,6 +65,20 @@ export type ImageViewerConstructorOptions = Pick<MapOptions, AllowedConstructorO
    * Whether to show a navigation control.
    */
   navigationControl?: boolean;
+
+  /**
+   * The cutline of the image: a polygon in image pixels, with at least 3 points.
+   * The ring can be open, or closed by repeating the first point at the end.
+   * The image outside of it is drawn as set by `outsideCutlineStyle`.
+   */
+  cutline?: ImageViewerCutline;
+
+  /**
+   * How the image outside of the cutline is drawn:
+   * - `{ type: "hidden" }` (default): it is cut away, showing what is behind the viewer.
+   * - `{ type: "overlay", color }`: it stays visible under a CSS color, e.g. `"rgba(0, 0, 0, 0.6)"`.
+   */
+  outsideCutlineStyle?: ImageViewerOutsideCutlineStyle;
 };
 
 //#region ImageMetadata
@@ -169,6 +185,27 @@ export default class ImageViewer extends Evented<ImageViewerEventType> {
   private paddedSizeMax?: number;
 
   /**
+   * The cutline of the image, in image pixels.
+   *
+   * @internal
+   */
+  private cutline: ImageViewerCutline | null;
+
+  /**
+   * How the image outside of the cutline is drawn.
+   *
+   * @internal
+   */
+  private outsideCutlineStyle: ImageViewerOutsideCutlineStyle;
+
+  /**
+   * The layer drawing the outside of the cutline, on the map while there is a cutline and the image is loaded.
+   *
+   * @internal
+   */
+  private outsideCutlineLayer?: OutsideCutlineLayer;
+
+  /**
    * The version of the ImageViewer / SDK.
    */
   public get version() {
@@ -213,6 +250,9 @@ export default class ImageViewer extends Evented<ImageViewerEventType> {
       throw new Error("[ImageViewer]: `container` is required and must be a string or HTMLElement");
     }
 
+    this.cutline = imageViewerConstructorOptions.cutline ? validateCutline(imageViewerConstructorOptions.cutline) : null;
+    this.outsideCutlineStyle = validateOutsideCutlineStyle(imageViewerConstructorOptions.outsideCutlineStyle ?? { type: "hidden" });
+
     this.options = {
       ...imageViewerDefaultOptions,
       ...imageViewerConstructorOptions,
@@ -227,6 +267,9 @@ export default class ImageViewer extends Evented<ImageViewerEventType> {
     // because it will be in px space and not lnglat space
     // we cannot convert it lnglat space until the metadata is fetched
     delete sdkOptions.center;
+    // the cutline is drawn by the ImageViewer, the map has no use for these
+    delete sdkOptions.cutline;
+    delete sdkOptions.outsideCutlineStyle;
 
     this.sdk = new Map(sdkOptions);
 
@@ -300,6 +343,8 @@ export default class ImageViewer extends Evented<ImageViewerEventType> {
       await this.fetchImageMetadata();
 
       this.addImageSource();
+
+      this.updateOutsideCutlineLayer();
 
       if (this.options.navigationControl) {
         this.sdk.addControl(
@@ -801,6 +846,94 @@ export default class ImageViewer extends Evented<ImageViewerEventType> {
    */
   public getImageMetadata() {
     return this.imageMetadata;
+  }
+
+  //#region getCutline
+  /**
+   * Get the cutline of the image, in image pixels.
+   *
+   * @returns {ImageViewerCutline | null} A copy of the cutline, or `null` if none is set.
+   */
+  public getCutline() {
+    return this.cutline ? this.cutline.map(([x, y]) => [x, y] as [number, number]) : null;
+  }
+
+  //#region setCutline
+  /**
+   * Set the cutline of the image, in image pixels. The image outside of it is drawn as set by `setOutsideCutlineStyle`.
+   * Fires `cutlinechange`.
+   *
+   * @param {ImageViewerCutline | null} cutline - A polygon with at least 3 points, or `null` to remove the cutline and show the whole image.
+   * @returns {ImageViewer} The ImageViewer instance.
+   * @throws {Error} If the cutline is invalid. The current cutline is then kept.
+   */
+  public setCutline(cutline: ImageViewerCutline | null) {
+    this.cutline = cutline ? validateCutline(cutline) : null;
+    this.updateOutsideCutlineLayer();
+    this.fire(new ImageViewerEvent("cutlinechange", this, null, { cutline: this.getCutline() }));
+    return this;
+  }
+
+  //#region getOutsideCutlineStyle
+  /**
+   * Get how the image outside of the cutline is drawn.
+   *
+   * @returns {ImageViewerOutsideCutlineStyle} A copy of the style.
+   */
+  public getOutsideCutlineStyle() {
+    return { ...this.outsideCutlineStyle };
+  }
+
+  //#region setOutsideCutlineStyle
+  /**
+   * Set how the image outside of the cutline is drawn. It is kept when the cutline changes or is removed.
+   *
+   * @param {ImageViewerOutsideCutlineStyle} style - `{ type: "hidden" }` to cut the image away, or `{ type: "overlay", color }` to draw a CSS color over it.
+   * @returns {ImageViewer} The ImageViewer instance.
+   * @throws {Error} If the style is invalid. The current style is then kept.
+   */
+  public setOutsideCutlineStyle(style: ImageViewerOutsideCutlineStyle) {
+    this.outsideCutlineStyle = validateOutsideCutlineStyle(style);
+    this.updateOutsideCutlineLayer();
+    return this;
+  }
+
+  //#region updateOutsideCutlineLayer
+  /**
+   * Adds, updates or removes the layer drawing the outside of the cutline.
+   * It needs the image size, so it does nothing until the image is loaded, `init` then calls it.
+   *
+   * @internal
+   */
+  private updateOutsideCutlineLayer() {
+    if (!this.imageMetadata || !this.paddedSizeMax) {
+      return;
+    }
+
+    if (!this.cutline) {
+      if (this.outsideCutlineLayer) {
+        this.sdk.removeLayer(this.outsideCutlineLayer.id);
+        this.outsideCutlineLayer = undefined;
+      }
+      return;
+    }
+
+    // the layer triangulates the cutline when it is drawn, at most once per frame
+    const data: OutsideCutlineLayerData = {
+      cutline: this.cutline,
+      imageSize: [this.imageMetadata.width, this.imageMetadata.height],
+      paddedSize: this.paddedSizeMax,
+      color: getOutsideCutlineColor(this.outsideCutlineStyle),
+    };
+
+    if (this.outsideCutlineLayer) {
+      this.outsideCutlineLayer.setData(data);
+      this.sdk.triggerRepaint();
+    } else {
+      // added on top, right above the image, which is the only other layer
+      this.outsideCutlineLayer = new OutsideCutlineLayer(data);
+      this.sdk.addLayer(this.outsideCutlineLayer);
+    }
   }
 
   //#region getImageBounds
