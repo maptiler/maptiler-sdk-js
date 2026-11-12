@@ -14,13 +14,18 @@ import type { AllLayoutProperties, AllPaintProperties } from "@maplibre/maplibre
 import { v4 as uuidv4 } from "uuid";
 import type { Map as SDKMap } from "../Map";
 import { config } from "../config";
+import { gpxOrKml } from "../converters";
 import { isUUID } from "../tools";
 import { findSublayerOwner, registerDataLayer, unregisterDataLayer } from "./registry";
 import { fadeAtZoomEdges, MAX_ZOOM, MIN_ZOOM, usesZoom } from "./style";
 
 //#region Types
 
-/** GeoJSON data, a URL to GeoJSON, or the UUID of a MapTiler Cloud dataset. */
+/**
+ * GeoJSON data, a URL to GeoJSON, or the UUID of a MapTiler Cloud dataset. A
+ * string can also be GPX or KML content, or the URL of a `.gpx` or `.kml`
+ * file — converted to GeoJSON, as MapLibre only reads GeoJSON.
+ */
 export type DataLayerData = FeatureCollection | Feature | Geometry | string;
 
 /** Any data layer, whatever its style and mode. */
@@ -37,6 +42,12 @@ type SharedData = {
    * draws it again once added back.
    */
   layers: Set<AnyDataLayer>;
+  /** `data` converted to GeoJSON, when it's GPX or KML — at once for content, once fetched for a URL. */
+  converted?: FeatureCollection;
+  /** The fetch of a GPX or KML URL in flight — replaced or cleared when the data changes, so a stale one is dropped. */
+  fetch?: { url: string };
+  /** A GPX or KML URL that failed to load, so it isn't fetched again on every rebuild — until the data is set again. */
+  failedUrl?: string;
 };
 
 /** Options shared by every data layer's constructor. */
@@ -132,6 +143,9 @@ type BoundMapListener = { type: string; layerIds?: string[]; listener: (event: n
 const MOUSE_EVENT_TYPES: readonly DataLayerMouseEventType[] = ["click", "mouseenter", "mouseleave", "mousemove"];
 
 const DEFAULT_FADE = 0.25;
+
+/** What the source holds while GPX or KML is loading, or after it failed to. */
+const EMPTY_FEATURE_COLLECTION: FeatureCollection = { type: "FeatureCollection", features: [] };
 
 //#endregion
 
@@ -247,7 +261,7 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
       if (!options.data.canShareSource()) throw new Error(`${this.id}: "${options.data.id}" can't share its source, as it clusters.`);
       this.shared = options.data.shared;
     } else {
-      this.shared = { sourceId: `${this.id}-source`, data: options.data, layers: new Set() };
+      this.shared = { sourceId: `${this.id}-source`, data: options.data, layers: new Set(), converted: convertXmlContent(options.data) };
     }
     this.style = {} as TStyle;
     if (options.style) this.setStyle(options.style);
@@ -388,9 +402,16 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
 
   //#region Data
 
-  /** Replaces the layer's data — and that of the layers sharing its source. */
+  /**
+   * Replaces the layer's data — and that of the layers sharing its source.
+   * @throws Error when `data` is a string of XML that isn't GPX or KML.
+   */
   setData(data: DataLayerData): this {
+    const converted = convertXmlContent(data);
     this.shared.data = data;
+    this.shared.converted = converted;
+    this.shared.fetch = undefined;
+    this.shared.failedUrl = undefined;
     // every layer on a map is told — so the data still arrives if one is removed before its frame, and on each map
     // the layers sharing the source are on. The first to flush on each map applies it for the rest there (see markDataApplied).
     for (const layer of this.shared.layers) {
@@ -605,13 +626,65 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     return { filter: filter ? ["all", geometryFilter, filter as ExpressionSpecification] : geometryFilter };
   }
 
-  /** The data to hand to the source — a UUID becomes its MapTiler Cloud dataset URL. */
+  /**
+   * The data to hand to the source — a UUID becomes its MapTiler Cloud dataset
+   * URL, and GPX or KML becomes GeoJSON. A GPX or KML URL is fetched first, the
+   * source holding no features until it's loaded.
+   */
   protected resolveSourceData(): GeoJSONSourceSpecification["data"] {
-    const { data } = this.shared;
+    const { data, converted } = this.shared;
+    if (converted) return converted;
     if (typeof data === "string" && isUUID(data)) {
       return `${config.apiURL}data/${data}/features.json?key=${config.apiKey}`;
     }
+    if (typeof data === "string" && isXmlUrl(data)) {
+      if (this.shared.failedUrl !== data) this.fetchXml(data);
+      return EMPTY_FEATURE_COLLECTION;
+    }
     return data as GeoJSONSourceSpecification["data"];
+  }
+
+  /**
+   * Fetches GPX or KML from `url` and converts it, then hands it to the
+   * source on every map the layers sharing it are on. One fetch serves them
+   * all, and it's dropped if the data changes meanwhile. A failure fires
+   * `error` on each of them.
+   */
+  private fetchXml(url: string): void {
+    const shared = this.shared;
+    if (shared.fetch?.url === url) return;
+    const request = { url };
+    shared.fetch = request;
+
+    fetch(url)
+      .then((response) => {
+        if (!response.ok) throw new Error(`Failed to fetch ${url}: status ${String(response.status)}.`);
+        return response.text();
+      })
+      .then((text) => {
+        if (shared.fetch !== request) return;
+        const converted = gpxOrKml(text);
+        if (!converted) throw new Error(`${url} is neither GPX nor KML.`);
+        shared.fetch = undefined;
+        shared.converted = converted;
+        for (const layer of shared.layers) {
+          if (!layer.map) continue;
+          layer.pending.data = true;
+          layer.scheduleFlush();
+        }
+      })
+      .catch((error: unknown) => {
+        if (shared.fetch !== request) return;
+        shared.fetch = undefined;
+        shared.failedUrl = url;
+        for (const layer of shared.layers) {
+          if (!layer.map) continue;
+          layer.isLoadingData = false;
+          layer.emitDataEvent(() => {
+            layer.fire("error", { type: "error", target: layer, error: error instanceof Error ? error : new Error(String(error)) });
+          });
+        }
+      });
   }
 
   /**
@@ -836,6 +909,8 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     const onData = (event: MapSourceDataEvent) => {
       // the metadata event reports loaded before the tiles have reloaded — wait for the content or the last tile
       if (event.sourceId !== this.getSourceId() || !this.isLoadingData || !event.isSourceLoaded || event.sourceDataType === "metadata") return;
+      // the source holds no features while GPX or KML is fetched — the data has arrived once it's handed over
+      if (this.shared.fetch) return;
       this.isLoadingData = false;
       this.emitDataEvent(() => {
         this.fire("data", { type: "data", target: this });
@@ -958,6 +1033,22 @@ function forEachChangedKey(before: object | undefined, after: object | undefined
 /** Structural equality for style values (JSON-compatible by definition). */
 function isEqualValue(a: unknown, b: unknown): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
+}
+
+/** Whether `data` is the URL of a GPX or KML file, by its extension — a query or hash after it is fine. */
+function isXmlUrl(data: string): boolean {
+  return /\.(?:gpx|kml)(?:[?#].*)?$/i.test(data.trim());
+}
+
+/**
+ * `data` converted to GeoJSON when it's GPX or KML content — a string starting with `<`.
+ * @throws Error when it's XML but neither GPX nor KML, so the error points at the line that passed it.
+ */
+function convertXmlContent(data: DataLayerData | AnyDataLayer): FeatureCollection | undefined {
+  if (typeof data !== "string" || !data.trimStart().startsWith("<")) return undefined;
+  const converted = gpxOrKml(data);
+  if (!converted) throw new Error("Data layer: the data is XML, but neither GPX nor KML.");
+  return converted;
 }
 
 function createPendingUpdates<TStyle>(): PendingDataLayerUpdates<TStyle> {
