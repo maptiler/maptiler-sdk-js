@@ -1,4 +1,5 @@
-import type { CustomLayerInterface, CustomRenderMethodInput, Map as MapLibreMap } from "maplibre-gl";
+import type { CustomLayerInterface, CustomRenderMethodInput } from "maplibre-gl";
+import type { Map as MapSDK } from "../Map";
 import { createObject3D, type Object3D } from "../utils/webgl-utils";
 import { triangulateOutsideCutline, type ImageViewerCutline } from "./cutline";
 
@@ -42,7 +43,7 @@ export class OutsideCutlineLayer implements CustomLayerInterface {
 
   private data: OutsideCutlineLayerData;
 
-  private map?: MapLibreMap;
+  private map?: MapSDK;
 
   private mesh?: Object3D<(typeof ATTRIBUTES_KEYS)[number], (typeof UNIFORMS_KEYS)[number]>;
 
@@ -76,7 +77,7 @@ export class OutsideCutlineLayer implements CustomLayerInterface {
     this.data = { ...this.data, ...data };
   }
 
-  public onAdd(map: MapLibreMap, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
+  public onAdd(map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
     this.map = map;
     this.mesh = createObject3D({
       gl,
@@ -91,7 +92,7 @@ export class OutsideCutlineLayer implements CustomLayerInterface {
     this.geometryNeedsUpdate = true;
   }
 
-  public onRemove(_map: unknown, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
+  public onRemove(_map: MapSDK, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
     if (this.mesh) {
       gl.deleteProgram(this.mesh.shaderProgram);
       gl.deleteBuffer(this.mesh.positionBuffer);

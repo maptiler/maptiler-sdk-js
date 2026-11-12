@@ -21,7 +21,8 @@ vi.mock("../src/utils/webgl-utils", () => ({
 }));
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { CustomRenderMethodInput, Map as MapLibreMap } from "maplibre-gl";
+import type { CustomRenderMethodInput } from "maplibre-gl";
+import type { Map as MapSDK } from "../src/Map";
 import { OutsideCutlineLayer, type OutsideCutlineLayerData } from "../src/ImageViewer/OutsideCutlineLayer";
 import { triangulateOutsideCutline, type ImageViewerCutline } from "../src/ImageViewer/cutline";
 
@@ -85,7 +86,7 @@ describe("OutsideCutlineLayer", () => {
 
   function addLayer(layerData = data) {
     layer = new OutsideCutlineLayer(layerData);
-    layer.onAdd({ getZoom: () => 0 } as unknown as MapLibreMap, gl as unknown as WebGL2RenderingContext);
+    layer.onAdd({ getZoom: () => 0 } as unknown as MapSDK, gl as unknown as WebGL2RenderingContext);
   }
 
   function render() {
@@ -218,13 +219,13 @@ describe("OutsideCutlineLayer", () => {
     addLayer();
     render();
 
-    layer.onRemove({} as MapLibreMap, gl as unknown as WebGL2RenderingContext);
+    layer.onRemove({} as MapSDK, gl as unknown as WebGL2RenderingContext);
     expect(gl.deleteProgram).toHaveBeenCalledWith({ name: "program" });
 
     render();
     expect(gl.drawElements).toHaveBeenCalledTimes(1);
 
-    layer.onAdd({ getZoom: () => 0 } as unknown as MapLibreMap, gl as unknown as WebGL2RenderingContext);
+    layer.onAdd({ getZoom: () => 0 } as unknown as MapSDK, gl as unknown as WebGL2RenderingContext);
     render();
 
     expect(triangulateOutsideCutline).toHaveBeenCalledTimes(2);
