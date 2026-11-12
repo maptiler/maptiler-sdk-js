@@ -1,10 +1,20 @@
-import type { ExpressionSpecification } from "maplibre-gl";
+import type { DataDrivenPropertyValueSpecification, ExpressionSpecification } from "maplibre-gl";
 import { latest as styleSpec } from "@maplibre/maplibre-gl-style-spec";
+import type { ColorRamp, RgbaColor } from "../ColorRamp";
+import { dashArrayMaker, paintColorOptionsToPaintSpec, rampedOptionsToLayerPaintSpec } from "../helpers/stylehelper";
+import type { DataLayerColor, DataLayerDashArray, DataLayerNumber } from "./types";
 
 // Style helpers shared by the data layers. Internal — not exported from the package.
 
 /** Keeps Point and MultiPoint features — `geometry-type` reports both as `"Point"`. */
 export const POINT_GEOMETRY_FILTER: ExpressionSpecification = ["==", ["geometry-type"], "Point"];
+
+/**
+ * Keeps lines and polygons, single or multi — what `LineLayer` and
+ * `PolygonLayer` draw, each in its own way: a line layer draws a polygon's
+ * rings, and a fill layer fills a line as a ring closed back to its start.
+ */
+export const LINE_AND_POLYGON_GEOMETRY_FILTER: ExpressionSpecification = ["!=", ["geometry-type"], "Point"];
 
 /**
  * Whether a style value is a MapLibre expression, passed through as is.
@@ -45,3 +55,50 @@ export function fadeAtZoomEdges(opacity: number | ExpressionSpecification, minzo
   if (fadeOut) stops.push(maxzoom, 0);
   return ["interpolate", ["linear"], ["zoom"], ...stops] as ExpressionSpecification;
 }
+
+//#region Values
+
+/** A number as is, a zoom ramp as an interpolation over the zoom, an expression as is. */
+export function resolveNumber(value: DataLayerNumber): DataDrivenPropertyValueSpecification<number> {
+  if (typeof value === "number" || isExpression(value)) return value;
+  return rampedOptionsToLayerPaintSpec(value);
+}
+
+/**
+ * A colour as MapLibre takes it:
+ *
+ * | `color`                       | Result                                                                          |
+ * | ----------------------------- | ------------------------------------------------------------------------------- |
+ * | CSS colour or expression      | as is                                                                           |
+ * | `ZoomStringValues`            | interpolated over the zoom                                                      |
+ * | `ColorRamp`, `property` set   | interpolated over `property`'s value, a missing value reading the ramp's start  |
+ * | `ColorRamp`, `property` unset | the ramp's lowest colour                                                        |
+ *
+ * A `ColorRamp`'s alpha carries over, so a ramp can fade features out.
+ */
+export function resolveColor(color: DataLayerColor, property: string | undefined): DataDrivenPropertyValueSpecification<string> {
+  if (typeof color === "string" || isExpression(color)) return color;
+
+  const ramp = colorRampOf(color);
+  if (!ramp) return paintColorOptionsToPaintSpec(color as Exclude<DataLayerColor, ColorRamp | string | ExpressionSpecification>);
+
+  const stops = ramp.getRawColorStops().sort((a, b) => a.value - b.value);
+  if (!property || stops.length === 1) return toCssColor(stops[0].color);
+  return ["interpolate", ["linear"], ["to-number", ["get", property], stops[0].value], ...stops.flatMap((stop) => [stop.value, toCssColor(stop.color)])];
+}
+
+/** A dash pattern as MapLibre takes it — the string shorthand turned into numbers. */
+export function resolveDashArray(dashArray: DataLayerDashArray): number[] {
+  return typeof dashArray === "string" ? dashArrayMaker(dashArray) : dashArray;
+}
+
+/** `color` when it's a `ColorRamp` — told from a zoom ramp by its methods, as both are arrays of objects. */
+function colorRampOf(color: DataLayerColor): ColorRamp | undefined {
+  return Array.isArray(color) && typeof (color as Partial<ColorRamp>).getRawColorStops === "function" ? (color as ColorRamp) : undefined;
+}
+
+function toCssColor([r, g, b, a = 255]: RgbaColor): string {
+  return `rgba(${String(r)}, ${String(g)}, ${String(b)}, ${String(a / 255)})`;
+}
+
+//#endregion
