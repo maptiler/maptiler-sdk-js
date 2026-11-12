@@ -93,6 +93,7 @@ export default defineConfig({
         "events", 
         "js-base64", 
         "geojson-validation",
+        "earcut",
       ],
       output: {
         // Provide global variables to use in the UMD build
