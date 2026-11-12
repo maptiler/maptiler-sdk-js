@@ -6,7 +6,7 @@ The **MapTiler SDK JS** extends MapLibre GL JS, exposes all its features, and ad
 
 **Why are we creating a new SDK?** To make things simpler for developers working in the MapTiler ecosystem! With **MapTiler SDK JS**, there is no need to load external plugins for the most basic things, copy-paste complex data source URLs, or look up the syntax to enable 3D terrain every time you start a project. All this is built-in, loaded when needed, or exposed with simple functions. Under the hood, this SDK is opinionated as it's being fed by [MapTiler service](https://www.maptiler.com/cloud/) data, but its MapLibre core makes it 100% compatible with other sources.
 
-In addition, the MapTiler SDK JS provides well-documented and easy-to-use wrapper functions to the [MapTiler API services](https://docs.maptiler.com/cloud/api) such as: geocoding, static maps, geolocation, as well as a search engine for coordinate reference systems and transforming coordinates from one CRS to another.
+In addition, the MapTiler SDK JS provides well-documented and easy-to-use wrapper functions to the [MapTiler API services](https://docs.maptiler.com/cloud/api) such as: geocoding, routing, static maps, geolocation, as well as a search engine for coordinate reference systems and transforming coordinates from one CRS to another.
 
 > 📣 _**Note:**_ If you need <ins>only the API Client library</ins> to use in a headless fashion and without any map display, check out [MapTiler Client JS](https://github.com/maptiler/maptiler-client-js) library for browser and NodeJS.
 
@@ -2745,6 +2745,142 @@ Read more about elevation lookup for a `MultiLineString` in our [official docume
 ##### Caching
 
 In order to increase performance while reducing unnecessary elevation data fetching, the elevation tiles are cached. This is particularly important for the LineString and MultiLineString lookups because GeoJSON data are likely to come from a recorded or planned route, where position points are very close to one another.
+
+#### 🧭 Routing
+
+The `routing` module wraps the MapTiler Routing API, with a set of functions for each of its services. All of them share the same [request options and error handling](#request-options-and-errors).
+
+##### Directions
+
+The directions service computes a route between two or more locations, by car, truck, bicycle or on foot. The response contains a summary of the route (travel time, distance, bounding box), the geometry of each leg between waypoints and turn-by-turn steps with navigation instructions.
+
+Directions are available with both HTTP methods: `directionsPost` supports every feature of the API, and `directionsGet` sends the request as URL query parameters, with a few features left out.
+
+###### Using POST
+
+The only mandatory parts are the `profile` (`car`, `truck`, `bicycle` or `pedestrian`) and at least two `locations`:
+
+```ts
+// in an async function, or as a 'thenable':
+const result = await maptilersdk.routing.directionsPost({
+  profile: "car",
+  locations: [
+    { lon: 14.4213, lat: 50.0875 }, // Prague
+    { lon: 16.6068, lat: 49.1951 }, // Brno
+  ],
+});
+
+// Travel time in seconds and distance in the response units
+const { totalTime, totalLength } = result.route.summary;
+```
+
+You can provide many more options, such as:
+
+- the `profileOptions` matching the chosen profile, e.g. the car routing mode (fastest, shortest or balanced), the truck dimensions and weight, the bicycle type or the walking speed
+- `avoidances` of toll roads, ferries or highways, as part of the car and truck `profileOptions`
+- either a `departureTime` or an `arrivalTime`
+- a `heading` (preferred direction of travel) and a `waypoint` flag on each location
+- `avoidLocations`, a GeoJSON `MultiPoint` or `MultiPolygon` of places the route must not go through
+- `response` options: distance units (`km` or `mi`), language of the instructions, number of alternate routes (up to 3) and the level of detail (`legs`, `steps` or `instructions`)
+
+```ts
+const result = await maptilersdk.routing.directionsPost({
+  profile: "truck",
+  profileOptions: {
+    height: 4,
+    weight: 18,
+    hazmat: true,
+    avoidances: { tolls: true },
+  },
+  locations: [
+    { lon: 14.4213, lat: 50.0875 },
+    { lon: 16.6068, lat: 49.1951 },
+  ],
+  departureTime: "2026-12-01T08:00",
+  response: {
+    units: "km",
+    language: "en",
+    alternates: 2,
+    additionalData: { detailLevel: "instructions" },
+  },
+});
+
+// Turn-by-turn instructions of the first leg
+for (const step of result.route.legs[0].steps ?? []) {
+  console.log(step.maneuver?.instruction);
+}
+
+// Alternate routes have the same shape as the main route
+const alternateRoutes = result.alternates ?? [];
+```
+
+> 📣 Note for **TypeScript** users: `profileOptions` are typed according to the `profile`, so passing bicycle options to a car route, or setting both `departureTime` and `arrivalTime`, is caught at compile time.
+
+<!-- Read more about directions with POST in our [official documentation](https://docs.maptiler.com/client-js/api/variables/services_routing.routing/#directionspost). -->
+
+###### Using GET
+
+`directionsGet` accepts the same request as `directionsPost`, except for the fields that cannot be expressed as query parameters: the per-location `heading` and `waypoint`, and `avoidLocations`. Use `directionsPost` if you need any of them.
+
+```ts
+const result = await maptilersdk.routing.directionsGet({
+  profile: "pedestrian",
+  profileOptions: { walkingSpeed: 4 },
+  locations: [
+    { lon: 14.4005, lat: 50.0909 }, // Prague Castle
+    { lon: 14.4213, lat: 50.0875 }, // Old Town Square
+  ],
+});
+```
+
+<!-- Read more about directions with GET in our [official documentation](https://docs.maptiler.com/client-js/api/variables/services_routing.routing/#directionsget). -->
+
+###### Route geometry
+
+The geometry of each route leg is decoded for you into an array of _GeoJSON_ positions `[lng, lat]`, so it can be used right away, for example to display the route on a map with the [polyline helper](#polyline-layer-helper), or as the `path` of an [automatic static map](#automatic-static-maps):
+
+```ts
+// Not mandatory, but it's to explain where the type comes from:
+import { LineString } from "geojson";
+
+const routeLine: LineString = {
+  type: "LineString",
+  coordinates: result.route.legs.flatMap((leg) => leg.geometry),
+};
+
+maptilersdk.helpers.addPolyline(map, {
+  data: {
+    type: "FeatureCollection",
+    features: [{ type: "Feature", properties: {}, geometry: routeLine }],
+  },
+  outline: true,
+});
+```
+
+##### Request options and errors
+
+All routing functions accept a second argument with options applying to the request itself:
+
+- `apiKey` to use a different API key than the one in `config`
+- `fetchExtras` with extra options for the underlying `fetch()` call, e.g. a `signal` to abort the request
+- `adjustSearchParams`, a callback that can modify the URL search parameters before the request is sent
+- `session` to override the global `config.session` setting for this request. When enabled, the MapTiler session ID is added to the request, which allows session-based billing
+
+When the API returns an error, a `ServiceError` is thrown. Its message includes the error message from the API, and its `res` property holds the HTTP response, from which you can read the error `code` (see the `ApiErrorCode` type for the known values):
+
+```ts
+const controller = new AbortController();
+
+try {
+  const result = await maptilersdk.routing.directionsPost(request, {
+    fetchExtras: { signal: controller.signal },
+  });
+} catch (error) {
+  if (error instanceof maptilersdk.ServiceError) {
+    const { code } = await error.res.json(); // e.g. "MT_PATH_NOT_FOUND"
+  }
+}
+```
 
 #### 🧮 Math
 
