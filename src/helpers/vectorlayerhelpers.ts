@@ -511,6 +511,7 @@ export type HeatmapLayerOptions = {
  *
  * Those style properties can be changed and ramped according to zoom level using an easier syntax.
  *
+ * @deprecated Use {@link LineLayer} instead — it takes the same style options under the data layers' shared names (`color` for `lineColor`, `width` for `lineWidth`, …), and can be updated after it's added.
  */
 export async function addPolyline(
   /**
@@ -689,6 +690,7 @@ function addGeoJSONPolyline(
 
 /**
  * Add a polygon with styling options.
+ * @deprecated Use {@link PolygonLayer} instead — it takes the same style options under the data layers' shared names (`color` for `fillColor`, `opacity` for `fillOpacity`), and can be updated after it's added.
  */
 export function addPolygon(
   map: SDKMap,
