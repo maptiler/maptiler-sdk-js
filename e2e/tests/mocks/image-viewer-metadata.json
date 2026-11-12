@@ -1,0 +1,10 @@
+{
+  "id": "e2e-image",
+  "description": "E2E test image",
+  "attribution": "",
+  "width": 4096,
+  "height": 2048,
+  "minzoom": 0,
+  "maxzoom": 3,
+  "tileSize": 512
+}
