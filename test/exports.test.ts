@@ -166,6 +166,8 @@ const expectedExports = Array.from(
     "DataLayer",
     "PointLayer",
     "HeatmapLayer",
+    "PolygonLayer",
+    "LineLayer",
   ]),
 );
 
