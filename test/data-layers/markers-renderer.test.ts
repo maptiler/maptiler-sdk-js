@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { MarkerImages, buildMarkerLayers, resolveMarkersStyling, type MarkersRenderContext } from "../../src/data-layers/PointLayer/markers-renderer";
+import { MarkerImages, buildMarkerLayers, resolveMarkersStyle, type MarkersRenderContext } from "../../src/data-layers/PointLayer/markers-renderer";
 import { getAdaptiveColors } from "../../src/Marker/marker-adaptive-colors";
 import { drawMarkerCanvas } from "../../src/Marker/marker-canvas";
 import { onLabelFontLoad } from "../../src/Marker/marker-text-fit";
@@ -20,37 +20,37 @@ vi.mock("../../src/Marker/marker-text-fit", () => ({
 }));
 
 describe("markers renderer", () => {
-  //#region Styling
+  //#region Style
 
-  describe("resolveMarkersStyling", () => {
+  describe("resolveMarkersStyle", () => {
     it("fills in the default shape, size and the style's adaptive colours", () => {
-      const { marker } = resolveMarkersStyling({}, "streets-v2");
+      const { marker } = resolveMarkersStyle({}, "streets-v2");
       const defaults = getAdaptiveColors("streets-v2", "maptiler");
 
       expect(marker).toMatchObject({ shape: "maptiler", size: "m", outerColor: defaults.outerColor, innerColor: defaults.innerColor });
     });
 
     it("keeps explicit colours, and resolves the rest per shape", () => {
-      const { marker } = resolveMarkersStyling({ marker: { shape: "square", outerColor: "#123456" } }, "dataviz-dark");
+      const { marker } = resolveMarkersStyle({ marker: { shape: "square", outerColor: "#123456" } }, "dataviz-dark");
 
       expect(marker.outerColor).toBe("#123456");
       expect(marker.innerColor).toBe(getAdaptiveColors("dataviz-dark", "square").innerColor);
     });
 
     it("minimizes to an xs dot in the marker's own colours, under any overrides, without content", () => {
-      const { marker, minimized } = resolveMarkersStyling({ marker: { shape: "square", content: "x" } }, "streets-v2");
+      const { marker, minimized } = resolveMarkersStyle({ marker: { shape: "square", content: "x" } }, "streets-v2");
       expect(minimized).toMatchObject({ shape: "square", size: "xs", outerColor: marker.outerColor, innerColor: marker.innerColor });
       expect(minimized.content).toBeUndefined();
 
-      const overridden = resolveMarkersStyling({ marker: { shape: "square" }, minimized: { size: "s", outerColor: "#ff0000" } }, "streets-v2").minimized;
+      const overridden = resolveMarkersStyle({ marker: { shape: "square" }, minimized: { size: "s", outerColor: "#ff0000" } }, "streets-v2").minimized;
       expect(overridden).toMatchObject({ shape: "square", size: "s", outerColor: "#ff0000" });
     });
 
     it("styles clusters like the markers unless given their own style, resolved the same way", () => {
-      const plain = resolveMarkersStyling({ marker: { shape: "square" } }, "streets-v2");
+      const plain = resolveMarkersStyle({ marker: { shape: "square" } }, "streets-v2");
       expect(plain.clusterMarker).toEqual(plain.marker);
 
-      const own = resolveMarkersStyling({ marker: { shape: "square" }, clusterMarker: { shape: "circle", size: "l" } }, "streets-v2").clusterMarker;
+      const own = resolveMarkersStyle({ marker: { shape: "square" }, clusterMarker: { shape: "circle", size: "l" } }, "streets-v2").clusterMarker;
       expect(own).toMatchObject({ shape: "circle", size: "l", innerColor: getAdaptiveColors("streets-v2", "circle").innerColor });
     });
   });
@@ -64,7 +64,7 @@ describe("markers renderer", () => {
     const context: MarkersRenderContext = { layerId: "pl", sourceId: "pl-source", collisionBehaviour: "always-show", imagePrefixes };
 
     function layout(label?: string | ["get", string]) {
-      const [layer] = buildMarkerLayers(resolveMarkersStyling({ label }, undefined), context);
+      const [layer] = buildMarkerLayers(resolveMarkersStyle({ label }, undefined), context);
       return layer.layout as Record<string, unknown>;
     }
 
@@ -86,7 +86,7 @@ describe("markers renderer", () => {
 
     it("offsets bottom-anchored shapes so the tip sits on the point, and centres the rest", () => {
       const offset = (shape: "maptiler" | "square") => {
-        const [layer] = buildMarkerLayers(resolveMarkersStyling({ marker: { shape, size: "l" } }, undefined), context);
+        const [layer] = buildMarkerLayers(resolveMarkersStyle({ marker: { shape, size: "l" } }, undefined), context);
         return (layer.layout as Record<string, unknown>)["icon-offset"];
       };
 
@@ -95,15 +95,15 @@ describe("markers renderer", () => {
     });
 
     it("applies opacity through the layer, not the image", () => {
-      const [layer] = buildMarkerLayers(resolveMarkersStyling({ marker: { opacity: 0.5 } }, undefined), context);
+      const [layer] = buildMarkerLayers(resolveMarkersStyle({ marker: { opacity: 0.5 } }, undefined), context);
       expect(layer.paint).toEqual({ "icon-opacity": 0.5 });
     });
 
     //#region Collision
 
     describe("collision behaviours", () => {
-      function build(collisionBehaviour: MarkersRenderContext["collisionBehaviour"], styling: Parameters<typeof resolveMarkersStyling>[0] = {}) {
-        return buildMarkerLayers(resolveMarkersStyling({ label: "name", ...styling }, undefined), { ...context, collisionBehaviour });
+      function build(collisionBehaviour: MarkersRenderContext["collisionBehaviour"], style: Parameters<typeof resolveMarkersStyle>[0] = {}) {
+        return buildMarkerLayers(resolveMarkersStyle({ label: "name", ...style }, undefined), { ...context, collisionBehaviour });
       }
       const layoutOf = (layer: { layout?: unknown }) => layer.layout as Record<string, unknown>;
 

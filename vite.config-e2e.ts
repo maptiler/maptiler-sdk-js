@@ -13,6 +13,7 @@ export default defineConfig({
         markerCanvas: 'public/markerCanvas.html',
         missingImageResolvers: 'public/missingImageResolvers.html',
         dataLayer: 'public/dataLayer.html',
+        dataLayers: 'public/dataLayers.html',
       },
     },
   },

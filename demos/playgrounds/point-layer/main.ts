@@ -1,7 +1,7 @@
 // Sets the MapLibre worker URL, as Vite users of the SDK do
 import "@maptiler/sdk/vite-worker";
 import { ColorRampCollection, Map, MapStyle, PointLayer, config, helpers } from "@maptiler/sdk";
-import type { GeoJSONSource, MapStyleVariant, MapTilerMarkerShape, MarkerStyle, PointLayerCirclesStyling, PointLayerMarkersCollisionBehaviour } from "@maptiler/sdk";
+import type { ColorRamp, GeoJSONSource, MapStyleVariant, MapTilerMarkerShape, MarkerStyle, PointLayerCirclesStyle, PointLayerMarkersCollisionBehaviour } from "@maptiler/sdk";
 import { el, setupMapTilerApiKey } from "../../shared/demo-utils";
 import { MarkerInteraction, loadQuakes, type QuakeFeature } from "../../shared/point-layer-interaction";
 
@@ -31,17 +31,22 @@ const controls = {
   minzoom: el<HTMLInputElement>("minzoom"),
 };
 
-/** Every styling key is always present — `undefined` resets it to the default on the PointLayer side. */
-function readStyling(): PointLayerCirclesStyling {
+/** Every style key is always present — `undefined` resets it to the default on the PointLayer side. */
+function readStyle(): PointLayerCirclesStyle {
   return {
-    pointColor: controls.color.value === "ramp" ? magnitudeRamp : controls.color.value,
+    color: controls.color.value === "ramp" ? magnitudeRamp : controls.color.value,
     property: controls.property.value || undefined,
-    pointRadius: controls.radiusAuto.checked ? undefined : Number(controls.radius.value),
+    radius: controls.radiusAuto.checked ? undefined : Number(controls.radius.value),
     outline: controls.outline.checked,
     zoomCompensation: controls.zoomCompensation.checked,
     alignOnViewport: controls.alignViewport.checked,
     showLabel: controls.showLabel.checked ? true : undefined,
   };
+}
+
+/** The `addPoint` options for circles style, which uses the data layers' shared names. Only the keys the controls set. */
+function toAddPointOptions({ color, radius, ...rest }: PointLayerCirclesStyle) {
+  return { ...rest, pointColor: color as string | ColorRamp, pointRadius: radius as number | undefined };
 }
 
 async function main() {
@@ -72,7 +77,8 @@ async function main() {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     helperIds = helpers.addPoint(helperMap, {
       data: EARTHQUAKES_URL,
-      ...readStyling(),
+      // the helper's names for the same options
+      ...toAddPointOptions(readStyle()),
       minzoom: Number(controls.minzoom.value),
       maxzoom: MAXZOOM,
     });
@@ -84,7 +90,7 @@ async function main() {
 
   const layer = new PointLayer({
     data: EARTHQUAKES_URL,
-    styling: readStyling(),
+    style: readStyle(),
     minzoom: Number(controls.minzoom.value),
     maxzoom: MAXZOOM,
   });
@@ -94,12 +100,12 @@ async function main() {
   });
 
   function updateLayer() {
-    layer.setStyling(readStyling()).setZoomRange(Number(controls.minzoom.value), MAXZOOM);
+    layer.setStyle(readStyle()).setZoomRange(Number(controls.minzoom.value), MAXZOOM);
 
     // the layer flushes on the next frame — log after it
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        console.log("PointLayer sublayers:", layer.getSublayerIds(), "styling:", layer.getStyling());
+        console.log("PointLayer sublayers:", layer.getSublayerIds(), "style:", layer.getStyle());
       });
     });
   }
@@ -204,7 +210,7 @@ function addDrawOrderExperiment(map: Map, circlesLayer: PointLayer) {
   const markersLayer = new PointLayer({
     mode: "markers",
     data: { type: "FeatureCollection", features: [] },
-    styling: {
+    style: {
       marker: readMarkerStyle(),
       // a property per feature, computed from `mag` unless overridden — see point-layer-interaction.ts
       label: "label",
@@ -225,7 +231,7 @@ function addDrawOrderExperiment(map: Map, circlesLayer: PointLayer) {
     control.addEventListener("input", () => {
       // the DOM stand-ins were built from the old style
       interaction.select(null);
-      markersLayer.setStyling({ marker: readMarkerStyle() });
+      markersLayer.setStyle({ marker: readMarkerStyle() });
     });
   }
 

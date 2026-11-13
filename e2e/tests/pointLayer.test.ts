@@ -31,7 +31,7 @@ test.describe("PointLayer", () => {
         properties: { i },
         geometry: { type: "Point" as const, coordinates: [(i % 5) * 6 - 12, Math.floor(i / 5) * 6 - 12] },
       }));
-      const layer = new (window.__pageObjects.PointLayer as typeof PointLayerClass)({ data: { type: "FeatureCollection", features }, styling: { pointColor: "#e63946" } });
+      const layer = new (window.__pageObjects.PointLayer as typeof PointLayerClass)({ data: { type: "FeatureCollection", features }, style: { color: "#e63946" } });
       map.addLayer(layer);
       await new Promise((resolve) => map.once("idle", resolve));
 
@@ -56,7 +56,7 @@ test.describe("PointLayer", () => {
       const layer = new (window.__pageObjects.PointLayer as typeof PointLayerClass)({
         mode: "markers",
         data: { type: "FeatureCollection", features },
-        styling: { marker: { shape: "square", size: "m" }, label: "label" },
+        style: { marker: { shape: "square", size: "m" }, label: "label" },
       });
       map.addLayer(layer);
 
@@ -94,7 +94,7 @@ test.describe("PointLayer", () => {
         })),
       });
 
-      const layer = new (window.__pageObjects.PointLayer as typeof PointLayerClass)({ data: randomPoints(200) });
+      const layer = new (window.__pageObjects.PointLayer as typeof PointLayerClass)({ data: randomPoints(200), style: { color: "#e63946" } });
       const log: string[] = [];
       layer.on("dataloading", () => log.push("dataloading"));
       layer.on("data", () => log.push("data"));
@@ -138,7 +138,7 @@ test.describe("PointLayer", () => {
       map.setStyle(style(["bottom", "labels", "top"]), { diff: false });
       await settle();
 
-      const layer = new (window.__pageObjects.PointLayer as typeof PointLayerClass)({ data: { type: "FeatureCollection", features: [] } });
+      const layer = new (window.__pageObjects.PointLayer as typeof PointLayerClass)({ data: { type: "FeatureCollection", features: [] }, style: { color: "#e63946" } });
       map.addLayer(layer, "labels");
       await settle();
       const before = describeOrder(layer.id);
@@ -183,7 +183,7 @@ test.describe("PointLayer", () => {
           mode: "markers",
           data: { type: "FeatureCollection", features },
           collisionBehaviour: behaviour as never,
-          styling: { marker: { shape: "square", size: "m" }, priority: ["get", "mag"] },
+          style: { marker: { shape: "square", size: "m" }, priority: ["get", "mag"] },
         });
         map.addLayer(layer);
         await new Promise((resolve) => map.once("idle", resolve));
@@ -237,7 +237,7 @@ test.describe("PointLayer", () => {
           // medium markers are 32px: 36px apart they clear each other, 28px apart they don't
           data: { type: "FeatureCollection", features: [...pair(36, 5), ...pair(28, -5)] },
           collisionBehaviour: "hide-by-priority",
-          styling: { marker: { shape: "square", size: "m" } },
+          style: { marker: { shape: "square", size: "m" } },
         });
         map.addLayer(layer);
         await new Promise((resolve) => map.once("idle", resolve));

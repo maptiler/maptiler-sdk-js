@@ -7,7 +7,7 @@ import { getShapeAnchorOffset } from "../../Marker/marker-svg-config";
 import { onLabelFontLoad } from "../../Marker/marker-text-fit";
 import { CONTENT_METRICS, DEFAULT_MINIMIZED_SIZE, DEFAULT_SHAPE, DEFAULT_SIZE } from "../../Marker/marker-constants";
 import type { SublayerSpecification } from "../DataLayer";
-import type { PointLayerMarkersCollisionBehaviour, PointLayerMarkersStyling } from "./types";
+import type { PointLayerMarkersCollisionBehaviour, PointLayerMarkersStyle } from "./types";
 
 // Layer specs and images for `markers` mode. Every marker, label included, is
 // one icon image drawn by marker-canvas.ts: MapLibre draws all of a layer's
@@ -23,17 +23,19 @@ import type { PointLayerMarkersCollisionBehaviour, PointLayerMarkersStyling } fr
 /** The images each marker sublayer is drawn from. */
 export type MarkerImageRole = "marker" | "dot" | "cluster";
 
-/** Everything besides styling that the marker layers depend on. */
+/** Everything besides style that the marker layers depend on. */
 export type MarkersRenderContext = {
   layerId: string;
   sourceId: string;
   collisionBehaviour: PointLayerMarkersCollisionBehaviour;
   /** Image id prefix per role, for the current styles — see {@link MarkerImages.setStyle}. */
   imagePrefixes: Record<MarkerImageRole, string>;
+  /** Adds the layer's fade at the edges of its zoom range — see `DataLayer.fadeOpacity`. Unset, opacity is used as is. */
+  fadeOpacity?: (opacity: number) => number | ExpressionSpecification;
 };
 
-/** Markers styling with every marker style's shape, size and colours filled in. */
-export type ResolvedMarkersStyling = PointLayerMarkersStyling & {
+/** Markers style with every marker's shape, size and colours filled in. */
+export type ResolvedMarkersStyle = PointLayerMarkersStyle & {
   marker: MarkerStyle;
   /** The dot a `minimize-by-priority` marker shrinks to. */
   minimized: MarkerStyle;
@@ -42,27 +44,27 @@ export type ResolvedMarkersStyling = PointLayerMarkersStyling & {
 
 //#endregion
 
-//#region Styling
+//#region Style
 
 /**
  * Fills in each marker style's shape and size, and resolves unset colours to
  * the adaptive defaults for the style — so a style change changes the marker
  * styles, and with them the images.
- * @param styling - Styling as set by the user.
+ * @param style - Style as set by the user.
  * @param styleId - Id of the map's current style, if any.
  */
-export function resolveMarkersStyling(styling: PointLayerMarkersStyling, styleId: string | undefined): ResolvedMarkersStyling {
-  const marker = resolveMarkerStyle(styling.marker ?? {}, styleId);
+export function resolveMarkersStyle(style: PointLayerMarkersStyle, styleId: string | undefined): ResolvedMarkersStyle {
+  const marker = resolveMarkerStyle(style.marker ?? {}, styleId);
 
   // as on DOM markers: the marker's own colours at `xs`, under any minimized overrides — and no content, which a dot can't show
-  const minimized: MarkerStyle = { ...marker, size: DEFAULT_MINIMIZED_SIZE, ...styling.minimized };
+  const minimized: MarkerStyle = { ...marker, size: DEFAULT_MINIMIZED_SIZE, ...style.minimized };
   delete minimized.content;
 
   return {
-    ...styling,
+    ...style,
     marker,
     minimized,
-    clusterMarker: styling.clusterMarker ? resolveMarkerStyle(styling.clusterMarker, styleId) : marker,
+    clusterMarker: style.clusterMarker ? resolveMarkerStyle(style.clusterMarker, styleId) : marker,
   };
 }
 
@@ -97,10 +99,10 @@ export function getMarkerLayerIds(layerId: string) {
 /**
  * Builds the marker sublayers, bottom first: minimized dots (under
  * `minimize-by-priority`), markers, then clusters (under `cluster`).
- * @param styling - Resolved styling (see {@link resolveMarkersStyling}).
+ * @param style - Resolved style (see {@link resolveMarkersStyle}).
  * @param context - Ids, collision behaviour and image prefixes.
  */
-export function buildMarkerLayers(styling: ResolvedMarkersStyling, context: MarkersRenderContext): SublayerSpecification[] {
+export function buildMarkerLayers(style: ResolvedMarkersStyle, context: MarkersRenderContext): SublayerSpecification[] {
   const ids = getMarkerLayerIds(context.layerId);
   const behaviour = context.collisionBehaviour;
   const collides = behaviour === "hide-by-priority" || behaviour === "minimize-by-priority";
@@ -108,22 +110,23 @@ export function buildMarkerLayers(styling: ResolvedMarkersStyling, context: Mark
 
   // every point gets a dot, always shown: a marker that wins its place covers its own dot, one that loses leaves it showing
   if (behaviour === "minimize-by-priority") {
-    layers.push(symbolLayer(ids.dot, context.sourceId, styling.minimized, context.imagePrefixes.dot, { overlap: true }));
+    layers.push(symbolLayer(ids.dot, context.sourceId, style.minimized, context.imagePrefixes.dot, { overlap: true, fadeOpacity: context.fadeOpacity }));
   }
 
   layers.push(
-    symbolLayer(ids.marker, context.sourceId, styling.marker, getIconImage(styling.label, context.imagePrefixes.marker), {
+    symbolLayer(ids.marker, context.sourceId, style.marker, getIconImage(style.label, context.imagePrefixes.marker), {
       overlap: !collides,
       // placement goes by ascending sort key, so the highest priority is placed first
-      sortKey: collides && styling.priority !== undefined ? negate(styling.priority) : undefined,
+      sortKey: collides && style.priority !== undefined ? negate(style.priority) : undefined,
       filter: behaviour === "cluster" ? ["!", ["has", "point_count"]] : undefined,
+      fadeOpacity: context.fadeOpacity,
     }),
   );
 
   if (behaviour === "cluster") {
     // the count is drawn into the image like a label, so clusters depth-sort with markers and use the marker font
     const count: ExpressionSpecification = ["concat", context.imagePrefixes.cluster, ["to-string", ["get", "point_count_abbreviated"]]];
-    layers.push(symbolLayer(ids.cluster, context.sourceId, styling.clusterMarker, count, { overlap: true, filter: ["has", "point_count"] }));
+    layers.push(symbolLayer(ids.cluster, context.sourceId, style.clusterMarker, count, { overlap: true, filter: ["has", "point_count"], fadeOpacity: context.fadeOpacity }));
   }
 
   return layers;
@@ -134,6 +137,7 @@ type SymbolLayerOptions = {
   overlap: boolean;
   sortKey?: number | ExpressionSpecification;
   filter?: ExpressionSpecification;
+  fadeOpacity?: (opacity: number) => number | ExpressionSpecification;
 };
 
 function symbolLayer(id: string, source: string, style: MarkerStyle, iconImage: string | ExpressionSpecification, options: SymbolLayerOptions): SublayerSpecification {
@@ -160,13 +164,13 @@ function symbolLayer(id: string, source: string, style: MarkerStyle, iconImage: 
       "symbol-z-order": options.overlap ? "viewport-y" : "auto",
     },
     paint: {
-      "icon-opacity": opacity,
+      "icon-opacity": options.fadeOpacity ? options.fadeOpacity(opacity) : opacity,
     },
   };
 }
 
 /** `<prefix><label>`, or just the prefix when there's no label. */
-function getIconImage(label: PointLayerMarkersStyling["label"], prefix: string): string | ExpressionSpecification {
+function getIconImage(label: PointLayerMarkersStyle["label"], prefix: string): string | ExpressionSpecification {
   if (label === undefined) return prefix;
   const labelExpression: ExpressionSpecification = typeof label === "string" ? ["get", label] : label;
   return ["concat", prefix, ["to-string", labelExpression]];

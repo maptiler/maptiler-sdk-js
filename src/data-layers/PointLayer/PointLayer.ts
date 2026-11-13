@@ -1,42 +1,42 @@
 import type { GeoJSONSourceSpecification, Map as MapLibreMap } from "maplibre-gl";
 import type { Map as SDKMap } from "../../Map";
-import { getRandomColor } from "../../helpers/stylehelper";
 import { DataLayer, type SublayerSpecification } from "../DataLayer";
-import { buildCircleLayers, resolveCirclesStyling } from "./circles-renderer";
-import { MarkerImages, buildMarkerLayers, resolveMarkersStyling } from "./markers-renderer";
+import { POINT_GEOMETRY_FILTER } from "../style";
+import { buildCircleLayers, resolveCirclesStyle } from "./circles-renderer";
+import { MarkerImages, buildMarkerLayers, resolveMarkersStyle } from "./markers-renderer";
 import type {
-  PointLayerCirclesStyling,
+  PointLayerCirclesStyle,
   PointLayerCollisionBehaviour,
   PointLayerConstructorOptions,
   PointLayerMarkersCollisionBehaviour,
-  PointLayerMarkersStyling,
+  PointLayerMarkersStyle,
   PointLayerMode,
-  PointLayerStyling,
+  PointLayerStyle,
 } from "./types";
 
 /**
  * A stateful layer of points — the successor to the `addPoint` helper. Add it
- * with `map.addLayer(layer, beforeId)`; its data, styling and display can then
+ * with `map.addLayer(layer, beforeId)`; its data, style and display can then
  * be changed at any time.
  *
  * Points render as GL circles (`mode: "circles"`, the default) or as MapTiler
  * marker images (`mode: "markers"`). The mode is fixed at construction.
+ * Only Point and MultiPoint features are drawn — other geometries are skipped.
  *
  * @example
  * ```ts
- * const layer = new PointLayer({ data: "https://example.com/points.geojson", styling: { pointColor: "#ff0000" } });
+ * const layer = new PointLayer({ data: "https://example.com/points.geojson", style: { color: "#ff0000" } });
  * map.addLayer(layer);
- * layer.setStyling({ pointRadius: 12 }).setVisible(true);
+ * layer.setStyle({ radius: 12 }).setVisible(true);
  *
- * const markers = new PointLayer({ mode: "markers", data, styling: { marker: { shape: "square" }, label: "name" } });
+ * const markers = new PointLayer({ mode: "markers", data, style: { marker: { shape: "square" }, label: "name" } });
  * map.addLayer(markers);
  * ```
  */
-export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLayer<PointLayerStyling<TMode>, TMode> {
+export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLayer<PointLayerStyle<TMode>, TMode> {
   private collisionBehaviour: PointLayerCollisionBehaviour<TMode>;
 
-  /** Colour used while `pointColor` is unset in circles mode — picked once, so it's stable across rebuilds. */
-  private readonly defaultColor = getRandomColor();
+  protected override readonly geometryFilter = POINT_GEOMETRY_FILTER;
 
   /** Images in markers mode: the markers, the dots minimized markers leave, and the cluster markers. */
   private readonly images = {
@@ -47,16 +47,31 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
 
   constructor(options: PointLayerConstructorOptions<TMode>) {
     super("maptiler-point-layer", options.mode ?? ("circles" as TMode), options);
+    // for JavaScript callers — the types already require it
+    if (!this.isMarkers() && !("color" in this.style)) {
+      throw new Error("PointLayer: `style.color` is required in circles mode.");
+    }
     // circles can't collide, so only markers default to colliding
     const defaultBehaviour = this.mode === "markers" ? "minimize-by-priority" : "always-show";
     this.collisionBehaviour = options.collisionBehaviour ?? (defaultBehaviour as PointLayerCollisionBehaviour<TMode>);
+    // made from another layer, it draws that layer's source — checked again on add, as clustering may be set after
+    if (this.isClustered() && options.data instanceof DataLayer)
+      throw new Error(`${this.id}: a layer drawing another layer's source can't cluster, as clustering changes the source.`);
   }
 
   //#region Collision Behaviour
 
-  /** Sets what happens where points overlap. Switching clustering on or off rebuilds the source. */
+  /**
+   * Sets what happens where points overlap. Switching clustering on or off
+   * rebuilds the source, so a layer can't cluster while another layer draws
+   * its source on its map. Off its map it can — `map.addLayer` then refuses it
+   * on a map where another layer draws its source.
+   */
   setCollisionBehaviour(collisionBehaviour: PointLayerCollisionBehaviour<TMode>): this {
     if (collisionBehaviour === this.collisionBehaviour) return this;
+    if (collisionBehaviour === "cluster" && this.isSharingSource()) {
+      throw new Error(`${this.id}: can't cluster while another layer draws its source on the map, as clustering changes the source.`);
+    }
     this.collisionBehaviour = collisionBehaviour;
     this.requestRebuild();
     return this;
@@ -88,6 +103,10 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
 
   //#region DataLayer
 
+  protected override canShareSource(): boolean {
+    return !this.isClustered();
+  }
+
   protected override getSourceSpecification(): GeoJSONSourceSpecification {
     return { ...super.getSourceSpecification(), cluster: this.isClustered() };
   }
@@ -96,20 +115,25 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
     for (const layer of this.buildSublayers()) this.addSublayer(map, layer);
   }
 
-  protected applyStyling(): boolean {
+  /** Circles have no default colour yet, so `color` can't be reset. */
+  protected override isRequiredStyleKey(key: keyof PointLayerStyle<TMode>): boolean {
+    return !this.isMarkers() && key === "color";
+  }
+
+  protected applyStyle(): boolean {
     return this.syncSublayers(this.buildSublayers());
   }
 
-  /** The default circle opacity fades in and out at the zoom range's edges, so a new range restyles the sublayers. */
+  /** The opacity fades in and out at the zoom range's edges, so a new range or fade restyles the sublayers. */
   protected override onZoomRangeChange(): boolean {
     return this.syncSublayers(this.buildSublayers());
   }
 
-  protected resolveStyling(): PointLayerStyling<TMode> {
+  protected resolveStyle(): PointLayerStyle<TMode> {
     if (this.isMarkers()) {
-      return resolveMarkersStyling(this.styling as PointLayerMarkersStyling, this.map?.getStyleId()) as PointLayerStyling<TMode>;
+      return resolveMarkersStyle(this.style as PointLayerMarkersStyle, this.map?.getStyleId()) as PointLayerStyle<TMode>;
     }
-    return resolveCirclesStyling(this.styling as PointLayerCirclesStyling, this.defaultColor, this.isClustered()) as PointLayerStyling<TMode>;
+    return resolveCirclesStyle(this.style as PointLayerCirclesStyle, this.isClustered()) as PointLayerStyle<TMode>;
   }
 
   //#endregion
@@ -118,25 +142,25 @@ export class PointLayer<TMode extends PointLayerMode = "circles"> extends DataLa
 
   private buildSublayers(): SublayerSpecification[] {
     if (this.isMarkers()) {
-      const styling = resolveMarkersStyling(this.styling as PointLayerMarkersStyling, this.map?.getStyleId());
-      return buildMarkerLayers(styling, {
+      const style = resolveMarkersStyle(this.style as PointLayerMarkersStyle, this.map?.getStyleId());
+      return buildMarkerLayers(style, {
         layerId: this.id,
         sourceId: this.getSourceId(),
         collisionBehaviour: this.collisionBehaviour as PointLayerMarkersCollisionBehaviour,
         imagePrefixes: {
-          marker: this.images.marker.setStyle(this.map, styling.marker),
-          dot: this.images.dot.setStyle(this.map, styling.minimized),
-          cluster: this.images.cluster.setStyle(this.map, styling.clusterMarker),
+          marker: this.images.marker.setStyle(this.map, style.marker),
+          dot: this.images.dot.setStyle(this.map, style.minimized),
+          cluster: this.images.cluster.setStyle(this.map, style.clusterMarker),
         },
+        fadeOpacity: this.fadeOpacity,
       });
     }
 
-    return buildCircleLayers(this.resolveStyling() as PointLayerCirclesStyling, {
+    return buildCircleLayers(this.resolveStyle() as PointLayerCirclesStyle, {
       layerId: this.id,
       sourceId: this.getSourceId(),
       cluster: this.isClustered(),
-      minzoom: this.minzoom,
-      maxzoom: this.maxzoom,
+      fadeOpacity: this.fadeOpacity,
     });
   }
 

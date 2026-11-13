@@ -1,45 +1,47 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { ExpressionSpecification, FilterSpecification } from "maplibre-gl";
 import type { FeatureCollection } from "geojson";
 import type { SourceSpecification } from "maplibre-gl";
 import type { Map as SDKMap } from "../../src/Map";
 import { config } from "../../src/config";
 import { DataLayer, type DataLayerConstructorOptions, type SublayerSpecification } from "../../src/data-layers/DataLayer";
+import { moveLayerWithSublayers, resolveBeforeId } from "../../src/data-layers/registry";
 import { createMockStyleMap, type MockStyleMap } from "./mock-style-map";
 
 //#region Test Layer
 
-type TestStyling = {
+type TestStyle = {
   color?: string;
   halo?: boolean;
 };
 
 /** Two paint-path props and one structural one (`halo` adds a sublayer, so needs a rebuild). */
-class TestLayer extends DataLayer<TestStyling, "circles"> {
-  constructor(options: DataLayerConstructorOptions<TestStyling>) {
+class TestLayer extends DataLayer<TestStyle, "circles"> {
+  constructor(options: DataLayerConstructorOptions<TestStyle>) {
     super("test-layer", "circles", options);
   }
 
   protected addSublayers(map: SDKMap): void {
-    const styling = this.resolveStyling();
-    if (styling.halo) {
-      this.addSublayer(map, { id: `${this.id}-halo`, type: "circle", source: this.getSourceId(), paint: { "circle-color": styling.color } });
+    const style = this.resolveStyle();
+    if (style.halo) {
+      this.addSublayer(map, { id: `${this.id}-halo`, type: "circle", source: this.getSourceId(), paint: { "circle-color": style.color } });
     }
-    this.addSublayer(map, { id: `${this.id}-circle`, type: "circle", source: this.getSourceId(), paint: { "circle-color": styling.color } });
+    this.addSublayer(map, { id: `${this.id}-circle`, type: "circle", source: this.getSourceId(), paint: { "circle-color": style.color } });
   }
 
-  protected applyStyling(changed: Set<keyof TestStyling>): boolean {
+  protected applyStyle(changed: Set<keyof TestStyle>): boolean {
     if (changed.has("halo")) return false;
-    const styling = this.resolveStyling();
-    for (const id of this.getSublayerIds()) this.map?.setPaintProperty(id, "circle-color", styling.color);
+    const style = this.resolveStyle();
+    for (const id of this.getSublayerIds()) this.map?.setPaintProperty(id, "circle-color", style.color);
     return true;
   }
 
-  protected resolveStyling(): TestStyling {
-    return { color: "#ff0000", halo: false, ...this.styling };
+  protected resolveStyle(): TestStyle {
+    return { color: "#ff0000", halo: false, ...this.style };
   }
 }
 
-type SyncStyling = {
+type SyncStyle = {
   color?: string;
   radius?: number;
   sortKey?: number;
@@ -48,30 +50,30 @@ type SyncStyling = {
   heatmap?: boolean;
 };
 
-/** Styles through `syncSublayers`, as real layers do: the specs are rebuilt from the styling, and synced onto the live sublayers. */
-class SyncTestLayer extends DataLayer<SyncStyling, "circles"> {
-  constructor(options: DataLayerConstructorOptions<SyncStyling>) {
+/** Styles through `syncSublayers`, as real layers do: the specs are rebuilt from the style, and synced onto the live sublayers. */
+class SyncTestLayer extends DataLayer<SyncStyle, "circles"> {
+  constructor(options: DataLayerConstructorOptions<SyncStyle>) {
     super("sync-test-layer", "circles", options);
   }
 
-  /** The sublayer specs for the current styling, bottom first. `outline` adds a sublayer, `heatmap` retypes the main one. */
+  /** The sublayer specs for the current style, bottom first. `outline` adds a sublayer, `heatmap` retypes the main one. */
   private buildSpecs(): SublayerSpecification[] {
-    const styling = this.resolveStyling();
+    const style = this.resolveStyle();
     const source = this.getSourceId();
     const specs: SublayerSpecification[] = [];
 
-    if (styling.outline) specs.push({ id: `${this.id}-outline`, type: "circle", source, paint: { "circle-color": "#000000" } });
+    if (style.outline) specs.push({ id: `${this.id}-outline`, type: "circle", source, paint: { "circle-color": "#000000" } });
 
-    if (styling.heatmap) {
+    if (style.heatmap) {
       specs.push({ id: `${this.id}-main`, type: "heatmap", source });
     } else {
       specs.push({
         id: `${this.id}-main`,
         type: "circle",
         source,
-        paint: { "circle-color": styling.color, ...(styling.radius !== undefined && { "circle-radius": styling.radius }) },
-        layout: { "circle-sort-key": styling.sortKey },
-        ...(styling.onlyLarge && { filter: [">", ["get", "size"], 10] }),
+        paint: { "circle-color": style.color, ...(style.radius !== undefined && { "circle-radius": style.radius }) },
+        layout: { "circle-sort-key": style.sortKey },
+        ...(style.onlyLarge && { filter: [">", ["get", "size"], 10] }),
       });
     }
 
@@ -82,12 +84,36 @@ class SyncTestLayer extends DataLayer<SyncStyling, "circles"> {
     for (const spec of this.buildSpecs()) this.addSublayer(map, spec);
   }
 
-  protected applyStyling(): boolean {
+  protected applyStyle(): boolean {
     return this.syncSublayers(this.buildSpecs());
   }
 
-  protected resolveStyling(): SyncStyling {
-    return { color: "#ff0000", sortKey: 0, ...this.styling };
+  protected resolveStyle(): SyncStyle {
+    return { color: "#ff0000", sortKey: 0, ...this.style };
+  }
+}
+
+const POINTS_ONLY: ExpressionSpecification = ["==", ["geometry-type"], "Point"];
+
+/** A test layer drawing points only, with its circle sublayer filtered to features that have `mag` while `halo` is on. */
+class PointsOnlyTestLayer extends TestLayer {
+  protected override readonly geometryFilter = POINTS_ONLY;
+
+  protected override addSublayers(map: SDKMap): void {
+    const filter: FilterSpecification | undefined = this.resolveStyle().halo ? ["has", "mag"] : undefined;
+    this.addSublayer(map, { id: `${this.id}-circle`, type: "circle", source: this.getSourceId(), ...(filter ? { filter } : {}) });
+  }
+
+  protected override applyStyle(): boolean {
+    const filter: FilterSpecification | undefined = this.resolveStyle().halo ? ["has", "mag"] : undefined;
+    return this.syncSublayers([{ id: `${this.id}-circle`, type: "circle", source: this.getSourceId(), ...(filter ? { filter } : {}) }]);
+  }
+}
+
+/** A test layer whose `color` is required, so has no default to reset to. */
+class RequiredColorTestLayer extends TestLayer {
+  protected override isRequiredStyleKey(key: keyof TestStyle): boolean {
+    return key === "color";
   }
 }
 
@@ -131,7 +157,18 @@ describe("DataLayer", () => {
     vi.unstubAllGlobals();
   });
 
-  function addLayer(options: Partial<DataLayerConstructorOptions<TestStyling>> = {}, beforeId?: string) {
+  /** Routes the mock's `addLayer` and `moveLayer` through the data layer registry, as the SDK map's do. */
+  function routeThroughRegistry() {
+    const add = mock.map.addLayer.getMockImplementation() as (layer: { id: string }, beforeId?: string) => unknown;
+    const move = mock.map.moveLayer.getMockImplementation() as (id: string, beforeId?: string) => unknown;
+    mock.map.addLayer.mockImplementation((layer: { id: string }, beforeId?: string) => add(layer, resolveBeforeId(mock.map, beforeId, layer.id)));
+    mock.map.moveLayer.mockImplementation((id: string, beforeId?: string) => {
+      moveLayerWithSublayers(mock.map, id, beforeId, move);
+      return mock.map;
+    });
+  }
+
+  function addLayer(options: Partial<DataLayerConstructorOptions<TestStyle>> = {}, beforeId?: string) {
     const layer = new TestLayer({ data: emptyData(), ...options });
     mock.map.addLayer(layer, beforeId);
     return layer;
@@ -158,7 +195,7 @@ describe("DataLayer", () => {
 
     it("builds from changes made before it was added, without touching a map", () => {
       const layer = new TestLayer({ data: emptyData() });
-      layer.setStyling({ color: "#00ff00" }).setVisible(false);
+      layer.setStyle({ color: "#00ff00" }).setVisible(false);
       expect(frames.size).toBe(0);
 
       mock.map.addLayer(layer);
@@ -195,40 +232,54 @@ describe("DataLayer", () => {
       expect(layer.getData()).toBe(last);
     });
 
-    it("applies paint-path styling in place, without rebuilding", () => {
+    it("applies paint-path style in place, without rebuilding", () => {
       const layer = addLayer();
       mock.map.addSource.mockClear();
 
-      layer.setStyling({ color: "#0000ff" });
+      layer.setStyle({ color: "#0000ff" });
       flushFrames();
 
       expect(mock.map.setPaintProperty).toHaveBeenCalledWith(`${layer.id}-circle`, "circle-color", "#0000ff");
       expect(mock.map.addSource).not.toHaveBeenCalled();
-      expect(layer.getStyling().color).toBe("#0000ff");
+      expect(layer.getStyle().color).toBe("#0000ff");
     });
 
-    it("rebuilds for structural styling, keeping sublayers beneath the controller", () => {
+    it("rebuilds for structural style, keeping sublayers beneath the controller", () => {
       const layer = addLayer({}, "labels");
 
-      layer.setStyling({ halo: true });
+      layer.setStyle({ halo: true });
       flushFrames();
 
       expect(mock.map.getLayersOrder()).toEqual(["base", `${layer.id}-halo`, `${layer.id}-circle`, layer.id, "labels"]);
       expect(layer.getSublayerIds()).toEqual([`${layer.id}-halo`, `${layer.id}-circle`]);
     });
 
-    it("resets a styling key set to undefined to its default", () => {
-      const layer = addLayer({ styling: { color: "#00ff00" } });
+    it("resets a style key set to undefined to its default", () => {
+      const layer = addLayer({ style: { color: "#00ff00" } });
 
-      layer.setStyling({ color: undefined });
+      layer.setStyle({ color: undefined });
       flushFrames();
 
-      expect(layer.getStyling().color).toBe("#ff0000");
+      expect(layer.getStyle().color).toBe("#ff0000");
       expect(mock.map.setPaintProperty).toHaveBeenLastCalledWith(`${layer.id}-circle`, "circle-color", "#ff0000");
     });
 
+    it("keeps a required style key set to undefined, with a warning", () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+      const layer = new RequiredColorTestLayer({ data: emptyData(), style: { color: "#00ff00" } });
+      mock.map.addLayer(layer);
+
+      layer.setStyle({ color: undefined, halo: true });
+      flushFrames();
+
+      expect(layer.getStyle().color).toBe("#00ff00");
+      expect(layer.getStyle().halo).toBe(true);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('"color" is required'));
+      warn.mockRestore();
+    });
+
     it("sets visibility and zoom range on every sublayer", () => {
-      const layer = addLayer({ styling: { halo: true } });
+      const layer = addLayer({ style: { halo: true } });
 
       layer.setVisible(false).setZoomRange(2, 10);
       flushFrames();
@@ -246,7 +297,7 @@ describe("DataLayer", () => {
 
       layer.setVisible(false);
       flushFrames();
-      layer.setStyling({ halo: true });
+      layer.setStyle({ halo: true });
       flushFrames();
 
       const halo = mock.map.getLayer(`${layer.id}-halo`) as { layout: { visibility: string } };
@@ -259,8 +310,8 @@ describe("DataLayer", () => {
   //#region Syncing Sublayers
 
   describe("syncing sublayers", () => {
-    function addSyncLayer(styling: SyncStyling = {}) {
-      const layer = new SyncTestLayer({ data: emptyData(), styling });
+    function addSyncLayer(style: SyncStyle = {}) {
+      const layer = new SyncTestLayer({ data: emptyData(), style });
       mock.map.addLayer(layer, "labels");
       mock.map.addSource.mockClear();
       mock.map.setPaintProperty.mockClear();
@@ -272,7 +323,7 @@ describe("DataLayer", () => {
     it("applies a changed paint property in place, leaving the rest alone", () => {
       const layer = addSyncLayer({ radius: 4 });
 
-      layer.setStyling({ color: "#00ff00" });
+      layer.setStyle({ color: "#00ff00" });
       flushFrames();
 
       expect(mock.map.setPaintProperty.mock.calls).toEqual([[`${layer.id}-main`, "circle-color", "#00ff00"]]);
@@ -283,7 +334,7 @@ describe("DataLayer", () => {
     it("resets a paint property that is no longer set", () => {
       const layer = addSyncLayer({ radius: 4 });
 
-      layer.setStyling({ radius: undefined });
+      layer.setStyle({ radius: undefined });
       flushFrames();
 
       expect(mock.map.setPaintProperty.mock.calls).toEqual([[`${layer.id}-main`, "circle-radius", undefined]]);
@@ -295,7 +346,7 @@ describe("DataLayer", () => {
       flushFrames();
       mock.map.setLayoutProperty.mockClear();
 
-      layer.setStyling({ sortKey: 2 });
+      layer.setStyle({ sortKey: 2 });
       flushFrames();
 
       expect(mock.map.setLayoutProperty.mock.calls).toEqual([[`${layer.id}-main`, "circle-sort-key", 2]]);
@@ -305,9 +356,9 @@ describe("DataLayer", () => {
     it("sets a filter, and clears it with null", () => {
       const layer = addSyncLayer();
 
-      layer.setStyling({ onlyLarge: true });
+      layer.setStyle({ onlyLarge: true });
       flushFrames();
-      layer.setStyling({ onlyLarge: undefined });
+      layer.setStyle({ onlyLarge: undefined });
       flushFrames();
 
       expect(mock.map.setFilter.mock.calls).toEqual([
@@ -319,7 +370,7 @@ describe("DataLayer", () => {
     it("makes no calls when the specs haven't changed", () => {
       const layer = addSyncLayer({ color: "#00ff00" });
 
-      layer.setStyling({ color: "#00ff00" });
+      layer.setStyle({ color: "#00ff00" });
       flushFrames();
 
       expect(mock.map.setPaintProperty).not.toHaveBeenCalled();
@@ -330,13 +381,13 @@ describe("DataLayer", () => {
     it("rebuilds when a sublayer is added or removed, keeping the order beneath the controller", () => {
       const layer = addSyncLayer();
 
-      layer.setStyling({ outline: true });
+      layer.setStyle({ outline: true });
       flushFrames();
 
       expect(mock.map.addSource).toHaveBeenCalledTimes(1);
       expect(mock.map.getLayersOrder()).toEqual(["base", `${layer.id}-outline`, `${layer.id}-main`, layer.id, "labels"]);
 
-      layer.setStyling({ outline: undefined });
+      layer.setStyle({ outline: undefined });
       flushFrames();
 
       expect(mock.map.addSource).toHaveBeenCalledTimes(2);
@@ -346,7 +397,7 @@ describe("DataLayer", () => {
     it("rebuilds when a sublayer changes type", () => {
       const layer = addSyncLayer();
 
-      layer.setStyling({ heatmap: true });
+      layer.setStyle({ heatmap: true });
       flushFrames();
 
       expect(mock.map.addSource).toHaveBeenCalledTimes(1);
@@ -355,11 +406,11 @@ describe("DataLayer", () => {
 
     it("syncs against the specs of the last rebuild", () => {
       const layer = addSyncLayer();
-      layer.setStyling({ outline: true });
+      layer.setStyle({ outline: true });
       flushFrames();
       mock.map.setPaintProperty.mockClear();
 
-      layer.setStyling({ color: "#0000ff" });
+      layer.setStyle({ color: "#0000ff" });
       flushFrames();
 
       expect(mock.map.addSource).toHaveBeenCalledTimes(1);
@@ -420,6 +471,147 @@ describe("DataLayer", () => {
       flushFrames();
 
       expect(mock.sources.get(layer.getSourceId())?.setData).toHaveBeenCalledWith(`https://api.maptiler.com/data/${DATASET_ID}/features.json?key=test-key`);
+    });
+  });
+
+  //#endregion
+
+  //#region Geometry Filter
+
+  describe("geometry filter", () => {
+    it("leaves sublayers unfiltered without one", () => {
+      const layer = addLayer();
+      expect(mock.map.getLayer(`${layer.id}-circle`)).not.toHaveProperty("filter");
+    });
+
+    it("applies the geometry filter to an unfiltered sublayer", () => {
+      const layer = new PointsOnlyTestLayer({ data: emptyData() });
+      mock.map.addLayer(layer);
+
+      expect((mock.map.getLayer(`${layer.id}-circle`) as { filter: unknown }).filter).toEqual(POINTS_ONLY);
+    });
+
+    it("combines the geometry filter with a sublayer's own filter", () => {
+      const layer = new PointsOnlyTestLayer({ data: emptyData(), style: { halo: true } });
+      mock.map.addLayer(layer);
+
+      expect((mock.map.getLayer(`${layer.id}-circle`) as { filter: unknown }).filter).toEqual(["all", POINTS_ONLY, ["has", "mag"]]);
+    });
+
+    it("keeps the geometry filter when a sublayer's own filter changes in place", () => {
+      const layer = new PointsOnlyTestLayer({ data: emptyData() });
+      mock.map.addLayer(layer);
+
+      layer.setStyle({ halo: true });
+      flushFrames();
+      expect(mock.map.setFilter).toHaveBeenLastCalledWith(`${layer.id}-circle`, ["all", POINTS_ONLY, ["has", "mag"]]);
+
+      layer.setStyle({ halo: false });
+      flushFrames();
+      expect(mock.map.setFilter).toHaveBeenLastCalledWith(`${layer.id}-circle`, POINTS_ONLY);
+    });
+  });
+
+  //#endregion
+
+  //#region Shared Source
+
+  describe("shared source", () => {
+    it("draws another layer's source, added once", () => {
+      const first = addLayer();
+      const second = addLayer({ data: first });
+
+      expect(second.getSourceId()).toBe(first.getSourceId());
+      expect(mock.map.addSource).toHaveBeenCalledTimes(1);
+      expect((mock.map.getLayer(`${second.id}-circle`) as { source: string }).source).toBe(first.getSourceId());
+    });
+
+    it("adds the source for whichever layer is added first", () => {
+      const first = new TestLayer({ data: emptyData() });
+      const second = new TestLayer({ data: first });
+
+      mock.map.addLayer(second);
+      expect(mock.sources.has(first.getSourceId())).toBe(true);
+      mock.map.addLayer(first);
+      expect(mock.map.addSource).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps the source while any layer drawing it is on the map, in either order", () => {
+      for (const removeFirstLayerFirst of [true, false]) {
+        const first = addLayer();
+        const second = addLayer({ data: first });
+        const [removed, kept] = removeFirstLayerFirst ? [first, second] : [second, first];
+
+        mock.map.removeLayer(removed.id);
+        expect(mock.sources.has(first.getSourceId())).toBe(true);
+        expect(kept.getSublayerIds()).toHaveLength(1);
+
+        mock.map.removeLayer(kept.id);
+        expect(mock.sources.has(first.getSourceId())).toBe(false);
+      }
+    });
+
+    it("shares the data, updating the source once from either layer", () => {
+      const first = addLayer();
+      const second = addLayer({ data: first });
+      const source = mock.sources.get(first.getSourceId());
+      const next = emptyData();
+
+      second.setData(next);
+      flushFrames();
+
+      expect(source?.setData).toHaveBeenCalledTimes(1);
+      expect(source?.setData).toHaveBeenCalledWith(next);
+      expect(first.getData()).toBe(next);
+      expect(second.getData()).toBe(next);
+    });
+
+    it("updates the source through a layer on the map when the one set isn't", () => {
+      const first = new TestLayer({ data: emptyData() });
+      const second = addLayer({ data: first });
+      const next = emptyData();
+
+      first.setData(next);
+      flushFrames();
+
+      expect(mock.sources.get(first.getSourceId())?.setData).toHaveBeenCalledWith(next);
+      expect(second.getData()).toBe(next);
+    });
+
+    it("fires the data events on every layer sharing the source", () => {
+      const first = addLayer();
+      const second = addLayer({ data: first });
+      const events: string[] = [];
+      first.on("data", () => events.push("first"));
+      second.on("data", () => events.push("second"));
+
+      mock.fire("sourcedataloading", { sourceId: first.getSourceId() });
+      mock.fire("sourcedata", { sourceId: first.getSourceId(), sourceDataType: "content", isSourceLoaded: true });
+
+      expect(events).toEqual(["first", "second"]);
+    });
+
+    it("rebuilds both layers on one source after a style change", () => {
+      const first = addLayer({}, "labels");
+      const second = addLayer({ data: first }, "labels");
+
+      mock.setStyle(["base", "labels"], { diff: false });
+      mock.setStyle(["base", "labels"], { diff: true });
+
+      expect(mock.sources.has(first.getSourceId())).toBe(true);
+      expect(mock.map.getLayersOrder()).toEqual(["base", `${first.id}-circle`, first.id, `${second.id}-circle`, second.id, "labels"]);
+    });
+
+    it("rebuilds one layer without touching the other's source", () => {
+      const first = addLayer();
+      const second = addLayer({ data: first });
+      mock.map.removeSource.mockClear();
+
+      second.setStyle({ halo: true });
+      flushFrames();
+
+      expect(mock.map.removeSource).not.toHaveBeenCalled();
+      expect(first.getSublayerIds()).toHaveLength(1);
     });
   });
 
@@ -601,7 +793,7 @@ describe("DataLayer", () => {
       const onClick = vi.fn();
       layer.on("click", onClick);
 
-      layer.setStyling({ halo: true });
+      layer.setStyle({ halo: true });
       flushFrames();
       mock.fireOnLayer("click", `${layer.id}-halo`);
 
@@ -617,7 +809,7 @@ describe("DataLayer", () => {
 
   describe("style changes", () => {
     it("moves the controller back beneath its layer after a diffed setStyle, and rebuilds beneath it", () => {
-      const layer = addLayer({ styling: { color: "#00ff00" } }, "labels");
+      const layer = addLayer({ style: { color: "#00ff00" } }, "labels");
 
       mock.setStyle(["base", "water", "labels", "top"], { diff: true });
 
@@ -659,11 +851,214 @@ describe("DataLayer", () => {
 
   //#endregion
 
+  //#region Change Events
+
+  describe("change events", () => {
+    it("fires stylechange once per flush, after the map shows it, with every key set", () => {
+      const layer = addLayer();
+      const listener = vi.fn();
+      layer.on("stylechange", listener);
+
+      layer.setStyle({ color: "#0000ff" }).setStyle({ halo: true });
+      expect(listener).not.toHaveBeenCalled();
+
+      flushFrames();
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(listener).toHaveBeenCalledWith({ type: "stylechange", target: layer, keys: ["color", "halo"], style: { color: "#0000ff", halo: true } });
+      expect(mock.map.getLayer(`${layer.id}-halo`)).toBeDefined();
+    });
+
+    it("fires zoomrangechange and visibilitychange with the new values", () => {
+      const layer = addLayer();
+      const onZoomRange = vi.fn();
+      const onVisibility = vi.fn();
+      layer.on("zoomrangechange", onZoomRange).on("visibilitychange", onVisibility);
+
+      layer.setZoomRange(2, 10, 1).setVisible(false);
+      flushFrames();
+
+      expect(onZoomRange).toHaveBeenCalledWith({ type: "zoomrangechange", target: layer, minzoom: 2, maxzoom: 10, fade: 1 });
+      expect(onVisibility).toHaveBeenCalledWith({ type: "visibilitychange", target: layer, visible: false });
+    });
+
+    it("doesn't fire for display state set back to what it was", () => {
+      const layer = addLayer({ minzoom: 2, maxzoom: 10 });
+      const onZoomRange = vi.fn();
+      const onVisibility = vi.fn();
+      layer.on("zoomrangechange", onZoomRange).on("visibilitychange", onVisibility);
+
+      layer.setVisible(false).setVisible(true).setZoomRange(2, 10);
+      flushFrames();
+
+      expect(onZoomRange).not.toHaveBeenCalled();
+      expect(onVisibility).not.toHaveBeenCalled();
+    });
+
+    it("doesn't fire for changes made before the layer was added", () => {
+      const layer = new TestLayer({ data: emptyData() });
+      const listener = vi.fn();
+      layer.on("stylechange", listener).on("visibilitychange", listener).on("zoomrangechange", listener);
+
+      layer.setStyle({ color: "#00ff00" }).setVisible(false).setZoomRange(1, 5);
+      mock.map.addLayer(layer);
+      flushFrames();
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["a diffed", true],
+      ["a full", false],
+    ])("still fires for changes made just before %s map.setStyle()", (_, diff) => {
+      const layer = addLayer();
+      const listener = vi.fn();
+      layer.on("stylechange", listener).on("visibilitychange", listener).on("zoomrangechange", listener);
+
+      layer.setStyle({ color: "#0000ff" }).setVisible(false).setZoomRange(2, 10);
+      mock.setStyle(["base"], { diff });
+      flushFrames();
+
+      expect(listener).toHaveBeenCalledTimes(3);
+      expect(listener).toHaveBeenCalledWith(expect.objectContaining({ type: "stylechange", keys: ["color"] }));
+      expect(listener).toHaveBeenCalledWith(expect.objectContaining({ type: "visibilitychange", visible: false }));
+      expect(listener).toHaveBeenCalledWith(expect.objectContaining({ type: "zoomrangechange", minzoom: 2, maxzoom: 10 }));
+    });
+
+    it("drops the events of a flush cancelled by removal", () => {
+      const layer = addLayer();
+      const listener = vi.fn();
+      layer.on("visibilitychange", listener);
+
+      layer.setVisible(false);
+      mock.map.removeLayer(layer.id);
+      flushFrames();
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+  });
+
+  //#endregion
+
+  //#region Add & Remove Events
+
+  describe("add and remove events", () => {
+    it("fires add and remove with the map", () => {
+      const layer = new TestLayer({ data: emptyData() });
+      const onAdd = vi.fn();
+      const onRemove = vi.fn();
+      layer.on("add", onAdd).on("remove", onRemove);
+
+      mock.map.addLayer(layer);
+      expect(onAdd).toHaveBeenCalledWith({ type: "add", target: layer, map: mock.map });
+      // sublayers are in place by the time it fires
+      expect(mock.map.getLayer(`${layer.id}-circle`)).toBeDefined();
+
+      mock.map.removeLayer(layer.id);
+      expect(onRemove).toHaveBeenCalledWith({ type: "remove", target: layer, map: mock.map });
+    });
+
+    it("fires remove when the map is removed", () => {
+      const layer = addLayer();
+      const onRemove = vi.fn();
+      layer.on("remove", onRemove);
+
+      mock.fire("remove");
+
+      expect(onRemove).toHaveBeenCalledTimes(1);
+    });
+
+    it("doesn't fire add, remove or move when it puts itself back after setStyle", () => {
+      const layer = addLayer({}, "labels");
+      const listener = vi.fn();
+      layer.on("add", listener).on("remove", listener).on("move", listener);
+      routeThroughRegistry();
+
+      mock.setStyle(["base", "labels"], { diff: false });
+      mock.setStyle(["base", "labels"], { diff: true });
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+  });
+
+  //#endregion
+
+  //#region Moving
+
+  describe("moving", () => {
+    beforeEach(routeThroughRegistry);
+
+    const moveLayer = (id: string, beforeId?: string) => {
+      mock.map.moveLayer(id, beforeId);
+    };
+
+    it("moves a data layer together with its sublayers, and fires move", () => {
+      const layer = addLayer({ style: { halo: true } });
+      const onMove = vi.fn();
+      layer.on("move", onMove);
+
+      moveLayer(layer.id, "labels");
+
+      expect(mock.map.getLayersOrder()).toEqual(["base", `${layer.id}-halo`, `${layer.id}-circle`, layer.id, "labels"]);
+      expect(onMove).toHaveBeenCalledWith({ type: "move", target: layer, beforeId: "labels" });
+    });
+
+    it("moves a data layer to the top without a beforeId", () => {
+      const layer = addLayer({}, "base");
+
+      moveLayer(layer.id);
+
+      expect(mock.map.getLayersOrder()).toEqual(["base", "labels", `${layer.id}-circle`, layer.id]);
+    });
+
+    it("places a layer moved or added before a data layer beneath its sublayers", () => {
+      const below = addLayer();
+      const layer = addLayer({ style: { halo: true } });
+
+      moveLayer(below.id, layer.id);
+      mock.map.addLayer({ id: "plain", type: "background" }, layer.id);
+
+      expect(mock.map.getLayersOrder()).toEqual(["base", "labels", `${below.id}-circle`, below.id, "plain", `${layer.id}-halo`, `${layer.id}-circle`, layer.id]);
+    });
+
+    it("leaves other layers' moves as they were", () => {
+      const layer = addLayer();
+      const onMove = vi.fn();
+      layer.on("move", onMove);
+
+      moveLayer("base");
+
+      expect(mock.map.getLayersOrder()).toEqual(["labels", `${layer.id}-circle`, layer.id, "base"]);
+      expect(onMove).not.toHaveBeenCalled();
+    });
+
+    it("keeps its new position across a full setStyle", () => {
+      const layer = addLayer();
+
+      moveLayer(layer.id, "labels");
+      mock.setStyle(["base", "labels"], { diff: false });
+
+      expect(mock.map.getLayersOrder()).toEqual(["base", `${layer.id}-circle`, layer.id, "labels"]);
+    });
+
+    it("remembers a data layer above it by its id, not its sublayer, across a full setStyle", () => {
+      const above = addLayer();
+      const layer = addLayer();
+
+      moveLayer(layer.id, above.id);
+      mock.setStyle(["base", "labels"], { diff: false });
+
+      // both rebuild — whichever goes first, this one ends up beneath the other's sublayers
+      expect(mock.map.getLayersOrder()).toEqual(["base", "labels", `${layer.id}-circle`, layer.id, `${above.id}-circle`, above.id]);
+    });
+  });
+
+  //#endregion
+
   //#region Removing
 
   describe("removing", () => {
     it("removes its source and sublayers and unbinds from the map", () => {
-      const layer = addLayer({ styling: { halo: true } });
+      const layer = addLayer({ style: { halo: true } });
 
       mock.map.removeLayer(layer.id);
 
@@ -689,7 +1084,7 @@ describe("DataLayer", () => {
       const layer = addLayer();
 
       mock.fire("remove");
-      layer.setData(emptyData()).setStyling({ halo: true });
+      layer.setData(emptyData()).setStyle({ halo: true });
 
       expect(frames.size).toBe(0);
     });

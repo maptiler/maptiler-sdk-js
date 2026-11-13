@@ -28,11 +28,11 @@ class CircleLayer extends DataLayer<Record<string, never>, "circles"> {
     });
   }
 
-  protected applyStyling(): boolean {
+  protected applyStyle(): boolean {
     return true;
   }
 
-  protected resolveStyling(): Record<string, never> {
+  protected resolveStyle(): Record<string, never> {
     return {};
   }
 }
