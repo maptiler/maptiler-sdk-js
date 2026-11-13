@@ -46,6 +46,8 @@
 - Moves `eslint-plugin-compat` from `dependencies` to `devDependencies`. It's only used to lint the SDK, but installing the SDK pulled ESLint and its dependencies into consumers' production dependency trees, where `npm audit --omit=dev` reported their advisories ([#392](https://github.com/maptiler/maptiler-sdk-js/issues/392)).
 - Fixes an `error` event, `Cannot remove non-existing layer "Halo Layer"`, fired on map load when a halo is enabled through the `halo` map option or the style metadata.
   - The `Minimap` no longer inherits the parent map's `space` and `halo` options.
+- Fixes `setLanguage` replacing whole `text-field` expressions, which dropped everything but the name from labels, e.g. airport codes (Streets v4), peak elevations (Topo v5, Winter v4) and zoom-dependent label content ([RD-2470](https://maptiler.atlassian.net/browse/RD-2470)).
+  - Only the name lookups (`["get", "name"]`, `["get", "name:xx"]`) of the expression are now replaced, the rest of it is kept.
 
 ### ⚙️ Others
 - Bumps `maplibre-gl` to 6.11.2 and `@maplibre/maplibre-gl-style-spec` to 26.

@@ -42,7 +42,7 @@ import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
 import { defaults } from "./constants/defaults";
 import { MaptilerLogoControl } from "./controls/MaptilerLogoControl";
-import { checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, replaceLanguage } from "./tools";
+import { checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, replaceLanguage, replaceLanguageInExpression } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
 import { styleToStyle, styleToStyleId } from "./mapstyle";
 import { MaptilerTerrainControl } from "./controls/MaptilerTerrainControl";
@@ -1881,6 +1881,11 @@ export class Map extends MapMLGL {
       languageReplacementExpression = ["coalesce", ["get", langStr], ["get", Language.LOCAL.flag]];
     }
 
+    // The language expression for a name inside a text-field expression (e.g. in a `concat`),
+    // where the two-language `format` of the visitor modes isn't valid
+    const languageStringExpression: ExpressionSpecification =
+      langStr === Language.LOCAL.flag ? ["get", Language.LOCAL.flag] : ["coalesce", ["get", langStr], ["get", Language.LOCAL.flag]];
+
     const { layers } = this.getStyle();
 
     // True if it's the first time the language is updated for the current style
@@ -1967,10 +1972,11 @@ export class Map extends MapMLGL {
 
       // The value of text-field is an object
       else {
-        // Check if the original expression references "name" fields
-        const originalStr = JSON.stringify(textFieldLayoutProp);
-        if (originalStr.includes('"name"') || originalStr.includes('"name:')) {
-          this.setLayoutProperty(id, "text-field", languageReplacementExpression);
+        // Only the name lookups are replaced, the rest of the expression (elevations, codes, zoom steps...) is kept
+        const localizedTextField = replaceLanguageInExpression(textFieldLayoutProp, languageReplacementExpression, languageStringExpression);
+        // Compared with the current value, which can be from a previous language change
+        if (JSON.stringify(localizedTextField) !== JSON.stringify(this.getLayoutProperty(id, "text-field"))) {
+          this.setLayoutProperty(id, "text-field", localizedTextField);
         }
       }
     }
