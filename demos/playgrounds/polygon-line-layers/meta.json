@@ -1,0 +1,9 @@
+{
+  "title": "Polygon and line layers",
+  "description": "New York's boroughs as a PolygonLayer and its subway as a LineLayer, with every style option, outlines, glows and dashes.",
+  "type": "playground",
+  "topics": [],
+  "createdWith": "5.0.0-rc.4",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}
