@@ -1,10 +1,20 @@
-import type { ExpressionSpecification } from "maplibre-gl";
-import type { ZoomStringValues } from "../../helpers/vectorlayerhelpers";
 import type { DataLayerConstructorOptions } from "../DataLayer";
-import type { DataLayerColor, DataLayerDashArray, DataLayerLineCap, DataLayerLineJoin, DataLayerNumber } from "../types";
+import type { DataLayerColor, DataLayerDash, DataLayerGlow, DataLayerLineCap, DataLayerLineJoin, DataLayerNumber, DataLayerOutline } from "../types";
 
 /** How a {@link PolygonLayer} renders. It has the one mode for now. */
 export type PolygonLayerMode = "fill";
+
+/** A {@link PolygonLayer}'s outline: the shared outline values, plus where it sits on the edge and how it's dashed. */
+export type PolygonLayerOutline = DataLayerOutline & {
+  /** Where the outline sits on the edge: centred on it, or inside or outside the polygon. Defaults to `center`. */
+  position?: "center" | "inside" | "outside";
+  /** Dashes the outline — `true` for the default dashes. Defaults to `false`, solid. */
+  dash?: DataLayerDash;
+  /** Ends of the outline's dashes. Defaults to `butt`. */
+  cap?: DataLayerLineCap;
+  /** Corners of the outline. Defaults to `round`. */
+  join?: DataLayerLineJoin;
+};
 
 /** Style keys of a {@link PolygonLayer} besides the colour and pattern. */
 type PolygonLayerBaseStyle = {
@@ -12,32 +22,29 @@ type PolygonLayerBaseStyle = {
   property?: string;
   /** Opacity of the fill: a fixed value in [0, 1], a zoom ramp, or an expression. Defaults to `1`, faded at the edges of the layer's zoom range. */
   opacity?: DataLayerNumber;
-  /** Draws an outline along the polygons' edges. Defaults to `false`. */
-  outline?: boolean;
-  /** Colour of the outline. Defaults to `#FFFFFF`. */
-  outlineColor?: string | ZoomStringValues | ExpressionSpecification;
-  /** Width of the outline, in px. Defaults to `1`. */
-  outlineWidth?: DataLayerNumber;
-  /** Opacity of the outline. Defaults to `1`, faded with the layer. */
-  outlineOpacity?: DataLayerNumber;
-  /** Blur of the outline, in px. Defaults to `0`. */
-  outlineBlur?: DataLayerNumber;
-  /** Where the outline sits on the edge: centred on it, or inside or outside the polygon. Defaults to `center`. */
-  outlinePosition?: "center" | "inside" | "outside";
-  /** Dash pattern of the outline. Unset, it's solid. */
-  outlineDashArray?: DataLayerDashArray;
-  /** Ends of the outline's dashes. Defaults to `butt`. */
-  outlineCap?: DataLayerLineCap;
-  /** Corners of the outline. Defaults to `round`. */
-  outlineJoin?: DataLayerLineJoin;
+  /** A line along the polygons' edges, over the fill. Defaults to `false`. */
+  outline?: boolean | PolygonLayerOutline;
+  /**
+   * A soft halo along the polygons' edges, beneath the fill — so it shows
+   * outside them, `width` deep, and inside too where the fill is translucent.
+   * Its colour defaults to the fill's. Defaults to `false`.
+   */
+  glow?: boolean | DataLayerGlow;
 };
 
 /**
  * Style of a {@link PolygonLayer} — the visual options of the `addPolygon`
  * helper under the data layers' shared names (`color` for `fillColor`,
- * `opacity` for `fillOpacity`), with the same meaning and defaults.
+ * `opacity` for `fillOpacity`), with the same meaning and defaults. The
+ * outline and glow each turn on with `true`, or with an object of values over
+ * their defaults.
  *
  * Needs `color`, or `pattern` in its place.
+ *
+ * @example
+ * ```ts
+ * { color: "#4f7cff", opacity: 0.6, outline: { position: "inside", dash: true }, glow: true }
+ * ```
  */
 export type PolygonLayerStyle = PolygonLayerBaseStyle &
   (
