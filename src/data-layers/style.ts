@@ -1,4 +1,5 @@
 import type { ExpressionSpecification } from "maplibre-gl";
+import { latest as styleSpec } from "@maplibre/maplibre-gl-style-spec";
 
 // Style helpers shared by the data layers. Internal — not exported from the package.
 
@@ -21,9 +22,9 @@ export function usesZoom(value: unknown): boolean {
   return value.some(usesZoom);
 }
 
-/** The map's own zoom limits — a layer's range ending at one has nothing to fade from. */
-const MIN_ZOOM = 0;
-const MAX_ZOOM = 24;
+/** The zoom limits of a layer's range, as the style spec sets them — a range ending at one has nothing to fade from. */
+export const MIN_ZOOM = styleSpec.layer.minzoom.minimum;
+export const MAX_ZOOM = styleSpec.layer.maxzoom.maximum;
 
 /**
  * `opacity` faded in over `fade` zooms after `minzoom` and out over `fade`

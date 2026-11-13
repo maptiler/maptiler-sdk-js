@@ -16,7 +16,7 @@ import type { Map as SDKMap } from "../Map";
 import { config } from "../config";
 import { isUUID } from "../tools";
 import { findSublayerOwner, registerDataLayer, unregisterDataLayer } from "./registry";
-import { fadeAtZoomEdges, usesZoom } from "./style";
+import { fadeAtZoomEdges, MAX_ZOOM, MIN_ZOOM, usesZoom } from "./style";
 
 //#region Types
 
@@ -189,7 +189,7 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
   private beforeId: string | undefined;
 
   /** Display state as the last change events reported it, so applying an unchanged value fires nothing. */
-  private notified = { visible: true, minzoom: 0, maxzoom: 24, fade: DEFAULT_FADE };
+  private notified = { visible: true, minzoom: MIN_ZOOM, maxzoom: MAX_ZOOM, fade: DEFAULT_FADE };
 
   /**
    * Style keys set while on a map and not yet reported by a `stylechange`.
@@ -252,8 +252,8 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     this.style = {} as TStyle;
     if (options.style) this.setStyle(options.style);
     this.visible = options.visible ?? true;
-    this.minzoom = options.minzoom ?? 0;
-    this.maxzoom = options.maxzoom ?? 24;
+    this.minzoom = options.minzoom ?? MIN_ZOOM;
+    this.maxzoom = options.maxzoom ?? MAX_ZOOM;
     this.fade = options.fade ?? DEFAULT_FADE;
     this.isFadeSet = options.fade !== undefined;
   }
