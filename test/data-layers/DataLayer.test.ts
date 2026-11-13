@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Window } from "happy-dom";
 import type { ExpressionSpecification, FilterSpecification } from "maplibre-gl";
 import type { FeatureCollection } from "geojson";
 import type { SourceSpecification } from "maplibre-gl";
@@ -471,6 +472,212 @@ describe("DataLayer", () => {
       flushFrames();
 
       expect(mock.sources.get(layer.getSourceId())?.setData).toHaveBeenCalledWith(`https://api.maptiler.com/data/${DATASET_ID}/features.json?key=test-key`);
+    });
+  });
+
+  //#endregion
+
+  //#region GPX and KML
+
+  describe("GPX and KML", () => {
+    const GPX = `<?xml version="1.0"?>
+<gpx version="1.1" creator="test" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk><name>Run</name><trkseg><trkpt lat="1" lon="2"></trkpt><trkpt lat="3" lon="4"></trkpt></trkseg></trk>
+</gpx>`;
+    const KML = `<?xml version="1.0"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Placemark><name>Spot</name><Point><coordinates>5,6</coordinates></Point></Placemark></kml>`;
+    const GPX_URL = "https://example.com/run.gpx";
+    const EMPTY = { type: "FeatureCollection", features: [] };
+
+    const sourceOf = (layer: TestLayer) => mock.sources.get(layer.getSourceId());
+    const sourceData = (layer: TestLayer) => (sourceOf(layer)?.spec as (SourceSpecification & { data?: unknown }) | undefined)?.data;
+    const coordinatesOf = (data: unknown) => (data as FeatureCollection).features.map((feature) => (feature.geometry as { coordinates: unknown }).coordinates);
+
+    // vitest's happy-dom environment leaves DOMParser out, which the converters need — browsers have it
+    beforeEach(() => {
+      vi.stubGlobal("DOMParser", new Window().DOMParser);
+    });
+
+    /** Lets the fetch's promise chain run. */
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    /** Stubs `fetch` with a response the test resolves, or rejects, when it chooses. */
+    function deferFetch() {
+      const responses: { resolve: (text: string, status?: number) => void; reject: (error: Error) => void }[] = [];
+      const fetch = vi.fn(
+        () =>
+          new Promise((resolve, reject) => {
+            responses.push({
+              resolve: (text, status = 200) => {
+                resolve({ ok: status >= 200 && status < 300, status, text: () => Promise.resolve(text) });
+              },
+              reject,
+            });
+          }),
+      );
+      vi.stubGlobal("fetch", fetch);
+      return { fetch, responses };
+    }
+
+    function collectEvents(layer: TestLayer) {
+      const events: string[] = [];
+      layer.on("dataloading", () => events.push("dataloading"));
+      layer.on("data", () => events.push("data"));
+      layer.on("error", (e) => events.push(`error:${e.error.message}`));
+      return events;
+    }
+
+    /** A load of the source, as MapLibre reports it. */
+    function fireLoad(sourceId: string) {
+      mock.fire("sourcedataloading", { sourceId });
+      mock.fire("sourcedata", { sourceId, sourceDataType: "content", isSourceLoaded: true });
+    }
+
+    describe("content", () => {
+      it("converts GPX given at construction, keeping the content as the layer's data", () => {
+        const layer = addLayer({ data: GPX });
+
+        expect(coordinatesOf(sourceData(layer))).toEqual([
+          [
+            [2, 1],
+            [4, 3],
+          ],
+        ]);
+        expect(layer.getData()).toBe(GPX);
+      });
+
+      it("converts KML passed to setData", () => {
+        const layer = addLayer();
+
+        layer.setData(KML);
+        flushFrames();
+
+        const handed = sourceOf(layer)?.setData.mock.calls[0][0] as unknown;
+        expect(coordinatesOf(handed)).toEqual([[5, 6]]);
+        expect(layer.getData()).toBe(KML);
+      });
+
+      it("throws for XML that's neither GPX nor KML", () => {
+        expect(() => new TestLayer({ data: "<svg></svg>" })).toThrow("neither GPX nor KML");
+        expect(() => addLayer().setData("  <html></html>")).toThrow("neither GPX nor KML");
+      });
+    });
+
+    describe("URLs", () => {
+      it("fetches a .gpx URL, the source holding no features until it's converted", async () => {
+        const { fetch, responses } = deferFetch();
+        const layer = addLayer({ data: GPX_URL });
+
+        expect(fetch).toHaveBeenCalledWith(GPX_URL);
+        expect(sourceData(layer)).toEqual(EMPTY);
+
+        responses[0].resolve(GPX);
+        await settle();
+        flushFrames();
+
+        expect(coordinatesOf(sourceOf(layer)?.setData.mock.calls[0][0])).toEqual([
+          [
+            [2, 1],
+            [4, 3],
+          ],
+        ]);
+        expect(layer.getData()).toBe(GPX_URL);
+      });
+
+      it("tells a .kml URL by its extension, with a query or hash after it", () => {
+        const { fetch } = deferFetch();
+
+        addLayer({ data: "https://example.com/places.KML?v=2" });
+        addLayer({ data: "https://example.com/run.gpx#latest" });
+        addLayer({ data: "https://example.com/points.geojson" });
+
+        expect(fetch.mock.calls.map((call) => (call as unknown[])[0])).toEqual(["https://example.com/places.KML?v=2", "https://example.com/run.gpx#latest"]);
+      });
+
+      it("holds back data until the converted data has loaded", async () => {
+        const { responses } = deferFetch();
+        const layer = addLayer({ data: GPX_URL });
+        const events = collectEvents(layer);
+
+        // the empty collection loads while the fetch is in flight
+        fireLoad(layer.getSourceId());
+        expect(events).toEqual(["dataloading"]);
+
+        responses[0].resolve(GPX);
+        await settle();
+        flushFrames();
+        fireLoad(layer.getSourceId());
+
+        expect(events).toEqual(["dataloading", "data"]);
+      });
+
+      it("fires error for a failed fetch, and doesn't fetch it again on a rebuild", async () => {
+        const { fetch, responses } = deferFetch();
+        const layer = addLayer({ data: GPX_URL });
+        const events = collectEvents(layer);
+
+        responses[0].resolve("Not found", 404);
+        await settle();
+        expect(events).toEqual([`error:Failed to fetch ${GPX_URL}: status 404.`]);
+
+        layer.setStyle({ halo: true });
+        flushFrames();
+        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(sourceData(layer)).toEqual(EMPTY);
+      });
+
+      it("fetches a failed URL again once it's set again", async () => {
+        const { fetch, responses } = deferFetch();
+        const layer = addLayer({ data: GPX_URL });
+        responses[0].reject(new Error("offline"));
+        await settle();
+
+        layer.setData(GPX_URL);
+        flushFrames();
+
+        expect(fetch).toHaveBeenCalledTimes(2);
+      });
+
+      it("fires error for a response that's neither GPX nor KML", async () => {
+        const { responses } = deferFetch();
+        const layer = addLayer({ data: GPX_URL });
+        const events = collectEvents(layer);
+
+        responses[0].resolve("<html></html>");
+        await settle();
+
+        expect(events).toEqual([`error:${GPX_URL} is neither GPX nor KML.`]);
+      });
+
+      it("drops a fetch whose data was replaced while it was in flight", async () => {
+        const { responses } = deferFetch();
+        const layer = addLayer({ data: GPX_URL });
+        const replacement = emptyData();
+
+        layer.setData(replacement);
+        flushFrames();
+        responses[0].resolve(GPX);
+        await settle();
+        flushFrames();
+
+        expect(sourceOf(layer)?.setData.mock.calls.map(([data]) => data as unknown)).toEqual([replacement]);
+      });
+
+      it("fetches once for the layers sharing a source, and hands the data to each map", async () => {
+        const { fetch, responses } = deferFetch();
+        const first = addLayer({ data: GPX_URL });
+        const other = createMockStyleMap();
+        const second = new TestLayer({ data: first });
+        other.map.addLayer(second);
+
+        responses[0].resolve(GPX);
+        await settle();
+        flushFrames();
+
+        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(coordinatesOf(sourceOf(first)?.setData.mock.calls[0][0])).toHaveLength(1);
+        expect(coordinatesOf(other.sources.get(second.getSourceId())?.setData.mock.calls[0][0])).toHaveLength(1);
+      });
     });
   });
 
