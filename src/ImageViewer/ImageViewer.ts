@@ -918,7 +918,7 @@ export default class ImageViewer extends Evented<ImageViewerEventType> {
       return;
     }
 
-    // the layer triangulates the cutline when it is drawn, at most once per frame
+    // the layer uploads the cutline when it is drawn, at most once per frame
     const data: OutsideCutlineLayerData = {
       cutline: this.cutline,
       imageSize: [this.imageMetadata.width, this.imageMetadata.height],

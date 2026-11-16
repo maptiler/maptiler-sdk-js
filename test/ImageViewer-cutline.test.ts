@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getOutsideCutlineColor, triangulateOutsideCutline, validateCutline, validateOutsideCutlineStyle, type ImageViewerCutline } from "../src/ImageViewer/cutline";
+import { getOutsideCutlineColor, validateCutline, validateOutsideCutlineStyle } from "../src/ImageViewer/cutline";
 
 describe("validateCutline", () => {
   it("accepts an open ring of 3 points", () => {
@@ -69,11 +69,10 @@ describe("validateCutline", () => {
     ).toThrow("got 2");
   });
 
-  it("accepts up to 65531 points, the most 16-bit indices can draw without the primitive restart index", () => {
-    const circle = (count: number) => Array.from({ length: count }, (_, i): [number, number] => [Math.cos(i), Math.sin(i)]);
+  it("accepts cutlines with many points", () => {
+    const circle = Array.from({ length: 100_000 }, (_, i): [number, number] => [Math.cos(i), Math.sin(i)]);
 
-    expect(() => validateCutline(circle(65531))).not.toThrow();
-    expect(() => validateCutline(circle(65532))).toThrow("[ImageViewer]: `cutline` must have at most 65531 points, got 65532");
+    expect(validateCutline(circle)).toHaveLength(100_000);
   });
 
   it("throws when the cutline is not an array", () => {
@@ -125,103 +124,5 @@ describe("getOutsideCutlineColor", () => {
   it("is the premultiplied overlay color", () => {
     expect(getOutsideCutlineColor({ type: "overlay", color: "rgba(255, 0, 0, 0.5)" })).toEqual([0.5, 0, 0, 0.5]);
     expect(getOutsideCutlineColor({ type: "overlay", color: "black" })).toEqual([0, 0, 0, 1]);
-  });
-});
-
-describe("triangulateOutsideCutline", () => {
-  const IMAGE_SIZE: [number, number] = [4096, 2048];
-
-  function getTriangles({ vertices, indices }: ReturnType<typeof triangulateOutsideCutline>) {
-    const triangles: [number, number][][] = [];
-    for (let i = 0; i < indices.length; i += 3) {
-      triangles.push(indices.slice(i, i + 3).map((index) => [vertices[index * 2], vertices[index * 2 + 1]]));
-    }
-    return triangles;
-  }
-
-  function getArea(ring: [number, number][]) {
-    let area = 0;
-    for (let i = 0; i < ring.length; i++) {
-      const [x0, y0] = ring[i];
-      const [x1, y1] = ring[(i + 1) % ring.length];
-      area += x0 * y1 - x1 * y0;
-    }
-    return Math.abs(area) / 2;
-  }
-
-  function isInside([x, y]: [number, number], ring: [number, number][]) {
-    let inside = false;
-    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-      const [xi, yi] = ring[i];
-      const [xj, yj] = ring[j];
-      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
-        inside = !inside;
-      }
-    }
-    return inside;
-  }
-
-  // checks the triangles cover the outer box minus the cutline, without overlapping it
-  function expectOutsideOf(cutline: ImageViewerCutline, outerArea: number) {
-    const triangles = getTriangles(triangulateOutsideCutline(cutline, IMAGE_SIZE));
-    const area = triangles.reduce((sum, triangle) => sum + getArea(triangle), 0);
-
-    expect(area).toBeCloseTo(outerArea - getArea(cutline));
-    for (const triangle of triangles) {
-      const centroid: [number, number] = [(triangle[0][0] + triangle[1][0] + triangle[2][0]) / 3, (triangle[0][1] + triangle[1][1] + triangle[2][1]) / 3];
-      expect(isInside(centroid, cutline)).toBe(false);
-    }
-  }
-
-  const square: ImageViewerCutline = [
-    [256, 256],
-    [3840, 256],
-    [3840, 1792],
-    [256, 1792],
-  ];
-
-  it("starts with the corners around the image, padded by its size, followed by the cutline", () => {
-    const { vertices } = triangulateOutsideCutline(square, IMAGE_SIZE);
-
-    expect(vertices).toEqual([-4096, -4096, 8192, -4096, 8192, 6144, -4096, 6144, ...square.flat()]);
-  });
-
-  it("drops the closing point of the cutline", () => {
-    const { vertices } = triangulateOutsideCutline([...square, square[0]], IMAGE_SIZE);
-
-    expect(vertices).toHaveLength((4 + 4) * 2);
-  });
-
-  // the image, padded by its size on each side
-  const OUTER_AREA = 4096 * 3 * (2048 + 4096 * 2);
-
-  it("covers the image outside of a square cutline", () => {
-    expectOutsideOf(square, OUTER_AREA);
-  });
-
-  it("covers the image outside of a concave cutline, whichever its winding", () => {
-    const lShape: ImageViewerCutline = [
-      [256, 256],
-      [2048, 256],
-      [2048, 1024],
-      [3840, 1024],
-      [3840, 1792],
-      [256, 1792],
-    ];
-
-    expectOutsideOf(lShape, OUTER_AREA);
-    expectOutsideOf([...lShape].reverse(), OUTER_AREA);
-  });
-
-  it("extends around a cutline that goes beyond the image", () => {
-    const beyond: ImageViewerCutline = [
-      [-100, 100],
-      [5000, 100],
-      [5000, 3000],
-    ];
-    const { vertices } = triangulateOutsideCutline(beyond, IMAGE_SIZE);
-
-    expect(vertices.slice(0, 8)).toEqual([-4196, -4096, 9096, -4096, 9096, 7096, -4196, 7096]);
-    expectOutsideOf(beyond, (5100 + 4096 * 2) * (3000 + 4096 * 2));
   });
 });

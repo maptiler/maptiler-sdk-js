@@ -7,6 +7,14 @@ import type { ImageViewerMarker as ImageViewerMarkerClass } from "../../src";
 // whereas the API serves transparent padding around images of other sizes
 const IMAGE_SIZE: [number, number] = [4096, 2048];
 const IMAGE_CENTER: [number, number] = [2048, 1024];
+// The size of the image rounded up to a power of 2, as ImageViewer pads it: image pixels divided by it are mercator coordinates
+const PADDED_SIZE = 4096;
+
+// An image pixel to the LngLat it is shown at, as ImageViewer does internally
+function pxToLngLat([x, y]: number[]): [number, number] {
+  const [mercatorX, mercatorY] = [x / PADDED_SIZE, y / PADDED_SIZE];
+  return [mercatorX * 360 - 180, (Math.atan(Math.sinh(Math.PI * (1 - 2 * mercatorY))) * 180) / Math.PI];
+}
 
 function expectPxCloseTo(actual: number[], expected: number[], tolerance: number) {
   expect(Math.abs(actual[0] - expected[0])).toBeLessThan(tolerance);
@@ -303,6 +311,29 @@ test.describe("Cutline", () => {
     await page.evaluate((cutline) => window.createImageViewer({ cutline, center: [3840, 1792], zoom: 2, bearing: 30 }), SMALLER_SQUARE);
 
     await expect(page).toHaveScreenshot("imageViewer-cutline-camera.png");
+  });
+
+  test("does not hide the opaque layers above it, e.g. a drawing", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate((cutline) => window.createImageViewer({ cutline }), SMALLER_SQUARE);
+
+    // An opaque band across the image, its ends outside of the cutline. MapLibre draws opaque fills
+    // before the other layers, which the outside of the cutline must not then draw over
+    const band = [
+      [0, 896],
+      [4096, 896],
+      [4096, 1152],
+      [0, 1152],
+      [0, 896],
+    ].map(pxToLngLat);
+    await page.evaluate(async (coordinates) => {
+      const map = window.__imageViewer.getSDKInternal();
+      map.addSource("band", { type: "geojson", data: { type: "Polygon", coordinates: [coordinates] } });
+      map.addLayer({ id: "band", type: "fill", source: "band", paint: { "fill-color": "#ff0000", "fill-opacity": 1 } });
+      await window.waitForImageViewerIdle();
+    }, band);
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-layer-above.png");
   });
 
   test("shows the whole image again when the cutline is removed", async ({ page }) => {

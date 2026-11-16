@@ -105,15 +105,6 @@ vi.mock("../src", async () => {
   };
 });
 
-// Spy on the triangulation, which the outside cutline layer does when it is drawn
-vi.mock("../src/ImageViewer/cutline", async () => {
-  const actual = await vi.importActual<typeof import("../src/ImageViewer/cutline")>("../src/ImageViewer/cutline");
-  return {
-    ...actual,
-    triangulateOutsideCutline: vi.fn(actual.triangulateOutsideCutline),
-  };
-});
-
 // Mock event forwarding
 vi.mock("../src/ImageViewer/events", async () => {
   const actual = await vi.importActual("../src/ImageViewer/events");
@@ -131,7 +122,6 @@ import ImageViewer from "../src/ImageViewer/ImageViewer";
 import { ImageViewerEvent, setupGlobalMapEventForwarder, type ImageViewerCutlineChangeEvent } from "../src/ImageViewer/events";
 import type { ImageViewerConstructorOptions } from "../src/ImageViewer/ImageViewer";
 import { OutsideCutlineLayer, OUTSIDE_CUTLINE_LAYER_ID, type OutsideCutlineLayerData } from "../src/ImageViewer/OutsideCutlineLayer";
-import { triangulateOutsideCutline } from "../src/ImageViewer/cutline";
 import { FetchError } from "../src/utils/errors";
 import { Map } from "../src/Map";
 import type { MapOptions, DragPanHandler, DoubleClickZoomHandler, TwoFingersTouchZoomRotateHandler } from "maplibre-gl";
@@ -1054,16 +1044,7 @@ describe("ImageViewer", () => {
       });
     });
 
-    it("should leave the triangulation to the layer, which does it when drawn", async () => {
-      const viewer = await createReadyViewer({ cutline: square });
-
-      viewer.setCutline(square.slice(0, 3));
-      viewer.setCutline(square);
-
-      expect(triangulateOutsideCutline).not.toHaveBeenCalled();
-    });
-
-    it("should pass the layer the same cutline on a style change, so it keeps its triangles", async () => {
+    it("should pass the layer the same cutline on a style change, so it does not upload it again", async () => {
       const viewer = await createReadyViewer({ cutline: square });
       const [layer] = getAddedOutsideCutlineLayers();
       const { cutline } = getLayerData(layer);
