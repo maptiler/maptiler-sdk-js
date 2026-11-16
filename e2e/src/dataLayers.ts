@@ -1,12 +1,13 @@
 import "../../dist/maptiler-sdk.css";
-import { ColorRamp, HeatmapLayer, Map as MapTiler, MapStyle, PointLayer, setWorkerUrl } from "../../src/index";
+import { ColorRamp, HeatmapLayer, LineLayer, Map as MapTiler, MapStyle, PointLayer, PolygonLayer, setWorkerUrl } from "../../src/index";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 
 // MapLibre v6 loads its worker as a separate module, bundlers need its URL set explicitly
 setWorkerUrl(workerUrl);
 
 // A real map for the data layer e2e tests: how the SDK map places data layers and their sublayers
-// through addLayer / moveLayer, and how a HeatmapLayer's opacity renders across zooms.
+// through addLayer / moveLayer, how a HeatmapLayer's opacity renders across zooms, and how
+// PolygonLayers and LineLayers draw.
 // The style and its raster tiles are mocked by the tests.
 
 const map = new MapTiler({
@@ -21,4 +22,4 @@ const map = new MapTiler({
 
 window.__map = map;
 // the tests build their own layers
-window.__pageObjects = { ...window.__pageObjects, ColorRamp, HeatmapLayer, PointLayer };
+window.__pageObjects = { ...window.__pageObjects, ColorRamp, HeatmapLayer, LineLayer, PointLayer, PolygonLayer };
