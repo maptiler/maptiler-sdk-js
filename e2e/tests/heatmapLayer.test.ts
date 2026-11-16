@@ -38,7 +38,7 @@ async function setupPage(page: Page) {
  * intensity, so its density there is past `1` at every zoom) and coloured solid red, so only the
  * opacity changes what's drawn there.
  */
-async function addHeatmap(page: Page, style: Partial<HeatmapLayerStyle>, range: { minzoom?: number; maxzoom?: number; fade?: number }) {
+async function addHeatmap(page: Page, style: Pick<HeatmapLayerStyle, "opacity">, range: { minzoom?: number; maxzoom?: number; fade?: number }) {
   await page.evaluate(
     async ({ point, style, range }) => {
       const map = window.__map;
