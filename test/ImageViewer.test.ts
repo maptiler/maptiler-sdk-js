@@ -122,6 +122,7 @@ import { ImageViewerEvent, setupGlobalMapEventForwarder } from "../src/ImageView
 import { FetchError } from "../src/utils/errors";
 import { Map } from "../src/Map";
 import type { MapOptions, DragPanHandler, DoubleClickZoomHandler, TwoFingersTouchZoomRotateHandler } from "maplibre-gl";
+import { NavigationControl } from "maplibre-gl";
 // Import fixture data
 import fixtureImageMetadata from "./fixtures/ImageViewer/image.json";
 import { BoxZoomHandler, CooperativeGesturesHandler, KeyboardHandler, LngLat, LngLatBounds, MercatorCoordinate, ScrollZoomHandler } from "../src";
@@ -864,13 +865,12 @@ describe("ImageViewer", () => {
     });
   });
   describe("Controls", () => {
-    it("should add the fit image to bounds control", async () => {
+    it("should add the navigation and fit image to bounds controls by default", async () => {
       const viewer = new ImageViewer({
         container: container,
         imageUUID: "test-uuid",
         apiKey: "test-key",
         debug: false,
-        fitToBoundsControl: true,
       });
 
       await viewer.onReadyAsync();
@@ -878,7 +878,26 @@ describe("ImageViewer", () => {
       const MockedMap = Map as unknown as Mock;
       const mockMapInstance = MockedMap.mock.results[0].value;
 
+      expect(mockMapInstance.addControl).toHaveBeenCalledWith(expect.any(NavigationControl));
       expect(mockMapInstance.addControl).toHaveBeenCalledWith(expect.any(ImageViewerFitImageToBoundsControl));
+    });
+
+    it("should not add the controls when disabled", async () => {
+      const viewer = new ImageViewer({
+        container: container,
+        imageUUID: "test-uuid",
+        apiKey: "test-key",
+        debug: false,
+        navigationControl: false,
+        fitToBoundsControl: false,
+      });
+
+      await viewer.onReadyAsync();
+
+      const MockedMap = Map as unknown as Mock;
+      const mockMapInstance = MockedMap.mock.results[0].value;
+
+      expect(mockMapInstance.addControl).not.toHaveBeenCalled();
     });
   });
 });
