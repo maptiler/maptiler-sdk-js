@@ -930,9 +930,11 @@ export default class ImageViewer extends Evented<ImageViewerEventType> {
       this.outsideCutlineLayer.setData(data);
       this.sdk.triggerRepaint();
     } else {
-      // added on top, right above the image, which is the only other layer
+      // right above the image, below the layers added since, e.g. a drawing, which must not be hidden
+      const layerIds = this.sdk.getLayersOrder();
+      const beforeId = layerIds[layerIds.indexOf("image") + 1] as string | undefined;
       this.outsideCutlineLayer = new OutsideCutlineLayer(data);
-      this.sdk.addLayer(this.outsideCutlineLayer);
+      this.sdk.addLayer(this.outsideCutlineLayer, beforeId);
     }
   }
 

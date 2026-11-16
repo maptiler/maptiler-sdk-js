@@ -72,16 +72,15 @@ export function validateOutsideCutlineStyle(style: unknown): ImageViewerOutsideC
 
 //#region getOutsideCutlineColor
 /**
- * The color the outside of the cutline is drawn with, as premultiplied RGBA.
- * Hidden is fully transparent, drawn without blending to erase the image.
+ * The color the outside of the cutline is drawn with, as premultiplied RGBA, or `null` when it is hidden.
  *
  * @internal
  * @param {ImageViewerOutsideCutlineStyle} style - A valid style.
- * @returns {[number, number, number, number]} The premultiplied color.
+ * @returns {[number, number, number, number] | null} The premultiplied color, or `null` when hidden.
  */
-export function getOutsideCutlineColor(style: ImageViewerOutsideCutlineStyle): [number, number, number, number] {
+export function getOutsideCutlineColor(style: ImageViewerOutsideCutlineStyle): [number, number, number, number] | null {
   if (style.type === "hidden") {
-    return [0, 0, 0, 0];
+    return null;
   }
 
   // a valid style has a color that parses, the fallback only satisfies the type. `Color` is premultiplied

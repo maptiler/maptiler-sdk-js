@@ -26,8 +26,8 @@ export type OutsideCutlineLayerData = {
   imageSize: [number, number];
   /** The size the image is padded to, in image pixels. Dividing by it gives the mercator coordinates the image source uses. */
   paddedSize: number;
-  /** The premultiplied color to draw with. Fully transparent erases the image, as blending is then disabled. */
-  color: [number, number, number, number];
+  /** The premultiplied color to draw over the image with, or `null` to hide the image. */
+  color: [number, number, number, number] | null;
 };
 
 /**
@@ -123,7 +123,7 @@ export class OutsideCutlineLayer implements CustomLayerInterface {
 
     const { shaderProgram, programInfo, positionBuffer } = this.mesh;
     const { cutline, color, imageSize, paddedSize } = this.data;
-    const isHidden = color[3] === 0;
+    const isHidden = color === null;
 
     // The tiles end on the edge of the image, and are not rasterized exactly like this layer,
     // which can leave some of their pixels on that edge. Hiding the image reaches one CSS pixel
@@ -133,7 +133,8 @@ export class OutsideCutlineLayer implements CustomLayerInterface {
 
     gl.useProgram(shaderProgram);
     gl.uniformMatrix4fv(programInfo.uniformsLocations.matrix, false, options.defaultProjectionData.mainMatrix);
-    gl.uniform4fv(programInfo.uniformsLocations.color, color);
+    // hiding draws transparent pixels without blending, which erases the image
+    gl.uniform4fv(programInfo.uniformsLocations.color, color ?? [0, 0, 0, 0]);
     gl.enableVertexAttribArray(programInfo.attributesLocations.position);
 
     // MapLibre resets the GL state it changed after custom layers.

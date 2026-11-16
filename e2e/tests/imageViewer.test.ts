@@ -313,12 +313,9 @@ test.describe("Cutline", () => {
     await expect(page).toHaveScreenshot("imageViewer-cutline-camera.png");
   });
 
-  test("does not hide the opaque layers above it, e.g. a drawing", async ({ page }) => {
-    await loadImageViewerFixture({ page });
-    await page.evaluate((cutline) => window.createImageViewer({ cutline }), SMALLER_SQUARE);
-
-    // An opaque band across the image, its ends outside of the cutline. MapLibre draws opaque fills
-    // before the other layers, which the outside of the cutline must not then draw over
+  // An opaque band across the image, its ends outside of the cutline, added like a drawing would be.
+  // MapLibre draws opaque fills before the other layers, which the outside of the cutline must not then draw over
+  async function addOpaqueBand(page: Page) {
     const band = [
       [0, 896],
       [4096, 896],
@@ -332,6 +329,26 @@ test.describe("Cutline", () => {
       map.addLayer({ id: "band", type: "fill", source: "band", paint: { "fill-color": "#ff0000", "fill-opacity": 1 } });
       await window.waitForImageViewerIdle();
     }, band);
+  }
+
+  test("does not hide the opaque layers above it, e.g. a drawing", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate((cutline) => window.createImageViewer({ cutline }), SMALLER_SQUARE);
+
+    await addOpaqueBand(page);
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-layer-above.png");
+  });
+
+  test("stays below the layers added before the cutline, e.g. a drawing", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate(() => window.createImageViewer());
+    await addOpaqueBand(page);
+
+    await page.evaluate(async (cutline) => {
+      window.__imageViewer.setCutline(cutline);
+      await window.waitForImageViewerIdle();
+    }, SMALLER_SQUARE);
 
     await expect(page).toHaveScreenshot("imageViewer-cutline-layer-above.png");
   });

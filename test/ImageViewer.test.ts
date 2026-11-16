@@ -53,6 +53,7 @@ vi.mock("../src/Map", async () => {
         addSource: vi.fn(),
         addLayer: vi.fn(),
         removeLayer: vi.fn(),
+        getLayersOrder: vi.fn(() => ["image"]),
         getStyle: vi.fn(() => ({ version: 8, sources: {}, layers: [] })),
         isStyleLoaded: vi.fn(() => true),
 
@@ -990,7 +991,7 @@ describe("ImageViewer", () => {
 
     function getMockMap() {
       const MockedMap = Map as unknown as Mock;
-      return MockedMap.mock.results[0].value as { addLayer: Mock; removeLayer: Mock; triggerRepaint: Mock };
+      return MockedMap.mock.results[0].value as { addLayer: Mock; removeLayer: Mock; getLayersOrder: Mock; triggerRepaint: Mock };
     }
 
     function getAddedOutsideCutlineLayers() {
@@ -1034,14 +1035,25 @@ describe("ImageViewer", () => {
       expect(layers[0].id).toBe(OUTSIDE_CUTLINE_LAYER_ID);
       // added after the image layer, so it is drawn on top of it
       expect(addLayer.mock.calls.map(([layer]) => (layer as { id: string }).id)).toEqual(["image", OUTSIDE_CUTLINE_LAYER_ID]);
+      expect(addLayer).toHaveBeenLastCalledWith(layers[0], undefined);
 
       expect(getLayerData(layers[0])).toEqual({
         cutline: square,
         imageSize: [5120, 5120],
         paddedSize: PADDED_SIZE,
         // hidden by default
-        color: [0, 0, 0, 0],
+        color: null,
       });
+    });
+
+    it("should add the layer right above the image, below the layers added since, e.g. a drawing", async () => {
+      const viewer = await createReadyViewer();
+      getMockMap().getLayersOrder.mockReturnValue(["image", "drawing-fill", "drawing-line"]);
+
+      viewer.setCutline(square);
+
+      const [layer] = getAddedOutsideCutlineLayers();
+      expect(getMockMap().addLayer).toHaveBeenLastCalledWith(layer, "drawing-fill");
     });
 
     it("should pass the layer the same cutline on a style change, so it does not upload it again", async () => {
@@ -1149,7 +1161,7 @@ describe("ImageViewer", () => {
         expect(getLayerData(layer).color).toEqual([0, 0, 0, 1]);
 
         viewer.setOutsideCutlineStyle({ type: "hidden" });
-        expect(getLayerData(layer).color).toEqual([0, 0, 0, 0]);
+        expect(getLayerData(layer).color).toBeNull();
       });
 
       it("should be kept without a cutline, and used for the next one", async () => {

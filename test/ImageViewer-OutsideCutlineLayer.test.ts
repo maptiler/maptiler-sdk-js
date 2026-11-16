@@ -96,7 +96,7 @@ const data: OutsideCutlineLayerData = {
   cutline: square,
   imageSize: [4096, 2048],
   paddedSize: 4096,
-  color: [0, 0, 0, 0],
+  color: null,
 };
 
 describe("OutsideCutlineLayer", () => {
@@ -244,12 +244,23 @@ describe("OutsideCutlineLayer", () => {
 
     expect(gl.disable).toHaveBeenCalledWith("BLEND");
     expect(gl.enable).not.toHaveBeenCalledWith("BLEND");
+    expect(gl.uniform4fv).toHaveBeenLastCalledWith({ name: "color" }, [0, 0, 0, 0]);
 
     layer.setData({ color: [0, 0, 0, 0.5] });
     render();
 
     expect(gl.enable).toHaveBeenCalledWith("BLEND");
     expect(gl.blendFunc).toHaveBeenCalledWith("ONE", "ONE_MINUS_SRC_ALPHA");
+  });
+
+  it("blends a fully transparent overlay, which leaves the image as it is, rather than hiding it", () => {
+    addLayer({ ...data, color: [0, 0, 0, 0] });
+    render();
+
+    expect(gl.enable).toHaveBeenCalledWith("BLEND");
+    expect(gl.disable).not.toHaveBeenCalledWith("BLEND");
+    // up to the edges of the image, as an overlay
+    expect(getUploads("imageRect")).toEqual([[-0, -0, 1, -0, 1, 0.5, -0, 0.5]]);
   });
 
   it("clears the stencil buffer when done, and has MapLibre draw its tile clipping masks again", () => {

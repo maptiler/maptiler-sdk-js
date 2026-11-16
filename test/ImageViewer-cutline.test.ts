@@ -117,8 +117,8 @@ describe("validateOutsideCutlineStyle", () => {
 });
 
 describe("getOutsideCutlineColor", () => {
-  it("is fully transparent for hidden", () => {
-    expect(getOutsideCutlineColor({ type: "hidden" })).toEqual([0, 0, 0, 0]);
+  it("is null for hidden", () => {
+    expect(getOutsideCutlineColor({ type: "hidden" })).toBeNull();
   });
 
   it("is the premultiplied overlay color", () => {
