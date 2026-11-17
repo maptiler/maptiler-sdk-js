@@ -8,8 +8,6 @@ import type { LineLayer as LineLayerClass, LineLayerConstructorOptions, LineLaye
 // Every test draws over a black background layer, which hides the mocked raster tiles, in
 // Mercator at a fixed view, and screenshots the map's canvas only, leaving out its controls.
 
-test.setTimeout(60000);
-
 /** The view every test draws at: about 28° of longitude across and 16° of latitude down. */
 const CENTER: [number, number] = [0, 0];
 const ZOOM = 5;
