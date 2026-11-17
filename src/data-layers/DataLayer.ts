@@ -363,7 +363,9 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
 
     this.isAdding = true;
     try {
-      this.bindMapListeners();
+      // putting itself back after map.setStyle keeps its map listeners — rebinding would move its `style.load` listener
+      // behind listeners added since, which would then run on the next style change before it has put itself back
+      if (!this.isRestoring) this.bindMapListeners();
       this.build();
     } finally {
       this.isAdding = false;
@@ -765,8 +767,7 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
         return;
       }
 
-      // detach first — onAdd rebinds everything
-      this.unbindMapListeners();
+      // its map listeners stay bound — onAdd skips binding them while restoring
       map.addLayer(this, beforeId);
     });
   };
@@ -793,7 +794,10 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     const map = this.map;
     if (!map) return;
     const order = map.getLayersOrder();
-    const above = order.at(order.indexOf(this.id) + 1);
+    const index = order.indexOf(this.id);
+    // not on the style — mid style change — so there's no position to note, and the hint it has still stands
+    if (index === -1) return;
+    const above = order.at(index + 1);
     this.beforeId = above === undefined ? undefined : (findSublayerOwner(map, above) ?? above);
   }
 

@@ -73,9 +73,12 @@ export function moveLayerWithSublayers(map: LayerLookup, id: string, beforeId: s
   for (const sublayerId of dataLayer?.getSublayerIds() ?? []) {
     if (map.getLayer(sublayerId) !== undefined) move(sublayerId, target);
   }
+  // moving a layer that isn't on the style (e.g. a data layer that hasn't put itself back after `map.setStyle()` yet)
+  // is an error MapLibre reports — nothing moved, so the data layer isn't told it did
+  const isOnStyle = map.getLayer(id) !== undefined;
   move(id, target);
 
-  dataLayer?.onMove(beforeId);
+  if (isOnStyle) dataLayer?.onMove(beforeId);
 }
 
 /**
