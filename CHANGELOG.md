@@ -1,6 +1,12 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## 5.1.0
+
+### ⚙️ Others
+- Bumps `maplibre-gl` to 6.16.0.
+
+## 5.0.0
+
 ### ⚠️ Breaking changes
 - Upgrades MapLibre GL JS to v6, which is ESM-only. See the [MapLibre changelog](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md) for changes to the MapLibre API itself.
 - The MapLibre worker is now loaded from a separate file, which most bundlers do not emit on their own:
@@ -48,7 +54,7 @@
   - The `Minimap` no longer inherits the parent map's `space` and `halo` options.
 
 ### ⚙️ Others
-- Bumps `maplibre-gl` to 6.16.0 and `@maplibre/maplibre-gl-style-spec` to 26.
+- Bumps `maplibre-gl` to 6.11.2 and `@maplibre/maplibre-gl-style-spec` to 26.
 - Switches internal `maplibre-gl` imports to named imports.
 - Documents worker setup per bundler, CSP requirements, self-hosted UMD worker files and TypeScript `moduleResolution` in the README.
 - Updates dependencies to resolve `npm audit` vulnerabilities, including dev dependency bumps to `vitest` 5, `@vitest/web-worker` 5, `vite-plugin-dts` 5 and `lint-staged` 17.
