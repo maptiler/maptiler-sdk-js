@@ -1,6 +1,7 @@
 # MapTiler SDK Changelog
 
-## NEXT
+## 5.0.0
+
 ### ⚠️ Breaking changes
 - Upgrades MapLibre GL JS to v6, which is ESM-only. See the [MapLibre changelog](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md) for changes to the MapLibre API itself.
 - The MapLibre worker is now loaded from a separate file, which most bundlers do not emit on their own:
