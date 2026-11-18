@@ -7,6 +7,14 @@ import type { ImageViewerMarker as ImageViewerMarkerClass } from "../../src";
 // whereas the API serves transparent padding around images of other sizes
 const IMAGE_SIZE: [number, number] = [4096, 2048];
 const IMAGE_CENTER: [number, number] = [2048, 1024];
+// The size of the image rounded up to a power of 2, as ImageViewer pads it: image pixels divided by it are mercator coordinates
+const PADDED_SIZE = 4096;
+
+// An image pixel to the LngLat it is shown at, as ImageViewer does internally
+function pxToLngLat([x, y]: number[]): [number, number] {
+  const [mercatorX, mercatorY] = [x / PADDED_SIZE, y / PADDED_SIZE];
+  return [mercatorX * 360 - 180, (Math.atan(Math.sinh(Math.PI * (1 - 2 * mercatorY))) * 180) / Math.PI];
+}
 
 function expectPxCloseTo(actual: number[], expected: number[], tolerance: number) {
   expect(Math.abs(actual[0] - expected[0])).toBeLessThan(tolerance);
@@ -231,6 +239,130 @@ test.describe("Events", () => {
 
     expectPxCloseTo([outside.imageX, outside.imageY], [(10 - FIT_PADDING) * scale, IMAGE_CENTER[1]], scale);
     expect(outside.isOutOfBounds).toBe(true);
+  });
+});
+
+//#region Cutline
+test.describe("Cutline", () => {
+  // a slightly smaller square inside the image, 256 px from its edges
+  const SMALLER_SQUARE: [number, number][] = [
+    [256, 256],
+    [3840, 256],
+    [3840, 1792],
+    [256, 1792],
+  ];
+
+  const L_SHAPE: [number, number][] = [
+    [256, 256],
+    [2048, 256],
+    [2048, 1024],
+    [3840, 1024],
+    [3840, 1792],
+    [256, 1792],
+  ];
+
+  test("hides the image outside of the cutline", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate(() => window.createImageViewer());
+
+    await page.evaluate(async (cutline) => {
+      window.__imageViewer.setCutline(cutline);
+      await window.waitForImageViewerIdle();
+    }, SMALLER_SQUARE);
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-hidden.png");
+  });
+
+  test("takes the cutline from the constructor options", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate((cutline) => window.createImageViewer({ cutline }), SMALLER_SQUARE);
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-hidden.png");
+  });
+
+  test("draws an overlay color over the image outside of the cutline", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate((cutline) => window.createImageViewer({ cutline, outsideCutlineStyle: { type: "overlay", color: "rgba(0, 0, 0, 0.5)" } }), SMALLER_SQUARE);
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-overlay.png");
+  });
+
+  test("switches between the overlay and hidden styles", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate((cutline) => window.createImageViewer({ cutline, outsideCutlineStyle: { type: "overlay", color: "rgba(0, 0, 0, 0.5)" } }), SMALLER_SQUARE);
+
+    await page.evaluate(async () => {
+      window.__imageViewer.setOutsideCutlineStyle({ type: "hidden" });
+      await window.waitForImageViewerIdle();
+    });
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-hidden.png");
+  });
+
+  test("crops a concave cutline", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate((cutline) => window.createImageViewer({ cutline }), L_SHAPE);
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-concave.png");
+  });
+
+  test("keeps the crop on the image when the camera moves", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate((cutline) => window.createImageViewer({ cutline, center: [3840, 1792], zoom: 2, bearing: 30 }), SMALLER_SQUARE);
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-camera.png");
+  });
+
+  // An opaque band across the image, its ends outside of the cutline, added like a drawing would be.
+  // MapLibre draws opaque fills before the other layers, which the outside of the cutline must not then draw over
+  async function addOpaqueBand(page: Page) {
+    const band = [
+      [0, 896],
+      [4096, 896],
+      [4096, 1152],
+      [0, 1152],
+      [0, 896],
+    ].map(pxToLngLat);
+    await page.evaluate(async (coordinates) => {
+      const map = window.__imageViewer.getSDKInternal();
+      map.addSource("band", { type: "geojson", data: { type: "Polygon", coordinates: [coordinates] } });
+      map.addLayer({ id: "band", type: "fill", source: "band", paint: { "fill-color": "#ff0000", "fill-opacity": 1 } });
+      await window.waitForImageViewerIdle();
+    }, band);
+  }
+
+  test("does not hide the opaque layers above it, e.g. a drawing", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate((cutline) => window.createImageViewer({ cutline }), SMALLER_SQUARE);
+
+    await addOpaqueBand(page);
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-layer-above.png");
+  });
+
+  test("stays below the layers added before the cutline, e.g. a drawing", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate(() => window.createImageViewer());
+    await addOpaqueBand(page);
+
+    await page.evaluate(async (cutline) => {
+      window.__imageViewer.setCutline(cutline);
+      await window.waitForImageViewerIdle();
+    }, SMALLER_SQUARE);
+
+    await expect(page).toHaveScreenshot("imageViewer-cutline-layer-above.png");
+  });
+
+  test("shows the whole image again when the cutline is removed", async ({ page }) => {
+    await loadImageViewerFixture({ page });
+    await page.evaluate((cutline) => window.createImageViewer({ cutline }), SMALLER_SQUARE);
+
+    await page.evaluate(async () => {
+      window.__imageViewer.setCutline(null);
+      await window.waitForImageViewerIdle();
+    });
+
+    await expect(page).toHaveScreenshot("imageViewer-fitted.png");
   });
 });
 
