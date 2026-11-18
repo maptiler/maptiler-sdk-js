@@ -1,6 +1,12 @@
 # MapTiler SDK Changelog
 
-## 5.1.0
+
+## NEXT
+### ✨ Features and improvements
+- Adds cropping the image of `ImageViewer` with a cutline: a polygon on the image, in image pixels. The outside of the cutline can be hidden or have overlay.
+
+### 🐛 Bug Fixes
+None
 
 ### ⚙️ Others
 - Bumps `maplibre-gl` to 6.16.0.
