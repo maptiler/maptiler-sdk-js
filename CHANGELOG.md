@@ -1,6 +1,17 @@
 # MapTiler SDK Changelog
 
-## next
+
+## NEXT
+### ✨ Features and improvements
+- Adds cropping the image of `ImageViewer` with a cutline: a polygon on the image, in image pixels. The outside of the cutline can be hidden or have overlay.
+
+### 🐛 Bug Fixes
+None
+
+### ⚙️ Others
+- Bumps `maplibre-gl` to 6.16.0.
+
+## 5.0.0
 
 ### ⚠️ Breaking changes
 - Upgrades MapLibre GL JS to v6, which is ESM-only. See the [MapLibre changelog](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md) for changes to the MapLibre API itself.
@@ -34,6 +45,7 @@
   - As with the UMD bundle, sites with a Content Security Policy need `worker-src 'self' blob: https://cdn.maptiler.com`.
 - SDK custom events (e.g. `ready`, `loadWithTerrain`, `projection.change`) are now typed in `on`, `once`, `off` and `fire`. Adds the `MaptilerMapEventType` and `MapEventTypeSDK` types.
 - Events of `CubemapLayer` (`cubemaplayer:*`), `RadialGradientLayer` (`radialgradientlayer:*`) and `ImageViewerMarker` are now typed.
+- Adds Routing API module (directions), including session-based billing
 
 ### 🐛 Bug Fixes
 - Fixes `ImageViewer` event types under MapLibre 6, where listeners typed with `ImageViewerEvent` were rejected by `on`, `once` and `off`.

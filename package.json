@@ -93,7 +93,7 @@
   "devDependencies": {
     "@canvas/image-data": "^1.0.0",
     "@eslint/js": "^9.21.0",
-    "@playwright/test": "^1.60.0",
+    "@playwright/test": "^1.64.1",
     "@types/color-convert": "^2.0.4",
     "@types/color-name": "^2.0.0",
     "@types/node": "^25.0.0",
@@ -123,11 +123,11 @@
   },
   "dependencies": {
     "@maplibre/maplibre-gl-style-spec": "^26.4.4",
-    "@maptiler/client": "^3.1.0",
+    "@maptiler/client": "^3.2.0",
     "events": "^3.3.0",
     "gl-matrix": "^3.4.4",
     "js-base64": "^3.7.7",
-    "maplibre-gl": "6.11.2",
+    "maplibre-gl": "6.16.0",
     "uuid": "^14.0.0"
   }
 }
