@@ -1,10 +1,18 @@
 # MapTiler SDK Changelog
 
+
 ## NEXT
 ### ✨ Features and improvements
 - Adds cropping the image of `ImageViewer` with a cutline: a polygon on the image, in image pixels. The outside of the cutline can be hidden or have overlay.
 
+### 🐛 Bug Fixes
+None
+
+### ⚙️ Others
+- Bumps `maplibre-gl` to 6.16.0.
+
 ## 5.0.0
+
 ### ⚠️ Breaking changes
 - Upgrades MapLibre GL JS to v6, which is ESM-only. See the [MapLibre changelog](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md) for changes to the MapLibre API itself.
 - The MapLibre worker is now loaded from a separate file, which most bundlers do not emit on their own:
