@@ -1,0 +1,8 @@
+{
+  "tilejson": "2.2.0",
+  "name": "E2E vector tiles",
+  "scheme": "xyz",
+  "minzoom": 0,
+  "maxzoom": 14,
+  "tiles": ["https://api.maptiler.com/tiles/v3/{z}/{x}/{y}.pbf?key=DOESNT_MATTER"]
+}

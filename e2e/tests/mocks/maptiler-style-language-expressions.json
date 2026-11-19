@@ -1,0 +1,120 @@
+{
+  "version": 8,
+  "name": "E2E language expressions",
+  "glyphs": "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key=DOESNT_MATTER",
+  "sources": {
+    "maptiler_planet": {
+      "type": "vector",
+      "url": "https://api.maptiler.com/tiles/v3/tiles.json?key=DOESNT_MATTER"
+    },
+    "custom": {
+      "type": "geojson",
+      "data": {
+        "type": "FeatureCollection",
+        "features": []
+      }
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#f8f4f0"
+      }
+    },
+    {
+      "id": "airport",
+      "type": "symbol",
+      "source": "maptiler_planet",
+      "source-layer": "aerodrome_label",
+      "layout": {
+        "text-field": [
+          "step",
+          ["zoom"],
+          ["coalesce", ["get", "iata"], ["get", "icao"]],
+          12,
+          ["concat", ["coalesce", ["get", "name:en"], ["get", "name"]], "\n", ["coalesce", ["get", "iata"], ["get", "icao"]]]
+        ],
+        "text-font": ["Noto Sans Regular"]
+      }
+    },
+    {
+      "id": "peak_name_ele",
+      "type": "symbol",
+      "source": "maptiler_planet",
+      "source-layer": "mountain_peak",
+      "layout": {
+        "text-field": ["case", ["has", "ele"], ["concat", ["get", "name"], " ", ["to-string", ["get", "ele"]], " m"], ["get", "name"]],
+        "text-font": ["Noto Sans Regular"]
+      }
+    },
+    {
+      "id": "peak_format",
+      "type": "symbol",
+      "source": "maptiler_planet",
+      "source-layer": "mountain_peak",
+      "layout": {
+        "text-field": ["format", ["get", "name:latin"], {}, "\n", {}, ["concat", ["to-string", ["get", "ele"]], " m"], { "font-scale": 0.8 }],
+        "text-font": ["Noto Sans Regular"]
+      }
+    },
+    {
+      "id": "place_match",
+      "type": "symbol",
+      "source": "maptiler_planet",
+      "source-layer": "place",
+      "layout": {
+        "text-field": [
+          "match",
+          ["get", "class"],
+          "city",
+          ["coalesce", ["get", "name:en"], ["get", "name:latin"], ["get", "name"]],
+          "country",
+          ["get", "name:latin"],
+          ["get", "name"]
+        ],
+        "text-font": ["Noto Sans Regular"]
+      }
+    },
+    {
+      "id": "water_bilingual",
+      "type": "symbol",
+      "source": "maptiler_planet",
+      "source-layer": "water_name",
+      "layout": {
+        "text-field": ["case", ["==", ["get", "name:en"], ["get", "name"]], ["get", "name"], ["concat", ["get", "name:en"], "\n", ["get", "name"]]],
+        "text-font": ["Noto Sans Regular"]
+      }
+    },
+    {
+      "id": "poi_ref_fallback",
+      "type": "symbol",
+      "source": "maptiler_planet",
+      "source-layer": "poi",
+      "layout": {
+        "text-field": ["coalesce", ["get", "name:en"], ["get", "ref"], ["get", "name"]],
+        "text-font": ["Noto Sans Regular"]
+      }
+    },
+    {
+      "id": "road_shield",
+      "type": "symbol",
+      "source": "maptiler_planet",
+      "source-layer": "transportation_name",
+      "layout": {
+        "text-field": ["get", "ref"],
+        "text-font": ["Noto Sans Regular"]
+      }
+    },
+    {
+      "id": "custom_label",
+      "type": "symbol",
+      "source": "custom",
+      "layout": {
+        "text-field": ["concat", ["get", "name"], " (custom)"],
+        "text-font": ["Noto Sans Regular"]
+      }
+    }
+  ]
+}
