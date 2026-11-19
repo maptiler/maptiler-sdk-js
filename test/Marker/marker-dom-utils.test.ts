@@ -15,7 +15,8 @@ import {
   wrap,
 } from "../../src/Marker/marker-dom-utils";
 import type { MapTilerMarkerOptions } from "../../src/Marker/types";
-import { ADAPTIVE_COLORS, COLLISION_FADE_DURATION_MS, GROUND_LINE_CLASSNAME, SHADOW_FILTER, SIZE_PX } from "../../src/Marker/marker-constants";
+import { COLLISION_FADE_DURATION_MS, GROUND_LINE_CLASSNAME, SHADOW_FILTER, SIZE_PX } from "../../src/Marker/marker-constants";
+import { ADAPTIVE_COLORS } from "../../src/adaptive-colors";
 import { registerMarkerTemplate } from "../../src/Marker/marker-content-registry";
 import { MARKER_ICON_NAMES } from "../../src/Marker/marker-icons";
 import { circlePath } from "../../src/Marker/marker-svg-config";

@@ -82,6 +82,7 @@ export {
 // The SDK Marker extends the MapLibre Marker
 export * from "./Marker";
 export { Marker } from "./Marker";
+export { getAdaptiveColorsForStyle, type AdaptiveColorSet, type AdaptiveStyleKey, type ReferenceStyleKey } from "./adaptive-colors";
 
 // The SDK `Map` extends the MapLibre `Map`, so the MapLibre classes accept it as is
 export {

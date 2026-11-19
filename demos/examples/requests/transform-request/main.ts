@@ -26,7 +26,7 @@ const map = new Map({
   },
 });
 
-// Style name → style id, e.g. "outdoor" → "outdoor-v2", starting with the initial style
+// Style name → style id, e.g. "outdoor" → "outdoor-v4", starting with the initial style
 const styleIds = {
   [MAP_STYLE.getId()]: MAP_STYLE.getId(),
   ...Object.fromEntries(Object.entries(MapStyle).map(([name, style]) => [name.replace("_", " ").toLowerCase(), style.DEFAULT.getId()])),

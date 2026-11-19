@@ -45,9 +45,10 @@ import { MaptilerLogoControl } from "./controls/MaptilerLogoControl";
 import { checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, replaceLanguage } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
 import { styleToStyle, styleToStyleId } from "./mapstyle";
+import { getAdaptiveColorsForStyle, type AdaptiveColorSet } from "./adaptive-colors";
 import { MaptilerTerrainControl } from "./controls/MaptilerTerrainControl";
 import { MaptilerNavigationControl } from "./controls/MaptilerNavigationControl";
-import { MapStyle, geolocation, getLanguageInfoFromFlag, toLanguageInfo } from "@maptiler/client";
+import { defaultMapStyle, geolocation, getLanguageInfoFromFlag, toLanguageInfo } from "@maptiler/client";
 import { MaptilerGeolocateControl } from "./controls/MaptilerGeolocateControl";
 import { MaptilerExternalControlType, MaptilerExternalControl } from "./controls/MaptilerExternalControl";
 
@@ -172,8 +173,8 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo" | "attribut
   /**
    * Style of the map. Can be:
    * - a full style URL (possibly with API key)
-   * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
-   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
+   * - a shorthand with only the MapTIler style name (eg. `"streets-v4"`)
+   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v4"`)
    */
   style?: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string;
 
@@ -724,7 +725,7 @@ export class Map extends MapMLGL {
     }
 
     const { style, requiresUrlMonitoring, isFallback } = styleToStyle(options.style);
-    if (isFallback) {
+    if (isFallback && options.style) {
       console.warn(
         "Invalid style. A style must be a valid URL to a style.json, a JSON string representing a valid StyleSpecification or a valid StyleSpecification object. Fallback to default MapTiler style.",
       );
@@ -793,8 +794,8 @@ export class Map extends MapMLGL {
       // Loading a new style failed. If a style is not already in place,
       // the default one is loaded instead + warning in console
       if (!this.getStyle()) {
-        this.setStyle(MapStyle.STREETS);
-        warning += `Loading default MapTiler Cloud style "${MapStyle.STREETS.getDefaultVariant().getId()}" as a fallback.`;
+        this.setStyle(defaultMapStyle);
+        warning += `Loading default MapTiler Cloud style "${defaultMapStyle.getDefaultVariant().getId()}" as a fallback.`;
       } else {
         warning += " Leaving the style as is.";
       }
@@ -1366,8 +1367,8 @@ export class Map extends MapMLGL {
    * Update the style of the map.
    * Can be:
    * - a full style URL (possibly with API key)
-   * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
-   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
+   * - a shorthand with only the MapTIler style name (eg. `"streets-v4"`)
+   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v4"`)
    */
   override setStyle(
     style: null | ReferenceMapStyle | MapStyleVariant | StyleSpecification | StyleSpecificationWithMetaData | string,
@@ -1524,6 +1525,21 @@ export class Map extends MapMLGL {
    */
   getStyleId(): string | undefined {
     return this.currentStyleId;
+  }
+
+  /**
+   * Returns the default (adaptive) colours for the current style — the colours
+   * markers fall back to when none are set. Resolved from {@link getStyleId},
+   * or the stylesheet's `id` when that's `undefined`; unknown styles resolve to
+   * the `base` colours.
+   * @returns The current style's colour set. The object is frozen and shared, so spread it to modify a copy.
+   * @example
+   * ```ts
+   * const { innerColor, outerColor } = map.getAdaptiveColorsForCurrentStyle();
+   * ```
+   */
+  getAdaptiveColorsForCurrentStyle(): AdaptiveColorSet {
+    return getAdaptiveColorsForStyle(MarkerManager.getMapStyleId(this) ?? "");
   }
 
   /**
