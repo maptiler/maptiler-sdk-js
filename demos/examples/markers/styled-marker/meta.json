@@ -1,0 +1,9 @@
+{
+  "title": "Styled marker",
+  "description": "Puts a marker on the map and sets its shape and colors.",
+  "type": "example",
+  "topics": ["markers"],
+  "createdWith": "5.0.0-rc.4",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

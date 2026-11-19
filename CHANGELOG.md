@@ -1,5 +1,74 @@
 # MapTiler SDK Changelog
 
+## 5.0.0
+
+### ⚠️ Breaking changes
+- Upgrades MapLibre GL JS to v6, which is ESM-only. See the [MapLibre changelog](https://github.com/maplibre/maplibre-gl-js/blob/main/CHANGELOG.md) for changes to the MapLibre API itself.
+- The MapLibre worker is now loaded from a separate file, which most bundlers do not emit on their own:
+  - The npm (ES) build loads the worker matching its version from the MapTiler CDN by default, unless a worker URL has already been set with `setWorkerUrl`. Sites with a Content Security Policy need `worker-src 'self' blob: https://cdn.maptiler.com`.
+  - The UMD build ships `maplibre-gl-worker.mjs` and `maplibre-gl-shared.mjs` next to `maptiler-sdk.umd.min.js`. When self-hosting the UMD bundle, these files must be served alongside it.
+- The `rtlTextPlugin` map option has been removed. MapLibre now shapes right-to-left text natively. `setRTLTextPlugin` is still re-exported for custom plugins, but is deprecated by MapLibre.
+- The deprecated internal MapLibre types previously re-exported from `ml-types` have been removed from the public API.
+- MapLibre classes (`Popup`, `GeolocateControl`, sources, controls, handlers, etc.) are now re-exported directly from MapLibre instead of through SDK wrapper classes. The SDK `Map` is accepted by them as is.
+- `Marker` is now the new MapTiler marker (see below). The plain MapLibre marker is still available as `MarkerMLGL`. Coming from the MapLibre marker:
+  - The `color` option is replaced by `innerColor`, `outerColor`, `contentColor` and `outlineColor`.
+  - `scale` is a 2D vector, `[x, y]`.
+  - `marker.addTo(map)` is deprecated in favour of `map.addMarker(marker)`.
+- `MaptilerGeolocateControl` now fires a MapLibre `GeolocateEvent` instead of a DOM `Event` for `trackuserlocationend`.
+
+### ✨ Features and improvements
+- Introduces MapTiler Markers: a new `Marker` designed for MapTiler maps, built on the MapLibre marker.
+  - Built-in shapes and sizes, with text, image or custom HTML content.
+  - Colours that adapt to the active MapTiler style and update when the style changes.
+  - Collision handling: overlapping markers can stay visible, hide, or shrink to a dot behind higher-priority markers.
+  - Hover, focus, press and drag states, smooth transitions when properties change, and enter, idle and exit animations.
+  - Experimental altitude: raise markers above the ground or sea level, with an optional line down to the ground.
+  - Markers are managed through the map with `map.addMarker()`, `map.getMarker()` and `map.removeMarker()`.
+- Adds `getAdaptiveColorsForStyle(styleId)` and `map.getAdaptiveColorsForCurrentStyle()`, returning the default marker colours of a style.
+- Adds bundler helper entry points that set the MapLibre worker URL from a locally bundled worker:
+  - `@maptiler/sdk/vite-worker` for Vite
+  - `@maptiler/sdk/webpack-worker` for webpack
+  - `@maptiler/sdk/next-worker` and `withMaptilerWorker` from `@maptiler/sdk/next` for Next.js
+- Adds a self-contained ES module build on the MapTiler CDN, `maptiler-sdk.min.mjs`, to import the SDK straight from a browser without a bundler:
+  - `import { Map, config } from "https://cdn.maptiler.com/maptiler-sdk-js/v<version>/maptiler-sdk.min.mjs";`
+  - All dependencies, MapLibre included, are bundled, and the MapLibre worker is loaded from the same folder. When self-hosting it, `maplibre-gl-worker.mjs` and `maplibre-gl-shared.mjs` must be served alongside it, as for the UMD build.
+  - As with the UMD bundle, sites with a Content Security Policy need `worker-src 'self' blob: https://cdn.maptiler.com`.
+- SDK custom events (e.g. `ready`, `loadWithTerrain`, `projection.change`) are now typed in `on`, `once`, `off` and `fire`. Adds the `MaptilerMapEventType` and `MapEventTypeSDK` types.
+- Events of `CubemapLayer` (`cubemaplayer:*`), `RadialGradientLayer` (`radialgradientlayer:*`) and `ImageViewerMarker` are now typed.
+- Default style is now Streets v4 (`MapStyle.STREETS`). Creating a map without a `style` no longer logs a warning.
+- Adds Routing API module (directions), including session-based billing.
+
+### 🐛 Bug Fixes
+- Fixes `ImageViewer` event types under MapLibre 6, where listeners typed with `ImageViewerEvent` were rejected by `on`, `once` and `off`.
+  - `ImageViewer` is now typed over an event map, `ImageViewerEventType`, and `ImageViewerEvent` extends MapLibre's `Event`.
+  - `imagevieweriniterror` is typed separately as `ImageViewerInitErrorEvent`, carrying `{ error: Error }`.
+  - `imageviewerready`, `beforeremove` and `error` listeners now receive the `ImageViewerEvent` instance itself, rather than a plain copy.
+- Fixes the target of MapLibre events (`load`, `click`, `move`, …) on the SDK `Map` being typed as MapLibre's `Map`, which rejected listeners using SDK members such as `telemetry` or `getSpace()`.
+  - `on`, `once` and `off` now type every event's target as the SDK `Map`, layer events included.
+  - Adds the `MapEventSDK` and `MapLayerEventSDK` types, for typing listeners by event name.
+- Moves `eslint-plugin-compat` from `dependencies` to `devDependencies`. It's only used to lint the SDK, but installing the SDK pulled ESLint and its dependencies into consumers' production dependency trees, where `npm audit --omit=dev` reported their advisories ([#392](https://github.com/maptiler/maptiler-sdk-js/issues/392)).
+- Fixes an `error` event, `Cannot remove non-existing layer "Halo Layer"`, fired on map load when a halo is enabled through the `halo` map option or the style metadata.
+  - The `Minimap` no longer inherits the parent map's `space` and `halo` options.
+
+### ⚙️ Others
+- Bumps `maplibre-gl` to 6.11.2 and `@maplibre/maplibre-gl-style-spec` to 26.
+- Bumps `@maptiler/client` to 3.3.0.
+- Removes backported sanitization fixes in favour of MapLibre's implementation.
+- Switches internal `maplibre-gl` imports to named imports.
+- Documents worker setup per bundler, CSP requirements, self-hosted UMD worker files and TypeScript `moduleResolution` in the README.
+- Updates dependencies to resolve `npm audit` vulnerabilities, including dev dependency bumps to `vitest` 5, `@vitest/web-worker` 5, `vite-plugin-dts` 5 and `lint-staged` 17.
+- Telemetry now reports the SDK build format (`umd`, `esm-cdn`, `es` or `dev`) as `buildFormat`.
+- Restructures the in-repo demos into short examples grouped by topic, showcases and playgrounds, each with metadata (type, topics, SDK version it was created with and last checked against), listed in a README index generated from the metadata and checked in CI. Their controls use `lil-gui` (new dev dependency), and a console panel shows their console output on the page, both in a column at the top left with the performance stats. They read the MapTiler API key from `VITE_MAPTILER_API_KEY` in a git-ignored `.env.local` file, which the dev server warns about at startup when missing. The `@maptiler/3d` dev dependency, used by a demo only, is removed.
+
+## 4.2.1
+
+### 🐛 Bug Fixes
+- BACKPORT: Fixes attributions not being fully sanitized, which let a style or TileJSON from an untrusted source run scripts or alter the page through its attribution. The attribution sanitizing is ported from MapLibre GL JS v6.16.0.
+  - Removing a dangerous attribute no longer skips the attribute that follows it, which let every second attribute, such as an `onerror` handler or a `javascript:` link, through (fixed in MapLibre GL JS v6.4.1).
+  - Attributions are now sanitized with an allow list of elements, attributes and URL protocols (fixed in MapLibre GL JS v6.11.1).
+  - Each attribution is sanitized on its own, so markup left open in one no longer wraps the others (fixed in MapLibre GL JS v6.12.0).
+  - Applies to the attribution control the map adds by default, as well as to `AttributionControl` and `AttributionControlMLGL`.
+
 ## 4.2.0
 
 ### ✨ Features and improvements

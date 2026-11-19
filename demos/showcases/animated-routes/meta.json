@@ -1,0 +1,12 @@
+{
+  "title": "Animated route around Madeira",
+  "description": "Animates the camera along a Madeira route with `AnimatedRouteLayer`, with stops and photos.",
+  "type": "showcase",
+  "topics": [
+    "animation",
+    "routes"
+  ],
+  "createdWith": "3.11.0",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

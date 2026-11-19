@@ -1,0 +1,11 @@
+{
+  "title": "Marker UI states",
+  "description": "Markers that change their look on hover, focus, press and drag.",
+  "type": "example",
+  "topics": [
+    "markers"
+  ],
+  "createdWith": "5.0.0-beta.m-r.1",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

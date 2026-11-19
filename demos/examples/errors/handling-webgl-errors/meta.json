@@ -1,0 +1,11 @@
+{
+  "title": "Handling WebGL errors",
+  "description": "Reacts to a lost WebGL context and shows a warning.",
+  "type": "example",
+  "topics": [
+    "errors"
+  ],
+  "createdWith": "3.2.4",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

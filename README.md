@@ -6,7 +6,7 @@ The **MapTiler SDK JS** extends MapLibre GL JS, exposes all its features, and ad
 
 **Why are we creating a new SDK?** To make things simpler for developers working in the MapTiler ecosystem! With **MapTiler SDK JS**, there is no need to load external plugins for the most basic things, copy-paste complex data source URLs, or look up the syntax to enable 3D terrain every time you start a project. All this is built-in, loaded when needed, or exposed with simple functions. Under the hood, this SDK is opinionated as it's being fed by [MapTiler service](https://www.maptiler.com/cloud/) data, but its MapLibre core makes it 100% compatible with other sources.
 
-In addition, the MapTiler SDK JS provides well-documented and easy-to-use wrapper functions to the [MapTiler API services](https://docs.maptiler.com/cloud/api) such as: geocoding, static maps, geolocation, as well as a search engine for coordinate reference systems and transforming coordinates from one CRS to another.
+In addition, the MapTiler SDK JS provides well-documented and easy-to-use wrapper functions to the [MapTiler API services](https://docs.maptiler.com/cloud/api) such as: geocoding, routing, static maps, geolocation, as well as a search engine for coordinate reference systems and transforming coordinates from one CRS to another.
 
 > 📣 _**Note:**_ If you need <ins>only the API Client library</ins> to use in a headless fashion and without any map display, check out [MapTiler Client JS](https://github.com/maptiler/maptiler-client-js) library for browser and NodeJS.
 
@@ -47,13 +47,87 @@ In addition, the MapTiler SDK JS provides well-documented and easy-to-use wrappe
 npm install --save @maptiler/sdk
 ```
 
-⚠️ Please keep in mind that if you use any additional [MapTiler modules](https://docs.maptiler.com/sdk-js/modules/), you must update them to a version that supports MapTiler SDK JS v3.
+⚠️ Please keep in mind that if you use any additional [MapTiler modules](https://docs.maptiler.com/sdk-js/modules/), you must update them to a version that supports MapTiler SDK JS v5.
+
+### Setting up the map worker with a bundler
+
+Since MapLibre GL JS v6, the map runs its background worker from separate files that most bundlers don't pick up on their own.
+
+By default, the SDK installed from npm loads the worker from the MapTiler CDN (`https://cdn.maptiler.com/maptiler-sdk-js/v<VERSION>/`), which works with any bundler. If your site uses a Content Security Policy, it needs `worker-src 'self' blob: https://cdn.maptiler.com`.
+
+To bundle the worker with your app instead (e.g. for offline or intranet use, or a stricter CSP), import the helper for your bundler once, before creating a map:
+
+**Vite**
+
+```ts
+import "@maptiler/sdk/vite-worker";
+import { Map } from "@maptiler/sdk";
+```
+
+For the Vite dev server, also exclude the helper from dependency pre-bundling:
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+
+export default defineConfig({
+  optimizeDeps: { exclude: ["@maptiler/sdk/vite-worker"] },
+});
+```
+
+**webpack 5 / rspack**
+
+```ts
+import "@maptiler/sdk/webpack-worker";
+import { Map } from "@maptiler/sdk";
+```
+
+**Next.js** (Turbopack and webpack)
+
+```ts
+// next.config.mjs (or `require("@maptiler/sdk/next")` in next.config.js)
+import { withMaptilerWorker } from "@maptiler/sdk/next";
+
+export default withMaptilerWorker({
+  // your Next.js config
+});
+```
+
+```tsx
+// the client component creating the map
+"use client";
+import "@maptiler/sdk/next-worker";
+import { Map } from "@maptiler/sdk";
+```
+
+`withMaptilerWorker` copies the worker files into `public/_maptiler/` on every `next dev` and `next build`, you may want to add that folder to your `.gitignore`.
+
+**Other setups**
+
+Copy `node_modules/@maptiler/sdk/dist/bundler/maplibre-gl-worker.mjs` into your build output (it is self-contained, and works the same with npm, yarn or pnpm), and set the worker URL before creating a map:
+
+```ts
+import { setWorkerUrl } from "@maptiler/sdk";
+
+setWorkerUrl("/path/to/maplibre-gl-worker.mjs");
+```
+
+### From CDN
 
 From CDN and using the UMD bundle, in the `<head></head>` section of your HTML file:
 
 ```html
 <script src="https://cdn.maptiler.com/maptiler-sdk-js/<VERSION>/maptiler-sdk.umd.min.js"></script>
 <link href="https://cdn.maptiler.com/maptiler-sdk-js/<VERSION>/maptiler-sdk.css" rel="stylesheet" />
+```
+
+Or from CDN and using the ES module bundle, importing the SDK from a module script:
+
+```html
+<link href="https://cdn.maptiler.com/maptiler-sdk-js/<VERSION>/maptiler-sdk.css" rel="stylesheet" />
+<script type="module">
+  import { config, Map } from "https://cdn.maptiler.com/maptiler-sdk-js/<VERSION>/maptiler-sdk.min.mjs";
+</script>
 ```
 
 <br>
@@ -95,7 +169,7 @@ const map = new Map({
 });
 ```
 
-By default, the map will be initialized with the style [streets-v2](https://www.maptiler.com/maps/#style=streets-v2).
+By default, the map will be initialized with the style [streets-v4](https://www.maptiler.com/maps/#style=streets-v4).
 
 Depending on the framework and environment you are using for your application, you will have to also include the CSS file.
 
@@ -107,41 +181,24 @@ import "@maptiler/sdk/dist/maptiler-sdk.css";
 
 #### TypeScript
 
-The SDK is fully typed, but it may happen that types defined in Maplibre GL JS are not visible in your project. This is a known issue that comes from Maplibre being a CommonJS bundle.
+The SDK is fully typed, including the types re-exported from MapLibre GL JS.
 
-There are mainly two ways to address this issue and access to the complete type definition.
-
-1. **With `esModuleInterop`**
-
-Set the following in your `tsconfig.json`:
+The SDK is an ES module whose entry points (such as `@maptiler/sdk/next`) are declared with `package.json` `exports`. TypeScript only reads `exports` with a modern module resolution, so set one of the following in your `tsconfig.json`:
 
 ```js
 {
   "compilerOptions": {
     // ...
-    "esModuleInterop": true,
+    "moduleResolution": "Bundler", // or "Node16" / "NodeNext"
   }
 }
 ```
 
-2. **With `moduleResolution`**
-
-Set the following in your `tsconfig.json`:
-
-```js
-{
-  "compilerOptions": {
-    // ...
-    "moduleResolution": "Bundler",
-  }
-}
-```
-
-Note that this second option is not always possible as some frameworks and other dependencies won't let you use the "Bundler" mode.
+With the legacy `"moduleResolution": "Node"` (or `"Node10"`), the main `@maptiler/sdk` types still resolve, but the entry points under `@maptiler/sdk/...` don't get types.
 
 ### With CDN
 
-The SDK hosted on our CDN is bundled as _[Universal Module Definition](https://github.com/umdjs/umd)_ (UMD) to make it standalone and contain all its dependencies. The CDN also serves the style sheet (CSS).
+The SDK hosted on our CDN is bundled both as _[Universal Module Definition](https://github.com/umdjs/umd)_ (UMD), `maptiler-sdk.umd.min.js`, and as an ES module, `maptiler-sdk.min.mjs`. Both are standalone and contain all their dependencies. The CDN also serves the style sheet (CSS).
 
 **Recommended for:** simple map integration example and demos
 
@@ -163,13 +220,13 @@ The SDK hosted on our CDN is bundled as _[Universal Module Definition](https://g
     </style>
 
     <!-- Load the SDK CSS -->
-    <link rel="stylesheet" href="dist/maptiler-sdk.css" />
+    <link rel="stylesheet" href="build/maptiler-sdk.css" />
   </head>
 
   <body>
     <div id="map-container"></div>
 
-    <script src="dist/maptiler-sdk.umd.min.js"></script>
+    <script src="build/maptiler-sdk.umd.min.js"></script>
 
     <script>
       // Add your MapTiler API key to the config
@@ -188,7 +245,49 @@ The SDK hosted on our CDN is bundled as _[Universal Module Definition](https://g
 </html>
 ```
 
+With the ES module bundle, the SDK is imported from a module script instead of being exposed as the `maptilersdk` global:
+
+```html
+<script type="module">
+  import { config, Map, MapStyle } from "https://cdn.maptiler.com/maptiler-sdk-js/<VERSION>/maptiler-sdk.min.mjs";
+
+  config.apiKey = "YOUR_API_KEY";
+
+  const map = new Map({
+    container: "map-container",
+    style: MapStyle.STREETS_DARK,
+    hash: true,
+  });
+</script>
+```
+
 Check out the minimalist code samples in the [demos](demos) directory.
+
+#### Map worker files and Content Security Policy (CSP)
+
+Since MapLibre GL JS v6, the map loads its background worker as two separate files, `maplibre-gl-worker.mjs` and `maplibre-gl-shared.mjs`. The UMD and ES module bundles look for them in the same folder as `maptiler-sdk.umd.min.js` and `maptiler-sdk.min.mjs`. Our CDN serves them there, so when using the CDN without a CSP, there is nothing to set up.
+
+If you **self-host the UMD or ES module bundle**, copy both `.mjs` files next to `maptiler-sdk.umd.min.js` or `maptiler-sdk.min.mjs`. They must be served with a JavaScript content type (e.g. `text/javascript`).
+
+If your site uses a **Content Security Policy**, the worker needs to be allowed:
+
+- **SDK loaded from our CDN**: since the worker comes from another origin, it is started through a `blob:` URL that then loads the worker from the CDN, so both must be allowed. `blob:` alone is not enough:
+
+  ```
+  worker-src 'self' blob: https://cdn.maptiler.com;
+  ```
+
+- **CSP that cannot allow `blob:`**: host `maplibre-gl-worker.mjs` and `maplibre-gl-shared.mjs` on your own origin (in the same folder) and point the SDK to the worker before creating any map. Then `worker-src 'self'` is enough:
+
+  ```html
+  <script>
+    maptilersdk.setWorkerUrl("/path/to/maplibre-gl-worker.mjs");
+  </script>
+  ```
+
+  With the ES module bundle, import `setWorkerUrl` from it and call it the same way.
+
+`setWorkerUrl` is also needed if the UMD bundle is not loaded with a regular `<script src="...">` tag (e.g. concatenated into another file or loaded with AMD/RequireJS), since the worker location is then no longer known.
 
 <br>
 
@@ -199,6 +298,110 @@ Check out the minimalist code samples in the [demos](demos) directory.
 - [Built-in map styles](https://docs.maptiler.com/sdk-js/examples/built-in-styles/)
 
 Check out more than 200 [examples and tutorials](https://docs.maptiler.com/sdk-js/examples/)
+
+<br>
+
+## 🗂️ In-repo demos
+
+Runnable demos of the SDK features, kept in `demos/`. They're separate from the docs examples linked above.
+
+### Run the demos
+
+1. Create a `.env.local` file at the root of the repo (git ignores it) with your MapTiler API key: `VITE_MAPTILER_API_KEY=YOUR_KEY`.
+2. Run `npm run dev`.
+3. Open the printed URL. It lists every demo.
+
+Instead of `.env.local`, you can add `?key=YOUR_KEY` to a demo URL once, and the browser stores the key for all demos. If several keys are set, the demos use the first of: the key in `.env.local`, the key stored in the browser, the `key` URL parameter.
+
+### Kinds of demos
+
+- **Examples** (`demos/examples/<topic>/<name>/`): short, single-use code with minimal dependencies, e.g. "put a marker on the page and style it".
+- **Showcases** (`demos/showcases/<name>/`): more involved, with more comments and inline docs, closer to a guide. May use external dependencies, e.g. a UI library.
+- **Playgrounds** (`demos/playgrounds/<name>/`): for comparing feature versions, testing or developing features, and recording code "gotchas". May use external dependencies and lots of UI code. Internal: listed on the `npm run dev` page, but not in the list below.
+
+### Add or change a demo
+
+Each demo is a folder with an `index.html`, a `main.ts` and a `meta.json`:
+
+```json
+{
+  "title": "Styled marker",
+  "description": "Puts a marker on the map and sets its shape and colors.",
+  "type": "example",
+  "topics": ["markers"],
+  "createdWith": "5.0.0-rc.4",
+  "lastCheckedWith": "5.0.0-rc.4",
+  "lastCheckedOn": "2026-10-30"
+}
+```
+
+- `type` is `example`, `showcase` or `playground`, matching the folder. An example's first topic matches its `<topic>` folder. Playgrounds stay out of the index below, and their `topics` can be empty.
+- `createdWith` is the SDK version the demo was created with.
+- `lastCheckedWith` and `lastCheckedOn` record the last time someone ran the demo and saw it working. They stay `null` until then.
+
+Values likely to change go in variables right after the imports of `main.ts`, with the same names in every demo, so they can be updated with grep or a script, e.g. `MAP_STYLE`.
+
+Build any controls a demo needs (buttons, dropdowns, sliders, readouts) with [lil-gui](https://lil-gui.georgealways.com), using `createGui()` from `demos/shared/gui.ts`, rather than hand-written HTML. The exception is UI that is the subject of the demo, such as the custom map controls of the controls examples.
+
+Run `npm run demos:index` after adding or changing a demo. It validates the metadata and regenerates the index below. CI fails if the index is out of date.
+
+### Topics
+
+Use only these labels in `topics`. Add a label here before using it.
+
+<!-- demo-topics:start -->
+- `3d`
+- `animation`
+- `color-ramps`
+- `controls`
+- `errors`
+- `events`
+- `getting-started`
+- `halo`
+- `image-viewer`
+- `language`
+- `markers`
+- `performance`
+- `requests`
+- `routes`
+- `sky`
+- `space`
+- `styles`
+<!-- demo-topics:end -->
+
+### Index
+
+<!-- demos-index:start -->
+#### Examples
+
+| Demo | Description | Topics | Created with | Last checked |
+| --- | --- | --- | --- | --- |
+| [Available color ramps](./demos/examples/color-ramps/available-ramps) | Displays every built-in color ramp, plus rescaled and resampled variants. | `color-ramps` | 3.2.4 | Not yet |
+| [Custom controls: declarative](./demos/examples/controls/declarative) | Builds custom map controls from HTML attributes. | `controls` | 3.5.1-rc1 | Not yet |
+| [Custom controls: programmatic](./demos/examples/controls/programmatic) | Builds custom map controls from code. | `controls` | 3.8.0-rc.9 | Not yet |
+| [Handling WebGL errors](./demos/examples/errors/handling-webgl-errors) | Reacts to a lost WebGL context and shows a warning. | `errors` | 3.2.4 | Not yet |
+| [Ready event](./demos/examples/events/ready-event) | Uses the `ready` event to know when the map can be changed safely. | `events` | 3.2.4 | Not yet |
+| [Simple map](./demos/examples/getting-started/simple) | A map with the Streets v4 style. | `getting-started` | 5.0.0-rc.4 | Not yet |
+| [Image viewer](./demos/examples/image-viewer/image-viewer) | Displays a tiled, non-georeferenced image with markers. | `image-viewer` `markers` | 3.8.0-rc.9 | Not yet |
+| [Language changes](./demos/examples/language/language-changes) | Switches the map language at runtime. | `language` | 3.5.1-rc1 | Not yet |
+| [Marker altitude](./demos/examples/markers/altitude) | Raises two draggable markers to 1,300 m above sea level over the terrain, with ground lines (experimental). | `markers` | 5.0.0-beta.m-r.1 | Not yet |
+| [Styled marker](./demos/examples/markers/styled-marker) | Puts a marker on the map and sets its shape and colors. | `markers` | 5.0.0-rc.4 | Not yet |
+| [Marker UI states](./demos/examples/markers/ui-states) | Markers that change their look on hover, focus, press and drag. | `markers` | 5.0.0-beta.m-r.1 | Not yet |
+| [Tile preloading: bounds](./demos/examples/performance/tile-preloading-bounds) | Preloads the tiles of a region with `experimental_preloadTilesForBounds`, then jumps there. Toggle preloading off to compare. | `performance` | 4.1.0 | Not yet |
+| [Tile preloading: flyTo](./demos/examples/performance/tile-preloading-flyto) | Preloads the tiles along a `flyTo` path with `experimental_preload` before the flight starts. Toggle preloading off to compare. | `performance` | 4.1.0 | Not yet |
+| [Transform request](./demos/examples/requests/transform-request) | Changes outgoing map requests with `transformRequest`. | `requests` | 3.2.4 | Not yet |
+| [Sky: day](./demos/examples/sky/day) | Configures the sky on a daytime outdoor style. | `sky` | 3.2.4 | Not yet |
+| [Sky: night](./demos/examples/sky/night) | Configures the sky on a dark outdoor style. | `sky` | 3.2.4 | Not yet |
+| [Space & halo: simple](./demos/examples/space/orbiting-globe) | A globe turning against a starry space background, with the default halo. | `space` `halo` | 5.0.0-rc.4 | Not yet |
+
+#### Showcases
+
+| Demo | Description | Topics | Created with | Last checked |
+| --- | --- | --- | --- | --- |
+| [Animated route around Madeira](./demos/showcases/animated-routes) | Animates the camera along a Madeira route with `AnimatedRouteLayer`, with stops and photos. | `animation` `routes` | 3.11.0 | Not yet |
+| [Marker animation in the Sahara](./demos/showcases/marker-animation) | Drives two rally car markers around the Erg Chebbi dunes with a single `MaptilerAnimation`, with playback controls. | `animation` `markers` | 5.0.0-rc.4 | Not yet |
+| [Space & halo: transitions](./demos/showcases/spacebox-and-halo) | Switches between every space preset, custom cubemap images, space colors and halo gradients on a globe. | `space` `halo` | 3.5.1-rc1 | Not yet |
+<!-- demos-index:end -->
 
 <br>
 
@@ -232,12 +435,12 @@ The styles with a shorthand provided by the SDK are the following:
 
 |           ID            |                                                                 Screenshot                                                                 |                                                                 Comment                                                                 |
 | :---------------------: | :----------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: |
-|   `MapStyle.STREETS`    | [![](images/screenshots/style-streets-v2.jpeg)](https://www.maptiler.com/maps/#style=streets-v2&mode=2d&position=12.52/40.73676/-73.98418) |                The classic default style, perfect for urban areas.<p>Also available in **dark** and **light** mode.</p>                 |
+|   `MapStyle.STREETS`    | [![](images/screenshots/style-streets-v4.jpeg)](https://www.maptiler.com/maps/#style=streets-v4&mode=2d&position=13/51.5/-0.123) |                The classic default style, perfect for urban areas.<p>Also available in **dark** and **light** mode.</p>                 |
 | `MapStyle.DATAVIZ.DARK` |   [![](images/screenshots/style-dataviz-dark.jpeg)](https://www.maptiler.com/maps/#style=dataviz-dark&mode=2d&position=2.01/38.7/-27.0)    |                     A minimalist style for data visualization.<p>Also available in **color** and **light** mode</p>                     |
 |  `MapStyle.SATELLITE`   |      [![](images/screenshots/style-satellite.jpeg)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=7.87/24.518/-77.411)      |                                     Only high resolution satellite raster tiles without any labels                                      |
 |    `MapStyle.HYBRID`    |       [![](images/screenshots/style-hybrid.jpeg)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)       |                                 Satellite tile with labels, landmarks, roads ways and political borders                                 |
 |   `MapStyle.OUTDOOR`    |     [![](images/screenshots/style-outdoor.jpeg)](https://www.maptiler.com/maps/#style=outdoor&mode=2d&position=11.96/46.02591/7.7273)      |                                     A solid hiking companion, with peaks, parks, isolines and more                                      |
-|    `MapStyle.BASIC`     |  [![](images/screenshots/style-basic-v2.jpeg)](https://www.maptiler.com/maps/#style=basic-v2&mode=2d&position=13.09/37.78734/-122.42025)   | A minimalist alternative to `STREETS`, with a touch of flat design.<p>Also available in **dark** and **light** and **pastel** mode.</p> |
+|     `MapStyle.BASE`     |  [![](images/screenshots/style-base-v4.jpeg)](https://www.maptiler.com/maps/#style=base-v4&mode=2d&position=10.95/53.9/14.25)   | A minimalist alternative to `STREETS`, with a touch of flat design.<p>Also available in **dark** and **light** mode.</p> |
 
 <details>
   <summary>Know more about built-in map styles</summary>
@@ -248,45 +451,50 @@ Here is the full list:
 
 - `MapStyle.STREETS`, reference style for navigation and city exploration
   - `MapStyle.STREETS.DARK` (variant)
-  - `MapStyle.STREETS.LIGHT` (variant)
   - `MapStyle.STREETS.PASTEL` (variant)
-- `MapStyle.SATELLITE` reference style satellite and airborne imagery (no variants)
-- `MapStyle.HYBRID` reference style satellite and airborne imagery with labels (no variants)
+- `MapStyle.SATELLITE` reference style satellite and airborne imagery
+  - `MapStyle.SATELLITE.DARK` (variant)
+- `MapStyle.HYBRID` reference style satellite and airborne imagery with labels
+  - `MapStyle.HYBRID.DARK` (variant)
 - `MapStyle.OUTDOOR` reference style for adventure
+  - `MapStyle.OUTDOOR.DARK` (variant)
 - `MapStyle.WINTER` reference style for winter adventure
+  - `MapStyle.WINTER.DARK` (variant)
 - `MapStyle.DATAVIZ`, the perfect style for data visualization, with very little noise
   - `MapStyle.DATAVIZ.DARK` (variant)
   - `MapStyle.DATAVIZ.LIGHT` (variant)
 - `MapStyle.BACKDROP`, great style for data visualization when hillshading matters!
   - `MapStyle.BACKDROP.DARK` (variant)
   - `MapStyle.BACKDROP.LIGHT` (variant)
-- `MapStyle.BASIC` reference style for minimalist design and general purpose
-  - `MapStyle.BASIC.DARK` (variant)
-  - `MapStyle.BASIC.LIGHT` (variant)
+- `MapStyle.BASE` reference style for minimalist design and general purpose
+  - `MapStyle.BASE.DARK` (variant)
+  - `MapStyle.BASE.LIGHT` (variant)
 - `MapStyle.BRIGHT` reference style for high-contrast navigation
   - `MapStyle.BRIGHT.DARK` (variant)
   - `MapStyle.BRIGHT.LIGHT` (variant)
   - `MapStyle.BRIGHT.PASTEL` (variant)
 - `MapStyle.TOPO` reference style for topographic study
-  - `MapStyle.TOPO.SHINY` (variant)
+  - `MapStyle.TOPO.DARK` (variant)
   - `MapStyle.TOPO.PASTEL` (variant)
   - `MapStyle.TOPO.TOPOGRAPHIQUE` (variant)
-- `MapStyle.VOYAGER` reference style for stylish yet minimalist maps
+- `MapStyle.VOYAGER` reference style for stylish yet minimalist maps (deprecated, with all its variants)
   - `MapStyle.VOYAGER.DARK` (variant)
   - `MapStyle.VOYAGER.LIGHT` (variant)
   - `MapStyle.VOYAGER.VINTAGE` (variant)
-- `MapStyle.TONER` reference style for very high contrast stylish maps
+- `MapStyle.TONER` reference style for very high contrast stylish maps (deprecated, with all its variants)
   - `MapStyle.TONER.BACKGROUND` (variant)
   - `MapStyle.TONER.LITE` (variant)
   - `MapStyle.TONER.LINES` (variant)
-- `MapStyle.OCEAN` reference style with bathymetric highlights, does not have any variants.
+- `MapStyle.OCEAN` reference style with bathymetric highlights
+  - `MapStyle.OCEAN.DARK` (variant)
 - `MapStyle.LANDSCAPE` reference style terrain map for data overlays and visualisations
   - `MapStyle.LANDSCAPE.DARK` (variant)
   - `MapStyle.LANDSCAPE.VIVID` (variant)
 - `MapStyle.AQUARELLE` reference style watercolor map for creative use
   - `MapStyle.AQUARELLE.DARK` (variant)
   - `MapStyle.AQUARELLE.VIVID` (variant)
-- `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variants)
+- `MapStyle.OPENSTREETMAP` (reference style)
+  - `MapStyle.OPENSTREETMAP.DARK` (variant)
 
 All reference styles (instances of `ReferenceMapStyle`) and style variants (instances of `MapStyleVariant`) have methods to know the alternative styles and variants that belong to the same reference style (`.getVariants()`). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style. Read more about about [ReferenceMapStyle](https://docs.maptiler.com/sdk-js/api/map-styles/#referencemapstyle) and [MapStyleVariant](https://docs.maptiler.com/sdk-js/api/map-styles/#mapstylevariant).
 
@@ -297,7 +505,7 @@ All reference styles (instances of `ReferenceMapStyle`) and style variants (inst
 You can also use classic styles with just a _string_ if you know their MapTiler ID:
 
 ```ts
-map.setStyle("outdoor-v2");
+map.setStyle("outdoor-v4");
 ```
 
 And finally, you can use your own custom styles designed with [our style editor](https://cloud.maptiler.com/maps/). Every custom style is given a unique ID, for instance: `c912ffc8-2360-487a-973b-59d037fb15b8`.
@@ -395,8 +603,6 @@ The choice between Mercator and Globe can be done at different levels and moment
   // or
   map.setProjection("globe", { persist: true });
   ```
-
-  > ℹ️ Deprecated methods `enableGlobeProjection()` and `enableMercatorProjection()` also persist the projection.
 
   Without persistance, when the style next changes, the projection is reset to a previously persisted projection, or a projection specified in the `Map` options, or a projection specified in `projection` property of the style itself, or the default (Mercator) projection.
   
@@ -926,7 +1132,7 @@ map.on("load", () => {
 
 Note: if `space.color` or `space.<faces | path | preset>` are not explicitly set in the call to `setSpace`, then the previous value will remain for this field.
 
-Further code examples can be found in `~/demos/`
+See [`demos/examples/space/orbiting-globe`](./demos/examples/space/orbiting-globe) for a simple example, and [`demos/showcases/spacebox-and-halo`](./demos/showcases/spacebox-and-halo) for every preset and option.
 
 ### `ImageViewer`
 
@@ -1048,12 +1254,9 @@ Here is a sample of some compatible languages:
 
 #### Built-in support for right-to-left languages
 
-Languages that are written right-to-left such as Arabic and Hebrew are fully supported by default. No need to install any plugins!
+Languages that are written right-to-left such as Arabic and Hebrew, as well as complex scripts such as Devanagari, Khmer or Burmese, are fully supported by default. MapLibre shapes them natively, no need to install any plugins!
 
-If you wish to opt of applying the rtl plugin or wish to use a different compatible rtl text plugin, you can pass the `rtlTextPlugin`
-constructor option as either `false` (disable the rtl plugin) or a url to load a different plugin.
-
-**Note: Once the rtlTextPlugin has been installed once, it cannot be unset nor updated on the current instance. Calling `setRTLTextPlugin` without setting `rtlTextPlugin` to false in the constuctor will result in an error.**
+If you still need a custom RTL text plugin, `setRTLTextPlugin` is re-exported from MapLibre. Note that it is deprecated by MapLibre and a plugin *replaces* the built-in shaping.
 
 <p align="center">
   <img src="images/screenshots/lang-arabic.jpeg" width="48%"></img>
@@ -1337,12 +1540,198 @@ When defining a new _ramp_, the colors can be an RGB array (`[number, number, nu
 
 Many methods are available on color ramps, such as getting the `<canvas>` element of it, rescaling it, flipping it or [resampling it in a non-linear way](colorramp.md). Read more on [our reference page](https://docs.maptiler.com/sdk-js/api/color-ramp/) and have a look at our [examples](https://docs.maptiler.com/sdk-js/examples/?q=colorramp) to see how they work.
 
+### Markers
+
+The SDK's `Marker` is designed for MapTiler maps. It is built on the MapLibre marker and adds built-in shapes and sizes, colours that follow the active MapTiler style, collision handling, interaction states, transitions and animations.
+
+#### Adding markers
+
+Create a marker, give it a position, and add it through the map. Markers added this way take part in collision handling and follow the style's colours:
+
+```ts
+import { Map, Marker } from "@maptiler/sdk";
+
+const marker = new Marker({ lngLat: [8.54, 47.37], shape: "bubble-circle", size: "m", content: "A1" });
+map.addMarker(marker);
+
+// or straight from options
+map.addMarker({ lngLat: [8.55, 47.38], shape: "circle" });
+map.addMarkers([
+  { lngLat: [8.53, 47.36], shape: "square" },
+  new Marker({ shape: "circle" }).setLngLat([8.56, 47.39]),
+]);
+
+map.getMarker(marker.id);
+map.getMarkers();
+map.removeMarker(marker.id);
+map.removeMarkers(); // all markers, or pass a list of ids
+```
+
+Removing a marker plays its exit animation first, if it has one (see [Animations](#animations)). Pass `{ immediate: true }` to `removeMarker()` or `removeMarkers()` to remove markers straight away.
+
+> [!WARNING]
+> `marker.addTo(map)` is deprecated. It now delegates to `map.addMarker(marker)` and logs a one-time warning. Use `map.addMarker()` instead.
+
+#### Appearance
+
+```ts
+const marker = new Marker({
+  shape: "maptiler", // "circle" | "square" | "bubble-circle" | "bubble-square" | "maptiler" | "maptiler-full"
+  size: "l", // "xs" | "s" | "m" | "l"
+  shadow: "soft", // "none" | "soft" | "medium" | "strong"
+  content: "42", // text shown inside the marker
+  outline: true,
+  scale: [1.2, 1.2],
+  title: "Zurich", // native tooltip
+});
+```
+
+The appearance options have matching setters and getters, such as `setShape()`, `setSize()` or `getContent()`.
+
+Unless you set them, the marker's colours (`innerColor`, `outerColor`, `contentColor` and `outlineColor`) are picked for the current MapTiler style and update when the style changes. A colour you set explicitly stays fixed, and setting it back to `undefined` returns it to the style's colour:
+
+```ts
+marker.setInnerColor("#ff5a1f");
+marker.setInnerColor(undefined); // back to the style's colour
+```
+
+To match other UI to these colours, read them with `map.getAdaptiveColorsForCurrentStyle()`, or with `getAdaptiveColorsForStyle()` for any style id:
+
+```ts
+import { getAdaptiveColorsForStyle } from "@maptiler/sdk";
+
+const { innerColor, outerColor } = map.getAdaptiveColorsForCurrentStyle();
+getAdaptiveColorsForStyle("streets-v4-dark").innerColor; // "#4D97FF"
+```
+
+Instead of text, a marker can show an image, or any HTML or SVG element, for example one managed by React:
+
+```ts
+new Marker({ url: "https://example.com/icon.svg" });
+new Marker({ element: myElement });
+```
+
+With `element`, the shape and size options do not apply. The colour and shadow options are set on the element as CSS custom properties, so its own styles can use them.
+
+#### Collisions
+
+By default, markers are always shown even when they overlap. To declutter the map, choose what happens when markers collide. Where markers overlap, the one with the higher `priority` wins:
+
+```ts
+// default for every marker on the map
+map.setMarkerCollisionOptions({ behaviour: "hide-by-priority" });
+
+// or per marker
+new Marker({ priority: 10, collisionBehaviour: "minimize-by-priority" });
+```
+
+- `always-show`: never hidden (the default)
+- `hide-by-priority`: hidden behind a higher-priority marker
+- `minimize-by-priority`: shrinks to a small dot behind a higher-priority marker. `minimizedOptions` changes how the minimized marker looks.
+
+`setMarkerCollisionOptions()` also sets the `proximityPadding` used for `markerproximity` events and the duration and easing of the hide and show fade. `marker.getCollisionDisplayState()` returns `"visible"`, `"hidden"` or `"minimized"`.
+
+Markers fire `markeroverlap` and `markerproximity` when other markers start or stop colliding with them:
+
+```ts
+marker.on("markeroverlap", ({ entered, exited, current }) => {
+  console.log(`${current.length} markers overlap this one`);
+});
+```
+
+#### Interaction states
+
+Change a marker's look while it is hovered, focused, pressed or dragged. The marker returns to its own values when the state ends:
+
+```ts
+const marker = new Marker({
+  draggable: true,
+  states: {
+    hover: { scale: [1.2, 1.2] },
+    active: { shadow: "strong" },
+    dragging: { opacity: 0.6 },
+  },
+});
+
+marker.setUIState("focus", { outline: 3 });
+```
+
+#### Transitions
+
+Ease a property to its new value instead of jumping to it. `position`, `scale`, `rotation` and the four colours can be transitioned, each with `[duration, easing?, delay?]`:
+
+```ts
+const marker = new Marker({
+  transitions: {
+    position: [600, "QuadraticInOut"],
+    innerColor: [300],
+  },
+});
+
+marker.setLngLat([8.6, 47.4]); // glides to the new position
+marker.setTransitionForProperty("scale", [200, "CubicOut"]);
+```
+
+The `transitionstart` and `transitionend` events report the property being transitioned.
+
+#### Animations
+
+Play an animation when a marker is added, loop one while it is on the map, and play another when it is removed:
+
+```ts
+const marker = new Marker({
+  animations: {
+    enter: { preset: "drop" }, // "grow" | "drop" | "pop" | "bounce" | "fade"
+    idle: { preset: "pulsescale", iterations: 3 }, // "pulsescale" | "pulseopacity" | "ring" | "bounce"
+    exit: { preset: "fade", duration: 300 }, // "shrink" | "fade" | "pop" | "explode"
+  },
+});
+
+map.addMarker(marker); // plays "drop"
+map.removeMarker(marker.id); // plays "fade", then removes the marker
+map.removeMarker(marker.id, { immediate: true }); // removes it without the exit animation
+```
+
+Each animation also accepts `duration`, `delay`, `easing` and `magnitude`. Instead of a preset, `custom` takes a function called every frame with the animation's progress (`0` to `1`) and the marker. Animations fire events such as `enteranimationstart`, `idleanimationiteration` and `exitanimationend`.
+
+#### Altitude (experimental)
+
+Raise a marker above the ground. The marker is placed in 3D, so it stays in the right place as the camera moves, with terrain and under globe projection:
+
+```ts
+marker.setAltitude(500); // 500 m above the terrain under the marker
+marker.setAltitude(1200, { relativeTo: "sea" }); // 1200 m above sea level
+marker.setAltitude(false); // back on the map surface
+
+marker.setGroundLine(true); // dashed line from the marker down to the ground
+```
+
+Style the ground line with your own CSS on the `maptiler-marker-groundline` class, or add a class of your own with `setGroundLine(true, { className: "my-line" })`.
+
+See [`demos/examples/markers/altitude`](./demos/examples/markers/altitude) for an example.
+
+#### The MapLibre marker
+
+Compared with the MapLibre marker:
+- The `color` option is removed. Use `innerColor`, `outerColor`, `contentColor` and `outlineColor`.
+- `scale` is a 2D vector, `[x, y]`.
+- `setRotation()` rotates the marker's shape rather than its container.
+
+The plain MapLibre marker is still available as `MarkerMLGL`:
+
+```ts
+import { MarkerMLGL } from "@maptiler/sdk";
+
+new MarkerMLGL({ color: "#f00" }).setLngLat([8.54, 47.37]).addTo(map);
+```
+
+See [`demos/examples/markers/styled-marker`](./demos/examples/markers/styled-marker) for an example, and `demos/playgrounds/markers*` for every option.
+
 ### Camera routes and animations
 
 The SDK comes with several classes to help with animations, particularly route animations.
 
-See `demos/11-animated-routes.html` for examples.
-See `demos/12-maptiler-animation.html` for examples.
+See [`demos/showcases/animated-routes`](./demos/showcases/animated-routes) and [`demos/showcases/marker-animation`](./demos/showcases/marker-animation) for examples.
 
 #### 🧩 `MaptilerAnimation`
 
@@ -1369,7 +1758,8 @@ const marker = new Marker().setLngLat(
     -7.449346225791231,
     39.399728941536836,
   )
-).addTo(map);
+);
+map.addMarker(marker);
 
 // TimeUpdate is fired every frame
 animation.addEventListener(AnimationEventTypes.TimeUpdate, (e) => {
@@ -1488,7 +1878,7 @@ animatedRoute.play();
 animatedRoute.pause();
 ```
 
-For a full example of how to use this, look at [the example](./demos/11-animated-routes.html)
+For a full example of how to use this, look at [the showcase](./demos/showcases/animated-routes)
 
 ### Vector Layer Helpers
 
@@ -2107,42 +2497,7 @@ Three modes are available: `centered`, `bounded` and `automatic`.
 
 ##### Map Styles
 
-In the following static map functions, the `option` object features a `style` property that can be a string or one of the built-in style shorthand. Here is the full list:
-
-- `MapStyle.STREETS`, reference style for navigation and city exploration
-  - `MapStyle.STREETS.DARK` (variant)
-  - `MapStyle.STREETS.LIGHT` (variant)
-  - `MapStyle.STREETS.NIGHT` (variant)
-  - `MapStyle.STREETS.PASTEL` (variant)
-- `MapStyle.OUTDOOR` reference style for adventure
-  - `MapStyle.OUTDOOR.DARK` (variant)
-- `MapStyle.WINTER` reference style for winter adventure
-  - `MapStyle.WINTER.DARK` (variant)
-- `MapStyle.SATELLITE` reference style satellite and airborne imagery (no variants)
-- `MapStyle.HYBRID` reference style satellite and airborne imagery with labels (no variants)
-- `MapStyle.BASIC` reference style for minimalist design and general purpose
-  - `MapStyle.BASIC.DARK` (variant)
-  - `MapStyle.BASIC.LIGHT` (variant)
-- `MapStyle.BRIGHT` reference style for high-contrast navigation
-  - `MapStyle.BRIGHT.DARK` (variant)
-  - `MapStyle.BRIGHT.LIGHT` (variant)
-  - `MapStyle.BRIGHT.PASTEL` (variant)
-- `MapStyle.TOPO` reference style for topographic study
-  - `MapStyle.TOPO.SHINY` (variant)
-  - `MapStyle.TOPO.PASTEL` (variant)
-  - `MapStyle.TOPO.TOPOGRAPHIQUE` (variant)
-- `MapStyle.VOYAGER` reference style for stylish yet minimalist maps
-  - `MapStyle.VOYAGER.DARK` (variant)
-  - `MapStyle.VOYAGER.LIGHT` (variant)
-  - `MapStyle.VOYAGER.VINTAGE` (variant)
-- `MapStyle.TONER` reference style for very high contrast stylish maps
-  - `MapStyle.TONER.BACKGROUND` (variant)
-  - `MapStyle.TONER.LITE` (variant)
-  - `MapStyle.TONER.LINES` (variant)
-- `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variants)
-- `MapStyle.STAGE`, the perfect style for data visualization, with very little noise
-  - `MapStyle.STAGE.DARK` (variant)
-  - `MapStyle.STAGE.LIGHT` (variant)
+In the following static map functions, the `option` object features a `style` property that can be a string or one of the built-in style shorthands, listed in [Many styles to choose from](#many-styles-to-choose-from).
 
 ##### Centered static maps
 
@@ -2238,7 +2593,7 @@ const imageLink = maptilersdk.staticMaps.automatic({
   height: 1024,
 
   // A grey style on which the track will pop!
-  style: maptilersdk.MapStyle.STREETS.LIGHT,
+  style: maptilersdk.MapStyle.BASE.LIGHT,
 
   // Draw a path with the trackpoints
   path: trackPoints,
@@ -2368,6 +2723,142 @@ Read more about elevation lookup for a `MultiLineString` in our [official docume
 
 In order to increase performance while reducing unnecessary elevation data fetching, the elevation tiles are cached. This is particularly important for the LineString and MultiLineString lookups because GeoJSON data are likely to come from a recorded or planned route, where position points are very close to one another.
 
+#### 🧭 Routing
+
+The `routing` module wraps the MapTiler Routing API, with a set of functions for each of its services. All of them share the same [request options and error handling](#request-options-and-errors).
+
+##### Directions
+
+The directions service computes a route between two or more locations, by car, truck, bicycle or on foot. The response contains a summary of the route (travel time, distance, bounding box), the geometry of each leg between waypoints and turn-by-turn steps with navigation instructions.
+
+Directions are available with both HTTP methods: `directionsPost` supports every feature of the API, and `directionsGet` sends the request as URL query parameters, with a few features left out.
+
+###### Using POST
+
+The only mandatory parts are the `profile` (`car`, `truck`, `bicycle` or `pedestrian`) and at least two `locations`:
+
+```ts
+// in an async function, or as a 'thenable':
+const result = await maptilersdk.routing.directionsPost({
+  profile: "car",
+  locations: [
+    { lon: 14.4213, lat: 50.0875 }, // Prague
+    { lon: 16.6068, lat: 49.1951 }, // Brno
+  ],
+});
+
+// Travel time in seconds and distance in the response units
+const { totalTime, totalLength } = result.route.summary;
+```
+
+You can provide many more options, such as:
+
+- the `profileOptions` matching the chosen profile, e.g. the car routing mode (fastest, shortest or balanced), the truck dimensions and weight, the bicycle type or the walking speed
+- `avoidances` of toll roads, ferries or highways, as part of the car and truck `profileOptions`
+- either a `departureTime` or an `arrivalTime`
+- a `heading` (preferred direction of travel) and a `waypoint` flag on each location
+- `avoidLocations`, a GeoJSON `MultiPoint` or `MultiPolygon` of places the route must not go through
+- `response` options: distance units (`km` or `mi`), language of the instructions, number of alternate routes (up to 3) and the level of detail (`legs`, `steps` or `instructions`)
+
+```ts
+const result = await maptilersdk.routing.directionsPost({
+  profile: "truck",
+  profileOptions: {
+    height: 4,
+    weight: 18,
+    hazmat: true,
+    avoidances: { tolls: true },
+  },
+  locations: [
+    { lon: 14.4213, lat: 50.0875 },
+    { lon: 16.6068, lat: 49.1951 },
+  ],
+  departureTime: "2026-12-01T08:00",
+  response: {
+    units: "km",
+    language: "en",
+    alternates: 2,
+    additionalData: { detailLevel: "instructions" },
+  },
+});
+
+// Turn-by-turn instructions of the first leg
+for (const step of result.route.legs[0].steps ?? []) {
+  console.log(step.maneuver?.instruction);
+}
+
+// Alternate routes have the same shape as the main route
+const alternateRoutes = result.alternates ?? [];
+```
+
+> 📣 Note for **TypeScript** users: `profileOptions` are typed according to the `profile`, so passing bicycle options to a car route, or setting both `departureTime` and `arrivalTime`, is caught at compile time.
+
+<!-- Read more about directions with POST in our [official documentation](https://docs.maptiler.com/client-js/api/variables/services_routing.routing/#directionspost). -->
+
+###### Using GET
+
+`directionsGet` accepts the same request as `directionsPost`, except for the fields that cannot be expressed as query parameters: the per-location `heading` and `waypoint`, and `avoidLocations`. Use `directionsPost` if you need any of them.
+
+```ts
+const result = await maptilersdk.routing.directionsGet({
+  profile: "pedestrian",
+  profileOptions: { walkingSpeed: 4 },
+  locations: [
+    { lon: 14.4005, lat: 50.0909 }, // Prague Castle
+    { lon: 14.4213, lat: 50.0875 }, // Old Town Square
+  ],
+});
+```
+
+<!-- Read more about directions with GET in our [official documentation](https://docs.maptiler.com/client-js/api/variables/services_routing.routing/#directionsget). -->
+
+###### Route geometry
+
+The geometry of each route leg is decoded for you into an array of _GeoJSON_ positions `[lng, lat]`, so it can be used right away, for example to display the route on a map with the [polyline helper](#polyline-layer-helper), or as the `path` of an [automatic static map](#automatic-static-maps):
+
+```ts
+// Not mandatory, but it's to explain where the type comes from:
+import { LineString } from "geojson";
+
+const routeLine: LineString = {
+  type: "LineString",
+  coordinates: result.route.legs.flatMap((leg) => leg.geometry),
+};
+
+maptilersdk.helpers.addPolyline(map, {
+  data: {
+    type: "FeatureCollection",
+    features: [{ type: "Feature", properties: {}, geometry: routeLine }],
+  },
+  outline: true,
+});
+```
+
+##### Request options and errors
+
+All routing functions accept a second argument with options applying to the request itself:
+
+- `apiKey` to use a different API key than the one in `config`
+- `fetchExtras` with extra options for the underlying `fetch()` call, e.g. a `signal` to abort the request
+- `adjustSearchParams`, a callback that can modify the URL search parameters before the request is sent
+- `session` to override the global `config.session` setting for this request. When enabled, the MapTiler session ID is added to the request, which allows session-based billing
+
+When the API returns an error, a `ServiceError` is thrown. Its message includes the error message from the API, and its `res` property holds the HTTP response, from which you can read the error `code` (see the `ApiErrorCode` type for the known values):
+
+```ts
+const controller = new AbortController();
+
+try {
+  const result = await maptilersdk.routing.directionsPost(request, {
+    fetchExtras: { signal: controller.signal },
+  });
+} catch (error) {
+  if (error instanceof maptilersdk.ServiceError) {
+    const { code } = await error.res.json(); // e.g. "MT_PATH_NOT_FOUND"
+  }
+}
+```
+
 #### 🧮 Math
 
 Some operations can be fairly repetitive: WGS84 to Mercator, WGS84 to _zxy_ tile index, the distance between two points with the Haversine formula, etc. As a result, we have decided to expose a `math` package providing the most recurrent feature, so that, just like us at MapTiler, you no longer need to copy-paste the same function from your previous project!
@@ -2418,11 +2909,14 @@ It consists in sending metrics about usage of the following features:
 
 - SDK version [string]
 - API key [string]
-- MapTiler sesion ID (if opted-in) [string]
+- MapTiler session ID [string]
+- if sessions are enabled (`config.session`) [boolean]
 - if tile caching is enabled [boolean]
 - if language specified at initialization [boolean]
 - if terrain is activated at initialization [boolean]
 - if globe projection is activated at initialization [boolean]
+- viewer type, `Map` or `ImageViewer` [string]
+- SDK build format, `umd`, `esm-cdn`, `es` or `dev` [string]
 
 In addition, each official module will be added to a list, alongside its version number.
 

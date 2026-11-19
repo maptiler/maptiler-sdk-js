@@ -1,4 +1,4 @@
-import maplibregl from "maplibre-gl";
+import { Map as MapMLGL, AJAXError, LngLat, ScaleControl, FullscreenControl } from "maplibre-gl";
 import { Base64 } from "js-base64";
 import type {
   StyleSpecification,
@@ -6,9 +6,9 @@ import type {
   ControlPosition,
   StyleSwapOptions,
   StyleOptions,
-  MapDataEvent,
+  MapSourceDataEvent,
+  MapStyleDataEvent,
   // Tile,
-  RasterDEMSourceSpecification,
   RequestTransformFunction,
   Source,
   LayerSpecification,
@@ -25,20 +25,31 @@ import type {
   AnimationOptions,
   LngLatBoundsLike,
   LngLatLike,
+  AllPaintProperties,
+  AllLayoutProperties,
+  MapEventType,
+  MapLayerEventType,
+  MapTerrainEvent,
+  Listener,
+  Subscription,
+  TerrainSpecification,
+  CameraOptions,
+  MapStyleLoadEvent,
+  VectorTileSource,
+  Event as EventML,
 } from "maplibre-gl";
 import type { ReferenceMapStyle, MapStyleVariant } from "@maptiler/client";
 import { config, MAPTILER_SESSION_ID, type SdkConfig } from "./config";
 import { defaults } from "./constants/defaults";
 import { MaptilerLogoControl } from "./controls/MaptilerLogoControl";
-import { checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, enableRTL, replaceLanguage } from "./tools";
+import { checkNamePattern, combineTransformRequest, computeLabelsLocalizationMetrics, displayNoWebGlWarning, replaceLanguage } from "./tools";
 import { getBrowserLanguage, Language, type LanguageInfo } from "./language";
-import { styleToStyle } from "./mapstyle";
+import { styleToStyle, styleToStyleId } from "./mapstyle";
+import { getAdaptiveColorsForStyle, type AdaptiveColorSet } from "./adaptive-colors";
 import { MaptilerTerrainControl } from "./controls/MaptilerTerrainControl";
 import { MaptilerNavigationControl } from "./controls/MaptilerNavigationControl";
-import { MapStyle, geolocation, getLanguageInfoFromFlag, toLanguageInfo } from "@maptiler/client";
+import { defaultMapStyle, geolocation, getLanguageInfoFromFlag, toLanguageInfo } from "@maptiler/client";
 import { MaptilerGeolocateControl } from "./controls/MaptilerGeolocateControl";
-import { ScaleControl } from "./MLAdapters/ScaleControl";
-import { FullscreenControl } from "./MLAdapters/FullscreenControl";
 import { MaptilerExternalControlType, MaptilerExternalControl } from "./controls/MaptilerExternalControl";
 
 import Minimap from "./controls/Minimap";
@@ -52,7 +63,9 @@ import { CubemapDefinition, CubemapLayer, CubemapLayerConstructorOptions } from 
 import { GradientDefinition, RadialGradientLayer, RadialGradientLayerConstructorOptions } from "./custom-layers/RadialGradientLayer";
 import { StyleSpecificationWithMetaData } from "./custom-layers/extractCustomLayerStyle";
 import { logSDKVersion } from "./utils/logSDKVersion";
-import { setWorkerCount } from ".";
+import { setDefaultWorkerUrl } from "./utils/defaultWorkerUrl";
+import { MapTilerMarkerOptions, MapTilerMarkerSVGOptions, Marker, MarkerCollisionOptions, RemoveMarkerOptions, setWorkerCount } from ".";
+import { MarkerManager } from "./Marker/MarkerManager";
 import { EXPERIMENTAL_TILE_PRELOADING_VERSION } from "./tile-preloading/version";
 
 export type LoadWithTerrainEvent = {
@@ -64,6 +77,57 @@ export type LoadWithTerrainEvent = {
   };
 };
 
+/**
+ * Shape of an event fired by the SDK on top of the MapLibre events,
+ * with the properties passed to `fire(type, properties)` merged in.
+ */
+type SDKMapEvent<TType extends string, TProps extends object = object> = EventML<TType> & { target: Map } & TProps;
+
+/**
+ * Events fired by the MapTiler SDK `Map` in addition to the MapLibre ones.
+ */
+export type MaptilerMapEventType = {
+  /** Fired once the map style and the SDK controls are ready */
+  ready: SDKMapEvent<"ready">;
+  /** Fired once the map is loaded and the terrain (if any) is ready */
+  loadWithTerrain: LoadWithTerrainEvent;
+  /** Fired when the WebGL context is lost unexpectedly (i.e. not after `map.remove()`) */
+  webglContextLost: SDKMapEvent<"webglContextLost">;
+  terrainAnimationStart: SDKMapEvent<"terrainAnimationStart", { terrain: TerrainSpecification | null }>;
+  terrainAnimationStop: SDKMapEvent<"terrainAnimationStop", { terrain: TerrainSpecification | null }>;
+  "projection.change": SDKMapEvent<"projection.change", { projection: ProjectionSpecification }>;
+  "cubemaplayer:animateindone": SDKMapEvent<"cubemaplayer:animateindone", Partial<CubemapLayer>>;
+  "cubemaplayer:animateoutdone": SDKMapEvent<"cubemaplayer:animateoutdone", Partial<CubemapLayer>>;
+  "cubemaplayer:onremove": SDKMapEvent<"cubemaplayer:onremove", Partial<CubemapLayer>>;
+  "radialgradientlayer:animateindone": SDKMapEvent<"radialgradientlayer:animateindone", Partial<RadialGradientLayer>>;
+  "radialgradientlayer:animateoutdone": SDKMapEvent<"radialgradientlayer:animateoutdone", Partial<RadialGradientLayer>>;
+  "radialgradientlayer:onremove": SDKMapEvent<"radialgradientlayer:onremove", Partial<RadialGradientLayer>>;
+};
+
+/**
+ * All the events that can be listened to on a MapTiler SDK `Map`: the MapLibre ones plus the SDK ones.
+ * Since MapLibre v6.3, `on`/`once`/`off`/`fire` only accept the keys of `MapEventType`,
+ * so the SDK `Map` overrides them to accept its own events as well.
+ */
+export type MapEventTypeSDK = MapEventType & MaptilerMapEventType;
+
+/**
+ * An event as an SDK `Map` listener receives it. MapLibre types its events' target as its
+ * own `Map`, which lacks the SDK members, but the target is always the SDK `Map` that fired it.
+ *
+ * The target is intersected in, rather than remapped over every event, so the SDK `Map`'s
+ * `on`/`once`/`off` stay assignable to MapLibre's — the SDK `Map` is passed to MapLibre controls and layers.
+ * @example
+ * ```ts
+ * const onClick = (e: MapEventSDK<"click">) => console.log(e.lngLat, e.target.getSpace());
+ * map.on("click", onClick);
+ * ```
+ */
+export type MapEventSDK<T extends keyof MapEventTypeSDK> = MapEventTypeSDK[T] & object & { target: Map };
+
+/** A layer event as an SDK `Map` listener receives it — see {@link MapEventSDK}. */
+export type MapLayerEventSDK<T extends keyof MapLayerEventType> = MapLayerEventType[T] & object & { target: Map };
+
 export const GeolocationType: {
   POINT: "POINT";
   COUNTRY: "COUNTRY";
@@ -72,18 +136,17 @@ export const GeolocationType: {
   COUNTRY: "COUNTRY",
 } as const;
 
-type MapTerrainDataEvent = MapDataEvent & {
-  isSourceLoaded: boolean;
-  // tile: Tile;
-  sourceId: string;
-  source: RasterDEMSourceSpecification;
-};
-
 /**
  * The type of projection, `undefined` means it's decided by the style and if the style does not contain any projection info,
  * if falls back to the default Mercator
  */
 export type ProjectionTypes = "mercator" | "globe" | undefined;
+
+/**
+ * Default zoom at/above which a `"globe"` projection request switches to flat mercator — see
+ * {@link MapOptions.globeMercatorSwitchZoom}.
+ */
+export const DEFAULT_GLOBE_MERCATOR_SWITCH_ZOOM = 11;
 
 /**
  * The {@link AttributionControl} options object
@@ -110,8 +173,8 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo" | "attribut
   /**
    * Style of the map. Can be:
    * - a full style URL (possibly with API key)
-   * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
-   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
+   * - a shorthand with only the MapTIler style name (eg. `"streets-v4"`)
+   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v4"`)
    */
   style?: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string;
 
@@ -239,6 +302,27 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo" | "attribut
   projection?: ProjectionTypes;
 
   /**
+   * MapLibre's plain `type: "globe"` already resolves to
+   * `["interpolate", ["linear"], ["zoom"], 11, "vertical-perspective", 12, "mercator"]` —
+   * vertical-perspective below zoom 11, linearly blended into flat mercator between 11 and 12.
+   * That blend is a MapLibre bug for anything that places objects via its per-projection model
+   * matrix (marker altitude, `maptiler-3d-js`): the matrix isn't well-defined mid-blend, only
+   * once it's settled fully at one end, so objects placed while zooming through 11-12 jump
+   * around.
+   *
+   * Whenever a projection change resolves to `"globe"` (constructor option, `setProjection`, or
+   * the {@link MaptilerProjectionControl}), the SDK requests
+   * `{ type: ["step", ["zoom"], "vertical-perspective", globeMercatorSwitchZoom, "mercator"] }`
+   * instead of the literal string — spherical below this zoom, flat mercator at and above it,
+   * snapping instantly at the threshold instead of blending across that zoom band.
+   *
+   * Set to `false` to request MapLibre's own `"globe"` literally instead, blend bug and all.
+   *
+   * Default: `11`
+   */
+  globeMercatorSwitchZoom?: number | false;
+
+  /**
    * Turn on/off spacebox.
    *
    * Default: { color: "#1D29F1" }
@@ -251,13 +335,6 @@ export type MapOptions = Omit<MapOptionsML, "style" | "maplibreLogo" | "attribut
    * Default: Unless this is set explicitly to false, the SDK version will be logged to the console.
    */
   logSDKVersion?: boolean;
-
-  /**
-   * Whether to enable the RTL plugin or import a different one.
-   * Default is undefined, which means the plugin is enabled by default.
-   */
-
-  rtlTextPlugin?: boolean | string;
 
   /**
    * Whether to enable the experimental tile preloading feature.
@@ -289,8 +366,53 @@ export interface ProjectionChangeOptions {
 /**
  * The Map class can be instanciated to display a map in a `<div>`
  */
-export class Map extends maplibregl.Map {
+export class Map extends MapMLGL {
   public readonly telemetry: Telemetry;
+
+  /**
+   * Adds a listener for events of a specified type, optionally limited to features in one or more layers.
+   * Accepts the MapLibre events as well as the SDK events (see {@link MaptilerMapEventType}).
+   */
+  override on<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[], listener: (ev: MapLayerEventSDK<T>) => void): Subscription;
+  override on<T extends keyof MapEventTypeSDK>(type: T, listener: (ev: MapEventSDK<T>) => void): Subscription;
+  override on(type: keyof MapEventTypeSDK, listener: Listener): Subscription;
+  override on(type: keyof MapEventTypeSDK, layerIdsOrListener: string | string[] | Listener, listener?: Listener): Subscription {
+    // The SDK event names are not part of MapLibre's `MapEventType`, but MapLibre's `Evented` handles any string at runtime
+    return (super.on as (...args: unknown[]) => Subscription).call(this, type, layerIdsOrListener, listener);
+  }
+
+  /**
+   * Adds a listener that will be called only once to a specified event type, optionally limited to features in one or more layers.
+   * Accepts the MapLibre events as well as the SDK events (see {@link MaptilerMapEventType}).
+   */
+  override once<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[], listener: (ev: MapLayerEventSDK<T>) => void): this;
+  override once<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[]): Promise<MapLayerEventSDK<T>>;
+  override once<T extends keyof MapEventTypeSDK>(type: T, listener: (ev: MapEventSDK<T>) => void): this;
+  override once<T extends keyof MapEventTypeSDK>(type: T): Promise<MapEventSDK<T>>;
+  override once(type: keyof MapEventTypeSDK, listener?: Listener): this | Promise<any>;
+  override once(type: keyof MapEventTypeSDK, layerIdsOrListener?: string | string[] | Listener, listener?: Listener): this | Promise<any> {
+    return (super.once as (...args: unknown[]) => this | Promise<any>).call(this, type, layerIdsOrListener, listener);
+  }
+
+  /**
+   * Removes an event listener previously added with {@link Map.on} or {@link Map.once}.
+   * Accepts the MapLibre events as well as the SDK events (see {@link MaptilerMapEventType}).
+   */
+  override off<T extends keyof MapLayerEventType>(type: T, layerIds: string | string[], listener: (ev: MapLayerEventSDK<T>) => void): this;
+  override off<T extends keyof MapEventTypeSDK>(type: T, listener: (ev: MapEventSDK<T>) => void): this;
+  override off(type: keyof MapEventTypeSDK, listener: Listener): this;
+  override off(type: keyof MapEventTypeSDK, layerIdsOrListener: string | string[] | Listener, listener?: Listener): this {
+    return (super.off as (...args: unknown[]) => this).call(this, type, layerIdsOrListener, listener);
+  }
+
+  /**
+   * Fires an event. Accepts the MapLibre events as well as the SDK events (see {@link MaptilerMapEventType}).
+   */
+  override fire(event: MapEventTypeSDK[keyof MapEventTypeSDK]): this;
+  override fire(type: keyof MapEventTypeSDK, properties?: object): this;
+  override fire(typeOrEvent: keyof MapEventTypeSDK | MapEventTypeSDK[keyof MapEventTypeSDK], properties?: object): this {
+    return super.fire(typeOrEvent as never, properties);
+  }
 
   private space?: CubemapLayer;
   private halo?: RadialGradientLayer;
@@ -519,21 +641,21 @@ export class Map extends maplibregl.Map {
     const haloOptionsFromStyleSpec = spec;
     if (options.halo && options.halo !== true) {
       this.halo = new RadialGradientLayer(options.halo);
-      this.removeLayer(this.halo.id);
+      if (this.getLayer(this.halo.id)) this.removeLayer(this.halo.id);
       this.addLayer(this.halo, before);
       return;
     }
 
     if (haloOptionsFromStyleSpec) {
       this.halo = new RadialGradientLayer(haloOptionsFromStyleSpec);
-      this.removeLayer(this.halo.id);
+      if (this.getLayer(this.halo.id)) this.removeLayer(this.halo.id);
       this.addLayer(this.halo, before);
       return;
     }
 
     if (this.options.halo === true) {
       this.halo = new RadialGradientLayer(true);
-      this.removeLayer(this.halo.id);
+      if (this.getLayer(this.halo.id)) this.removeLayer(this.halo.id);
       this.addLayer(this.halo, before);
       return;
     }
@@ -584,6 +706,7 @@ export class Map extends maplibregl.Map {
   private terrainAnimationDuration = 1000;
   private monitoredStyleUrls!: Set<string>;
   private styleInProcess = false;
+  private currentStyleId?: string;
   private curentProjection: ProjectionTypes = undefined;
   private originalLabelStyle = new window.Map<string, ExpressionSpecification | string>();
   private isStyleLocalized = false;
@@ -592,6 +715,9 @@ export class Map extends maplibregl.Map {
   constructor(options: MapOptions) {
     if (options.logSDKVersion !== false) logSDKVersion();
 
+    // Must happen before `super()`, which starts the MapLibre workers
+    setDefaultWorkerUrl();
+
     displayNoWebGlWarning(options.container);
 
     if (options.apiKey) {
@@ -599,7 +725,7 @@ export class Map extends maplibregl.Map {
     }
 
     const { style, requiresUrlMonitoring, isFallback } = styleToStyle(options.style);
-    if (isFallback) {
+    if (isFallback && options.style) {
       console.warn(
         "Invalid style. A style must be a valid URL to a style.json, a JSON string representing a valid StyleSpecification or a valid StyleSpecification object. Fallback to default MapTiler style.",
       );
@@ -633,7 +759,7 @@ export class Map extends maplibregl.Map {
       maplibreLogo: false,
       transformRequest: combineTransformRequest(options.transformRequest),
       attributionControl: options.forceNoAttributionControl === true ? false : attributionControlOptions,
-    } as maplibregl.MapOptions;
+    } as MapOptionsML;
 
     // Removing the style option from the super constructor so that we can initialize this.styleInProcess before
     // calling .setStyle(). Otherwise, if a style is provided to the super constructor, the setStyle method is called as
@@ -651,6 +777,10 @@ export class Map extends maplibregl.Map {
 
     super(superOptions);
 
+    // SDK hook for MapTiler-specific styling (e.g. stacking-context isolation
+    // in the SDK stylesheet) without touching MapLibre's own class
+    this.getContainer().classList.add("maptiler-map");
+
     this.options = options;
 
     this.setStyle(style);
@@ -664,8 +794,8 @@ export class Map extends maplibregl.Map {
       // Loading a new style failed. If a style is not already in place,
       // the default one is loaded instead + warning in console
       if (!this.getStyle()) {
-        this.setStyle(MapStyle.STREETS);
-        warning += `Loading default MapTiler Cloud style "${MapStyle.STREETS.getDefaultVariant().getId()}" as a fallback.`;
+        this.setStyle(defaultMapStyle);
+        warning += `Loading default MapTiler Cloud style "${defaultMapStyle.getDefaultVariant().getId()}" as a fallback.`;
       } else {
         warning += " Leaving the style as is.";
       }
@@ -681,19 +811,12 @@ export class Map extends maplibregl.Map {
           this.telemetry.registerModule("experimental-tile-preloader", EXPERIMENTAL_TILE_PRELOADING_VERSION);
         } catch {} // do nothing
       }
-
-      // If the rtlTextPlugin option is a string, we assume it is a url and enable the plugin
-      // If the rtlTextPlugin option is undefined, it is enabled by default and will override the default url
-      // If the rtlTextPlugin option is false (ot anything else), we don't enable the plugin
-      if (typeof options.rtlTextPlugin === "string" || typeof options.rtlTextPlugin === "undefined") {
-        void enableRTL(options.rtlTextPlugin);
-      }
     });
 
     // Safeguard for distant styles at non-http 2xx status URLs
     this.on("error", (event) => {
-      if (event.error instanceof maplibregl.AJAXError) {
-        const err = event.error as maplibregl.AJAXError;
+      if (event.error instanceof AJAXError) {
+        const err = event.error as AJAXError;
         const url = err.url;
         const cleanUrl = new URL(url);
         cleanUrl.search = "";
@@ -864,7 +987,7 @@ export class Map extends maplibregl.Map {
           .map((sourceName) => this.getSource(sourceName))
           .filter((s: Source | undefined) => s && "url" in s && typeof s.url === "string" && s.url.includes("tiles.json"));
 
-        const styleUrl = new URL((possibleSources[0] as maplibregl.VectorTileSource).url);
+        const styleUrl = new URL((possibleSources[0] as VectorTileSource).url);
 
         if (!styleUrl.searchParams.has("key")) {
           styleUrl.searchParams.append("key", config.apiKey);
@@ -1084,7 +1207,8 @@ export class Map extends maplibregl.Map {
       }
     });
 
-    const terrainCallback = (evt: LoadWithTerrainEvent) => {
+    // MapLibre fires the "terrain" event with the terrain specification merged in, but does not type it
+    const terrainCallback = (evt: MapTerrainEvent & { terrain?: LoadWithTerrainEvent["terrain"] | null }) => {
       if (!evt.terrain) return;
       terrainEventTriggered = true;
       terrainEventData = {
@@ -1107,7 +1231,7 @@ export class Map extends maplibregl.Map {
     }
 
     // Display a message if WebGL context is lost
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+
     this.once("load", () => {
       this.getCanvas().addEventListener("webglcontextlost", (event) => {
         if (this._removed === true) {
@@ -1141,7 +1265,7 @@ export class Map extends maplibregl.Map {
    * Useful for WebGL context loss.
    */
   public recreate() {
-    const cameraOptions: maplibregl.CameraOptions = {
+    const cameraOptions: CameraOptions = {
       center: this.getCenter(),
       zoom: this.getZoom(),
       bearing: this.getBearing(),
@@ -1243,8 +1367,8 @@ export class Map extends maplibregl.Map {
    * Update the style of the map.
    * Can be:
    * - a full style URL (possibly with API key)
-   * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
-   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
+   * - a shorthand with only the MapTIler style name (eg. `"streets-v4"`)
+   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v4"`)
    */
   override setStyle(
     style: null | ReferenceMapStyle | MapStyleVariant | StyleSpecification | StyleSpecificationWithMetaData | string,
@@ -1279,6 +1403,10 @@ export class Map extends maplibregl.Map {
       );
     }
 
+    // remember the requested style id ("streets-v4-dark") — used by markers
+    // to resolve adaptive colours; not recoverable from the parsed stylesheet
+    this.currentStyleId = styleToStyleId(styleInfo.isFallback ? null : style);
+
     this.spaceboxLoadingState.styleLoadedCallbackFired = false;
     this.spaceboxLoadingState.styleLoadCallbackSet = false;
 
@@ -1308,7 +1436,7 @@ export class Map extends maplibregl.Map {
       this.setHaloFromStyle({ style: styleInfo.style as StyleSpecificationWithMetaData });
     };
 
-    const handleStyleLoad = (e?: maplibregl.MapStyleDataEvent) => {
+    const handleStyleLoad = (e?: MapStyleLoadEvent | MaptilerMapEventType["projection.change"]) => {
       const styleSpec = (e?.target.getStyle() ?? styleInfo.style) as StyleSpecificationWithMetaData;
 
       if (this.spaceboxLoadingState.styleLoadedCallbackFired) {
@@ -1390,6 +1518,31 @@ export class Map extends maplibregl.Map {
   };
 
   /**
+   * Returns the id of the current MapTiler style (e.g. `"streets-v4-dark"`),
+   * derived from the value passed to the constructor or `setStyle`.
+   * `undefined` when the style is a custom `StyleSpecification` or a URL that
+   * doesn't follow the MapTiler Cloud `/maps/<id>/style.json` shape.
+   */
+  getStyleId(): string | undefined {
+    return this.currentStyleId;
+  }
+
+  /**
+   * Returns the default (adaptive) colours for the current style — the colours
+   * markers fall back to when none are set. Resolved from {@link getStyleId},
+   * or the stylesheet's `id` when that's `undefined`; unknown styles resolve to
+   * the `base` colours.
+   * @returns The current style's colour set. The object is frozen and shared, so spread it to modify a copy.
+   * @example
+   * ```ts
+   * const { innerColor, outerColor } = map.getAdaptiveColorsForCurrentStyle();
+   * ```
+   */
+  getAdaptiveColorsForCurrentStyle(): AdaptiveColorSet {
+    return getAdaptiveColorsForStyle(MarkerManager.getMapStyleId(this) ?? "");
+  }
+
+  /**
    * Adds a [MapLibre style layer](https://maplibre.org/maplibre-style-spec/layers)
    * to the map's style.
    *
@@ -1458,6 +1611,85 @@ export class Map extends maplibregl.Map {
   }
 
   /**
+   * Adds a marker to the map, registering it for collision handling and style-aware colours.
+   * Plays the marker's `enter` animation, if it has one.
+   * @param markerOrMarkerConfig - A `Marker`, or the options to create one from.
+   */
+  addMarker(markerOrMarkerConfig: Marker | MapTilerMarkerOptions): this {
+    const marker = markerOrMarkerConfig instanceof Marker ? markerOrMarkerConfig : new Marker(markerOrMarkerConfig as MapTilerMarkerSVGOptions);
+    MarkerManager.register(marker, this);
+    return this;
+  }
+
+  /**
+   * Removes a marker from the map, playing its `exit` animation first, if it has one.
+   * @param id - Id of the marker to remove.
+   * @param options.immediate - Removes the marker straight away, without its `exit` animation.
+   */
+  removeMarker(id: string, options: RemoveMarkerOptions = {}): this {
+    if (options.immediate) {
+      MarkerManager.deregisterById(this, id);
+    } else {
+      this.getMarker(id)?.remove();
+    }
+    return this;
+  }
+
+  /**
+   * Adds several markers to the map. See {@link Map.addMarker}.
+   * @param markers - `Marker`s, or the options to create them from.
+   */
+  addMarkers(markers: (Marker | MapTilerMarkerOptions)[]): this {
+    markers.forEach((m) => this.addMarker(m));
+    return this;
+  }
+
+  /**
+   * Removes several markers from the map, playing their `exit` animations first, if they have them.
+   * @param markerIds - Ids of the markers to remove. Removes every marker when omitted.
+   * @param options.immediate - Removes the markers straight away, without their `exit` animations.
+   */
+  removeMarkers(markerIds?: string[], options: RemoveMarkerOptions = {}): this {
+    if (options.immediate) {
+      MarkerManager.deregisterAll(this, markerIds);
+      return this;
+    }
+    const markers = markerIds ? markerIds.map((id) => this.getMarker(id)) : this.getMarkers();
+    for (const marker of markers) marker?.remove();
+    return this;
+  }
+
+  /** Returns every marker added to the map. */
+  getMarkers(): Marker[] {
+    return MarkerManager.getMarkers(this);
+  }
+
+  /** Returns the marker with the given id, or `undefined` if it isn't on the map. */
+  getMarker(id: string): Marker | undefined {
+    return MarkerManager.getMarker(this, id);
+  }
+
+  /**
+   * Configures marker collision detection for this map.
+   * @param options.proximityPadding - Distance in CSS px within which two
+   *   markers count as "in proximity". Overlap always uses 0.
+   * @param options.accuracy - `high` (default) tests rotated markers with
+   *   their actual rotated box; `low` uses the upright box enclosing it,
+   *   which is cheaper per pair but over-reports collisions for rotated
+   *   markers (it never misses a real one).
+   * @param options.behaviour - Default collision behaviour applied to every
+   *   marker on this map (`always-show` | `hide-by-priority` |
+   *   `minimize-by-priority`). A marker's own `collisionBehaviour` option
+   *   overrides it. Defaults to `always-show`.
+   * @param options.transitionDuration - Duration in ms of the hide/show/minimize fade. Defaults to `150`.
+   * @param options.transitionEasing - CSS easing function for the fade. Defaults to `"ease"`.
+   */
+  setMarkerCollisionOptions(options: MarkerCollisionOptions): this {
+    MarkerManager.setCollisionOptions(this, options);
+    return this;
+  }
+
+  /**
    * Sets the zoom extent for the specified style layer. The zoom extent includes the
    * [minimum zoom level](https://maplibre.org/maplibre-style-spec/layers/#minzoom)
    * and [maximum zoom level](https://maplibre.org/maplibre-style-spec/layers/#maxzoom))
@@ -1503,7 +1735,7 @@ export class Map extends maplibregl.Map {
    * map.setPaintProperty('my-layer', 'fill-color', '#faafee');
    * ```
    */
-  setPaintProperty(layerId: string, name: string, value: any, options?: StyleSetterOptions): this {
+  setPaintProperty<K extends keyof AllPaintProperties>(layerId: string, name: K, value: AllPaintProperties[K], options?: StyleSetterOptions): this {
     this.minimap?.setPaintProperty(layerId, name, value, options);
     return super.setPaintProperty(layerId, name, value, options);
   }
@@ -1521,7 +1753,7 @@ export class Map extends maplibregl.Map {
    * @param options - Options object.
    * @returns `this`
    */
-  setLayoutProperty(layerId: string, name: string, value: any, options?: StyleSetterOptions): this {
+  setLayoutProperty<K extends keyof AllLayoutProperties>(layerId: string, name: K, value: AllLayoutProperties[K], options?: StyleSetterOptions): this {
     this.minimap?.setLayoutProperty(layerId, name, value, options);
     return super.setLayoutProperty(layerId, name, value, options);
   }
@@ -1712,7 +1944,7 @@ export class Map extends maplibregl.Map {
         continue;
       }
 
-      let textFieldLayoutProp: string | maplibregl.ExpressionSpecification;
+      let textFieldLayoutProp: string | ExpressionSpecification;
 
       // Keeping a copy of the text-field sub-object as it is in the original style
       if (firstPassOnStyle) {
@@ -1826,8 +2058,6 @@ export class Map extends maplibregl.Map {
         this.fire("terrainAnimationStop", { terrain: this.terrain });
       }
 
-      // When growing the terrain, this is only necessary before rendering
-      this._elevationFreeze = false;
       this.triggerRepaint();
     };
 
@@ -1851,7 +2081,7 @@ export class Map extends maplibregl.Map {
 
     // This function is mapped to a map "data" event. It checks that the terrain
     // tiles are loaded and when so, it starts an animation to make the terrain grow
-    const dataEventTerrainGrow = (evt: MapTerrainDataEvent) => {
+    const dataEventTerrainGrow = (evt: MapSourceDataEvent | MapStyleDataEvent) => {
       if (!this.terrain) {
         return;
       }
@@ -1965,10 +2195,6 @@ export class Map extends maplibregl.Map {
 
       // normalized value in interval [0, 1] of where we are currently in the animation loop
       const positionInLoop = (performance.now() - startTime) / this.terrainAnimationDuration;
-
-      // At disabling, this should be togled fo both the setTerrain() (at the end of the animation)
-      // and also just before triggerRepain(), this is why we moved it this high
-      this._elevationFreeze = false;
 
       // The animation goes on until we reached 99% of the growing sequence duration
       if (positionInLoop < 0.99) {
@@ -2111,7 +2337,11 @@ export class Map extends maplibregl.Map {
   }
 
   /**
-   * Returns whether a globe projection is currently being used
+   * Returns whether a globe-family projection is currently configured — `"globe"`,
+   * `"vertical-perspective"`, or the `globeMercatorSwitchZoom` step expression this class
+   * requests for `"globe"` (see {@link MapOptions.globeMercatorSwitchZoom}). This reflects the
+   * configured projection, not the instantaneous rendered state — under the step expression it
+   * stays `true` even after zooming past the switch threshold into flat mercator rendering.
    */
   isGlobeProjection(): boolean {
     const projection = this.getProjection();
@@ -2121,7 +2351,7 @@ export class Map extends maplibregl.Map {
       return false;
     }
 
-    return projection.type === "globe";
+    return projection.type !== "mercator";
   }
 
   /**
@@ -2140,12 +2370,19 @@ export class Map extends maplibregl.Map {
    * Sets the projection to a {@linkcode ProjectionSpecification}.
    * @param projection - the projection specification to set
    */
-  override setProjection(projection: maplibregl.ProjectionSpecification): this;
-  override setProjection(projection: NonNullable<ProjectionTypes> | maplibregl.ProjectionSpecification, options?: ProjectionChangeOptions) {
+  override setProjection(projection: ProjectionSpecification): this;
+  override setProjection(projection: NonNullable<ProjectionTypes> | ProjectionSpecification, options?: ProjectionChangeOptions) {
     if (typeof projection === "string") projection = { type: projection };
 
     if ((projection.type === "mercator" || projection.type === "globe") && options?.persist) {
       this.curentProjection = projection.type;
+    }
+
+    // See MapOptions.globeMercatorSwitchZoom's doc comment for why a bare "globe" request gets
+    // rewritten into a zoom-stepped one instead of being passed through literally.
+    if (projection.type === "globe" && this.options.globeMercatorSwitchZoom !== false) {
+      const switchZoom = this.options.globeMercatorSwitchZoom ?? DEFAULT_GLOBE_MERCATOR_SWITCH_ZOOM;
+      projection = { type: ["step", ["zoom"], "vertical-perspective", switchZoom, "mercator"] as unknown as NonNullable<ProjectionTypes> };
     }
 
     this.fire("projection.change", { target: this, projection });
@@ -2298,7 +2535,7 @@ export class Map extends maplibregl.Map {
 
     if (preload && this.options.useExperimentalTilePreloading) {
       this.tilePreloader?.abortAll();
-      const lngLatObj = maplibregl.LngLat.convert(lnglat);
+      const lngLatObj = LngLat.convert(lnglat);
       const start = this.currentCameraPosition();
       const end: CameraPosition = { lng: lngLatObj.lng, lat: lngLatObj.lat, zoom: start.zoom, pitch: start.pitch, bearing: start.bearing };
       const superPanTo = super.panTo.bind(this);
@@ -2355,7 +2592,7 @@ export class Map extends maplibregl.Map {
       const cameraForBounds = this.cameraForBounds(bounds, fitOptions);
       if (cameraForBounds?.center) {
         const start = this.currentCameraPosition();
-        const center = maplibregl.LngLat.convert(cameraForBounds.center);
+        const center = LngLat.convert(cameraForBounds.center);
         const end: CameraPosition = {
           lng: center.lng,
           lat: center.lat,
@@ -2421,7 +2658,7 @@ export class Map extends maplibregl.Map {
     let lat = current.lat;
 
     if (options.center) {
-      const lngLat = maplibregl.LngLat.convert(options.center);
+      const lngLat = LngLat.convert(options.center);
       lng = lngLat.lng;
       lat = lngLat.lat;
     }

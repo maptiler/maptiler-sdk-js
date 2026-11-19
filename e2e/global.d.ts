@@ -11,6 +11,7 @@ declare global {
     setFixtureMapStyle: (style: string | StyleSpecificationWithMetaData) => Promise<void>;
     __MT_SDK_VERSION__: string;
     __MT_NODE_ENV__: string | undefined;
+    __MT_BUILD_FORMAT__: "es" | "umd" | "dev";
     __testUtils?: {
       getHaloConfig: () => any;
       getSpaceConfig: () => any;

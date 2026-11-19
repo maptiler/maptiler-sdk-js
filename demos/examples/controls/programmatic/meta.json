@@ -1,0 +1,11 @@
+{
+  "title": "Custom controls: programmatic",
+  "description": "Builds custom map controls from code.",
+  "type": "example",
+  "topics": [
+    "controls"
+  ],
+  "createdWith": "3.8.0-rc.9",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

@@ -84,8 +84,11 @@ export class Telemetry {
     // Is globe enabled?
     telemetryUrl.searchParams.append("globe", this.map.isGlobeProjection() ? "1" : "0");
 
-    // Is this a stadnard map or a different viewer?
+    // Is this a standard map or a different viewer?
     telemetryUrl.searchParams.append("viewerType", this.viewerType);
+
+    // Is this umd bundle or es module?
+    telemetryUrl.searchParams.append("buildFormat", __MT_BUILD_FORMAT__);
 
     // Adding the modules
     // the list of modules are separated by a "|". For each module, a ":" is used to separate the name and the version:

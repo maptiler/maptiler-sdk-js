@@ -17,6 +17,8 @@ import type {
   SourceSpecification,
   StyleOptions,
   StyleSetterOptions,
+  AllPaintProperties,
+  AllLayoutProperties,
   StyleSpecification,
   StyleSwapOptions,
 } from "maplibre-gl";
@@ -33,8 +35,8 @@ export interface MinimapOptionsInput {
   /**
    * Style of the map. Can be:
    * - a full style URL (possibly with API key)
-   * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
-   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
+   * - a shorthand with only the MapTIler style name (eg. `"streets-v4"`)
+   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v4"`)
    */
   style?: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string;
 
@@ -151,25 +153,13 @@ export default class Minimap implements IControl {
     return this;
   }
 
-  setPaintProperty(
-    layerId: string,
-    name: string,
-    // maplibre controlled types
-    value: any,
-    options?: StyleSetterOptions,
-  ): this {
+  setPaintProperty<K extends keyof AllPaintProperties>(layerId: string, name: K, value: AllPaintProperties[K], options?: StyleSetterOptions): this {
     if (!this.#differentStyle) this.map.setPaintProperty(layerId, name, value, options);
     this.#setParentBounds();
     return this;
   }
 
-  setLayoutProperty(
-    layerId: string,
-    name: string,
-    // maplibre controlled types
-    value: any,
-    options?: StyleSetterOptions,
-  ): this {
+  setLayoutProperty<K extends keyof AllLayoutProperties>(layerId: string, name: K, value: AllLayoutProperties[K], options?: StyleSetterOptions): this {
     if (!this.#differentStyle) this.map.setLayoutProperty(layerId, name, value, options);
     this.#setParentBounds();
     return this;
@@ -191,7 +181,8 @@ export default class Minimap implements IControl {
     }
     this.#options.container = this.#container;
     this.#options.zoom = parentMap.getZoom() + this.#options.zoomAdjust;
-    this.map = new SDKMap(this.#options);
+    // `...mapOptions` can carry the parent's space and halo; the minimap does not set up its own
+    this.map = new SDKMap({ ...this.#options, space: false, halo: false });
 
     // NOTE: For some reason the DOM doesn't properly update it's size in time
     // for the minimap to convey it's size to the canvas.

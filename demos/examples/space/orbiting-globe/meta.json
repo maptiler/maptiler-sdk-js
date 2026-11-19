@@ -1,0 +1,12 @@
+{
+  "title": "Space & halo: simple",
+  "description": "A globe turning against a starry space background, with the default halo.",
+  "type": "example",
+  "topics": [
+    "space",
+    "halo"
+  ],
+  "createdWith": "5.0.0-rc.4",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

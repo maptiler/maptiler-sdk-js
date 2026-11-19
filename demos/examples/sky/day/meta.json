@@ -1,0 +1,11 @@
+{
+  "title": "Sky: day",
+  "description": "Configures the sky on a daytime outdoor style.",
+  "type": "example",
+  "topics": [
+    "sky"
+  ],
+  "createdWith": "3.2.4",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

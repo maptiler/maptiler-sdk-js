@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
     "baseUrl": "src",
+    "paths": {
+      "@maptiler/sdk": ["index.ts"],
+      "@maptiler/sdk/vite-worker": ["../bundler-helpers/vite-worker.mjs"]
+    },
     "moduleResolution": "Node",
     "target": "es2021",
     "useDefineForClassFields": true,

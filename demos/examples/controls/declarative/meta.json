@@ -1,0 +1,11 @@
+{
+  "title": "Custom controls: declarative",
+  "description": "Builds custom map controls from HTML attributes.",
+  "type": "example",
+  "topics": [
+    "controls"
+  ],
+  "createdWith": "3.5.1-rc1",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

@@ -49,7 +49,8 @@ export default async function getMapInstanceForFixture({ fixture, page, mockStyl
   });
 
   page.addListener("requestfinished", async (request) => {
-    const response = await request.response();
+    // request.response() throws when the page has been closed before the request finished, e.g. at the end of a test
+    const response = await request.response().catch(() => null);
     if (response && response.status() >= 400) {
       console.error(`\n\nFailed to load ${request.url()}\n status: ${response.status()}\n\n`);
       expect(response.status()).toBeLessThan(400);

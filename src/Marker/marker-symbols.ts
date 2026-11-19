@@ -1,0 +1,12 @@
+export const FlushDOMUpdatesSymbol = Symbol("MapTiler:Marker:flushDOMUpdates");
+export const PendingUpdatesSymbol = Symbol("MapTiler:Marker:pendingUpdates");
+export const MarkerElementSymbol = Symbol("MapTiler:Marker:markerElement");
+export const DetachFromDOMSymbol = Symbol("MapTiler:Marker:detachFromDOM");
+export const RefreshAdaptiveColorSymbol = Symbol("MapTiler:Marker:refreshAdaptiveColor");
+export const CollisionFootprintSymbol = Symbol("MapTiler:Marker:collisionFootprint");
+export const EmitCollisionDiffSymbol = Symbol("MapTiler:Marker:emitCollisionDiff");
+export const ApplyCollisionDisplayStateSymbol = Symbol("MapTiler:Marker:applyCollisionDisplayState");
+export const MeasuredElementSizeSymbol = Symbol("MapTiler:Marker:measuredElementSize");
+export const ClearFocusStateSymbol = Symbol("MapTiler:Marker:clearFocusState");
+export const ApplyAltitudeFrameSymbol = Symbol("MapTiler:Marker:applyAltitudeFrame");
+export const AttachToMapSymbol = Symbol("MapTiler:Marker:attachToMap");

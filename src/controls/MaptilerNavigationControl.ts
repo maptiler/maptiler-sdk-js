@@ -1,8 +1,7 @@
-import type { NavigationControlOptions } from "maplibre-gl";
-import { NavigationControl } from "../MLAdapters/NavigationControl";
+import { NavigationControl, type NavigationControlOptions } from "maplibre-gl";
 
 type HTMLButtonElementPlus = HTMLButtonElement & {
-  clickFunction: (e?: Event) => unknown;
+  clickFunction: (e?: MouseEvent) => unknown;
 };
 
 export class MaptilerNavigationControl extends NavigationControl {
@@ -38,7 +37,7 @@ export class MaptilerNavigationControl extends NavigationControl {
   /**
    * Overloading: the button now stores its click callback so that we can later on delete it and replace it
    */
-  _createButton(className: string, fn: (e?: Event) => unknown): HTMLButtonElementPlus {
+  _createButton(className: string, fn: (e?: MouseEvent) => unknown): HTMLButtonElementPlus {
     const button = super._createButton(className, fn) as HTMLButtonElementPlus;
     button.clickFunction = fn;
     return button;

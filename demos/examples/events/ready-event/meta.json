@@ -1,0 +1,11 @@
+{
+  "title": "Ready event",
+  "description": "Uses the `ready` event to know when the map can be changed safely.",
+  "type": "example",
+  "topics": [
+    "events"
+  ],
+  "createdWith": "3.2.4",
+  "lastCheckedWith": null,
+  "lastCheckedOn": null
+}

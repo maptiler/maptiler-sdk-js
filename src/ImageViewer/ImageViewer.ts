@@ -1,4 +1,3 @@
-import MaplibreGL from "maplibre-gl";
 import {
   EaseToOptions,
   DoubleClickZoomHandler,
@@ -14,19 +13,16 @@ import {
   CooperativeGesturesHandler,
   LngLat,
   LngLatBounds,
-  MapDataEvent,
   PointLike,
 } from "..";
 import { Map } from "../Map";
-import { ImageViewerEvent, setupGlobalMapEventForwarder } from "./events";
+import { ImageViewerEvent, setupGlobalMapEventForwarder, type ImageViewerEventType, type ImageViewerEventTypes } from "./events";
 import { FetchError } from "../utils/errors";
 import { config } from "..";
 import { overpanningUnderzoomingTransformConstrain } from "./monkeyPatchML";
-import { NavigationControl } from "../MLAdapters/NavigationControl";
+import { Evented, NavigationControl } from "maplibre-gl";
 import { ImageViewerFitImageToBoundsControl } from "../controls/ImageViewerFitImageToBoundsControl";
 import { lngLatToPxInternalSymbolKey, pxToLngLatInternalSymbolKey } from "./symbols";
-
-const { Evented } = MaplibreGL;
 
 //#region types
 
@@ -121,7 +117,7 @@ const imageViewerDefaultOptions: Partial<ImageViewerConstructorOptions> = {
 };
 
 //#region ImageViewer
-export default class ImageViewer extends Evented {
+export default class ImageViewer extends Evented<ImageViewerEventType> {
   /**
    * The UUID of the image.
    *
@@ -265,7 +261,7 @@ export default class ImageViewer extends Evented {
           void this.once("imageviewerready", (evt) => {
             resolve(evt);
           });
-          void this.once("imagevieweriniterror", (e: { error: Error }) => {
+          void this.once("imagevieweriniterror", (e) => {
             reject(e.error);
           });
         }),
@@ -369,9 +365,10 @@ export default class ImageViewer extends Evented {
           this.setCenter(previousCenter);
         }
       });
-      this.fire("imageviewerready", new ImageViewerEvent("imageviewerready", this));
+      this.fire(new ImageViewerEvent("imageviewerready", this));
     } catch (e) {
-      this.fire("imagevieweriniterror", { error: e });
+      // the event promises an Error, whatever was thrown
+      this.fire("imagevieweriniterror", { error: e instanceof Error ? e : new Error(String(e)) });
     }
   }
 
@@ -433,7 +430,7 @@ export default class ImageViewer extends Evented {
    */
   private addImageSource() {
     if (!this.imageMetadata) {
-      this.fire("error", new ImageViewerEvent("error", this, null, { error: new Error("[ImageViewer]: Image metadata not found") }));
+      this.fire(new ImageViewerEvent("error", this, null, { error: new Error("[ImageViewer]: Image metadata not found") }));
       throw new Error("[ImageViewer]: Image metadata not found");
     }
 
@@ -625,7 +622,7 @@ export default class ImageViewer extends Evented {
   private lngLatToPx(lngLat: LngLat) {
     if (!this.paddedSizeMax) {
       const msg = "[ImageViewer]: Unable to convert LngLat to px, padded size max not set";
-      this.fire("error", new ImageViewerEvent("error", this, null, { error: new Error(msg) }));
+      this.fire(new ImageViewerEvent("error", this, null, { error: new Error(msg) }));
       throw new Error(msg);
     }
     const merc = MercatorCoordinate.fromLngLat(lngLat);
@@ -643,7 +640,7 @@ export default class ImageViewer extends Evented {
   private pxToLngLat(px: [number, number]) {
     if (!this.paddedSizeMax) {
       const msg = "[ImageViewer]: Unable to convert px to LngLat, padded size max not set";
-      this.fire("error", new ImageViewerEvent("error", this, null, { error: new Error(msg) }));
+      this.fire(new ImageViewerEvent("error", this, null, { error: new Error(msg) }));
       throw new Error(msg);
     }
 
@@ -676,10 +673,10 @@ export default class ImageViewer extends Evented {
    * Fly to a given center.
    *
    * @param {ImageViewerFlyToOptions} options - The options for the fly to.
-   * @param {MapDataEvent} eventData - The event data.
+   * @param eventData - Additional properties merged into the camera events fired by the map, as in MapLibre.
    * @returns {ImageViewer} The ImageViewer instance.
    */
-  public flyTo(options: ImageViewerFlyToOptions, eventData?: MapDataEvent) {
+  public flyTo(options: ImageViewerFlyToOptions, eventData?: Parameters<Map["flyTo"]>[1]) {
     const lngLat = this.pxToLngLat(options.center);
     this.sdk.flyTo({ ...options, pitch: 0, center: lngLat }, eventData);
     return this;
@@ -690,10 +687,10 @@ export default class ImageViewer extends Evented {
    * Jump to a given center.
    *
    * @param {ImageViewerJumpToOptions} options - The options for the jump to.
-   * @param {MapDataEvent} eventData - The event data.
+   * @param eventData - Additional properties merged into the camera events fired by the map, as in MapLibre.
    * @returns {ImageViewer} The ImageViewer instance.
    */
-  public jumpTo(options: ImageViewerJumpToOptions, eventData?: MapDataEvent) {
+  public jumpTo(options: ImageViewerJumpToOptions, eventData?: Parameters<Map["jumpTo"]>[1]) {
     const lngLat = this.pxToLngLat(options.center);
     this.sdk.jumpTo({ ...options, pitch: 0, center: lngLat }, eventData);
     return this;
@@ -849,15 +846,15 @@ export default class ImageViewer extends Evented {
    * @returns {ImageViewer} The ImageViewer instance.
    */
   public remove() {
-    this.fire("beforeremove", new ImageViewerEvent("beforeremove", this));
+    this.fire(new ImageViewerEvent("beforeremove", this));
     this.sdk.remove();
 
     // the typescript type is incorrect here
     // _listeners is only defined if there are actual listeners
     if (this._listeners) {
       Object.entries(this._listeners).forEach(([event, listeners]) => {
-        listeners.forEach((listener) => {
-          this.off(event, listener);
+        listeners?.forEach((listener) => {
+          this.off(event as ImageViewerEventTypes, listener as (e: ImageViewerEventType[ImageViewerEventTypes]) => void);
         });
       });
     }
@@ -866,8 +863,8 @@ export default class ImageViewer extends Evented {
     // _oneTimeListeners is only defined if there are actual listeners
     if (this._oneTimeListeners) {
       Object.entries(this._oneTimeListeners).forEach(([event, listeners]) => {
-        listeners.forEach((listener) => {
-          this.off(event, listener);
+        listeners?.forEach((listener) => {
+          this.off(event as ImageViewerEventTypes, listener as (e: ImageViewerEventType[ImageViewerEventTypes]) => void);
         });
       });
     }

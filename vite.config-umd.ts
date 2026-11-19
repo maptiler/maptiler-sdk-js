@@ -1,8 +1,6 @@
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
-import packagejson from "./package.json";
-
-const isProduction = process.env.NODE_ENV === "production";
+import { copyMaplibreWorker, defineBuildConstants, isProduction } from "./vite.shared";
 
 export default defineConfig({
   mode: isProduction ? "production" : "development",
@@ -18,9 +16,6 @@ export default defineConfig({
       formats: ['umd'],
     }
   },
-  define: {
-    __MT_SDK_VERSION__: JSON.stringify(packagejson.version),
-    __MT_NODE_ENV__: JSON.stringify(process.env.NODE_ENV),
-  },
-  plugins: [],
+  define: defineBuildConstants("umd"),
+  plugins: [copyMaplibreWorker()],
 });

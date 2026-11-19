@@ -1,7 +1,7 @@
 import type { CustomLayerInterface, CustomRenderMethodInput } from "maplibre-gl";
 import { mat4, vec3 } from "gl-matrix";
 
-import type { Map as MapSDK } from "../../Map";
+import type { Map as MapSDK, MaptilerMapEventType } from "../../Map";
 import { createObject3D, parseColorStringToVec4, type Object3D } from "../../utils/webgl-utils";
 
 import vertexShaderSource from "./radialGradient.vert.glsl?raw";
@@ -66,6 +66,7 @@ const DELTA_CHANGE = 0.06;
  * @remarks You shouldn't have to use this class directly.
  * Instead, use the `Map.setHalo` method to create and add a halo layer to the map.
  */
+
 export class RadialGradientLayer implements CustomLayerInterface {
   public id: string = "Halo Layer";
   public type: CustomLayerInterface["type"] = "custom";
@@ -250,12 +251,15 @@ export class RadialGradientLayer implements CustomLayerInterface {
     }
 
     this.animationDelta = 0;
+
     return new Promise<void>((resolve) => {
       const animate = () => {
         if (this.animationDelta < 1) {
           this.scale = lerp(this.gradient.scale, 0, this.animationDelta);
           this.animationDelta += DELTA_CHANGE;
+
           this.map.triggerRepaint();
+
           requestAnimationFrame(animate);
           return;
         }
@@ -274,7 +278,7 @@ export class RadialGradientLayer implements CustomLayerInterface {
     this.fireEvent("radialgradientlayer:onremove", this);
   }
 
-  private fireEvent(event: string, layer: RadialGradientLayer) {
+  private fireEvent(event: Extract<keyof MaptilerMapEventType, `radialgradientlayer:${string}`>, layer: RadialGradientLayer) {
     this.map.fire(event, layer);
   }
 
@@ -321,7 +325,9 @@ export class RadialGradientLayer implements CustomLayerInterface {
      * Billboard
      */
     const rotationMatrix = mat4.create();
-    const cameraPos = this.map.transform.cameraPosition;
+    // `map.transform` was removed from the public API in MapLibre v6 and `cameraPosition` has no public equivalent,
+    // so it is read from the camera's internal transform.
+    const cameraPos = this.map._camera.transform.cameraPosition;
     const forward = vec3.normalize(vec3.create(), cameraPos);
     const up = vec3.fromValues(0, 1, 0);
     const right = vec3.create();
