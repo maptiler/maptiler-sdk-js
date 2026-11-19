@@ -599,8 +599,6 @@ The choice between Mercator and Globe can be done at different levels and moment
   map.setProjection("globe", { persist: true });
   ```
 
-  > ℹ️ Deprecated methods `enableGlobeProjection()` and `enableMercatorProjection()` also persist the projection.
-
   Without persistance, when the style next changes, the projection is reset to a previously persisted projection, or a projection specified in the `Map` options, or a projection specified in `projection` property of the style itself, or the default (Mercator) projection.
   
   ```ts
@@ -1590,6 +1588,15 @@ Unless you set them, the marker's colours (`innerColor`, `outerColor`, `contentC
 ```ts
 marker.setInnerColor("#ff5a1f");
 marker.setInnerColor(undefined); // back to the style's colour
+```
+
+To match other UI to these colours, read them with `map.getAdaptiveColorsForCurrentStyle()`, or with `getAdaptiveColorsForStyle()` for any style id:
+
+```ts
+import { getAdaptiveColorsForStyle } from "@maptiler/sdk";
+
+const { innerColor, outerColor } = map.getAdaptiveColorsForCurrentStyle();
+getAdaptiveColorsForStyle("streets-v4-dark").innerColor; // "#4D97FF"
 ```
 
 Instead of text, a marker can show an image, or any HTML or SVG element, for example one managed by React:
@@ -2932,11 +2939,14 @@ It consists in sending metrics about usage of the following features:
 
 - SDK version [string]
 - API key [string]
-- MapTiler sesion ID (if opted-in) [string]
+- MapTiler session ID [string]
+- if sessions are enabled (`config.session`) [boolean]
 - if tile caching is enabled [boolean]
 - if language specified at initialization [boolean]
 - if terrain is activated at initialization [boolean]
 - if globe projection is activated at initialization [boolean]
+- viewer type, `Map` or `ImageViewer` [string]
+- SDK build format, `umd`, `esm-cdn`, `es` or `dev` [string]
 
 In addition, each official module will be added to a list, alongside its version number.
 
