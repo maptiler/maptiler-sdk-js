@@ -1,6 +1,6 @@
 import { validateStyleMin } from "@maplibre/maplibre-gl-style-spec";
 import type { StyleSpecification } from "maplibre-gl";
-import { MapStyle, ReferenceMapStyle, MapStyleVariant, mapStylePresetList, expandMapStyle } from "@maptiler/client";
+import { ReferenceMapStyle, MapStyleVariant, defaultMapStyle, expandMapStyle } from "@maptiler/client";
 
 export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant | StyleSpecification | null | undefined): {
   style: string | StyleSpecification;
@@ -10,13 +10,13 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
 } {
   if (!style) {
     return {
-      style: MapStyle[mapStylePresetList[0].referenceStyleID as keyof typeof MapStyle].getDefaultVariant().getExpandedStyleURL(),
+      style: defaultMapStyle.getDefaultVariant().getExpandedStyleURL(),
       requiresUrlMonitoring: false, // default styles don't require URL monitoring
       isFallback: true,
     };
   }
 
-  // If the provided style is a shorthand (eg. "streets-v2") or a full style URL
+  // If the provided style is a shorthand (eg. "streets-v4") or a full style URL
   if (typeof style === "string") {
     // The string could be a JSON valid style spec
     const styleValidationReport = convertStringToStyleSpecification(style);
@@ -35,7 +35,7 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
     // Fallback to the default style
     if (styleValidationReport.isValidJSON) {
       return {
-        style: MapStyle[mapStylePresetList[0].referenceStyleID as keyof typeof MapStyle].getDefaultVariant().getExpandedStyleURL(),
+        style: defaultMapStyle.getDefaultVariant().getExpandedStyleURL(),
         requiresUrlMonitoring: false, // default styles don't require URL monitoring
         isFallback: true,
       };
@@ -55,7 +55,7 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
       };
     }
 
-    // The style is a shorthand like "streets-v2" or a MapTiler Style ID (UUID)
+    // The style is a shorthand like "streets-v4" or a MapTiler Style ID (UUID)
     return {
       style: expandMapStyle(style),
       requiresUrlMonitoring: true,
@@ -91,7 +91,7 @@ export function styleToStyle(style: string | ReferenceMapStyle | MapStyleVariant
     };
   }
   // If none of the previous attempts to detect a valid style failed => fallback to default style
-  const fallbackStyle = MapStyle[mapStylePresetList[0].referenceStyleID as keyof typeof MapStyle].getDefaultVariant();
+  const fallbackStyle = defaultMapStyle.getDefaultVariant();
   return {
     style: fallbackStyle.getExpandedStyleURL(),
     requiresUrlMonitoring: false, // default styles don't require URL monitoring
@@ -150,7 +150,7 @@ export function convertStringToStyleSpecification(str: string): StyleValidationR
 export function styleToStyleId(style: string | ReferenceMapStyle | MapStyleVariant | StyleSpecification | null | undefined): string | undefined {
   if (!style) {
     // same default as styleToStyle()
-    return MapStyle[mapStylePresetList[0].referenceStyleID as keyof typeof MapStyle].getDefaultVariant().getId();
+    return defaultMapStyle.getDefaultVariant().getId();
   }
 
   if (style instanceof MapStyleVariant) return style.getId();

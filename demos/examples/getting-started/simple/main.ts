@@ -4,7 +4,7 @@ import { Map, config } from "@maptiler/sdk";
 import { setupMapTilerApiKey } from "../../../shared/demo-utils";
 
 // Values likely to change. Same names in every demo, so they can be updated with grep or a script.
-const MAP_STYLE = "streets-v2";
+const MAP_STYLE = "streets-v4";
 
 setupMapTilerApiKey({ config });
 

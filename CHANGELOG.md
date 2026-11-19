@@ -35,6 +35,7 @@
   - As with the UMD bundle, sites with a Content Security Policy need `worker-src 'self' blob: https://cdn.maptiler.com`.
 - SDK custom events (e.g. `ready`, `loadWithTerrain`, `projection.change`) are now typed in `on`, `once`, `off` and `fire`. Adds the `MaptilerMapEventType` and `MapEventTypeSDK` types.
 - Events of `CubemapLayer` (`cubemaplayer:*`), `RadialGradientLayer` (`radialgradientlayer:*`) and `ImageViewerMarker` are now typed.
+- Default style is now Streets v4 (`MapStyle.STREETS`). Creating a map without a `style` no longer logs a warning.
 - Adds Routing API module (directions), including session-based billing.
 
 ### 🐛 Bug Fixes
@@ -51,7 +52,7 @@
 
 ### ⚙️ Others
 - Bumps `maplibre-gl` to 6.11.2 and `@maplibre/maplibre-gl-style-spec` to 26.
-- Bumps `@maptiler/client` to 3.2.0.
+- Bumps `@maptiler/client` to 3.3.0.
 - Removes backported sanitization fixes in favour of MapLibre's implementation.
 - Switches internal `maplibre-gl` imports to named imports.
 - Documents worker setup per bundler, CSP requirements, self-hosted UMD worker files and TypeScript `moduleResolution` in the README.
