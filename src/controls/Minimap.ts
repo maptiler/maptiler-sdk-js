@@ -35,8 +35,8 @@ export interface MinimapOptionsInput {
   /**
    * Style of the map. Can be:
    * - a full style URL (possibly with API key)
-   * - a shorthand with only the MapTIler style name (eg. `"streets-v2"`)
-   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v2"`)
+   * - a shorthand with only the MapTIler style name (eg. `"streets-v4"`)
+   * - a longer form with the prefix `"maptiler://"` (eg. `"maptiler://streets-v4"`)
    */
   style?: ReferenceMapStyle | MapStyleVariant | StyleSpecification | string;
 

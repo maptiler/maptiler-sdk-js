@@ -169,7 +169,7 @@ const map = new Map({
 });
 ```
 
-By default, the map will be initialized with the style [streets-v2](https://www.maptiler.com/maps/#style=streets-v2).
+By default, the map will be initialized with the style [streets-v4](https://www.maptiler.com/maps/#style=streets-v4).
 
 Depending on the framework and environment you are using for your application, you will have to also include the CSS file.
 
@@ -381,7 +381,7 @@ Use only these labels in `topics`. Add a label here before using it.
 | [Custom controls: programmatic](./demos/examples/controls/programmatic) | Builds custom map controls from code. | `controls` | 3.8.0-rc.9 | Not yet |
 | [Handling WebGL errors](./demos/examples/errors/handling-webgl-errors) | Reacts to a lost WebGL context and shows a warning. | `errors` | 3.2.4 | Not yet |
 | [Ready event](./demos/examples/events/ready-event) | Uses the `ready` event to know when the map can be changed safely. | `events` | 3.2.4 | Not yet |
-| [Simple map](./demos/examples/getting-started/simple) | A map with the Streets v2 style. | `getting-started` | 5.0.0-rc.4 | Not yet |
+| [Simple map](./demos/examples/getting-started/simple) | A map with the Streets v4 style. | `getting-started` | 5.0.0-rc.4 | Not yet |
 | [Image viewer](./demos/examples/image-viewer/image-viewer) | Displays a tiled, non-georeferenced image with markers. | `image-viewer` `markers` | 3.8.0-rc.9 | Not yet |
 | [Language changes](./demos/examples/language/language-changes) | Switches the map language at runtime. | `language` | 3.5.1-rc1 | Not yet |
 | [Marker altitude](./demos/examples/markers/altitude) | Raises two draggable markers to 1,300 m above sea level over the terrain, with ground lines (experimental). | `markers` | 5.0.0-beta.m-r.1 | Not yet |
@@ -435,12 +435,12 @@ The styles with a shorthand provided by the SDK are the following:
 
 |           ID            |                                                                 Screenshot                                                                 |                                                                 Comment                                                                 |
 | :---------------------: | :----------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: |
-|   `MapStyle.STREETS`    | [![](images/screenshots/style-streets-v2.jpeg)](https://www.maptiler.com/maps/#style=streets-v2&mode=2d&position=12.52/40.73676/-73.98418) |                The classic default style, perfect for urban areas.<p>Also available in **dark** and **light** mode.</p>                 |
+|   `MapStyle.STREETS`    | [![](images/screenshots/style-streets-v4.jpeg)](https://www.maptiler.com/maps/#style=streets-v4&mode=2d&position=13/51.5/-0.123) |                The classic default style, perfect for urban areas.<p>Also available in **dark** and **light** mode.</p>                 |
 | `MapStyle.DATAVIZ.DARK` |   [![](images/screenshots/style-dataviz-dark.jpeg)](https://www.maptiler.com/maps/#style=dataviz-dark&mode=2d&position=2.01/38.7/-27.0)    |                     A minimalist style for data visualization.<p>Also available in **color** and **light** mode</p>                     |
 |  `MapStyle.SATELLITE`   |      [![](images/screenshots/style-satellite.jpeg)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=7.87/24.518/-77.411)      |                                     Only high resolution satellite raster tiles without any labels                                      |
 |    `MapStyle.HYBRID`    |       [![](images/screenshots/style-hybrid.jpeg)](https://www.maptiler.com/maps/#style=hybrid&mode=2d&position=9.4/-26.175/122.6631)       |                                 Satellite tile with labels, landmarks, roads ways and political borders                                 |
 |   `MapStyle.OUTDOOR`    |     [![](images/screenshots/style-outdoor.jpeg)](https://www.maptiler.com/maps/#style=outdoor&mode=2d&position=11.96/46.02591/7.7273)      |                                     A solid hiking companion, with peaks, parks, isolines and more                                      |
-|    `MapStyle.BASIC`     |  [![](images/screenshots/style-basic-v2.jpeg)](https://www.maptiler.com/maps/#style=basic-v2&mode=2d&position=13.09/37.78734/-122.42025)   | A minimalist alternative to `STREETS`, with a touch of flat design.<p>Also available in **dark** and **light** and **pastel** mode.</p> |
+|     `MapStyle.BASE`     |  [![](images/screenshots/style-base-v4.jpeg)](https://www.maptiler.com/maps/#style=base-v4&mode=2d&position=10.95/53.9/14.25)   | A minimalist alternative to `STREETS`, with a touch of flat design.<p>Also available in **dark** and **light** mode.</p> |
 
 <details>
   <summary>Know more about built-in map styles</summary>
@@ -451,45 +451,50 @@ Here is the full list:
 
 - `MapStyle.STREETS`, reference style for navigation and city exploration
   - `MapStyle.STREETS.DARK` (variant)
-  - `MapStyle.STREETS.LIGHT` (variant)
   - `MapStyle.STREETS.PASTEL` (variant)
-- `MapStyle.SATELLITE` reference style satellite and airborne imagery (no variants)
-- `MapStyle.HYBRID` reference style satellite and airborne imagery with labels (no variants)
+- `MapStyle.SATELLITE` reference style satellite and airborne imagery
+  - `MapStyle.SATELLITE.DARK` (variant)
+- `MapStyle.HYBRID` reference style satellite and airborne imagery with labels
+  - `MapStyle.HYBRID.DARK` (variant)
 - `MapStyle.OUTDOOR` reference style for adventure
+  - `MapStyle.OUTDOOR.DARK` (variant)
 - `MapStyle.WINTER` reference style for winter adventure
+  - `MapStyle.WINTER.DARK` (variant)
 - `MapStyle.DATAVIZ`, the perfect style for data visualization, with very little noise
   - `MapStyle.DATAVIZ.DARK` (variant)
   - `MapStyle.DATAVIZ.LIGHT` (variant)
 - `MapStyle.BACKDROP`, great style for data visualization when hillshading matters!
   - `MapStyle.BACKDROP.DARK` (variant)
   - `MapStyle.BACKDROP.LIGHT` (variant)
-- `MapStyle.BASIC` reference style for minimalist design and general purpose
-  - `MapStyle.BASIC.DARK` (variant)
-  - `MapStyle.BASIC.LIGHT` (variant)
+- `MapStyle.BASE` reference style for minimalist design and general purpose
+  - `MapStyle.BASE.DARK` (variant)
+  - `MapStyle.BASE.LIGHT` (variant)
 - `MapStyle.BRIGHT` reference style for high-contrast navigation
   - `MapStyle.BRIGHT.DARK` (variant)
   - `MapStyle.BRIGHT.LIGHT` (variant)
   - `MapStyle.BRIGHT.PASTEL` (variant)
 - `MapStyle.TOPO` reference style for topographic study
-  - `MapStyle.TOPO.SHINY` (variant)
+  - `MapStyle.TOPO.DARK` (variant)
   - `MapStyle.TOPO.PASTEL` (variant)
   - `MapStyle.TOPO.TOPOGRAPHIQUE` (variant)
-- `MapStyle.VOYAGER` reference style for stylish yet minimalist maps
+- `MapStyle.VOYAGER` reference style for stylish yet minimalist maps (deprecated, with all its variants)
   - `MapStyle.VOYAGER.DARK` (variant)
   - `MapStyle.VOYAGER.LIGHT` (variant)
   - `MapStyle.VOYAGER.VINTAGE` (variant)
-- `MapStyle.TONER` reference style for very high contrast stylish maps
+- `MapStyle.TONER` reference style for very high contrast stylish maps (deprecated, with all its variants)
   - `MapStyle.TONER.BACKGROUND` (variant)
   - `MapStyle.TONER.LITE` (variant)
   - `MapStyle.TONER.LINES` (variant)
-- `MapStyle.OCEAN` reference style with bathymetric highlights, does not have any variants.
+- `MapStyle.OCEAN` reference style with bathymetric highlights
+  - `MapStyle.OCEAN.DARK` (variant)
 - `MapStyle.LANDSCAPE` reference style terrain map for data overlays and visualisations
   - `MapStyle.LANDSCAPE.DARK` (variant)
   - `MapStyle.LANDSCAPE.VIVID` (variant)
 - `MapStyle.AQUARELLE` reference style watercolor map for creative use
   - `MapStyle.AQUARELLE.DARK` (variant)
   - `MapStyle.AQUARELLE.VIVID` (variant)
-- `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variants)
+- `MapStyle.OPENSTREETMAP` (reference style)
+  - `MapStyle.OPENSTREETMAP.DARK` (variant)
 
 All reference styles (instances of `ReferenceMapStyle`) and style variants (instances of `MapStyleVariant`) have methods to know the alternative styles and variants that belong to the same reference style (`.getVariants()`). This is handy to provide a default/dark/light alternative color scheme, yet preserving the same level of details as in the reference style. Read more about about [ReferenceMapStyle](https://docs.maptiler.com/sdk-js/api/map-styles/#referencemapstyle) and [MapStyleVariant](https://docs.maptiler.com/sdk-js/api/map-styles/#mapstylevariant).
 
@@ -500,7 +505,7 @@ All reference styles (instances of `ReferenceMapStyle`) and style variants (inst
 You can also use classic styles with just a _string_ if you know their MapTiler ID:
 
 ```ts
-map.setStyle("outdoor-v2");
+map.setStyle("outdoor-v4");
 ```
 
 And finally, you can use your own custom styles designed with [our style editor](https://cloud.maptiler.com/maps/). Every custom style is given a unique ID, for instance: `c912ffc8-2360-487a-973b-59d037fb15b8`.
@@ -2492,42 +2497,7 @@ Three modes are available: `centered`, `bounded` and `automatic`.
 
 ##### Map Styles
 
-In the following static map functions, the `option` object features a `style` property that can be a string or one of the built-in style shorthand. Here is the full list:
-
-- `MapStyle.STREETS`, reference style for navigation and city exploration
-  - `MapStyle.STREETS.DARK` (variant)
-  - `MapStyle.STREETS.LIGHT` (variant)
-  - `MapStyle.STREETS.NIGHT` (variant)
-  - `MapStyle.STREETS.PASTEL` (variant)
-- `MapStyle.OUTDOOR` reference style for adventure
-  - `MapStyle.OUTDOOR.DARK` (variant)
-- `MapStyle.WINTER` reference style for winter adventure
-  - `MapStyle.WINTER.DARK` (variant)
-- `MapStyle.SATELLITE` reference style satellite and airborne imagery (no variants)
-- `MapStyle.HYBRID` reference style satellite and airborne imagery with labels (no variants)
-- `MapStyle.BASIC` reference style for minimalist design and general purpose
-  - `MapStyle.BASIC.DARK` (variant)
-  - `MapStyle.BASIC.LIGHT` (variant)
-- `MapStyle.BRIGHT` reference style for high-contrast navigation
-  - `MapStyle.BRIGHT.DARK` (variant)
-  - `MapStyle.BRIGHT.LIGHT` (variant)
-  - `MapStyle.BRIGHT.PASTEL` (variant)
-- `MapStyle.TOPO` reference style for topographic study
-  - `MapStyle.TOPO.SHINY` (variant)
-  - `MapStyle.TOPO.PASTEL` (variant)
-  - `MapStyle.TOPO.TOPOGRAPHIQUE` (variant)
-- `MapStyle.VOYAGER` reference style for stylish yet minimalist maps
-  - `MapStyle.VOYAGER.DARK` (variant)
-  - `MapStyle.VOYAGER.LIGHT` (variant)
-  - `MapStyle.VOYAGER.VINTAGE` (variant)
-- `MapStyle.TONER` reference style for very high contrast stylish maps
-  - `MapStyle.TONER.BACKGROUND` (variant)
-  - `MapStyle.TONER.LITE` (variant)
-  - `MapStyle.TONER.LINES` (variant)
-- `MapStyle.OPENSTREETMAP` (reference style, this one does not have any variants)
-- `MapStyle.STAGE`, the perfect style for data visualization, with very little noise
-  - `MapStyle.STAGE.DARK` (variant)
-  - `MapStyle.STAGE.LIGHT` (variant)
+In the following static map functions, the `option` object features a `style` property that can be a string or one of the built-in style shorthands, listed in [Many styles to choose from](#many-styles-to-choose-from).
 
 ##### Centered static maps
 
@@ -2623,7 +2593,7 @@ const imageLink = maptilersdk.staticMaps.automatic({
   height: 1024,
 
   // A grey style on which the track will pop!
-  style: maptilersdk.MapStyle.STREETS.LIGHT,
+  style: maptilersdk.MapStyle.BASE.LIGHT,
 
   // Draw a path with the trackpoints
   path: trackPoints,
