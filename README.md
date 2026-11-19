@@ -1972,6 +1972,14 @@ const quakes = new PointLayer({ data: "earthquakes.geojson", style: { color: "#e
 const labels = new PointLayer({ mode: "markers", data: quakes, style: { label: "mag" }, minzoom: 10 });
 ```
 
+#### GPX and KML data
+
+A data layer's `data` can also be GPX or KML, as content or as the URL of a `.gpx` or `.kml` file (told by its extension, with or without a query). It's converted to GeoJSON, as MapLibre only reads GeoJSON. A URL is fetched when the layer is added, through the map's `transformRequest` as a GeoJSON URL is. Until it's loaded, the source holds no features and `data` is held back, and a failed fetch fires `error`.
+
+```ts
+const run = new LineLayer({ data: "morning-run.gpx", style: { color: "#e63946", width: 4 } });
+```
+
 ### Heatmap Layer
 
 `HeatmapLayer` draws a heatmap of points, like the `addHeatmap` helper (see [Heatmap Layer Helper](#heatmap-layer-helper)), but as a layer that keeps its state, as `PointLayer` does. Its style options are those of `addHeatmap`, with the same meaning and defaults, and `colorRamp` named `color`, as for all data layers. `color` is required for now, as there's no default ramp yet.
@@ -2021,6 +2029,57 @@ map.addLayer(points, firstSymbolLayerId); // above the heatmap, beneath the styl
 
 The heatmap fades out over its last zoom, as the points fade in over their first, so the two cross-fade between zooms 8.5 and 9.5. They're separate layers, styled, hidden and removed on their own.
 
+### Polygon Layer
+
+`PolygonLayer` draws a dataset of polygons, like the `addPolygon` helper (see [Polygon Layer Helper](#polygon-layer-helper)), but as a layer that keeps its state, as `PointLayer` does. Its style options are those of `addPolygon`, with the same meaning and defaults, under the data layers' shared names: `color` for `fillColor`, `opacity` for `fillOpacity`.
+
+```ts
+import { Map, PolygonLayer, ColorRampCollection } from "@maptiler/sdk";
+
+const countries = new PolygonLayer({
+  data: "countries.geojson",
+  style: {
+    color: ColorRampCollection.VIRIDIS.scale(0, 1e8), // read at `property`
+    property: "population",
+    opacity: 0.8,
+    outline: { position: "inside", dash: true }, // or `true` for the defaults
+  },
+});
+map.addLayer(countries);
+
+countries.setStyle({ glow: true });
+```
+
+`color` is required, or a `pattern` in its place: the URL of an image repeated across the polygons, served with CORS. If the pattern fails to load, `color` is used, and it's tried again when `pattern` is set again. With both set, one of them can be reset, but not both.
+
+`outline` draws a line along the edges, over the fill, centred on the edge or `inside` or `outside` it, and optionally dashed. `glow` draws a soft halo along the edges, beneath the fill. Each turns on with `true`, or with an object of values over its defaults.
+
+Polygons are filled, and lines are filled as rings closed back to their start. Points are skipped. To draw the polygons' edges as lines too, add a `LineLayer` on the same source (`data: countries`).
+
+### Line Layer
+
+`LineLayer` draws a dataset of lines, like the `addPolyline` helper (see [Polyline Layer Helper](#polyline-layer-helper)), but as a layer that keeps its state, as `PointLayer` does. Its style options are those of `addPolyline`, with the same meaning and defaults, under the data layers' shared names: `color` for `lineColor`, `width` for `lineWidth`, and so on.
+
+```ts
+import { Map, LineLayer } from "@maptiler/sdk";
+
+const subway = new LineLayer({
+  data: "subway-lines.geojson",
+  style: {
+    color: ["get", "color"], // required — a colour, a zoom ramp, a ColorRamp read at `property`, or an expression
+    width: 4,
+    outline: { color: "#000", width: 1 }, // a casing on each side, beneath the line
+  },
+});
+map.addLayer(subway);
+
+subway.setStyle({ dash: "dotted", glow: true });
+```
+
+`width` also takes `PropertyValues`, mapping the values of `property` to widths. `dash` takes `true` or `"dashed"`, `"dotted"`, an array of dash and gap lengths in multiples of the line's width, or a string of underscores and spaces such as `"___ _ "` (`[3, 1, 1, 1]`). The outline stays solid under dashes. `glow` draws a soft halo beneath the line and its outline.
+
+Lines are drawn, and so are polygons' rings. Points are skipped.
+
 ### Vector Layer Helpers
 
 **Let's make vector layers easy!** Originally, you'd have to add a source and then proceed to the styling of your layer, which can be tricky because there are a lot of `paint` and `layout` options and they vary a lot from one type of layer to another. **But we have helpers for this!** 🖋️
@@ -2049,7 +2108,7 @@ maptilersdk.helpers;
 In addition to easy styling, the helpers' datasource can be:
 
 - a URL to a geoJSON file or its string content
-- a URL to a GPX or KML file (only for the polyline helper) or its string content
+- a URL to a GPX or KML file or its string content (only for the polyline helper; every [data layer](#gpx-and-kml-data) takes it too)
 - a UUID of a MapTiler dataset
 
 ##### Multiple Layers
@@ -2105,6 +2164,8 @@ maxzoom?: number;
 ```
 
 #### Polyline Layer Helper
+
+> `helpers.addPolyline` is deprecated. Use [`LineLayer`](#line-layer) instead: it takes the same style options under shorter names (`color` for `lineColor`, …), and can be updated after it's added.
 
 The method `helpers.addPolyline` is not only compatible with the traditional GeoJSON source but also with **GPX** and **KML** files and the `.data` options can be a MapTiler dataset UUID and will be resolved automatically.
 
@@ -2166,6 +2227,8 @@ helpers.addPolyline(map, {
 All the other options are documented on [our reference page](https://docs.maptiler.com/sdk-js/api/helpers/#polyline) and more examples are available [here](https://docs.maptiler.com/sdk-js/examples/?q=polyline+helper).
 
 #### Polygon Layer Helper
+
+> `helpers.addPolygon` is deprecated. Use [`PolygonLayer`](#polygon-layer) instead: it takes the same style options under shorter names (`color` for `fillColor`, …), and can be updated after it's added.
 
 The polygon helper makes it easy to create vector layers that contain polygons, whether they are *multi*polygons, *holed*polygons or just simple polygons. Whenever it's possible and it makes sense, we use the same terminology across the different helpers.
 
