@@ -34,6 +34,8 @@ export type LineRenderContext = {
   sourceId: string;
   /** Adds the layer's fade at the edges of its zoom range — see `DataLayer.fadeOpacity`. */
   fadeOpacity: (opacity: number | ExpressionSpecification) => number | ExpressionSpecification;
+  /** Logs a warning about the style — once per layer, as the sublayers are rebuilt on every restyle. See `DataLayer.warnOnce`. */
+  warn: (message: string) => void;
 };
 
 //#endregion
@@ -102,7 +104,7 @@ export function getLineLayerIds(layerId: string) {
  */
 export function buildLineLayers(style: LineLayerStyle, context: LineRenderContext): SublayerSpecification[] {
   const ids = getLineLayerIds(context.layerId);
-  const width = resolveWidth(style);
+  const width = resolveWidth(style, context.warn);
   const fade = (opacity: DataDrivenPropertyValueSpecification<number>) => context.fadeOpacity(opacity as number | ExpressionSpecification);
   const layout = {
     "line-join": style.join ?? "round",
@@ -192,12 +194,12 @@ export function buildLineLayers(style: LineLayerStyle, context: LineRenderContex
  * | `PropertyValues`, `property` set   | interpolated over `property`'s value                           |
  * | `PropertyValues`, `property` unset | `3`, with a warning — there's no value to read the mapping at  |
  */
-function resolveWidth(style: LineLayerStyle): DataDrivenPropertyValueSpecification<number> {
+function resolveWidth(style: LineLayerStyle, warn: (message: string) => void): DataDrivenPropertyValueSpecification<number> {
   const { width = DEFAULT_WIDTH, property } = style;
   if (!isPropertyValues(width)) return resolveNumber(width);
   if (property) return rampedPropertyValueWeight(width, property);
 
-  console.warn("LineLayer: a `PropertyValues` `width` needs `property`, so the default width is used.");
+  warn("LineLayer: a `PropertyValues` `width` needs `property`, so the default width is used.");
   return DEFAULT_WIDTH;
 }
 

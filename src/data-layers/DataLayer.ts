@@ -191,7 +191,9 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
 
   /** Whether the user set the fade, so is told when an opacity of their own replaces it. */
   private isFadeSet: boolean;
-  private hasWarnedFadeReplaced = false;
+
+  /** Warnings already logged, so one raised by every restyle is logged once per layer. */
+  private readonly loggedWarnings = new Set<string>();
 
   /**
    * Layer the controller sat beneath when last added or moved by the user, or
@@ -300,8 +302,9 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
   /**
    * Whether a style key has no default, so {@link setStyle} won't reset it.
    * Unset, every key can be reset. Called from the constructor, so it can't rely on the subclass's fields.
+   * @param style - The style as it would be once the whole `setStyle` call is applied, with `key` reset.
    */
-  protected isRequiredStyleKey?(key: keyof TStyle): boolean;
+  protected isRequiredStyleKey?(key: keyof TStyle, style: Partial<TStyle>): boolean;
 
   /** Whether other layers can draw this layer's source — not when its source is set up for this layer alone, such as clustered. */
   protected canShareSource(): boolean {
@@ -449,16 +452,21 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
    * one, which has no default, so it keeps its value.
    */
   setStyle(style: Partial<TStyle>): this {
-    for (const key of Object.keys(style) as (keyof TStyle)[]) {
-      if (style[key] === undefined) {
-        if (this.isRequiredStyleKey?.(key)) {
-          console.warn(`"${String(key)}" is required and can't be reset, so it keeps its value.`);
-          continue;
-        }
-        Reflect.deleteProperty(this.style, key);
-      } else {
-        this.style[key] = style[key] as TStyle[keyof TStyle];
+    const keys = Object.keys(style) as (keyof TStyle)[];
+    const merged: Partial<TStyle> = { ...this.style };
+    for (const key of keys) {
+      if (style[key] === undefined) Reflect.deleteProperty(merged, key);
+      else merged[key] = style[key];
+    }
+
+    for (const key of keys) {
+      // judged against the whole change, so a key that's only required without another set in the same call (such as `color` without `pattern`) doesn't depend on the keys' order
+      if (style[key] === undefined && this.isRequiredStyleKey?.(key, merged)) {
+        console.warn(`"${String(key)}" is required and can't be reset, so it keeps its value.`);
+        continue;
       }
+      if (style[key] === undefined) Reflect.deleteProperty(this.style, key);
+      else this.style[key] = style[key] as TStyle[keyof TStyle];
       this.pending.style.add(key);
       // changes made before the layer is added are part of the add, so fire nothing
       if (this.map) this.unreportedStyleKeys.add(key);
@@ -609,11 +617,19 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
   protected readonly fadeOpacity = (opacity: number | ExpressionSpecification): number | ExpressionSpecification => {
     if (!usesZoom(opacity)) return fadeAtZoomEdges(opacity, this.minzoom, this.maxzoom, this.fade);
 
-    if (this.isFadeSet && this.fade > 0 && !this.hasWarnedFadeReplaced) {
-      this.hasWarnedFadeReplaced = true;
-      console.warn(`${this.id}: the opacity depends on the zoom, so it replaces the layer's fade.`);
-    }
+    if (this.isFadeSet && this.fade > 0) this.warnOnce(`${this.id}: the opacity depends on the zoom, so it replaces the layer's fade.`);
     return opacity;
+  };
+
+  /**
+   * Logs `message` unless this layer has logged it already — for warnings
+   * raised while building the sublayers, which happens on every restyle.
+   */
+  // an arrow, so renderers can be handed it
+  protected readonly warnOnce = (message: string): void => {
+    if (this.loggedWarnings.has(message)) return;
+    this.loggedWarnings.add(message);
+    console.warn(message);
   };
 
   /** Whether another layer sharing the source is on `map`, so still draws it. */
@@ -913,8 +929,9 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     const onData = (event: MapSourceDataEvent) => {
       // the metadata event reports loaded before the tiles have reloaded — wait for the content or the last tile
       if (event.sourceId !== this.getSourceId() || !this.isLoadingData || !event.isSourceLoaded || event.sourceDataType === "metadata") return;
-      // the source holds no features while GPX or KML is fetched — the data has arrived once it's handed over
-      if (this.shared.fetch) return;
+      // the source holds no features while GPX or KML is fetched, nor stale data while newer data waits for the next flush
+      // (as when a fetch resolves before the empty placeholder has loaded) — the data has arrived once it's handed over
+      if (this.shared.fetch || this.pending.data) return;
       this.isLoadingData = false;
       this.emitDataEvent(() => {
         this.fire("data", { type: "data", target: this });

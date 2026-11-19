@@ -28,8 +28,11 @@ import type { PolygonLayerConstructorOptions, PolygonLayerMode, PolygonLayerStyl
 export class PolygonLayer extends DataLayer<PolygonLayerStyle, PolygonLayerMode> {
   protected override readonly geometryFilter = LINE_AND_POLYGON_GEOMETRY_FILTER;
 
-  /** Pattern URLs that failed to load, filled with `color` instead. */
+  /** Pattern URLs that failed to load, filled with `color` instead — until the pattern is set again or the layer re-added. */
   private readonly failedPatterns = new Set<string>();
+
+  /** Id of the pattern image the fill uses, as of the last build or sync — unset when it fills with `color`. */
+  private patternImageId?: string;
 
   /** Pattern images added to the map, removed with the layer. */
   private readonly addedPatternImages = new Set<string>();
@@ -63,6 +66,8 @@ export class PolygonLayer extends DataLayer<PolygonLayerStyle, PolygonLayerMode>
   //#region CustomLayerInterface
 
   override onAdd(map: MapLibreMap): void {
+    // a new map, or the same one after `map.setStyle()` (which re-adds the layer), gives a pattern that failed another try
+    this.failedPatterns.clear();
     // before the sublayers are added, so the first tiles find their pattern
     (map as SDKMap).addMissingStyleImageResolver(this.resolveImage);
     super.onAdd(map);
@@ -84,19 +89,29 @@ export class PolygonLayer extends DataLayer<PolygonLayerStyle, PolygonLayerMode>
 
   //#region DataLayer
 
-  /** There's no default colour yet, so one of `color` and `pattern` must stay set — whichever is the only one can't be reset. */
-  protected override isRequiredStyleKey(key: keyof PolygonLayerStyle): boolean {
-    if (key === "color") return this.style.pattern === undefined;
-    if (key === "pattern") return this.style.color === undefined;
+  /** There's no default colour yet, so one of `color` and `pattern` must stay set — whichever would be left as the only one can't be reset. */
+  protected override isRequiredStyleKey(key: keyof PolygonLayerStyle, style: Partial<PolygonLayerStyle>): boolean {
+    if (key === "color") return style.pattern === undefined;
+    if (key === "pattern") return style.color === undefined;
     return false;
+  }
+
+  /** Setting `pattern` again, even to the same URL, gives an image that failed to load another try. */
+  override setStyle(style: Partial<PolygonLayerStyle>): this {
+    // off the map — as when the constructor sets the style, before `failedPatterns` exists — nothing has failed, or onAdd clears it
+    if (this.map && style.pattern !== undefined) this.failedPatterns.delete(style.pattern);
+    return super.setStyle(style);
   }
 
   protected addSublayers(map: SDKMap): void {
     for (const layer of this.buildSublayers()) this.addSublayer(map, layer);
+    this.removeUnusedPatternImages();
   }
 
   protected applyStyle(): boolean {
-    return this.syncSublayers(this.buildSublayers());
+    if (!this.syncSublayers(this.buildSublayers())) return false;
+    this.removeUnusedPatternImages();
+    return true;
   }
 
   /** The opacities fade in and out at the zoom range's edges, so a new range or fade restyles the sublayers. */
@@ -116,7 +131,20 @@ export class PolygonLayer extends DataLayer<PolygonLayerStyle, PolygonLayerMode>
     const style = this.resolveStyle();
     const { pattern } = style;
     const patternImageId = pattern !== undefined && !this.failedPatterns.has(pattern) ? this.getPatternImageId(pattern) : undefined;
-    return buildPolygonLayers(style, { layerId: this.id, sourceId: this.getSourceId(), fadeOpacity: this.fadeOpacity, patternImageId });
+    this.patternImageId = patternImageId;
+    return buildPolygonLayers(style, { layerId: this.id, sourceId: this.getSourceId(), fadeOpacity: this.fadeOpacity, warn: this.warnOnce, patternImageId });
+  }
+
+  /** Removes the pattern images the fill no longer uses, such as the previous pattern's once `pattern` changes. */
+  private removeUnusedPatternImages(): void {
+    const map = this.map;
+    if (!map) return;
+    for (const id of this.addedPatternImages) {
+      if (id === this.patternImageId) continue;
+      // `map.setStyle()` may have dropped it already
+      if (map.hasImage(id)) map.removeImage(id);
+      this.addedPatternImages.delete(id);
+    }
   }
 
   private getPatternImageId(url: string): string {
@@ -141,14 +169,15 @@ export class PolygonLayer extends DataLayer<PolygonLayerStyle, PolygonLayerMode>
   private async loadPattern(map: SDKMap, id: string, url: string): Promise<void> {
     try {
       const { data } = await map.loadImage(url);
-      // the layer may have left the map, or the image been added, while it loaded
-      if (this.map !== map || map.hasImage(id)) return;
+      // the layer may have left the map, moved on to another pattern, or the image been added, while it loaded
+      if (this.map !== map || id !== this.patternImageId || map.hasImage(id)) return;
       map.addImage(id, data);
       this.addedPatternImages.add(id);
     } catch (error) {
       console.error(`${this.id}: couldn't load the pattern image "${url}", so the colour is used.`, error);
       this.failedPatterns.add(url);
-      this.requestRebuild();
+      // only the fill's pattern needs dropping — a rebuild would reload the data too
+      if (this.map === map && !this.syncSublayers(this.buildSublayers())) this.requestRebuild();
     }
   }
 

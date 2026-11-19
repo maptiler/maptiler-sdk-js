@@ -78,7 +78,7 @@ export class LineLayer extends DataLayer<LineLayerStyle, LineLayerMode> {
   //#region Internal
 
   private buildSublayers(): SublayerSpecification[] {
-    return buildLineLayers(this.resolveStyle(), { layerId: this.id, sourceId: this.getSourceId(), fadeOpacity: this.fadeOpacity });
+    return buildLineLayers(this.resolveStyle(), { layerId: this.id, sourceId: this.getSourceId(), fadeOpacity: this.fadeOpacity, warn: this.warnOnce });
   }
 
   //#endregion

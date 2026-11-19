@@ -27,6 +27,8 @@ export type PolygonRenderContext = {
   sourceId: string;
   /** Adds the layer's fade at the edges of its zoom range — see `DataLayer.fadeOpacity`. */
   fadeOpacity: (opacity: number | ExpressionSpecification) => number | ExpressionSpecification;
+  /** Logs a warning about the style — once per layer, as the sublayers are rebuilt on every restyle. See `DataLayer.warnOnce`. */
+  warn: (message: string) => void;
   /** Id of the loaded pattern image to fill with — unset to fill with `color`, as when `pattern` is unset or failed to load. */
   patternImageId?: string;
 };
@@ -152,7 +154,7 @@ export function buildPolygonLayers(style: PolygonLayerStyle, context: PolygonRen
         "line-width": width,
         "line-opacity": fade(resolveNumber(outline.opacity ?? DEFAULT_OUTLINE.opacity)),
         "line-blur": resolveNumber(outline.blur ?? DEFAULT_OUTLINE.blur),
-        "line-offset": resolveOutlineOffset(outline.position ?? DEFAULT_OUTLINE.position, width),
+        "line-offset": resolveOutlineOffset(outline.position ?? DEFAULT_OUTLINE.position, width, context.warn),
         // an unset `line-dasharray` must be left out, as `undefined` hides the line
         ...(dash && { "line-dasharray": dash }),
       },
@@ -168,12 +170,16 @@ export function buildPolygonLayers(style: PolygonLayerStyle, context: PolygonRen
  * zoom other than at its top level can't be halved, so it warns and centres
  * the outline instead.
  */
-function resolveOutlineOffset(position: "center" | "inside" | "outside", width: DataDrivenPropertyValueSpecification<number>): DataDrivenPropertyValueSpecification<number> {
+function resolveOutlineOffset(
+  position: "center" | "inside" | "outside",
+  width: DataDrivenPropertyValueSpecification<number>,
+  warn: (message: string) => void,
+): DataDrivenPropertyValueSpecification<number> {
   if (position === "center") return 0;
   const offset = scaleWidth(width, position === "inside" ? 0.5 : -0.5);
   if (offset !== undefined) return offset;
 
-  console.warn(`PolygonLayer: an outline width reading the zoom other than at its top level can't be offset, so the outline is centred rather than ${position}.`);
+  warn(`PolygonLayer: an outline width reading the zoom other than at its top level can't be offset, so the outline is centred rather than ${position}.`);
   return 0;
 }
 
