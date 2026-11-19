@@ -8,6 +8,8 @@ import type {
   Map as MapLibreMap,
   MapLayerMouseEvent,
   MapSourceDataEvent,
+  RequestParameters,
+  ResourceType,
 } from "maplibre-gl";
 import type { FeatureCollection, Feature, Geometry } from "geojson";
 import type { AllLayoutProperties, AllPaintProperties } from "@maplibre/maplibre-gl-style-spec";
@@ -667,6 +669,9 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
    * source on every map the layers sharing it are on. One fetch serves them
    * all, and it's dropped if the data changes meanwhile. A failure fires
    * `error` on each of them.
+   *
+   * The request goes through this layer's map's `transformRequest`, as a
+   * GeoJSON URL does when MapLibre loads it.
    */
   private fetchXml(url: string): void {
     const shared = this.shared;
@@ -674,7 +679,7 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     const request = { url };
     shared.fetch = request;
 
-    fetch(url)
+    fetchSourceUrl(this.map, url)
       .then((response) => {
         if (!response.ok) throw new Error(`Failed to fetch ${url}: status ${String(response.status)}.`);
         return response.text();
@@ -1048,6 +1053,25 @@ function forEachChangedKey(before: object | undefined, after: object | undefined
     // visibility belongs to the data layer, not the sublayer spec
     if (key === "visibility") continue;
     if (!isEqualValue(prev[key], next[key])) apply(key, next[key]);
+  }
+}
+
+/**
+ * Fetches a source's `url` as `map`'s `transformRequest` has it — the URL
+ * rewritten, headers and credentials added — as MapLibre does for the data
+ * it loads itself. Synchronous up to the fetch when `transformRequest` is.
+ */
+function fetchSourceUrl(map: SDKMap | null, url: string): Promise<Response> {
+  const send = ({ url: requestUrl, headers, method, body, credentials, cache, referrerPolicy }: RequestParameters) =>
+    fetch(requestUrl, { headers: headers as HeadersInit | undefined, method, body, credentials, cache, referrerPolicy });
+
+  if (!map) return send({ url });
+  try {
+    const params = map._requestManager.transformRequest(url, "Source" as ResourceType);
+    return params instanceof Promise ? params.then(send) : send(params);
+  } catch (error) {
+    // a throwing transformRequest fails the fetch, firing `error` like any other failure
+    return Promise.reject(error instanceof Error ? error : new Error(String(error)));
   }
 }
 

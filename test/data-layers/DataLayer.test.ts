@@ -568,7 +568,7 @@ describe("DataLayer", () => {
         const { fetch, responses } = deferFetch();
         const layer = addLayer({ data: GPX_URL });
 
-        expect(fetch).toHaveBeenCalledWith(GPX_URL);
+        expect(fetch).toHaveBeenCalledWith(GPX_URL, expect.any(Object));
         expect(sourceData(layer)).toEqual(EMPTY);
 
         responses[0].resolve(GPX);

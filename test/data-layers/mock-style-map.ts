@@ -29,7 +29,10 @@ type MockMapMethod =
   | "on"
   | "off";
 
-export type MockMap = Record<MockMapMethod, Mock>;
+export type MockMap = Record<MockMapMethod, Mock> & {
+  /** Hands back each request as is, as a map without a `transformRequest` does. */
+  _requestManager: { transformRequest: Mock };
+};
 
 export type MockStyleMap = {
   map: MockMap;
@@ -140,6 +143,8 @@ export function createMockStyleMap(options: { styleId?: string } = {}): MockStyl
     }),
 
     getStyleId: vi.fn(() => styleId),
+
+    _requestManager: { transformRequest: vi.fn((url: string) => ({ url })) },
 
     on: vi.fn((type: string, layerIdsOrListener: string | string[] | Listener, maybeListener?: Listener) => {
       if (typeof layerIdsOrListener === "function") {
