@@ -8,19 +8,26 @@ import type {
   Map as MapLibreMap,
   MapLayerMouseEvent,
   MapSourceDataEvent,
+  RequestParameters,
+  ResourceType,
 } from "maplibre-gl";
 import type { FeatureCollection, Feature, Geometry } from "geojson";
 import type { AllLayoutProperties, AllPaintProperties } from "@maplibre/maplibre-gl-style-spec";
 import { v4 as uuidv4 } from "uuid";
 import type { Map as SDKMap } from "../Map";
 import { config } from "../config";
+import { gpxOrKml } from "../converters";
 import { isUUID } from "../tools";
 import { findSublayerOwner, registerDataLayer, unregisterDataLayer } from "./registry";
 import { fadeAtZoomEdges, MAX_ZOOM, MIN_ZOOM, usesZoom } from "./style";
 
 //#region Types
 
-/** GeoJSON data, a URL to GeoJSON, or the UUID of a MapTiler Cloud dataset. */
+/**
+ * GeoJSON data, a URL to GeoJSON, or the UUID of a MapTiler Cloud dataset. A
+ * string can also be GPX or KML content, or the URL of a `.gpx` or `.kml`
+ * file — converted to GeoJSON, as MapLibre only reads GeoJSON.
+ */
 export type DataLayerData = FeatureCollection | Feature | Geometry | string;
 
 /** Any data layer, whatever its style and mode. */
@@ -37,6 +44,12 @@ type SharedData = {
    * draws it again once added back.
    */
   layers: Set<AnyDataLayer>;
+  /** `data` converted to GeoJSON, when it's GPX or KML — at once for content, once fetched for a URL. */
+  converted?: FeatureCollection;
+  /** The fetch of a GPX or KML URL in flight — replaced or cleared when the data changes, so a stale one is dropped. */
+  fetch?: { url: string };
+  /** A GPX or KML URL that failed to load, so it isn't fetched again on every rebuild — until the data is set again. */
+  failedUrl?: string;
 };
 
 /** Options shared by every data layer's constructor. */
@@ -133,6 +146,9 @@ const MOUSE_EVENT_TYPES: readonly DataLayerMouseEventType[] = ["click", "mouseen
 
 const DEFAULT_FADE = 0.25;
 
+/** What the source holds while GPX or KML is loading, or after it failed to. */
+const EMPTY_FEATURE_COLLECTION: FeatureCollection = { type: "FeatureCollection", features: [] };
+
 //#endregion
 
 /**
@@ -177,7 +193,9 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
 
   /** Whether the user set the fade, so is told when an opacity of their own replaces it. */
   private isFadeSet: boolean;
-  private hasWarnedFadeReplaced = false;
+
+  /** Warnings already logged, so one raised by every restyle is logged once per layer. */
+  private readonly loggedWarnings = new Set<string>();
 
   /**
    * Layer the controller sat beneath when last added or moved by the user, or
@@ -247,7 +265,7 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
       if (!options.data.canShareSource()) throw new Error(`${this.id}: "${options.data.id}" can't share its source, as it clusters.`);
       this.shared = options.data.shared;
     } else {
-      this.shared = { sourceId: `${this.id}-source`, data: options.data, layers: new Set() };
+      this.shared = { sourceId: `${this.id}-source`, data: options.data, layers: new Set(), converted: convertXmlContent(options.data) };
     }
     this.style = {} as TStyle;
     if (options.style) this.setStyle(options.style);
@@ -286,8 +304,9 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
   /**
    * Whether a style key has no default, so {@link setStyle} won't reset it.
    * Unset, every key can be reset. Called from the constructor, so it can't rely on the subclass's fields.
+   * @param style - The style as it would be once the whole `setStyle` call is applied, with `key` reset.
    */
-  protected isRequiredStyleKey?(key: keyof TStyle): boolean;
+  protected isRequiredStyleKey?(key: keyof TStyle, style: Partial<TStyle>): boolean;
 
   /** Whether other layers can draw this layer's source — not when its source is set up for this layer alone, such as clustered. */
   protected canShareSource(): boolean {
@@ -349,7 +368,9 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
 
     this.isAdding = true;
     try {
-      this.bindMapListeners();
+      // putting itself back after map.setStyle keeps its map listeners — rebinding would move its `style.load` listener
+      // behind listeners added since, which would then run on the next style change before it has put itself back
+      if (!this.isRestoring) this.bindMapListeners();
       this.build();
     } finally {
       this.isAdding = false;
@@ -388,9 +409,16 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
 
   //#region Data
 
-  /** Replaces the layer's data — and that of the layers sharing its source. */
+  /**
+   * Replaces the layer's data — and that of the layers sharing its source.
+   * @throws Error when `data` is a string of XML that isn't GPX or KML.
+   */
   setData(data: DataLayerData): this {
+    const converted = convertXmlContent(data);
     this.shared.data = data;
+    this.shared.converted = converted;
+    this.shared.fetch = undefined;
+    this.shared.failedUrl = undefined;
     // every layer on a map is told — so the data still arrives if one is removed before its frame, and on each map
     // the layers sharing the source are on. The first to flush on each map applies it for the rest there (see markDataApplied).
     for (const layer of this.shared.layers) {
@@ -426,16 +454,21 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
    * one, which has no default, so it keeps its value.
    */
   setStyle(style: Partial<TStyle>): this {
-    for (const key of Object.keys(style) as (keyof TStyle)[]) {
-      if (style[key] === undefined) {
-        if (this.isRequiredStyleKey?.(key)) {
-          console.warn(`"${String(key)}" is required and can't be reset, so it keeps its value.`);
-          continue;
-        }
-        Reflect.deleteProperty(this.style, key);
-      } else {
-        this.style[key] = style[key] as TStyle[keyof TStyle];
+    const keys = Object.keys(style) as (keyof TStyle)[];
+    const merged: Partial<TStyle> = { ...this.style };
+    for (const key of keys) {
+      if (style[key] === undefined) Reflect.deleteProperty(merged, key);
+      else merged[key] = style[key];
+    }
+
+    for (const key of keys) {
+      // judged against the whole change, so a key that's only required without another set in the same call (such as `color` without `pattern`) doesn't depend on the keys' order
+      if (style[key] === undefined && this.isRequiredStyleKey?.(key, merged)) {
+        console.warn(`"${String(key)}" is required and can't be reset, so it keeps its value.`);
+        continue;
       }
+      if (style[key] === undefined) Reflect.deleteProperty(this.style, key);
+      else this.style[key] = style[key] as TStyle[keyof TStyle];
       this.pending.style.add(key);
       // changes made before the layer is added are part of the add, so fire nothing
       if (this.map) this.unreportedStyleKeys.add(key);
@@ -586,11 +619,19 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
   protected readonly fadeOpacity = (opacity: number | ExpressionSpecification): number | ExpressionSpecification => {
     if (!usesZoom(opacity)) return fadeAtZoomEdges(opacity, this.minzoom, this.maxzoom, this.fade);
 
-    if (this.isFadeSet && this.fade > 0 && !this.hasWarnedFadeReplaced) {
-      this.hasWarnedFadeReplaced = true;
-      console.warn(`${this.id}: the opacity depends on the zoom, so it replaces the layer's fade.`);
-    }
+    if (this.isFadeSet && this.fade > 0) this.warnOnce(`${this.id}: the opacity depends on the zoom, so it replaces the layer's fade.`);
     return opacity;
+  };
+
+  /**
+   * Logs `message` unless this layer has logged it already — for warnings
+   * raised while building the sublayers, which happens on every restyle.
+   */
+  // an arrow, so renderers can be handed it
+  protected readonly warnOnce = (message: string): void => {
+    if (this.loggedWarnings.has(message)) return;
+    this.loggedWarnings.add(message);
+    console.warn(message);
   };
 
   /** Whether another layer sharing the source is on `map`, so still draws it. */
@@ -605,13 +646,68 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     return { filter: filter ? ["all", geometryFilter, filter as ExpressionSpecification] : geometryFilter };
   }
 
-  /** The data to hand to the source — a UUID becomes its MapTiler Cloud dataset URL. */
+  /**
+   * The data to hand to the source — a UUID becomes its MapTiler Cloud dataset
+   * URL, and GPX or KML becomes GeoJSON. A GPX or KML URL is fetched first, the
+   * source holding no features until it's loaded.
+   */
   protected resolveSourceData(): GeoJSONSourceSpecification["data"] {
-    const { data } = this.shared;
+    const { data, converted } = this.shared;
+    if (converted) return converted;
     if (typeof data === "string" && isUUID(data)) {
       return `${config.apiURL}data/${data}/features.json?key=${config.apiKey}`;
     }
+    if (typeof data === "string" && isXmlUrl(data)) {
+      if (this.shared.failedUrl !== data) this.fetchXml(data);
+      return EMPTY_FEATURE_COLLECTION;
+    }
     return data as GeoJSONSourceSpecification["data"];
+  }
+
+  /**
+   * Fetches GPX or KML from `url` and converts it, then hands it to the
+   * source on every map the layers sharing it are on. One fetch serves them
+   * all, and it's dropped if the data changes meanwhile. A failure fires
+   * `error` on each of them.
+   *
+   * The request goes through this layer's map's `transformRequest`, as a
+   * GeoJSON URL does when MapLibre loads it.
+   */
+  private fetchXml(url: string): void {
+    const shared = this.shared;
+    if (shared.fetch?.url === url) return;
+    const request = { url };
+    shared.fetch = request;
+
+    fetchSourceUrl(this.map, url)
+      .then((response) => {
+        if (!response.ok) throw new Error(`Failed to fetch ${url}: status ${String(response.status)}.`);
+        return response.text();
+      })
+      .then((text) => {
+        if (shared.fetch !== request) return;
+        const converted = gpxOrKml(text);
+        if (!converted) throw new Error(`${url} is neither GPX nor KML.`);
+        shared.fetch = undefined;
+        shared.converted = converted;
+        for (const layer of shared.layers) {
+          if (!layer.map) continue;
+          layer.pending.data = true;
+          layer.scheduleFlush();
+        }
+      })
+      .catch((error: unknown) => {
+        if (shared.fetch !== request) return;
+        shared.fetch = undefined;
+        shared.failedUrl = url;
+        for (const layer of shared.layers) {
+          if (!layer.map) continue;
+          layer.isLoadingData = false;
+          layer.emitDataEvent(() => {
+            layer.fire("error", { type: "error", target: layer, error: error instanceof Error ? error : new Error(String(error)) });
+          });
+        }
+      });
   }
 
   /**
@@ -692,8 +788,7 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
         return;
       }
 
-      // detach first — onAdd rebinds everything
-      this.unbindMapListeners();
+      // its map listeners stay bound — onAdd skips binding them while restoring
       map.addLayer(this, beforeId);
     });
   };
@@ -720,7 +815,10 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     const map = this.map;
     if (!map) return;
     const order = map.getLayersOrder();
-    const above = order.at(order.indexOf(this.id) + 1);
+    const index = order.indexOf(this.id);
+    // not on the style — mid style change — so there's no position to note, and the hint it has still stands
+    if (index === -1) return;
+    const above = order.at(index + 1);
     this.beforeId = above === undefined ? undefined : (findSublayerOwner(map, above) ?? above);
   }
 
@@ -836,6 +934,9 @@ export abstract class DataLayer<TStyle extends object, TMode extends string> imp
     const onData = (event: MapSourceDataEvent) => {
       // the metadata event reports loaded before the tiles have reloaded — wait for the content or the last tile
       if (event.sourceId !== this.getSourceId() || !this.isLoadingData || !event.isSourceLoaded || event.sourceDataType === "metadata") return;
+      // the source holds no features while GPX or KML is fetched, nor stale data while newer data waits for the next flush
+      // (as when a fetch resolves before the empty placeholder has loaded) — the data has arrived once it's handed over
+      if (this.shared.fetch || this.pending.data) return;
       this.isLoadingData = false;
       this.emitDataEvent(() => {
         this.fire("data", { type: "data", target: this });
@@ -955,9 +1056,44 @@ function forEachChangedKey(before: object | undefined, after: object | undefined
   }
 }
 
+/**
+ * Fetches a source's `url` as `map`'s `transformRequest` has it — the URL
+ * rewritten, headers and credentials added — as MapLibre does for the data
+ * it loads itself. Synchronous up to the fetch when `transformRequest` is.
+ */
+function fetchSourceUrl(map: SDKMap | null, url: string): Promise<Response> {
+  const send = ({ url: requestUrl, headers, method, body, credentials, cache, referrerPolicy }: RequestParameters) =>
+    fetch(requestUrl, { headers: headers as HeadersInit | undefined, method, body, credentials, cache, referrerPolicy });
+
+  if (!map) return send({ url });
+  try {
+    const params = map._requestManager.transformRequest(url, "Source" as ResourceType);
+    return params instanceof Promise ? params.then(send) : send(params);
+  } catch (error) {
+    // a throwing transformRequest fails the fetch, firing `error` like any other failure
+    return Promise.reject(error instanceof Error ? error : new Error(String(error)));
+  }
+}
+
 /** Structural equality for style values (JSON-compatible by definition). */
 function isEqualValue(a: unknown, b: unknown): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
+}
+
+/** Whether `data` is the URL of a GPX or KML file, by its extension — a query or hash after it is fine. */
+function isXmlUrl(data: string): boolean {
+  return /\.(?:gpx|kml)(?:[?#].*)?$/i.test(data.trim());
+}
+
+/**
+ * `data` converted to GeoJSON when it's GPX or KML content — a string starting with `<`.
+ * @throws Error when it's XML but neither GPX nor KML, so the error points at the line that passed it.
+ */
+function convertXmlContent(data: DataLayerData | AnyDataLayer): FeatureCollection | undefined {
+  if (typeof data !== "string" || !data.trimStart().startsWith("<")) return undefined;
+  const converted = gpxOrKml(data);
+  if (!converted) throw new Error("Data layer: the data is XML, but neither GPX nor KML.");
+  return converted;
 }
 
 function createPendingUpdates<TStyle>(): PendingDataLayerUpdates<TStyle> {

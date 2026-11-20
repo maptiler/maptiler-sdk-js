@@ -32,6 +32,15 @@
   - Built on `DataLayer`, a base class for upcoming data layers.
 - Introduces `HeatmapLayer`, a stateful heatmap of points and the successor to `helpers.addHeatmap`, with its style options and defaults under the data layers' shared names (`color` for `colorRamp`).
   - `property` on its own weights each point by its value. `weight`, `radius`, `intensity` and `opacity` also take MapLibre expressions.
+- Introduces `PolygonLayer`, a stateful layer of polygons and the successor to `helpers.addPolygon`, with its style options and defaults under the data layers' shared names (`color` for `fillColor`, `opacity` for `fillOpacity`).
+  - `color` is required, or a `pattern` image URL in its place. A pattern that fails to load falls back to `color`, and is tried again when `pattern` is set again.
+  - `outline` and `glow` turn on with `true`, or with an object of values over their defaults. The outline can sit on, inside or outside the edge, and be dashed.
+  - Draws polygons, and fills lines as rings closed back to their start. Points are skipped.
+- Introduces `LineLayer`, a stateful layer of lines and the successor to `helpers.addPolyline`, with its style options and defaults under the data layers' shared names (`color` for `lineColor`, `width` for `lineWidth`, …).
+  - `color` is required. `width` also takes `PropertyValues`, read at `property`.
+  - `dash` takes `true`, `"dashed"`, `"dotted"`, an array of dash and gap lengths, or a `"__ _"` string. `outline` (a solid casing beneath) and `glow` turn on with `true`, or with an object of values over their defaults.
+  - Draws lines, and polygons' rings as lines. Points are skipped.
+- Data layers take GPX and KML, as content or as the URL of a `.gpx` or `.kml` file, converted to GeoJSON. A URL is fetched through the map's `transformRequest`, as GeoJSON URLs are, and a failed fetch fires `error`.
 - Data layers fade in and out at the edges of their zoom range, over a `fade` span set in the constructor or with `setZoomRange()`, so a heatmap can cross-fade into a `PointLayer` drawn from its source.
 - Data layers can share another data layer's source, given as their `data`, loading the data once per map.
 - Data layers fire `stylechange`, `zoomrangechange` and `visibilitychange` once a change shows on the map, `add` and `remove` when added to or removed from a map, and `move` when moved.
@@ -62,7 +71,7 @@
   - The `Minimap` no longer inherits the parent map's `space` and `halo` options.
 
 ### ⚙️ Others
-- Deprecates `helpers.addPoint` in favour of `PointLayer`, and `helpers.addHeatmap` in favour of `HeatmapLayer`.
+- Deprecates `helpers.addPoint` in favour of `PointLayer`, `helpers.addHeatmap` in favour of `HeatmapLayer`, `helpers.addPolygon` in favour of `PolygonLayer`, and `helpers.addPolyline` in favour of `LineLayer`.
 - Bumps `maplibre-gl` to 6.11.2 and `@maplibre/maplibre-gl-style-spec` to 26.
 - Switches internal `maplibre-gl` imports to named imports.
 - Documents worker setup per bundler, CSP requirements, self-hosted UMD worker files and TypeScript `moduleResolution` in the README.
