@@ -215,6 +215,83 @@ export function changeFirstLanguage(origExpr: ExpressionSpecification, replacer:
 }
 
 /**
+ * True for a lookup of a label name, `["get", "name"]` or `["get", "name:xx"]`
+ */
+function isNameLookup(expr: unknown): boolean {
+  return Array.isArray(expr) && expr.length === 2 && expr[0] === "get" && typeof expr[1] === "string" && (expr[1] === "name" || expr[1].startsWith("name:"));
+}
+
+/**
+ * Where a sub-expression of a `text-field` sits: a "formatted" position is one whose value is the label itself
+ * (the root, or an output of `case`, `step`, `match` or `coalesce` there), where a `format` expression is valid.
+ * Anywhere else (e.g. inside `concat`) only a string is.
+ */
+type TextFieldPosition = "formatted" | "string";
+
+/**
+ * Replaces the name lookups (`["get", "name"]`, `["get", "name:xx"]`) of a `text-field` expression by the given
+ * language expression, keeping the rest of the expression as is, e.g. elevations, airport codes, zoom steps.
+ * - `replacer` is used where the label itself is the value, so it can be a `format` expression
+ * - `stringReplacer` is used inside other expressions, such as `concat`, where only a string is valid
+ * - Conditions (of `case`), inputs and labels (of `step` and `match`) are kept as they are
+ * - Consecutive name lookups in a `coalesce` (e.g. `["coalesce", ["get", "name:en"], ["get", "name"]]`) are
+ *   replaced by a single language expression, as are `concat`s of several names (labels in two languages)
+ * The expression given is not modified, a new one is returned.
+ */
+export function replaceLanguageInExpression(expr: ExpressionSpecification, replacer: ExpressionSpecification, stringReplacer: ExpressionSpecification): ExpressionSpecification {
+  const languageAt = (position: TextFieldPosition) => structuredClone(position === "formatted" ? replacer : stringReplacer);
+
+  const walk = (node: unknown, position: TextFieldPosition): unknown => {
+    if (!Array.isArray(node)) return node;
+    if (isNameLookup(node)) return languageAt(position);
+
+    const [operator, ...args] = node as unknown[];
+
+    switch (operator) {
+      // A literal is data, not an expression
+      case "literal":
+        return node;
+
+      case "coalesce": {
+        const updated: unknown[] = [];
+        args.forEach((arg, i) => {
+          if (!isNameLookup(arg)) {
+            updated.push(walk(arg, position));
+          } else if (i === 0 || !isNameLookup(args[i - 1])) {
+            updated.push(languageAt(position));
+          }
+        });
+        // The name lookups were the only values
+        if (updated.length === 1) return updated[0];
+        return [operator, ...updated];
+      }
+
+      // ["case", condition, output, condition, output, ..., fallback]
+      case "case":
+        return [operator, ...args.map((arg, i) => (i % 2 === 1 || i === args.length - 1 ? walk(arg, position) : arg))];
+
+      // ["step", input, output, stop, output, ...]
+      case "step":
+        return [operator, ...args.map((arg, i) => (i > 0 && i % 2 === 1 ? walk(arg, position) : arg))];
+
+      // ["match", input, label, output, label, output, ..., fallback]
+      case "match":
+        return [operator, ...args.map((arg, i) => (i > 0 && (i % 2 === 0 || i === args.length - 1) ? walk(arg, position) : arg))];
+
+      // A label in two languages (several names) becomes a single language one
+      case "concat":
+        if (args.filter(isNameLookup).length > 1) return languageAt(position);
+        return [operator, ...args.map((arg) => walk(arg, "string"))];
+
+      default:
+        return [operator, ...args.map((arg) => walk(arg, "string"))];
+    }
+  };
+
+  return walk(expr, "formatted") as ExpressionSpecification;
+}
+
+/**
  * If `localized` is `true`, it checks for the pattern "{name:xx}" (with "xx" being a language iso string).
  * If `localized` is `false`, it check for {name}.
  * In a exact way or is a loose way (such as "foo {name:xx}" or "foo {name} bar")

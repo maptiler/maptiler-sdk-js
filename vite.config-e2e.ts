@@ -10,6 +10,7 @@ export default defineConfig({
         animatedRouteLayer: 'public/animatedRouteLayer.html',
         haloSpace: 'public/haloSpace.html',
         imageViewer: 'public/imageViewer.html',
+        languageExpressions: 'public/languageExpressions.html',
       },
     },
   },
