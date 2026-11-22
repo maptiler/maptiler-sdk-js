@@ -299,6 +299,7 @@ export default class ImageViewer extends Evented<ImageViewerEventType> {
 
       await this.fetchImageMetadata();
 
+      console.log("INIT")
       this.addImageSource();
 
       if (this.options.navigationControl) {
@@ -444,6 +445,13 @@ export default class ImageViewer extends Evented<ImageViewerEventType> {
     const nw = this.pxToLngLat([0, 0]);
     const se = this.pxToLngLat(this.imageSize);
     const bounds: [number, number, number, number] = [nw.lng, se.lat, se.lng, nw.lat];
+
+    // Restrict panning to the image. The constrain function wraps the west edge, which maps -180 to 180,
+    // so it is nudged inside the world the same way the constrain function does for unbounded maps.
+    this.sdk.setMaxBounds([
+      [Math.max(nw.lng, -180 + 1e-10), se.lat],
+      [se.lng, nw.lat],
+    ]);
 
     this.sdk.addSource("image", {
       ...this.imageMetadata,
