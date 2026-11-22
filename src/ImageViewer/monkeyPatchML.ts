@@ -1,4 +1,4 @@
-import { LngLat, MarkerMLGL as Marker, Point, PositionAnchor, TransformConstrainFunction } from "../index";
+import { LngLat, MarkerMLGL as Marker, Point, PositionAnchor } from "../index";
 import { Map } from "../Map";
 import { MercatorCoordinate } from "..";
 
@@ -49,11 +49,7 @@ function projectToWorldCoordinates(worldSize: number, lnglat: LngLat): Point {
   return new Point(mercatorXfromLng(lnglat.lng) * worldSize, mercatorYfromLat(lat) * worldSize);
 }
 
-export const overpanningUnderzoomingTransformConstrain: TransformConstrainFunction = function (
-  this: Map["_camera"]["transform"],
-  lngLat: LngLat,
-  zoom: number,
-): { center: LngLat; zoom: number } {
+export function overpanningUnderzoomingTransformConstrain(this: Map["_camera"]["transform"], lngLat: LngLat, zoom: number, allowZoomIn = true): { center: LngLat; zoom: number } {
   zoom = clamp(zoom, this.minZoom, this.maxZoom);
   const result = {
     center: new LngLat(lngLat.lng, lngLat.lat),
@@ -101,41 +97,22 @@ export const overpanningUnderzoomingTransformConstrain: TransformConstrainFuncti
 
   const scale = Math.min(scaleX || 0, scaleY || 0);
 
-  if (scale) {
-    // zoom in to exclude all beyond the given lng/lat ranges
-    result.zoom += scaleZoom(scale);
-    return result;
+  if (scale && allowZoomIn) {
+    // zoom in to exclude all beyond the given lng/lat ranges,
+    // then constrain the center at the new zoom (without zooming in again, which could loop on rounding errors)
+    return overpanningUnderzoomingTransformConstrain.call(this, lngLat, result.zoom + scaleZoom(scale), false);
   }
 
-  // Panning up and down in latitude is externally limited by project() with MAX_VALID_LATITUDE.
-  // This limit prevents panning the top and bottom bounds farther than the center of the viewport.
-  // Due to the complexity and consequence of altering project() or MAX_VALID_LATITUDE, we'll simply limit
-  // the overpan.
-  let lngOverpan = 0.0;
-  let latOverpan = 0.0;
-
-  const overpan = 1.0;
-  const latUnderzoomMinimumPan = 1.0 - (maxY - minY) / screenHeight;
-  const lngUnderzoomMinimumPan = 1.0 - (maxX - minX) / screenWidth;
-  lngOverpan = Math.max(lngUnderzoomMinimumPan, overpan);
-  latOverpan = Math.max(latUnderzoomMinimumPan, overpan);
-
-  const lngPanScale = 1.0 - lngOverpan;
-  const latPanScale = 1.0 - latOverpan;
-
+  // Keep the viewport center within the bounds, so the bounds edges can be panned at most to the center of the viewport.
+  // This is the same on all sides and at any zoom, as the center never needs to leave the bounds, and so the world.
   if (latRange) {
-    const h2 = (latPanScale * screenHeight) / 2;
-    if (originalY - h2 < minY) modifiedY = minY + h2;
-    if (originalY + h2 > maxY) modifiedY = maxY - h2;
+    if (originalY < minY) modifiedY = minY;
+    if (originalY > maxY) modifiedY = maxY;
   }
 
   if (lngRange) {
-    const wrappedX = originalX;
-
-    const w2 = (lngPanScale * screenWidth) / 2;
-
-    if (wrappedX - w2 < minX) modifiedX = minX + w2;
-    if (wrappedX + w2 > maxX) modifiedX = maxX - w2;
+    if (originalX < minX) modifiedX = minX;
+    if (originalX > maxX) modifiedX = maxX;
   }
 
   // pan the map if the screen goes off the range
@@ -145,7 +122,7 @@ export const overpanningUnderzoomingTransformConstrain: TransformConstrainFuncti
   }
 
   return result;
-};
+}
 
 export const anchorTranslate: Record<PositionAnchor, string> = {
   center: "translate(-50%,-50%)",

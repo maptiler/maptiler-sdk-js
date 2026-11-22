@@ -49,6 +49,8 @@ vi.mock("../src/Map", async () => {
         project: vi.fn((lngLat: LngLat) => ({ x: lngLat.lng * 100, y: lngLat.lat * 100 })),
         unproject: vi.fn((point: [number, number]) => ({ lng: point[0] / 100, lat: point[1] / 100 })),
 
+        setMaxBounds: vi.fn(),
+
         // Style methods
         addSource: vi.fn(),
         addLayer: vi.fn(),
