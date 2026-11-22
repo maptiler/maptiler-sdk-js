@@ -299,7 +299,6 @@ export default class ImageViewer extends Evented<ImageViewerEventType> {
 
       await this.fetchImageMetadata();
 
-      console.log("INIT")
       this.addImageSource();
 
       if (this.options.navigationControl) {
