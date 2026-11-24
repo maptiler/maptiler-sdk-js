@@ -7,7 +7,8 @@
 - Adds cropping the image of `ImageViewer` with a cutline: a polygon on the image, in image pixels. The outside of the cutline can be hidden or have overlay.
 
 ### 🐛 Bug Fixes
-None
+- Fixes `enableTerrain()` (or `terrain: true`) throwing "Style is not done loading." when the map container is resized before the style has loaded
+- Fixes `enableTerrain()` not enabling terrain when called while a new style set with `setStyle()` is still loading
 
 ### ⚙️ Others
 - Bumps `maplibre-gl` to 6.16.0.
