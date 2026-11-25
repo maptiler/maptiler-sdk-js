@@ -2161,11 +2161,13 @@ export class Map extends MapMLGL {
         addTerrain();
       };
 
-      this.once(this.style._loaded ? "render" : "load", () => {
-        checkSourceAndAddTerrain();
-      });
-
-      this.once("moveend", () => {
+      // The terrain source can only be added once the style is loaded:
+      // - style already loaded (e.g. map busy with a camera animation): on the next render
+      // - otherwise: on "style.load", which fires for every style load, unlike "load",
+      //   which fires once per map and would never come during a later setStyle.
+      // Do not listen to camera events here: MapLibre fires "moveend" on resize,
+      // which can happen before the style is loaded and make addSource throw.
+      this.once(this.style._loaded ? "render" : "style.load", () => {
         checkSourceAndAddTerrain();
       });
     }
